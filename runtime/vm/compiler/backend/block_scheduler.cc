@@ -106,7 +106,7 @@ struct Edge {
 };
 
 // A linked list node in a chain of blocks.
-struct Link : public ZoneAllocated {
+struct Link : public ZoneObject {
   Link(BlockEntryInstr* block, Link* next) : block(block), next(next) {}
 
   BlockEntryInstr* block;
@@ -115,7 +115,7 @@ struct Link : public ZoneAllocated {
 
 // A chain of blocks with first and last pointers for fast concatenation and
 // a length to support adding a shorter chain's links to a longer chain.
-struct Chain : public ZoneAllocated {
+struct Chain : public ZoneObject {
   explicit Chain(BlockEntryInstr* block)
       : first(new Link(block, nullptr)), last(first), length(1) {}
 

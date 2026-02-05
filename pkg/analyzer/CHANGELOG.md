@@ -1,6 +1,6 @@
 ## 10.1.0-dev
 
-* Internal changes only
+* Remove experimental `ConstructorElement.isDeclaring`.
 
 ## 10.0.2
 

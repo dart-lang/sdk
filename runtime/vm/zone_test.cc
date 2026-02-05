@@ -135,7 +135,7 @@ VM_UNIT_TEST_CASE(ZoneRealloc) {
   Dart_ShutdownIsolate();
 }
 
-VM_UNIT_TEST_CASE(ZoneAllocated) {
+VM_UNIT_TEST_CASE(ZoneObject) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
@@ -144,7 +144,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
   EXPECT(thread->zone() == nullptr);
   static int marker;
 
-  class SimpleZoneObject : public ZoneAllocated {
+  class SimpleZoneObject : public ZoneObject {
    public:
     SimpleZoneObject() : slot(marker++) {}
     virtual ~SimpleZoneObject() {}
@@ -162,7 +162,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
     EXPECT_EQ(0UL, zone.SizeInBytes());
     SimpleZoneObject* first = new SimpleZoneObject();
     EXPECT(first != nullptr);
-    SimpleZoneObject* second = new SimpleZoneObject();
+    SimpleZoneObject* second = zone.GetZone()->New<SimpleZoneObject>();
     EXPECT(second != nullptr);
     EXPECT(first != second);
     uintptr_t expected_size = (2 * sizeof(SimpleZoneObject));

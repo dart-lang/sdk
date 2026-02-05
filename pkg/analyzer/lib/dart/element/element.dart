@@ -229,10 +229,6 @@ abstract class ConstructorElement implements ExecutableElement {
   /// Whether the constructor is a const constructor.
   bool get isConst;
 
-  /// Whether this is a declaring constructor.
-  @experimental
-  bool get isDeclaring;
-
   /// Whether the constructor can be used as a default constructor - unnamed,
   /// and has no required parameters.
   bool get isDefaultConstructor;
@@ -264,7 +260,6 @@ abstract class ConstructorElement implements ExecutableElement {
   bool get isOriginMixinApplication;
 
   /// Whether this is a primary constructor.
-  /// When `true`, [isDeclaring] is also `true`.
   @experimental
   bool get isPrimary;
 

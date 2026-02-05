@@ -72,7 +72,7 @@ class VariableIndex {
   int value_;
 };
 
-class LocalVariable : public ZoneAllocated {
+class LocalVariable : public ZoneObject {
  public:
   static constexpr intptr_t kNoKernelOffset = -1;
 
@@ -310,7 +310,7 @@ class LocalVarDescriptorsBuilder : public ValueObject {
   GrowableArray<VarDesc> vars_;
 };
 
-class LocalScope : public ZoneAllocated {
+class LocalScope : public ZoneObject {
  public:
   LocalScope(LocalScope* parent, int function_level, int loop_level);
 

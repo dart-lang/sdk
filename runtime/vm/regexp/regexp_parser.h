@@ -12,7 +12,7 @@
 namespace dart {
 
 // Accumulates RegExp atoms and assertions into lists of terms and alternatives.
-class RegExpBuilder : public ZoneAllocated {
+class RegExpBuilder : public ZoneObject {
  public:
   explicit RegExpBuilder(RegExpFlags flags);
 
@@ -154,7 +154,7 @@ class RegExpParser : public ValueObject {
     GROUPING
   };
 
-  class RegExpParserState : public ZoneAllocated {
+  class RegExpParserState : public ZoneObject {
    public:
     RegExpParserState(RegExpParserState* previous_state,
                       SubexpressionType group_type,

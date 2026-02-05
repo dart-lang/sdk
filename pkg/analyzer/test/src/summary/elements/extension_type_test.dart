@@ -144,7 +144,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        const declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        const isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -212,7 +212,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -288,7 +288,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary primary
+        isExtensionTypeMember isOriginDeclaration isPrimary primary
           reference: <testLibrary>::@extensionType::A::@constructor::primary
           firstFragment: #F3
           formalParameters
@@ -364,7 +364,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::_it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -442,7 +442,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::_123
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_123
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -519,7 +519,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::_it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -596,7 +596,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -672,7 +672,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -749,7 +749,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary primary
+        isExtensionTypeMember isOriginDeclaration isPrimary primary
           reference: <testLibrary>::@extensionType::A::@constructor::primary
           firstFragment: #F3
           formalParameters
@@ -826,7 +826,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary primary
+        isExtensionTypeMember isOriginDeclaration isPrimary primary
           reference: <testLibrary>::@extensionType::A::@constructor::primary
           firstFragment: #F3
           formalParameters
@@ -904,7 +904,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -980,7 +980,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@def::0::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new::@def::0
           firstFragment: #F3
           formalParameters
@@ -1057,7 +1057,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -1135,7 +1135,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -1213,7 +1213,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -1294,7 +1294,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2232,7 +2232,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2523,7 +2523,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2593,7 +2593,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2662,7 +2662,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2725,7 +2725,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2788,7 +2788,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2851,7 +2851,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2917,7 +2917,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -2981,7 +2981,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3044,7 +3044,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3108,7 +3108,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3171,7 +3171,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3235,7 +3235,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3298,7 +3298,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3362,7 +3362,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3425,7 +3425,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3489,7 +3489,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3552,7 +3552,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3615,7 +3615,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3678,7 +3678,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3742,7 +3742,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3805,7 +3805,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3869,7 +3869,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -3934,7 +3934,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4003,7 +4003,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4071,7 +4071,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4138,7 +4138,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4204,7 +4204,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4268,7 +4268,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4333,7 +4333,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4402,7 +4402,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4469,7 +4469,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4553,7 +4553,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4584,7 +4584,7 @@ library
           getter: <testLibrary>::@extensionType::B::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::B::@constructor::new
           firstFragment: #F8
           formalParameters
@@ -4647,7 +4647,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4711,7 +4711,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4776,7 +4776,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4844,7 +4844,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4910,7 +4910,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -4974,7 +4974,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5039,7 +5039,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5108,7 +5108,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5176,7 +5176,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5245,7 +5245,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5313,7 +5313,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5382,7 +5382,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::a
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5448,7 +5448,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::A
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::A
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5512,7 +5512,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::A
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::A
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5591,7 +5591,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5658,7 +5658,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
       getters
@@ -5713,7 +5713,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
       getters
@@ -5771,7 +5771,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5835,7 +5835,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -5914,7 +5914,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -6002,7 +6002,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -6069,7 +6069,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::_it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -6129,7 +6129,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::_it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -6192,7 +6192,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -6255,7 +6255,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -6318,7 +6318,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -6384,7 +6384,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -6448,7 +6448,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -6507,7 +6507,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
       getters
@@ -6566,7 +6566,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::name::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary name
+        isExtensionTypeMember isOriginDeclaration isPrimary name
           reference: <testLibrary>::@extensionType::A::@constructor::name
           firstFragment: #F3
           formalParameters
@@ -6697,7 +6697,7 @@ library
             expression: expression_0
           getter: <testLibrary>::@extensionType::E::@getter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::E::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -6801,7 +6801,7 @@ library
           getter: <testLibrary>::@extensionType::E::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::E::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -6864,7 +6864,7 @@ library
           getter: <testLibrary>::@extensionType::E::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
       constructors
-        const declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        const isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::E::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -6960,7 +6960,7 @@ library
           getter: <testLibrary>::@extensionType::E::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
       constructors
-        const declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        const isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::E::@constructor::new
           firstFragment: #F3
           metadata
@@ -7062,7 +7062,7 @@ library
           getter: <testLibrary>::@extensionType::E::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::E::@constructor::new
           firstFragment: #F3
           metadata
@@ -7133,7 +7133,7 @@ library
           getter: <testLibrary>::@extensionType::E::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::named::@formalParameter::it
       constructors
-        const declaring isExtensionTypeMember isOriginDeclaration isPrimary named
+        const isExtensionTypeMember isOriginDeclaration isPrimary named
           reference: <testLibrary>::@extensionType::E::@constructor::named
           firstFragment: #F3
           formalParameters
@@ -7212,7 +7212,7 @@ library
           getter: <testLibrary>::@extensionType::E::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
       constructors
-        const declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        const isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::E::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -7376,7 +7376,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -7404,7 +7404,7 @@ library
           getter: <testLibrary>::@extensionType::B::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::B::@constructor::new
           firstFragment: #F8
           formalParameters
@@ -7482,7 +7482,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -7510,7 +7510,7 @@ library
           getter: <testLibrary>::@extensionType::B::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::B::@constructor::new
           firstFragment: #F8
           formalParameters
@@ -7570,7 +7570,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -7913,7 +7913,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -8023,7 +8023,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -8120,7 +8120,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -8219,7 +8219,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -8326,7 +8326,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -8424,7 +8424,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary named
+        isExtensionTypeMember isOriginDeclaration isPrimary named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -8534,7 +8534,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -8685,7 +8685,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -8837,7 +8837,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -8992,7 +8992,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -9114,7 +9114,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -9231,7 +9231,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -9356,7 +9356,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo2
           setter: <testLibrary>::@extensionType::A::@setter::foo2
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -9491,7 +9491,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo2
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -9620,7 +9620,7 @@ library
           type: T
           getter: <testLibrary>::@extensionType::A::@getter::foo2
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F8
           formalParameters
@@ -9740,7 +9740,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -9893,7 +9893,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -10019,7 +10019,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo2
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -10160,7 +10160,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -10440,7 +10440,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -10468,7 +10468,7 @@ library
           getter: <testLibrary>::@extensionType::I1::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I1::@constructor::new
           firstFragment: #F12
           formalParameters
@@ -10496,7 +10496,7 @@ library
           getter: <testLibrary>::@extensionType::I2::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F21
           formalParameters
@@ -10524,7 +10524,7 @@ library
           getter: <testLibrary>::@extensionType::I3::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I3::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I3::@constructor::new
           firstFragment: #F26
           formalParameters
@@ -10658,7 +10658,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -10686,7 +10686,7 @@ library
           getter: <testLibrary>::@extensionType::I1::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I1::@constructor::new
           firstFragment: #F14
           formalParameters
@@ -10717,7 +10717,7 @@ library
           getter: <testLibrary>::@extensionType::I2::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F20
           formalParameters
@@ -10851,7 +10851,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -10879,7 +10879,7 @@ library
           getter: <testLibrary>::@extensionType::I1::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I1::@constructor::new
           firstFragment: #F14
           formalParameters
@@ -10910,7 +10910,7 @@ library
           getter: <testLibrary>::@extensionType::I2::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F20
           formalParameters
@@ -11003,7 +11003,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -11110,7 +11110,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -11244,7 +11244,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -11353,7 +11353,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -11470,7 +11470,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -11574,7 +11574,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -11696,7 +11696,7 @@ library
           type: int
           setter: <testLibrary>::@extensionType::A::@setter::foo2
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -11826,7 +11826,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo
           setter: <testLibrary>::@extensionType::A::@setter::foo
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -11962,7 +11962,7 @@ library
           type: int
           setter: <testLibrary>::@extensionType::A::@setter::foo2
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
           formalParameters

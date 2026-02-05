@@ -178,7 +178,7 @@ struct FunctionScope {
   LocalScope* scope;
 };
 
-class ScopeBuildingResult : public ZoneAllocated {
+class ScopeBuildingResult : public ZoneObject {
  public:
   ScopeBuildingResult()
       : type_arguments_variable(nullptr),

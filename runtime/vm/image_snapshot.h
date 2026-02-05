@@ -166,7 +166,7 @@ class Image : ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Image);
 };
 
-class ImageReader : public ZoneAllocated {
+class ImageReader : public ZoneObject {
  public:
   ImageReader(const uint8_t* data_image, const uint8_t* instructions_image);
 
@@ -263,7 +263,7 @@ struct ImageWriterCommand {
 
 #if defined(DART_PRECOMPILER)
 template <typename T>
-class Trie : public ZoneAllocated {
+class Trie : public ZoneObject {
  public:
   // Returns whether [key] is a valid trie key (that is, a C string that
   // contains only characters for which charIndex returns a non-negative value).

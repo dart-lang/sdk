@@ -1,0 +1,11 @@
+extension type C0([a = 0]);
+
+extension type C1([final b = true]);
+
+extension type C2({c = 'foo'});
+
+extension type C3({final d = const [0]});
+
+main() {}
+
+test() {}

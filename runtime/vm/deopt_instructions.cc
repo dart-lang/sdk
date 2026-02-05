@@ -936,7 +936,7 @@ const char* DeoptInstr::KindToCString(Kind kind) {
   return nullptr;
 }
 
-class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
+class DeoptInfoBuilder::TrieNode : public ZoneObject {
  public:
   // Construct the root node representing the implicit "shared" terminator
   // at the end of each deopt info.

@@ -3219,12 +3219,6 @@ duplicatedDeclarationCause:
   problemMessage: "Previous declaration of '#name'."
   severity: CONTEXT
 
-duplicatedDeclarationSyntheticCause:
-  parameters:
-    Name name: undocumented
-  problemMessage: "Previous declaration of '#name' is implied by this definition."
-  severity: CONTEXT
-
 # Use this message when a duplicated declaration is used.
 duplicatedDeclarationUse:
   parameters:
@@ -6679,13 +6673,6 @@ unmatchedPatchDeclaration:
   problemMessage: "Patch '#declarationName' doesn't match a declaration in the origin library."
   correctionMessage: "Try changing the name to an existing declaration or removing the '@patch' annotation."
 
-unmatchedAugmentationConstructor:
-  parameters:
-    Name name: undocumented
-  problemMessage: "Augmentation constructor '#name' doesn't match a constructor in the augmented class."
-  correctionMessage: "Try changing the name to an existing constructor or removing the 'augment' modifier."
-  experiments: augmentations
-
 nonAugmentationMemberConflictCause:
   parameters: none
   problemMessage: "This is the existing member."
@@ -6942,8 +6929,8 @@ finalClassExtendedOutsideOfLibrary:
 
 finalClassImplementedOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be implemented outside of its library because it's a final class."
+    Name className: The name of the class that can't be implemented outside of its library.
+  problemMessage: "The class '#className' can't be implemented outside of its library because it's a final class."
   script:
     main.dart:
       import 'lib.dart';
@@ -6953,8 +6940,8 @@ finalClassImplementedOutsideOfLibrary:
 
 finalClassUsedAsMixinConstraintOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class."
+    Name className: The name of the class that can't be used as a mixin superclass constraint outside of its library.
+  problemMessage: "The class '#className' can't be used as a mixin superclass constraint outside of its library because it's a final class."
   script:
     main.dart:
       import 'lib.dart';
@@ -6964,9 +6951,9 @@ finalClassUsedAsMixinConstraintOutsideOfLibrary:
 
 subtypeOfBaseIsNotBaseFinalOrSealed:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'."
+    Name className: The name of the problematic class.
+    Name superclassName: The name of the superclass that is `base`.
+  problemMessage: "The type '#className' must be 'base', 'final' or 'sealed' because the supertype '#superclassName' is 'base'."
   correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
   script: |
       base class A {}
@@ -6974,9 +6961,9 @@ subtypeOfBaseIsNotBaseFinalOrSealed:
 
 subtypeOfFinalIsNotBaseFinalOrSealed:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'final'."
+    Name typeName: The name of the problematic type.
+    Name supertypeName: The name of the supertype that is `final`.
+  problemMessage: "The type '#typeName' must be 'base', 'final' or 'sealed' because the supertype '#supertypeName' is 'final'."
   correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
   script: |
       final class A {}
@@ -6984,9 +6971,9 @@ subtypeOfFinalIsNotBaseFinalOrSealed:
 
 mixinSubtypeOfBaseIsNotBase:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'base'."
+    Name className: The name of the problematic class.
+    Name superclassName: The name of the superclass that is `base`.
+  problemMessage: "The mixin '#className' must be 'base' because the supertype '#superclassName' is 'base'."
   correctionMessage: "Try adding 'base' to the mixin."
   script: |
       base class A {}
@@ -6994,9 +6981,9 @@ mixinSubtypeOfBaseIsNotBase:
 
 mixinSubtypeOfFinalIsNotBase:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'final'."
+    Name typeName: The name of the problematic mixin.
+    Name supertypeName: The name of the supertype that is `final`.
+  problemMessage: "The mixin '#typeName' must be 'base' because the supertype '#supertypeName' is 'final'."
   correctionMessage: "Try adding 'base' to the mixin."
   script: |
       final class A {}

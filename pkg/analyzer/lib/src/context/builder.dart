@@ -33,16 +33,3 @@ YamlMap? locateEmbedderYamlFor(Folder libFolder) {
     return null;
   }
 }
-
-/// Given a package map, check in each package's lib directory for the existence
-/// of an `_embedder.yaml` file. If the file contains a top level [YamlMap], it
-/// will be added to the [embedderYamls] map.
-class EmbedderYamlLocator {
-  /// A mapping from a package's library directory to the parsed [YamlMap].
-  final Map<Folder, YamlMap> embedderYamls;
-
-  /// Initialize with the given [libFolder] of `sky_engine` package.
-  @Deprecated("Use 'locateEmbedderYamlFor' instead.")
-  EmbedderYamlLocator.forLibFolder(Folder libFolder)
-    : embedderYamls = {libFolder: ?locateEmbedderYamlFor(libFolder)};
-}

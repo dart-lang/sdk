@@ -3306,35 +3306,6 @@ const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-duplicatedDeclarationSyntheticCause = const Template(
-  "DuplicatedDeclarationSyntheticCause",
-  withArgumentsOld: _withArgumentsOldDuplicatedDeclarationSyntheticCause,
-  withArguments: _withArgumentsDuplicatedDeclarationSyntheticCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedDeclarationSyntheticCause({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    duplicatedDeclarationSyntheticCause,
-    problemMessage:
-        """Previous declaration of '${name_0}' is implied by this definition.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedDeclarationSyntheticCause(String name) =>
-    _withArgumentsDuplicatedDeclarationSyntheticCause(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function(String name),
-  Message Function({required String name})
->
 duplicatedDeclarationUse = const Template(
   "DuplicatedDeclarationUse",
   withArgumentsOld: _withArgumentsOldDuplicatedDeclarationUse,
@@ -6075,8 +6046,8 @@ Message _withArgumentsOldFinalClassExtendedOutsideOfLibrary(String className) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 finalClassImplementedOutsideOfLibrary = const Template(
   "FinalClassImplementedOutsideOfLibrary",
@@ -6086,25 +6057,26 @@ finalClassImplementedOutsideOfLibrary = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalClassImplementedOutsideOfLibrary({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     finalClassImplementedOutsideOfLibrary,
     problemMessage:
-        """The class '${name_0}' can't be implemented outside of its library because it's a final class.""",
-    arguments: {'name': name},
+        """The class '${className_0}' can't be implemented outside of its library because it's a final class.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalClassImplementedOutsideOfLibrary(String name) =>
-    _withArgumentsFinalClassImplementedOutsideOfLibrary(name: name);
+Message _withArgumentsOldFinalClassImplementedOutsideOfLibrary(
+  String className,
+) => _withArgumentsFinalClassImplementedOutsideOfLibrary(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 finalClassUsedAsMixinConstraintOutsideOfLibrary = const Template(
   "FinalClassUsedAsMixinConstraintOutsideOfLibrary",
@@ -6115,21 +6087,23 @@ finalClassUsedAsMixinConstraintOutsideOfLibrary = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     finalClassUsedAsMixinConstraintOutsideOfLibrary,
     problemMessage:
-        """The class '${name_0}' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
-    arguments: {'name': name},
+        """The class '${className_0}' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFinalClassUsedAsMixinConstraintOutsideOfLibrary(
-  String name,
-) => _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary(name: name);
+  String className,
+) => _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary(
+  className: className,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -12640,8 +12614,8 @@ Message _withArgumentsOldMixinInheritsFromNotObject(String className) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String superclassName),
+  Message Function({required String className, required String superclassName})
 >
 mixinSubtypeOfBaseIsNotBase = const Template(
   "MixinSubtypeOfBaseIsNotBase",
@@ -12651,30 +12625,33 @@ mixinSubtypeOfBaseIsNotBase = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMixinSubtypeOfBaseIsNotBase({
-  required String name,
-  required String name2,
+  required String className,
+  required String superclassName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var superclassName_0 = conversions.validateAndDemangleName(superclassName);
   return new Message(
     mixinSubtypeOfBaseIsNotBase,
     problemMessage:
-        """The mixin '${name_0}' must be 'base' because the supertype '${name2_0}' is 'base'.""",
+        """The mixin '${className_0}' must be 'base' because the supertype '${superclassName_0}' is 'base'.""",
     correctionMessage: """Try adding 'base' to the mixin.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'className': className, 'superclassName': superclassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMixinSubtypeOfBaseIsNotBase(
-  String name,
-  String name2,
-) => _withArgumentsMixinSubtypeOfBaseIsNotBase(name: name, name2: name2);
+  String className,
+  String superclassName,
+) => _withArgumentsMixinSubtypeOfBaseIsNotBase(
+  className: className,
+  superclassName: superclassName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String typeName, String supertypeName),
+  Message Function({required String typeName, required String supertypeName})
 >
 mixinSubtypeOfFinalIsNotBase = const Template(
   "MixinSubtypeOfFinalIsNotBase",
@@ -12684,25 +12661,28 @@ mixinSubtypeOfFinalIsNotBase = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMixinSubtypeOfFinalIsNotBase({
-  required String name,
-  required String name2,
+  required String typeName,
+  required String supertypeName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
+  var supertypeName_0 = conversions.validateAndDemangleName(supertypeName);
   return new Message(
     mixinSubtypeOfFinalIsNotBase,
     problemMessage:
-        """The mixin '${name_0}' must be 'base' because the supertype '${name2_0}' is 'final'.""",
+        """The mixin '${typeName_0}' must be 'base' because the supertype '${supertypeName_0}' is 'final'.""",
     correctionMessage: """Try adding 'base' to the mixin.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'typeName': typeName, 'supertypeName': supertypeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMixinSubtypeOfFinalIsNotBase(
-  String name,
-  String name2,
-) => _withArgumentsMixinSubtypeOfFinalIsNotBase(name: name, name2: name2);
+  String typeName,
+  String supertypeName,
+) => _withArgumentsMixinSubtypeOfFinalIsNotBase(
+  typeName: typeName,
+  supertypeName: supertypeName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mixinSuperClassConstraintDeferredClass = const MessageCode(
@@ -15769,8 +15749,8 @@ const MessageCode staticTearOffFromInstantiatedClass = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String superclassName),
+  Message Function({required String className, required String superclassName})
 >
 subtypeOfBaseIsNotBaseFinalOrSealed = const Template(
   "SubtypeOfBaseIsNotBaseFinalOrSealed",
@@ -15780,32 +15760,34 @@ subtypeOfBaseIsNotBaseFinalOrSealed = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed({
-  required String name,
-  required String name2,
+  required String className,
+  required String superclassName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var superclassName_0 = conversions.validateAndDemangleName(superclassName);
   return new Message(
     subtypeOfBaseIsNotBaseFinalOrSealed,
     problemMessage:
-        """The type '${name_0}' must be 'base', 'final' or 'sealed' because the supertype '${name2_0}' is 'base'.""",
+        """The type '${className_0}' must be 'base', 'final' or 'sealed' because the supertype '${superclassName_0}' is 'base'.""",
     correctionMessage:
         """Try adding 'base', 'final', or 'sealed' to the type.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'className': className, 'superclassName': superclassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSubtypeOfBaseIsNotBaseFinalOrSealed(
-  String name,
-  String name2,
-) =>
-    _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed(name: name, name2: name2);
+  String className,
+  String superclassName,
+) => _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed(
+  className: className,
+  superclassName: superclassName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String typeName, String supertypeName),
+  Message Function({required String typeName, required String supertypeName})
 >
 subtypeOfFinalIsNotBaseFinalOrSealed = const Template(
   "SubtypeOfFinalIsNotBaseFinalOrSealed",
@@ -15815,28 +15797,28 @@ subtypeOfFinalIsNotBaseFinalOrSealed = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed({
-  required String name,
-  required String name2,
+  required String typeName,
+  required String supertypeName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
+  var supertypeName_0 = conversions.validateAndDemangleName(supertypeName);
   return new Message(
     subtypeOfFinalIsNotBaseFinalOrSealed,
     problemMessage:
-        """The type '${name_0}' must be 'base', 'final' or 'sealed' because the supertype '${name2_0}' is 'final'.""",
+        """The type '${typeName_0}' must be 'base', 'final' or 'sealed' because the supertype '${supertypeName_0}' is 'final'.""",
     correctionMessage:
         """Try adding 'base', 'final', or 'sealed' to the type.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'typeName': typeName, 'supertypeName': supertypeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSubtypeOfFinalIsNotBaseFinalOrSealed(
-  String name,
-  String name2,
+  String typeName,
+  String supertypeName,
 ) => _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed(
-  name: name,
-  name2: name2,
+  typeName: typeName,
+  supertypeName: supertypeName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17035,34 +17017,6 @@ Message _withArgumentsUnmatchedAugmentationClassMember({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldUnmatchedAugmentationClassMember(String memberName) =>
     _withArgumentsUnmatchedAugmentationClassMember(memberName: memberName);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function(String name),
-  Message Function({required String name})
->
-unmatchedAugmentationConstructor = const Template(
-  "UnmatchedAugmentationConstructor",
-  withArgumentsOld: _withArgumentsOldUnmatchedAugmentationConstructor,
-  withArguments: _withArgumentsUnmatchedAugmentationConstructor,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedAugmentationConstructor({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    unmatchedAugmentationConstructor,
-    problemMessage:
-        """Augmentation constructor '${name_0}' doesn't match a constructor in the augmented class.""",
-    correctionMessage:
-        """Try changing the name to an existing constructor or removing the 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationConstructor(String name) =>
-    _withArgumentsUnmatchedAugmentationConstructor(name: name);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

@@ -1085,12 +1085,12 @@ baseMixinImplementedOutsideOfLibrary = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String string: undocumented
-/// String string2: undocumented
+/// String actualOperator: The binary operator that was seen.
+/// String expectedOperator: The binary operator that was expected.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String string,
-    required String string2,
+    required String actualOperator,
+    required String expectedOperator,
   })
 >
 binaryOperatorWrittenOut = DiagnosticWithArguments(
@@ -6587,7 +6587,8 @@ illegalLanguageVersionOverride = DiagnosticWithArguments(
 /// 0: the illegal name
 ///
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token variableName: The name that can't be used as the name of a variable
+///                     assigned by a pattern assignment.
 const DiagnosticCode illegalPatternAssignmentVariableName =
     DiagnosticCodeWithExpectedTypes(
       name: 'illegal_pattern_assignment_variable_name',
@@ -6603,7 +6604,7 @@ const DiagnosticCode illegalPatternAssignmentVariableName =
 /// 0: the illegal name
 ///
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token identifier: The identifier that can't be referred to.
 const DiagnosticCode illegalPatternIdentifierName =
     DiagnosticCodeWithExpectedTypes(
       name: 'illegal_pattern_identifier_name',
@@ -6618,7 +6619,8 @@ const DiagnosticCode illegalPatternIdentifierName =
 /// 0: the illegal name
 ///
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token variableName: The name that can't be used as a pattern variable
+///                     name.
 const DiagnosticCode illegalPatternVariableName =
     DiagnosticCodeWithExpectedTypes(
       name: 'illegal_pattern_variable_name',
@@ -7735,7 +7737,7 @@ invalidConstantConstPrefix = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Name name: undocumented
+/// Name operatorName: The name of the unsupported operator.
 const DiagnosticCode invalidConstantPatternBinary =
     DiagnosticCodeWithExpectedTypes(
       name: 'invalid_constant_pattern_binary',
@@ -7793,7 +7795,7 @@ invalidConstantPatternNegation = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Name name: undocumented
+/// Name operatorName: The name of the unsupported operator.
 const DiagnosticCode invalidConstantPatternUnary =
     DiagnosticCodeWithExpectedTypes(
       name: 'invalid_constant_pattern_unary',
@@ -9430,8 +9432,8 @@ listElementTypeNotAssignableNullability = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String string: undocumented
-/// Token lexeme: undocumented
+/// String kind: The literal kind.
+/// Token lexeme: The lexeme between `new` and the literal.
 const DiagnosticCode literalWithClass = DiagnosticCodeWithExpectedTypes(
   name: 'literal_with_class',
   problemMessage: "A {0} literal can't be prefixed by '{1}'.",
@@ -13007,7 +13009,7 @@ pathPubspecDoesNotExist = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Name name: undocumented
+/// Name variableName: The name of the variable that was erroneously declared.
 const DiagnosticCode patternAssignmentDeclaresVariable =
     DiagnosticCodeWithExpectedTypes(
       name: 'pattern_assignment_declares_variable',
@@ -15227,7 +15229,7 @@ typeArgumentNotMatchingBounds = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Name name: undocumented
+/// Name typeVariableName: The name of the type variable.
 const DiagnosticCode typeArgumentsOnTypeVariable =
     DiagnosticCodeWithExpectedTypes(
       name: 'type_arguments_on_type_variable',
@@ -17935,12 +17937,12 @@ LocatableDiagnostic _withArgumentsBaseMixinImplementedOutsideOfLibrary({
 }
 
 LocatableDiagnostic _withArgumentsBinaryOperatorWrittenOut({
-  required String string,
-  required String string2,
+  required String actualOperator,
+  required String expectedOperator,
 }) {
   return LocatableDiagnosticImpl(diag.binaryOperatorWrittenOut, [
-    string,
-    string2,
+    actualOperator,
+    expectedOperator,
   ]);
 }
 

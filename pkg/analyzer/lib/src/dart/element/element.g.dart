@@ -91,14 +91,6 @@ mixin _ConstructorFragmentImplMixin {
     setModifier(Modifier.CONST, value);
   }
 
-  bool get isDeclaring {
-    return hasModifier(Modifier.DECLARING);
-  }
-
-  set isDeclaring(bool value) {
-    setModifier(Modifier.DECLARING, value);
-  }
-
   bool get isFactory {
     return hasModifier(Modifier.FACTORY);
   }

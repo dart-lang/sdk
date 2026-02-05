@@ -183,7 +183,6 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     return context.withFormalParameters(element.formalParameters, () {
       return super.match(context, element) &&
           flags.isConst == element.isConst &&
-          flags.isDeclaring == element.isDeclaring &&
           flags.isFactory == element.isFactory &&
           flags.isOriginDeclaration == element.isOriginDeclaration &&
           flags.isOriginImplicitDefault == element.isOriginImplicitDefault &&
@@ -1651,7 +1650,6 @@ enum _ClassItemFlag {
 
 enum _ConstructorItemFlag {
   isConst,
-  isDeclaring,
   isFactory,
   isOriginDeclaration,
   isOriginImplicitDefault,
@@ -1814,9 +1812,6 @@ extension type _ConstructorItemFlags._(int _bits)
     if (element.isConst) {
       bits |= _maskFor(_ConstructorItemFlag.isConst);
     }
-    if (element.isDeclaring) {
-      bits |= _maskFor(_ConstructorItemFlag.isDeclaring);
-    }
     if (element.isFactory) {
       bits |= _maskFor(_ConstructorItemFlag.isFactory);
     }
@@ -1841,10 +1836,6 @@ extension type _ConstructorItemFlags._(int _bits)
 
   bool get isConst {
     return _has(_ConstructorItemFlag.isConst);
-  }
-
-  bool get isDeclaring {
-    return _has(_ConstructorItemFlag.isDeclaring);
   }
 
   bool get isFactory {

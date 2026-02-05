@@ -216,7 +216,7 @@ class Address;
 class FieldAddress;
 
 #if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
-class Label : public ZoneAllocated {
+class Label : public ZoneObject {
  public:
   Label() {}
   ~Label() {
@@ -273,7 +273,7 @@ class Label : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
 #else
-class Label : public ZoneAllocated {
+class Label : public ZoneObject {
  public:
   Label() : position_(0), unresolved_(0) {
 #ifdef DEBUG
@@ -404,7 +404,7 @@ class ExternalLabel : public ValueObject {
 // Assembler fixups are positions in generated code that hold relocation
 // information that needs to be processed before finalizing the code
 // into executable memory.
-class AssemblerFixup : public ZoneAllocated {
+class AssemblerFixup : public ZoneObject {
  public:
   virtual void Process(const MemoryRegion& region, intptr_t position) = 0;
 
@@ -1225,7 +1225,7 @@ class AssemblerBase : public StackResource {
     return buffer_.pointer_offsets();
   }
 
-  class CodeComment : public ZoneAllocated {
+  class CodeComment : public ZoneObject {
    public:
     CodeComment(intptr_t pc_offset, const String& comment)
         : pc_offset_(pc_offset), comment_(comment) {}

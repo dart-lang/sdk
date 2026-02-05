@@ -374,6 +374,7 @@ abstract class FragmentFactory {
     required TypeBuilder type,
     required String name,
     required int nameOffset,
+    required Token? defaultValueToken,
   });
 
   void addFactoryMethod({

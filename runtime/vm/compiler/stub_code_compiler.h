@@ -31,7 +31,7 @@ namespace compiler {
 class Assembler;
 
 // Represents an unresolved PC-relative Call/TailCall.
-class UnresolvedPcRelativeCall : public ZoneAllocated {
+class UnresolvedPcRelativeCall : public ZoneObject {
  public:
   UnresolvedPcRelativeCall(intptr_t offset,
                            const dart::Code& target,

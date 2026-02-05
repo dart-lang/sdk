@@ -15988,7 +15988,7 @@ library
       firstFragment: #F5
       supertype: A
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -16077,7 +16077,7 @@ library
       firstFragment: #F5
       supertype: A
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -16171,7 +16171,7 @@ library
       firstFragment: #F5
       supertype: A
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -16260,7 +16260,7 @@ library
       firstFragment: #F5
       supertype: A
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -16345,7 +16345,7 @@ library
       firstFragment: #F5
       supertype: A
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -16430,7 +16430,7 @@ library
       firstFragment: #F5
       supertype: A
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -16520,7 +16520,7 @@ library
       firstFragment: #F5
       supertype: A
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -16605,7 +16605,7 @@ library
       firstFragment: #F5
       supertype: A
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -22573,7 +22573,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -22629,7 +22629,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -22685,7 +22685,7 @@ library
           getter: <testLibrary>::@class::A::@getter::_foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -22742,7 +22742,7 @@ library
           getter: <testLibrary>::@class::A::@getter::_123
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::_123
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -22798,7 +22798,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -22854,7 +22854,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -22910,7 +22910,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -22966,7 +22966,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23022,7 +23022,7 @@ library
           getter: <testLibrary>::@class::A::@getter::_foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23079,7 +23079,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23135,7 +23135,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23195,7 +23195,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23258,7 +23258,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23353,7 +23353,7 @@ library
           getter: <testLibrary>::@class::B::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -23449,7 +23449,7 @@ library
           getter: <testLibrary>::@class::B::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -23531,7 +23531,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23603,7 +23603,7 @@ library
           setter: <testLibrary>::@class::A::@setter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23692,7 +23692,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23764,7 +23764,7 @@ library
           setter: <testLibrary>::@class::A::@setter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23830,7 +23830,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -23922,7 +23922,7 @@ library
           getter: <testLibrary>::@class::B::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -23985,7 +23985,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -24043,7 +24043,7 @@ library
           type: int?
           getter: <testLibrary>::@class::A::@getter::_foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -24101,7 +24101,7 @@ library
           type: int?
           getter: <testLibrary>::@class::A::@getter::_123
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -24158,7 +24158,7 @@ library
           type: int?
           getter: <testLibrary>::@class::A::@getter::_foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -24202,7 +24202,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
@@ -24238,7 +24238,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
@@ -24285,7 +24285,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
@@ -24297,7 +24297,7 @@ library
       firstFragment: #F4
       supertype: A
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -24349,7 +24349,7 @@ library
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -24459,7 +24459,7 @@ library
             expression: expression_0
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -24541,7 +24541,7 @@ library
           firstFragment: #F3
           bound: num
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -24580,7 +24580,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           constantInitializers
@@ -24633,7 +24633,7 @@ library
           type: int
           getter: <testLibrary>::@class::A::@getter::x
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           constantInitializers
@@ -24693,7 +24693,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
@@ -24705,7 +24705,7 @@ library
       firstFragment: #F4
       supertype: A
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
           constantInitializers
@@ -24755,7 +24755,7 @@ library
       firstFragment: #F1
       documentationComment: /// Class docs
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           documentationComment: /// first\n/// second\n/// third
@@ -24818,7 +24818,7 @@ library
           type: int
           getter: <testLibrary>::@class::A::@getter::x
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           metadata
@@ -24905,7 +24905,7 @@ library
           getter: <testLibrary>::@class::A::@getter::x
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           metadata
@@ -24957,7 +24957,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        const declaring isOriginDeclaration isPrimary named
+        const isOriginDeclaration isPrimary named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F2
           constantInitializers
@@ -25027,7 +25027,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
 ''');
@@ -25075,7 +25075,7 @@ library
           getter: <testLibrary>::@class::A::@getter::x
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -25156,7 +25156,7 @@ library
           getter: <testLibrary>::@class::A::@getter::bar
           setter: <testLibrary>::@class::A::@setter::bar
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -25239,7 +25239,7 @@ library
           getter: <testLibrary>::@class::A::@getter::bar
           setter: <testLibrary>::@class::A::@setter::bar
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -25318,7 +25318,7 @@ library
           getter: <testLibrary>::@class::A::@getter::bar
           setter: <testLibrary>::@class::A::@setter::bar
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -25391,7 +25391,7 @@ library
           getter: <testLibrary>::@class::A::@getter::bar
           setter: <testLibrary>::@class::A::@setter::bar
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -25464,7 +25464,7 @@ library
           getter: <testLibrary>::@class::A::@getter::bar
           setter: <testLibrary>::@class::A::@setter::bar
       constructors
-        declaring isOriginDeclaration isPrimary new
+        isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
           formalParameters

@@ -6919,7 +6919,9 @@ class Parser {
       } else if (tokenLevel <= MULTIPLICATIVE_PRECEDENCE) {
         reportRecoverableError(
           next,
-          diag.invalidConstantPatternBinary.withArgumentsOld(type.lexeme),
+          diag.invalidConstantPatternBinary.withArguments(
+            operatorName: type.lexeme,
+          ),
         );
       } else {
         // These are prefix or postfix ++/-- and will not be constant
@@ -7352,9 +7354,9 @@ class Parser {
         // Report and redo recovery.
         reportRecoverableError(
           token.next!,
-          diag.binaryOperatorWrittenOut.withArgumentsOld(
-            token.next!.lexeme,
-            replacement.lexeme,
+          diag.binaryOperatorWrittenOut.withArguments(
+            actualOperator: token.next!.lexeme,
+            expectedOperator: replacement.lexeme,
           ),
         );
         rewriter.replaceNextTokenWithSyntheticToken(token, replacement);
@@ -7564,7 +7566,7 @@ class Parser {
       if (constantPatternContext != ConstantPatternContext.none) {
         reportRecoverableError(
           operator,
-          diag.invalidConstantPatternUnary.withArgumentsOld(value!),
+          diag.invalidConstantPatternUnary.withArguments(operatorName: value!),
         );
       }
       // Right associative, so we recurse at the same precedence
@@ -8754,7 +8756,10 @@ class Parser {
           // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
           reportRecoverableError(
             next,
-            diag.literalWithClass.withArgumentsOld(lexeme.toLowerCase(), next),
+            diag.literalWithClass.withArguments(
+              kind: lexeme.toLowerCase(),
+              lexeme: next,
+            ),
           );
           listener.beginConstLiteral(nextNext);
           listener.handleNoTypeArguments(nextNext);
@@ -8766,7 +8771,10 @@ class Parser {
           // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
           reportRecoverableError(
             next,
-            diag.literalWithClass.withArgumentsOld(lexeme.toLowerCase(), next),
+            diag.literalWithClass.withArguments(
+              kind: lexeme.toLowerCase(),
+              lexeme: next,
+            ),
           );
 
           listener.beginConstLiteral(nextNext);
@@ -8787,7 +8795,10 @@ class Parser {
           // Recover by ignoring the `List` and parse as a literal list.
           reportRecoverableError(
             next,
-            diag.literalWithClass.withArgumentsOld(lexeme.toLowerCase(), next),
+            diag.literalWithClass.withArguments(
+              kind: lexeme.toLowerCase(),
+              lexeme: next,
+            ),
           );
           listener.beginConstLiteral(nextNext);
           listener.handleNoTypeArguments(nextNext);
@@ -8799,7 +8810,10 @@ class Parser {
           // Recover by ignoring the `List` and parse as a literal list.
           reportRecoverableError(
             next,
-            diag.literalWithClass.withArgumentsOld(lexeme.toLowerCase(), next),
+            diag.literalWithClass.withArguments(
+              kind: lexeme.toLowerCase(),
+              lexeme: next,
+            ),
           );
           listener.beginConstLiteral(nextNext);
           token = parseLiteralListSetMapOrFunction(next, constKeyword);
@@ -9046,9 +9060,9 @@ class Parser {
           // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
           reportRecoverableError(
             identifier,
-            diag.literalWithClass.withArgumentsOld(
-              value.toLowerCase(),
-              identifier,
+            diag.literalWithClass.withArguments(
+              kind: value.toLowerCase(),
+              lexeme: identifier,
             ),
           );
           return parsePrimary(identifier, context, ConstantPatternContext.none);
@@ -9064,9 +9078,9 @@ class Parser {
           // require it there.
           reportRecoverableError(
             identifier,
-            diag.literalWithClass.withArgumentsOld(
-              value.toLowerCase(),
-              identifier,
+            diag.literalWithClass.withArguments(
+              kind: value.toLowerCase(),
+              lexeme: identifier,
             ),
           );
           return parsePrimary(identifier, context, ConstantPatternContext.none);
@@ -11546,7 +11560,9 @@ class Parser {
         } else if (illegalPatternIdentifiers.contains(name)) {
           reportRecoverableError(
             firstIdentifier,
-            diag.illegalPatternIdentifierName.withArgumentsOld(firstIdentifier),
+            diag.illegalPatternIdentifierName.withArguments(
+              identifier: firstIdentifier,
+            ),
           );
         }
       }
@@ -11630,8 +11646,8 @@ class Parser {
         if (!isBareIdentifier) {
           reportRecoverableError(
             token,
-            diag.patternAssignmentDeclaresVariable.withArgumentsOld(
-              variableName.isEmpty ? '(unnamed)' : variableName,
+            diag.patternAssignmentDeclaresVariable.withArguments(
+              variableName: variableName.isEmpty ? '(unnamed)' : variableName,
             ),
           );
         }
@@ -11647,7 +11663,9 @@ class Parser {
       if (illegalPatternIdentifiers.contains(variableName)) {
         reportRecoverableError(
           token,
-          diag.illegalPatternAssignmentVariableName.withArgumentsOld(token),
+          diag.illegalPatternAssignmentVariableName.withArguments(
+            variableName: token,
+          ),
         );
       }
       listener.handleAssignedVariablePattern(token);
@@ -11655,7 +11673,7 @@ class Parser {
       if (illegalPatternIdentifiers.contains(variableName)) {
         reportRecoverableError(
           token,
-          diag.illegalPatternVariableName.withArgumentsOld(token),
+          diag.illegalPatternVariableName.withArguments(variableName: token),
         );
       }
       if (isBareIdentifier) {
