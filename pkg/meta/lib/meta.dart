@@ -576,20 +576,25 @@ class Immutable {
   const Immutable([this.reason = '']);
 }
 
-/// Annotates a static method to be recorded.
+/// Annotates a static method or a class to be recorded.
 ///
-/// Applies to static functions, top-level functions, or extension methods.
+/// Applies to static functions, top-level functions, extension methods, or
+/// classes with constant constructors.
 ///
 /// During compilation, all statically resolved calls to an annotated function
-/// are registered, and information about the annotated functions, the calls,
-/// and their arguments, is then made available to post-compile steps.
-// TODO(srawlins): Enforce with `TargetKind.method`.
+/// or loadings of constant instances of an annotated class in reachable code
+/// are registered. Information about these usages is then made available to
+/// post-compile steps.
+///
+/// Only usages in reachable code (executable code) are tracked.
+/// Usages appearing within metadata (annotations) are ignored.
+// TODO(srawlins): Enforce with `TargetKind.method` or `TargetKind.classType`.
 @experimental
 class RecordUse {
   /// Creates a [RecordUse] instance.
   ///
-  /// This annotation can be placed as an annotation on functions whose
-  /// statically resolved calls should be registered
+  /// This annotation can be placed as an annotation on functions or classes
+  /// whose usages in reachable code should be registered.
   const RecordUse();
 }
 

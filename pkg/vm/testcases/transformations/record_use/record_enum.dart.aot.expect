@@ -22,13 +22,7 @@ class A extends core::_Enum /*isEnum*/  {
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  self::doSomething();
-}
-
-[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
-@#C5
-static method doSomething() → void {
-  core::print("a");
+  core::print(#C5);
 }
 constants  {
   #C1 = meta::RecordUse {}

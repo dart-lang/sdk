@@ -36,6 +36,9 @@ It will also include some additional static information, like the source
 location of the call, or even which parameters where provided (if the parameters
 are constant).
 
+Only calls in reachable code (executable code) are tracked. Calls appearing
+within metadata (annotations) are ignored.
+
 ### Example output
 
 Example outputs can be found in [pkg/vm/testcases/transformations/record_use/](

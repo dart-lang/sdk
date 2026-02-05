@@ -27,12 +27,16 @@ LoadingUnitLookup _getDefaultLoadingUnitLookup(ast.Component component) {
       _loadingUnitForLibrary(enclosingLibrary(node)!, loadingUnits).toString();
 }
 
-/// Collect calls to methods annotated with `@RecordUse`.
+/// Collect calls and constant instances annotated with `@RecordUse`.
 ///
-/// Identify and collect all calls to static methods annotated in the given
-/// [component]. This requires the deferred loading to be handled already to
-/// also save which loading unit the call is made in. Write the result into a
-/// JSON at [recordedUsagesFile].
+/// Identify and collect all calls to static methods and loadings of constant
+/// instances of classes annotated in reachable code in the given [component].
+/// This requires the deferred loading to be handled already to also save which
+/// loading unit the usage is made in. Write the result into a JSON at
+/// [recordedUsagesFile].
+///
+/// Only usages in reachable code (executable code) are tracked.
+/// Usages appearing within metadata (annotations) are ignored.
 ///
 /// The purpose of this feature is to be able to pass the recorded information
 /// to packages in a post-compilation step, allowing them to remove or modify
@@ -79,6 +83,8 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
 
   @override
   void visitStaticInvocation(ast.StaticInvocation node) {
+    if (_isAnnotation(node)) return;
+
     staticCallRecorder.recordStaticInvocation(node);
 
     super.visitStaticInvocation(node);
@@ -86,10 +92,31 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
 
   @override
   void visitConstantExpression(ast.ConstantExpression node) {
+    if (_isAnnotation(node)) return;
+
     staticCallRecorder.recordConstantExpression(node);
     instanceUseRecorder.recordConstantExpression(node);
 
     super.visitConstantExpression(node);
+  }
+
+  @override
+  void defaultExpression(ast.Expression node) {
+    // Prune the traversal of annotations. Since we catch the outermost
+    // expression of an annotation here, we don't need to check sub-expressions
+    // recursively in [_isAnnotation].
+    if (_isAnnotation(node)) return;
+    super.defaultExpression(node);
+  }
+
+  /// Returns whether [node] is a top-level expression in an annotation list.
+  ///
+  /// This only checks the immediate parent because [_RecordUseVisitor] relies on
+  /// [defaultExpression] catching annotations at the outermost expression level
+  /// and pruning the traversal into any sub-expressions.
+  static bool _isAnnotation(ast.TreeNode? node) {
+    final parent = node?.parent;
+    return parent is ast.Annotatable && parent.annotations.contains(node);
   }
 }
 

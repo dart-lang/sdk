@@ -5,12 +5,7 @@
 import 'package:meta/meta.dart' show RecordUse;
 
 void main() {
-  doSomething();
-}
-
-@MyClass(A.a)
-void doSomething() {
-  print('a');
+  print(const MyClass(A.a));
 }
 
 @RecordUse()

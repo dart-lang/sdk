@@ -5,20 +5,19 @@
 import 'package:meta/meta.dart' show RecordUse;
 
 void main() {
-  print(A());
+  print(
+    const MyClass(
+      i: 15,
+      s: 's',
+      b: true,
+      l: [
+        {'l': 3},
+      ],
+      m: {'h': false},
+      n: null,
+    ),
+  );
 }
-
-@MyClass(
-  i: 15,
-  s: 's',
-  b: true,
-  l: [
-    {'l': 3},
-  ],
-  m: {'h': false},
-  n: null,
-)
-class A {}
 
 @RecordUse()
 class MyClass {

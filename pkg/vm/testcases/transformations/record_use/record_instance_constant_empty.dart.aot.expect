@@ -17,13 +17,7 @@ class A extends core::Object /*hasConstConstructor*/  {
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  self::doSomething();
-}
-
-[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
-@#C3
-static method doSomething() → void {
-  core::print("a");
+  core::print(#C3);
 }
 constants  {
   #C1 = meta::RecordUse {}
