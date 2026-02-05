@@ -1915,6 +1915,10 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
   if (trampoline_type ==
       static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)) {
     DLRT_ExitTemporaryIsolate();
+  } else if ((trampoline_type &
+              FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag) != 0) {
+    thread->set_execution_state(Thread::kThreadInVM);
+    Thread::ExitIsolate(/*isolate_shutdown=*/false);
   } else {
     thread->EnterSafepointToNative();
   }

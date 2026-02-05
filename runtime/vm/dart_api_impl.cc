@@ -2232,6 +2232,16 @@ DART_EXPORT void Dart_SetCurrentThreadOwnsIsolate() {
   }
 }
 
+DART_EXPORT void Dart_ClearCurrentThreadOwnsIsolate_ForTesting() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (!isolate->SetOwnerThread(OSThread::GetCurrentThreadId(),
+                               OSThread::kInvalidThreadId)) {
+    FATAL("Tried to clear ownership of isolate %s, but we don't own it\n",
+          isolate->name());
+  }
+}
+
 DART_EXPORT bool Dart_GetCurrentThreadOwnsIsolate(Dart_Port port) {
   return PortMap::IsOwnedByCurrentThread(port);
 }

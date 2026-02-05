@@ -18,7 +18,8 @@ class BSS : public AllStatic {
   enum class Relocation : intptr_t {
     DLRT_GetFfiCallbackMetadata,  // TODO(https://dartbug.com/52579): Remove.
     DLRT_ExitTemporaryIsolate,    // TODO(https://dartbug.com/52579): Remove.
-    DLRT_ExitIsolateGroupBoundIsolate,  // TODO(https://dartbug.com/52579)
+    DLRT_ExitIsolateGroupBoundIsolate,   // TODO(https://dartbug.com/52579)
+    DLRT_ExitSyncCallbackTargetIsolate,  // TODO(https://dartbug.com/52579)
     EndOfVmEntries,
 
     // We don't have any isolate group specific entries at the moment.

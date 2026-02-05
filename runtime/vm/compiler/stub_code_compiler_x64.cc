@@ -609,12 +609,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   Label async_callback;
   Label sync_isolate_group_bound_callback;
+  Label sync_callback_isolate_ownership;
   Label done;
-
-  // If GetFfiCallbackMetadata returned a null thread, it means that the
-  // callback was invoked after it was deleted. In this case, do nothing.
-  __ cmpq(THR, Immediate(0));
-  __ j(EQUAL, &done);
 
   // Check the trampoline type to see how the callback should be invoked.
   __ cmpq(RAX, Immediate(static_cast<uword>(
@@ -626,6 +622,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
               FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
   __ j(EQUAL, &sync_isolate_group_bound_callback, Assembler::kNearJump);
 
+  __ testq(RAX,
+           Immediate(FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
+  __ j(NOT_ZERO, &sync_callback_isolate_ownership, Assembler::kNearJump);
+
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
   // re-enter it afterwards.
@@ -636,6 +636,44 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Takes care to not clobber *any* registers (besides TMP).
   __ EnterFullSafepoint();
+
+  __ jmp(&done);
+
+  __ Bind(&sync_callback_isolate_ownership);
+
+  __ call(TMP);
+
+  // Exit the target isolate.
+  {
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitSyncCallbackTargetIsolate,
+                           RAX, TMP);
+    } else {
+      __ movq(RAX, Immediate(reinterpret_cast<int64_t>(
+                       DLRT_ExitSyncCallbackTargetIsolate)));
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, RAX);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ CallCFunction(RAX);
+
+    __ LeaveFrame();
+
+    __ PopRegisters(return_registers);
+  }
 
   __ jmp(&done, Assembler::kNearJump);
 
