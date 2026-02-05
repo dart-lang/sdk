@@ -953,7 +953,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _checkForWrongTypeParameterVarianceInField(node);
       _checkForLateFinalFieldWithConstConstructor(node);
-      _checkForNonFinalFieldInEnum(node);
+      _checkForNonFinalFieldInEnum(
+        fieldDeclaration: node,
+        primaryConstructor: null,
+      );
 
       super.visitFieldDeclaration(node);
     } finally {
@@ -1522,6 +1525,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       },
       isAsynchronous: fragment.isAsynchronous,
       isGenerator: fragment.isGenerator,
+    );
+    _checkForNonFinalFieldInEnum(
+      fieldDeclaration: null,
+      primaryConstructor: node,
     );
   }
 
@@ -5137,20 +5144,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForNonFinalFieldInEnum(FieldDeclaration node) {
-    if (node.isStatic) return;
-
-    var variableList = node.fields;
-    if (variableList.isFinal) return;
-
-    var enclosingClass = _enclosingClass;
-    if (enclosingClass == null || enclosingClass is! EnumElement) {
+  void _checkForNonFinalFieldInEnum({
+    required FieldDeclaration? fieldDeclaration,
+    required PrimaryConstructorDeclarationImpl? primaryConstructor,
+  }) {
+    if (_enclosingClass is! EnumElement) {
       return;
     }
 
-    diagnosticReporter.report(
-      diag.nonFinalFieldInEnum.at(variableList.variables.first.name),
-    );
+    if (fieldDeclaration != null) {
+      if (!fieldDeclaration.isStatic) {
+        var variableList = fieldDeclaration.fields;
+        if (!variableList.isFinal) {
+          diagnosticReporter.report(
+            diag.nonFinalFieldInEnum.at(variableList.variables.first.name),
+          );
+        }
+      }
+    } else if (primaryConstructor != null) {
+      for (var parameter in primaryConstructor.formalParameters.parameters) {
+        var formalParameter = parameter.notDefault;
+        var element = formalParameter.declaredFragment?.element;
+        if (element is FieldFormalParameterElementImpl && element.isDeclaring) {
+          var nameToken = formalParameter.name;
+          var field = element.field;
+          if (nameToken != null && field != null && !field.isFinal) {
+            diagnosticReporter.report(diag.nonFinalFieldInEnum.at(nameToken));
+          }
+        }
+      }
+    } else {
+      throw StateError('No required location');
+    }
   }
 
   void _checkForNonRedirectingGenerativeConstructorWithPrimary(

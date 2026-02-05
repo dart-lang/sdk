@@ -34,6 +34,9 @@ class CSuperParameters(final int x, super.y) extends C1;
 class CNamedParameters({final int x = 1, required var int y});
 
 enum EnumNamedParameters({final int x = 1, required var int y}) {
+  //                                                        ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
   e(x: 2, y: 3), f(y: 3);
 }
 
@@ -41,6 +44,9 @@ enum EnumNamedParameters({final int x = 1, required var int y}) {
 class COptionalParameters([final int x = 1, var int y = 2]);
 
 enum EnumOptionalParameters([final int x = 1, var int y = 2]) {
+  //                                                  ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
   e(3, 4), f(3), g();
 }
 
