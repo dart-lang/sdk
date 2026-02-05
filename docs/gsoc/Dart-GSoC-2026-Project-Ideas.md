@@ -93,6 +93,74 @@ developers to inspect the contents of `Pointer`s safely during debugging.
 * https://github.com/dart-lang/sdk/issues/48882
 * https://github.com/dart-lang/native/issues/1034
 
+
+
+## **Idea:** C++ in FFIgen
+
+ - **Possible Mentor(s)**: Liam Appelbe, Brian Quinlan
+ - **Difficulty**: Medium
+ - **Project size**: Large (350 hours)
+ - **Skills**: Dart, C++
+
+**Description**:
+
+C++ doesn't have a stable ABI (for example, it varies by compiler), so we can't directly interop with it. However, it would be possible to parse a C++ API, code-gen C compatible bindings for the API (using `extern "C"`), then generate Dart bindings that look like the C++ API, but actually invoke the C glue code.
+
+The goal of this project is to add C++ as a new experimental language in FFIgen. FFIgen already uses libclang to parse C/ObjC APIs, so the parsing logic just needs to be extended to parse C++ APIs. Then the AST needs to be extended to be able to represent C++ language features. Finally, the code generator needs to be extended to support generating C code to wrap the C++ API, and Dart code to interact with the C API.
+
+```
+Input       Output          Output  
+C++ API \<-\> C glue code \<-\> Dart bindings
+```
+
+A good proposal for this project will explore the various language features of C++, describe how that feature can be most closely represented in Dart, and what the C glue code looks like to support that feature. The more language features we can translate, the better the final product will be.
+
+A good sample project would be to add parsing logic to FFIgen to parse some simple C++ feature, such as a class with methods. Don't worry about code gen or representing the class in the AST yet, just write the parsing logic and print out some info about the class and its methods.
+
+Tracking bug: [https://github.com/dart-lang/native/issues/2644](https://github.com/dart-lang/native/issues/2644)  
+
+
+## **Idea:** Migrate Intellij Plugins off weberknecht web socket library
+
+ - **Possible Mentor(s)**: Phil Quitslund, Helin Shiah
+ - **Difficulty**: Medium
+ - **Project size**: Medium (175 hours)
+ - **Skills**: Kotlin
+
+**Description**:
+
+The current implementation of websocket connections in Intellij is out of date and conflicts with certain Anti-Virus software on Windows PCs. This needs to be updated to a more modern library and tested on various development platforms.
+
+Tracking bug: https://github.com/flutter/dart-intellij-third-party/issues/208
+
+## **Idea:** Prototype New Dart IntelliJ plugin using LSP for Analysis Server Connection
+
+ - **Possible Mentor(s)**: Phil Quitslund, Helin Shiah
+ - **Difficulty**: Medium
+ - **Project size**: Large (350 hours)
+ - **Skills**: Kotlin
+
+**Description**:
+
+The Dart plugin communicates with the analysis server with a legacy custom protocol, but migrating to language server protocol (LSP) would enable more language analysis features for IntelliJ/Android Studio users with less IntelliJ-specific code.
+
+Related to: https://github.com/flutter/dart-intellij-third-party/issues/207
+
+
+## **Idea:** Add WebSocket/GRPC Support to Flutter DevTools Network panel
+
+ - **Possible Mentor(s)**: Elliott Brooks, Samuel Rawlins
+ - **Difficulty**: Medium
+ - **Project size**: Medium (175 hours)
+ - **Skills**: Dart, Flutter
+
+**Description**:
+
+The network panel on Flutter DevTools currently only supports HTTP connections, but many developers use other types of connections between their applications and back end services. Adding support for these would dramatically increase the effectiveness of the network panel for developers.
+
+
+
+
 ## TODO: More ideas as they come!
 
 # Template:
