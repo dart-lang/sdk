@@ -38,11 +38,13 @@ void main([List<String> args = const []]) async {
     final testModifier = verbose ? ' verbose' : '';
     test('dart build$testModifier', timeout: longTimeout, () async {
       await nativeAssetsTest('dart_app', (dartAppUri) async {
+        final depFileUri = dartAppUri.resolve('my.d');
         final result = await runDart(
           arguments: [
             if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
             'build',
             'cli',
+            '--depfile=${depFileUri.toFilePath()}',
             if (verbose) '-v',
           ],
           workingDirectory: dartAppUri,
@@ -50,6 +52,7 @@ void main([List<String> args = const []]) async {
         );
         expect(result.stdout, contains('Running build hooks'));
         expect(result.stdout, contains('Running link hooks'));
+        expect(File.fromUri(depFileUri).existsSync(), true);
         if (verbose) {
           expect(result.stdout, contains(usingTargetOSMessage));
           expect(result.stdout, contains('build.dart'));
