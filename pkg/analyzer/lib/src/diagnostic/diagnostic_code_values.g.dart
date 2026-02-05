@@ -1263,6 +1263,7 @@ final sharedAnalyzerCodes = <DiagnosticCode>[
   diag.nativeClauseShouldBeAnnotation,
   diag.newConstructorNewName,
   diag.newConstructorQualifiedName,
+  diag.nonRedirectingGenerativeConstructorWithPrimary,
   diag.nullAwareCascadeOutOfOrder,
   diag.outOfOrderClauses,
   diag.patternAssignmentDeclaresVariable,

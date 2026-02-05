@@ -2490,3 +2490,16 @@ factoryConstructorNewName:
     class C {
       factory new() => throw '';
     }
+
+nonRedirectingGenerativeConstructorWithPrimary:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Classes with primary constructors can't have non-redirecting generative constructors."
+  correctionMessage: "Try making the constructor redirect to the primary constructor, or remove the primary constructor."
+  analyzerCode: nonRedirectingGenerativeConstructorWithPrimary
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C() {
+      C.named();
+    }

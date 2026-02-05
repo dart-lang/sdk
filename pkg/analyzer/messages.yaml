@@ -13122,12 +13122,6 @@ CompileTimeErrorCode:
 
       class B implements A {}
       ```
-  nonRedirectingGenerativeConstructorWithPrimary:
-    type: compileTimeError
-    parameters: none
-    problemMessage: "Classes with primary constructors can't have non-redirecting generative constructors."
-    correctionMessage: "Try making the constructor redirect to the primary constructor, or remove the primary constructor."
-    hasPublishedDocs: false
   nonSyncFactory:
     type: compileTimeError
     parameters: none

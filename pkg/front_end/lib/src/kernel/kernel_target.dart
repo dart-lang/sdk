@@ -1617,6 +1617,25 @@ class KernelTarget {
             field.takePrimaryConstructorFieldInitializer(),
           );
         }
+        if (classDeclaration is SourceClassBuilder) {
+          Iterator<SourceConstructorBuilder> otherConstructorIterator =
+              classDeclaration.filteredConstructorsIterator(
+                includeDuplicates: false,
+              );
+          while (otherConstructorIterator.moveNext()) {
+            SourceConstructorBuilder otherConstructor =
+                otherConstructorIterator.current;
+            if (constructor != otherConstructor &&
+                !otherConstructor.isEffectivelyRedirecting) {
+              classDeclaration.libraryBuilder.addProblem(
+                diag.nonRedirectingGenerativeConstructorWithPrimary,
+                otherConstructor.fileOffset,
+                noLength,
+                otherConstructor.fileUri,
+              );
+            }
+          }
+        }
       }
     }
 

@@ -1454,6 +1454,11 @@ class FragmentFactoryImpl implements FragmentFactory {
     NominalParameterNameSpace typeParameterNameSpace =
         _nominalParameterNameSpaces.pop();
 
+    if (enclosingDeclaration.kind == DeclarationFragmentKind.enumDeclaration) {
+      // Primary constructors in enums are always constant.
+      isConst = true;
+    }
+
     PrimaryConstructorFragment fragment = new PrimaryConstructorFragment(
       constructorName: constructorName,
       fileUri: _compilationUnit.fileUri,
