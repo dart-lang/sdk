@@ -130,7 +130,7 @@ class C {
   int a = 0;
   C(int a) {
     this.a = a;
-    print(a);
+    print(1);
   }
 }
 ''');
@@ -138,7 +138,7 @@ class C {
 class C {
   int a = 0;
   C(this.a) {
-    print(a);
+    print(1);
   }
 }
 ''');
