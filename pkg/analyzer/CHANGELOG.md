@@ -1,6 +1,10 @@
 ## 10.1.0-dev
 
 * Remove experimental `ConstructorElement.isDeclaring`.
+* Stabilize `ConstructorElement.isPrimary`.
+* Stabilize `FieldElement.declaringFormalParameter`.
+* Stabilize `FieldFormalParameterElement.isDeclaring` and `privateName`.
+* Stabilize `FieldFormalParameterFragment.privateName`.
 
 ## 10.0.2
 

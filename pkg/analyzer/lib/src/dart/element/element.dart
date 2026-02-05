@@ -61,7 +61,6 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 part 'element.g.dart';
@@ -3065,7 +3064,6 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
 class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
     with _FieldFormalParameterFragmentImplMixin
     implements FieldFormalParameterFragment {
-  @experimental
   @override
   final String? privateName;
 

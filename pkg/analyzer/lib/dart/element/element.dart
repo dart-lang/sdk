@@ -59,7 +59,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
@@ -260,7 +259,6 @@ abstract class ConstructorElement implements ExecutableElement {
   bool get isOriginMixinApplication;
 
   /// Whether this is a primary constructor.
-  @experimental
   bool get isPrimary;
 
   @Deprecated(
@@ -1249,7 +1247,6 @@ abstract class FieldElement implements PropertyInducingElement {
   FieldElement get baseElement;
 
   /// The declaring formal parameter, if created from one.
-  @experimental
   FieldFormalParameterElement? get declaringFormalParameter;
 
   @override
@@ -1312,7 +1309,6 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   List<FieldFormalParameterFragment> get fragments;
 
   /// Whether this is a declaring formal parameter.
-  @experimental
   bool get isDeclaring;
 
   /// If this field formal parameter is a named parameter with a private name,
@@ -1330,7 +1326,6 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   /// * Finding the corresponding instance variable.
   ///
   /// * Referring to the parameter in the constructor's doc comment.
-  @experimental
   String? get privateName;
 }
 
@@ -1352,7 +1347,6 @@ abstract class FieldFormalParameterFragment implements FormalParameterFragment {
   /// the original private name.
   ///
   /// In that case, [name] is the corresponding public name for the parameter.
-  @experimental
   String? get privateName;
 }
 
