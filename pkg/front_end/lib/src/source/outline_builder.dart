@@ -3609,8 +3609,8 @@ class OutlineBuilder extends StackListenerImpl {
 
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.records.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.records.name,
         ),
         leftBracket.offset,
         noLength,

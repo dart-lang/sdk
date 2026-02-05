@@ -1115,8 +1115,11 @@ Message _withArgumentsOldExpectedType(Token lexeme) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String featureName, String enabledVersion),
+  Message Function({
+    required String featureName,
+    required String enabledVersion,
+  })
 >
 experimentNotEnabled = const Template(
   "ExperimentNotEnabled",
@@ -1127,29 +1130,34 @@ experimentNotEnabled = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExperimentNotEnabled({
-  required String string,
-  required String string2,
+  required String featureName,
+  required String enabledVersion,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var featureName_0 = conversions.validateString(featureName);
+  var enabledVersion_0 = conversions.validateString(enabledVersion);
   return new Message(
     experimentNotEnabled,
     problemMessage:
-        """This requires the '${string_0}' language feature to be enabled.""",
+        """This requires the '${featureName_0}' language feature to be enabled.""",
     correctionMessage:
-        """Try updating your pubspec.yaml to set the minimum SDK constraint to ${string2_0} or higher, and running 'pub get'.""",
-    arguments: {'string': string, 'string2': string2},
+        """Try updating your pubspec.yaml to set the minimum SDK constraint to ${enabledVersion_0} or higher, and running 'pub get'.""",
+    arguments: {'featureName': featureName, 'enabledVersion': enabledVersion},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentNotEnabled(String string, String string2) =>
-    _withArgumentsExperimentNotEnabled(string: string, string2: string2);
+Message _withArgumentsOldExperimentNotEnabled(
+  String featureName,
+  String enabledVersion,
+) => _withArgumentsExperimentNotEnabled(
+  featureName: featureName,
+  enabledVersion: enabledVersion,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String featureName),
+  Message Function({required String featureName})
 >
 experimentNotEnabledOffByDefault = const Template(
   "ExperimentNotEnabledOffByDefault",
@@ -1160,22 +1168,22 @@ experimentNotEnabledOffByDefault = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExperimentNotEnabledOffByDefault({
-  required String string,
+  required String featureName,
 }) {
-  var string_0 = conversions.validateString(string);
+  var featureName_0 = conversions.validateString(featureName);
   return new Message(
     experimentNotEnabledOffByDefault,
     problemMessage:
-        """This requires the experimental '${string_0}' language feature to be enabled.""",
+        """This requires the experimental '${featureName_0}' language feature to be enabled.""",
     correctionMessage:
-        """Try passing the '--enable-experiment=${string_0}' command line option.""",
-    arguments: {'string': string},
+        """Try passing the '--enable-experiment=${featureName_0}' command line option.""",
+    arguments: {'featureName': featureName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentNotEnabledOffByDefault(String string) =>
-    _withArgumentsExperimentNotEnabledOffByDefault(string: string);
+Message _withArgumentsOldExperimentNotEnabledOffByDefault(String featureName) =>
+    _withArgumentsExperimentNotEnabledOffByDefault(featureName: featureName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode exportAfterPart = const MessageCode(

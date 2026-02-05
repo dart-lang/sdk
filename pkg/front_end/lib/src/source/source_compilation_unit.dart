@@ -1496,8 +1496,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           addProblem(message, charOffset, length, fileUri);
         }
       } else {
-        message = diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          feature.flag.name,
+        message = diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: feature.flag.name,
         );
         addProblem(message, charOffset, length, fileUri);
       }
