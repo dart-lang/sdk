@@ -11347,17 +11347,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     DartType readType = readTarget.getGetterType(this);
-    DartType? promotedReadType = flowAnalysis
-        .propertyGet(
-          propertyGetNode,
-          computePropertyTarget(receiver),
-          propertyName.text,
-          readTarget is ExtensionTypeRepresentationAccessTarget
-              ? readTarget.representationField
-              : readTarget.member,
-          new SharedTypeView(readType),
-        )
-        ?.unwrapTypeView();
+    var (
+      SharedTypeView? wrappedPromotedReadType,
+      ExpressionInfo? expressionInfo,
+    ) = flowAnalysis.propertyGet(
+      computePropertyTarget(receiver),
+      propertyName.text,
+      readTarget is ExtensionTypeRepresentationAccessTarget
+          ? readTarget.representationField
+          : readTarget.member,
+      new SharedTypeView(readType),
+    );
+    if (propertyGetNode != null) {
+      flowAnalysis.storeExpressionInfo(propertyGetNode, expressionInfo);
+    }
+    DartType? promotedReadType = wrappedPromotedReadType?.unwrapTypeView();
     return createPropertyGet(
       fileOffset: fileOffset,
       receiver: receiver,

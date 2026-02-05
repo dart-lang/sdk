@@ -62,7 +62,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parameterName = parameter.name;
       if (parameterName == null) continue;
       var element = parameter.declaredFragment?.element;
-      // ignore: experimental_member_use
       if (element is FieldFormalParameterElement && element.isDeclaring) {
         continue;
       }

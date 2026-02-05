@@ -39,6 +39,7 @@ class TypeAnnotatePublicApis extends AnalysisRule {
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
   }
 }
@@ -53,14 +54,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.isAugmentation) return;
 
-    var enclosingElement = node.declaredFragment?.element.enclosingElement;
-    if (enclosingElement is EnumElement) return;
-    if (enclosingElement != null && enclosingElement.isPrivate) return;
-
-    var name = node.name;
-    if (name != null && Identifier.isPrivateName(name.lexeme)) return;
-
-    node.parameters.accept(v);
+    if (node.declaredFragment?.element case var element?) {
+      if (_isPublicConstructor(element)) {
+        node.parameters.accept(v);
+      }
+    }
   }
 
   @override
@@ -113,12 +111,29 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (node.isAugmentation) return;
+    if (node.declaredFragment?.element case var element?) {
+      if (_isPublicConstructor(element)) {
+        node.formalParameters.accept(v);
+      }
+    }
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (node.isAugmentation) return;
 
     if (node.variables.type == null) {
       node.variables.accept(v);
     }
+  }
+
+  bool _isPublicConstructor(ConstructorElement constructor) {
+    var enclosingElement = constructor.enclosingElement;
+    if (enclosingElement is EnumElement) return false;
+    if (enclosingElement.isPrivate) return false;
+    return !constructor.isPrivate;
   }
 }
 
