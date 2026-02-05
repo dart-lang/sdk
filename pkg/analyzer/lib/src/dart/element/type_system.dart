@@ -467,12 +467,8 @@ class TypeSystemImpl implements TypeSystem {
     return _futureTypeOfBounded(T);
   }
 
-  /// Compute "future value type" of [T].
-  ///
-  /// https://github.com/dart-lang/language/
-  /// See `nnbd/feature-specification.md`
-  /// See `#the-future-value-type-of-an-asynchronous-non-generator-function`
-  TypeImpl futureValueType(TypeImpl T) {
+  @override
+  TypeImpl futureValueType(covariant TypeImpl T) {
     // futureValueType(`S?`) = futureValueType(`S`), for all `S`.
     if (T.nullabilitySuffix != NullabilitySuffix.none) {
       var S = T.withNullability(NullabilitySuffix.none);

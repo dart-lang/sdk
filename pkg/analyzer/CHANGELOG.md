@@ -1,5 +1,6 @@
 ## 10.1.0-dev
 
+* Add `TypeSystem.futureValueType`.
 * Remove experimental `ConstructorElement.isDeclaring`.
 * Stabilize `ConstructorElement.isPrimary`.
 * Stabilize `FieldElement.declaringFormalParameter`.
