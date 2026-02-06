@@ -9,7 +9,7 @@ import 'dart:core' hide Type;
 
 import 'package:front_end/src/api_prototype/static_weak_references.dart'
     show StaticWeakReferences;
-import 'package:front_end/src/api_prototype/record_use.dart' as RecordUse;
+import 'package:front_end/src/api_prototype/record_use.dart' as record_use;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
@@ -344,7 +344,7 @@ class CleanupAnnotations extends RecursiveVisitor {
             protobufHandler?.usesAnnotationClass(cls) ?? false;
         return cls == pragmaClass ||
             usesProtobufAnnotation ||
-            RecordUse.isBeingRecorded(cls);
+            record_use.isRecordUse(cls);
       }
     }
     return false;

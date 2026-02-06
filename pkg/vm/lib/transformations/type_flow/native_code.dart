@@ -7,7 +7,7 @@ library;
 
 import 'dart:core' hide Type;
 
-import 'package:front_end/src/api_prototype/record_use.dart' as recordUse;
+import 'package:front_end/src/api_prototype/record_use.dart' as record_use;
 import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 
@@ -226,7 +226,7 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   visitField(Field field) {
     if (field.isInstanceMember &&
         field.enclosingClass!.hasConstConstructor &&
-        recordUse.hasRecordUse(field.enclosingClass!)) {
+        record_use.isBeingRecorded(field.enclosingClass!)) {
       // If a class has a `@RecordUse` annotation then a user-defined linker
       // script may want to inspect instance constants of the class, so we have
       // to preserve all fields.

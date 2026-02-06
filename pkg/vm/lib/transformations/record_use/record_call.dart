@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/kernel/record_use.dart' as recordUse;
+import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
@@ -24,18 +24,15 @@ class CallRecorder {
   /// A function to look up the loading unit for a reference.
   final LoadingUnitLookup _loadingUnitLookup;
 
-  /// The source uri to base relative URIs off of.
-  final Uri _source;
-
   /// Whether to save line and column info as well as the URI.
   //TODO(mosum): add verbose mode to enable this
   bool exactLocation = false;
 
-  CallRecorder(this._source, this._loadingUnitLookup);
+  CallRecorder(this._loadingUnitLookup);
 
   /// Will record a static invocation if it is annotated with `@RecordUse`.
   void recordStaticInvocation(ast.StaticInvocation node) {
-    if (recordUse.hasRecordUseAnnotation(node.target)) {
+    if (isBeingRecorded(node.target)) {
       // Collect the (int, bool, double, or String) arguments passed in the call.
       final createCallReference = _createCallReference(node);
       _addToUsage(node.target, createCallReference);
@@ -46,10 +43,7 @@ class CallRecorder {
   void recordConstantExpression(ast.ConstantExpression node) {
     final constant = node.constant;
     if (constant is ast.StaticTearOffConstant) {
-      final hasRecordUseAnnotation = recordUse.hasRecordUseAnnotation(
-        constant.target,
-      );
-      if (hasRecordUseAnnotation) {
+      if (isBeingRecorded(constant.target)) {
         _addToUsage(
           constant.target,
           CallTearoff(loadingUnit: _loadingUnitLookup(node)),
@@ -139,11 +133,11 @@ class CallRecorder {
     ast.Member target,
   ) {
     final enclosingLibrary = target.enclosingLibrary;
-    String file = getImportUri(enclosingLibrary, _source);
+    final importUri = enclosingLibrary.importUri.toString();
 
     return (
       identifier: Identifier(
-        importUri: file,
+        importUri: importUri,
         scope: target.enclosingClass?.name,
         name: target.name.text,
       ),

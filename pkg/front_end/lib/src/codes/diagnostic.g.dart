@@ -14997,6 +14997,13 @@ const MessageCode recordUseCannotBePlacedHere = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode recordUseOutsideOfPackage = const MessageCode(
+  "RecordUseOutsideOfPackage",
+  problemMessage:
+      """`RecordUse` annotations are only supported in libraries with a `package:` URI.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode recordUsedAsCallable = const MessageCode(
   "RecordUsedAsCallable",
   problemMessage:

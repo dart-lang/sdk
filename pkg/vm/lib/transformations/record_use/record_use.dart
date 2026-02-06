@@ -5,8 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/util/relativize.dart'
-    show relativizeUri;
 import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
@@ -44,14 +42,13 @@ LoadingUnitLookup _getDefaultLoadingUnitLookup(ast.Component component) {
 /// application.
 ast.Component transformComponent(
   ast.Component component,
-  Uri recordedUsagesFile,
-  Uri source, {
+  Uri recordedUsagesFile, {
   LoadingUnitLookup? loadingUnitLookup,
 }) {
   loadingUnitLookup ??= _getDefaultLoadingUnitLookup(component);
 
-  final callRecorder = CallRecorder(source, loadingUnitLookup);
-  final instanceRecorder = InstanceRecorder(source, loadingUnitLookup);
+  final callRecorder = CallRecorder(loadingUnitLookup);
+  final instanceRecorder = InstanceRecorder(loadingUnitLookup);
   component.accept(_RecordUseVisitor(callRecorder, instanceRecorder));
 
   final usages = _usages(
@@ -195,17 +192,6 @@ InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) =>
 
 Never _unsupported(String constantType) =>
     throw UnsupportedError('$constantType is not supported for recording.');
-
-String getImportUri(ast.Library library, Uri source) {
-  String file;
-  final importUri = library.importUri;
-  if (importUri.isScheme('file')) {
-    file = relativizeUri(source, library.fileUri, Platform.isWindows);
-  } else {
-    file = library.importUri.toString();
-  }
-  return file;
-}
 
 ast.Library? enclosingLibrary(ast.TreeNode node) {
   while (node is! ast.Library) {
