@@ -6,16 +6,11 @@
 ///
 /// See [documentation](../../../doc/record_uses.md) for examples.
 ///
-/// To appear in the output, arguments must be primitive constants i.e. int,
-/// double, String, bool, null. Other constants (e.g. enums, const objects) will
-/// simply be missing as though they were not constants.
+/// To appear in the output, arguments must be constants i.e. int, String, bool,
+/// null, List, Map, or constant objects.
 library;
 
-import 'dart:io';
-
 import 'package:compiler/src/elements/entities.dart';
-// ignore: implementation_imports
-import 'package:front_end/src/api_unstable/dart2js.dart' show relativizeUri;
 import 'package:compiler/src/deferred_load/output_unit.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:record_use/record_use_internal.dart';
@@ -51,6 +46,9 @@ class RecordUseCollector {
   }
 
   void _register(String loadingUnit, RecordedUse recordedUse) {
+    if (!recordedUse.function.library.canonicalUri.isScheme('package')) {
+      return;
+    }
     final callReference = switch (recordedUse) {
       RecordedCallWithArguments() => CallWithArguments(
         loadingUnit: loadingUnit,
@@ -77,11 +75,7 @@ class RecordUseCollector {
           identifier: Identifier(
             name: key.name!,
             scope: key.enclosingClass?.name,
-            importUri: relativizeUri(
-              Uri.base,
-              key.library.canonicalUri,
-              Platform.isWindows,
-            ),
+            importUri: key.library.canonicalUri.toString(),
           ),
           loadingUnit:
               outputUnitToName[_closedWorld.outputUnitData.outputUnitForMember(

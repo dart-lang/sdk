@@ -16,9 +16,9 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:test/test.dart';
 
-main() async {
+main() {
   SnippetTester tester = SnippetTester();
-  await tester.verify();
+  tester.verify();
 }
 
 class SnippetTester {
@@ -64,8 +64,8 @@ class SnippetTester {
         diagnostic.message.contains("'test_");
   }
 
-  Future<void> verify() async {
-    await verifyFolder(docFolder);
+  void verify() {
+    verifyFolder(docFolder);
   }
 
   Future<void> verifyFile(File file) async {
@@ -101,7 +101,7 @@ class SnippetTester {
     }
   }
 
-  Future<void> verifyFolder(Folder folder) async {
+  void verifyFolder(Folder folder) {
     for (Resource child in folder.getChildren()) {
       if (child is File) {
         if (child.shortName.endsWith('.md')) {
@@ -114,7 +114,7 @@ class SnippetTester {
           }, timeout: Timeout.factor(4));
         }
       } else if (child is Folder) {
-        await verifyFolder(child);
+        verifyFolder(child);
       }
     }
   }

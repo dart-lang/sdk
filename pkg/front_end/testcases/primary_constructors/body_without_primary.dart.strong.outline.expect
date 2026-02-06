@@ -1,0 +1,160 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:6:3: Error: A primary constructor body requires a primary constructor declaration.
+// Try adding the primary constructor declaration.
+//   this;
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:10:3: Error: A primary constructor body requires a primary constructor declaration.
+// Try adding the primary constructor declaration.
+//   this : assert(true);
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:14:3: Error: A primary constructor body requires a primary constructor declaration.
+// Try adding the primary constructor declaration.
+//   this {
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:21:3: Error: Only one primary constructor body declaration is allowed.
+// Try removing all but one of the primary constructor body declarations.
+//   this {
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:27:3: Error: A primary constructor body requires a primary constructor declaration.
+// Try adding the primary constructor declaration.
+//   this;
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:28:3: Error: Only one primary constructor body declaration is allowed.
+// Try removing all but one of the primary constructor body declarations.
+//   this {
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:35:3: Error: A primary constructor body requires a primary constructor declaration.
+// Try adding the primary constructor declaration.
+//   this;
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:40:3: Error: A primary constructor body requires a primary constructor declaration.
+// Try adding the primary constructor declaration.
+//   this : assert(true);
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:46:3: Error: Only one primary constructor body declaration is allowed.
+// Try removing all but one of the primary constructor body declarations.
+//   this : assert(true);
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:52:3: Error: Only one primary constructor body declaration is allowed.
+// Try removing all but one of the primary constructor body declarations.
+//   this : assert(true);
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:57:3: Error: A primary constructor body requires a primary constructor declaration.
+// Try adding the primary constructor declaration.
+//   this;
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:58:3: Error: Only one primary constructor body declaration is allowed.
+// Try removing all but one of the primary constructor body declarations.
+//   this : assert(true);
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:63:3: Error: Only one primary constructor body declaration is allowed.
+// Try removing all but one of the primary constructor body declarations.
+//   this {
+//   ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object {
+  synthetic constructor •() → self::C0
+    ;
+}
+class C1 extends core::Object {
+  synthetic constructor •() → self::C1
+    ;
+}
+class C2 extends core::Object {
+  synthetic constructor •() → self::C2
+    ;
+}
+class C3 extends core::Object {
+  constructor •() → self::C3
+    ;
+}
+class C4 extends core::Object {
+  synthetic constructor •() → self::C4
+    ;
+}
+class E0 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E0 a = const self::E0::•(0, "a");
+  static const field core::List<self::E0> values = const <self::E0>[self::E0::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E0
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E0.${this.{core::_Enum::_name}{core::String}}";
+}
+class E1 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E1 a = const self::E1::•(0, "a");
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E2 a = const self::E2::•(0, "a");
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::a];
+  const constructor •(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E3 a = const self::E3::•(0, "a");
+  static const field core::List<self::E3> values = const <self::E3>[self::E3::a];
+  const constructor •(core::int #index, core::String #name) → self::E3
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E4 a = const self::E4::•(0, "a");
+  static const field core::List<self::E4> values = const <self::E4>[self::E4::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E4
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+extension type ET1(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(i);
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///body_without_primary.dart:34:3 -> InstanceConstant(const E0{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///body_without_primary.dart:33:6 -> ListConstant(const <E0>[const E0{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///body_without_primary.dart:39:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///body_without_primary.dart:38:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///body_without_primary.dart:44:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///body_without_primary.dart:43:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///body_without_primary.dart:50:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///body_without_primary.dart:49:6 -> ListConstant(const <E3>[const E3{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///body_without_primary.dart:56:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///body_without_primary.dart:55:6 -> ListConstant(const <E4>[const E4{_Enum.index: 0, _Enum._name: "a"}])
+Extra constant evaluation: evaluated: 37, effectively constant: 10

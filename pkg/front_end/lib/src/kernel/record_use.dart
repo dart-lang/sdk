@@ -45,15 +45,32 @@ bool isRecordUse(Class cls) =>
     cls.enclosingLibrary.importUri == _metaLibraryUri;
 
 // Coverage-ignore(suite): Not run.
-bool isBeingRecorded(Class cls) => isRecordUse(cls) || hasRecordUse(cls);
+bool _enclosedInLibraryWithPackageUri(Annotatable node) {
+  final Library? library = switch (node) {
+    Library l => l,
+    Class c => c.enclosingLibrary,
+    Member m => m.enclosingLibrary,
+    _ => null,
+  };
+  return library?.importUri.isScheme('package') ?? false;
+}
 
 // Coverage-ignore(suite): Not run.
-/// If [cls] annotation is in turn annotated by a recording annotation.
-bool hasRecordUse(Class cls) => cls.annotations
-    .whereType<ConstantExpression>()
-    .map((e) => e.constant)
-    .whereType<InstanceConstant>()
-    .any((annotation) => isRecordUse(annotation.classNode));
+bool isBeingRecorded(Annotatable node) {
+  final bool hasAnnotation = hasRecordUseAnnotation(node);
+
+  if (!hasAnnotation) return false;
+
+  return _enclosedInLibraryWithPackageUri(node);
+}
+
+// Coverage-ignore(suite): Not run.
+Uri? _getFileUri(Annotatable node) {
+  if (node is Library) return node.fileUri;
+  if (node is Class) return node.fileUri;
+  if (node is Member) return node.fileUri;
+  return node.location?.file;
+}
 
 // Coverage-ignore(suite): Not run.
 /// Report if the resource annotations is placed on anything but a static
@@ -63,6 +80,17 @@ void validateRecordUseDeclaration(
   ErrorReporter errorReporter,
   Iterable<InstanceConstant> resourceAnnotations,
 ) {
+  if (resourceAnnotations.isEmpty) return;
+
+  final Uri? fileUri = _getFileUri(node);
+  if (fileUri == null) return;
+
+  if (!_enclosedInLibraryWithPackageUri(node)) {
+    errorReporter.report(
+      diag.recordUseOutsideOfPackage.withLocation(fileUri, node.fileOffset, 1),
+    );
+  }
+
   final bool onNonStaticMethod =
       node is! Procedure || !node.isStatic || node.kind != ProcedureKind.Method;
 
@@ -72,7 +100,7 @@ void validateRecordUseDeclaration(
   if (onNonStaticMethod && onClassWithoutConstConstructor) {
     errorReporter.report(
       diag.recordUseCannotBePlacedHere.withLocation(
-        node.location!.file,
+        fileUri,
         node.fileOffset,
         1,
       ),

@@ -22,9 +22,6 @@ class InstanceRecorder {
   /// A function to look up the loading unit for a reference.
   final LoadingUnitLookup _loadingUnitLookup;
 
-  /// The source uri to base relative URIs off of.
-  final Uri _source;
-
   /// A visitor traversing and collecting constants.
   late final ConstantCollector collector;
 
@@ -32,7 +29,7 @@ class InstanceRecorder {
   //TODO(mosum): add verbose mode to enable this
   bool exactLocation = false;
 
-  InstanceRecorder(this._source, this._loadingUnitLookup) {
+  InstanceRecorder(this._loadingUnitLookup) {
     collector = ConstantCollector.collectWith(_collectInstance);
   }
 
@@ -66,10 +63,10 @@ class InstanceRecorder {
     ast.Class cls,
   ) {
     final enclosingLibrary = cls.enclosingLibrary;
-    final file = getImportUri(enclosingLibrary, _source);
+    final importUri = enclosingLibrary.importUri.toString();
 
     return (
-      identifier: Identifier(importUri: file, name: cls.name),
+      identifier: Identifier(importUri: importUri, name: cls.name),
       loadingUnit: _loadingUnitLookup(cls),
     );
   }

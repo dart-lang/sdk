@@ -7175,6 +7175,10 @@ recordUseCannotBePlacedHere:
   parameters: none
   problemMessage: "`RecordUse` annotation cannot be placed on this element."
 
+recordUseOutsideOfPackage:
+  parameters: none
+  problemMessage: "`RecordUse` annotations are only supported in libraries with a `package:` URI."
+
 wasmImportOrExportInUserCode:
   parameters: none
   problemMessage: "Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code."

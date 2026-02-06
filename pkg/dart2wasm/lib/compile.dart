@@ -725,8 +725,7 @@ Future<CompilationResult> _runCodegenPhase(
       return moduleOutput.moduleImportName;
     }
 
-    record_use.transformComponent(
-        component, options.recordedUsesFile!, options.mainUri,
+    record_use.transformComponent(component, options.recordedUsesFile!,
         loadingUnitLookup: loadingUnitForNode);
   }
 

@@ -28,6 +28,7 @@ workspace:
   - pkg/build_integration
   - pkg/cfg
   - pkg/compiler
+  - pkg/compiler/test/record_use/data
   - pkg/dart2bytecode
   - pkg/dart2js_info
   - pkg/dart2js_runtime_metrics
@@ -75,6 +76,7 @@ workspace:
   - pkg/testing
   - pkg/test_runner
   - pkg/vm
+  - pkg/vm/testcases/transformations/record_use
   - pkg/vm_service
   - pkg/vm_service_interface
   - pkg/vm_service_protos

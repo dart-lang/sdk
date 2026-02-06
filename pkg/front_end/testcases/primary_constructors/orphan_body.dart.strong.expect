@@ -1,4 +1,22 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/orphan_body.dart:6:3: Error: A primary constructor body requires a primary constructor declaration.
+// Try adding the primary constructor declaration.
+//   this;
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/orphan_body.dart:10:3: Error: A primary constructor body requires a primary constructor declaration.
+// Try adding the primary constructor declaration.
+//   this : assert(true);
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/orphan_body.dart:14:3: Error: A primary constructor body requires a primary constructor declaration.
+// Try adding the primary constructor declaration.
+//   this {
+//   ^^^^
+//
 import self as self;
 import "dart:core" as core;
 

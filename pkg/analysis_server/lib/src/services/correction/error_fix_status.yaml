@@ -3681,6 +3681,8 @@ mixin_on_sealed_class:
     in the next stable release.
 multiple_combinators:
   status: hasFix
+multiple_primary_constructor_body_declarations:
+  status: needsEvaluation
 must_be_immutable:
   status: noFix
 must_call_super:

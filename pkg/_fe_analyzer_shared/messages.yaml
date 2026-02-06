@@ -2527,3 +2527,31 @@ nonRedirectingGenerativeConstructorWithPrimary:
     class C() {
       C.named();
     }
+
+primaryConstructorBodyWithoutDeclaration:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "A primary constructor body requires a primary constructor declaration."
+  correctionMessage: "Try adding the primary constructor declaration."
+  analyzerCode: primaryConstructorBodyWithoutDeclaration
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C {
+      this;
+    }
+
+multiplePrimaryConstructorBodyDeclarations:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Only one primary constructor body declaration is allowed."
+  correctionMessage: "Try removing all but one of the primary constructor body declarations."
+  analyzerCode: multiplePrimaryConstructorBodyDeclarations
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C() {
+      this;
+      this : assert(true);
+    }
+    

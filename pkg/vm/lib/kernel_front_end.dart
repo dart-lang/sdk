@@ -871,7 +871,7 @@ Future runGlobalTransformations(
   final recordedUsagesFile = args.recordedUsages;
   if (recordedUsagesFile != null) {
     assert(args.source != null);
-    record_use.transformComponent(component, recordedUsagesFile, args.source!);
+    record_use.transformComponent(component, recordedUsagesFile);
   }
 }
 
