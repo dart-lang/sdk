@@ -189,21 +189,17 @@ record_use.Constant? _findValue(ConstantValue? constant) {
 }
 
 record_use.MapConstant? _findMapValue(MapConstantValue constant) {
-  final result = <String, record_use.Constant>{};
+  final List<MapEntry<record_use.Constant, record_use.Constant>> result = [];
   for (var index = 0; index < constant.keys.length; index++) {
-    var keyConstantValue = constant.keys[index];
-    if (keyConstantValue is! StringConstantValue) {
-      // TODO(https://github.com/dart-lang/native/issues/2715): Support non
-      // string keys in maps.
-      return null;
-    }
+    final keyConstantValue = constant.keys[index];
+    final keyValue = _findValue(keyConstantValue);
     final value = _findValue(constant.values[index]);
-    if (value == null) {
+    if (keyValue == null || value == null) {
       // TODO(https://github.com/dart-lang/native/issues/2899): Handle
       // unsupported values.
       return null;
     }
-    result[keyConstantValue.stringValue] = value;
+    result.add(MapEntry(keyValue, value));
   }
   return record_use.MapConstant(result);
 }

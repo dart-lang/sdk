@@ -14,7 +14,6 @@ library;
 import 'dart:io';
 
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/io/source_information.dart';
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show relativizeUri;
 import 'package:compiler/src/deferred_load/output_unit.dart';
@@ -51,39 +50,14 @@ class RecordUseCollector {
     return _AnnotationMonitor(this, fileName);
   }
 
-  Location _recordUseLocation(SourceInformation sourceInformation) {
-    SourceLocation? sourceLocation =
-        sourceInformation.startPosition ??
-        sourceInformation.innerPosition ??
-        sourceInformation.endPosition;
-    if (sourceLocation == null) {
-      throw UnsupportedError('Source location is null.');
-    }
-    final sourceUri = sourceLocation.sourceUri;
-    if (sourceUri == null) {
-      throw UnsupportedError('Source uri is null.');
-    }
-
-    // Is [sourceUri] normalized in some way or does that need to be done
-    // here?
-    return Location(
-      uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
-    );
-  }
-
   void _register(String loadingUnit, RecordedUse recordedUse) {
-    final location = _recordUseLocation(recordedUse.sourceInformation);
     final callReference = switch (recordedUse) {
       RecordedCallWithArguments() => CallWithArguments(
         loadingUnit: loadingUnit,
         namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
         positionalArguments: recordedUse.positionalArgumentsInRecordUseFormat(),
-        location: location,
       ),
-      RecordedTearOff() => CallTearOff(
-        loadingUnit: loadingUnit,
-        location: location,
-      ),
+      RecordedTearOff() => CallTearoff(loadingUnit: loadingUnit),
     };
     callMap.putIfAbsent(recordedUse.function, () => []).add(callReference);
   }

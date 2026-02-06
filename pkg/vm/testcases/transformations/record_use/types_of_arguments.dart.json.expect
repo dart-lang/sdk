@@ -17,6 +17,10 @@
     },
     {
       "type": "string",
+      "value": "a"
+    },
+    {
+      "type": "string",
       "value": "a1"
     },
     {
@@ -26,9 +30,13 @@
     {
       "type": "list",
       "value": [
-        4,
-        5
+        5,
+        6
       ]
+    },
+    {
+      "type": "string",
+      "value": "b"
     },
     {
       "type": "string",
@@ -41,21 +49,22 @@
     {
       "type": "list",
       "value": [
-        7,
-        8
+        9,
+        10
       ]
     },
     {
       "type": "map",
-      "value": {
-        "a": 6,
-        "b": 9
-      }
-    }
-  ],
-  "locations": [
-    {
-      "uri": "types_of_arguments.dart"
+      "value": [
+        {
+          "key": 4,
+          "value": 7
+        },
+        {
+          "key": 8,
+          "value": 11
+        }
+      ]
     }
   ],
   "metadata": {
@@ -66,7 +75,6 @@
     {
       "calls": [
         {
-          "@": 0,
           "loading_unit": "1",
           "positional": [
             0
@@ -74,7 +82,6 @@
           "type": "with_arguments"
         },
         {
-          "@": 0,
           "loading_unit": "1",
           "positional": [
             1
@@ -82,7 +89,6 @@
           "type": "with_arguments"
         },
         {
-          "@": 0,
           "loading_unit": "1",
           "positional": [
             2
@@ -90,7 +96,6 @@
           "type": "with_arguments"
         },
         {
-          "@": 0,
           "loading_unit": "1",
           "positional": [
             3
@@ -98,15 +103,13 @@
           "type": "with_arguments"
         },
         {
-          "@": 0,
           "loading_unit": "1",
           "positional": [
-            10
+            12
           ],
           "type": "with_arguments"
         },
         {
-          "@": 0,
           "loading_unit": "1",
           "positional": [
             null

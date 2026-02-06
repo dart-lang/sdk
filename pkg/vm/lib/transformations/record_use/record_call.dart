@@ -52,10 +52,7 @@ class CallRecorder {
       if (hasRecordUseAnnotation) {
         _addToUsage(
           constant.target,
-          CallTearOff(
-            loadingUnit: _loadingUnitLookup(node),
-            location: node.location!.recordLocation(_source, exactLocation),
-          ),
+          CallTearoff(loadingUnit: _loadingUnitLookup(node)),
         );
       }
     }
@@ -122,7 +119,6 @@ class CallRecorder {
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
       loadingUnit: _loadingUnitLookup(node),
-      location: node.location!.recordLocation(_source, exactLocation),
     );
   }
 

@@ -9,11 +9,6 @@
       "value": 4
     }
   ],
-  "locations": [
-    {
-      "uri": "named_optional.dart"
-    }
-  ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
@@ -22,7 +17,6 @@
     {
       "calls": [
         {
-          "@": 0,
           "loading_unit": "1",
           "named": {
             "i": 0
@@ -30,7 +24,6 @@
           "type": "with_arguments"
         },
         {
-          "@": 0,
           "loading_unit": "1",
           "named": {
             "i": 1
