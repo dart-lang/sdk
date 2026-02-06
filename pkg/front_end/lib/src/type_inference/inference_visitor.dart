@@ -1062,7 +1062,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     node.operand = operandResult.expression..parent = node;
     flowAnalysis.asExpression_end(
-      node.operand,
+      flowAnalysis.getExpressionInfo(node.operand),
       subExpressionType: new SharedTypeView(operandResult.inferredType),
       castType: new SharedTypeView(node.type),
     );
@@ -4095,7 +4095,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.isExpression_end(
-        node.operand,
+        flowAnalysis.getExpressionInfo(node.operand),
         /*isNot:*/ false,
         subExpressionType: new SharedTypeView(operandResult.inferredType),
         checkedType: new SharedTypeView(node.type),

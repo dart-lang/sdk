@@ -240,11 +240,11 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting an "as" expression.
   ///
-  /// [subExpression] should be the expression to which the "as" check was
-  /// applied, and [subExpressionType] should be its static type. [castType]
-  /// should be the type being cast to.
+  /// [subExpressionInfo] should be the expression info for the expression to
+  /// which the "as" check was applied, and [subExpressionType] should be its
+  /// static type. [castType] should be the type being cast to.
   void asExpression_end(
-    Expression subExpression, {
+    ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
     required SharedTypeView castType,
   });
@@ -780,14 +780,15 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting the LHS of an "is" expression.
   ///
-  /// [subExpression] should be the expression to which the "is" check was
-  /// applied, and [subExpressionType] should be its static type. [isNot] should
-  /// be a boolean indicating whether this is an "is" or an "is!" expression.
-  /// [checkedType] should be the type being checked.
+  /// [subExpressionInfo] should be the expression info for the expression to
+  /// which the "is" check was applied, and [subExpressionType] should be its
+  /// static type. [isNot] should be a boolean indicating whether this is an
+  /// "is" or an "is!" expression. [checkedType] should be the type being
+  /// checked.
   ///
   /// Returns the expression info for the complete "is" expression.
   ExpressionInfo? isExpression_end(
-    Expression subExpression,
+    ExpressionInfo? subExpressionInfo,
     bool isNot, {
     required SharedTypeView subExpressionType,
     required SharedTypeView checkedType,
@@ -1495,15 +1496,15 @@ class FlowAnalysisDebug<
 
   @override
   void asExpression_end(
-    Expression subExpression, {
+    ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
     required SharedTypeView castType,
   }) {
     _wrap(
-      'asExpression_end($subExpression, subExpressionType: '
+      'asExpression_end($subExpressionInfo, subExpressionType: '
       '$subExpressionType, castType: $castType)',
       () => _wrapped.asExpression_end(
-        subExpression,
+        subExpressionInfo,
         subExpressionType: subExpressionType,
         castType: castType,
       ),
@@ -2003,16 +2004,16 @@ class FlowAnalysisDebug<
 
   @override
   ExpressionInfo? isExpression_end(
-    Expression subExpression,
+    ExpressionInfo? subExpressionInfo,
     bool isNot, {
     required SharedTypeView subExpressionType,
     required SharedTypeView checkedType,
   }) {
     return _wrap(
-      'isExpression_end($subExpression, $isNot, '
+      'isExpression_end($subExpressionInfo, $isNot, '
       'subExpressionType: $subExpressionType, checkedType: $checkedType)',
       () => _wrapped.isExpression_end(
-        subExpression,
+        subExpressionInfo,
         isNot,
         subExpressionType: subExpressionType,
         checkedType: checkedType,
@@ -5191,7 +5192,7 @@ class _FlowAnalysisImpl<
 
   @override
   void asExpression_end(
-    Expression subExpression, {
+    ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
     required SharedTypeView castType,
   }) {
@@ -5204,9 +5205,7 @@ class _FlowAnalysisImpl<
       _current = _current.setUnreachable();
     }
 
-    _Reference? reference = _getExpressionReference(
-      _getExpressionInfo(subExpression),
-    );
+    _Reference? reference = _getExpressionReference(subExpressionInfo);
     if (reference == null) return;
     _current = _current.tryPromoteForTypeCast(this, reference, castType);
   }
@@ -5839,7 +5838,7 @@ class _FlowAnalysisImpl<
 
   @override
   ExpressionInfo? isExpression_end(
-    Expression subExpression,
+    ExpressionInfo? subExpressionInfo,
     bool isNot, {
     required SharedTypeView subExpressionType,
     required SharedTypeView checkedType,
@@ -5852,7 +5851,7 @@ class _FlowAnalysisImpl<
       return booleanLiteral(isNot);
     } else {
       _Reference? subExpressionReference = _getExpressionReference(
-        _getExpressionInfo(subExpression),
+        subExpressionInfo,
       );
       if (subExpressionReference != null) {
         ExpressionInfo expressionInfo = _current.tryPromoteForTypeCheck(

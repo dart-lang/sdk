@@ -6851,7 +6851,7 @@ class _MiniAstTypeAnalyzer
       operations.unknownType,
     ).type;
     flow.asExpression_end(
-      expression,
+      flow.getExpressionInfo(expression),
       subExpressionType: subExpressionType,
       castType: SharedTypeView(type),
     );
@@ -6871,7 +6871,7 @@ class _MiniAstTypeAnalyzer
     flow.storeExpressionInfo(
       node,
       flow.isExpression_end(
-        expression,
+        flow.getExpressionInfo(expression),
         isInverted,
         subExpressionType: subExpressionType,
         checkedType: SharedTypeView(type),
