@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
@@ -633,6 +634,7 @@ void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     _generateChildEntities(implClass, buffer);
     _generateResolveExpression(implClass, buffer);
     _generateVisitChildren(implClass, buffer);
+    _generateVisitChildrenWithHooks(implClass, buffer);
     return buffer.toString();
   }
 
@@ -663,6 +665,86 @@ void visitChildren(AstVisitor visitor) {''');
         case _PropertyTypeKindNodeList():
           var propertyName = property.name;
           buffer.write('\n$propertyName.accept(visitor);');
+      }
+    }
+
+    buffer.writeln('\n}');
+  }
+
+  void _generateVisitChildrenWithHooks(
+    _ImplClass implClass,
+    StringBuffer buffer,
+  ) {
+    if (implClass.doNotGenerateLookupNames.contains('visitChildrenWithHooks')) {
+      return;
+    }
+
+    var hookProperties = implClass.properties.where((p) {
+      return p.typeKind is _PropertyTypeKindNode ||
+          p.typeKind is _PropertyTypeKindNodeList;
+    }).toList();
+
+    if (hookProperties.isEmpty) {
+      buffer.write('''
+\n/// Visits the children of this node.
+@generated
+void visitChildrenWithHooks(AstVisitor visitor) {
+''');
+    } else {
+      buffer.write('''
+\n/// Visits the children of this node.
+///
+/// If a specific hook is provided for a child, it is called instead of
+/// dispatching the [visitor] to the child. It is the responsibility of the
+/// hook to visit the child.
+@generated
+void visitChildrenWithHooks(AstVisitor visitor, {
+''');
+      for (var property in hookProperties) {
+        var hookName = 'visit${property.name.capitalize()}';
+        var typeCode = property.typeCodeNotNullable;
+        buffer.writeln('void Function($typeCode)? $hookName,');
+      }
+      buffer.write('}) {');
+    }
+
+    if (implClass.isAnnotatedNodeSubclass) {
+      buffer.write('super.visitChildren(visitor);');
+    }
+
+    for (var property in implClass.properties) {
+      var propertyName = property.name;
+      var hookName = 'visit${propertyName.capitalize()}';
+      switch (property.typeKind) {
+        case _PropertyTypeKindToken():
+        case _PropertyTypeKindTokenList():
+        case _PropertyTypeKindOther():
+          break; // nothing
+        case _PropertyTypeKindNode():
+          if (property.isNullable) {
+            buffer.write('''
+if ($propertyName case var $propertyName?) {
+  if ($hookName != null) {
+    $hookName($propertyName);
+  } else {
+    $propertyName.accept(visitor);
+  }
+}''');
+          } else {
+            buffer.write('''
+if ($hookName != null) {
+  $hookName($propertyName);
+} else {
+  $propertyName.accept(visitor);
+}''');
+          }
+        case _PropertyTypeKindNodeList():
+          buffer.write('''
+if ($hookName != null) {
+  $hookName($propertyName);
+} else {
+  $propertyName.accept(visitor);
+}''');
       }
     }
 
@@ -795,6 +877,7 @@ class _ImplClass {
       'new',
       'resolveExpression',
       'visitChildren',
+      'visitChildrenWithHooks',
     };
     for (var property in properties) {
       var propertyName = property.name;
@@ -888,6 +971,10 @@ class _Property {
       default:
         return '${type.element.name!}Impl$nullSuffix';
     }
+  }
+
+  String get typeCodeNotNullable {
+    return typeCode.removeSuffixOrSelf('?');
   }
 }
 
