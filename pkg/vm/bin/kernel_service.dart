@@ -85,8 +85,9 @@ Uint8List Function(
   CoreTypes coreTypes,
   ClassHierarchy hierarchy,
   Target target,
-  bool enableAsserts,
-)?
+  bool enableAsserts, {
+  Set<Library> extraLoadedLibraries,
+})?
 bytecodeGenerator;
 
 CompilerOptions setupCompilerOptions(
@@ -375,10 +376,9 @@ class IncrementalCompilerWrapper extends Compiler {
     errorsPlain.clear();
     errorsColorized.clear();
     final compilerResult = await generator.compile(entryPoints: [script]);
-    final component = compilerResult.component;
     return new CompilerResult(
-      component,
-      const {},
+      compilerResult.component,
+      compilerResult.neededDillLibraries ?? const {},
       compilerResult.classHierarchy,
       compilerResult.coreTypes,
     );
@@ -1082,6 +1082,7 @@ Future _processLoadRequest(request) async {
           compilerResult.classHierarchy!,
           compiler.options.target!,
           compiler.enableAsserts,
+          extraLoadedLibraries: loadedLibraries,
         );
       } else {
         bytes = serializeComponent(

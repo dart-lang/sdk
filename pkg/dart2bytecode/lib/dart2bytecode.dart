@@ -266,7 +266,8 @@ Future<int> runCompilerWithOptions({
       hierarchy: results.classHierarchy!,
       coreTypes: results.coreTypes!,
       options: bytecodeOptions,
-      target: compilerOptions.target!);
+      target: compilerOptions.target!,
+      extraLoadedLibraries: results.loadedLibraries);
   await sink.close();
   if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.dump();
