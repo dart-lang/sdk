@@ -2554,6 +2554,17 @@ const MessageCode multipleOnClauses = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+multiplePrimaryConstructorBodyDeclarations = const MessageCode(
+  "MultiplePrimaryConstructorBodyDeclarations",
+  sharedCode: SharedCode.multiplePrimaryConstructorBodyDeclarations,
+  problemMessage:
+      """Only one primary constructor body declaration is allowed.""",
+  correctionMessage:
+      """Try removing all but one of the primary constructor body declarations.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode multipleVarianceModifiers = const MessageCode(
   "MultipleVarianceModifiers",
   sharedCode: SharedCode.multipleVarianceModifiers,
@@ -2853,6 +2864,15 @@ const MessageCode prefixAfterCombinator = const MessageCode(
   problemMessage:
       """The prefix ('as' clause) should come before any show/hide combinators.""",
   correctionMessage: """Try moving the prefix before the combinators.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode primaryConstructorBodyWithoutDeclaration = const MessageCode(
+  "PrimaryConstructorBodyWithoutDeclaration",
+  sharedCode: SharedCode.primaryConstructorBodyWithoutDeclaration,
+  problemMessage:
+      """A primary constructor body requires a primary constructor declaration.""",
+  correctionMessage: """Try adding the primary constructor declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3561,6 +3581,7 @@ enum SharedCode {
   multipleLibraryDirectives,
   multipleOnClauses,
   multiplePartOfDirectives,
+  multiplePrimaryConstructorBodyDeclarations,
   multipleVarianceModifiers,
   multipleWithClauses,
   nativeClauseShouldBeAnnotation,
@@ -3573,6 +3594,7 @@ enum SharedCode {
   patternAssignmentDeclaresVariable,
   patternVariableDeclarationOutsideFunctionOrMethod,
   prefixAfterCombinator,
+  primaryConstructorBodyWithoutDeclaration,
   recordLiteralOnePositionalNoTrailingComma,
   recordTypeOnePositionalNoTrailingComma,
   redirectingConstructorWithBody,

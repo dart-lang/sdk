@@ -10917,6 +10917,20 @@ multiplePositionalParameterGroups = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments multiplePrimaryConstructorBodyDeclarations =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'multiple_primary_constructor_body_declarations',
+      problemMessage:
+          "Only one primary constructor body declaration is allowed.",
+      correctionMessage:
+          "Try removing all but one of the primary constructor body "
+          "declarations.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'multiple_primary_constructor_body_declarations',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments multipleRedirectingConstructorInvocations =
     DiagnosticWithoutArgumentsImpl(
       name: 'multiple_redirecting_constructor_invocations',

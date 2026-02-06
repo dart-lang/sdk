@@ -14898,12 +14898,6 @@ CompileTimeErrorCode:
         return x;
       }
       ```
-  primaryConstructorBodyWithoutDeclaration:
-    type: compileTimeError
-    parameters: none
-    problemMessage: "A primary constructor body requires a primary constructor declaration."
-    correctionMessage: "Try adding the primary constructor declaration."
-    hasPublishedDocs: false
   primaryConstructorCannotRedirect:
     type: compileTimeError
     parameters: none
