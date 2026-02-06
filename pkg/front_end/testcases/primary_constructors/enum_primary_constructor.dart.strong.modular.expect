@@ -55,6 +55,26 @@ class E4 extends core::_Enum /*isEnum*/  {
   method core::_enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
 }
+class E5 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E5 a = #C12;
+  final field core::int? b;
+  static const field core::List<self::E5> values = #C13;
+  const constructor •(core::int #index, core::String #name) → self::E5
+    : self::E5::b = 0, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E6 a = #C14;
+  final field core::int? b;
+  static const field core::List<self::E6> values = #C15;
+  const constructor •(core::int #index, core::String #name, core::int? x) → self::E6
+    : self::E6::b = x, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
 
 constants  {
   #C1 = 0
@@ -68,6 +88,10 @@ constants  {
   #C9 = <self::E3>[#C8]
   #C10 = self::E4 {b:#C7, index:#C1, _name:#C2}
   #C11 = <self::E4>[#C10]
+  #C12 = self::E5 {b:#C1, index:#C1, _name:#C2}
+  #C13 = <self::E5>[#C12]
+  #C14 = self::E6 {b:#C1, index:#C1, _name:#C2}
+  #C15 = <self::E6>[#C14]
 }
 
 
@@ -79,3 +103,5 @@ org-dartlang-testcase:///enum_primary_constructor.dart:
 - E2. (from org-dartlang-testcase:///enum_primary_constructor.dart:9:14)
 - E3. (from org-dartlang-testcase:///enum_primary_constructor.dart:13:14)
 - E4. (from org-dartlang-testcase:///enum_primary_constructor.dart:18:14)
+- E5. (from org-dartlang-testcase:///enum_primary_constructor.dart:23:8)
+- E6. (from org-dartlang-testcase:///enum_primary_constructor.dart:29:8)

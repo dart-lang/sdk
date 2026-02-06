@@ -65,10 +65,6 @@ class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
       // so we skip building the body.
       return null;
     }
-    if (_primaryConstructorFragment!.modifiers.isConst) {
-      // TODO(johnniwinther): Why?
-      return null;
-    }
     return new _PrimaryConstructorBodyBuildingContext(
       _primaryConstructorFragment!,
       shouldFinishFunction: true,
