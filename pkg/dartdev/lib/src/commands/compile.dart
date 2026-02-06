@@ -683,14 +683,21 @@ Remove debugging information from the output and save it separately to the speci
             dataAssetsExperimentEnabled: false,
             verbose: verbose,
             target: target);
-        if (!nativeAssetsExperimentEnabled) {
-          if (await builder.warnOnNativeAssets()) {
+
+        final isBinScript = path.isWithin(
+          path.canonicalize(path.join(Directory.current.path, 'bin')),
+          path.canonicalize(sourcePath),
+        );
+        if (isBinScript) {
+          if (!nativeAssetsExperimentEnabled) {
+            if (await builder.warnOnNativeAssets()) {
+              return 255;
+            }
+          } else if (await builder.hasHooks()) {
+            stderr.writeln(
+              "'dart compile' does not support build hooks, use 'dart build' instead.");
             return 255;
           }
-        } else if (await builder.hasHooks()) {
-          stderr.writeln(
-              "'dart compile' does not support build hooks, use 'dart build' instead.");
-          return 255;
         }
       }
     }
