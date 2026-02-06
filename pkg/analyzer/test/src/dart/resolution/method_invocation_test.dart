@@ -4021,9 +4021,12 @@ var v = C()..foo(0) = 0;
     var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::C::@getter::foo
+  function: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@getter::foo
+      staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (

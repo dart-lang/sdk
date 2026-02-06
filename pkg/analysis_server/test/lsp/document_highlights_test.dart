@@ -480,6 +480,17 @@ class /*[0*/Aaa/*0]*/() {
 ''');
   }
 
+  Future<void> test_privateNamedParameter() => _testMarkedContent('''
+class C {
+  int? /*[0*/_aaa/*0]*/;
+  C({this./*[1*/_aaa/*1]*/});
+}
+
+void f() {
+  C(/*[2*/aaa/*2]*/: 123);
+}
+  ''');
+
   Future<void> test_shadow_inner() => _testMarkedContent('''
 void f() {
   var foo = 1;

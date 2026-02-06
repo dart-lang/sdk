@@ -27,6 +27,8 @@ final class Arm64Constraints extends Constraints {
       .where((r) => r != returnFPReg)
       .toList();
 
+  List<Constraint?>? _parameters;
+
   Arm64Constraints();
 
   @override
@@ -40,12 +42,6 @@ final class Arm64Constraints extends Constraints {
 
   @override
   List<FPRegister> getAllocatableFPRegisters() => allocatableFPRegisters;
-
-  @override
-  int sizeInWords(RegisterClass registerClass) => 1;
-
-  @override
-  int alignmentInWords(RegisterClass registerClass) => 1;
 
   // TODO: pass arguments on registers
   // TODO: add callee-save registers
@@ -62,6 +58,21 @@ final class Arm64Constraints extends Constraints {
       (resultReg == returnFPReg)
           ? volatileRegistersExceptFPReturnReg
           : volatileRegistersExceptReturnReg,
+    );
+  }
+
+  // TODO: pass arguments on registers
+  Constraint parameterConstraint(Parameter instr) {
+    final paramIndex = instr.variable.index;
+    final numParams = instr.graph.function.numberOfParameters;
+    assert(0 <= paramIndex && paramIndex < numParams);
+    final parameters = (_parameters ??= List<Constraint?>.filled(
+      numParams,
+      null,
+    ));
+    return parameters[paramIndex] ??= ParameterStackLocation(
+      paramIndex,
+      registerClass(instr),
     );
   }
 
@@ -114,7 +125,12 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitParameter(Parameter instr) =>
-      InstructionConstraints(anyLocation(instr), const []);
+      InstructionConstraints(
+        instr.isFunctionParameter
+            ? parameterConstraint(instr)
+            : anyLocation(instr),
+        const [],
+      );
 
   @override
   InstructionConstraints? visitLoadLocal(LoadLocal instr) =>
@@ -126,17 +142,15 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitLoadInstanceField(LoadInstanceField instr) =>
-      InstructionConstraints(
-        instr.field.type is DoubleType ? anyFpuRegister : anyCpuRegister,
-        [anyCpuRegister],
-      );
+      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
 
   @override
   InstructionConstraints? visitStoreInstanceField(StoreInstanceField instr) =>
-      InstructionConstraints(null, [
-        anyCpuRegister,
-        instr.field.type is DoubleType ? anyFpuRegister : anyCpuRegister,
-      ]);
+      const InstructionConstraints(
+        null,
+        [anyCpuRegister, anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister],
+      );
 
   @override
   InstructionConstraints? visitLoadStaticField(LoadStaticField instr) =>

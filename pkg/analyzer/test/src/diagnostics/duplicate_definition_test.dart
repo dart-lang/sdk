@@ -1485,6 +1485,7 @@ enum E(var int foo) {
 }
 ''',
       [
+        error(diag.nonFinalFieldInEnum, 15, 3),
         error(
           diag.duplicateDefinition,
           36,

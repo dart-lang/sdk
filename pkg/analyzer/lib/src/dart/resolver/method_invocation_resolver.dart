@@ -1353,7 +1353,12 @@ class MethodInvocationResolver with ScopeHelpers {
           period: node.period,
           propertyName: node.memberName,
         );
-        functionExpression.setPseudoExpressionStaticType(targetType);
+      } else if (isCascaded) {
+        functionExpression = PropertyAccessImpl(
+          target: null,
+          operator: operator!,
+          propertyName: methodName,
+        );
       } else {
         functionExpression = methodName;
       }
@@ -1401,11 +1406,14 @@ class MethodInvocationResolver with ScopeHelpers {
         flow.storeExpressionInfo(functionExpression, expressionInfo);
         targetType = wrappedPromotedType?.unwrapTypeView() ?? targetType;
       }
-      functionExpression.setPseudoExpressionStaticType(targetType);
     }
     inferenceLogWriter?.enterFunctionExpressionInvocationTarget(methodName);
     methodName.recordStaticType(targetType, resolver: _resolver);
     inferenceLogWriter?.exitExpression(methodName);
+
+    if (functionExpression != methodName) {
+      functionExpression.setPseudoExpressionStaticType(targetType);
+    }
 
     var invocation = FunctionExpressionInvocationImpl(
       function: functionExpression,

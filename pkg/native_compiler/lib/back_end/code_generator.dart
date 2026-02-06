@@ -12,6 +12,7 @@ import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/stack_frame.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
@@ -47,6 +48,7 @@ abstract base class CodeGenerator extends Pass
   VMOffsets get vmOffsets => backEndState.vmOffsets;
   ObjectLayout get objectLayout => backEndState.objectLayout;
   List<Block> get codeGenBlockOrder => backEndState.codeGenBlockOrder;
+  StackFrame get stackFrame => backEndState.stackFrame;
 
   Location loc(OperandId operandId) =>
       backEndState.operandLocations[operandId]!.physicalLocation;
@@ -55,7 +57,7 @@ abstract base class CodeGenerator extends Pass
 
   Register inputReg(Instruction instr, int inputIndex) =>
       inputLoc(instr, inputIndex) as Register;
-  Register tempReg(Instruction instr, int tempIndex) =>
+  Register temporaryReg(Instruction instr, int tempIndex) =>
       loc(OperandId.temp(instr.id, tempIndex)) as Register;
   Register outputReg(Instruction instr) =>
       loc(OperandId.result(instr.id)) as Register;
@@ -105,7 +107,12 @@ abstract base class CodeGenerator extends Pass
     }
 
     backEndState.consumeGeneratedCode(
-      Code(graph.function, _asm.bytes, _asm.objectPool),
+      Code(
+        graph.function.toString(),
+        graph.function,
+        _asm.bytes,
+        _asm.objectPool,
+      ),
     );
   }
 

@@ -5838,9 +5838,9 @@ optionalNonNullableWithoutInitializerError:
 
 fieldNonNullableWithoutInitializerError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "Field '#name' should be initialized because its type '#type' doesn't allow null."
+    Name fieldName: The name of the field.
+    Type fieldType: The type of the field.
+  problemMessage: "Field '#fieldName' should be initialized because its type '#fieldType' doesn't allow null."
   script: |
     class Foo {
       int x;
@@ -5848,9 +5848,9 @@ fieldNonNullableWithoutInitializerError:
 
 fieldNonNullableNotInitializedByConstructorError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
+    Name fieldName: The name of the field.
+    Type fieldType: The type of the field.
+  problemMessage: "This constructor should initialize field '#fieldName' because its type '#fieldType' doesn't allow null."
   script: |
     class Foo {
       int x;
@@ -5860,10 +5860,10 @@ fieldNonNullableNotInitializedByConstructorError:
 
 experimentOptOutExplicit:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The '#string' language feature is disabled for this library."
-  correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string2 or higher."
+    String featureName: The name of the language feature.
+    String enabledVersion: The language version in which the feature was enabled.
+  problemMessage: "The '#featureName' language feature is disabled for this library."
+  correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #enabledVersion or higher."
   script: |
     // @dart=2.14
     class Foo {}
@@ -5874,10 +5874,10 @@ experimentOptOutExplicit:
 
 experimentOptOutImplicit:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The '#string' language feature is disabled for this library."
-  correctionMessage: "Try removing the package language version or setting the language version to #string2 or higher."
+    String featureName: The name of the language feature.
+    String enabledVersion: The language version in which the feature was enabled.
+  problemMessage: "The '#featureName' language feature is disabled for this library."
+  correctionMessage: "Try removing the package language version or setting the language version to #enabledVersion or higher."
   script:
     .dart_tool/package_config.json: |
       {
@@ -5901,8 +5901,8 @@ experimentOptOutImplicit:
 
 experimentOptOutComment:
   parameters:
-    String string: undocumented
-  problemMessage: "This is the annotation that opts out this library from the '#string' language feature."
+    String featureName: The name of the language feature.
+  problemMessage: "This is the annotation that opts out this library from the '#featureName' language feature."
   severity: CONTEXT
 
 awaitInLateLocalInitializer:
@@ -5915,16 +5915,16 @@ awaitInLateLocalInitializer:
 
 nullableSuperclassError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't extend '#name' because it's nullable."
+    Name supertypeName: The name of the supertype.
+  problemMessage: "Can't extend '#supertypeName' because it's nullable."
   correctionMessage: "Try removing the question mark."
   script: |
     class Foo extends Object? {}
 
 nullableInterfaceError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't implement '#name' because it's nullable."
+    Name interfaceName: The name of the interface that couldn't be implemented.
+  problemMessage: "Can't implement '#interfaceName' because it's nullable."
   correctionMessage: "Try removing the question mark."
   script: |
     class Foo {}
@@ -5932,8 +5932,8 @@ nullableInterfaceError:
 
 nullableMixinError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't mix '#name' in because it's nullable."
+    Name mixinName: The name of the type that couldn't be mixed in.
+  problemMessage: "Can't mix '#mixinName' in because it's nullable."
   correctionMessage: "Try removing the question mark."
   script: |
     mixin Foo {}
@@ -5941,9 +5941,9 @@ nullableMixinError:
 
 jsInteropDartClassExtendsJSClass:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
+    Name className: The name of the class that cannot extend a JS interop class.
+    Name superclassName: The name of the JS interop class.
+  problemMessage: "Dart class '#className' cannot extend JS interop class '#superclassName'."
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
 
 jsInteropDartJsInteropAnnotationForStaticInteropOnly:
@@ -5963,21 +5963,21 @@ jsInteropEnclosingClassJSAnnotationContext:
 
 jsInteropExportClassNotMarkedExportable:
   parameters:
-    Name name: undocumented
-  problemMessage: "Class '#name' does not have a `@JSExport` on it or any of its members."
+    Name className: The name of the class that is not marked exportable.
+  problemMessage: "Class '#className' does not have a `@JSExport` on it or any of its members."
   correctionMessage: "Use the `@JSExport` annotation on this class."
 
 jsInteropExportDartInterfaceHasNonEmptyJSExportValue:
   parameters:
-    Name name: undocumented
-  problemMessage: "The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored."
+    Name className: The name of the class with a non-empty `@JSExport` value.
+  problemMessage: "The value in the `@JSExport` annotation on the class or mixin '#className' will be ignored."
   correctionMessage: "Remove the value in the annotation."
   severity: WARNING
 
 jsInteropExportDisallowedMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported."
+    Name memberName: The name of the problematic member.
+  problemMessage: "Member '#memberName' is not a concrete instance member or declares type parameters, and therefore can't be exported."
   correctionMessage: "Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead."
 
 jsInteropExportInvalidInteropTypeArgument:
@@ -6082,9 +6082,9 @@ jsInteropFunctionToJSTypeParameters:
 
 jsInteropFunctionToJSTypeViolation:
   parameters:
-    String conversion: undocumented
-    String string2: undocumented
-  problemMessage: "Function converted via '#conversion' contains invalid types in its function signature: '#string2'."
+    String conversion: The "toJS" conversion in use.
+    String typeWithDiasllowedPartsHighlighted: The function type, with disallowed types surrounded by asterisks.
+  problemMessage: "Function converted via '#conversion' contains invalid types in its function signature: '#typeWithDiasllowedPartsHighlighted'."
   correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 jsInteropInvalidStaticClassMemberName:
@@ -6093,9 +6093,9 @@ jsInteropInvalidStaticClassMemberName:
 
 jsInteropJSClassExtendsDartClass:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
+    Name className: The name of the class that extends a Dart class.
+    Name superclassName: The name of the extended Dart class.
+  problemMessage: "JS interop class '#className' cannot extend Dart class '#superclassName'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
 
 jsInteropNamedParameters:
@@ -6105,11 +6105,11 @@ jsInteropNamedParameters:
 
 jsInteropNativeClassInAnnotation:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string3: undocumented
-  problemMessage: "Non-static JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
-  correctionMessage: "Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '#name2'."
+    Name className: The name of the problematic class.
+    Name nativeClassName: The name of the conflicting natively supported class.
+    String uri: The URI in which the conflict occurs.
+  problemMessage: "Non-static JS interop class '#className' conflicts with natively supported class '#nativeClassName' in '#uri'."
+  correctionMessage: "Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '#nativeClassName'."
 
 jsInteropNonExternalConstructor:
   parameters: none
@@ -6123,8 +6123,8 @@ jsInteropNonExternalMember:
 
 jsInteropObjectLiteralConstructorPositionalParameters:
   parameters:
-    String string: undocumented
-  problemMessage: "#string should not contain any positional parameters."
+    String kind: The kind of the erroneous construct.
+  problemMessage: "#kind should not contain any positional parameters."
   correctionMessage: "Try replacing them with named parameters instead."
 
 jsInteropOperatorCannotBeRenamed:
@@ -6139,23 +6139,23 @@ jsInteropOperatorsNotSupported:
 
 jsInteropNonStaticWithStaticInteropSupertype:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
-  correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
+    Name className: The name of the problematic class.
+    Name superclassName: The name of the conflicting superclass.
+  problemMessage: "Class '#className' does not have an `@staticInterop` annotation, but has supertype '#superclassName', which does."
+  correctionMessage: "Try marking '#className' as a `@staticInterop` class, or don't inherit '#superclassName'."
 
 # TODO(srujzs): Is there any way to save the correction message into a variable
 # to avoid duplication?
 jsInteropStaticInteropExternalAccessorTypeViolation:
   parameters:
-    Type type: undocumented
+    Type type: The invalid type.
   problemMessage: "External JS interop member contains an invalid type: '#type'."
   correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 jsInteropStaticInteropExternalFunctionTypeViolation:
   parameters:
-    String string2: undocumented
-  problemMessage: "External JS interop member contains invalid types in its function signature: '#string2'."
+    String typeWithDiasllowedPartsHighlighted: The function type, with disallowed types surrounded by asterisks.
+  problemMessage: "External JS interop member contains invalid types in its function signature: '#typeWithDiasllowedPartsHighlighted'."
   correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 jsInteropStaticInteropGenerativeConstructor:
@@ -6165,20 +6165,20 @@ jsInteropStaticInteropGenerativeConstructor:
 
 jsInteropStaticInteropMockMissingGetterOrSetter:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-    String string2: undocumented
-    Name name2: undocumented
-    String string3: undocumented
-  problemMessage: "Dart class '#name' has a #string, but does not have a #string2 to implement any of the following extension member(s) with export name '#name2': #string3."
-  correctionMessage: "Declare an exportable #string2 that implements one of these extension members."
+    Name className: The name of the problematic class.
+    String accessorKindPresent: The kind of accessor that is present ("getter" or "setter").
+    String accessorKindAbsent: The kind of accessor that is not present ("getter" or "setter").
+    Name exportName: The export name.
+    String missingMembers: A list of the missing members, separated by ", ".
+  problemMessage: "Dart class '#className' has a #accessorKindPresent, but does not have a #accessorKindAbsent to implement any of the following extension member(s) with export name '#exportName': #missingMembers."
+  correctionMessage: "Declare an exportable #accessorKindAbsent that implements one of these extension members."
 
 jsInteropStaticInteropMockMissingImplements:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string: undocumented
-  problemMessage: "Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string."
+    Name className: The name of the problematic class.
+    Name exportName: The export name.
+    String missingMembers: A list of the missing members, separated by ", ".
+  problemMessage: "Dart class '#className' does not have any members that implement any of the following extension member(s) with export name '#exportName': #missingMembers."
   correctionMessage: "Declare an exportable member that implements one of these extension members."
 
 jsInteropStaticInteropMockNotStaticInteropType:

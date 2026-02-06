@@ -268,6 +268,35 @@ void main() {
         'add csp, fp, tmp uxtx 0\n',
       );
     });
+    test('subImmediate', () {
+      asm.subImmediate(R3, R3, 0);
+      asm.subImmediate(SP, FP, 0);
+      asm.subImmediate(R1, R2, 0, .u32);
+      asm.subImmediate(R1, R2, 0xabc);
+      asm.subImmediate(R1, R2, -0xabc);
+      asm.subImmediate(R1, R2, 0xabc000);
+      asm.subImmediate(R1, R2, -0xabc000);
+      asm.subImmediate(R1, R2, 0x11223344_55667788);
+      asm.subImmediate(SP, FP, 0x11223344_55667788);
+      expectDisassembly(
+        'mov csp, fp\n'
+        'movw r1, r2\n'
+        'sub r1, r2, #0xabc\n'
+        'add r1, r2, #0xabc\n'
+        'sub r1, r2, #0xabc000\n'
+        'add r1, r2, #0xabc000\n'
+        'movz tmp, #0x7788\n'
+        'movk tmp, #0x5566 lsl 16\n'
+        'movk tmp, #0x3344 lsl 32\n'
+        'movk tmp, #0x1122 lsl 48\n'
+        'sub r1, r2, tmp\n'
+        'movz tmp, #0x7788\n'
+        'movk tmp, #0x5566 lsl 16\n'
+        'movk tmp, #0x3344 lsl 32\n'
+        'movk tmp, #0x1122 lsl 48\n'
+        'sub csp, fp, tmp uxtx 0\n',
+      );
+    });
     test('andImmediate', () {
       asm.andImmediate(R1, R2, 0);
       asm.andImmediate(R1, R2, 0, .u32);
@@ -298,7 +327,7 @@ void main() {
       );
     });
     test('callStub', () {
-      final stub = Code(null, Uint8List(0), ObjectPool());
+      final stub = Code('<stub>', null, Uint8List(0), ObjectPool());
       asm.callStub(stub);
       expectDisassembly(
         'ldr code, [pp, #${objectPoolBase}]\n'

@@ -208,18 +208,18 @@ class JsInteropChecks extends RecursiveVisitor {
       }
       if (superclass != null && !hasJSInteropAnnotation(superclass)) {
         report(
-          diag.jsInteropJSClassExtendsDartClass.withArgumentsOld(
-            node.name,
-            superclass.name,
+          diag.jsInteropJSClassExtendsDartClass.withArguments(
+            className: node.name,
+            superclassName: superclass.name,
           ),
         );
       }
     } else {
       if (superclass != null && hasJSInteropAnnotation(superclass)) {
         report(
-          diag.jsInteropDartClassExtendsJSClass.withArgumentsOld(
-            node.name,
-            superclass.name,
+          diag.jsInteropDartClassExtendsJSClass.withArguments(
+            className: node.name,
+            superclassName: superclass.name,
           ),
         );
       }
@@ -262,9 +262,9 @@ class JsInteropChecks extends RecursiveVisitor {
       }
       if (superclass != null && hasStaticInteropAnnotation(superclass)) {
         report(
-          diag.jsInteropNonStaticWithStaticInteropSupertype.withArgumentsOld(
-            node.name,
-            superclass.name,
+          diag.jsInteropNonStaticWithStaticInteropSupertype.withArguments(
+            className: node.name,
+            superclassName: superclass.name,
           ),
         );
       }
@@ -273,9 +273,9 @@ class JsInteropChecks extends RecursiveVisitor {
       for (final supertype in node.implementedTypes) {
         if (hasStaticInteropAnnotation(supertype.classNode)) {
           report(
-            diag.jsInteropNonStaticWithStaticInteropSupertype.withArgumentsOld(
-              node.name,
-              supertype.classNode.name,
+            diag.jsInteropNonStaticWithStaticInteropSupertype.withArguments(
+              className: node.name,
+              superclassName: supertype.classNode.name,
             ),
           );
         }
@@ -626,10 +626,10 @@ class JsInteropChecks extends RecursiveVisitor {
       final nativeClass = _nativeClasses[jsClass];
       if (nativeClass != null) {
         _reporter.report(
-          diag.jsInteropNativeClassInAnnotation.withArgumentsOld(
-            node.name,
-            nativeClass.name,
-            nativeClass.enclosingLibrary.importUri.toString(),
+          diag.jsInteropNativeClassInAnnotation.withArguments(
+            className: node.name,
+            nativeClassName: nativeClass.name,
+            uri: nativeClass.enclosingLibrary.importUri.toString(),
           ),
           node.fileOffset,
           node.name.length,
@@ -889,8 +889,8 @@ class JsInteropChecks extends RecursiveVisitor {
       final firstPositionalParam = positionalParams[0];
       _reporter.report(
         diag.jsInteropObjectLiteralConstructorPositionalParameters
-            .withArgumentsOld(
-              isAnonymousFactory
+            .withArguments(
+              kind: isAnonymousFactory
                   ? '@anonymous factories'
                   : 'Object literal constructors',
             ),
@@ -1095,7 +1095,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (!_isAllowedExternalType(accessorType)) {
         _reporter.report(
           diag.jsInteropStaticInteropExternalAccessorTypeViolation
-              .withArgumentsOld(accessorType),
+              .withArguments(type: accessorType),
           node.fileOffset,
           node.name.text.length,
           node.location?.file,
@@ -1106,8 +1106,9 @@ class JsInteropChecks extends RecursiveVisitor {
       if (!_isAllowedExternalFunctionType(functionType)) {
         _reporter.report(
           diag.jsInteropStaticInteropExternalFunctionTypeViolation
-              .withArgumentsOld(
-                _disallowedExternalFunctionTypeString(functionType),
+              .withArguments(
+                typeWithDiasllowedPartsHighlighted:
+                    _disallowedExternalFunctionTypeString(functionType),
               ),
           node.fileOffset,
           node.name.text.length,
@@ -1123,9 +1124,12 @@ class JsInteropChecks extends RecursiveVisitor {
   ) {
     if (!_isAllowedExternalFunctionType(functionType)) {
       _reporter.report(
-        diag.jsInteropFunctionToJSTypeViolation.withArgumentsOld(
-          invocation.target == _functionToJSTarget ? 'toJS' : 'toJSCaptureThis',
-          _disallowedExternalFunctionTypeString(functionType),
+        diag.jsInteropFunctionToJSTypeViolation.withArguments(
+          conversion: invocation.target == _functionToJSTarget
+              ? 'toJS'
+              : 'toJSCaptureThis',
+          typeWithDiasllowedPartsHighlighted:
+              _disallowedExternalFunctionTypeString(functionType),
         ),
         invocation.fileOffset,
         invocation.name.text.length,

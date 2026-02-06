@@ -5,13 +5,25 @@
 import 'vm_offsets.g.dart';
 export 'vm_offsets.g.dart';
 
+const int smiBit = 0;
 const int heapObjectTag = 1;
+const int barrierOverlapShift = 2;
 
 int objectAlignment(int wordSize) => wordSize * 2;
 int log2objectAlignment(int log2wordSize) => log2wordSize + 1;
 
 /// This bit is 0 for bool 'true', 1 for bool 'false'.
 int boolValueBitPosition(int log2wordSize) => log2objectAlignment(log2wordSize);
+
+/// The number of bits in the _magnitude_ of a Smi, not counting the sign bit.
+/// TODO: support compressed pointers.
+int smiBits(int wordSize) => (wordSize * 8) - 2;
+
+/// Return true if [value] can be represented as a Smi (small integer).
+bool isSmi(int value, int wordSize) {
+  final shiftedOut = value >> smiBits(wordSize);
+  return shiftedOut == 0 || shiftedOut == -1;
+}
 
 extension ComputedOffsets on VMOffsets {
   /// Offset of [entry] in the Thread.

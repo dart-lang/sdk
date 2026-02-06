@@ -1494,8 +1494,8 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype != null) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            diag.nullableSuperclassError.withArgumentsOld(
-              supertype.fullNameForErrors,
+            diag.nullableSuperclassError.withArguments(
+              supertypeName: supertype.fullNameForErrors,
             ),
             identifier.nameOffset,
             classNameForErrors.length,
@@ -1507,7 +1507,9 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder mixin in mixins) {
           if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableMixinError.withArgumentsOld(mixin.fullNameForErrors),
+              diag.nullableMixinError.withArguments(
+                mixinName: mixin.fullNameForErrors,
+              ),
               identifier.nameOffset,
               classNameForErrors.length,
               uri,
@@ -1519,8 +1521,8 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableInterfaceError.withArgumentsOld(
-                interface.fullNameForErrors,
+              diag.nullableInterfaceError.withArguments(
+                interfaceName: interface.fullNameForErrors,
               ),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -1601,8 +1603,8 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder supertype in supertypeConstraints) {
           if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableSuperclassError.withArgumentsOld(
-                supertype.fullNameForErrors,
+              diag.nullableSuperclassError.withArguments(
+                supertypeName: supertype.fullNameForErrors,
               ),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -1615,8 +1617,8 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableInterfaceError.withArgumentsOld(
-                interface.fullNameForErrors,
+              diag.nullableInterfaceError.withArguments(
+                interfaceName: interface.fullNameForErrors,
               ),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -2789,8 +2791,8 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype is TypeBuilder) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            diag.nullableSuperclassError.withArgumentsOld(
-              supertype.fullNameForErrors,
+            diag.nullableSuperclassError.withArguments(
+              supertypeName: supertype.fullNameForErrors,
             ),
             identifier.nameOffset,
             classNameForErrors.length,
@@ -2801,7 +2803,9 @@ class OutlineBuilder extends StackListenerImpl {
       for (TypeBuilder mixin in mixins) {
         if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            diag.nullableMixinError.withArgumentsOld(mixin.fullNameForErrors),
+            diag.nullableMixinError.withArguments(
+              mixinName: mixin.fullNameForErrors,
+            ),
             identifier.nameOffset,
             classNameForErrors.length,
             uri,
@@ -2812,8 +2816,8 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableInterfaceError.withArgumentsOld(
-                interface.fullNameForErrors,
+              diag.nullableInterfaceError.withArguments(
+                interfaceName: interface.fullNameForErrors,
               ),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -3536,8 +3540,8 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableInterfaceError.withArgumentsOld(
-                interface.fullNameForErrors,
+              diag.nullableInterfaceError.withArguments(
+                interfaceName: interface.fullNameForErrors,
               ),
               interface.charOffset ?? startOffset,
               identifier.name.length,

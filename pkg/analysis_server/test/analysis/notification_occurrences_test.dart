@@ -436,6 +436,24 @@ void g() {
       ''');
   }
 
+  Future<void> test_parameter_privateNamed() async {
+    // TODO(rnystrom): The legacy protocol requires all occurrences to have the
+    // same length. Since the argument name uses the corresponding public name,
+    // it doesn't show up as an occurence for the field element. The LSP
+    // implementation doesn't have this problem.
+    // https://github.com/dart-lang/sdk/issues/62607
+    await assertOccurrences(kind: ElementKind.FIELD, '''
+    class C {
+      int? /*[0*/_aaa/*0]*/;
+      C({this./*[1*/_aaa/*1]*/});
+    }
+
+    void f() {
+      C(aaa: 123);
+    }
+      ''');
+  }
+
   Future<void> test_parameter_wildcard() async {
     // Ensure no crash.
     await assertOccurrences(kind: ElementKind.PARAMETER, '''

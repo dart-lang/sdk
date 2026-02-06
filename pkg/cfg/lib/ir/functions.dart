@@ -37,6 +37,9 @@ sealed class CFunction {
   bool get hasFunctionTypeParameters =>
       member is ast.Procedure && member.function!.typeParameters.isNotEmpty;
 
+  /// Total number of parameters including receiver, closure and optional parameters.
+  int get numberOfParameters;
+
   /// Return type of this function.
   CType get returnType;
 
@@ -47,6 +50,9 @@ sealed class CFunction {
 /// Function representing a getter.
 final class GetterFunction extends CFunction {
   GetterFunction._(super.member) : assert(member.hasGetter), super._();
+
+  @override
+  int get numberOfParameters => member.isInstanceMember ? 1 /* receiver */ : 0;
 
   @override
   late final CType returnType = CType.fromStaticType(member.getterType);
@@ -63,6 +69,10 @@ final class ImplicitFieldGetter extends GetterFunction {
 /// Function representing a setter.
 final class SetterFunction extends CFunction {
   SetterFunction._(super.member) : assert(member.hasSetter), super._();
+
+  @override
+  int get numberOfParameters =>
+      member.isInstanceMember ? 2 /* receiver, value */ : 1 /* only value */;
 
   @override
   CType get returnType => const TopType(const ast.VoidType());
@@ -86,6 +96,9 @@ final class FieldInitializerFunction extends CFunction {
       super._();
 
   @override
+  int get numberOfParameters => member.isInstanceMember ? 1 /* receiver */ : 0;
+
+  @override
   CType get returnType => CType.fromStaticType(member.getterType);
 
   @override
@@ -100,6 +113,12 @@ final class RegularFunction extends CFunction {
       super._();
 
   @override
+  int get numberOfParameters =>
+      (hasReceiverParameter ? 1 : 0) +
+      member.function!.positionalParameters.length +
+      member.function!.namedParameters.length;
+
+  @override
   late final CType returnType = CType.fromStaticType(
     member.function!.returnType,
   );
@@ -111,6 +130,12 @@ final class RegularFunction extends CFunction {
 /// Generative constructor.
 final class GenerativeConstructor extends CFunction {
   GenerativeConstructor._(ast.Constructor super.member) : super._();
+
+  @override
+  int get numberOfParameters =>
+      1 /* receiver */ +
+      member.function!.positionalParameters.length +
+      member.function!.namedParameters.length;
 
   @override
   CType get returnType => const TopType(const ast.VoidType());
@@ -143,6 +168,12 @@ final class LocalFunction extends ClosureFunction {
       localFunction.function.typeParameters.isNotEmpty;
 
   @override
+  int get numberOfParameters =>
+      1 /* closure */ +
+      localFunction.function.positionalParameters.length +
+      localFunction.function.namedParameters.length;
+
+  @override
   late final CType returnType = CType.fromStaticType(
     localFunction.function.returnType,
   );
@@ -165,6 +196,12 @@ final class TearOffFunction extends ClosureFunction {
   bool get hasFunctionTypeParameters => member is ast.Constructor
       ? member.enclosingClass!.typeParameters.isNotEmpty
       : member.function!.typeParameters.isNotEmpty;
+
+  @override
+  int get numberOfParameters =>
+      1 /* closure */ +
+      member.function!.positionalParameters.length +
+      member.function!.namedParameters.length;
 
   @override
   late final CType returnType = CType.fromStaticType(

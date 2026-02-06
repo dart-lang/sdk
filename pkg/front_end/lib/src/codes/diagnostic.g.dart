@@ -4023,8 +4023,8 @@ Message _withArgumentsOldExperimentExpiredEnabled(String experimentName) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String featureName),
+  Message Function({required String featureName})
 >
 experimentOptOutComment = const Template(
   "ExperimentOptOutComment",
@@ -4034,24 +4034,27 @@ experimentOptOutComment = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentOptOutComment({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsExperimentOptOutComment({required String featureName}) {
+  var featureName_0 = conversions.validateString(featureName);
   return new Message(
     experimentOptOutComment,
     problemMessage:
-        """This is the annotation that opts out this library from the '${string_0}' language feature.""",
-    arguments: {'string': string},
+        """This is the annotation that opts out this library from the '${featureName_0}' language feature.""",
+    arguments: {'featureName': featureName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentOptOutComment(String string) =>
-    _withArgumentsExperimentOptOutComment(string: string);
+Message _withArgumentsOldExperimentOptOutComment(String featureName) =>
+    _withArgumentsExperimentOptOutComment(featureName: featureName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String featureName, String enabledVersion),
+  Message Function({
+    required String featureName,
+    required String enabledVersion,
+  })
 >
 experimentOptOutExplicit = const Template(
   "ExperimentOptOutExplicit",
@@ -4061,31 +4064,37 @@ experimentOptOutExplicit = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExperimentOptOutExplicit({
-  required String string,
-  required String string2,
+  required String featureName,
+  required String enabledVersion,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var featureName_0 = conversions.validateString(featureName);
+  var enabledVersion_0 = conversions.validateString(enabledVersion);
   return new Message(
     experimentOptOutExplicit,
     problemMessage:
-        """The '${string_0}' language feature is disabled for this library.""",
+        """The '${featureName_0}' language feature is disabled for this library.""",
     correctionMessage:
-        """Try removing the `@dart=` annotation or setting the language version to ${string2_0} or higher.""",
-    arguments: {'string': string, 'string2': string2},
+        """Try removing the `@dart=` annotation or setting the language version to ${enabledVersion_0} or higher.""",
+    arguments: {'featureName': featureName, 'enabledVersion': enabledVersion},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExperimentOptOutExplicit(
-  String string,
-  String string2,
-) => _withArgumentsExperimentOptOutExplicit(string: string, string2: string2);
+  String featureName,
+  String enabledVersion,
+) => _withArgumentsExperimentOptOutExplicit(
+  featureName: featureName,
+  enabledVersion: enabledVersion,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String featureName, String enabledVersion),
+  Message Function({
+    required String featureName,
+    required String enabledVersion,
+  })
 >
 experimentOptOutImplicit = const Template(
   "ExperimentOptOutImplicit",
@@ -4095,26 +4104,29 @@ experimentOptOutImplicit = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExperimentOptOutImplicit({
-  required String string,
-  required String string2,
+  required String featureName,
+  required String enabledVersion,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var featureName_0 = conversions.validateString(featureName);
+  var enabledVersion_0 = conversions.validateString(enabledVersion);
   return new Message(
     experimentOptOutImplicit,
     problemMessage:
-        """The '${string_0}' language feature is disabled for this library.""",
+        """The '${featureName_0}' language feature is disabled for this library.""",
     correctionMessage:
-        """Try removing the package language version or setting the language version to ${string2_0} or higher.""",
-    arguments: {'string': string, 'string2': string2},
+        """Try removing the package language version or setting the language version to ${enabledVersion_0} or higher.""",
+    arguments: {'featureName': featureName, 'enabledVersion': enabledVersion},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExperimentOptOutImplicit(
-  String string,
-  String string2,
-) => _withArgumentsExperimentOptOutImplicit(string: string, string2: string2);
+  String featureName,
+  String enabledVersion,
+) => _withArgumentsExperimentOptOutImplicit(
+  featureName: featureName,
+  enabledVersion: enabledVersion,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode explicitExtensionArgumentMismatch = const MessageCode(
@@ -5568,8 +5580,8 @@ Message _withArgumentsOldFieldAlreadyInitializedAtDeclarationCause(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String fieldName, DartType fieldType),
+  Message Function({required String fieldName, required DartType fieldType})
 >
 fieldNonNullableNotInitializedByConstructorError = const Template(
   "FieldNonNullableNotInitializedByConstructorError",
@@ -5580,34 +5592,34 @@ fieldNonNullableNotInitializedByConstructorError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNonNullableNotInitializedByConstructorError({
-  required String name,
-  required DartType type,
+  required String fieldName,
+  required DartType fieldType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var fieldType_0 = labeler.labelType(fieldType);
   return new Message(
     fieldNonNullableNotInitializedByConstructorError,
     problemMessage:
-        """This constructor should initialize field '${name_0}' because its type '${type_0}' doesn't allow null.""" +
+        """This constructor should initialize field '${fieldName_0}' because its type '${fieldType_0}' doesn't allow null.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type},
+    arguments: {'fieldName': fieldName, 'fieldType': fieldType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNonNullableNotInitializedByConstructorError(
-  String name,
-  DartType type,
+  String fieldName,
+  DartType fieldType,
 ) => _withArgumentsFieldNonNullableNotInitializedByConstructorError(
-  name: name,
-  type: type,
+  fieldName: fieldName,
+  fieldType: fieldType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String fieldName, DartType fieldType),
+  Message Function({required String fieldName, required DartType fieldType})
 >
 fieldNonNullableWithoutInitializerError = const Template(
   "FieldNonNullableWithoutInitializerError",
@@ -5617,28 +5629,28 @@ fieldNonNullableWithoutInitializerError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNonNullableWithoutInitializerError({
-  required String name,
-  required DartType type,
+  required String fieldName,
+  required DartType fieldType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var fieldType_0 = labeler.labelType(fieldType);
   return new Message(
     fieldNonNullableWithoutInitializerError,
     problemMessage:
-        """Field '${name_0}' should be initialized because its type '${type_0}' doesn't allow null.""" +
+        """Field '${fieldName_0}' should be initialized because its type '${fieldType_0}' doesn't allow null.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type},
+    arguments: {'fieldName': fieldName, 'fieldType': fieldType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNonNullableWithoutInitializerError(
-  String name,
-  DartType type,
+  String fieldName,
+  DartType fieldType,
 ) => _withArgumentsFieldNonNullableWithoutInitializerError(
-  name: name,
-  type: type,
+  fieldName: fieldName,
+  fieldType: fieldType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10113,8 +10125,8 @@ Message _withArgumentsOldJointPatternVariablesMismatch(String variableName) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String superclassName),
+  Message Function({required String className, required String superclassName})
 >
 jsInteropDartClassExtendsJSClass = const Template(
   "JsInteropDartClassExtendsJSClass",
@@ -10124,26 +10136,29 @@ jsInteropDartClassExtendsJSClass = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropDartClassExtendsJSClass({
-  required String name,
-  required String name2,
+  required String className,
+  required String superclassName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var superclassName_0 = conversions.validateAndDemangleName(superclassName);
   return new Message(
     jsInteropDartClassExtendsJSClass,
     problemMessage:
-        """Dart class '${name_0}' cannot extend JS interop class '${name2_0}'.""",
+        """Dart class '${className_0}' cannot extend JS interop class '${superclassName_0}'.""",
     correctionMessage:
         """Try adding the JS interop annotation or removing it from the parent class.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'className': className, 'superclassName': superclassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropDartClassExtendsJSClass(
-  String name,
-  String name2,
-) => _withArgumentsJsInteropDartClassExtendsJSClass(name: name, name2: name2);
+  String className,
+  String superclassName,
+) => _withArgumentsJsInteropDartClassExtendsJSClass(
+  className: className,
+  superclassName: superclassName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -10173,8 +10188,8 @@ const MessageCode jsInteropEnclosingClassJSAnnotationContext =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 jsInteropExportClassNotMarkedExportable = const Template(
   "JsInteropExportClassNotMarkedExportable",
@@ -10184,26 +10199,28 @@ jsInteropExportClassNotMarkedExportable = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropExportClassNotMarkedExportable({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     jsInteropExportClassNotMarkedExportable,
     problemMessage:
-        """Class '${name_0}' does not have a `@JSExport` on it or any of its members.""",
+        """Class '${className_0}' does not have a `@JSExport` on it or any of its members.""",
     correctionMessage: """Use the `@JSExport` annotation on this class.""",
-    arguments: {'name': name},
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportClassNotMarkedExportable(String name) =>
-    _withArgumentsJsInteropExportClassNotMarkedExportable(name: name);
+Message _withArgumentsOldJsInteropExportClassNotMarkedExportable(
+  String className,
+) =>
+    _withArgumentsJsInteropExportClassNotMarkedExportable(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 jsInteropExportDartInterfaceHasNonEmptyJSExportValue = const Template(
   "JsInteropExportDartInterfaceHasNonEmptyJSExportValue",
@@ -10216,29 +10233,29 @@ jsInteropExportDartInterfaceHasNonEmptyJSExportValue = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     jsInteropExportDartInterfaceHasNonEmptyJSExportValue,
     problemMessage:
-        """The value in the `@JSExport` annotation on the class or mixin '${name_0}' will be ignored.""",
+        """The value in the `@JSExport` annotation on the class or mixin '${className_0}' will be ignored.""",
     correctionMessage: """Remove the value in the annotation.""",
-    arguments: {'name': name},
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropExportDartInterfaceHasNonEmptyJSExportValue(
-  String name,
+  String className,
 ) => _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue(
-  name: name,
+  className: className,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 jsInteropExportDisallowedMember = const Template(
   "JsInteropExportDisallowedMember",
@@ -10247,21 +10264,23 @@ jsInteropExportDisallowedMember = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExportDisallowedMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsJsInteropExportDisallowedMember({
+  required String memberName,
+}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     jsInteropExportDisallowedMember,
     problemMessage:
-        """Member '${name_0}' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
+        """Member '${memberName_0}' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
     correctionMessage:
         """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
-    arguments: {'name': name},
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportDisallowedMember(String name) =>
-    _withArgumentsJsInteropExportDisallowedMember(name: name);
+Message _withArgumentsOldJsInteropExportDisallowedMember(String memberName) =>
+    _withArgumentsJsInteropExportDisallowedMember(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -10591,8 +10610,14 @@ Message _withArgumentsOldJsInteropFunctionToJSTypeParameters(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String conversion, String string2),
-  Message Function({required String conversion, required String string2})
+  Message Function(
+    String conversion,
+    String typeWithDiasllowedPartsHighlighted,
+  ),
+  Message Function({
+    required String conversion,
+    required String typeWithDiasllowedPartsHighlighted,
+  })
 >
 jsInteropFunctionToJSTypeViolation = const Template(
   "JsInteropFunctionToJSTypeViolation",
@@ -10603,27 +10628,32 @@ jsInteropFunctionToJSTypeViolation = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropFunctionToJSTypeViolation({
   required String conversion,
-  required String string2,
+  required String typeWithDiasllowedPartsHighlighted,
 }) {
   var conversion_0 = conversions.validateString(conversion);
-  var string2_0 = conversions.validateString(string2);
+  var typeWithDiasllowedPartsHighlighted_0 = conversions.validateString(
+    typeWithDiasllowedPartsHighlighted,
+  );
   return new Message(
     jsInteropFunctionToJSTypeViolation,
     problemMessage:
-        """Function converted via '${conversion_0}' contains invalid types in its function signature: '${string2_0}'.""",
+        """Function converted via '${conversion_0}' contains invalid types in its function signature: '${typeWithDiasllowedPartsHighlighted_0}'.""",
     correctionMessage:
         """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
-    arguments: {'conversion': conversion, 'string2': string2},
+    arguments: {
+      'conversion': conversion,
+      'typeWithDiasllowedPartsHighlighted': typeWithDiasllowedPartsHighlighted,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropFunctionToJSTypeViolation(
   String conversion,
-  String string2,
+  String typeWithDiasllowedPartsHighlighted,
 ) => _withArgumentsJsInteropFunctionToJSTypeViolation(
   conversion: conversion,
-  string2: string2,
+  typeWithDiasllowedPartsHighlighted: typeWithDiasllowedPartsHighlighted,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10743,8 +10773,8 @@ const MessageCode jsInteropIsATearoff = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String superclassName),
+  Message Function({required String className, required String superclassName})
 >
 jsInteropJSClassExtendsDartClass = const Template(
   "JsInteropJSClassExtendsDartClass",
@@ -10754,26 +10784,29 @@ jsInteropJSClassExtendsDartClass = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropJSClassExtendsDartClass({
-  required String name,
-  required String name2,
+  required String className,
+  required String superclassName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var superclassName_0 = conversions.validateAndDemangleName(superclassName);
   return new Message(
     jsInteropJSClassExtendsDartClass,
     problemMessage:
-        """JS interop class '${name_0}' cannot extend Dart class '${name2_0}'.""",
+        """JS interop class '${className_0}' cannot extend Dart class '${superclassName_0}'.""",
     correctionMessage:
         """Try removing the JS interop annotation or adding it to the parent class.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'className': className, 'superclassName': superclassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropJSClassExtendsDartClass(
-  String name,
-  String name2,
-) => _withArgumentsJsInteropJSClassExtendsDartClass(name: name, name2: name2);
+  String className,
+  String superclassName,
+) => _withArgumentsJsInteropJSClassExtendsDartClass(
+  className: className,
+  superclassName: superclassName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropNamedParameters = const MessageCode(
@@ -10786,11 +10819,11 @@ const MessageCode jsInteropNamedParameters = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String string3),
+  Message Function(String className, String nativeClassName, String uri),
   Message Function({
-    required String name,
-    required String name2,
-    required String string3,
+    required String className,
+    required String nativeClassName,
+    required String uri,
   })
 >
 jsInteropNativeClassInAnnotation = const Template(
@@ -10801,32 +10834,36 @@ jsInteropNativeClassInAnnotation = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropNativeClassInAnnotation({
-  required String name,
-  required String name2,
-  required String string3,
+  required String className,
+  required String nativeClassName,
+  required String uri,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string3_0 = conversions.validateString(string3);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var nativeClassName_0 = conversions.validateAndDemangleName(nativeClassName);
+  var uri_0 = conversions.validateString(uri);
   return new Message(
     jsInteropNativeClassInAnnotation,
     problemMessage:
-        """Non-static JS interop class '${name_0}' conflicts with natively supported class '${name2_0}' in '${string3_0}'.""",
+        """Non-static JS interop class '${className_0}' conflicts with natively supported class '${nativeClassName_0}' in '${uri_0}'.""",
     correctionMessage:
-        """Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'string3': string3},
+        """Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '${nativeClassName_0}'.""",
+    arguments: {
+      'className': className,
+      'nativeClassName': nativeClassName,
+      'uri': uri,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropNativeClassInAnnotation(
-  String name,
-  String name2,
-  String string3,
+  String className,
+  String nativeClassName,
+  String uri,
 ) => _withArgumentsJsInteropNativeClassInAnnotation(
-  name: name,
-  name2: name2,
-  string3: string3,
+  className: className,
+  nativeClassName: nativeClassName,
+  uri: uri,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10847,8 +10884,8 @@ const MessageCode jsInteropNonExternalMember = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String superclassName),
+  Message Function({required String className, required String superclassName})
 >
 jsInteropNonStaticWithStaticInteropSupertype = const Template(
   "JsInteropNonStaticWithStaticInteropSupertype",
@@ -10859,34 +10896,34 @@ jsInteropNonStaticWithStaticInteropSupertype = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropNonStaticWithStaticInteropSupertype({
-  required String name,
-  required String name2,
+  required String className,
+  required String superclassName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var superclassName_0 = conversions.validateAndDemangleName(superclassName);
   return new Message(
     jsInteropNonStaticWithStaticInteropSupertype,
     problemMessage:
-        """Class '${name_0}' does not have an `@staticInterop` annotation, but has supertype '${name2_0}', which does.""",
+        """Class '${className_0}' does not have an `@staticInterop` annotation, but has supertype '${superclassName_0}', which does.""",
     correctionMessage:
-        """Try marking '${name_0}' as a `@staticInterop` class, or don't inherit '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """Try marking '${className_0}' as a `@staticInterop` class, or don't inherit '${superclassName_0}'.""",
+    arguments: {'className': className, 'superclassName': superclassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropNonStaticWithStaticInteropSupertype(
-  String name,
-  String name2,
+  String className,
+  String superclassName,
 ) => _withArgumentsJsInteropNonStaticWithStaticInteropSupertype(
-  name: name,
-  name2: name2,
+  className: className,
+  superclassName: superclassName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String kind),
+  Message Function({required String kind})
 >
 jsInteropObjectLiteralConstructorPositionalParameters = const Template(
   "JsInteropObjectLiteralConstructorPositionalParameters",
@@ -10898,23 +10935,23 @@ jsInteropObjectLiteralConstructorPositionalParameters = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters({
-  required String string,
+  required String kind,
 }) {
-  var string_0 = conversions.validateString(string);
+  var kind_0 = conversions.validateString(kind);
   return new Message(
     jsInteropObjectLiteralConstructorPositionalParameters,
     problemMessage:
-        """${string_0} should not contain any positional parameters.""",
+        """${kind_0} should not contain any positional parameters.""",
     correctionMessage: """Try replacing them with named parameters instead.""",
-    arguments: {'string': string},
+    arguments: {'kind': kind},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropObjectLiteralConstructorPositionalParameters(
-  String string,
+  String kind,
 ) => _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters(
-  string: string,
+  kind: kind,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10973,8 +11010,8 @@ Message _withArgumentsOldJsInteropStaticInteropExternalAccessorTypeViolation(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string2),
-  Message Function({required String string2})
+  Message Function(String typeWithDiasllowedPartsHighlighted),
+  Message Function({required String typeWithDiasllowedPartsHighlighted})
 >
 jsInteropStaticInteropExternalFunctionTypeViolation = const Template(
   "JsInteropStaticInteropExternalFunctionTypeViolation",
@@ -10986,24 +11023,28 @@ jsInteropStaticInteropExternalFunctionTypeViolation = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation({
-  required String string2,
+  required String typeWithDiasllowedPartsHighlighted,
 }) {
-  var string2_0 = conversions.validateString(string2);
+  var typeWithDiasllowedPartsHighlighted_0 = conversions.validateString(
+    typeWithDiasllowedPartsHighlighted,
+  );
   return new Message(
     jsInteropStaticInteropExternalFunctionTypeViolation,
     problemMessage:
-        """External JS interop member contains invalid types in its function signature: '${string2_0}'.""",
+        """External JS interop member contains invalid types in its function signature: '${typeWithDiasllowedPartsHighlighted_0}'.""",
     correctionMessage:
         """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
-    arguments: {'string2': string2},
+    arguments: {
+      'typeWithDiasllowedPartsHighlighted': typeWithDiasllowedPartsHighlighted,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropExternalFunctionTypeViolation(
-  String string2,
+  String typeWithDiasllowedPartsHighlighted,
 ) => _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation(
-  string2: string2,
+  typeWithDiasllowedPartsHighlighted: typeWithDiasllowedPartsHighlighted,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11018,18 +11059,18 @@ jsInteropStaticInteropGenerativeConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    String name,
-    String string,
-    String string2,
-    String name2,
-    String string3,
+    String className,
+    String accessorKindPresent,
+    String accessorKindAbsent,
+    String exportName,
+    String missingMembers,
   ),
   Message Function({
-    required String name,
-    required String string,
-    required String string2,
-    required String name2,
-    required String string3,
+    required String className,
+    required String accessorKindPresent,
+    required String accessorKindAbsent,
+    required String exportName,
+    required String missingMembers,
   })
 >
 jsInteropStaticInteropMockMissingGetterOrSetter = const Template(
@@ -11041,55 +11082,55 @@ jsInteropStaticInteropMockMissingGetterOrSetter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter({
-  required String name,
-  required String string,
-  required String string2,
-  required String name2,
-  required String string3,
+  required String className,
+  required String accessorKindPresent,
+  required String accessorKindAbsent,
+  required String exportName,
+  required String missingMembers,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string3_0 = conversions.validateString(string3);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var accessorKindPresent_0 = conversions.validateString(accessorKindPresent);
+  var accessorKindAbsent_0 = conversions.validateString(accessorKindAbsent);
+  var exportName_0 = conversions.validateAndDemangleName(exportName);
+  var missingMembers_0 = conversions.validateString(missingMembers);
   return new Message(
     jsInteropStaticInteropMockMissingGetterOrSetter,
     problemMessage:
-        """Dart class '${name_0}' has a ${string_0}, but does not have a ${string2_0} to implement any of the following extension member(s) with export name '${name2_0}': ${string3_0}.""",
+        """Dart class '${className_0}' has a ${accessorKindPresent_0}, but does not have a ${accessorKindAbsent_0} to implement any of the following extension member(s) with export name '${exportName_0}': ${missingMembers_0}.""",
     correctionMessage:
-        """Declare an exportable ${string2_0} that implements one of these extension members.""",
+        """Declare an exportable ${accessorKindAbsent_0} that implements one of these extension members.""",
     arguments: {
-      'name': name,
-      'string': string,
-      'string2': string2,
-      'name2': name2,
-      'string3': string3,
+      'className': className,
+      'accessorKindPresent': accessorKindPresent,
+      'accessorKindAbsent': accessorKindAbsent,
+      'exportName': exportName,
+      'missingMembers': missingMembers,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropMockMissingGetterOrSetter(
-  String name,
-  String string,
-  String string2,
-  String name2,
-  String string3,
+  String className,
+  String accessorKindPresent,
+  String accessorKindAbsent,
+  String exportName,
+  String missingMembers,
 ) => _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter(
-  name: name,
-  string: string,
-  string2: string2,
-  name2: name2,
-  string3: string3,
+  className: className,
+  accessorKindPresent: accessorKindPresent,
+  accessorKindAbsent: accessorKindAbsent,
+  exportName: exportName,
+  missingMembers: missingMembers,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String string),
+  Message Function(String className, String exportName, String missingMembers),
   Message Function({
-    required String name,
-    required String name2,
-    required String string,
+    required String className,
+    required String exportName,
+    required String missingMembers,
   })
 >
 jsInteropStaticInteropMockMissingImplements = const Template(
@@ -11101,32 +11142,36 @@ jsInteropStaticInteropMockMissingImplements = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropMockMissingImplements({
-  required String name,
-  required String name2,
-  required String string,
+  required String className,
+  required String exportName,
+  required String missingMembers,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string_0 = conversions.validateString(string);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var exportName_0 = conversions.validateAndDemangleName(exportName);
+  var missingMembers_0 = conversions.validateString(missingMembers);
   return new Message(
     jsInteropStaticInteropMockMissingImplements,
     problemMessage:
-        """Dart class '${name_0}' does not have any members that implement any of the following extension member(s) with export name '${name2_0}': ${string_0}.""",
+        """Dart class '${className_0}' does not have any members that implement any of the following extension member(s) with export name '${exportName_0}': ${missingMembers_0}.""",
     correctionMessage:
         """Declare an exportable member that implements one of these extension members.""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
+    arguments: {
+      'className': className,
+      'exportName': exportName,
+      'missingMembers': missingMembers,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropMockMissingImplements(
-  String name,
-  String name2,
-  String string,
+  String className,
+  String exportName,
+  String missingMembers,
 ) => _withArgumentsJsInteropStaticInteropMockMissingImplements(
-  name: name,
-  name2: name2,
-  string: string,
+  className: className,
+  exportName: exportName,
+  missingMembers: missingMembers,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13368,8 +13413,8 @@ Message _withArgumentsOldNullableExpressionCallError(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String interfaceName),
+  Message Function({required String interfaceName})
 >
 nullableInterfaceError = const Template(
   "NullableInterfaceError",
@@ -13378,19 +13423,20 @@ nullableInterfaceError = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableInterfaceError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsNullableInterfaceError({required String interfaceName}) {
+  var interfaceName_0 = conversions.validateAndDemangleName(interfaceName);
   return new Message(
     nullableInterfaceError,
-    problemMessage: """Can't implement '${name_0}' because it's nullable.""",
+    problemMessage:
+        """Can't implement '${interfaceName_0}' because it's nullable.""",
     correctionMessage: """Try removing the question mark.""",
-    arguments: {'name': name},
+    arguments: {'interfaceName': interfaceName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableInterfaceError(String name) =>
-    _withArgumentsNullableInterfaceError(name: name);
+Message _withArgumentsOldNullableInterfaceError(String interfaceName) =>
+    _withArgumentsNullableInterfaceError(interfaceName: interfaceName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13432,8 +13478,8 @@ Message _withArgumentsOldNullableMethodCallError(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String mixinName),
+  Message Function({required String mixinName})
 >
 nullableMixinError = const Template(
   "NullableMixinError",
@@ -13442,19 +13488,19 @@ nullableMixinError = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableMixinError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsNullableMixinError({required String mixinName}) {
+  var mixinName_0 = conversions.validateAndDemangleName(mixinName);
   return new Message(
     nullableMixinError,
-    problemMessage: """Can't mix '${name_0}' in because it's nullable.""",
+    problemMessage: """Can't mix '${mixinName_0}' in because it's nullable.""",
     correctionMessage: """Try removing the question mark.""",
-    arguments: {'name': name},
+    arguments: {'mixinName': mixinName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableMixinError(String name) =>
-    _withArgumentsNullableMixinError(name: name);
+Message _withArgumentsOldNullableMixinError(String mixinName) =>
+    _withArgumentsNullableMixinError(mixinName: mixinName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13543,8 +13589,8 @@ const MessageCode nullableSpreadError = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String supertypeName),
+  Message Function({required String supertypeName})
 >
 nullableSuperclassError = const Template(
   "NullableSuperclassError",
@@ -13553,19 +13599,20 @@ nullableSuperclassError = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableSuperclassError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsNullableSuperclassError({required String supertypeName}) {
+  var supertypeName_0 = conversions.validateAndDemangleName(supertypeName);
   return new Message(
     nullableSuperclassError,
-    problemMessage: """Can't extend '${name_0}' because it's nullable.""",
+    problemMessage:
+        """Can't extend '${supertypeName_0}' because it's nullable.""",
     correctionMessage: """Try removing the question mark.""",
-    arguments: {'name': name},
+    arguments: {'supertypeName': supertypeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableSuperclassError(String name) =>
-    _withArgumentsNullableSuperclassError(name: name);
+Message _withArgumentsOldNullableSuperclassError(String supertypeName) =>
+    _withArgumentsNullableSuperclassError(supertypeName: supertypeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

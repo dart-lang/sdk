@@ -30,9 +30,12 @@ void f(C c) {
     var node = findNode.functionExpressionInvocation('_field()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
-    token: _field
-    element: <testLibrary>::@class::C::@getter::_field
+  function: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: _field
+      element: <testLibrary>::@class::C::@getter::_field
+      staticType: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
