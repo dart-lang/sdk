@@ -1905,9 +1905,7 @@ avoid_escaping_inner_quotes:
 avoid_field_initializers_in_const_classes:
   status: noFix
 avoid_final_parameters:
-  status: needsFix
-  notes: |-
-    The fix is to remove the `final` keyword.
+  status: hasFix
 avoid_function_literals_in_foreach_calls:
   status: hasFix
 avoid_futureor_void:

@@ -25,8 +25,6 @@ class AvoidFinalParametersPrePrimaryConstructorsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_final_parameters;
 
-  // TODO(srawlins): Test function-typed parameter like `void f(final p())`.
-
   test_constructorFieldFormal_final() async {
     await assertDiagnostics(
       r'''
@@ -39,7 +37,7 @@ class C {
         // TODO(srawlins): Do not report this lint rule here, as it is redundant
         // with the Warning.
         error(diag.unnecessaryFinal, 23, 5),
-        lint(23, 12),
+        lint(23, 5),
       ],
     );
   }
@@ -60,7 +58,7 @@ class C {
   C(final int p);
 }
 ''',
-      [lint(14, 11)],
+      [lint(14, 5)],
     );
   }
 
@@ -77,13 +75,29 @@ class C {
       r'''
 var f = (final int value) {};
 ''',
-      [lint(9, 15)],
+      [lint(9, 5)],
     );
   }
 
   test_functionExpression_noFinal() async {
     await assertNoDiagnostics(r'''
 var f = (int value) {};
+''');
+  }
+
+  test_functionTyped_final() async {
+    // No lint because a warning already exists for this case.
+    await assertDiagnostics(
+      r'''
+void f(final p()) {}
+''',
+      [error(diag.functionTypedParameterVar, 7, 5)],
+    );
+  }
+
+  test_functionTyped_noFinal() async {
+    await assertNoDiagnostics(r'''
+void f(int p()) {}
 ''');
   }
 
@@ -94,7 +108,7 @@ class C {
   int operator +(final int other) => 0;
 }
 ''',
-      [lint(27, 15)],
+      [lint(27, 5)],
     );
   }
 
@@ -111,7 +125,7 @@ class C {
       r'''
 void f({final int? p}) {}
 ''',
-      [lint(8, 12)],
+      [lint(8, 5)],
     );
   }
 
@@ -126,7 +140,7 @@ void f({int? p}) {}
       r'''
 void f([final int? p]) {}
 ''',
-      [lint(8, 12)],
+      [lint(8, 5)],
     );
   }
 
@@ -141,7 +155,7 @@ void f([int? p]) {}
       r'''
 void f([final int p = 0]) {}
 ''',
-      [lint(8, 15)],
+      [lint(8, 5)],
     );
   }
 
@@ -156,7 +170,7 @@ void f([int p = 0]) {}
       r'''
 void f({required final int? p}) {}
 ''',
-      [lint(8, 21)],
+      [lint(17, 5)],
     );
   }
 
@@ -171,7 +185,7 @@ void f({required int p}) {}
       r'''
 void f(final int p) {}
 ''',
-      [lint(7, 11)],
+      [lint(7, 5)],
     );
   }
 
@@ -188,7 +202,7 @@ void f(int p) {}
       r'''
 void f(final int _) {}
 ''',
-      [lint(7, 11)],
+      [lint(7, 5)],
     );
   }
 
@@ -197,7 +211,7 @@ void f(final int _) {}
       r'''
 set f(final int value) {}
 ''',
-      [lint(6, 15)],
+      [lint(6, 5)],
     );
   }
 
@@ -224,8 +238,8 @@ class B extends A {
         // with the Hint.
         error(diag.unnecessaryFinal, 83, 5),
         error(diag.unnecessaryFinal, 98, 5),
-        lint(83, 13),
-        lint(98, 13),
+        lint(83, 5),
+        lint(98, 5),
       ],
     );
   }
