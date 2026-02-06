@@ -154,6 +154,7 @@ class WasmI16 extends _WasmBase {}
 @pragma("wasm:entry-point")
 class WasmI32 extends _WasmBase {
   /// Dummy value field to contain the value for constant instances.
+  @pragma('wasm:entry-point')
   final int _value;
 
   /// Constructor for constant instances.
@@ -201,6 +202,7 @@ class WasmI32 extends _WasmBase {
 @pragma("wasm:entry-point")
 class WasmI64 extends _WasmBase {
   /// Dummy value field to contain the value for constant instances.
+  @pragma('wasm:entry-point')
   final int _value;
 
   /// Constructor for constant instances.
@@ -240,6 +242,7 @@ class WasmI64 extends _WasmBase {
 @pragma("wasm:entry-point")
 class WasmF32 extends _WasmBase {
   /// Dummy value field to contain the value for constant instances.
+  @pragma('wasm:entry-point')
   final double _value;
 
   /// Constructor for constant instances.
@@ -255,6 +258,7 @@ class WasmF32 extends _WasmBase {
 @pragma("wasm:entry-point")
 class WasmF64 extends _WasmBase {
   /// Dummy value field to contain the value for constant instances.
+  @pragma('wasm:entry-point')
   final double _value;
 
   /// Constructor for constant instances.

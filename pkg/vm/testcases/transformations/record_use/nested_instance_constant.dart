@@ -7,7 +7,13 @@ import 'package:meta/meta.dart' show RecordUse;
 void main() {
   // Refers to a const Wrapper instance, which contains a Recorded instance.
   // It should still be recorded.
-  print(_wrapper);
+  useRecorded(_wrapper);
+}
+
+void useRecorded(Wrapper wrapper) {
+  // We only record used things (including fields), so we have to use the
+  // wrapped object.
+  print(wrapper.recorded);
 }
 
 @RecordUse()

@@ -560,6 +560,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   final GenericInterfacesInfo _genericInterfacesInfo;
   final SharedVariableBuilder _sharedVariableBuilder;
   final ProtobufHandler? _protobufHandler;
+  late final usedFieldCollector = UsedFieldsCollector(
+    _nativeCodeOracle.setMemberReferencedFromNativeCode,
+  );
 
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
   final Map<AsExpression, TypeCheck> explicitCasts =
@@ -952,9 +955,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
 
     if (localFunction == null) {
-      member.annotations.forEach(_visit);
-      member.enclosingClass?.annotations.forEach(_visit);
-      member.enclosingLibrary.annotations.forEach(_visit);
+      member.annotations.forEach(_visitAnnotation);
+      member.enclosingClass?.annotations.forEach(_visitAnnotation);
+      member.enclosingLibrary.annotations.forEach(_visitAnnotation);
     }
 
     _enclosingMember = null;
@@ -1043,6 +1046,13 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   TypeExpr _visit(Expression node) => node.accept(this)!;
+
+  void _visitAnnotation(Expression annotation) {
+    _visit(annotation);
+    if (annotation is ConstantExpression) {
+      annotation.constant.accept(usedFieldCollector);
+    }
+  }
 
   void _visitWithoutResult(TreeNode node) {
     node.accept(this);
@@ -2606,7 +2616,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitFunctionDeclaration(FunctionDeclaration node) {
-    node.variable.annotations.forEach(_visit);
+    node.variable.annotations.forEach(_visitAnnotation);
     _declareVariable(node.variable, _closureType(node));
     final closure = Closure(_enclosingMember!, node);
     final callMethod = _entryPointsListener.getClosureCallMethod(closure);
@@ -2792,7 +2802,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitVariableDeclaration(VariableDeclaration node) {
-    node.annotations.forEach(_visit);
+    node.annotations.forEach(_visitAnnotation);
     final initializer = node.initializer;
     final TypeExpr initialValue =
         initializer == null

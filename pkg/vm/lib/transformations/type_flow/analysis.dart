@@ -2269,9 +2269,19 @@ class TypeFlowAnalysis
     assert(!field.isStatic);
     final fieldValue = getFieldValue(field);
     fieldValue.setValue(value, this, instance);
-    // Make sure the field is retained as removing fields used in constants
-    // may affect identity of the constants.
-    fieldValue.isGetterUsed = true;
+
+    if (!fieldValue.isGetterUsed) {
+      final newFieldValue = fieldValue.value;
+      final fieldHasConstantValue =
+          newFieldValue is ConcreteType &&
+          newFieldValue.attributes?.constant != null;
+      if (!fieldHasConstantValue) {
+        // Make sure the field is retained as removing fields used in constants
+        // may affect identity of the constants. Though if all constants have the
+        // same field value, then removing the field will not influence identity.
+        fieldValue.isGetterUsed = true;
+      }
+    }
   }
 
   @override
