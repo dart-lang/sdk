@@ -25,6 +25,15 @@ abstract class AstVisitor<R> {
 
   R? visitAnnotation(Annotation node);
 
+  @experimental
+  R? visitAnonymousBlockBody(AnonymousBlockBody node);
+
+  @experimental
+  R? visitAnonymousExpressionBody(AnonymousExpressionBody node);
+
+  @experimental
+  R? visitAnonymousMethodInvocation(AnonymousMethodInvocation node);
+
   R? visitArgumentList(ArgumentList node);
 
   R? visitAsExpression(AsExpression node);

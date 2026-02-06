@@ -77,8 +77,7 @@ class InstanceRecorder {
   InstanceReference _createInstanceReference(
     ast.ConstantExpression expression,
     ast.InstanceConstant constant,
-  ) => InstanceReference(
-    location: expression.location!.recordLocation(_source, exactLocation),
+  ) => InstanceConstantReference(
     instanceConstant: evaluateInstanceConstant(constant),
     loadingUnit: _loadingUnitLookup(expression),
   );

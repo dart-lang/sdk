@@ -62,7 +62,7 @@ Future<void> main() async {
             allowMoreConstArguments: true,
             // Ensure test coverage of tear offs, add pragmas to prevent
             // optimiations if necessary.
-            allowTearOffToStaticPromotion: false,
+            allowTearoffToStaticPromotion: false,
             uriMapping: (String uri) =>
                 uri.replaceFirst('memory:sdk/tests/web/native/', ''),
             loadingUnitMapping: (String unit) =>

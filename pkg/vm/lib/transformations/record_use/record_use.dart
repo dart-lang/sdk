@@ -154,14 +154,11 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   ast.StringConstant() => StringConstant(constant.value),
   ast.SymbolConstant() => StringConstant(constant.name),
   ast.MapConstant() => MapConstant(
-    Map.fromEntries(
-      constant.entries.map(
-        (e) => MapEntry(
-          (e.key as ast.StringConstant).value,
-          evaluateConstant(e.value),
-        ),
-      ),
-    ),
+    constant.entries
+        .map(
+          (e) => MapEntry(evaluateConstant(e.key), evaluateConstant(e.value)),
+        )
+        .toList(),
   ),
   ast.ListConstant() => ListConstant(
     constant.entries.map(evaluateConstant).toList(),
@@ -198,14 +195,6 @@ InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) =>
 
 Never _unsupported(String constantType) =>
     throw UnsupportedError('$constantType is not supported for recording.');
-
-extension RecordUseLocation on ast.Location {
-  Location recordLocation(Uri source, bool exactLocation) => Location(
-    uri: relativizeUri(source, this.file, Platform.isWindows),
-    line: exactLocation ? line : null,
-    column: exactLocation ? column : null,
-  );
-}
 
 String getImportUri(ast.Library library, Uri source) {
   String file;

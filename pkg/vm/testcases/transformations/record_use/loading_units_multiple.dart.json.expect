@@ -5,14 +5,6 @@
       "value": 42
     }
   ],
-  "locations": [
-    {
-      "uri": "loading_units_multiple.dart"
-    },
-    {
-      "uri": "loading_units_multiple_helper.dart"
-    }
-  ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
@@ -21,7 +13,6 @@
     {
       "calls": [
         {
-          "@": 0,
           "loading_unit": "1",
           "positional": [
             0
@@ -29,7 +20,6 @@
           "type": "with_arguments"
         },
         {
-          "@": 1,
           "loading_unit": "2",
           "positional": [
             0

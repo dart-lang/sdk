@@ -98,6 +98,16 @@ const MessageCode annotationOnTypeArgument = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode anonymousMethodWrongParameterList = const MessageCode(
+  "AnonymousMethodWrongParameterList",
+  sharedCode: SharedCode.anonymousMethodWrongParameterList,
+  problemMessage:
+      """An anonymous method with a parameter list must have exactly one required, positional parameter.""",
+  correctionMessage:
+      """Try removing the parameter list, or changing it to have exactly one required positional parameter.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(int character),
   Message Function({required int character})
@@ -3407,6 +3417,7 @@ enum SharedCode {
   annotationSpaceBeforeParenthesis,
   annotationWithTypeArguments,
   annotationWithTypeArgumentsUninstantiated,
+  anonymousMethodWrongParameterList,
   baseEnum,
   binaryOperatorWrittenOut,
   breakOutsideOfLoop,

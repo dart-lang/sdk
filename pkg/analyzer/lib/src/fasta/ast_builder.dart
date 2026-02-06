@@ -926,6 +926,54 @@ class AstBuilder extends StackListener {
   void doPropertyGet() {}
 
   @override
+  void endAnonymousMethodInvocation(
+    Token startToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    debugEvent("AnonymousMethodInvocation");
+
+    var expressionOrBlock = pop();
+    var formals = pop(NullValues.FormalParameters) as FormalParameterListImpl?;
+    var target = pop() as ExpressionImpl?;
+
+    if (formals != null &&
+        (formals.parameters.isEmpty ||
+            formals.parameters.length > 1 ||
+            formals.parameters.first.isNamed ||
+            formals.parameters.first.isOptional)) {
+      handleRecoverableError(
+        fe_diag.anonymousMethodWrongParameterList,
+        formals.leftParenthesis,
+        formals.rightParenthesis,
+      );
+      formals = null;
+    }
+
+    AnonymousMethodBodyImpl methodBody;
+    if (isExpression) {
+      expressionOrBlock as ExpressionImpl;
+      methodBody = AnonymousExpressionBodyImpl(
+        functionDefinition: functionDefinition!,
+        expression: expressionOrBlock,
+      );
+    } else {
+      expressionOrBlock as BlockImpl;
+      methodBody = AnonymousBlockBodyImpl(block: expressionOrBlock);
+    }
+
+    push(
+      AnonymousMethodInvocationImpl(
+        target: target,
+        operator: startToken,
+        parameters: formals,
+        body: methodBody,
+      ),
+    );
+  }
+
+  @override
   void endArguments(int count, Token leftParenthesis, Token rightParenthesis) {
     assert(optional('(', leftParenthesis));
     assert(optional(')', rightParenthesis));

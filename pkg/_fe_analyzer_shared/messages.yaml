@@ -530,6 +530,17 @@ varAsTypeName:
     - "class A { Map<String, var> m; }"
   exampleAllowOtherCodes: true
 
+anonymousMethodWrongParameterList:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An anonymous method with a parameter list must have exactly one required, positional parameter."
+  correctionMessage: "Try removing the parameter list, or changing it to have exactly one required positional parameter."
+  analyzerCode: anonymousMethodWrongParameterList
+  hasPublishedDocs: false
+  experiments: anonymous-methods
+  statement:
+    - "1.(a, b){};"
+
 missingExpressionInThrow:
   type: syntacticError
   parameters: none
