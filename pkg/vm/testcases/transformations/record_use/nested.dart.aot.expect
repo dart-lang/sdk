@@ -10,6 +10,7 @@ class MyClass extends core::Object /*hasConstConstructor*/  {
 
   [@vm.inferred-type.metadata=!]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=[!regcc]]
   final field core::Object i;
 }
 @#C1

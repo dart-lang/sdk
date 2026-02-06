@@ -15,16 +15,17 @@ import 'package:kernel/target/targets.dart' show Target;
 import '../../vm/bin/kernel_service.dart' as kernel_service;
 
 Uint8List _generateBytecode(
-  Component component,
-  List<Library> libraries,
-  CoreTypes coreTypes,
-  ClassHierarchy hierarchy,
-  Target target,
-  bool enableAsserts,
-) {
+    Component component,
+    List<Library> libraries,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    Target target,
+    bool enableAsserts,
+    {Set<Library> extraLoadedLibraries = const {}}) {
   final byteSink = new BytesSink();
   generateBytecode(component, byteSink,
       libraries: libraries,
+      extraLoadedLibraries: extraLoadedLibraries,
       coreTypes: coreTypes,
       hierarchy: hierarchy,
       target: target,

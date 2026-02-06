@@ -65,14 +65,16 @@ void generateBytecode(
   required CoreTypes coreTypes,
   required ClassHierarchy hierarchy,
   required Target target,
+  required Set<Library> extraLoadedLibraries,
 }) {
   Timeline.timeSync("generateBytecode", () {
     verifyBytecodeInstructionDeclarations();
     final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
     final pragmaParser = ConstantPragmaAnnotationParser(coreTypes, target);
 
-    final bytecodeGenerator = BytecodeGenerator(component, coreTypes, hierarchy,
-        typeEnvironment, options, pragmaParser);
+    final bytecodeGenerator = BytecodeGenerator(
+        component, coreTypes, hierarchy, typeEnvironment, options, pragmaParser,
+        libraries: libraries, extraLoadedLibraries: extraLoadedLibraries);
     for (Library library in libraries) {
       bytecodeGenerator.visitLibrary(library);
     }
@@ -105,6 +107,8 @@ class BytecodeGenerator extends RecursiveVisitor {
   final PragmaAnnotationParser pragmaParser;
   final RecognizedMethods recognizedMethods;
   final Map<Uri, Source> astUriToSource;
+  final List<Library> libraries;
+  final Set<Library> extraLoadedLibraries;
   final LibraryIndex ffiLibraryIndex;
   late StringTable stringTable;
   late ObjectTable objectTable;
@@ -149,7 +153,9 @@ class BytecodeGenerator extends RecursiveVisitor {
       ClassHierarchy hierarchy,
       TypeEnvironment typeEnvironment,
       BytecodeOptions options,
-      PragmaAnnotationParser pragmaParser)
+      PragmaAnnotationParser pragmaParser,
+      {required List<Library> libraries,
+      Set<Library> extraLoadedLibraries = const {}})
       : this._internal(
             component,
             coreTypes,
@@ -157,6 +163,8 @@ class BytecodeGenerator extends RecursiveVisitor {
             typeEnvironment,
             options,
             pragmaParser,
+            libraries: libraries,
+            extraLoadedLibraries: extraLoadedLibraries,
             StatefulStaticTypeContext.flat(typeEnvironment));
 
   BytecodeGenerator._internal(
@@ -166,10 +174,15 @@ class BytecodeGenerator extends RecursiveVisitor {
       this.typeEnvironment,
       this.options,
       this.pragmaParser,
-      this.staticTypeContext)
+      this.staticTypeContext,
+      {required this.libraries,
+      required this.extraLoadedLibraries})
       : recognizedMethods = new RecognizedMethods(staticTypeContext),
         astUriToSource = component.uriToSource,
-        ffiLibraryIndex = LibraryIndex(component, const ['dart:ffi']) {
+        ffiLibraryIndex = coreTypes.index.containsLibrary('dart:ffi')
+            ? coreTypes.index
+            : LibraryIndex.fromLibraries(
+                {...libraries, ...extraLoadedLibraries}, const ['dart:ffi']) {
     bytecodeComponent = new Component(coreTypes);
     stringTable = bytecodeComponent.stringTable;
     objectTable = bytecodeComponent.objectTable;
@@ -198,9 +211,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
-    isInDeeplyImmutableClass =
-        pragmaParser.parsedPragmas<ParsedVmDeeplyImmutablePragma>(
-            node.annotations).isNotEmpty;
+    isInDeeplyImmutableClass = pragmaParser
+        .parsedPragmas<ParsedVmDeeplyImmutablePragma>(node.annotations)
+        .isNotEmpty;
     startMembers();
     visitList(node.constructors, this);
     visitList(node.procedures, this);
@@ -1056,9 +1069,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       ? ffiLibraryIndex.getTopLevelProcedure('dart:ffi', '_ffiCall')
       : null;
 
-  late Procedure ensureDeeplyImmutable =
-      libraryIndex.getTopLevelProcedure('dart:_internal',
-                                        '_ensureDeeplyImmutable');
+  late Procedure ensureDeeplyImmutable = libraryIndex.getTopLevelProcedure(
+      'dart:_internal', '_ensureDeeplyImmutable');
 
   // Selector for implicit dynamic calls 'foo(...)' where
   // variable 'foo' has type 'dynamic'.
@@ -1152,8 +1164,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final int cpIndex = cp.addInstanceField(field);
     if (isInDeeplyImmutableClass) {
       // TODO(dartbug.com/61078): Use static type to avoid runtime check.
-      _genDirectCall(
-          ensureDeeplyImmutable, objectTable.getArgDescHandle(1), 1);
+      _genDirectCall(ensureDeeplyImmutable, objectTable.getArgDescHandle(1), 1);
     }
 
     asm.emitStoreFieldTOS(cpIndex);
@@ -2515,13 +2526,15 @@ class BytecodeGenerator extends RecursiveVisitor {
     currentLoopDepth = savedLoopDepth;
     asyncTryBlock = savedAsyncTryBlock;
 
-    bool capturesOnlyFinalNotLateVars =
-        locals.capturesOnlyFinalNotLateVars;
+    bool capturesOnlyFinalNotLateVars = locals.capturesOnlyFinalNotLateVars;
 
     locals.leaveScope();
 
-    closure.code = new ClosureCode(asm.bytecode, asm.exceptionsTable,
-        finalizeSourcePositions(), finalizeLocalVariables(),
+    closure.code = new ClosureCode(
+        asm.bytecode,
+        asm.exceptionsTable,
+        finalizeSourcePositions(),
+        finalizeLocalVariables(),
         capturesOnlyFinalNotLateVars);
 
     _popAssemblerState();

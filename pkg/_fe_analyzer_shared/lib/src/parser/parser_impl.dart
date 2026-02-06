@@ -5726,6 +5726,29 @@ class Parser {
           identifier,
           IdentifierContext.methodDeclaration,
         );
+      } else if (token.next!.isA(TokenType.PERIOD) &&
+          token.next!.next!.isIdentifier) {
+        // This a constructor declaration like `new.name();` which isn't
+        // allowed.
+        Token dot = token.next!;
+        reportRecoverableError(dot, diag.newConstructorDotName);
+        Token identifier = token = dot.next!;
+        listener.handleIdentifier(
+          identifier,
+          IdentifierContext.methodDeclaration,
+        );
+        // Recovery: This call only does something if the next token is
+        // a '.' --- that's not legal for constructors using 'new' so we'll
+        // report an error and recover better by allowing it.
+        Token qualified = parseQualifiedRestOpt(
+          token,
+          IdentifierContext.methodDeclarationContinuation,
+        );
+        if (token != qualified) {
+          hasQualifiedName = true;
+          reportRecoverableError(token, diag.newConstructorQualifiedName);
+        }
+        token = qualified;
       } else {
         listener.handleNoIdentifier(token, IdentifierContext.methodDeclaration);
       }

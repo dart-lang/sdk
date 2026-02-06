@@ -1558,7 +1558,9 @@ class KernelTarget {
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.libraryBuilder.addProblem(
-          diag.constConstructorNonFinalField,
+          classDeclaration.isEnum
+              ? diag.enumConstructorNonFinalField
+              : diag.constConstructorNonFinalField,
           constructor.fileOffset,
           noLength,
           constructor.fileUri,

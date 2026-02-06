@@ -7,7 +7,7 @@ library;
 //   final int? b; // Error
 //              ^
 //
-// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:18:14: Error: Constructor is marked 'const' so all fields must be final.
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:18:14: Error: Enum constructors are constant so all fields must be final.
 // enum const E4() { // Error
 //              ^
 // pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:20:8: Context: Field isn't final, but constructor is 'const'.

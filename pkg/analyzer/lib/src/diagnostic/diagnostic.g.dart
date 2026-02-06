@@ -11249,6 +11249,19 @@ negativeVariableDimension = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments
+newConstructorDotName = DiagnosticWithoutArgumentsImpl(
+  name: 'new_constructor_dot_name',
+  problemMessage:
+      "Constructors declared with the 'new' keyword can't use '.' before the "
+      "constructor name.",
+  correctionMessage: "Try replacing the '.' with a space.",
+  type: DiagnosticType.SYNTACTIC_ERROR,
+  uniqueName: 'new_constructor_dot_name',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const DiagnosticWithoutArguments newConstructorNewName =
     DiagnosticWithoutArgumentsImpl(
       name: 'new_constructor_new_name',

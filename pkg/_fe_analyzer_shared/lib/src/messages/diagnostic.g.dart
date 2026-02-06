@@ -2589,6 +2589,15 @@ const MessageCode nativeClauseShouldBeAnnotation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode newConstructorDotName = const MessageCode(
+  "NewConstructorDotName",
+  sharedCode: SharedCode.newConstructorDotName,
+  problemMessage:
+      """Constructors declared with the 'new' keyword can't use '.' before the constructor name.""",
+  correctionMessage: """Try replacing the '.' with a space.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode newConstructorNewName = const MessageCode(
   "NewConstructorNewName",
   sharedCode: SharedCode.newConstructorNewName,
@@ -3555,6 +3564,7 @@ enum SharedCode {
   multipleVarianceModifiers,
   multipleWithClauses,
   nativeClauseShouldBeAnnotation,
+  newConstructorDotName,
   newConstructorNewName,
   newConstructorQualifiedName,
   nonRedirectingGenerativeConstructorWithPrimary,

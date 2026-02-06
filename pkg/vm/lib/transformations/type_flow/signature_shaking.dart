@@ -51,11 +51,16 @@ import '../../metadata/procedure_attributes.dart';
 class SignatureShaker {
   final TypeFlowAnalysis typeFlowAnalysis;
   final TableSelectorAssigner tableSelectorAssigner;
+  final Constant Function(Constant) treeShakeConstant;
 
   final Map<Member, _ProcedureInfo> _memberInfo = {};
   final Map<int, _ProcedureInfo> _selectorInfo = {};
 
-  SignatureShaker(this.typeFlowAnalysis, this.tableSelectorAssigner);
+  SignatureShaker(
+    this.typeFlowAnalysis,
+    this.tableSelectorAssigner,
+    this.treeShakeConstant,
+  );
 
   _ProcedureInfo? _infoForMember(Member member) {
     if (!(member is Procedure &&
@@ -399,7 +404,8 @@ class _Transform extends RecursiveVisitor {
           (variable.initializer as ConstantExpression?)?.constant ??
           NullConstant();
     }
-    eliminatedParams[variable] = value;
+
+    eliminatedParams[variable] = shaker.treeShakeConstant(value);
   }
 
   void transformMemberSignature(Member member) {
