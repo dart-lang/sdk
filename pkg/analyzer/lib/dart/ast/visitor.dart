@@ -24,6 +24,7 @@ library;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:meta/meta.dart';
 
 part 'visitor.g.dart';
 

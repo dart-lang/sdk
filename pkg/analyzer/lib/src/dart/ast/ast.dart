@@ -466,6 +466,397 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
   }
 }
 
+/// The body of an anonymous method invocation with a block.
+///
+///    anonymousBlockBody ::= [Block]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class AnonymousBlockBody implements AnonymousMethodBody {
+  /// The block which is the body of the enclosing anonymous method.
+  Block get block;
+}
+
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('block')])
+@experimental
+final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
+    implements AnonymousBlockBody {
+  @generated
+  BlockImpl _block;
+
+  @generated
+  AnonymousBlockBodyImpl({required BlockImpl block}) : _block = block {
+    _becomeParentOf(block);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return block.beginToken;
+  }
+
+  @generated
+  @override
+  BlockImpl get block => _block;
+
+  @generated
+  set block(BlockImpl block) {
+    _block = _becomeParentOf(block);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return block.endToken;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()..addNode('block', block);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitAnonymousBlockBody(this);
+
+  @override
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+      resolver.visitAnonymousBlockBody(this, imposedType: imposedType);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    block.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (block._containsOffset(rangeOffset, rangeEnd)) {
+      return block;
+    }
+    return null;
+  }
+}
+
+/// The body of an anonymous method invocation with an arrow.
+///
+///     anonymousExpressionBody ::= '=>' [ExpressionWithoutCascade]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class AnonymousExpressionBody implements AnonymousMethodBody {
+  /// The body expression.
+  Expression get expression;
+
+  /// The '=>' token.
+  Token get functionDefinition;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('functionDefinition'),
+    GenerateNodeProperty('expression'),
+  ],
+)
+@experimental
+final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
+    implements AnonymousExpressionBody {
+  @generated
+  @override
+  final Token functionDefinition;
+
+  @generated
+  ExpressionImpl _expression;
+
+  @generated
+  AnonymousExpressionBodyImpl({
+    required this.functionDefinition,
+    required ExpressionImpl expression,
+  }) : _expression = expression {
+    _becomeParentOf(expression);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return functionDefinition;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return expression.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get expression => _expression;
+
+  @generated
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('functionDefinition', functionDefinition)
+    ..addNode('expression', expression);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitAnonymousExpressionBody(this);
+
+  @override
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+      resolver.visitAnonymousExpressionBody(this, imposedType: imposedType);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    }
+    return null;
+  }
+}
+
+/// The body of an anonymous method invocation.
+///
+///    anonymousBody ::=
+///        [AnonymousBlockBody] | [AnonymousExpressionBody]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class AnonymousMethodBody implements AstNode {}
+
+@experimental
+sealed class AnonymousMethodBodyImpl extends AstNodeImpl
+    implements AnonymousMethodBody {
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType);
+}
+
+/// The invocation of an anonymous block method of an object.
+///
+///    anonymousMethodInvocation ::=
+///        [Expression] ('.' | '?.' | '..' | '?..') [AnonymousMethod]
+///    anonymousMethod ::=
+///        [FormalParameterList]? [AnonymousMethodBody]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class AnonymousMethodInvocation implements Expression {
+  /// The body of the anonymous method being invoked.
+  AnonymousMethodBody get body;
+
+  /// Whether this expression is cascaded.
+  ///
+  /// If it is, then the target of this expression isn't stored locally but is
+  /// stored in the nearest ancestor that is a [CascadeExpression].
+  bool get isCascaded;
+
+  /// Whether this property access is null aware (as opposed to non-null).
+  bool get isNullAware;
+
+  /// The property access operator.
+  Token get operator;
+
+  /// The parameters associated with the constructor.
+  FormalParameterList? get parameters;
+
+  /// The expression used to compute the receiver of the invocation.
+  ///
+  /// If this invocation isn't part of a cascade expression, then this is the
+  /// same as [target]. If this invocation is part of a cascade expression,
+  /// then the target stored with the cascade expression is returned.
+  Expression get realTarget;
+
+  /// The expression computing the object defining the property being accessed,
+  /// or `null` if this property access is part of a cascade expression.
+  ///
+  /// Use [realTarget] to get the target independent of whether this is part of
+  /// a cascade expression.
+  Expression? get target;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('target'),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('parameters'),
+    GenerateNodeProperty('body'),
+  ],
+)
+@experimental
+final class AnonymousMethodInvocationImpl extends ExpressionImpl
+    with DotShorthandMixin
+    implements AnonymousMethodInvocation {
+  @generated
+  ExpressionImpl? _target;
+
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  FormalParameterListImpl? _parameters;
+
+  @generated
+  AnonymousMethodBodyImpl _body;
+
+  @generated
+  AnonymousMethodInvocationImpl({
+    required ExpressionImpl? target,
+    required this.operator,
+    required FormalParameterListImpl? parameters,
+    required AnonymousMethodBodyImpl body,
+  }) : _target = target,
+       _parameters = parameters,
+       _body = body {
+    _becomeParentOf(target);
+    _becomeParentOf(parameters);
+    _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (target case var target?) {
+      return target.beginToken;
+    }
+    return operator;
+  }
+
+  @generated
+  @override
+  AnonymousMethodBodyImpl get body => _body;
+
+  @generated
+  set body(AnonymousMethodBodyImpl body) {
+    _body = _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  /* TODO(eernst)
+  AnonymousMethodElementImpl get anonymousMethodElement =>
+      AnonymousMethodElementImpl(
+        AnonymousMethodFragmentImpl(firstTokenOffset: beginToken.offset),
+      );
+  */
+
+  @override
+  bool get isAssignable => false;
+
+  @override
+  bool get isCascaded =>
+      operator.type == TokenType.PERIOD_PERIOD ||
+      operator.type == TokenType.QUESTION_PERIOD_PERIOD;
+
+  @override
+  bool get isNullAware {
+    if (isCascaded) {
+      return _ancestorCascade.isNullAware;
+    }
+    return operator.type == TokenType.QUESTION_PERIOD ||
+        operator.type == TokenType.QUESTION_PERIOD_PERIOD;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl? get parameters => _parameters;
+
+  @generated
+  set parameters(FormalParameterListImpl? parameters) {
+    _parameters = _becomeParentOf(parameters);
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  ExpressionImpl get realTarget {
+    if (isCascaded) {
+      return _ancestorCascade.target;
+    }
+    return _target!;
+  }
+
+  @generated
+  @override
+  ExpressionImpl? get target => _target;
+
+  @generated
+  set target(ExpressionImpl? target) {
+    _target = _becomeParentOf(target);
+  }
+
+  /// The cascade that contains this [AnonymousMethodInvocation].
+  ///
+  /// This method assumes that [isCascaded] is `true`.
+  CascadeExpressionImpl get _ancestorCascade {
+    assert(isCascaded);
+    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
+      if (ancestor is CascadeExpressionImpl) {
+        return ancestor;
+      }
+    }
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('target', target)
+    ..addToken('operator', operator)
+    ..addNode('parameters', parameters)
+    ..addNode('body', body);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitAnonymousMethodInvocation(this);
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitAnonymousMethodInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    target?.accept(visitor);
+    parameters?.accept(visitor);
+    body.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (target case var target?) {
+      if (target._containsOffset(rangeOffset, rangeEnd)) {
+        return target;
+      }
+    }
+    if (parameters case var parameters?) {
+      if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+        return parameters;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
 /// A list of arguments in the invocation of an executable element (that is, a
 /// function, method, or constructor).
 ///

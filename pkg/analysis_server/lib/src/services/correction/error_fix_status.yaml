@@ -185,6 +185,12 @@ ambiguous_set_or_map_literal_either:
   status: noFix
   notes: |-
     We don't have enough information to add type arguments for the user.
+anonymous_method_wrong_parameter_list:
+  status: noFix
+  notes: |-
+    We could remove the parameter list, or we could change it
+    to `(id)` where `id` is an identifier, but we don't know
+    which parameter name would be a good choice.
 argument_type_not_assignable:
   status: hasFix
 assert_in_redirecting_constructor:

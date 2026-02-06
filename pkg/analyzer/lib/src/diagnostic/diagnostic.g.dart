@@ -481,6 +481,21 @@ annotationWithTypeArgumentsUninstantiated = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments
+anonymousMethodWrongParameterList = DiagnosticWithoutArgumentsImpl(
+  name: 'anonymous_method_wrong_parameter_list',
+  problemMessage:
+      "An anonymous method with a parameter list must have exactly one required, "
+      "positional parameter.",
+  correctionMessage:
+      "Try removing the parameter list, or changing it to have exactly one "
+      "required positional parameter.",
+  type: DiagnosticType.SYNTACTIC_ERROR,
+  uniqueName: 'anonymous_method_wrong_parameter_list',
+  expectedTypes: [],
+);
+
 /// Parameters:
 /// String argumentName: the name of the argument
 const DiagnosticWithArguments<

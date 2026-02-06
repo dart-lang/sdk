@@ -34,6 +34,27 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
+  @experimental
+  @override
+  void visitAnonymousBlockBody(AnonymousBlockBody node) {
+    _runSubscriptions(node, _registry._forAnonymousBlockBody);
+    node.visitChildren(this);
+  }
+
+  @experimental
+  @override
+  void visitAnonymousExpressionBody(AnonymousExpressionBody node) {
+    _runSubscriptions(node, _registry._forAnonymousExpressionBody);
+    node.visitChildren(this);
+  }
+
+  @experimental
+  @override
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    _runSubscriptions(node, _registry._forAnonymousMethodInvocation);
+    node.visitChildren(this);
+  }
+
   @override
   void visitArgumentList(ArgumentList node) {
     _runSubscriptions(node, _registry._forArgumentList);
@@ -1181,6 +1202,14 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<Annotation>> _forAnnotation = [];
 
+  final List<_Subscription<AnonymousBlockBody>> _forAnonymousBlockBody = [];
+
+  final List<_Subscription<AnonymousExpressionBody>>
+  _forAnonymousExpressionBody = [];
+
+  final List<_Subscription<AnonymousMethodInvocation>>
+  _forAnonymousMethodInvocation = [];
+
   final List<_Subscription<ArgumentList>> _forArgumentList = [];
 
   final List<_Subscription<AsExpression>> _forAsExpression = [];
@@ -1593,6 +1622,31 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addAnnotation(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAnnotation.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addAnonymousBlockBody(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forAnonymousBlockBody.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addAnonymousExpressionBody(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forAnonymousExpressionBody.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addAnonymousMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forAnonymousMethodInvocation.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override
