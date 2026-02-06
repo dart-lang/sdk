@@ -6,9 +6,8 @@
 ///
 /// See [documentation](../../../doc/record_uses.md) for examples.
 ///
-/// To appear in the output, arguments must be primitive constants i.e. int,
-/// double, String, bool, null. Other constants (e.g. enums, const objects) will
-/// simply be missing as though they were not constants.
+/// To appear in the output, arguments must be constants i.e. int, String, bool,
+/// null, List, Map, or constant objects.
 library;
 
 import 'dart:io';

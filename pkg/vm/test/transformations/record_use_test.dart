@@ -68,14 +68,19 @@ void runTestCaseAot(Uri source, bool throws) async {
 
   compareResultWithExpectationsFile(source, actual, expectFilePostfix: '.aot');
 
-  final actualSemantic = RecordedUsages.fromJson(
+  final actualSemantic = Recordings.fromJson(
     jsonDecode(File.fromUri(recordedUsagesFile).readAsStringSync()),
   );
   final goldenFile = File('${source.toFilePath()}.json.expect');
-  final goldenContents = await goldenFile.readAsString();
-  final golden = RecordedUsages.fromJson(jsonDecode(goldenContents));
-  final semanticEquals = actualSemantic == golden;
   final update = bool.fromEnvironment('updateExpectations');
+
+  bool semanticEquals = false;
+  if (goldenFile.existsSync()) {
+    final goldenContents = await goldenFile.readAsString();
+    final golden = Recordings.fromJson(jsonDecode(goldenContents));
+    semanticEquals = actualSemantic.semanticEquals(golden);
+  }
+
   if (!semanticEquals || update) {
     compareResultWithExpectationsFile(
       source,
