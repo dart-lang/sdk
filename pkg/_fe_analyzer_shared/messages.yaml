@@ -2502,6 +2502,19 @@ factoryConstructorNewName:
       factory new() => throw '';
     }
 
+newConstructorDotName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors declared with the 'new' keyword can't use '.' before the constructor name."
+  correctionMessage: "Try replacing the '.' with a space."
+  analyzerCode: newConstructorDotName
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C {
+      new.name();
+    }
+
 nonRedirectingGenerativeConstructorWithPrimary:
   type: compileTimeError
   parameters: none

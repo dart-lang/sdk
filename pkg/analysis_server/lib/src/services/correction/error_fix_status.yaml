@@ -1127,6 +1127,8 @@ multiple_super_initializers:
   status: needsFix
   notes: |-
     Remove all but one of the redirecting constructor invocations.
+new_constructor_dot_name:
+  status: needsEvaluation
 new_constructor_new_name:
   status: needsEvaluation
 new_constructor_qualified_name:
