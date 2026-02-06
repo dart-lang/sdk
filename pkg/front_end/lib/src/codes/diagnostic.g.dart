@@ -3605,6 +3605,13 @@ const MessageCode enumAbstractMember = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode enumConstructorNonFinalField = const MessageCode(
+  "EnumConstructorNonFinalField",
+  problemMessage:
+      """Enum constructors are constant so all fields must be final.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode enumConstructorSuperInitializer = const MessageCode(
   "EnumConstructorSuperInitializer",
   problemMessage: """Enum constructors can't contain super-initializers.""",

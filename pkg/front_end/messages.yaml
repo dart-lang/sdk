@@ -3704,6 +3704,16 @@ constConstructorNonFinalField:
       const Foo(this.i);
     }
 
+enumConstructorNonFinalField:
+  parameters: none
+  problemMessage: "Enum constructors are constant so all fields must be final."
+  experiments: primary-constructors
+  script:
+    - |
+      enum E(var int x) { a(0) }
+    - |
+      enum E() { a; int x = 0; }
+
 constConstructorNonFinalFieldCause:
   parameters: none
   problemMessage: "Field isn't final, but constructor is 'const'."

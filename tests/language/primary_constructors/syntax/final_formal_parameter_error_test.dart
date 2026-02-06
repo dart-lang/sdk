@@ -19,10 +19,7 @@ class C {
   // [cfe] unspecified
 }
 
-enum E(var int x) {
-  //           ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+enum E(final int x) {
   e(1);
   void method1(final int x) {}
   //           ^

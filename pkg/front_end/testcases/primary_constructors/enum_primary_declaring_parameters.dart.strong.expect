@@ -10,7 +10,7 @@ library;
 // enum const E7({int? a, required int b, int c = 42]) {
 //                                                  ^
 //
-// pkg/front_end/testcases/primary_constructors/enum_primary_declaring_parameters.dart:7:14: Error: Constructor is marked 'const' so all fields must be final.
+// pkg/front_end/testcases/primary_constructors/enum_primary_declaring_parameters.dart:7:14: Error: Enum constructors are constant so all fields must be final.
 // enum const E2(var int i) { x(0) } // Error
 //              ^
 // pkg/front_end/testcases/primary_constructors/enum_primary_declaring_parameters.dart:7:23: Context: Field isn't final, but constructor is 'const'.
