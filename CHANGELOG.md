@@ -2,6 +2,14 @@
 
 **Released on:** Unreleased
 
+### Tools
+
+#### Pub
+
+- `dart pub cache repair` now by default only repairs the packages referenced
+  by the current projects pubspec.lock. For the old behavior of repairing all
+  packages use the `--all` flag.
+
 ## 3.11.0
 
 **Released on:** Unreleased
@@ -102,10 +110,6 @@ There are no language changes in this release.
 
   Given this flag, `dart pub publish --dry-run` will only exit non-zero if your
   project validation has errors.
-
-- `dart pub cache repair` now by default only repairs the packages referenced
-  by the current projects pubspec.lock. For the old behavior of repairing all
-  packages use the `--all` flag.
 
 ## 3.10.9
 
