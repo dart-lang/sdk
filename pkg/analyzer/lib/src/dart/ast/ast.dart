@@ -585,6 +585,23 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
     block.accept(visitor);
   }
 
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(BlockImpl)? visitBlock,
+  }) {
+    if (visitBlock != null) {
+      visitBlock(block);
+    } else {
+      block.accept(visitor);
+    }
+  }
+
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
@@ -672,6 +689,23 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -893,6 +927,39 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
     target?.accept(visitor);
     parameters?.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitTarget,
+    void Function(FormalParameterListImpl)? visitParameters,
+    void Function(AnonymousMethodBodyImpl)? visitBody,
+  }) {
+    if (target case var target?) {
+      if (visitTarget != null) {
+        visitTarget(target);
+      } else {
+        target.accept(visitor);
+      }
+    }
+    if (parameters case var parameters?) {
+      if (visitParameters != null) {
+        visitParameters(parameters);
+      } else {
+        parameters.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
