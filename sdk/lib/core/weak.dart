@@ -20,7 +20,7 @@ part of "dart:core";
 /// becomes inaccessible. While the object remains reachable, the associated
 /// property value is retained and cannot be garbage-collected independently
 /// of the object. In other words, the property value’s lifetime is bound to
-/// the object for as long as the object is set in the Expando, or until the
+/// the object for as long as the object is set in the `Expando`, or until the
 /// object itself is garbage-collected.
 ///
 /// Since you can always create a new number that is identical to an existing
