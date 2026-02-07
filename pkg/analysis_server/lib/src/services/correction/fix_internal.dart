@@ -285,6 +285,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.avoidEmptyElse: [RemoveEmptyElse.new],
   diag.avoidEscapingInnerQuotes: [ConvertQuotes.new],
+  diag.avoidFinalParameters: [RemoveLexeme.modifier],
   diag.avoidFunctionLiteralsInForeachCalls: [ConvertForEachToForLoop.new],
   diag.avoidInitToNull: [RemoveInitializer.bulkFixable],
   diag.avoidMultipleDeclarationsPerLine: [SplitMultipleDeclarations.new],

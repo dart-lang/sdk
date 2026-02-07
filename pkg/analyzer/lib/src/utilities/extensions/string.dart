@@ -123,6 +123,13 @@ extension StringExtension on String {
     return isNotEmpty ? this : null;
   }
 
+  String capitalize() {
+    if (isEmpty) {
+      return this;
+    }
+    return substring(0, 1).toUpperCase() + substring(1);
+  }
+
   /// If [length] is above the [limit], replace the middle with `...`.
   String elideTo(int limit) {
     if (length > limit) {
@@ -157,6 +164,14 @@ extension StringExtension on String {
       return substring(0, length - suffix.length);
     } else {
       return null;
+    }
+  }
+
+  String removeSuffixOrSelf(String suffix) {
+    if (endsWith(suffix)) {
+      return substring(0, length - suffix.length);
+    } else {
+      return this;
     }
   }
 
