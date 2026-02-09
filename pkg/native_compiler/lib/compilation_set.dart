@@ -26,7 +26,11 @@ class CompilationSet {
 
   CompilationSet(this.libraries, this.config)
     : _imageWriter = config.createImageWriter() {
-    _snapshot = SnapshotSerializer(config.targetCPU, functionRegistry);
+    _snapshot = SnapshotSerializer(
+      config.targetCPU,
+      functionRegistry,
+      config.objectLayout,
+    );
     _stubFactory = config.createStubFactory(_consumeGeneratedCode);
   }
 
