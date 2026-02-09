@@ -1952,7 +1952,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
         if (isIdenticalCall) {
           argumentInfo.identicalInfo = flowAnalysis.equalityOperand_end(
-            expression,
+            flowAnalysis.getExpressionInfo(expression),
           );
         }
         argument.expression = expression;
@@ -1998,7 +1998,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           Expression expression = result.expression;
           if (isIdenticalCall) {
             deferredArgument.identicalInfo = flowAnalysis.equalityOperand_end(
-              expression,
+              flowAnalysis.getExpressionInfo(expression),
             );
           }
           deferredArgument.argument.expression = expression;
