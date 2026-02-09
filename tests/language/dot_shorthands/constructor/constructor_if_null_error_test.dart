@@ -4,8 +4,6 @@
 
 // Errors with `??` and dot shorthands with constructors.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 extension type IfNullConstructorExt(int x) implements num {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 // Tests that dot-shorthands work with null-aware elements with and without
 // separation between `?` and `.`. (That is: `?.`, which is otherwise one
 // token, is parsed as `? .` at the start of an element.)

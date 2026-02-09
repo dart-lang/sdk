@@ -5,8 +5,6 @@
 // Test that there are no crashes when dot shorthands are used in places
 // with no context type, or it's not allowed.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 void main() async {
