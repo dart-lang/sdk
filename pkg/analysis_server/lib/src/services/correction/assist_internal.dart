@@ -36,7 +36,6 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_initiali
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_multiline_string.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_normal_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_primary_constructor.dart';
@@ -123,7 +122,6 @@ const Set<ProducerGenerator> _builtInGenerators = {
   ConvertToIntLiteral.new,
   ConvertToMapLiteral.new,
   ConvertToMultilineString.new,
-  ConvertToNormalParameter.new,
   ConvertToNullAware.new,
   ConvertToPackageImport.new,
   ConvertToPrimaryConstructor.new,
