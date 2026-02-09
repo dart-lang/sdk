@@ -673,14 +673,13 @@ class OptionsProviderTest with ResourceProviderMixin {
     List<ExpectedError> expectedErrors,
   ) {
     newFile(optionsFilePath, code);
-    var diagnostics = analyzeAnalysisOptions(
-      sourceFactory.forUri2(toUri(optionsFilePath))!,
-      code,
-      sourceFactory,
-      '/',
-      null /*sdkVersionConstraint*/,
-      resourceProvider,
-    );
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: sourceFactory.forUri2(toUri(optionsFilePath))!,
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: null,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
 
     assertErrorsInList(diagnostics, expectedErrors);
   }
@@ -875,14 +874,13 @@ plugins:
 name: test
 version: 0.0.1
 ''');
-    var diagnostics = analyzeAnalysisOptions(
-      sourceFactory.forUri2(toUri(filePath))!,
-      code,
-      sourceFactory,
-      '/',
-      null /*sdkVersionConstraint*/,
-      resourceProvider,
-    );
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: sourceFactory.forUri2(toUri(filePath))!,
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: null,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
 
     assertErrorsInList(diagnostics, [
       error(diag.pluginsInInnerOptions, 11, 12),
@@ -903,28 +901,26 @@ include: ../analysis_options.yaml
 name: test
 version: 0.0.1
 ''');
-    var diagnostics = analyzeAnalysisOptions(
-      sourceFactory.forUri2(toUri(filePath))!,
-      code,
-      sourceFactory,
-      '/',
-      null /*sdkVersionConstraint*/,
-      resourceProvider,
-    );
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: sourceFactory.forUri2(toUri(filePath))!,
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: null,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
 
     assertErrorsInList(diagnostics, []);
   }
 
   List<Diagnostic> validate(String code, List<DiagnosticCode> expected) {
     newFile(optionsFilePath, code);
-    var diagnostics = analyzeAnalysisOptions(
-      sourceFactory.forUri('file://$optionsFilePath')!,
-      code,
-      sourceFactory,
-      '/',
-      null /*sdkVersionConstraint*/,
-      resourceProvider,
-    );
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: sourceFactory.forUri('file://$optionsFilePath')!,
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: null,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
     expect(
       diagnostics.map((Diagnostic e) => e.diagnosticCode),
       unorderedEquals(expected),

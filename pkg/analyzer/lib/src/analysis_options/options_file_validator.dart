@@ -26,234 +26,6 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-List<Diagnostic> analyzeAnalysisOptions(
-  Source source,
-  String content,
-  SourceFactory sourceFactory,
-  String contextRoot,
-  VersionConstraint? sdkVersionConstraint,
-  ResourceProvider resourceProvider,
-) {
-  List<Diagnostic> diagnostics = [];
-  Source initialSource = source;
-  SourceSpan? initialIncludeSpan;
-  AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider(
-    sourceFactory,
-  );
-  String? firstPluginName;
-
-  // TODO(srawlins): This code is getting quite complex, with multiple local
-  // functions, and should be refactored to a class maintaining state, with less
-  // variable shadowing.
-  void addDirectErrorOrIncludedError(
-    List<Diagnostic> validationDiagnostics,
-    Source source, {
-    required bool isSourcePrimary,
-  }) {
-    if (!isSourcePrimary) {
-      // [source] is an included file, and we should only report diagnostics in
-      // [initialSource], noting that the included file has warnings.
-      for (Diagnostic diagnostic in validationDiagnostics) {
-        var args = [
-          source.fullName,
-          diagnostic.offset.toString(),
-          (diagnostic.offset + diagnostic.length - 1).toString(),
-          diagnostic.message,
-        ];
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.includedFileWarning,
-            arguments: args,
-          ),
-        );
-      }
-    } else {
-      // [source] is the options file for [contextRoot]. Report all diagnostics
-      // directly.
-      diagnostics.addAll(validationDiagnostics);
-    }
-  }
-
-  // Validates the specified options and any included option files.
-  void validate(
-    Source source,
-    YamlMap options, {
-    required String contextRoot,
-    Map<Source, SourceSpan>? includeChain,
-  }) {
-    includeChain ??= {};
-    var isSourcePrimary = initialIncludeSpan == null;
-    var validationErrors = OptionsFileValidator(
-      source,
-      sdkVersionConstraint: sdkVersionConstraint,
-      contextRoot: contextRoot,
-      isPrimarySource: isSourcePrimary,
-      optionsProvider: optionsProvider,
-      sourceFactory: sourceFactory,
-      resourceProvider: resourceProvider,
-    ).validate(options);
-    addDirectErrorOrIncludedError(
-      validationErrors,
-      source,
-      isSourcePrimary: isSourcePrimary,
-    );
-
-    var includeNode = options.valueAt(AnalysisOptionsFile.include);
-    if (includeNode == null) {
-      // Validate the 'plugins' option in [options], understanding that no other
-      // options are included.
-      addDirectErrorOrIncludedError(
-        _validateLegacyPluginsOption(source, options: options),
-        source,
-        isSourcePrimary: isSourcePrimary,
-      );
-      return;
-    }
-
-    void validateInclude(
-      YamlNode includeNode,
-      Map<Source, SourceSpan> includeChain,
-    ) {
-      var includeSpan = includeNode.span;
-      initialIncludeSpan ??= includeSpan;
-      var includeUri = includeSpan.text;
-      var (first, last) = (
-        includeUri.codeUnits.firstOrNull,
-        includeUri.codeUnits.lastOrNull,
-      );
-      if ((first == 0x0022 || first == 0x0027) && first == last) {
-        // The URI begins and ends with either a double quote or single quote
-        // i.e. the value of the "include" field is quoted.
-        includeUri = includeUri.substring(1, includeUri.length - 1);
-      }
-
-      var includedSource = sourceFactory.resolveUri(source, includeUri);
-      if (includedSource == initialSource) {
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.recursiveIncludeFile,
-            arguments: [includeUri, source.fullName],
-          ),
-        );
-        return;
-      }
-      if (includedSource == null || !includedSource.exists()) {
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.includeFileNotFound,
-            arguments: [includeUri, source.fullName, contextRoot],
-          ),
-        );
-        return;
-      }
-      var spanInChain = includeChain[includedSource];
-      if (spanInChain != null) {
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.includedFileWarning,
-            arguments: [
-              includedSource,
-              spanInChain.start.offset,
-              spanInChain.length,
-              'The file includes itself recursively.',
-            ],
-          ),
-        );
-        return;
-      }
-      includeChain[includedSource] = includeSpan;
-
-      try {
-        var includedOptions = optionsProvider.getOptionsFromString(
-          includedSource.stringContents,
-        );
-        validate(
-          includedSource,
-          includedOptions,
-          contextRoot: contextRoot,
-          includeChain: includeChain,
-        );
-        firstPluginName ??= _firstPluginName(includedOptions);
-        // Validate the 'plugins' option in [options], taking into account any
-        // plugins enabled by [includedOptions].
-        addDirectErrorOrIncludedError(
-          _validateLegacyPluginsOption(
-            source,
-            options: options,
-            firstEnabledPluginName: firstPluginName,
-          ),
-          source,
-          isSourcePrimary: isSourcePrimary,
-        );
-      } on OptionsFormatException catch (e) {
-        var args = [
-          includedSource.fullName,
-          e.span!.start.offset.toString(),
-          e.span!.end.offset.toString(),
-          e.message,
-        ];
-        // Report diagnostics for included option files on the `include` directive
-        // located in the initial options file.
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.includedFileParseError,
-            arguments: args,
-          ),
-        );
-      }
-    }
-
-    var includes = switch (includeNode) {
-      YamlScalar node => [node],
-      YamlList(:var nodes) => nodes.whereType<YamlScalar>().toList(),
-      _ => const <YamlScalar>[],
-    };
-
-    for (var includeValue in includes) {
-      if (isSourcePrimary) {
-        initialIncludeSpan = null;
-        includeChain.clear();
-      }
-      validateInclude(includeValue, {...includeChain});
-    }
-  }
-
-  try {
-    YamlMap options = optionsProvider.getOptionsFromString(
-      content,
-      sourceUrl: source.uri,
-    );
-    validate(source, options, contextRoot: contextRoot);
-  } on OptionsFormatException catch (e) {
-    SourceSpan span = e.span!;
-    diagnostics.add(
-      Diagnostic.tmp(
-        source: source,
-        offset: span.start.offset,
-        length: span.length,
-        diagnosticCode: diag.parseError,
-        arguments: [e.message],
-      ),
-    );
-  }
-  return diagnostics;
-}
-
 /// Returns the name of the first legacy plugin, if one is specified in
 /// [options], otherwise `null`.
 String? _firstPluginName(YamlMap options) {
@@ -286,6 +58,235 @@ List<Diagnostic> _validateLegacyPluginsOption(
     firstEnabledPluginName,
   ).validate(reporter, options);
   return recorder.diagnostics;
+}
+
+class AnalysisOptionsAnalyzer {
+  final Source initialSource;
+  final SourceFactory sourceFactory;
+  final String contextRoot;
+  final VersionConstraint? sdkVersionConstraint;
+  final ResourceProvider resourceProvider;
+  final List<Diagnostic> diagnostics = [];
+  SourceSpan? initialIncludeSpan;
+  final AnalysisOptionsProvider optionsProvider;
+  String? firstPluginName;
+
+  AnalysisOptionsAnalyzer({
+    required this.initialSource,
+    required this.sourceFactory,
+    required this.contextRoot,
+    required this.sdkVersionConstraint,
+    required this.resourceProvider,
+  }) : optionsProvider = AnalysisOptionsProvider(sourceFactory);
+
+  List<Diagnostic> walkIncludes({required String content}) {
+    try {
+      YamlMap options = optionsProvider.getOptionsFromString(
+        content,
+        sourceUrl: initialSource.uri,
+      );
+      _validate(initialSource, options);
+    } on OptionsFormatException catch (e) {
+      SourceSpan span = e.span!;
+      diagnostics.add(
+        Diagnostic.tmp(
+          source: initialSource,
+          offset: span.start.offset,
+          length: span.length,
+          diagnosticCode: diag.parseError,
+          arguments: [e.message],
+        ),
+      );
+    }
+    return diagnostics;
+  }
+
+  void _addDirectErrorOrIncludedError(
+    List<Diagnostic> validationDiagnostics,
+    Source source, {
+    required bool isSourcePrimary,
+  }) {
+    if (!isSourcePrimary) {
+      // [source] is an included file, and we should only report diagnostics in
+      // [initialSource], noting that the included file has warnings.
+      for (Diagnostic diagnostic in validationDiagnostics) {
+        var args = [
+          source.fullName,
+          diagnostic.offset.toString(),
+          (diagnostic.offset + diagnostic.length - 1).toString(),
+          diagnostic.message,
+        ];
+        diagnostics.add(
+          Diagnostic.tmp(
+            source: initialSource,
+            offset: initialIncludeSpan!.start.offset,
+            length: initialIncludeSpan!.length,
+            diagnosticCode: diag.includedFileWarning,
+            arguments: args,
+          ),
+        );
+      }
+    } else {
+      // [source] is the options file for [contextRoot]. Report all diagnostics
+      // directly.
+      diagnostics.addAll(validationDiagnostics);
+    }
+  }
+
+  // Validates the specified options and any included option files.
+  void _validate(
+    Source source,
+    YamlMap options, {
+    Map<Source, SourceSpan>? includeChain,
+  }) {
+    includeChain ??= {};
+    var isSourcePrimary = initialIncludeSpan == null;
+    var validationErrors = OptionsFileValidator(
+      source,
+      sdkVersionConstraint: sdkVersionConstraint,
+      contextRoot: contextRoot,
+      isPrimarySource: isSourcePrimary,
+      optionsProvider: optionsProvider,
+      sourceFactory: sourceFactory,
+      resourceProvider: resourceProvider,
+    ).validate(options);
+    _addDirectErrorOrIncludedError(
+      validationErrors,
+      source,
+      isSourcePrimary: isSourcePrimary,
+    );
+
+    var includeNode = options.valueAt(AnalysisOptionsFile.include);
+    if (includeNode == null) {
+      // Validate the 'plugins' option in [options], understanding that no other
+      // options are included.
+      _addDirectErrorOrIncludedError(
+        _validateLegacyPluginsOption(source, options: options),
+        source,
+        isSourcePrimary: isSourcePrimary,
+      );
+      return;
+    }
+
+    var includes = switch (includeNode) {
+      YamlScalar node => [node],
+      YamlList(:var nodes) => nodes.whereType<YamlScalar>().toList(),
+      _ => const <YamlScalar>[],
+    };
+
+    for (var includeValue in includes) {
+      if (isSourcePrimary) {
+        initialIncludeSpan = null;
+        includeChain.clear();
+      }
+      _validateInclude(source, options, includeValue, {
+        ...includeChain,
+      }, isSourcePrimary: isSourcePrimary);
+    }
+  }
+
+  void _validateInclude(
+    Source source,
+    YamlMap options,
+    YamlNode includeNode,
+    Map<Source, SourceSpan> includeChain, {
+    required bool isSourcePrimary,
+  }) {
+    var includeSpan = includeNode.span;
+    initialIncludeSpan ??= includeSpan;
+    var includeUri = includeSpan.text;
+    var (first, last) = (
+      includeUri.codeUnits.firstOrNull,
+      includeUri.codeUnits.lastOrNull,
+    );
+    if ((first == 0x0022 || first == 0x0027) && first == last) {
+      // The URI begins and ends with either a double quote or single quote
+      // i.e. the value of the "include" field is quoted.
+      includeUri = includeUri.substring(1, includeUri.length - 1);
+    }
+
+    var includedSource = sourceFactory.resolveUri(source, includeUri);
+    if (includedSource == initialSource) {
+      diagnostics.add(
+        Diagnostic.tmp(
+          source: initialSource,
+          offset: initialIncludeSpan!.start.offset,
+          length: initialIncludeSpan!.length,
+          diagnosticCode: diag.recursiveIncludeFile,
+          arguments: [includeUri, source.fullName],
+        ),
+      );
+      return;
+    }
+    if (includedSource == null || !includedSource.exists()) {
+      diagnostics.add(
+        Diagnostic.tmp(
+          source: initialSource,
+          offset: initialIncludeSpan!.start.offset,
+          length: initialIncludeSpan!.length,
+          diagnosticCode: diag.includeFileNotFound,
+          arguments: [includeUri, source.fullName, contextRoot],
+        ),
+      );
+      return;
+    }
+    var spanInChain = includeChain[includedSource];
+    if (spanInChain != null) {
+      diagnostics.add(
+        Diagnostic.tmp(
+          source: initialSource,
+          offset: initialIncludeSpan!.start.offset,
+          length: initialIncludeSpan!.length,
+          diagnosticCode: diag.includedFileWarning,
+          arguments: [
+            includedSource,
+            spanInChain.start.offset,
+            spanInChain.length,
+            'The file includes itself recursively.',
+          ],
+        ),
+      );
+      return;
+    }
+    includeChain[includedSource] = includeSpan;
+
+    try {
+      var includedOptions = optionsProvider.getOptionsFromString(
+        includedSource.stringContents,
+      );
+      _validate(includedSource, includedOptions, includeChain: includeChain);
+      firstPluginName ??= _firstPluginName(includedOptions);
+      // Validate the 'plugins' option in [options], taking into account any
+      // plugins enabled by [includedOptions].
+      _addDirectErrorOrIncludedError(
+        _validateLegacyPluginsOption(
+          source,
+          options: options,
+          firstEnabledPluginName: firstPluginName,
+        ),
+        source,
+        isSourcePrimary: isSourcePrimary,
+      );
+    } on OptionsFormatException catch (e) {
+      var args = [
+        includedSource.fullName,
+        e.span!.start.offset.toString(),
+        e.span!.end.offset.toString(),
+        e.message,
+      ];
+      // Report diagnostics for included option files on the `include` directive
+      // located in the initial options file.
+      diagnostics.add(
+        Diagnostic.tmp(
+          source: initialSource,
+          offset: initialIncludeSpan!.start.offset,
+          length: initialIncludeSpan!.length,
+          diagnosticCode: diag.includedFileParseError,
+          arguments: args,
+        ),
+      );
+    }
+  }
 }
 
 /// Validates `analyzer` options.
