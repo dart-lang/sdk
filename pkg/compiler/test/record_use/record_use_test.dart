@@ -228,4 +228,5 @@ const dart2jsNotSupported = {
   'nested.dart',
   'record_enum.dart',
   'record_instance_constant_empty.dart',
+  'unsupported_instance.dart',
 };
