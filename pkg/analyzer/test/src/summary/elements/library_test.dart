@@ -47,6 +47,17 @@ library
 ''');
   }
 
+  test_isOriginNotExistingFile() async {
+    var library = await testContextLibrary('package:test/test.dart');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 isOriginNotExistingFile <testLibraryFragment>
+      element: <testLibrary>
+''');
+  }
+
   test_library() async {
     var library = await buildLibrary('');
     checkElementText(library, r'''

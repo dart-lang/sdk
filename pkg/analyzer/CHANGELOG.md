@@ -6,6 +6,7 @@
 * Stabilize `FieldElement.declaringFormalParameter`.
 * Stabilize `FieldFormalParameterElement.isDeclaring` and `privateName`.
 * Stabilize `FieldFormalParameterFragment.privateName`.
+* Deprecate `LibraryFragment.isSynthetic`, use `isOriginNotExistingFile` instead.
 
 ## 10.0.2
 
