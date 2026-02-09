@@ -138,7 +138,8 @@ void main() async {
       ));
       expect(constArguments.length, 1);
       expect(constArguments.first.named.isEmpty, true);
-      expect(constArguments.first.positional, [3, 4]);
+      expect(constArguments.first.positional,
+          const [IntConstant(3), IntConstant(4)]);
     });
   });
 

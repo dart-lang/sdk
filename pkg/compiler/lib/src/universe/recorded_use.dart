@@ -92,11 +92,11 @@ class RecordedCallWithArguments extends RecordedUse {
   final Map<String, ConstantValue?> namedArguments;
 
   /// Constant positional argument values in `package:record_use` format.
-  List<record_use.Constant?> positionalArgumentsInRecordUseFormat() =>
+  List<record_use.MaybeConstant> positionalArgumentsInRecordUseFormat() =>
       positionalArguments.map(_findValue).toList();
 
   /// Constant named argument values in `package:record_use` format.
-  Map<String, record_use.Constant?> namedArgumentsInRecordUseFormat() =>
+  Map<String, record_use.MaybeConstant> namedArgumentsInRecordUseFormat() =>
       namedArguments.map((k, v) => MapEntry(k, _findValue(v)));
 
   RecordedCallWithArguments({
@@ -172,19 +172,22 @@ class RecordedTearOff extends RecordedUse {
   }
 }
 
-record_use.Constant? _findValue(ConstantValue? constant) {
+record_use.MaybeConstant _findValue(ConstantValue? constant) {
   return switch (constant) {
-    null => null, // not const.
+    null => const record_use.NonConstant(), // not const.
     NullConstantValue() => record_use.NullConstant(),
     BoolConstantValue() => record_use.BoolConstant(constant.boolValue),
     IntConstantValue() => record_use.IntConstant(constant.intValue.toInt()),
     StringConstantValue() => record_use.StringConstant(constant.stringValue),
-    MapConstantValue() => _findMapValue(constant),
-    ListConstantValue() => _findListValue(constant),
-    ConstructedConstantValue() => _findInstanceValue(constant),
+    MapConstantValue() =>
+      _findMapValue(constant) ?? const record_use.NonConstant(),
+    ListConstantValue() =>
+      _findListValue(constant) ?? const record_use.NonConstant(),
+    ConstructedConstantValue() =>
+      _findInstanceValue(constant) ?? const record_use.NonConstant(),
     // TODO(https://github.com/dart-lang/native/issues/2899): Handle
     // unsupported const types so that the values don't show up as non-const.
-    Object() => null,
+    Object() => const record_use.NonConstant(),
   };
 }
 
@@ -194,7 +197,7 @@ record_use.MapConstant? _findMapValue(MapConstantValue constant) {
     final keyConstantValue = constant.keys[index];
     final keyValue = _findValue(keyConstantValue);
     final value = _findValue(constant.values[index]);
-    if (keyValue == null || value == null) {
+    if (keyValue is! record_use.Constant || value is! record_use.Constant) {
       // TODO(https://github.com/dart-lang/native/issues/2899): Handle
       // unsupported values.
       return null;
@@ -208,7 +211,7 @@ record_use.ListConstant? _findListValue(ListConstantValue constant) {
   final result = <record_use.Constant>[];
   for (final constantValue in constant.entries) {
     final constant = _findValue(constantValue);
-    if (constant == null) {
+    if (constant is! record_use.Constant) {
       // TODO(https://github.com/dart-lang/native/issues/2899): Handle
       // unsupported values.
       return null;
@@ -225,7 +228,7 @@ record_use.InstanceConstant? _findInstanceValue(
   for (final entry in constant.fields.entries) {
     final name = entry.key.name;
     final value = _findValue(entry.value);
-    if (name == null || value == null) {
+    if (name == null || value is! record_use.Constant) {
       // TODO(https://github.com/dart-lang/native/issues/2899): Handle
       // unsupported fields.
       return null;
