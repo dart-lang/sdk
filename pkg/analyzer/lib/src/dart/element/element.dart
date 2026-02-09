@@ -4151,8 +4151,6 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
 
   GetterFragmentImpl({required super.name});
 
-  GetterFragmentImpl.forVariable(super.variable) : super.forVariable();
-
   void addFragment(GetterFragmentImpl fragment) {
     fragment.element = element;
     fragment.previousFragment = this;
@@ -8977,17 +8975,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   /// [name] and [offset].
   PropertyAccessorFragmentImpl({required this.name, super.firstTokenOffset});
 
-  /// Initialize a newly created synthetic property accessor element to be
-  /// associated with the given [variable].
-  PropertyAccessorFragmentImpl.forVariable(
-    PropertyInducingFragmentImpl variable,
-  ) : name = variable.name,
-      super(firstTokenOffset: null) {
-    isAbstract = variable is FieldFragmentImpl && variable.isAbstract;
-    isStatic = variable.isStatic;
-    isSynthetic = true;
-  }
-
   @override
   PropertyAccessorElementImpl get element;
 
@@ -9364,8 +9351,6 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
   SetterFragmentImpl? nextFragment;
 
   SetterFragmentImpl({required super.name});
-
-  SetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
   String? get lookupName {
