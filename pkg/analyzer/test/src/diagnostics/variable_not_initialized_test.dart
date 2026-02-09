@@ -1240,29 +1240,6 @@ abstract class A {
 ''');
   }
 
-  test_classNative_instanceField1_final_hasConstructor() async {
-    await assertErrorsInCode(
-      r'''
-class A native 'something' {
-  final int v;
-  A() {}
-}
-''',
-      [error(diag.nativeClauseInNonSdkCode, 8, 18)],
-    );
-  }
-
-  test_classNative_instanceField1_final_noConstructor() async {
-    await assertErrorsInCode(
-      r'''
-class A native 'something' {
-  final int v;
-}
-''',
-      [error(diag.nativeClauseInNonSdkCode, 8, 18)],
-    );
-  }
-
   test_enum_instanceField1_const_noInitializer() async {
     await assertErrorsInCode(
       '''
