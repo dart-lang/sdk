@@ -38,6 +38,7 @@ workspace:
   - pkg/dartdev
   - pkg/dart_data_home
   - pkg/dart_internal
+  - pkg/dart_runtime_service
   - pkg/dart_service_protocol_shared
   - pkg/dds
   - pkg/dds_service_extensions
