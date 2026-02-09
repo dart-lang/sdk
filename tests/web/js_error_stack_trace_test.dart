@@ -15,6 +15,12 @@ external void throwError();
 @JS()
 external void throwNonError();
 
+@JS()
+external void throwNull();
+
+@JS()
+external void throwUndefined();
+
 void main() {
   eval('''
     self.throwNonError = function() {
@@ -23,6 +29,14 @@ void main() {
 
     self.throwError = function() {
       throw new Error('Hi from JS');
+    }
+
+    self.throwNull = function() {
+      throw null;
+    }
+
+    self.throwUndefined = function() {
+      throw undefined;
     }
   ''');
 
@@ -37,6 +51,20 @@ void main() {
     throwNonError();
   } catch (e, st) {
     Expect.isTrue(e.toString().contains('Hi from JS'));
+    Expect.isTrue(st.toString().isEmpty);
+  }
+
+  try {
+    throwNull();
+  } catch (e, st) {
+    Expect.isTrue(e.toString().contains('null'));
+    Expect.isTrue(st.toString().isEmpty);
+  }
+
+  try {
+    throwUndefined();
+  } catch (e, st) {
+    Expect.isTrue(e.toString().contains('undefined'));
     Expect.isTrue(st.toString().isEmpty);
   }
 }
