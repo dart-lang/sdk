@@ -389,6 +389,8 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.ffiNativeUnexpectedNumberOfParameters,
   diag.ffiNativeUnexpectedNumberOfParametersWithReceiver,
   diag.fieldInitializedByMultipleInitializers,
+  diag.fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
+  diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
   diag.fieldInitializedInInitializerAndDeclaration,
   diag.fieldInitializedInParameterAndInitializer,
   diag.fieldInitializedOutsideDeclaringClass,

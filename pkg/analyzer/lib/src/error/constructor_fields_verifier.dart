@@ -267,7 +267,12 @@ class _Constructor {
           if (state == _InitState.notInit) {
             fields[fieldElement] = _InitState.initInInitializer;
           } else if (state == _InitState.initInDeclaration) {
-            if (isPrimary || fieldElement.isFinal || fieldElement.isConst) {
+            if (isPrimary) {
+              diagnosticReporter.report(
+                diag.fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor
+                    .at(fieldName),
+              );
+            } else if (fieldElement.isFinal || fieldElement.isConst) {
               diagnosticReporter.report(
                 diag.fieldInitializedInInitializerAndDeclaration.at(fieldName),
               );
@@ -303,7 +308,14 @@ class _Constructor {
         if (state == _InitState.notInit) {
           fields[fieldElement] = _InitState.initInFieldFormal;
         } else if (state == _InitState.initInDeclaration) {
-          if (fieldElement.isFinal || fieldElement.isConst) {
+          if (isPrimary) {
+            if (formalParameter.name case var name?) {
+              diagnosticReporter.report(
+                diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor
+                    .at(name),
+              );
+            }
+          } else if (fieldElement.isFinal || fieldElement.isConst) {
             if (formalParameter.name case var name?) {
               diagnosticReporter.report(
                 diag.finalInitializedInDeclarationAndConstructor

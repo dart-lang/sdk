@@ -6394,7 +6394,13 @@ class const A() {
 
 const a = A();
 ''',
-      [error(diag.fieldInitializedInInitializerAndDeclaration, 46, 1)],
+      [
+        error(
+          diag.fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
+          46,
+          1,
+        ),
+      ],
     );
     assertDartObjectText(_topLevelVar('a'), r'''
 A
@@ -6414,7 +6420,13 @@ class const A(this.x) {
 
 const a = A(2);
 ''',
-      [error(diag.finalInitializedInDeclarationAndConstructor, 19, 1)],
+      [
+        error(
+          diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
+          19,
+          1,
+        ),
+      ],
     );
     assertDartObjectText(_topLevelVar('a'), r'''
 A

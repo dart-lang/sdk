@@ -32,7 +32,7 @@ class A(final int i) {}
   test_isUsed_class_fieldFormal() async {
     await assertNoErrorsInCode(r'''
 class A(this._f) {
-  int _f = 0;
+  int _f;
   int get x => _f;
 }
 ''');
@@ -102,7 +102,7 @@ class A(final int _) {}
     await assertErrorsInCode(
       r'''
 class A(this._f) {
-  int _f = 0;
+  int _f;
 }
 ''',
       [error(diag.unusedField, 25, 2)],
