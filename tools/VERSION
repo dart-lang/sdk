@@ -18,6 +18,7 @@
 #  * Making a stable release (i.e. new stable branch):
 #     - set "PRERELEASE 0"
 #     - set "PRERELEASE_PATCH 0"
+#
 #    The new stable release version will sort higher than the prereleases.
 #
 #  * Making cherry-picks to stable channel
