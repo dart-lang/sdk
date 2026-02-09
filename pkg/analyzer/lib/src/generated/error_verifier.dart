@@ -512,6 +512,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.namePart.typeName, node.declaredFragment!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
+      _checkForMultiplePrimaryConstructorBodyDeclarations(members);
 
       GetterSetterTypesVerifier(
         library: _currentLibrary,
@@ -779,6 +780,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.namePart.typeName, node.declaredFragment!);
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredElement);
+      _checkForMultiplePrimaryConstructorBodyDeclarations(members);
 
       GetterSetterTypesVerifier(
         library: _currentLibrary,
@@ -877,6 +879,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         members,
         node.primaryConstructor,
       );
+
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
         node,
         declaredFragment,
@@ -895,6 +898,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionTypeWithAbstractMember(node);
       _checkForExtensionTypeRepresentationErrorCodes(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
+      _checkForMultiplePrimaryConstructorBodyDeclarations(members);
 
       var interface = _inheritanceManager.getInterface(declaredElement);
       GetterSetterTypesVerifier(
@@ -4932,6 +4936,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           }
         }
       }
+    }
+  }
+
+  void _checkForMultiplePrimaryConstructorBodyDeclarations(
+    List<ClassMember> members,
+  ) {
+    var primaryConstructorBodies = members
+        .whereType<PrimaryConstructorBody>()
+        .toList();
+
+    for (var i = 1; i < primaryConstructorBodies.length; i++) {
+      diagnosticReporter.report(
+        diag.multiplePrimaryConstructorBodyDeclarations.at(
+          primaryConstructorBodies[i].thisKeyword,
+        ),
+      );
     }
   }
 
