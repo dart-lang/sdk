@@ -2385,6 +2385,9 @@ abstract class LibraryFragment implements Fragment {
   /// those that are imported without a prefix.
   List<LibraryElement> get importedLibraries;
 
+  /// Whether the library fragment is created from a file that does not exist.
+  bool get isOriginNotExistingFile;
+
   /// The libraries exported by this unit.
   List<LibraryExport> get libraryExports;
 

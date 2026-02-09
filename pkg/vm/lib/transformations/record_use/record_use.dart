@@ -147,7 +147,9 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   ast.NullConstant() => NullConstant(),
   ast.BoolConstant() => BoolConstant(constant.value),
   ast.IntConstant() => IntConstant(constant.value),
-  ast.DoubleConstant() => _unsupported('DoubleConstant'),
+  ast.DoubleConstant() => UnsupportedConstant(
+    'Double literals are not supported for recording.',
+  ),
   ast.StringConstant() => StringConstant(constant.value),
   ast.SymbolConstant() => StringConstant(constant.name),
   ast.MapConstant() => MapConstant(
@@ -164,13 +166,27 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   // The following are not supported, but theoretically could be, so they
   // are listed explicitly here.
   ast.AuxiliaryConstant() => _unsupported('AuxiliaryConstant'),
-  ast.SetConstant() => _unsupported('SetConstant'),
-  ast.RecordConstant() => _unsupported('RecordConstant'),
-  ast.InstantiationConstant() => _unsupported('InstantiationConstant'),
-  ast.TearOffConstant() => _unsupported('TearOffConstant'),
-  ast.TypedefTearOffConstant() => _unsupported('TypedefTearOffConstant'),
-  ast.TypeLiteralConstant() => _unsupported('TypeLiteralConstant'),
-  ast.UnevaluatedConstant() => _unsupported('UnevaluatedConstant'),
+  ast.SetConstant() => UnsupportedConstant(
+    'Set literals are not supported for recording.',
+  ),
+  ast.RecordConstant() => UnsupportedConstant(
+    'Record literals are not supported for recording.',
+  ),
+  ast.InstantiationConstant() => UnsupportedConstant(
+    'Generic instantiations are not supported for recording.',
+  ),
+  ast.TearOffConstant() => UnsupportedConstant(
+    'Function/Method tear-offs are not supported for recording.',
+  ),
+  ast.TypedefTearOffConstant() => UnsupportedConstant(
+    'Typedef tear-offs are not supported for recording.',
+  ),
+  ast.TypeLiteralConstant() => UnsupportedConstant(
+    'Type literals are not supported for recording.',
+  ),
+  ast.UnevaluatedConstant() => UnsupportedConstant(
+    'Unevaluated constants are not supported for recording.',
+  ),
 };
 
 Constant evaluateLiteral(ast.BasicLiteral expression) => switch (expression) {
@@ -178,7 +194,9 @@ Constant evaluateLiteral(ast.BasicLiteral expression) => switch (expression) {
   ast.IntLiteral() => IntConstant(expression.value),
   ast.BoolLiteral() => BoolConstant(expression.value),
   ast.StringLiteral() => StringConstant(expression.value),
-  ast.DoubleLiteral() => _unsupported('DoubleLiteral'),
+  ast.DoubleLiteral() => UnsupportedConstant(
+    'Double literals are not supported for recording.',
+  ),
   ast.BasicLiteral() => _unsupported(expression.runtimeType.toString()),
 };
 
@@ -190,8 +208,8 @@ InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) =>
       ),
     );
 
-Never _unsupported(String constantType) =>
-    throw UnsupportedError('$constantType is not supported for recording.');
+UnsupportedConstant _unsupported(String constantType) =>
+    UnsupportedConstant('$constantType is not supported for recording.');
 
 ast.Library? enclosingLibrary(ast.TreeNode node) {
   while (node is! ast.Library) {

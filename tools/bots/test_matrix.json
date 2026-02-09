@@ -176,6 +176,7 @@
       "pkg/dart_internal/",
       "pkg/dart2native/",
       "pkg/dart2js_tools/",
+      "pkg/dart_runtime_service/",
       "pkg/dds/",
       "pkg/expect/",
       "pkg/front_end/",

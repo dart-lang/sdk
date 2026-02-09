@@ -243,10 +243,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// etc.
   final List<bool> _isInLateLocalVariable = [false];
 
-  /// A flag indicating whether the visitor is currently within a native class
-  /// declaration.
-  bool _isInNativeClass = false;
-
   /// This is set to `true` iff the visitor is currently within a function typed
   /// formal parameter.
   bool _isInFunctionTypedFormalParameter = false;
@@ -458,8 +454,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       var declaredFragment = node.declaredFragment!;
 
-      _isInNativeClass = node.nativeClause != null;
-
       var augmented = declaredFragment.element;
       var declarationFragment = augmented.firstFragment;
       _enclosingClass = declarationFragment.asElement2;
@@ -512,6 +506,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.namePart.typeName, node.declaredFragment!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
+      _checkForMultiplePrimaryConstructorBodyDeclarations(members);
 
       GetterSetterTypesVerifier(
         library: _currentLibrary,
@@ -521,7 +516,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       super.visitClassDeclaration(node);
     } finally {
-      _isInNativeClass = false;
       _enclosingClass = null;
     }
   }
@@ -779,6 +773,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.namePart.typeName, node.declaredFragment!);
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredElement);
+      _checkForMultiplePrimaryConstructorBodyDeclarations(members);
 
       GetterSetterTypesVerifier(
         library: _currentLibrary,
@@ -877,6 +872,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         members,
         node.primaryConstructor,
       );
+
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
         node,
         declaredFragment,
@@ -895,6 +891,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionTypeWithAbstractMember(node);
       _checkForExtensionTypeRepresentationErrorCodes(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
+      _checkForMultiplePrimaryConstructorBodyDeclarations(members);
 
       var interface = _inheritanceManager.getInterface(declaredElement);
       GetterSetterTypesVerifier(
@@ -4935,6 +4932,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _checkForMultiplePrimaryConstructorBodyDeclarations(
+    List<ClassMember> members,
+  ) {
+    var primaryConstructorBodies = members
+        .whereType<PrimaryConstructorBody>()
+        .toList();
+
+    for (var i = 1; i < primaryConstructorBodies.length; i++) {
+      diagnosticReporter.report(
+        diag.multiplePrimaryConstructorBodyDeclarations.at(
+          primaryConstructorBodies[i].thisKeyword,
+        ),
+      );
+    }
+  }
+
   /// Checks to ensure that the given native function [body] is in SDK code.
   ///
   /// See [diag.nativeFunctionBodyInNonSdkCode].
@@ -5266,15 +5279,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    // TODO(scheglov): consider removing
-    // class A native 'something' { final int v; }
-    if (_isInNativeClass) {
-      return;
-    }
-
     var isInstanceField = !fieldDeclaration.isStatic;
     if (isInstanceField) {
-      // TODO(scheglov): consider removing
+      // [FfiVerifier] reports [fieldMustBeExternalInStruct].
       if (_isEnclosingClassFfiStruct || _isEnclosingClassFfiUnion) {
         return;
       }

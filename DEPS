@@ -75,9 +75,9 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:14.6.51",
-  "jsshell_tag": "version:147.0.1",
-  "jsc_tag": "version:305906",
+  "d8_tag": "version:14.7.2",
+  "jsshell_tag": "version:147.0.3",
+  "jsc_tag": "version:307078",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
   "clang_version": "git_revision:b153f17b8aeb23ae45b05d8f5e6b4dfd76442dc4",
@@ -145,7 +145,7 @@ vars = {
   "i18n_rev": "dd8a792a8492370a594706c8304d2eb8db844d7a",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "0819678f481c1e69d9c62ecf8b0449978ae21c0a", # rolled manually while record_use is experimental
+  "native_rev": "51d34eb76bb2b08347cb8406f9d022dfcf13afe4", # rolled manually while record_use is experimental
   "protobuf_rev": "9e30258e0aa6a6430ee36c84b75308a9702fde42",
   "pub_rev": "26c6985c742593d081f8b58450f463a584a4203a", # rolled manually
   "shelf_rev": "dd830a0338b31bee92fe7ebc20b9bb963403b6b0",
@@ -168,9 +168,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "145.0.7632.18",
+  "chrome_tag": "145.0.7632.45",
   "download_firefox": False,
-  "firefox_tag": "147.0.2",
+  "firefox_tag": "147.0.3",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,

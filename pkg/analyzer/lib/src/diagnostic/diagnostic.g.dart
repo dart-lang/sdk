@@ -5818,6 +5818,38 @@ fieldInitializedByMultipleInitializers = DiagnosticWithArguments(
 
 /// No parameters.
 const DiagnosticWithoutArguments
+fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor =
+    DiagnosticWithoutArgumentsImpl(
+      name:
+          'field_initialized_in_declaration_and_initializer_of_primary_constructor',
+      problemMessage:
+          "Fields can't be initialized in both the primary constructor and at their "
+          "declaration.",
+      correctionMessage: "Try removing one of the initializations.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName:
+          'field_initialized_in_declaration_and_initializer_of_primary_constructor',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const DiagnosticWithoutArguments
+fieldInitializedInDeclarationAndParameterOfPrimaryConstructor =
+    DiagnosticWithoutArgumentsImpl(
+      name:
+          'field_initialized_in_declaration_and_parameter_of_primary_constructor',
+      problemMessage:
+          "Fields can't be initialized in both the primary constructor parameter "
+          "list and at their declaration.",
+      correctionMessage: "Try removing one of the initializations.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName:
+          'field_initialized_in_declaration_and_parameter_of_primary_constructor',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const DiagnosticWithoutArguments
 fieldInitializedInInitializerAndDeclaration = DiagnosticWithoutArgumentsImpl(
   name: 'field_initialized_in_initializer_and_declaration',
   problemMessage:

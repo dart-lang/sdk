@@ -5216,7 +5216,7 @@ library
       typeParameters
         #E0 T
           firstFragment: #F2
-          bound: dynamic
+          bound: InvalidType
       constructors
         synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -5225,12 +5225,12 @@ library
     F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F4
-      aliasedType: dynamic Function(dynamic)
+      aliasedType: InvalidType Function(InvalidType)
   topLevelVariables
     hasInitializer isOriginDeclaration V2
       reference: <testLibrary>::@topLevelVariable::V2
       firstFragment: #F5
-      type: dynamic
+      type: InvalidType
       getter: <testLibrary>::@getter::V2
       setter: <testLibrary>::@setter::V2
     hasInitializer isOriginDeclaration V
@@ -5243,7 +5243,7 @@ library
     synthetic static isOriginVariable V2
       reference: <testLibrary>::@getter::V2
       firstFragment: #F7
-      returnType: dynamic
+      returnType: InvalidType
       variable: <testLibrary>::@topLevelVariable::V2
     synthetic static isOriginVariable V
       reference: <testLibrary>::@getter::V
@@ -5257,7 +5257,7 @@ library
       formalParameters
         #E1 requiredPositional value
           firstFragment: #F10
-          type: dynamic
+          type: InvalidType
       returnType: void
       variable: <testLibrary>::@topLevelVariable::V2
     synthetic static isOriginVariable V
@@ -5276,8 +5276,8 @@ library
       formalParameters
         #E3 requiredPositional p
           firstFragment: #F14
-          type: dynamic
-      returnType: dynamic
+          type: InvalidType
+      returnType: InvalidType
 ''');
   }
 
@@ -5323,7 +5323,7 @@ library
     isOriginDeclaration V2
       reference: <testLibrary>::@topLevelVariable::V2
       firstFragment: #F2
-      type: List<dynamic>
+      type: List<InvalidType>
       getter: <testLibrary>::@getter::V2
       setter: <testLibrary>::@setter::V2
   getters
@@ -5335,7 +5335,7 @@ library
     synthetic static isOriginVariable V2
       reference: <testLibrary>::@getter::V2
       firstFragment: #F4
-      returnType: List<dynamic>
+      returnType: List<InvalidType>
       variable: <testLibrary>::@topLevelVariable::V2
   setters
     synthetic static isOriginVariable V
@@ -5353,7 +5353,7 @@ library
       formalParameters
         #E1 requiredPositional value
           firstFragment: #F8
-          type: List<dynamic>
+          type: List<InvalidType>
       returnType: void
       variable: <testLibrary>::@topLevelVariable::V2
 ''');

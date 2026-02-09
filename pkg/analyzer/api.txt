@@ -3913,6 +3913,7 @@ package:analyzer/dart/element/element.dart:
     functions (getter: List<TopLevelFunctionFragment>)
     getters (getter: List<GetterFragment>)
     importedLibraries (getter: List<LibraryElement>)
+    isOriginNotExistingFile (getter: bool)
     libraryExports (getter: List<LibraryExport>)
     libraryImports (getter: List<LibraryImport>)
     lineInfo (getter: LineInfo)

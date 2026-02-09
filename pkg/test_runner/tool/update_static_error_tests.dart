@@ -326,8 +326,13 @@ StaticError _convertAnalysisError(
       analysisContext.currentSession.getFile(containingFile) as FileResult;
   var errorLocation = fileResult.lineInfo.getLocation(error.offset);
 
-  var staticError = StaticError(ErrorSource.analyzer,
-      '${error.diagnosticCode.type.name}.${error.diagnosticCode.lowerCaseName}',
+  var staticError = StaticError(
+      ErrorSource.analyzer,
+      // Analyzer reports error codes as lower snake case, but the test runner
+      // still expects upper snake case, so convert the error code to upper
+      // case.
+      '${error.diagnosticCode.type.name}.'
+      '${error.diagnosticCode.lowerCaseName.toUpperCase()}',
       path: containingFile,
       line: errorLocation.lineNumber,
       column: errorLocation.columnNumber,

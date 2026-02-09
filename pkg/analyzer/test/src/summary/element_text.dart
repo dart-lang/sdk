@@ -1265,6 +1265,7 @@ class _Element2Writer extends _AbstractElementWriter {
   void _writeLibraryFragment(LibraryFragmentImpl f) {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
+      _sink.writeIf(f.isOriginNotExistingFile, 'isOriginNotExistingFile ');
 
       var uriStr = f.source.uri.toString();
       if (uriStr == 'package:test/test.dart') {

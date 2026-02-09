@@ -895,7 +895,8 @@ ClassDeclaration
   }
 
   test_primaryConstructorBody_duplicate() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A(bool x, bool y) {
   this : assert(x) {
     y;
@@ -904,7 +905,9 @@ class A(bool x, bool y) {
     !y;
   }
 }
-''');
+''',
+      [error(diag.multiplePrimaryConstructorBodyDeclarations, 60, 4)],
+    );
 
     var node = findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''

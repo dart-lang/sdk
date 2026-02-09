@@ -821,9 +821,7 @@ class BundleWriter {
 
   void _writeUnitElement(LibraryFragmentImpl libraryFragment) {
     _writeResolutionOffset();
-
-    // ignore: deprecated_member_use_from_same_package
-    _sink.writeBool(libraryFragment.isSynthetic);
+    libraryFragment.writeModifiers(_sink);
 
     _sink.writeList(libraryFragment.libraryImports, _writeLibraryImport);
     _sink.writeList(libraryFragment.libraryExports, _writeLibraryExport);

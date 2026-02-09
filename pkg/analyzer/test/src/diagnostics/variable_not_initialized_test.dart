@@ -99,7 +99,30 @@ class A() {
   this : v = 0;
 }
 ''',
-      [error(diag.fieldInitializedInInitializerAndDeclaration, 40, 1)],
+      [
+        error(
+          diag.fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
+          40,
+          1,
+        ),
+      ],
+    );
+  }
+
+  test_class_instanceField1_final_hasInitializer_primaryConstructor_fieldFormalParameter() async {
+    await assertErrorsInCode(
+      '''
+class A(this.v) {
+  final int v = 0;
+}
+''',
+      [
+        error(
+          diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
+          13,
+          1,
+        ),
+      ],
     );
   }
 
@@ -550,7 +573,30 @@ class A() {
   this : v = 0;
 }
 ''',
-      [error(diag.fieldInitializedInInitializerAndDeclaration, 34, 1)],
+      [
+        error(
+          diag.fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
+          34,
+          1,
+        ),
+      ],
+    );
+  }
+
+  test_class_instanceField1_notFinal_typeInt_hasInitializer_primaryConstructor_fieldFormalParameter() async {
+    await assertErrorsInCode(
+      '''
+class A(this.v) {
+  int v = 0;
+}
+''',
+      [
+        error(
+          diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
+          13,
+          1,
+        ),
+      ],
     );
   }
 
@@ -562,7 +608,14 @@ class A(this.v) {
   this : v = 0;
 }
 ''',
-      [error(diag.fieldInitializedInParameterAndInitializer, 40, 1)],
+      [
+        error(
+          diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
+          13,
+          1,
+        ),
+        error(diag.fieldInitializedInParameterAndInitializer, 40, 1),
+      ],
     );
   }
 
@@ -585,6 +638,15 @@ class A {
 ''',
       [error(diag.fieldInitializedByMultipleInitializers, 38, 1)],
     );
+  }
+
+  test_class_instanceField1_notFinal_typeInt_hasInitializer_secondaryConstructor_fieldFormalParameter() async {
+    await assertNoErrorsInCode('''
+class A {
+  int v = 0;
+  A(this.v);
+}
+''');
   }
 
   test_class_instanceField1_notFinal_typeInt_hasInitializer_secondaryConstructor_fieldFormalParameter_constructorInitializer() async {
@@ -1238,29 +1300,6 @@ abstract class A {
   A();
 }
 ''');
-  }
-
-  test_classNative_instanceField1_final_hasConstructor() async {
-    await assertErrorsInCode(
-      r'''
-class A native 'something' {
-  final int v;
-  A() {}
-}
-''',
-      [error(diag.nativeClauseInNonSdkCode, 8, 18)],
-    );
-  }
-
-  test_classNative_instanceField1_final_noConstructor() async {
-    await assertErrorsInCode(
-      r'''
-class A native 'something' {
-  final int v;
-}
-''',
-      [error(diag.nativeClauseInNonSdkCode, 8, 18)],
-    );
   }
 
   test_enum_instanceField1_const_noInitializer() async {

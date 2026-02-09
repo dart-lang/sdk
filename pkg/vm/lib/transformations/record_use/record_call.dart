@@ -116,7 +116,7 @@ class CallRecorder {
     );
   }
 
-  Constant? _evaluateLiteral(ast.Expression expression) {
+  MaybeConstant _evaluateLiteral(ast.Expression expression) {
     if (expression is ast.BasicLiteral) {
       return evaluateLiteral(expression);
     } else if (expression is ast.ConstantExpression) {
@@ -125,7 +125,7 @@ class CallRecorder {
         expression.variable.initializer != null) {
       return _evaluateLiteral(expression.variable.initializer!);
     } else {
-      return null;
+      return const NonConstant();
     }
   }
 

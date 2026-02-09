@@ -4151,8 +4151,6 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
 
   GetterFragmentImpl({required super.name});
 
-  GetterFragmentImpl.forVariable(super.variable) : super.forVariable();
-
   void addFragment(GetterFragmentImpl fragment) {
     fragment.element = element;
     fragment.previousFragment = this;
@@ -6046,11 +6044,7 @@ class LibraryElementImpl extends ElementImpl
     globalResultRequirements?.record_library_isOriginNotExistingFile(
       element: this,
     );
-    return hasModifier(Modifier.ORIGIN_NOT_EXISTING_FILE);
-  }
-
-  set isOriginNotExistingFile(bool value) {
-    setModifier(Modifier.ORIGIN_NOT_EXISTING_FILE, value);
+    return _firstFragment.isOriginNotExistingFile;
   }
 
   @Deprecated('Use isOriginNotExistingFile instead')
@@ -6640,8 +6634,9 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
 }
 
 /// A concrete implementation of [LibraryFragment].
+@GenerateFragmentImpl(modifiers: _LibraryFragmentImplModifiers.values)
 class LibraryFragmentImpl extends FragmentImpl
-    with DeferredResolutionReadingMixin
+    with DeferredResolutionReadingMixin, _LibraryFragmentImplMixin
     implements LibraryFragment {
   @override
   final Source source;
@@ -8977,17 +8972,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   /// [name] and [offset].
   PropertyAccessorFragmentImpl({required this.name, super.firstTokenOffset});
 
-  /// Initialize a newly created synthetic property accessor element to be
-  /// associated with the given [variable].
-  PropertyAccessorFragmentImpl.forVariable(
-    PropertyInducingFragmentImpl variable,
-  ) : name = variable.name,
-      super(firstTokenOffset: null) {
-    isAbstract = variable is FieldFragmentImpl && variable.isAbstract;
-    isStatic = variable.isStatic;
-    isSynthetic = true;
-  }
-
   @override
   PropertyAccessorElementImpl get element;
 
@@ -9364,8 +9348,6 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
   SetterFragmentImpl? nextFragment;
 
   SetterFragmentImpl({required super.name});
-
-  SetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
   String? get lookupName {
@@ -10723,6 +10705,8 @@ enum _FragmentImplModifiers {
   /// constructor for a class that does not explicitly define any constructors.
   isSynthetic,
 }
+
+enum _LibraryFragmentImplModifiers { isOriginNotExistingFile }
 
 enum _MethodFragmentImplModifiers { isOriginDeclaration, isOriginInterface }
 

@@ -10544,7 +10544,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression right, {
     required bool isNot,
   }) {
-    ExpressionInfo? equalityInfo = flowAnalysis.equalityOperand_end(left);
+    ExpressionInfo? equalityInfo = flowAnalysis.equalityOperand_end(
+      flowAnalysis.getExpressionInfo(left),
+    );
 
     // When evaluating exactly a dot shorthand in the RHS, we use the LHS type
     // to provide the context type for the shorthand.
@@ -10572,7 +10574,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         flowAnalysis.equalityOperation_end(
           equalityInfo,
           new SharedTypeView(leftType),
-          flowAnalysis.equalityOperand_end(rightResult.expression),
+          flowAnalysis.equalityOperand_end(
+            flow.getExpressionInfo(rightResult.expression),
+          ),
           new SharedTypeView(rightResult.inferredType),
           notEqual: isNot,
         ),
@@ -10629,7 +10633,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.equalityOperation_end(
         equalityInfo,
         new SharedTypeView(leftType),
-        flowAnalysis.equalityOperand_end(right),
+        flowAnalysis.equalityOperand_end(flowAnalysis.getExpressionInfo(right)),
         new SharedTypeView(rightResult.inferredType),
         notEqual: isNot,
       ),

@@ -741,6 +741,12 @@ field_initialized_by_multiple_initializers:
     Remove all but one of the initializers.
     Replace the field name with the name of a different field (from the
     enclosing class).
+field_initialized_in_declaration_and_initializer_of_primary_constructor:
+  status: needsEvaluation
+  notes: |-
+    Remove all but one of the initializers.
+field_initialized_in_declaration_and_parameter_of_primary_constructor:
+  status: needsEvaluation
 field_initialized_in_initializer_and_declaration:
   status: needsFix
   notes: |-

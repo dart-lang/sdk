@@ -7021,6 +7021,18 @@ CompileTimeErrorCode:
         C() : f = 1;
       }
       ```
+  fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor:
+    type: compileTimeError
+    parameters: none
+    problemMessage: "Fields can't be initialized in both the primary constructor and at their declaration."
+    correctionMessage: Try removing one of the initializations.
+    hasPublishedDocs: false
+  fieldInitializedInDeclarationAndParameterOfPrimaryConstructor:
+    type: compileTimeError
+    parameters: none
+    problemMessage: "Fields can't be initialized in both the primary constructor parameter list and at their declaration."
+    correctionMessage: Try removing one of the initializations.
+    hasPublishedDocs: false
   fieldInitializedInParameterAndInitializer:
     type: compileTimeError
     parameters: none

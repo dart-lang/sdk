@@ -322,6 +322,20 @@ mixin _FragmentImplMixin {
   void setModifier(Modifier modifier, bool value);
 }
 
+mixin _LibraryFragmentImplMixin {
+  bool get isOriginNotExistingFile {
+    return hasModifier(Modifier.ORIGIN_NOT_EXISTING_FILE);
+  }
+
+  set isOriginNotExistingFile(bool value) {
+    setModifier(Modifier.ORIGIN_NOT_EXISTING_FILE, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
 mixin _MethodFragmentImplMixin {
   bool get isOriginDeclaration {
     return hasModifier(Modifier.ORIGIN_DECLARATION);

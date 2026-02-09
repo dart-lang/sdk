@@ -611,7 +611,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       argument = resolver.popRewrite()!;
       if (flow != null) {
         identicalArgumentInfo?[deferredArgument.index] = _IdenticalArgumentInfo(
-          expressionInfo: flow.equalityOperand_end(argument),
+          expressionInfo: flow.equalityOperand_end(
+            flow.getExpressionInfo(argument),
+          ),
           staticType: argument.typeOrThrow,
         );
       }
@@ -684,7 +686,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         if (flow != null) {
           identicalArgumentInfo?.add(
             _IdenticalArgumentInfo(
-              expressionInfo: flow.equalityOperand_end(argument),
+              expressionInfo: flow.equalityOperand_end(
+                flow.getExpressionInfo(argument),
+              ),
               staticType: argument.typeOrThrow,
             ),
           );

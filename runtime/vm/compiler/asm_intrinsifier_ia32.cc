@@ -597,7 +597,7 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   Label propagate_carry_loop;
   __ Bind(&propagate_carry_loop);
   __ addl(ESI, Immediate(kBytesPerBigIntDigit));
-  __ incl(Address(ESI, 0));  // c == 0 or 1
+  __ addl(Address(ESI, 0), Immediate(1));  // c == 0 or 1
   __ j(CARRY, &propagate_carry_loop, Assembler::kNearJump);
 
   __ Bind(&done);
