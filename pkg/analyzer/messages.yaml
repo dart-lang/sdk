@@ -4623,7 +4623,6 @@ CompileTimeErrorCode:
   dotShorthandMissingContext:
     type: compileTimeError
     parameters: none
-    experiment: dot-shorthands
     problemMessage: "A dot shorthand can't be used where there is no context type."
     hasPublishedDocs: true
     documentation: |-
@@ -4677,7 +4676,6 @@ CompileTimeErrorCode:
       String getterName: the name of the static getter
       String typeName: the name of the enclosing type where the getter is being looked for
     sharedName: dotShorthandUndefinedMember
-    experiment: dot-shorthands
     problemMessage: "The static getter '#getterName' isn't defined for the context type '#typeName'."
     correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '#getterName'."
     hasPublishedDocs: true
@@ -4732,7 +4730,6 @@ CompileTimeErrorCode:
       String name: the name of the static method or constructor
       String contextType: the name of the enclosing type where the method or constructor is being looked for
     sharedName: dotShorthandUndefinedMember
-    experiment: dot-shorthands
     problemMessage: "The static method or constructor '#name' isn't defined for the context type '#contextType'."
     correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'."
     hasPublishedDocs: true
@@ -19438,7 +19435,6 @@ CompileTimeErrorCode:
       String className: the name of the class being instantiated
       String constructorName: the name of the constructor being invoked
     sharedName: wrongNumberOfTypeArgumentsConstructor
-    experiment: dot-shorthands
     problemMessage: "The dot shorthand resolves to the constructor '#className.#constructorName', and type parameters can't be applied to dot shorthand constructor invocations."
     correctionMessage: Try removing the type arguments, or adding a class name, followed by the type arguments, then the constructor name.
     hasPublishedDocs: true

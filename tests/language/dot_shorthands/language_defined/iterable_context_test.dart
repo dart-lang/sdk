@@ -4,8 +4,6 @@
 
 // Context type is language-defined `Iterable` or `Stream`.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 void main() async {
   var iter = [1, 2];
   for (var x in .castFrom(iter)) {

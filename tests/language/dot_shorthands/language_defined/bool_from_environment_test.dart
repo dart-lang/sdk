@@ -6,7 +6,7 @@
 // using a dot shorthand will match the `fromEnvironment` member in the
 // `bool` class.
 
-// SharedOptions=--enable-experiment=dot-shorthands -Da=true
+// SharedOptions=-Da=true
 
 import 'package:expect/expect.dart';
 

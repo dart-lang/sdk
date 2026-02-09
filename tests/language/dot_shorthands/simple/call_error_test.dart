@@ -5,8 +5,6 @@
 // `id()` calls the `call()` method of the type of `id` if `id` is a getter or
 // field. It's a compile-time error if that `call` method does not exist.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 class C {
   const C();
   static C get id1 => const C();

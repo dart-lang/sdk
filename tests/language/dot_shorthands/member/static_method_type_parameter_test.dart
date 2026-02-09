@@ -4,8 +4,6 @@
 
 // Type parameters are inferred in dot shorthand static invocations.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 class C<T> {
   static C<X> foo<X>(X x) => new C<X>();
   C<U> cast<U>() => new C<U>();

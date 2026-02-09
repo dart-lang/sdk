@@ -7615,7 +7615,6 @@ dotShorthandsConstructorInvocationWithTypeArguments:
   parameters: none
   problemMessage: "A dot shorthand constructor invocation can't have type arguments."
   correctionMessage: "Try adding the class name and type arguments explicitly before the constructor name."
-  experiments: dot-shorthands
   script: |
     class C<X> {
       C.foo();
@@ -7628,7 +7627,6 @@ dotShorthandsInvalidContext:
   parameters:
     Name dotShorthandName: The name of the dot shorthand that was sought.
   problemMessage: "No type was provided to find the dot shorthand '#dotShorthandName'."
-  experiments: dot-shorthands
   script: |
     void main() {
       var x = .one;
@@ -7640,7 +7638,6 @@ dotShorthandsUndefinedGetter:
     Type contextType: The dot shorthand context type in which the getter was sought.
   problemMessage: "The static getter or field '#getterName' isn't defined for the type '#contextType'."
   correctionMessage: "Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#getterName'."
-  experiments: dot-shorthands
   script: |
     class C {
       C get foo => C();
@@ -7655,7 +7652,6 @@ dotShorthandsUndefinedInvocation:
     Type contextType: The dot shorthand context type in which the static method or constructor was sought.
   problemMessage: "The static method or constructor '#memberName' isn't defined for the type '#contextType'."
   correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#memberName'."
-  experiments: dot-shorthands
   script: |
     class C {
       C foo() => C();
