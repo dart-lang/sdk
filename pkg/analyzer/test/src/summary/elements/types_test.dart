@@ -1700,7 +1700,7 @@ library
         isOriginDeclaration v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
-          type: List<dynamic>
+          type: List<InvalidType>
           getter: <testLibrary>::@class::C::@getter::v
           setter: <testLibrary>::@class::C::@setter::v
       constructors
@@ -1711,7 +1711,7 @@ library
         synthetic isOriginVariable v
           reference: <testLibrary>::@class::C::@getter::v
           firstFragment: #F4
-          returnType: List<dynamic>
+          returnType: List<InvalidType>
           variable: <testLibrary>::@class::C::@field::v
       setters
         synthetic isOriginVariable v
@@ -1720,7 +1720,7 @@ library
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F6
-              type: List<dynamic>
+              type: List<InvalidType>
           returnType: void
           variable: <testLibrary>::@class::C::@field::v
 ''');

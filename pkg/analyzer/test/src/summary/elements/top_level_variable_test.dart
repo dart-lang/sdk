@@ -2354,6 +2354,52 @@ library
 ''');
   }
 
+  test_variable_type_dynamic() async {
+    var library = await buildLibrary('dynamic v;');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginDeclaration v (nameOffset:8) (firstTokenOffset:8) (offset:8)
+          element: <testLibrary>::@topLevelVariable::v
+      getters
+        #F2 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@getter::v
+      setters
+        #F3 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@setter::v
+          formalParameters
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+              element: <testLibrary>::@setter::v::@formalParameter::value
+  topLevelVariables
+    isOriginDeclaration v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F1
+      type: dynamic
+      getter: <testLibrary>::@getter::v
+      setter: <testLibrary>::@setter::v
+  getters
+    synthetic static isOriginVariable v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F2
+      returnType: dynamic
+      variable: <testLibrary>::@topLevelVariable::v
+  setters
+    synthetic static isOriginVariable v
+      reference: <testLibrary>::@setter::v
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: dynamic
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
+''');
+  }
+
   test_variable_type_inferred() async {
     var library = await buildLibrary('var v = 0;');
     checkElementText(library, r'''
@@ -2495,6 +2541,52 @@ library
           type: dynamic
       returnType: void
       variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_variable_type_invalidType_topLevelVariable() async {
+    var library = await buildLibrary(r'''
+final int foo = 0;
+final foo bar;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isOriginDeclaration foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
+          element: <testLibrary>::@topLevelVariable::foo
+        #F2 isOriginDeclaration bar (nameOffset:29) (firstTokenOffset:29) (offset:29)
+          element: <testLibrary>::@topLevelVariable::bar
+      getters
+        #F3 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@getter::foo
+        #F4 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+          element: <testLibrary>::@getter::bar
+  topLevelVariables
+    final hasInitializer isOriginDeclaration foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+    final isOriginDeclaration bar
+      reference: <testLibrary>::@topLevelVariable::bar
+      firstFragment: #F2
+      type: InvalidType
+      getter: <testLibrary>::@getter::bar
+  getters
+    synthetic static isOriginVariable foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+    synthetic static isOriginVariable bar
+      reference: <testLibrary>::@getter::bar
+      firstFragment: #F4
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::bar
 ''');
   }
 
@@ -4789,7 +4881,7 @@ library
 
   test_variable_augment_variable_final() async {
     var library = await buildLibrary(r'''
-final int = 0;
+final int foo = 0;
 augment int foo = 1;
 ''');
 
@@ -4801,62 +4893,31 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration int (nameOffset:6) (firstTokenOffset:6) (offset:6)
-          element: <testLibrary>::@topLevelVariable::int
-        #F2 augment hasInitializer isOriginDeclaration foo (nameOffset:27) (firstTokenOffset:27) (offset:27)
+        #F1 hasInitializer isOriginDeclaration foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 augment hasInitializer isOriginDeclaration foo (nameOffset:31) (firstTokenOffset:31) (offset:31)
+          element: <testLibrary>::@topLevelVariable::foo
+          previousFragment: #F1
       getters
-        #F3 synthetic isOriginVariable int (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-          element: <testLibrary>::@getter::int
-        #F4 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+        #F3 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
           element: <testLibrary>::@getter::foo
-      setters
-        #F5 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
-    final hasImplicitType hasInitializer isOriginDeclaration int
-      reference: <testLibrary>::@topLevelVariable::int
+    final hasInitializer isOriginDeclaration foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
-      getter: <testLibrary>::@getter::int
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F2
-      type: dynamic
       getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
   getters
-    synthetic static isOriginVariable int
-      reference: <testLibrary>::@getter::int
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::int
     synthetic static isOriginVariable foo
       reference: <testLibrary>::@getter::foo
-      firstFragment: #F4
-      returnType: dynamic
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    synthetic static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F5
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F6
-          type: dynamic
-      returnType: void
+      firstFragment: #F3
+      returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   exportedReferences
     declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@getter::int
-    declared <testLibrary>::@setter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-    int: <testLibrary>::@getter::int
 ''');
   }
 
