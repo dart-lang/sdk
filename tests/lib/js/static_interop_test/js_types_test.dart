@@ -226,8 +226,8 @@ void syncTests() {
   Expect.isNull(iterator.returnValue);
   Expect.isNull(iterator.throwError);
   final result1 = iterator.next();
-  Expect.equals(false, result1.isDone );
-  Expect.equals( 1.toJS, result1.value);
+  Expect.equals(false, result1.isDone);
+  Expect.equals(1.toJS, result1.value);
   final result2 = iterator.next();
   Expect.equals(false, result2.isDone);
   Expect.equals(2.toJS, result2.value);
@@ -322,17 +322,13 @@ void syncTests() {
 
   Expect.equals(
     1.toJS,
-    JSIterator.fromFunctions(
-      () =>
-          JSIteratorResult.value(1.toJS),
-    ).next().value,
+    JSIterator.fromFunctions(() => JSIteratorResult.value(1.toJS)).next().value,
   );
   Expect.equals(
     1.toJS,
     JSIterator.fromFunctions(
       () => JSIteratorResult.done(0.toJS),
-      returnValue: () =>
-          JSIteratorResult.done(1.toJS),
+      returnValue: () => JSIteratorResult.done(1.toJS),
     ).returnValue!().value,
   );
 
