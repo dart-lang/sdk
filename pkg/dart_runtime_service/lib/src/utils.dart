@@ -25,8 +25,7 @@ String generateSecret() {
 ///
 /// Originally pulled from dart:_vmservice.
 class NamedLookup<E> with IterableMixin<E> {
-  NamedLookup({String prologue = ''})
-    : _generator = IdGenerator(prologue: prologue);
+  NamedLookup({String prefix = ''}) : _generator = IdGenerator(prefix: prefix);
   final IdGenerator _generator;
   final Map<String, E> _elements = {};
   final Map<E, String> _ids = {};
@@ -53,10 +52,10 @@ class NamedLookup<E> with IterableMixin<E> {
 
 /// Generator for unique IDs which recycles expired ones.
 class IdGenerator {
-  IdGenerator({this.prologue = ''});
+  IdGenerator({this.prefix = ''});
 
   /// Fixed initial part of the ID
-  final String prologue;
+  final String prefix;
 
   // IDs in use.
   final _used = <String>{};
@@ -71,7 +70,7 @@ class IdGenerator {
   String newId() {
     String id;
     if (_free.isEmpty) {
-      id = prologue + (_next++).toString();
+      id = prefix + (_next++).toString();
     } else {
       id = _free.first;
     }

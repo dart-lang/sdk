@@ -6,7 +6,9 @@ import 'dart:io';
 
 import 'package:dart_runtime_service/src/dart_runtime_service.dart';
 import 'package:dart_runtime_service/src/exceptions.dart';
+import 'package:dart_runtime_service/src/rpc_exceptions.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 /// Verifies that [service] requires an authentication code for clients to
 /// connect.
@@ -36,4 +38,14 @@ final Matcher throwsConnectionNotUpgradedToWebSocket = throwsA(
 /// any reason.
 final Matcher throwsFailedToStartException = throwsA(
   isA<DartRuntimeServiceFailedToStartException>(),
+);
+
+/// Matches exception thrown by package:json_rpc_2 when trying to register a
+/// service extension that's already registered.
+final Matcher throwsServiceAlreadyRegisteredRPCError = throwsA(
+  isA<RPCError>().having(
+    (e) => e.code,
+    'Error code',
+    RpcException.serviceAlreadyRegistered.code,
+  ),
 );
