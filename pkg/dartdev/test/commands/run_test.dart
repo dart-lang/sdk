@@ -107,13 +107,13 @@ void run() {
 
     expect(
       result.stdout,
-      contains('Run a Dart program from a file or a local package.'),
+      contains('Run a Dart program from a file or a local or remote package.'),
     );
     expect(result.stdout, contains('Debugging options:'));
     expect(
       result.stdout,
       contains(
-        'Usage: dart [vm-options] run [arguments] <dart-file>|<local-package> [args]',
+        'Usage: dart run [vm-options] <dart-file>|<local-pkg>|<remote-pkg>@<descriptor> <program-args...>',
       ),
     );
     expect(result.stderr, isEmpty);
@@ -126,13 +126,13 @@ void run() {
 
     expect(
       result.stdout,
-      contains('Run a Dart program from a file or a local package.'),
+      contains('Run a Dart program from a file or a local or remote package.'),
     );
     expect(result.stdout, contains('Debugging options:'));
     expect(
       result.stdout,
       contains(
-        'Usage: dart [vm-options] run [arguments] <dart-file>|<local-package> [args]',
+        'dart run [vm-options] <dart-file>|<local-pkg>|<remote-pkg>@<descriptor> <program-args...>',
       ),
     );
     expect(result.stderr, isEmpty);
