@@ -10,7 +10,7 @@ enum E1(var int x) {
 //     ^
 // [cfe] Enum constructors are constant so all fields must be final.
 //              ^
-// [analyzer] COMPILE_TIME_ERROR.non_final_field_in_enum
+// [analyzer] COMPILE_TIME_ERROR.NON_FINAL_FIELD_IN_ENUM
 
   a(0)
 }
@@ -22,5 +22,5 @@ enum E2() {
 
   int x = 0;
   //  ^
-  // [analyzer] COMPILE_TIME_ERROR.non_final_field_in_enum
+  // [analyzer] COMPILE_TIME_ERROR.NON_FINAL_FIELD_IN_ENUM
 }
