@@ -32,7 +32,12 @@ import 'dart:_error_utils';
 import "dart:_internal" as _internal;
 
 import 'dart:_js_helper'
-    show JS, JSSyntaxRegExp, quoteStringForRegExp, jsStringFromDartString;
+    show
+        JS,
+        JSSyntaxRegExp,
+        quoteStringForRegExp,
+        jsStringFromDartString,
+        stringify;
 
 import 'dart:_list';
 

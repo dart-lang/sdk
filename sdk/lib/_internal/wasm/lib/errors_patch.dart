@@ -64,8 +64,7 @@ class _JavaScriptError extends Error {
       _JavaScriptError(errorRef);
 
   @override
-  String toString() =>
-      JSStringImpl.fromRefUnchecked(JS<WasmExternRef?>("String", _errorRef));
+  String toString() => stringify(_errorRef);
 
   @override
   @pragma("wasm:entry-point")
