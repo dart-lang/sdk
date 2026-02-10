@@ -1090,7 +1090,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forExecutable(fragment), () {
-      node.metadata.accept(this);
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
