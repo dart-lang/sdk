@@ -26,12 +26,9 @@
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "identifier": {
-          "name": "someStaticMethod2",
-          "uri": "package:record_use_test/const_argument_instance.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "someStaticMethod2",
+        "uri": "package:record_use_test/const_argument_instance.dart"
       }
     }
   ]

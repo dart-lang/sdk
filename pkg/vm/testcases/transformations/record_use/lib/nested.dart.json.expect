@@ -30,12 +30,9 @@
   },
   "recordings": [
     {
-      "definition": {
-        "identifier": {
-          "name": "MyClass",
-          "uri": "package:record_use_test/nested.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "MyClass",
+        "uri": "package:record_use_test/nested.dart"
       },
       "instances": [
         {
@@ -51,12 +48,9 @@
       ]
     },
     {
-      "definition": {
-        "identifier": {
-          "name": "MyOtherClass",
-          "uri": "package:record_use_test/nested.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "MyOtherClass",
+        "uri": "package:record_use_test/nested.dart"
       },
       "instances": [
         {

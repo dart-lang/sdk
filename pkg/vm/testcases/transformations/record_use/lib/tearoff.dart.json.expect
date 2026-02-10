@@ -11,13 +11,10 @@
           "type": "tearoff"
         }
       ],
-      "definition": {
-        "identifier": {
-          "name": "someStaticMethod",
-          "scope": "SomeClass",
-          "uri": "package:record_use_test/tearoff.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "someStaticMethod",
+        "scope": "SomeClass",
+        "uri": "package:record_use_test/tearoff.dart"
       }
     }
   ]

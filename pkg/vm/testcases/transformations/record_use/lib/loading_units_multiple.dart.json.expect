@@ -27,13 +27,10 @@
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "identifier": {
-          "name": "someStaticMethod",
-          "scope": "SomeClass",
-          "uri": "package:record_use_test/loading_units_multiple_helper_shared.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "someStaticMethod",
+        "scope": "SomeClass",
+        "uri": "package:record_use_test/loading_units_multiple_helper_shared.dart"
       }
     }
   ]

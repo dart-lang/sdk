@@ -17,10 +17,6 @@ class CallRecorder {
   /// ones.
   final Map<Identifier, List<CallReference>> callsForMethod = {};
 
-  /// Keep track of the calls which are recorded, to easily add newly found
-  /// ones.
-  final Map<Identifier, String> loadingUnitForDefinition = {};
-
   /// A function to look up the loading unit for a reference.
   final LoadingUnitLookup _loadingUnitLookup;
 
@@ -55,16 +51,12 @@ class CallRecorder {
   /// Collect the name and definition location of the invocation. This is
   /// shared across multiple calls to the same method.
   void _addToUsage(ast.Procedure target, CallReference call) {
-    var (:identifier, :loadingUnit) = _definitionFromMember(target);
+    final identifier = _definitionFromMember(target);
     callsForMethod.update(
       identifier,
       (usage) => usage..add(call),
       ifAbsent: () => [call],
     );
-    loadingUnitForDefinition.update(identifier, (value) {
-      assert(value == loadingUnit);
-      return value;
-    }, ifAbsent: () => loadingUnit);
   }
 
   CallReference _createCallReference(ast.StaticInvocation node) {
@@ -129,19 +121,14 @@ class CallRecorder {
     }
   }
 
-  ({Identifier identifier, String loadingUnit}) _definitionFromMember(
-    ast.Member target,
-  ) {
+  Identifier _definitionFromMember(ast.Member target) {
     final enclosingLibrary = target.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
 
-    return (
-      identifier: Identifier(
-        importUri: importUri,
-        scope: target.enclosingClass?.name,
-        name: target.name.text,
-      ),
-      loadingUnit: _loadingUnitLookup(target),
+    return Identifier(
+      importUri: importUri,
+      scope: target.enclosingClass?.name,
+      name: target.name.text,
     );
   }
 }

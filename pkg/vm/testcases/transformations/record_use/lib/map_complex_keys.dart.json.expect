@@ -45,13 +45,10 @@
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "identifier": {
-          "name": "someStaticMethod",
-          "scope": "SomeClass",
-          "uri": "package:record_use_test/map_complex_keys.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "someStaticMethod",
+        "scope": "SomeClass",
+        "uri": "package:record_use_test/map_complex_keys.dart"
       }
     }
   ]
