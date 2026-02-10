@@ -6510,7 +6510,7 @@ class _MiniAstTypeAnalyzer
     var leftType = analyzeExpression(lhs, operations.unknownType).type;
     ExpressionInfo? leftInfo;
     if (isEquals) {
-      leftInfo = flow.equalityOperand_end(flow.getExpressionInfo(lhs));
+      leftInfo = flow.getExpressionInfo(lhs);
     } else if (isLogical) {
       flow.logicalBinaryOp_rightBegin(
         flow.getExpressionInfo(lhs),
@@ -6525,7 +6525,7 @@ class _MiniAstTypeAnalyzer
         flow.equalityOperation_end(
           leftInfo,
           leftType,
-          flow.equalityOperand_end(flow.getExpressionInfo(rhs)),
+          flow.getExpressionInfo(rhs),
           rightType,
           notEqual: isNot,
         ),

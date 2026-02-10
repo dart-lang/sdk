@@ -1951,8 +1951,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           hoistedExpressions,
         );
         if (isIdenticalCall) {
-          argumentInfo.identicalInfo = flowAnalysis.equalityOperand_end(
-            flowAnalysis.getExpressionInfo(expression),
+          argumentInfo.identicalInfo = flowAnalysis.getExpressionInfo(
+            expression,
           );
         }
         argument.expression = expression;
@@ -1997,8 +1997,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           DartType inferredType = result.inferredType;
           Expression expression = result.expression;
           if (isIdenticalCall) {
-            deferredArgument.identicalInfo = flowAnalysis.equalityOperand_end(
-              flowAnalysis.getExpressionInfo(expression),
+            deferredArgument.identicalInfo = flowAnalysis.getExpressionInfo(
+              expression,
             );
           }
           deferredArgument.argument.expression = expression;
