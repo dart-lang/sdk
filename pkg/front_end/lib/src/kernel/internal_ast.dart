@@ -5007,7 +5007,8 @@ class InternalRecordLiteral extends InternalExpression {
   final List<Expression> positional;
   final List<NamedExpression> named;
   final Map<String, NamedExpression>? namedElements;
-  final List<Object /*Expression|NamedExpression*/> originalElementOrder;
+  final List<Object /*Expression|NamedExpression|RecordSpreadElement*/>
+  originalElementOrder;
   final bool isConst;
 
   InternalRecordLiteral(
@@ -5044,7 +5045,10 @@ class InternalRecordLiteral extends InternalExpression {
     String comma = '';
     for (Object element in originalElementOrder) {
       printer.write(comma);
-      if (element is NamedExpression) {
+      if (element is RecordSpreadElement) {
+        printer.write(element.isNullAware ? '...?' : '...');
+        printer.writeExpression(element.expression);
+      } else if (element is NamedExpression) {
         printer.write(element.name);
         printer.write(': ');
         printer.writeExpression(element.value);
@@ -5055,6 +5059,28 @@ class InternalRecordLiteral extends InternalExpression {
     }
     printer.write(')');
   }
+}
+
+/// A spread element within a record literal: `...expr` or `...?expr`.
+///
+/// This is an internal marker that exists only between parsing and type
+/// inference. During type inference, the spread is expanded into individual
+/// [RecordIndexGet]/[RecordNameGet] field accesses based on the static type
+/// of [expression]. It never appears in the output Kernel IR.
+class RecordSpreadElement {
+  Expression expression;
+  final bool isNullAware;
+  final int fileOffset;
+
+  RecordSpreadElement(
+    this.expression, {
+    required this.isNullAware,
+    required this.fileOffset,
+  });
+
+  @override
+  String toString() =>
+      'RecordSpreadElement(${isNullAware ? '...?' : '...'}$expression)';
 }
 
 /// Data structure used by the body builder in place of [ObjectPattern], to

@@ -361,6 +361,18 @@ class AnnotationsListener extends StackListener {
   }
 
   @override
+  void handleRecordSpreadField(Token spreadToken) {
+    assert(checkState(spreadToken, [/* expression */ _ValueKinds._Proto]));
+    Expression expression = _popExpression();
+    push(
+      new RecordSpreadField(
+        expression,
+        isNullAware: spreadToken.lexeme == '...?',
+      ),
+    );
+  }
+
+  @override
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
     assert(
       checkState(

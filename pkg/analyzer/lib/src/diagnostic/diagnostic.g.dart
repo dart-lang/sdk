@@ -13640,6 +13640,79 @@ recordLiteralOnePositionalNoTrailingCommaByType = DiagnosticWithoutArgumentsImpl
   expectedTypes: [],
 );
 
+/// Parameters:
+/// 0: the duplicated field name
+///
+/// Parameters:
+/// String name: the duplicated field name
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+recordSpreadDuplicateNamedField = DiagnosticWithArguments(
+  name: 'record_spread_duplicate_named_field',
+  problemMessage:
+      "The named field '{0}' from the spread conflicts with another field with "
+      "the same name.",
+  correctionMessage: "Try renaming one of the fields, or removing the spread.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'record_spread_duplicate_named_field',
+  withArguments: _withArgumentsRecordSpreadDuplicateNamedField,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// 0: the type of the spread expression
+///
+/// Parameters:
+/// Type type: the type of the spread expression
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required DartType type})
+>
+recordSpreadNotRecordType = DiagnosticWithArguments(
+  name: 'record_spread_not_record_type',
+  problemMessage:
+      "A spread expression in a record literal must have a record type, but has "
+      "type '{0}'.",
+  correctionMessage: "Try using an expression with a concrete record type.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'record_spread_not_record_type',
+  withArguments: _withArgumentsRecordSpreadNotRecordType,
+  expectedTypes: [ExpectedType.type],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments recordSpreadNullAwareNotSupported =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'record_spread_null_aware_not_supported',
+      problemMessage:
+          "Null-aware spread '...?' is not supported in record literals.",
+      correctionMessage:
+          "Handle null before spreading, or use a non-nullable expression.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'record_spread_null_aware_not_supported',
+      expectedTypes: [],
+    );
+
+/// Parameters:
+/// 0: the name of the clashing field
+///
+/// Parameters:
+/// String name: the name of the clashing field
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+recordSpreadPositionalNameClash = DiagnosticWithArguments(
+  name: 'record_spread_positional_name_clash',
+  problemMessage:
+      "The named field '{0}' from the spread clashes with a positional field "
+      "getter.",
+  correctionMessage: "Try renaming the field or restructuring the record.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'record_spread_positional_name_clash',
+  withArguments: _withArgumentsRecordSpreadPositionalNameClash,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments recordTypeOnePositionalNoTrailingComma =
     DiagnosticWithoutArgumentsImpl(
@@ -20569,6 +20642,24 @@ LocatableDiagnostic _withArgumentsReadPotentiallyUnassignedFinal({
   required String name,
 }) {
   return LocatableDiagnosticImpl(diag.readPotentiallyUnassignedFinal, [name]);
+}
+
+LocatableDiagnostic _withArgumentsRecordSpreadDuplicateNamedField({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.recordSpreadDuplicateNamedField, [name]);
+}
+
+LocatableDiagnostic _withArgumentsRecordSpreadNotRecordType({
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.recordSpreadNotRecordType, [type]);
+}
+
+LocatableDiagnostic _withArgumentsRecordSpreadPositionalNameClash({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.recordSpreadPositionalNameClash, [name]);
 }
 
 LocatableDiagnostic _withArgumentsRecursiveIncludeFile({

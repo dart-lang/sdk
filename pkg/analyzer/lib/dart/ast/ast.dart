@@ -213,6 +213,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         PropertyAccess,
         RecordLiteral,
         RecordPattern,
+        RecordSpreadField,
         RecordTypeAnnotation,
         RecordTypeAnnotationField,
         RecordTypeAnnotationNamedField,

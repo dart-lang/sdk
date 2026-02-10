@@ -858,6 +858,12 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRecordSpreadField(RecordSpreadField node) {
+    _runSubscriptions(node, _registry._forRecordSpreadField);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
     _runSubscriptions(node, _registry._forRecordTypeAnnotation);
     node.visitChildren(this);
@@ -1505,6 +1511,8 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final List<_Subscription<PropertyAccess>> _forPropertyAccess = [];
 
   final List<_Subscription<RecordLiteral>> _forRecordLiteral = [];
+
+  final List<_Subscription<RecordSpreadField>> _forRecordSpreadField = [];
 
   final List<_Subscription<RecordPattern>> _forRecordPattern = [];
 
@@ -2460,6 +2468,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addRecordPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRecordPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addRecordSpreadField(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forRecordSpreadField.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   @override

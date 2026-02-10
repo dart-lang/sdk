@@ -2046,6 +2046,15 @@ abstract class Listener implements UnescapeErrorListener {
 
   void handlePositionalRecordField(Token token) {}
 
+  /// Called after parsing a spread expression (`...expr` or `...?expr`)
+  /// as a field in a record literal.
+  ///
+  /// Substructures:
+  /// - expression (the spread operand, on top of the stack)
+  void handleRecordSpreadField(Token spreadToken) {
+    logEvent("RecordSpreadField");
+  }
+
   void beginNewExpression(Token token) {}
 
   void endNewExpression(Token token) {

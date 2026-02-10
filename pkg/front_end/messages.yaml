@@ -6840,6 +6840,27 @@ recordFieldsCantBePrivate:
   script: |
     foo() => (_bar: 1);
 
+recordSpreadNotRecordType:
+  parameters:
+    Type type: The type of the spread expression.
+  problemMessage: "A spread expression in a record literal must have a record type, but has type '#type'."
+  correctionMessage: "Try using an expression with a concrete record type."
+
+recordSpreadDuplicateNamedField:
+  parameters:
+    String name: The name of the duplicate field.
+  problemMessage: "The named field '#name' from the spread conflicts with another field with the same name."
+
+recordSpreadNullAwareNotSupported:
+  parameters: none
+  problemMessage: "Null-aware spread '...?' is not supported in record literals."
+  correctionMessage: "Handle null before spreading, or use a non-nullable expression."
+
+recordSpreadPositionalNameClash:
+  parameters:
+    String name: The name of the clashing field.
+  problemMessage: "The named field '#name' from the spread clashes with a positional field getter."
+
 namedFieldClashesWithPositionalFieldInRecord:
   parameters: none
   problemMessage: "Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field."

@@ -13768,12 +13768,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return result;
       }
     }
-    return inferVariableGet(
-      variable: node.expressionVariable as InternalExpressionVariable,
-      typeContext: typeContext,
-      nameOffset: node.fileOffset,
-      node: node,
-    );
+    if (node.expressionVariable is InternalExpressionVariable) {
+      return inferVariableGet(
+        variable: node.expressionVariable as InternalExpressionVariable,
+        typeContext: typeContext,
+        nameOffset: node.fileOffset,
+        node: node,
+      );
+    }
+    // Synthesized variable (e.g., from record spread desugaring) — type is
+    // already set, no promotion or late-variable handling needed.
+    return new ExpressionInferenceResult(node.expressionVariable.type, node);
   }
 
   @override
@@ -14032,16 +14037,235 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return inferExpression(node.expression, typeContext, isVoidAllowed: true);
   }
 
+  /// Expands any [RecordSpreadElement] entries in [node] by inferring the
+  /// spread expression's type and replacing the spread with individual
+  /// [RecordIndexGet]/[RecordNameGet] field accesses.
+  ///
+  /// After this method returns, [node.originalElementOrder] contains only
+  /// [Expression] and [NamedExpression] entries — all spreads are gone.
+  ///
+  /// Returns a map from index in [newOriginalOrder] to the hoisted
+  /// [VariableDeclaration] for the spread at that position, or `null` if there
+  /// are no spreads. The key is the index of the first expanded field from each
+  /// spread, so that the caller can insert the temp at the correct position
+  /// in the hoisting chain for proper evaluation order.
+  Map<int, VariableDeclaration>? _expandRecordSpreads(
+    InternalRecordLiteral node,
+  ) {
+    List<Object> originalOrder = node.originalElementOrder;
+    bool hasSpread = false;
+    for (Object element in originalOrder) {
+      if (element is RecordSpreadElement) {
+        hasSpread = true;
+        break;
+      }
+    }
+    if (!hasSpread) return null;
+
+    List<Expression> newPositional = [];
+    List<NamedExpression> newNamed = [];
+    List<Object> newOriginalOrder = [];
+    Map<String, NamedExpression> newNamedElements = {};
+    Map<int, VariableDeclaration> spreadTempsByIndex = {};
+
+    for (Object element in originalOrder) {
+      if (element is RecordSpreadElement) {
+        // Null-aware spread (...?) is not supported for records.
+        if (element.isNullAware) {
+          newPositional.add(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.recordSpreadNullAwareNotSupported,
+              fileUri: fileUri,
+              fileOffset: element.fileOffset,
+              length: 4, // length of '...?'
+            ),
+          );
+          newOriginalOrder.add(newPositional.last);
+          continue;
+        }
+
+        // Infer the type of the spread expression.
+        ExpressionInferenceResult spreadResult = inferExpression(
+          element.expression,
+          const UnknownType(),
+        );
+        Expression spreadExpr = spreadResult.expression;
+        DartType spreadType = spreadResult.inferredType;
+
+        // Validate: must be a concrete record type.
+        if (spreadType is! RecordType) {
+          newPositional.add(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.recordSpreadNotRecordType.withArguments(
+                type: spreadType,
+              ),
+              fileUri: fileUri,
+              fileOffset: element.fileOffset,
+              length: 3, // length of '...'
+            ),
+          );
+          newOriginalOrder.add(newPositional.last);
+          continue;
+        }
+        RecordType recordType = spreadType;
+
+        // Hoist to a temp variable to avoid re-evaluation and to ensure the
+        // receiver is an InternalExpressionVariable that the inference visitor
+        // can handle (already-inferred Kernel expressions like
+        // StaticInvocation crash when re-inferred).
+        VariableDeclaration? temp;
+        int fieldCount = recordType.positional.length + recordType.named.length;
+        if (fieldCount >= 1 && !node.isConst) {
+          // Use VariableDeclarationImpl (not createVariable) because the
+          // VariableGet receivers of the expanded RecordIndexGet/RecordNameGet
+          // nodes go through visitVariableGet → inferVariableGet, which
+          // requires InternalExpressionVariable.
+          temp = VariableDeclarationImpl(
+            null,
+            initializer: spreadExpr,
+            type: recordType,
+            isFinal: true,
+            isSynthesized: true,
+          )..fileOffset = spreadExpr.fileOffset;
+          spreadTempsByIndex[newOriginalOrder.length] = temp;
+        }
+
+        bool isFirstReceiverUse = true;
+        Expression receiver() {
+          if (temp != null) {
+            return createVariableGet(temp);
+          }
+          // Const case: no temp variable. Return the original for the first
+          // use; clone for subsequent uses to avoid sharing the same
+          // Expression node as a child of multiple parents.
+          if (isFirstReceiverUse) {
+            isFirstReceiverUse = false;
+            return spreadExpr;
+          }
+          if (isPureExpression(spreadExpr)) {
+            return clonePureExpression(spreadExpr);
+          }
+          // ConstantExpression: create a fresh wrapper over the same Constant.
+          if (spreadExpr case ConstantExpression constExpr) {
+            return ConstantExpression(constExpr.constant, constExpr.type)
+              ..fileOffset = constExpr.fileOffset;
+          }
+          // General fallback: return the original. This may cause parent
+          // pointer issues but const evaluation still works via nodeCache.
+          return spreadExpr;
+        }
+
+        // Expand positional fields.
+        for (int i = 0; i < recordType.positional.length; i++) {
+          Expression fieldAccess = RecordIndexGet(receiver(), recordType, i)
+            ..fileOffset = element.fileOffset;
+          newPositional.add(fieldAccess);
+          newOriginalOrder.add(fieldAccess);
+        }
+
+        // Expand named fields.
+        for (NamedType namedType in recordType.named) {
+          Expression fieldAccess = RecordNameGet(
+            receiver(),
+            recordType,
+            namedType.name,
+          )..fileOffset = element.fileOffset;
+          NamedExpression namedExpr = NamedExpression(
+            namedType.name,
+            fieldAccess,
+          )..fileOffset = element.fileOffset;
+
+          if (newNamedElements.containsKey(namedType.name)) {
+            problemReporting.addProblem(
+              diag.recordSpreadDuplicateNamedField.withArguments(
+                name: namedType.name,
+              ),
+              element.fileOffset,
+              3,
+              fileUri,
+            );
+          } else {
+            newNamed.add(namedExpr);
+            newNamedElements[namedType.name] = namedExpr;
+            newOriginalOrder.add(namedExpr);
+          }
+        }
+      } else if (element is NamedExpression) {
+        if (newNamedElements.containsKey(element.name)) {
+          problemReporting.addProblem(
+            diag.recordSpreadDuplicateNamedField.withArguments(
+              name: element.name,
+            ),
+            element.fileOffset,
+            element.name.length,
+            fileUri,
+          );
+        } else {
+          newNamed.add(element);
+          newNamedElements[element.name] = element;
+          newOriginalOrder.add(element);
+        }
+      } else {
+        Expression expr = element as Expression;
+        newPositional.add(expr);
+        newOriginalOrder.add(expr);
+      }
+    }
+
+    // Check for $N positional name clashes from spread-contributed fields.
+    // Body builder already checks direct named fields against the pre-expansion
+    // positional count, but spreads may contribute named fields like $1 that
+    // clash with the expanded positional count.
+    for (String name in newNamedElements.keys) {
+      if (tryParseRecordPositionalGetterName(name, newPositional.length) !=
+          null) {
+        NamedExpression namedExpr = newNamedElements[name]!;
+        problemReporting.addProblem(
+          diag.recordSpreadPositionalNameClash.withArguments(name: name),
+          namedExpr.fileOffset,
+          name.length,
+          fileUri,
+        );
+      }
+    }
+
+    // Replace the node's lists in-place.
+    node.positional
+      ..clear()
+      ..addAll(newPositional);
+    node.named
+      ..clear()
+      ..addAll(newNamed);
+    node.originalElementOrder
+      ..clear()
+      ..addAll(newOriginalOrder);
+
+    return spreadTempsByIndex.isNotEmpty ? spreadTempsByIndex : null;
+  }
+
   ExpressionInferenceResult visitInternalRecordLiteral(
     InternalRecordLiteral node,
     DartType typeContext,
   ) {
+    // Expand any record spread elements before main inference.
+    Map<int, VariableDeclaration>? spreadTemps = _expandRecordSpreads(node);
+
     List<Expression> positional = node.positional;
     List<NamedExpression> namedUnsorted = node.named;
     List<NamedExpression> named = namedUnsorted;
     Map<String, NamedExpression>? namedElements = node.namedElements;
     List<Object> originalElementOrder = node.originalElementOrder;
     List<VariableDeclaration>? hoistedExpressions;
+
+    // If spreads were present, rebuild namedElements for the expanded fields.
+    if (spreadTemps != null || namedUnsorted.isNotEmpty) {
+      namedElements = <String, NamedExpression>{};
+      for (NamedExpression ne in namedUnsorted) {
+        namedElements[ne.name] = ne;
+      }
+    }
 
     List<DartType>? positionalTypeContexts;
     Map<String, DartType>? namedTypeContexts;
@@ -14171,7 +14395,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       final bool enableHoisting = !node.isConst;
 
       // Set to `true` if we need to hoist all preceding elements.
-      bool needsHoisting = false;
+      // When spreads are present, all non-pure expressions must be hoisted to
+      // ensure correct evaluation order relative to spread temp variables.
+      bool needsHoisting = spreadTemps != null ? enableHoisting : false;
 
       // Set to `true` if named elements need to be sorted. This implies that
       // we will need to hoist preceding elements.
@@ -14221,6 +14447,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             needsHoisting = enableHoisting;
           }
           positionalIndex--;
+        }
+        // If this index is the first expanded field from a spread, insert
+        // the spread temp variable here. Being added after the field access
+        // in the reversed walk means the temp is outermost in the Let chain
+        // (evaluated first), preserving left-to-right evaluation order.
+        if (spreadTemps != null && spreadTemps.containsKey(index)) {
+          hoistedExpressions ??= [];
+          hoistedExpressions.add(spreadTemps[index]!);
         }
       }
       namedTypes = new List<NamedType>.generate(sortedNames.length, (

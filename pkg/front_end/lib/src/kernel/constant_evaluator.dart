@@ -4680,8 +4680,7 @@ class ConstantEvaluator
   Constant visitRecordIndexGet(RecordIndexGet node) {
     final Constant receiver = _evaluateSubexpression(node.receiver);
     if (receiver is AbortConstant) return receiver;
-    if (receiver is RecordConstant && enableConstFunctions) {
-      // Coverage-ignore-block(suite): Not run.
+    if (receiver is RecordConstant) {
       if (node.index >= receiver.positional.length) {
         return new _AbortDueToThrowConstant(node, new StateError('No element'));
       }
@@ -4700,8 +4699,7 @@ class ConstantEvaluator
   Constant visitRecordNameGet(RecordNameGet node) {
     final Constant receiver = _evaluateSubexpression(node.receiver);
     if (receiver is AbortConstant) return receiver;
-    if (receiver is RecordConstant && enableConstFunctions) {
-      // Coverage-ignore-block(suite): Not run.
+    if (receiver is RecordConstant) {
       Constant? result = receiver.named[node.name];
       if (result == null) {
         return new _AbortDueToThrowConstant(node, new StateError('No element'));

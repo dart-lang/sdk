@@ -28,6 +28,7 @@ b
 backed
 c
 cast
+clashes
 collide
 compilercontext.runincontext
 compilesdk
@@ -133,6 +134,7 @@ separators
 size
 solutions
 specially
+spreading
 stacktrace
 stand
 staticinterop

@@ -571,6 +571,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitRecordPattern(RecordPattern node) => visitDartPattern(node);
 
   @override
+  R? visitRecordSpreadField(RecordSpreadField node) => visitExpression(node);
+
+  @override
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node) =>
       visitTypeAnnotation(node);
 
@@ -1600,6 +1603,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitRecordSpreadField(RecordSpreadField node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node) {
     node.visitChildren(this);
     return null;
@@ -2313,6 +2322,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitRecordPattern(RecordPattern node) => null;
 
   @override
+  R? visitRecordSpreadField(RecordSpreadField node) => null;
+
+  @override
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node) => null;
 
   @override
@@ -2903,6 +2915,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordPattern(RecordPattern node) => _throw(node);
+
+  @override
+  R? visitRecordSpreadField(RecordSpreadField node) => _throw(node);
 
   @override
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node) => _throw(node);
@@ -4189,6 +4204,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitRecordSpreadField(RecordSpreadField node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRecordSpreadField(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitRecordTypeAnnotation(RecordTypeAnnotation node) {
     stopwatch.start();
     T? result = _baseVisitor.visitRecordTypeAnnotation(node);
@@ -5025,6 +5048,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRecordPattern(RecordPattern node) => visitNode(node);
+
+  @override
+  R? visitRecordSpreadField(RecordSpreadField node) => visitNode(node);
 
   @override
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node) => visitNode(node);

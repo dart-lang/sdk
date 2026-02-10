@@ -14990,6 +14990,97 @@ const MessageCode recordFieldsCantBePrivate = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function(String name),
+  Message Function({required String name})
+>
+recordSpreadDuplicateNamedField = const Template(
+  "RecordSpreadDuplicateNamedField",
+  withArgumentsOld: _withArgumentsOldRecordSpreadDuplicateNamedField,
+  withArguments: _withArgumentsRecordSpreadDuplicateNamedField,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRecordSpreadDuplicateNamedField({required String name}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    recordSpreadDuplicateNamedField,
+    problemMessage:
+        """The named field '${name_0}' from the spread conflicts with another field with the same name.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOldRecordSpreadDuplicateNamedField(String name) =>
+    _withArgumentsRecordSpreadDuplicateNamedField(name: name);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+recordSpreadNotRecordType = const Template(
+  "RecordSpreadNotRecordType",
+  withArgumentsOld: _withArgumentsOldRecordSpreadNotRecordType,
+  withArguments: _withArgumentsRecordSpreadNotRecordType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRecordSpreadNotRecordType({required DartType type}) {
+  TypeLabeler labeler = new TypeLabeler();
+  var type_0 = labeler.labelType(type);
+  return new Message(
+    recordSpreadNotRecordType,
+    problemMessage:
+        """A spread expression in a record literal must have a record type, but has type '${type_0}'.""" +
+        labeler.originMessages,
+    correctionMessage:
+        """Try using an expression with a concrete record type.""",
+    arguments: {'type': type},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOldRecordSpreadNotRecordType(DartType type) =>
+    _withArgumentsRecordSpreadNotRecordType(type: type);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode recordSpreadNullAwareNotSupported = const MessageCode(
+  "RecordSpreadNullAwareNotSupported",
+  problemMessage:
+      """Null-aware spread '...?' is not supported in record literals.""",
+  correctionMessage:
+      """Handle null before spreading, or use a non-nullable expression.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function(String name),
+  Message Function({required String name})
+>
+recordSpreadPositionalNameClash = const Template(
+  "RecordSpreadPositionalNameClash",
+  withArgumentsOld: _withArgumentsOldRecordSpreadPositionalNameClash,
+  withArguments: _withArgumentsRecordSpreadPositionalNameClash,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRecordSpreadPositionalNameClash({required String name}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    recordSpreadPositionalNameClash,
+    problemMessage:
+        """The named field '${name_0}' from the spread clashes with a positional field getter.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOldRecordSpreadPositionalNameClash(String name) =>
+    _withArgumentsRecordSpreadPositionalNameClash(name: name);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode recordUseCannotBePlacedHere = const MessageCode(
   "RecordUseCannotBePlacedHere",
   problemMessage:

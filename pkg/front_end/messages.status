@@ -139,6 +139,10 @@ front_end/PatchExtensionTypeParametersMismatch/example: missingExample # Patchin
 front_end/PatchInjectionFailed/example: missingExample # Patching.
 front_end/PatternMatchingError/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
 front_end/PositionalAfterNamedArgument/example: missingExample # Seemingly only issued in Analyzer
+front_end/RecordSpreadDuplicateNamedField/example: missingExample # Requires record-spreads experiment.
+front_end/RecordSpreadNotRecordType/example: missingExample # Requires record-spreads experiment.
+front_end/RecordSpreadNullAwareNotSupported/example: missingExample # Requires record-spreads experiment.
+front_end/RecordSpreadPositionalNameClash/example: missingExample # Requires record-spreads experiment.
 front_end/RecordUseCannotBePlacedHere/example: missingExample # No coverage.
 front_end/RecordUseOutsideOfPackage/example: missingExample # No coverage.
 front_end/SdkRootNotFound/example: missingExample # Issued on what is essentially a wrong setup.

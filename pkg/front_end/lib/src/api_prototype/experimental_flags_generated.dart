@@ -332,6 +332,15 @@ class ExperimentalFlag {
     experimentReleasedVersion: defaultLanguageVersion,
   );
 
+  static const ExperimentalFlag recordSpreads = const ExperimentalFlag(
+    name: 'record-spreads',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag recordUse = const ExperimentalFlag(
     name: 'record-use',
     isEnabledByDefault: false,
@@ -649,6 +658,10 @@ class GlobalFeatures {
   GlobalFeature get privateNamedParameters => _privateNamedParameters ??=
       _computeGlobalFeature(ExperimentalFlag.privateNamedParameters);
 
+  GlobalFeature? _recordSpreads;
+  GlobalFeature get recordSpreads =>
+      _recordSpreads ??= _computeGlobalFeature(ExperimentalFlag.recordSpreads);
+
   GlobalFeature? _recordUse;
   GlobalFeature get recordUse =>
       _recordUse ??= _computeGlobalFeature(ExperimentalFlag.recordUse);
@@ -965,6 +978,14 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _recordSpreads;
+  LibraryFeature get recordSpreads =>
+      _recordSpreads ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.recordSpreads,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _recordUse;
   LibraryFeature get recordUse =>
       _recordUse ??= globalFeatures._computeLibraryFeature(
@@ -1142,6 +1163,8 @@ class LibraryFeatures {
         return primaryConstructors;
       case shared.ExperimentalFlag.privateNamedParameters:
         return privateNamedParameters;
+      case shared.ExperimentalFlag.recordSpreads:
+        return recordSpreads;
       case shared.ExperimentalFlag.recordUse:
         return recordUse;
       case shared.ExperimentalFlag.records:
@@ -1238,6 +1261,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.primaryConstructors;
     case "private-named-parameters":
       return ExperimentalFlag.privateNamedParameters;
+    case "record-spreads":
+      return ExperimentalFlag.recordSpreads;
     case "record-use":
       return ExperimentalFlag.recordUse;
     case "records":
@@ -1328,6 +1353,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.primaryConstructors.isEnabledByDefault,
   ExperimentalFlag.privateNamedParameters:
       ExperimentalFlag.privateNamedParameters.isEnabledByDefault,
+  ExperimentalFlag.recordSpreads:
+      ExperimentalFlag.recordSpreads.isEnabledByDefault,
   ExperimentalFlag.recordUse: ExperimentalFlag.recordUse.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
@@ -1402,6 +1429,7 @@ ExperimentalFlag fromSharedExperimentalFlag(
     ExperimentalFlag.primaryConstructors,
   shared.ExperimentalFlag.privateNamedParameters =>
     ExperimentalFlag.privateNamedParameters,
+  shared.ExperimentalFlag.recordSpreads => ExperimentalFlag.recordSpreads,
   shared.ExperimentalFlag.recordUse => ExperimentalFlag.recordUse,
   shared.ExperimentalFlag.records => ExperimentalFlag.records,
   shared.ExperimentalFlag.sealedClass => ExperimentalFlag.sealedClass,

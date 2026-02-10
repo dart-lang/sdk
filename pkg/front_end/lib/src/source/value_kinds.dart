@@ -188,6 +188,8 @@ class ValueKinds {
       const SingleValueKind<type.ParserRecovery>();
   static const ValueKind QualifiedName =
       const SingleValueKind<type.QualifiedName>();
+  static const ValueKind RecordSpreadElement =
+      const SingleValueKind<type.RecordSpreadElement>();
   static const ValueKind RecordTypeFieldBuilder =
       const SingleValueKind<type.RecordTypeFieldBuilder>();
   static const ValueKind RecordTypeFieldBuilderListOrNull =

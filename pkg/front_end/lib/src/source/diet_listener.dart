@@ -195,6 +195,12 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleRecordSpreadField(Token spreadToken) {
+    debugEvent("RecordSpreadField");
+    // Spread expression is on the stack; leave it for endRecordLiteral.
+  }
+
+  @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause");
   }

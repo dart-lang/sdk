@@ -49,3 +49,22 @@ class RecordPositionalField extends RecordField {
         : new RecordPositionalField(newExpression);
   }
 }
+
+class RecordSpreadField extends RecordField {
+  final Expression expression;
+  final bool isNullAware;
+
+  RecordSpreadField(this.expression, {required this.isNullAware});
+
+  @override
+  String toString() =>
+      'RecordSpreadField(${isNullAware ? '...?' : '...'}$expression)';
+
+  @override
+  RecordField? resolve() {
+    Expression? newExpression = expression.resolve();
+    return newExpression == null
+        ? null
+        : new RecordSpreadField(newExpression, isNullAware: isNullAware);
+  }
+}

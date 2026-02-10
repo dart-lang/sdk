@@ -4301,6 +4301,7 @@ class BodyBuilderImpl extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Expression,
             ValueKinds.NamedExpression,
+            ValueKinds.RecordSpreadElement,
             ValueKinds.ParserRecovery,
           ]),
           count,
@@ -4332,6 +4333,12 @@ class BodyBuilderImpl extends StackListenerImpl
     ];
     if (elements != null) {
       for (Object? element in elements) {
+        if (element is RecordSpreadElement) {
+          // Spread fields cannot be validated here because the record type of
+          // the spread is not yet known. Validation happens in type inference.
+          originalElementOrder.add(element);
+          continue;
+        }
         if (element is NamedExpression) {
           if (forbiddenObjectMemberNames.contains(element.name)) {
             libraryBuilder.addProblem(
@@ -7671,6 +7678,24 @@ class BodyBuilderImpl extends StackListenerImpl
     );
     Expression value = popForValue();
     push(value);
+  }
+
+  @override
+  void handleRecordSpreadField(Token spreadToken) {
+    debugEvent("RecordSpreadField");
+    reportIfNotEnabled(
+      libraryFeatures.recordSpreads,
+      spreadToken.charOffset,
+      spreadToken.charCount,
+    );
+    Expression value = popForValue();
+    push(
+      RecordSpreadElement(
+        value,
+        isNullAware: spreadToken.lexeme == '...?',
+        fileOffset: spreadToken.charOffset,
+      ),
+    );
   }
 
   @override

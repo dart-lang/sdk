@@ -434,6 +434,13 @@ class Evaluator {
           list.add(
             new RecordPositionalField(_visitExpression(field.expression)),
           );
+        case RecordSpreadField():
+          list.add(
+            new RecordSpreadField(
+              _visitExpression(field.expression),
+              isNullAware: field.isNullAware,
+            ),
+          );
       }
     }
     return list;
