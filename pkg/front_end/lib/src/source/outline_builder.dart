@@ -2032,13 +2032,15 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endPrimaryConstructorBody");
     assert(
       checkState(beginToken, [
+        /* method body token */ ValueKinds.Token,
         ValueKinds.MethodBody,
         ValueKinds.AsyncModifier,
         ValueKinds.MetadataListOrNull,
       ]),
     );
 
-    pop() as MethodBody;
+    Token methodBodyToken = pop() as Token;
+    MethodBody methodBody = pop() as MethodBody;
     pop() as AsyncMarker;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     _builderFactory.addPrimaryConstructorBody(
@@ -2047,6 +2049,8 @@ class OutlineBuilder extends StackListenerImpl {
       beginToken: beginToken,
       endOffset: endToken.charOffset,
       beginInitializers: beginInitializers,
+      hasBody: methodBody != MethodBody.Abstract,
+      bodyOffset: methodBodyToken.charOffset,
     );
   }
 
@@ -2070,6 +2074,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endTopLevelMethod");
     assert(
       checkState(beginToken, [
+        /* method body token */ ValueKinds.Token,
         ValueKinds.MethodBody,
         ValueKinds.AsyncMarker,
         ValueKinds.FormalListOrNull,
@@ -2082,6 +2087,7 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
+    pop() as Token; // Method body token
     MethodBody kind = pop() as MethodBody;
     AsyncMarker asyncModifier = pop() as AsyncMarker;
     List<FormalParameterBuilder>? formals =
@@ -2201,8 +2207,10 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("NativeFunctionBody");
     if (nativeMethodName != null) {
       push(MethodBody.Regular);
+      push(nativeToken);
     } else {
       push(MethodBody.Abstract);
+      push(semicolon);
     }
   }
 
@@ -2221,6 +2229,7 @@ class OutlineBuilder extends StackListenerImpl {
       );
     }
     push(MethodBody.Regular);
+    push(nativeToken);
   }
 
   @override
@@ -2232,12 +2241,18 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       push(MethodBody.Abstract);
     }
+    push(token);
   }
 
   @override
-  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
+  void handleFunctionBodySkipped(
+    Token beginToken,
+    Token endToken,
+    bool isExpressionBody,
+  ) {
     debugEvent("handleFunctionBodySkipped");
     push(MethodBody.Regular);
+    push(beginToken);
   }
 
   @override
@@ -2379,7 +2394,13 @@ class OutlineBuilder extends StackListenerImpl {
       );
     }
 
-    assert(checkState(beginToken, [ValueKinds.MethodBody]));
+    assert(
+      checkState(beginToken, [
+        /* method body token */ ValueKinds.Token,
+        /* method body kind */ ValueKinds.MethodBody,
+      ]),
+    );
+    pop() as Token; // Method body token
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
@@ -2592,7 +2613,13 @@ class OutlineBuilder extends StackListenerImpl {
       );
     }
 
-    assert(checkState(beginToken, [ValueKinds.MethodBody]));
+    assert(
+      checkState(beginToken, [
+        /* method body token */ ValueKinds.Token,
+        /* method body kind */ ValueKinds.MethodBody,
+      ]),
+    );
+    pop() as Token; // Method body token
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
@@ -4472,8 +4499,14 @@ class OutlineBuilder extends StackListenerImpl {
     Token factoryKeyword,
     Token endToken,
   ) {
-    assert(checkState(beginToken, [ValueKinds.MethodBody]));
+    assert(
+      checkState(beginToken, [
+        /* method body token */ ValueKinds.Token,
+        /* method body kind */ ValueKinds.MethodBody,
+      ]),
+    );
 
+    pop() as Token; // Method body token
     MethodBody kind = pop() as MethodBody;
 
     assert(
@@ -4569,6 +4602,7 @@ class OutlineBuilder extends StackListenerImpl {
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     debugEvent("RedirectingFactoryBody");
     push(MethodBody.RedirectingFactoryBody);
+    push(beginToken);
   }
 
   @override

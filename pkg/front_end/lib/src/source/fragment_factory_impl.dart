@@ -1602,6 +1602,8 @@ class FragmentFactoryImpl implements FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required int endOffset,
     required Token? beginInitializers,
+    required bool hasBody,
+    required int bodyOffset,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1613,6 +1615,8 @@ class FragmentFactoryImpl implements FragmentFactory {
           enclosingScope: _declarationFragments.current.bodyScope,
           enclosingDeclaration: enclosingDeclaration,
           enclosingCompilationUnit: _compilationUnit,
+          hasBody: hasBody,
+          bodyOffset: bodyOffset,
         );
     _addFragment(fragment);
     offsetMap.registerPrimaryConstructorBody(beginToken, fragment);

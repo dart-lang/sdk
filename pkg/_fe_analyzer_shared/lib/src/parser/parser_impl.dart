@@ -6268,6 +6268,7 @@ class Parser {
       }
       listener.handleNoFunctionBody(token);
     } else if (identical(value, '=>')) {
+      Token beginToken = next;
       token = parseExpression(next);
       // There ought to be a semicolon following the expression, but we check
       // before advancing in order to be consistent with the way the method
@@ -6275,9 +6276,13 @@ class Parser {
       if (token.next!.isA(TokenType.SEMICOLON)) {
         token = token.next!;
       }
-      listener.handleFunctionBodySkipped(token, /* isExpressionBody = */ true);
+      listener.handleFunctionBodySkipped(
+        beginToken,
+        token,
+        /* isExpressionBody = */ true,
+      );
     } else if (identical(value, '=')) {
-      token = next;
+      Token beginToken = token = next;
       reportRecoverableError(token, diag.expectedBody);
       token = parseExpression(token);
       // There ought to be a semicolon following the expression, but we check
@@ -6286,10 +6291,19 @@ class Parser {
       if (token.next!.isA(TokenType.SEMICOLON)) {
         token = token.next!;
       }
-      listener.handleFunctionBodySkipped(token, /* isExpressionBody = */ true);
+      listener.handleFunctionBodySkipped(
+        beginToken,
+        token,
+        /* isExpressionBody = */ true,
+      );
     } else {
+      Token beginToken = token.next!;
       token = skipBlock(token);
-      listener.handleFunctionBodySkipped(token, /* isExpressionBody = */ false);
+      listener.handleFunctionBodySkipped(
+        beginToken,
+        token,
+        /* isExpressionBody = */ false,
+      );
     }
     return token;
   }

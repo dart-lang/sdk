@@ -367,6 +367,8 @@ abstract class FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required int endOffset,
     required Token? beginInitializers,
+    required bool hasBody,
+    required int bodyOffset,
   });
 
   void addPrimaryConstructorField({

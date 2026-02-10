@@ -764,7 +764,11 @@ abstract class Listener implements UnescapeErrorListener {
   ///
   /// The boolean [isExpressionBody] indicates whether the function body that
   /// was skipped used "=>" syntax.
-  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {}
+  void handleFunctionBodySkipped(
+    Token beginToken,
+    Token endToken,
+    bool isExpressionBody,
+  ) {}
 
   void beginFunctionName(Token token) {}
 

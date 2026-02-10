@@ -1,0 +1,63 @@
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class C0 {
+  const C0() {}
+}
+
+class const C1() {
+  this {}
+}
+
+class const C2(int x) {
+  final int x;
+  this: x = x {}
+}
+
+class const C3(final int x) {
+  this {}
+}
+
+class const C4(this.x) {
+  final int x;
+  this {}
+}
+
+class const A(final int x);
+
+class const C5(super.x) extends A {
+  this {}
+}
+
+extension type const ET1(int v) {
+  this {}
+}
+
+extension type const ET2.someName(int v) {
+  this {}
+}
+
+enum E0 {
+  e0(0);
+  final int v;
+
+  const E0(this.v) {}
+}
+
+enum E1(final int v) {
+  e0(0);
+  this {}
+}
+
+enum const E2.someName(this.v) {
+  e0.someName(0);
+  final int v;
+  this {}
+}
+
+enum const E3(int v) {
+  e0(0);
+  final int v;
+  this: v = v {}
+}
