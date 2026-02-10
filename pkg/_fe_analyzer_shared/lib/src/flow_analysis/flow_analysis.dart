@@ -477,18 +477,11 @@ abstract class FlowAnalysis<
   /// loop.
   void doStatement_end(ExpressionInfo? conditionInfo);
 
-  /// Call this method just after visiting either side of a binary `==` or `!=`
-  /// expression, or an argument to `identical`.
-  ///
-  /// Returns information about the expression that will later be needed by
-  /// [equalityOperation_end].
-  ExpressionInfo? equalityOperand_end(ExpressionInfo? operandInfo);
-
   /// Call this method just after visiting the operands of a binary `==` or `!=`
   /// expression, or an invocation of `identical`.
   ///
   /// [leftOperandInfo] and [rightOperandInfo] should be the values returned by
-  /// [equalityOperand_end] for the left and right operands. [leftOperandType]
+  /// [getExpressionInfo] for the left and right operands. [leftOperandType]
   /// and [rightOperandType] should be the static types of the left and right
   /// operands.
   ///
@@ -1734,13 +1727,6 @@ class FlowAnalysisDebug<
       () => _wrapped.doStatement_end(conditionInfo),
     );
   }
-
-  @override
-  ExpressionInfo? equalityOperand_end(ExpressionInfo? operandInfo) => _wrap(
-    'equalityOperand_end($operandInfo)',
-    () => _wrapped.equalityOperand_end(operandInfo),
-    isQuery: true,
-  );
 
   @override
   ExpressionInfo? equalityOperation_end(
@@ -5489,10 +5475,6 @@ class _FlowAnalysisImpl<
       context._breakModel,
     ).unsplit();
   }
-
-  @override
-  ExpressionInfo? equalityOperand_end(ExpressionInfo? operandInfo) =>
-      operandInfo;
 
   @override
   ExpressionInfo? equalityOperation_end(

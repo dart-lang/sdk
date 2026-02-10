@@ -1951,8 +1951,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           hoistedExpressions,
         );
         if (isIdenticalCall) {
-          argumentInfo.identicalInfo = flowAnalysis.equalityOperand_end(
-            flowAnalysis.getExpressionInfo(expression),
+          argumentInfo.identicalInfo = flowAnalysis.getExpressionInfo(
+            expression,
           );
         }
         argument.expression = expression;
@@ -1997,8 +1997,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           DartType inferredType = result.inferredType;
           Expression expression = result.expression;
           if (isIdenticalCall) {
-            deferredArgument.identicalInfo = flowAnalysis.equalityOperand_end(
-              flowAnalysis.getExpressionInfo(expression),
+            deferredArgument.identicalInfo = flowAnalysis.getExpressionInfo(
+              expression,
             );
           }
           deferredArgument.argument.expression = expression;
@@ -2362,19 +2362,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
       VariableDeclaration parameter = positionalParameters[i];
-      // TODO(62401): Ensure `parameter` is an InternalExpressionVariable.
-      if (parameter
-          case InternalExpressionVariable(
-                astVariable: ExpressionVariable parameter,
-              ) ||
-              // Coverage-ignore(suite): Not run.
-              ExpressionVariable parameter) {
-        flowAnalysis.declare(
-          parameter,
-          new SharedTypeView(parameter.type),
-          initialized: true,
-        );
-      }
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      ExpressionVariable parameterAstVariable =
+          (parameter as InternalExpressionVariable).astVariable;
+      flowAnalysis.declare(
+        parameterAstVariable,
+        new SharedTypeView(parameterAstVariable.type),
+        initialized: true,
+      );
       inferMetadata(visitor, parameter);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
@@ -2386,19 +2382,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     for (VariableDeclaration parameter in function.namedParameters) {
-      // TODO(62401): Ensure `parameter` is an InternalExpressionVariable.
-      if (parameter
-          case InternalExpressionVariable(
-                astVariable: ExpressionVariable parameter,
-              ) ||
-              // Coverage-ignore(suite): Not run.
-              ExpressionVariable parameter) {
-        flowAnalysis.declare(
-          parameter,
-          new SharedTypeView(parameter.type),
-          initialized: true,
-        );
-      }
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      ExpressionVariable parameterAstVariable =
+          (parameter as InternalExpressionVariable).astVariable;
+      flowAnalysis.declare(
+        parameterAstVariable,
+        new SharedTypeView(parameterAstVariable.type),
+        initialized: true,
+      );
       inferMetadata(visitor, parameter);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
@@ -3925,11 +3917,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               .representationField,
           new SharedTypeView(type),
         );
-        type =
-            wrappedPromotedType
-                // Coverage-ignore(suite): Not run.
-                ?.unwrapTypeView() ??
-            type;
+        // Coverage-ignore(suite): Not run.
+        type = wrappedPromotedType?.unwrapTypeView() ?? type;
         Expression read = new AsExpression(receiver, type)
           ..isUnchecked = true
           ..fileOffset = fileOffset;

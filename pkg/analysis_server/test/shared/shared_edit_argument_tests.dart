@@ -264,6 +264,16 @@ mixin SharedEditArgumentTests
     );
   }
 
+  Future<void> test_named_privateInitializingFormal() async {
+    await _expectSimpleArgumentEdit(
+      params: '({this._x})',
+      additionalWidgetCode: 'final int? _x;',
+      originalArgs: '(x: 1)',
+      edit: ArgumentEdit(name: 'x', newValue: 2),
+      expectedArgs: '(x: 2)',
+    );
+  }
+
   Future<void> test_optionalPositional_addAfterPositional() async {
     await _expectSimpleArgumentEdit(
       params: '([int? x, int? y])',
@@ -932,6 +942,7 @@ class MyWidget extends StatelessWidget {
     required ArgumentEdit edit,
     required String expectedArgs,
     String? additionalCode = '',
+    String? additionalWidgetCode = '',
     String? fileComment = '',
   }) async {
     var content =
@@ -946,6 +957,8 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MyW^idget$originalArgs;
+
+  $additionalWidgetCode
 }
 ''';
     var expectedContent =
@@ -961,6 +974,8 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MyWidget$expectedArgs;
+
+  $additionalWidgetCode
 }
 ''';
 

@@ -104,7 +104,7 @@ class BinaryExpressionResolver {
     ExpressionInfo? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
-      leftInfo = flow?.equalityOperand_end(flow.getExpressionInfo(left));
+      leftInfo = flow?.getExpressionInfo(left);
     }
 
     // When evaluating exactly a dot shorthand in the RHS, we save the LHS type
@@ -129,7 +129,7 @@ class BinaryExpressionResolver {
         flow.equalityOperation_end(
           leftInfo,
           SharedTypeView(left.typeOrThrow),
-          flow.equalityOperand_end(flow.getExpressionInfo(right)),
+          flow.getExpressionInfo(right),
           SharedTypeView(right.typeOrThrow),
           notEqual: notEqual,
         ),

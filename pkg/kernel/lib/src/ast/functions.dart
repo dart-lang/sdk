@@ -12,7 +12,7 @@ part of '../../ast.dart';
 ///
 /// This may occur in a procedure, constructor, function expression, or local
 /// function declaration.
-class FunctionNode extends TreeNode implements ScopeProvider {
+class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
@@ -47,6 +47,7 @@ class FunctionNode extends TreeNode implements ScopeProvider {
   @override
   Scope? scope;
 
+  @override
   List<VariableContext>? contexts;
 
   /// The emitted value of non-sync functions

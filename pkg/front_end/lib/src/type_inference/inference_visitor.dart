@@ -3758,18 +3758,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   void _handleDeclarationsOfParameters(List<VariableDeclaration> parameters) {
     for (VariableDeclaration parameter in parameters) {
-      // TODO(62401): Ensure `parameter` is an InternalExpressionVariable.
-      if (parameter
-          case InternalExpressionVariable(
-                astVariable: ExpressionVariable parameter,
-              ) ||
-              // Coverage-ignore(suite): Not run.
-              ExpressionVariable parameter) {
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          parameter,
-          captureKind: _captureKindForVariable(parameter),
-        );
-      }
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      ExpressionVariable parameterAstVariable =
+          (parameter as InternalExpressionVariable).astVariable;
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        parameterAstVariable,
+        captureKind: _captureKindForVariable(parameterAstVariable),
+      );
     }
   }
 
@@ -10544,9 +10540,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression right, {
     required bool isNot,
   }) {
-    ExpressionInfo? equalityInfo = flowAnalysis.equalityOperand_end(
-      flowAnalysis.getExpressionInfo(left),
-    );
+    ExpressionInfo? equalityInfo = flowAnalysis.getExpressionInfo(left);
 
     // When evaluating exactly a dot shorthand in the RHS, we use the LHS type
     // to provide the context type for the shorthand.
@@ -10574,9 +10568,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         flowAnalysis.equalityOperation_end(
           equalityInfo,
           new SharedTypeView(leftType),
-          flowAnalysis.equalityOperand_end(
-            flow.getExpressionInfo(rightResult.expression),
-          ),
+          flow.getExpressionInfo(rightResult.expression),
           new SharedTypeView(rightResult.inferredType),
           notEqual: isNot,
         ),
@@ -10633,7 +10625,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.equalityOperation_end(
         equalityInfo,
         new SharedTypeView(leftType),
-        flowAnalysis.equalityOperand_end(flowAnalysis.getExpressionInfo(right)),
+        flowAnalysis.getExpressionInfo(right),
         new SharedTypeView(rightResult.inferredType),
         notEqual: isNot,
       ),
@@ -17036,7 +17028,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
-  List<Variable> _capturedVariablesForNode(LocalFunction node) {
+  List<Variable> _capturedVariablesForNode(TreeNode node) {
     List<Variable> capturedVariables = [];
     AssignedVariablesNodeInfo nodeInfo = assignedVariables.getInfoForNode(node);
     for (int variableKey in nodeInfo.read) {
@@ -17101,7 +17093,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (node.initializer != null) {
       if (node.isLate && node.hasDeclaredInitializer) {
-        flowAnalysis.lateInitializer_begin(node);
+        // TODO(62401): Remove the cast when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        ExpressionVariable variable =
+            (node.variable as InternalExpressionVariable).astVariable;
+        if (isClosureContextLoweringEnabled) {
+          _contextAllocationStrategy.handleVariablesCapturedByNode(
+            node,
+            _capturedVariablesForNode(variable),
+          );
+        }
+        flowAnalysis.lateInitializer_begin(variable);
       }
       initializerResult = inferExpression(
         node.initializer!,

@@ -611,9 +611,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       argument = resolver.popRewrite()!;
       if (flow != null) {
         identicalArgumentInfo?[deferredArgument.index] = _IdenticalArgumentInfo(
-          expressionInfo: flow.equalityOperand_end(
-            flow.getExpressionInfo(argument),
-          ),
+          expressionInfo: flow.getExpressionInfo(argument),
           staticType: argument.typeOrThrow,
         );
       }
@@ -686,9 +684,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         if (flow != null) {
           identicalArgumentInfo?.add(
             _IdenticalArgumentInfo(
-              expressionInfo: flow.equalityOperand_end(
-                flow.getExpressionInfo(argument),
-              ),
+              expressionInfo: flow.getExpressionInfo(argument),
               staticType: argument.typeOrThrow,
             ),
           );
@@ -860,7 +856,7 @@ class _FunctionLiteralDependencies
 /// Information tracked by [InvocationInferrer] about an argument passed to the
 /// `identical` function in `dart:core`.
 class _IdenticalArgumentInfo {
-  /// The [ExpressionInfo] returned by [FlowAnalysis.equalityOperand_end] for
+  /// The [ExpressionInfo] returned by [FlowAnalysis.getExpressionInfo] for
   /// the argument.
   final ExpressionInfo? expressionInfo;
 
