@@ -2471,8 +2471,7 @@ class OutlineBuilder extends StackListenerImpl {
       procedureKind = ProcedureKind.Operator;
       int requiredArgumentCount = operator.requiredArgumentCount;
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        Template<Function, Message Function({required String operatorName})>
-        template;
+        Template<Message Function({required String operatorName})> template;
         switch (requiredArgumentCount) {
           case 0:
             template = diag.operatorParameterMismatch0;

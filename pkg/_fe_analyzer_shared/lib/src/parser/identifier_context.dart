@@ -291,8 +291,7 @@ abstract class IdentifierContext {
   /// expressions are required.
   final bool allowedInConstantExpression;
 
-  final Template<Function, Message Function({required Token lexeme})>
-  recoveryTemplate;
+  final Template<Message Function({required Token lexeme})> recoveryTemplate;
 
   const IdentifierContext(
     this._name, {

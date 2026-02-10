@@ -9485,8 +9485,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement problem;
     bool isBreak = keyword.isA(Keyword.BREAK);
     if (name != null) {
-      Template<Function, Message Function({required String label})> template =
-          isBreak
+      Template<Message Function({required String label})> template = isBreak
           ? diag.breakTargetOutsideFunction
           : diag.continueTargetOutsideFunction;
       problem = buildProblemStatement(
