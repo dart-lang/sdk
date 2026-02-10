@@ -49,8 +49,14 @@ class StackFrame;
 namespace module_snapshot {
 class CodeDeserializationCluster;
 class Deserializer;
+class DoubleDeserializationCluster;
+class FunctionTypeDeserializationCluster;
+class IntDeserializationCluster;
 class InterfaceTypeDeserializationCluster;
+class ListDeserializationCluster;
+class MapDeserializationCluster;
 class ObjectPoolDeserializationCluster;
+class SetDeserializationCluster;
 class TypeArgumentsDeserializationCluster;
 }  // namespace module_snapshot
 
@@ -3045,6 +3051,7 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Function;
+  friend class module_snapshot::FunctionTypeDeserializationCluster;
 };
 
 class UntaggedRecordType : public UntaggedAbstractType {
@@ -3153,6 +3160,7 @@ class UntaggedMint : public UntaggedInteger {
   friend class Class;
   friend class Integer;
   friend class Interpreter;
+  friend class module_snapshot::IntDeserializationCluster;
 };
 COMPILE_ASSERT(sizeof(UntaggedMint) == 16);
 
@@ -3165,6 +3173,7 @@ class UntaggedDouble : public UntaggedNumber {
   friend class Api;
   friend class Class;
   friend class Interpreter;
+  friend class module_snapshot::DoubleDeserializationCluster;
 };
 COMPILE_ASSERT(sizeof(UntaggedDouble) == 16);
 
@@ -3419,6 +3428,7 @@ class UntaggedArray : public UntaggedInstance {
   friend class MarkingVisitor;
   friend class FastObjectCopy;  // For initializing fields.
   friend class module_snapshot::Deserializer;
+  friend class module_snapshot::ListDeserializationCluster;
   friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };
 
@@ -3455,6 +3465,9 @@ class UntaggedLinkedHashBase : public UntaggedInstance {
     // Do not serialize index.
     return reinterpret_cast<CompressedObjectPtr*>(&deleted_keys_);
   }
+
+  friend class module_snapshot::MapDeserializationCluster;
+  friend class module_snapshot::SetDeserializationCluster;
 };
 
 class UntaggedMap : public UntaggedLinkedHashBase {

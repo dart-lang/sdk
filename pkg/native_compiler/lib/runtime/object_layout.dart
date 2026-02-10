@@ -32,9 +32,13 @@ class ObjectLayout {
     required this.compressedWordSize,
   });
 
-  int getInstanceSize(ast.Class cls) {
+  int getUnalignedInstanceSize(ast.Class cls) {
     _ensureComputed(cls);
-    return roundUp(_instanceSize[cls]!, objectAlignment(wordSize));
+    return _instanceSize[cls]!;
+  }
+
+  int getInstanceSize(ast.Class cls) {
+    return roundUp(getUnalignedInstanceSize(cls), objectAlignment(wordSize));
   }
 
   int getFieldOffset(CField field) {
