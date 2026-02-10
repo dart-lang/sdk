@@ -739,9 +739,6 @@ final class Isolate {
 abstract final class TransferableTypedData {
   @patch
   factory TransferableTypedData.fromList(List<TypedData> chunks) {
-    if (chunks == null) {
-      throw ArgumentError(chunks);
-    }
     final int cid = ClassID.getID(chunks);
     if (cid != ClassID.cidArray &&
         cid != ClassID.cidGrowableObjectArray &&
