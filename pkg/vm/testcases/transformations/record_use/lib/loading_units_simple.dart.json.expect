@@ -20,13 +20,10 @@
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "identifier": {
-          "name": "someStaticMethod",
-          "scope": "SomeClass",
-          "uri": "package:record_use_test/loading_units_simple.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "someStaticMethod",
+        "scope": "SomeClass",
+        "uri": "package:record_use_test/loading_units_simple.dart"
       }
     },
     {
@@ -39,13 +36,10 @@
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "identifier": {
-          "name": "someStaticMethod",
-          "scope": "SomeClass",
-          "uri": "package:record_use_test/loading_units_simple_helper.dart"
-        },
-        "loading_unit": "2"
+      "identifier": {
+        "name": "someStaticMethod",
+        "scope": "SomeClass",
+        "uri": "package:record_use_test/loading_units_simple_helper.dart"
       }
     }
   ]

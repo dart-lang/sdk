@@ -11,8 +11,6 @@
 library;
 
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/deferred_load/output_unit.dart';
-import 'package:compiler/src/js_model/js_world.dart';
 import 'package:record_use/record_use_internal.dart';
 
 import '../js/js.dart' as js;
@@ -35,9 +33,7 @@ class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
 }
 
 class RecordUseCollector {
-  RecordUseCollector(this._closedWorld);
-
-  final JClosedWorld _closedWorld;
+  RecordUseCollector();
 
   final Map<FunctionEntity, List<CallReference>> callMap = {};
 
@@ -60,31 +56,22 @@ class RecordUseCollector {
     callMap.putIfAbsent(recordedUse.function, () => []).add(callReference);
   }
 
-  Map<String, dynamic> finish(
-    Map<String, String> environment,
-    Map<OutputUnit, String> outputUnitToName,
-  ) => Recordings(
+  Map<String, dynamic> finish(Map<String, String> environment) => Recordings(
     metadata: Metadata(
       comment: 'Resources referenced by annotated resource identifiers',
       version: version,
       extension: {'AppTag': 'TBD', 'environment': environment},
     ),
-    callsForDefinition: callMap.map(
+    calls: callMap.map(
       (key, value) => MapEntry(
-        Definition(
-          identifier: Identifier(
-            name: key.name!,
-            scope: key.enclosingClass?.name,
-            importUri: key.library.canonicalUri.toString(),
-          ),
-          loadingUnit:
-              outputUnitToName[_closedWorld.outputUnitData.outputUnitForMember(
-                key,
-              )]!,
+        Identifier(
+          name: key.name!,
+          scope: key.enclosingClass?.name,
+          importUri: key.library.canonicalUri.toString(),
         ),
         value,
       ),
     ),
-    instancesForDefinition: {},
+    instances: <Identifier, List<InstanceReference>>{},
   ).toJson();
 }

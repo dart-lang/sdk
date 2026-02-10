@@ -20,12 +20,9 @@
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "identifier": {
-          "name": "someTopLevelMethod",
-          "uri": "package:record_use_test/top_level_method.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "someTopLevelMethod",
+        "uri": "package:record_use_test/top_level_method.dart"
       }
     }
   ]

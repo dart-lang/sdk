@@ -20,7 +20,6 @@ import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
-import 'package:native_compiler/runtime/vm_defs.dart';
 
 /// Kinds of Dart snapshots.
 /// Should match Snapshot::Kind enum in runtime/vm/snapshot.h.
@@ -704,11 +703,11 @@ final class IntSerializationCluster extends SerializationCluster {
   @override
   void writeAlloc(SnapshotSerializer serializer) {
     // Move Smi values to the beginning.
-    final wordSize = serializer.objectLayout.wordSize;
+    final objectLayout = serializer.objectLayout;
     var i = 0;
     for (var j = 0; j < _objects.length; ++j) {
       final v = _objects[j];
-      if (isSmi(v, wordSize)) {
+      if (objectLayout.isSmi(v)) {
         final tmp = _objects[i];
         _objects[i] = v;
         _objects[j] = tmp;

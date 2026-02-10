@@ -46,12 +46,9 @@
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "identifier": {
-          "name": "recorded",
-          "uri": "package:record_use_test/unsupported_collections.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "recorded",
+        "uri": "package:record_use_test/unsupported_collections.dart"
       }
     }
   ]

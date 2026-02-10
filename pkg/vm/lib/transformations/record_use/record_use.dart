@@ -54,15 +54,6 @@ ast.Component transformComponent(
   final usages = _usages(
     callRecorder.callsForMethod,
     instanceRecorder.instancesForClass,
-    mergeMaps(
-      callRecorder.loadingUnitForDefinition,
-      instanceRecorder.loadingUnitForDefinition,
-      value: (p0, p1) {
-        // The loading units for the same definition should be the same
-        assert(p0 == p1);
-        return p0;
-      },
-    ),
   );
   final usagesStorageFormat = usages.toJson();
   File.fromUri(recordedUsagesFile).writeAsStringSync(
@@ -120,7 +111,6 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
 Recordings _usages(
   Map<Identifier, List<CallReference>> calls,
   Map<Identifier, List<InstanceReference>> instances,
-  Map<Identifier, String> loadingUnitForDefinition,
 ) {
   return Recordings(
     metadata: Metadata(
@@ -128,18 +118,8 @@ Recordings _usages(
           'Recorded usages of objects tagged with a `RecordUse` annotation',
       version: version,
     ),
-    callsForDefinition: calls.map(
-      (key, value) => MapEntry(
-        Definition(identifier: key, loadingUnit: loadingUnitForDefinition[key]),
-        value,
-      ),
-    ),
-    instancesForDefinition: instances.map(
-      (key, value) => MapEntry(
-        Definition(identifier: key, loadingUnit: loadingUnitForDefinition[key]),
-        value,
-      ),
-    ),
+    calls: calls,
+    instances: instances,
   );
 }
 

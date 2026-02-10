@@ -20,12 +20,9 @@
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "identifier": {
-          "name": "_extension#0|callWithArgs",
-          "uri": "package:record_use_test/extension.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "_extension#0|callWithArgs",
+        "uri": "package:record_use_test/extension.dart"
       }
     }
   ]

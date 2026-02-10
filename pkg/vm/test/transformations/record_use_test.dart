@@ -89,9 +89,15 @@ void runTestCaseAot(
 
   bool semanticEquals = false;
   if (goldenFile.existsSync()) {
-    final goldenContents = await goldenFile.readAsString();
-    final golden = Recordings.fromJson(jsonDecode(goldenContents));
-    semanticEquals = actualSemantic.semanticEquals(golden);
+    try {
+      final goldenContents = await goldenFile.readAsString();
+      final golden = Recordings.fromJson(jsonDecode(goldenContents));
+      semanticEquals = actualSemantic.semanticEquals(golden);
+    } on FormatException {
+      if (!update) {
+        rethrow;
+      }
+    }
   }
 
   if (!semanticEquals || update) {

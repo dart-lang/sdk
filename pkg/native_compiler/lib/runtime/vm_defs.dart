@@ -16,14 +16,7 @@ int log2objectAlignment(int log2wordSize) => log2wordSize + 1;
 int boolValueBitPosition(int log2wordSize) => log2objectAlignment(log2wordSize);
 
 /// The number of bits in the _magnitude_ of a Smi, not counting the sign bit.
-/// TODO: support compressed pointers.
-int smiBits(int wordSize) => (wordSize * 8) - 2;
-
-/// Return true if [value] can be represented as a Smi (small integer).
-bool isSmi(int value, int wordSize) {
-  final shiftedOut = value >> smiBits(wordSize);
-  return shiftedOut == 0 || shiftedOut == -1;
-}
+int smiBits(int compressedWordSize) => (compressedWordSize * 8) - 2;
 
 extension ComputedOffsets on VMOffsets {
   /// Offset of [entry] in the Thread.

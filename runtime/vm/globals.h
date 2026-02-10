@@ -18,20 +18,6 @@
 #endif  // defined(_WIN32)
 
 namespace dart {
-// Smi value range is from -(2^N) to (2^N)-1.
-// N=30 (32-bit build) or N=62 (64-bit build).
-#if !defined(DART_COMPRESSED_POINTERS)
-const intptr_t kSmiBits = kBitsPerWord - 2;
-#else
-const intptr_t kSmiBits = 30;
-#endif
-const intptr_t kSmiMax = (static_cast<intptr_t>(1) << kSmiBits) - 1;
-const intptr_t kSmiMin = -(static_cast<intptr_t>(1) << kSmiBits);
-
-// Hard coded from above but for 32-bit architectures.
-const intptr_t kSmiBits32 = kBitsPerInt32 - 2;
-const intptr_t kSmiMax32 = (static_cast<intptr_t>(1) << kSmiBits32) - 1;
-const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 
 #if defined(DART_COMPRESSED_POINTERS)
 static constexpr intptr_t kCompressedWordSize = kInt32Size;
@@ -44,15 +30,31 @@ static constexpr intptr_t kCompressedWordSizeLog2 = kWordSizeLog2;
 typedef uintptr_t compressed_uword;
 typedef intptr_t compressed_word;
 #endif
+
+// Smi should fit into the compressed word in the heap objects,
+// with 1 bit dedicated to the heap pointer tag and 1 bit for sign.
+// So its magnitude has N=30 bits (on 32-bit architectures or 64-bit
+// architectures with compressed pointers) or N=62 bits (on 64-bit
+// architectures without compressed pointers).
+// Smi value range is from -(2^N) to (2^N)-1.
+static constexpr intptr_t kSmiBits = kCompressedWordSize * kBitsPerByte - 2;
+static constexpr intptr_t kSmiMax = (static_cast<intptr_t>(1) << kSmiBits) - 1;
+static constexpr intptr_t kSmiMin = -(static_cast<intptr_t>(1) << kSmiBits);
+
+// Hard coded from above but for 32-bit architectures.
+static constexpr intptr_t kSmiBits32 = kBitsPerInt32 - 2;
+static constexpr intptr_t kSmiMax32 =
+    (static_cast<intptr_t>(1) << kSmiBits32) - 1;
+static constexpr intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
+
+// Number of bytes per BigInt digit.
+const intptr_t kBytesPerBigIntDigit = 4;
+
 // 32-bit: 2^32 addresses => kMaxAddrSpaceMB = 2^(32 - MBLog2) = 2^12 MB
 // 64-bit: 2^48 addresses => kMaxAddrSpaceMB = 2^(48 - MBLog2) = 2^28 MB
 const intptr_t kMaxAddrSpaceMB = (kWordSize <= 4) ? 4096 : 268435456;
 const intptr_t kMaxAddrSpaceInWords = kMaxAddrSpaceMB >> kWordSizeLog2
                                                              << MBLog2;
-
-// Number of bytes per BigInt digit.
-const intptr_t kBytesPerBigIntDigit = 4;
-
 // The default old gen heap size in MB, where 0 -- unlimited.
 // 32-bit: OS limit is 2 or 3 GB
 // 64-bit: Linux's limit is

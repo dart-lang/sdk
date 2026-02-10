@@ -58,19 +58,25 @@ Future<void> runTestCase(
 
     bool semanticEquals = false;
     if (goldenFile.existsSync()) {
-      final goldenContents = await goldenFile.readAsString();
-      final golden = Recordings.fromJson(jsonDecode(goldenContents));
-      semanticEquals =
-          actualSemantic.semanticEquals(golden, loadingUnitMapping: (unit) {
-        final codeUnits = unit.codeUnits;
-        int result = 0;
-        int power = 1;
-        for (final codeUnit in codeUnits) {
-          result += (codeUnit - 35) * power;
-          power *= 92;
+      try {
+        final goldenContents = await goldenFile.readAsString();
+        final golden = Recordings.fromJson(jsonDecode(goldenContents));
+        semanticEquals =
+            actualSemantic.semanticEquals(golden, loadingUnitMapping: (unit) {
+          final codeUnits = unit.codeUnits;
+          int result = 0;
+          int power = 1;
+          for (final codeUnit in codeUnits) {
+            result += (codeUnit - 35) * power;
+            power *= 92;
+          }
+          return '$result';
+        });
+      } on FormatException {
+        if (!update) {
+          rethrow;
         }
-        return '$result';
-      });
+      }
     }
 
     if (update && !semanticEquals) {

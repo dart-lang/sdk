@@ -24,13 +24,10 @@
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "identifier": {
-          "name": "generate",
-          "scope": "OtherClass",
-          "uri": "package:record_use_test/complex.dart"
-        },
-        "loading_unit": "1"
+      "identifier": {
+        "name": "generate",
+        "scope": "OtherClass",
+        "uri": "package:record_use_test/complex.dart"
       }
     }
   ]
