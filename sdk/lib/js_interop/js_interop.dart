@@ -246,9 +246,7 @@ extension type JSExportedDartFunction._(
 /// supports many utility methods.
 extension type JSIterableProtocol<T extends JSAny?>._(JSAnyType _)
     implements JSAny {
-  /// See [`[Symbol.iterator]()`].
-  ///
-  /// [`[Symbol.iterator]()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#symbol.iterator
+  /// See [`[Symbol.iterator]()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#symbol.iterator).
   JSIteratorProtocol<T> get iterator => _callMethod(JSSymbol.iterator);
 }
 
@@ -265,10 +263,9 @@ extension type JSIterableProtocol<T extends JSAny?>._(JSAnyType _)
 @Since('3.11')
 extension type JSIterable<T extends JSAny?>._(JSAnyType _)
     implements JSIterableProtocol<T> {
-  /// See [`[Symbol.iterator]()`]. Unlike [JSIterableProtocol.iterator], this
-  /// always returns a full-fledged [JSIterator].
-  ///
-  /// [`[Symbol.iterator]()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#symbol.iterator
+  /// See [`[Symbol.iterator]()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#symbol.iterator).
+  /// Unlike [JSIterableProtocol.iterator], this always returns a full-fledged
+  /// [JSIterator].
   JSIterator<T> get iterator => _callMethod<JSIterator<T>>(JSSymbol.iterator);
 }
 
@@ -1971,14 +1968,7 @@ extension IterableToJSIterable<T extends JSAny?> on Iterable<T> {
     var object = JSObject();
     object.setProperty(
       JSSymbol.iterator,
-      () {
-        var iterator = this.iterator;
-        return JSIterator.fromFunctions(
-          () => iterator.moveNext()
-              ? JSIteratorResult.value(iterator.current)
-              : JSIteratorResult.done(),
-        );
-      }.toJS,
+      (() => this.iterator.toJSIterator).toJS,
     );
     return object as JSIterable<T>;
   }
@@ -1999,6 +1989,22 @@ class _JSIterableToIterable<T extends JSAny?> extends Iterable<T> {
 
   @override
   Iterator<T> get iterator => _JSIteratorToIterator<T>(_js.iterator);
+}
+
+/// Conversion from [Iterator] to [JSIterator].
+extension IteratorToJSIterator<T extends JSAny?> on Iterator<T> {
+  /// Returns a [JSIterator] wrapper that proxies to the Dart iterator API.
+  JSIterator<T> get toJSIterator => JSIterator.fromFunctions<T>(
+    () => this.moveNext()
+        ? JSIteratorResult<T>.value(this.current)
+        : JSIteratorResult<T>.done(),
+  );
+}
+
+/// Conversion from [JSIterator] to [Iterator].
+extension JSIteratorToIterator<T extends JSAny?> on JSIterator<T> {
+  /// Returns a Dart [Iterator] that iterates over the values in this.
+  Iterator<T> get toDartIterator => _JSIteratorToIterator<T>(this);
 }
 
 /// A wrapper around a [JSIterator] that implements the Dart iterator API.
