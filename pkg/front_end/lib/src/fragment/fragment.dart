@@ -146,4 +146,7 @@ abstract interface class DeclarationFragment {
 
   /// Type parameters declared on this declaration.
   List<TypeParameterFragment>? get typeParameters;
+
+  /// Returns the body scope for this declaration.
+  LookupScope get bodyScope;
 }
