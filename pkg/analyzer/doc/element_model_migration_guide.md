@@ -24,12 +24,7 @@ migration work at this point, so we won’t discuss them here.
 
 ### Overview of the language features
 
-While you should probably read the details of the language features before you
-attempt to support them, this section attempts to describe the aspects of those
-features that impact the element model API. Note that it is not necessary for
-you to support the new language features in order to migrate to the new element
-model APIs. In fact, given that the analyzer package doesn’t yet support the
-augmentations feature you probably can’t support it yet even if you want to.
+Before attempting to support these language features, it’s advisable to review their detailed specifications. That said, this section focuses specifically on the aspects of those features that affect the element model API. Supporting the new language features is not a prerequisite for migrating to the new element model APIs. In practice, you likely cannot support some of these features yet even if desired because the analyzer package does not currently support augmentations.
 
 As you know, the element model describes the semantic (as opposed to syntactic)
 structure of Dart code. Generally speaking, an element represents something that
