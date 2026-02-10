@@ -30,6 +30,16 @@ There are no language changes in this release.
   `JSSymbol.description`, and static methods for all well-known ECMAScript
   symbols.
 
+- Added `JSIterableProtocol`, `JSIterable`, `JSIteratorProtocol`, `JSIterator`,
+  and `JSIteratorResult` types to model JavaScript's [iteration protocols].
+  `JSArray` and `JSString` now implement `JSIterable`.
+
+  [iteration protocols]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols
+
+- Added extension types to provide `Iterable.toJSIterable`,
+  `JSIterable.toDartIterable`, `Iterator.toJSIterator`, and
+  `JSIterator.toDartIterator`.
+
 #### `dart:js_util`
 
 - dart2wasm no longer supports `dart:js_util`. Any code that imports
