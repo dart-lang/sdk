@@ -42,8 +42,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   List<R> cast<R>() => List.castFrom<T, R>(this);
 
   @override
-  void add(T value) =>
-      js.JS<void>('(a, i) => a.push(i)', toExternRef, value.toExternRef);
+  void add(T value) => arrayPush(toExternRef, value.toExternRef);
 
   @override
   T removeAt(int index) {
@@ -633,3 +632,6 @@ class JSArrayImplIterator<T extends JSAny?> implements Iterator<T> {
     return true;
   }
 }
+
+void arrayPush(WasmExternRef? array, WasmExternRef? elem) =>
+    js.JS<void>('(a, i) => a.push(i)', array, elem);
