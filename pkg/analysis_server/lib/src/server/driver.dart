@@ -350,7 +350,7 @@ class Driver implements ServerStarter {
     // Initialize the session logging service.
     var sessionLogFilePath = results.option(sessionLogOption);
     _sessionLogger = SessionLogger();
-    var inMemorySink = SessionLoggerInMemorySink(maxBufferLength: 256);
+    var inMemorySink = SessionLoggerInMemorySink(maxBufferLength: 1024);
     _sessionLogger.sink = inMemorySink;
     if (sessionLogFilePath != null) {
       inMemorySink.nextLogger = SessionLoggerFileSink(sessionLogFilePath);

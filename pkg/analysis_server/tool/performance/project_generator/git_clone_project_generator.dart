@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import '../utilities/git.dart';
 import 'project_generator.dart';
 
@@ -16,7 +18,11 @@ class GitCloneProjectGenerator implements ProjectGenerator {
   /// The ref (commit sha, tag, or branch) to check out.
   final String ref;
 
-  GitCloneProjectGenerator(this.repo, this.ref);
+  /// Relative paths to the sub-directories of the repo to open in the
+  /// workspace.
+  final Iterable<String>? openSubdirs;
+
+  GitCloneProjectGenerator(this.repo, this.ref, {this.openSubdirs});
 
   @override
   String get description => 'Cloning git repo "$repo" at ref "$ref"';
@@ -27,9 +33,21 @@ class GitCloneProjectGenerator implements ProjectGenerator {
     await runGitCommand(['clone', repo, '.'], outputDir);
     await runGitCommand(['fetch', 'origin', ref], outputDir);
     await runGitCommand(['checkout', ref], outputDir);
+    var workspaceDirectories = <Directory>[];
+    var contextRoots = <ContextRoot>[];
+    if (openSubdirs != null) {
+      for (var subdir in openSubdirs!) {
+        var dir = Directory(p.join(outputDir.path, subdir));
+        workspaceDirectories.add(dir);
+        contextRoots.addAll(await getContextRoots(dir.path));
+      }
+    } else {
+      workspaceDirectories.add(outputDir);
+      contextRoots.addAll(await getContextRoots(outputDir.path));
+    }
     return Workspace(
-      contextRoots: await initializeContextRoots(outputDir.path).toList(),
-      workspaceDirectories: [outputDir],
+      contextRoots: contextRoots,
+      workspaceDirectories: workspaceDirectories,
     );
   }
 

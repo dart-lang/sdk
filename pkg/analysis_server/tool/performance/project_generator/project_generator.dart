@@ -12,10 +12,44 @@ import 'package:yaml/yaml.dart';
 final _pubspecGlob = Glob('**/pubspec.yaml');
 
 /// Searches for all pubspecs under [rootDir] that are a context root (don't
-/// have `resolution: workspace`), and initializes them as needed.
+/// have `resolution: workspace`), initializes them, and returns a list of
+/// [ContextRoot]s sorted by path.
+Future<List<ContextRoot>> getContextRoots(
+  String rootDir, {
+  bool isSdk = false,
+}) async {
+  var roots = await _initializeContextRoots(rootDir, isSdk: isSdk).toList();
+  _sortContextRoots(roots);
+  return roots;
+}
+
+/// Runs `dart|flutter pub get` in [projectDir]
 ///
-/// Returns the initialized [ContextRoot]s.
-Stream<ContextRoot> initializeContextRoots(
+/// Checks various parts of the [pubspec] for `flutter` dependencies to
+/// determine the type of package.
+Future<void> runPubGet(Directory projectDir, YamlMap pubspec) async {
+  var isFlutter =
+      pubspec['environment']?['flutter'] != null ||
+      pubspec['dependencies']?['flutter'] != null ||
+      pubspec['dev_dependencies']?['flutter'] != null ||
+      pubspec['dev_dependencies']?['flutter_test'] != null;
+  var sdk = isFlutter ? 'flutter' : 'dart';
+  print('Fetching dependencies with `$sdk pub get` in ${projectDir.path}');
+  var pubGetResult = await Process.run(sdk, [
+    'pub',
+    'get',
+    '--no-example',
+  ], workingDirectory: projectDir.path);
+  if (pubGetResult.exitCode != 0) {
+    throw StateError(
+      'Failed to run `$sdk pub get`:\n'
+      'StdOut:\n${pubGetResult.stdout}\n'
+      'StdErr:\n${pubGetResult.stderr}',
+    );
+  }
+}
+
+Stream<ContextRoot> _initializeContextRoots(
   String rootDir, {
   bool isSdk = false,
 }) async* {
@@ -48,30 +82,9 @@ Stream<ContextRoot> initializeContextRoots(
   }
 }
 
-/// Runs `dart|flutter pub get` in [projectDir]
-///
-/// Checks various parts of the [pubspec] for `flutter` dependencies to
-/// determine the type of package.
-Future<void> runPubGet(Directory projectDir, YamlMap pubspec) async {
-  var isFlutter =
-      pubspec['environment']?['flutter'] != null ||
-      pubspec['dependencies']?['flutter'] != null ||
-      pubspec['dev_dependencies']?['flutter'] != null ||
-      pubspec['dev_dependencies']?['flutter_test'] != null;
-  var sdk = isFlutter ? 'flutter' : 'dart';
-  print('Fetching dependencies with `$sdk pub get` in ${projectDir.path}');
-  var pubGetResult = await Process.run(sdk, [
-    'pub',
-    'get',
-    '--no-example',
-  ], workingDirectory: projectDir.path);
-  if (pubGetResult.exitCode != 0) {
-    throw StateError(
-      'Failed to run `$sdk pub get`:\n'
-      'StdOut:\n${pubGetResult.stdout}\n'
-      'StdErr:\n${pubGetResult.stderr}',
-    );
-  }
+/// Sorts the [roots] by their path.
+void _sortContextRoots(List<ContextRoot> roots) {
+  roots.sort((a, b) => a.dir.path.compareTo(b.dir.path));
 }
 
 /// An analysis context root for a project, projects may have many context
@@ -112,7 +125,7 @@ class Workspace {
   /// Each context root is a single directory and associated package config.
   ///
   /// These may be subdirectories of the root directories, or other contexts.
-  final Iterable<ContextRoot> contextRoots;
+  final List<ContextRoot> contextRoots;
 
   /// The actual root directories containing the projects.
   ///
