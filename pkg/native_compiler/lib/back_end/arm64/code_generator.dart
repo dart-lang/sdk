@@ -309,13 +309,13 @@ final class Arm64CodeGenerator extends CodeGenerator {
         Constant(:var value)
             when value.isNull ||
                 value.isBool ||
-                (value.isInt && isSmi(value.intValue, wordSize)) =>
+                (value.isInt && objectLayout.isSmi(value.intValue)) =>
           true,
         _ => false,
       };
 
   bool _canBeSmi(Definition def) => switch (def) {
-    Constant(:var value) => value.isInt && isSmi(value.intValue, wordSize),
+    Constant(:var value) => value.isInt && objectLayout.isSmi(value.intValue),
     _ => def.type is IntType || const IntType().isSubtypeOf(def.type),
   };
 
