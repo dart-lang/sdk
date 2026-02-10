@@ -1,0 +1,96 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/parameter_scope.dart:9:10: Error: 'int' isn't a type.
+// class C2(int x) { // Error
+//          ^^^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_scope.dart:18:9: Error: 'int' isn't a type.
+// enum E2(int x) { // Error
+//         ^^^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_scope.dart:27:20: Error: 'int' isn't a type.
+// extension type ET2(int x) { // Error
+//                    ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  static const field core::int m = #C1;
+  constructor •([@#C1 core::int x = #C1]) → self::C1
+    : super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  static const field core::String int = #C2;
+  constructor •(core::int x) → self::C2
+    : super core::Object::•()
+    ;
+}
+class E1 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E1 a = #C5;
+  static const field core::int m = #C1;
+  static const field core::List<self::E1> values = #C6;
+  const constructor •(core::int #index, core::String #name, [@#C5 core::int x = #C1]) → self::E1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E2 a = #C7;
+  static const field core::String int = #C2;
+  static const field core::List<self::E2> values = #C8;
+  const constructor •(core::int #index, core::String #name, core::int x) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+extension type ET1(core::int x) {
+  abstract extension-type-member representation-field get x() → core::int;
+  static field m = self::ET1|m;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int x) {
+  abstract extension-type-member representation-field get x() → core::int;
+  static field int = self::ET2|int;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static const field core::int ET1|m = #C1;
+static const field core::String ET2|int = #C2;
+static extension-type-member method ET1|constructor#([@#C1 core::int x = #C1]) → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff([core::int x = #C1]) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(x);
+static extension-type-member method ET2|constructor#(core::int x) → self::ET2% /* erasure=core::int, declared=! */ {
+  lowered final self::ET2% /* erasure=core::int, declared=! */ #this = x;
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int x) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(x);
+
+constants  {
+  #C1 = 42
+  #C2 = "not a type"
+  #C3 = 0
+  #C4 = "a"
+  #C5 = self::E1 {index:#C3, _name:#C4}
+  #C6 = <self::E1>[#C5]
+  #C7 = self::E2 {index:#C3, _name:#C4}
+  #C8 = <self::E2>[#C7]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///parameter_scope.dart:
+- E1. (from org-dartlang-testcase:///parameter_scope.dart:13:8)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- E2. (from org-dartlang-testcase:///parameter_scope.dart:18:8)

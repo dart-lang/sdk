@@ -546,7 +546,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
+  void handleFunctionBodySkipped(Token beginToken, Token endToken, bool isExpressionBody) {
     if (isExpressionBody) pop();
     push(NullValues.FunctionBody);
   }

@@ -1405,6 +1405,10 @@ class FragmentFactoryImpl implements FragmentFactory {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
 
+    // The name space is, while initially empty, created to support the lowering
+    // of extension (type) constructors which clone the extension (type) type
+    // parameters into the nominal parameter name space of the primary
+    // constructor.
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -1412,7 +1416,15 @@ class FragmentFactoryImpl implements FragmentFactory {
       new TypeScope(
         TypeScopeKind.memberTypeParameters,
         new NominalParameterScope(
-          _typeScopes.current.lookupScope,
+          libraryFeatures.primaryConstructors.isEnabled
+              // Contrary to most other declarations, the type parameter scope
+              // of a primary constructor is _not_ the current type scope, which
+              // is the type parameter scope of the enclosing declaration, but
+              // instead the body scope of the enclosing declaration.
+              ? enclosingDeclaration.bodyScope
+              // Prior to the primary constructors feature, the enclosing scope
+              // was the current type scope.
+              : _typeScopes.current.lookupScope,
           nominalParameterNameSpace,
         ),
         _typeScopes.current,
@@ -1590,6 +1602,8 @@ class FragmentFactoryImpl implements FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required int endOffset,
     required Token? beginInitializers,
+    required bool hasBody,
+    required int bodyOffset,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1601,6 +1615,8 @@ class FragmentFactoryImpl implements FragmentFactory {
           enclosingScope: _declarationFragments.current.bodyScope,
           enclosingDeclaration: enclosingDeclaration,
           enclosingCompilationUnit: _compilationUnit,
+          hasBody: hasBody,
+          bodyOffset: bodyOffset,
         );
     _addFragment(fragment);
     offsetMap.registerPrimaryConstructorBody(beginToken, fragment);

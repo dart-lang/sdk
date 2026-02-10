@@ -1,0 +1,109 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1<T extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class field self::C1::T% b;
+  final field self::C1::T% c;
+  covariant-by-class field self::C1::T% d;
+  covariant-by-class field self::C1::T% e;
+  covariant-by-class field self::C1::T% f;
+  field core::Type g = self::C1::T%;
+  constructor •(self::C1::T% a, self::C1::T% b, self::C1::T% c) → self::C1<self::C1::T%>
+    : self::C1::b = b, self::C1::c = c, self::C1::d = a, self::C1::e = b, self::C1::f = c, self::C1::g = self::C1::T%, super core::Object::•() {
+    core::print(self::C1::T%);
+  }
+}
+class C2<T extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class field self::C2::T% b;
+  final field self::C2::T% c;
+  covariant-by-class field self::C2::T% d;
+  covariant-by-class field self::C2::T% e;
+  covariant-by-class field self::C2::T% f;
+  field core::Type g;
+  constructor •(self::C2::T% a, self::C2::T% b, final self::C2::T% c) → self::C2<self::C2::T%>
+    : self::C2::d = a, self::C2::e = b, self::C2::f = c, self::C2::g = self::C2::T%, self::C2::b = b, self::C2::c = c, super core::Object::•() {
+    core::print(self::C2::T%);
+  }
+}
+class E1<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E1<core::int> a = #C5;
+  final field self::E1::T% b;
+  final field self::E1::T% c;
+  final field self::E1::T% d;
+  final field core::Type f;
+  static const field core::List<self::E1<dynamic>> values = #C6;
+  const constructor •(core::int #index, core::String #name, self::E1::T% a, self::E1::T% b) → self::E1<self::E1::T%>
+    : self::E1::b = b, self::E1::c = a, self::E1::d = b, self::E1::f = self::E1::T%, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  final field self::E2::T% b;
+  enum-element static const field self::E2<core::int> a = #C7;
+  final field self::E2::T% d;
+  final field self::E2::T% e;
+  final field core::Type f;
+  static const field core::List<self::E2<dynamic>> values = #C8;
+  const constructor •(core::int #index, core::String #name, self::E2::T% a, final self::E2::T% b) → self::E2<self::E2::T%>
+    : self::E2::d = a, self::E2::e = b, self::E2::f = self::E2::T%, self::E2::b = b, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+extension type ET1<T extends core::Object? = dynamic>(T% a) {
+  abstract extension-type-member representation-field get a() → T%;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+  constructor other = self::ET1|constructor#other;
+  constructor tearoff other = self::ET1|constructor#_#other#tearOff;
+}
+extension type ET2<T extends core::Object? = dynamic>(T% a) {
+  abstract extension-type-member representation-field get a() → T%;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#<T extends core::Object? = dynamic>(self::ET1|constructor#::T% a) → self::ET1<self::ET1|constructor#::T%>% /* erasure=self::ET1|constructor#::T%, declared=! */ {
+  lowered final self::ET1<self::ET1|constructor#::T%>% /* erasure=self::ET1|constructor#::T%, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET1|constructor#_#new#tearOff::T% a) → self::ET1<self::ET1|constructor#_#new#tearOff::T%>% /* erasure=self::ET1|constructor#_#new#tearOff::T%, declared=! */
+  return self::ET1|constructor#<self::ET1|constructor#_#new#tearOff::T%>(a);
+static extension-type-member method ET1|constructor#other<T extends core::Object? = dynamic>(self::ET1|constructor#other::T% a) → self::ET1<self::ET1|constructor#other::T%>% /* erasure=self::ET1|constructor#other::T%, declared=! */ {
+  lowered final self::ET1<self::ET1|constructor#other::T%>% /* erasure=self::ET1|constructor#other::T%, declared=! */ #this = a;
+  {
+    core::print(self::ET1|constructor#other::T%);
+  }
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#other#tearOff<T extends core::Object? = dynamic>(self::ET1|constructor#_#other#tearOff::T% a) → self::ET1<self::ET1|constructor#_#other#tearOff::T%>% /* erasure=self::ET1|constructor#_#other#tearOff::T%, declared=! */
+  return self::ET1|constructor#other<self::ET1|constructor#_#other#tearOff::T%>(a);
+static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% a) → self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */ {
+  lowered final self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */ #this = a;
+  {
+    core::print(self::ET2|constructor#::T%);
+  }
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% a) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* erasure=self::ET2|constructor#_#new#tearOff::T%, declared=! */
+  return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(a);
+
+constants  {
+  #C1 = 1
+  #C2 = 0
+  #C3 = TypeLiteralConstant(core::int)
+  #C4 = "a"
+  #C5 = self::E1<core::int> {b:#C1, c:#C2, d:#C1, f:#C3, index:#C2, _name:#C4}
+  #C6 = <self::E1<dynamic>>[#C5]
+  #C7 = self::E2<core::int> {b:#C1, d:#C2, e:#C1, f:#C3, index:#C2, _name:#C4}
+  #C8 = <self::E2<dynamic>>[#C7]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///generic_primary_constructor.dart:
+- E1. (from org-dartlang-testcase:///generic_primary_constructor.dart:37:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- E2. (from org-dartlang-testcase:///generic_primary_constructor.dart:40:11)
