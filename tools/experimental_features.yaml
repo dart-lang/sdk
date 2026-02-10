@@ -187,6 +187,9 @@ features:
     #     2.{ print('Anonymous methods enabled: $isEven'); };
     #   }
 
+  record-spreads:
+    help: "Allow spreading record values into record literals."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

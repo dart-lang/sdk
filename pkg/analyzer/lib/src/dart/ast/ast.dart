@@ -23795,6 +23795,92 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   }
 }
 
+/// A spread expression as a field in a record literal: `...expr` or `...?expr`.
+///
+///    recordSpreadField ::=
+///        ('...' | '...?') [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class RecordSpreadField implements Expression {
+  /// The expression used to compute the record being spread.
+  Expression get expression;
+
+  /// Whether this is a null-aware spread (`...?`), as opposed to a non-null
+  /// spread (`...`).
+  bool get isNullAware;
+
+  /// The spread operator, either `...` or `...?`.
+  Token get spreadOperator;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('spreadOperator'),
+    GenerateNodeProperty('expression'),
+  ],
+)
+final class RecordSpreadFieldImpl extends ExpressionImpl
+    implements RecordSpreadField {
+  @override
+  final Token spreadOperator;
+
+  ExpressionImpl _expression;
+
+  RecordSpreadFieldImpl({
+    required this.spreadOperator,
+    required ExpressionImpl expression,
+  }) : _expression = expression {
+    _becomeParentOf(expression);
+  }
+
+  @override
+  Token get beginToken => spreadOperator;
+
+  @override
+  Token get endToken => expression.endToken;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
+
+  @override
+  bool get isNullAware =>
+      spreadOperator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
+
+  @override
+  Precedence get precedence => Precedence.prefix;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('spreadOperator', spreadOperator)
+    ..addNode('expression', expression);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitRecordSpreadField(this);
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    // Resolution is handled by RecordLiteralResolver, not individually.
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    }
+    return null;
+  }
+}
+
 /// A record pattern.
 ///
 ///    recordPattern ::=

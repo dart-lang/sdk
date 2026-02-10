@@ -8021,6 +8021,22 @@ class Parser {
         token = next;
         break;
       }
+      // Check for spread operator in record literal.
+      if (next.isA(TokenType.PERIOD_PERIOD_PERIOD) ||
+          next.isA(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
+        Token spreadOperator = next;
+        wasRecord = true;
+        wasValidRecord = true;
+        token = parseExpression(next);
+        listener.handleRecordSpreadField(spreadOperator);
+        ++count;
+        next = token.next!;
+        if (!next.isA(TokenType.COMMA)) {
+          break;
+        }
+        token = next;
+        continue;
+      }
       Token? colon = null;
       if (next.next!.isA(TokenType.COLON) || /* recovery */
           next.isA(TokenType.COLON)) {

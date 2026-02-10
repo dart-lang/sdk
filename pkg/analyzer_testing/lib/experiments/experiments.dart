@@ -20,6 +20,7 @@ List<String> experimentsForTests = List.unmodifiable([
   Feature.macros.enableString,
   Feature.primary_constructors.enableString,
   Feature.private_named_parameters.enableString,
+  Feature.record_spreads.enableString,
   Feature.static_extensions.enableString,
   Feature.variance.enableString,
 ]);

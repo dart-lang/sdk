@@ -1,0 +1,61 @@
+void foo() {
+var pair = (1, 2);
+
+
+var r1 = (...pair, 3);
+
+
+var named = (a: 1, b: 2);
+var r2 = (...named);
+
+
+var mixed = (1, a: 2);
+var r3 = (...mixed);
+
+
+var r4 = (...pair, color: 'red');
+
+
+var r5 = (...pair, ...(3, 4));
+
+
+var r6 = (...(1, 2), ...(a: 3, b: 4));
+
+
+var r7 = (...pair, );
+
+
+var r8 = const (...(1, 2), 3);
+}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] pair[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r1[StringToken] =[SimpleToken] ([BeginToken]...[SimpleToken]pair[StringToken],[SimpleToken] 3[StringToken])[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] named[StringToken] =[SimpleToken] ([BeginToken]a[StringToken]:[SimpleToken] 1[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] r2[StringToken] =[SimpleToken] ([BeginToken]...[SimpleToken]named[StringToken])[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] mixed[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] a[StringToken]:[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] r3[StringToken] =[SimpleToken] ([BeginToken]...[SimpleToken]mixed[StringToken])[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r4[StringToken] =[SimpleToken] ([BeginToken]...[SimpleToken]pair[StringToken],[SimpleToken] color[StringToken]:[SimpleToken] 'red'[StringToken])[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r5[StringToken] =[SimpleToken] ([BeginToken]...[SimpleToken]pair[StringToken],[SimpleToken] ...[SimpleToken]([BeginToken]3[StringToken],[SimpleToken] 4[StringToken])[SimpleToken])[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r6[StringToken] =[SimpleToken] ([BeginToken]...[SimpleToken]([BeginToken]1[StringToken],[SimpleToken] 2[StringToken])[SimpleToken],[SimpleToken] ...[SimpleToken]([BeginToken]a[StringToken]:[SimpleToken] 3[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 4[StringToken])[SimpleToken])[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r7[StringToken] =[SimpleToken] ([BeginToken]...[SimpleToken]pair[StringToken],[SimpleToken] )[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r8[StringToken] =[SimpleToken] const[KeywordToken] ([BeginToken]...[SimpleToken]([BeginToken]1[StringToken],[SimpleToken] 2[StringToken])[SimpleToken],[SimpleToken] 3[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,19 @@
+void foo() {
+var point = (1, 2);
+var record1 = (...point, 3);
+var record2 = (...point, a: 3);
+var record3 = (1, ...point);
+var record4 = (...point, ...point);
+var record5 = (a: 1, ...point, b: 2);
+}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] point[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] record1[StringToken] =[SimpleToken] ([BeginToken]...[SimpleToken]point[StringToken],[SimpleToken] 3[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] record2[StringToken] =[SimpleToken] ([BeginToken]...[SimpleToken]point[StringToken],[SimpleToken] a[StringToken]:[SimpleToken] 3[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] record3[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] ...[SimpleToken]point[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] record4[StringToken] =[SimpleToken] ([BeginToken]...[SimpleToken]point[StringToken],[SimpleToken] ...[SimpleToken]point[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] record5[StringToken] =[SimpleToken] ([BeginToken]a[StringToken]:[SimpleToken] 1[StringToken],[SimpleToken] ...[SimpleToken]point[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

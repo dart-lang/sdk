@@ -1180,6 +1180,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRecordSpreadField(RecordSpreadField node) {
+    _visitToken(node.spreadOperator);
+    _visitNode(node.expression);
+  }
+
+  @override
   void visitRecordPattern(RecordPattern node) {
     var fields = node.fields;
     sink.write('(');

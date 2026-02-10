@@ -304,6 +304,8 @@ abstract class AstVisitor<R> {
 
   R? visitRecordPattern(RecordPattern node);
 
+  R? visitRecordSpreadField(RecordSpreadField node);
+
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node);
 
   R? visitRecordTypeAnnotationNamedField(RecordTypeAnnotationNamedField node);

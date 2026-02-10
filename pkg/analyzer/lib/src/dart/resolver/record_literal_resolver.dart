@@ -42,6 +42,13 @@ class RecordLiteralResolver {
     DartType contextType,
   ) {
     if (contextType is! RecordTypeImpl) return null;
+
+    // When spreads are present, we can't match the context type because we
+    // don't know the expanded shape until the spread expressions are resolved.
+    for (var field in node.fields) {
+      if (field is RecordSpreadFieldImpl) return null;
+    }
+
     if (contextType.namedFields.length + contextType.positionalFields.length !=
         node.fields.length) {
       return null;
@@ -75,23 +82,50 @@ class RecordLiteralResolver {
   }
 
   /// Report any named fields in the record literal [node] that use a previously
-  /// defined name.
+  /// defined name, including named fields contributed by spread expressions.
   void _reportDuplicateFieldDefinitions(RecordLiteralImpl node) {
-    var usedNames = <String, NamedExpression>{};
+    var usedNames = <String, Expression>{};
     for (var field in node.fields) {
       if (field is NamedExpressionImpl) {
         var name = field.name.label.name;
         var previousField = usedNames[name];
         if (previousField != null) {
-          _diagnosticReporter.report(
-            DiagnosticFactory().duplicateFieldDefinitionInLiteral(
-              _diagnosticReporter.source,
-              field,
-              previousField,
-            ),
-          );
+          if (previousField is NamedExpression) {
+            _diagnosticReporter.report(
+              DiagnosticFactory().duplicateFieldDefinitionInLiteral(
+                _diagnosticReporter.source,
+                field,
+                previousField,
+              ),
+            );
+          } else {
+            // Previous field came from a spread.
+            _diagnosticReporter.report(
+              diag.recordSpreadDuplicateNamedField
+                  .withArguments(name: name)
+                  .at(field),
+            );
+          }
         } else {
           usedNames[name] = field;
+        }
+      } else if (field is RecordSpreadFieldImpl) {
+        // Check for duplicate named fields contributed by the spread.
+        var spreadType = field.expression.staticType;
+        if (spreadType is RecordTypeImpl) {
+          for (var namedField in spreadType.namedFields) {
+            if (usedNames.containsKey(namedField.name)) {
+              _diagnosticReporter.report(
+                diag.recordSpreadDuplicateNamedField
+                    .withArguments(name: namedField.name)
+                    .at(field.spreadOperator),
+              );
+            } else {
+              // Track the spread operator as a stand-in for the contributed
+              // named field so later explicit fields can detect the clash.
+              usedNames[namedField.name] = field;
+            }
+          }
         }
       }
     }
@@ -100,9 +134,15 @@ class RecordLiteralResolver {
   /// Report any fields in the record literal [node] that use an invalid name.
   void _reportInvalidFieldNames(RecordLiteralImpl node) {
     var fields = node.fields;
+    // Count total positional fields, including those contributed by spreads.
     var positionalCount = 0;
     for (var field in fields) {
-      if (field is! NamedExpression) {
+      if (field is RecordSpreadFieldImpl) {
+        var spreadType = field.expression.staticType;
+        if (spreadType is RecordTypeImpl) {
+          positionalCount += spreadType.positionalFields.length;
+        }
+      } else if (field is! NamedExpression) {
         positionalCount++;
       }
     }
@@ -124,6 +164,33 @@ class RecordLiteralResolver {
             _diagnosticReporter.report(
               diag.invalidFieldNameFromObject.at(nameNode),
             );
+          }
+        }
+      } else if (field is RecordSpreadFieldImpl) {
+        var spreadType = field.expression.staticType;
+        if (spreadType is RecordTypeImpl) {
+          for (var namedField in spreadType.namedFields) {
+            var name = namedField.name;
+            if (name.startsWith('_')) {
+              _diagnosticReporter.report(
+                diag.invalidFieldNamePrivate.at(field.spreadOperator),
+              );
+            } else {
+              var index = RecordTypeExtension.positionalFieldIndex(name);
+              if (index != null) {
+                if (index < positionalCount) {
+                  _diagnosticReporter.report(
+                    diag.recordSpreadPositionalNameClash
+                        .withArguments(name: name)
+                        .at(field.spreadOperator),
+                  );
+                }
+              } else if (isForbiddenNameForRecordField(name)) {
+                _diagnosticReporter.report(
+                  diag.invalidFieldNameFromObject.at(field.spreadOperator),
+                );
+              }
+            }
           }
         }
       }
@@ -163,7 +230,9 @@ class RecordLiteralResolver {
     var contextTypeAsRecord = _matchContextType(node, contextType);
     var index = 0;
     for (var field in node.fields) {
-      if (field is NamedExpressionImpl) {
+      if (field is RecordSpreadFieldImpl) {
+        _resolveSpreadField(field, positionalFields, namedFields);
+      } else if (field is NamedExpressionImpl) {
         var name = field.name.label.name;
         var fieldContextType =
             contextTypeAsRecord?.namedField(name)!.type ??
@@ -194,6 +263,55 @@ class RecordLiteralResolver {
       ),
       resolver: _resolver,
     );
+  }
+
+  /// Resolve a spread field in a record literal.
+  ///
+  /// Infers the type of the spread expression, validates that it is a concrete
+  /// record type, and expands its positional and named fields into the
+  /// corresponding result type lists.
+  void _resolveSpreadField(
+    RecordSpreadFieldImpl field,
+    List<RecordTypePositionalFieldImpl> positionalFields,
+    List<RecordTypeNamedFieldImpl> namedFields,
+  ) {
+    // Resolve the inner expression.
+    var spreadType = _resolveField(
+      field.expression,
+      UnknownInferredType.instance,
+    );
+
+    // Null-aware spread (`...?`) is not supported for records because record
+    // field shapes must be statically known — you cannot conditionally
+    // include/exclude fields. Report an error per Step 12.
+    if (field.isNullAware) {
+      _diagnosticReporter.report(
+        diag.recordSpreadNullAwareNotSupported.at(field.spreadOperator),
+      );
+      return;
+    }
+
+    // Validate: must be a concrete record type.
+    if (spreadType is! RecordTypeImpl) {
+      _diagnosticReporter.report(
+        diag.recordSpreadNotRecordType
+            .withArguments(type: spreadType)
+            .at(field),
+      );
+      return;
+    }
+
+    // Expand positional fields from the spread's record type.
+    for (var posField in spreadType.positionalFields) {
+      positionalFields.add(RecordTypePositionalFieldImpl(type: posField.type));
+    }
+
+    // Expand named fields from the spread's record type.
+    for (var namedField in spreadType.namedFields) {
+      namedFields.add(
+        RecordTypeNamedFieldImpl(name: namedField.name, type: namedField.type),
+      );
+    }
   }
 
   /// Returns whether [name] is a name forbidden for record fields because it

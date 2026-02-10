@@ -361,6 +361,8 @@ abstract class RuleVisitorRegistry {
 
   void addRecordPattern(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  void addRecordSpreadField(AbstractAnalysisRule rule, AstVisitor visitor);
+
   void addRecordTypeAnnotation(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addRecordTypeAnnotationNamedField(

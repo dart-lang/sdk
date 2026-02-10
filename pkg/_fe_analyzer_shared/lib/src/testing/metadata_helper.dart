@@ -640,6 +640,9 @@ class Writer {
         _expressionToText(field.expression);
       case RecordPositionalField():
         _expressionToText(field.expression);
+      case RecordSpreadField():
+        _write(field.isNullAware ? '...?' : '...');
+        _expressionToText(field.expression);
     }
   }
 

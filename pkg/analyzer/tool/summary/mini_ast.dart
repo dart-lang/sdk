@@ -639,6 +639,12 @@ class MiniAstBuilder extends StackListener {
   void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
 
   @override
+  void handleRecordSpreadField(Token spreadToken) {
+    debugEvent("RecordSpreadField");
+    // Spread expression is on the stack; leave it for endRecordLiteral.
+  }
+
+  @override
   void handleNativeClause(Token nativeToken, bool hasName) {
     debugEvent("NativeClause");
     if (hasName) {
