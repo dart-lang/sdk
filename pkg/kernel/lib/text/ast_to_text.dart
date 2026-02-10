@@ -736,6 +736,18 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     column = 0;
   }
 
+  void _writeContexts(ContextConsumer consumer) {
+    if (consumer.contexts case List<VariableContext> contexts
+        when contexts.isNotEmpty) {
+      ensureSpace();
+      writeWord('/*');
+      for (VariableContext context in contexts) {
+        writeWord(syntheticNames.nameVariableContext(context));
+      }
+      writeWord('*/');
+    }
+  }
+
   void writeFunction(FunctionNode function,
       {name, List<Initializer>? initializers, bool terminateLine = true}) {
     if (name is String) {
@@ -748,15 +760,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeTypeParameterList(function.typeParameters);
     writeParameterList(function.positionalParameters, function.namedParameters,
         function.requiredParameterCount);
-    if (function.contexts case List<VariableContext> contexts
-        when contexts.isNotEmpty) {
-      ensureSpace();
-      writeWord('/*');
-      for (VariableContext context in contexts) {
-        writeWord(syntheticNames.nameVariableContext(context));
-      }
-      writeWord('*/');
-    }
+    _writeContexts(function);
     writeReturnType(
         function.returnType, annotator?.annotateReturn(this, function));
     if (initializers != null && initializers.isNotEmpty) {
@@ -2659,6 +2663,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void visitVariableInitialization(VariableInitialization node) {
     writeIndentation();
     writeVariableInitialization(node);
+    _writeContexts(node);
     endLine(';');
   }
 

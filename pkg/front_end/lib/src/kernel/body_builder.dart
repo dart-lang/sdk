@@ -380,30 +380,21 @@ class BodyBuilderImpl extends StackListenerImpl
     this.constantContext = constantContext;
     if (formalParameterScope != null) {
       for (VariableBuilder builder in formalParameterScope!.localVariables) {
-        // TODO(62401): Ensure `builder.variable!` is an
-        // InternalExpressionVariable.
-        if (builder.variable!
-            case InternalExpressionVariable(
-                  astVariable: ExpressionVariable variable,
-                ) ||
-                // Coverage-ignore(suite): Not run.
-                ExpressionVariable variable) {
-          assignedVariables.declare(variable);
-        }
+        // TODO(62401): Remove the cast when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        assignedVariables.declare(
+          (builder.variable as InternalExpressionVariable).astVariable,
+        );
       }
     }
     if (thisVariable != null && context.isConstructor) {
       // The this variable is not part of the [formalParameterScope] in
       // constructors.
-      // TODO(62401): Ensure `thisVariable!` is an InternalExpressionVariable.
-      if (thisVariable!
-          case InternalExpressionVariable(
-                astVariable: ExpressionVariable variable,
-              ) ||
-              // Coverage-ignore(suite): Not run.
-              ExpressionVariable variable) {
-        assignedVariables.declare(variable);
-      }
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      assignedVariables.declare(
+        (thisVariable as InternalExpressionVariable).astVariable,
+      );
     }
     if (isClosureContextLoweringEnabled && _internalThisVariable != null) {
       assignedVariables.declare(_internalThisVariable!);
@@ -3344,10 +3335,16 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     pushNewLocalVariable(initializer, equalsToken: assignmentOperator);
     if (isLate) {
-      VariableDeclaration node = peek() as VariableDeclaration;
+      VariableInitialization node = peek() as VariableInitialization;
       // This is matched by the call to [beginNode] in
       // [beginVariableInitializer].
-      assignedVariables.storeInfo(node, assignedVariablesInfo!);
+
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      assignedVariables.storeInfo(
+        (node.variable as InternalExpressionVariable).astVariable,
+        assignedVariablesInfo!,
+      );
     }
   }
 
@@ -3404,6 +3401,10 @@ class BodyBuilderImpl extends StackListenerImpl
         astVariable: new LocalVariable(
           cosmeticName: name,
           type: currentLocalVariableType,
+          isFinal: isFinal,
+          isConst: isConst,
+          isLate: isLate,
+          isWildcard: isWildcard,
         ),
         forSyntheticToken: identifier.token.isSynthetic,
         isImplicitlyTyped: currentLocalVariableType == null,
@@ -3411,6 +3412,7 @@ class BodyBuilderImpl extends StackListenerImpl
       variableInitialization = new VariableInitialization(
         variable: internalVariable.asExpressionVariable,
         initializer: initializer,
+        hasDeclaredInitializer: initializer != null,
       );
     } else {
       variableInitialization = internalVariable =
@@ -5477,15 +5479,12 @@ class BodyBuilderImpl extends StackListenerImpl
     push(parameter);
     // We pass `ignoreDuplicates: true` because the variable might have been
     // previously passed to `declare` in the `BodyBuilder` constructor.
-    // TODO(62401): Ensure `functionParameter` is an InternalExpressionVariable.
-    if (functionParameter
-        case InternalExpressionVariable(
-              astVariable: ExpressionVariable variable,
-            ) ||
-            // Coverage-ignore(suite): Not run.
-            ExpressionVariable variable) {
-      assignedVariables.declare(variable, ignoreDuplicates: true);
-    }
+    // TODO(62401): Remove the cast when the flow analysis uses
+    // [InternalExpressionVariable]s.
+    assignedVariables.declare(
+      (functionParameter as InternalExpressionVariable).astVariable,
+      ignoreDuplicates: true,
+    );
   }
 
   @override

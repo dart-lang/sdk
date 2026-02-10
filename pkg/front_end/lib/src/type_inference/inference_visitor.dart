@@ -3758,18 +3758,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   void _handleDeclarationsOfParameters(List<VariableDeclaration> parameters) {
     for (VariableDeclaration parameter in parameters) {
-      // TODO(62401): Ensure `parameter` is an InternalExpressionVariable.
-      if (parameter
-          case InternalExpressionVariable(
-                astVariable: ExpressionVariable parameter,
-              ) ||
-              // Coverage-ignore(suite): Not run.
-              ExpressionVariable parameter) {
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          parameter,
-          captureKind: _captureKindForVariable(parameter),
-        );
-      }
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      ExpressionVariable parameterAstVariable =
+          (parameter as InternalExpressionVariable).astVariable;
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        parameterAstVariable,
+        captureKind: _captureKindForVariable(parameterAstVariable),
+      );
     }
   }
 
@@ -17036,7 +17032,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
-  List<Variable> _capturedVariablesForNode(LocalFunction node) {
+  List<Variable> _capturedVariablesForNode(TreeNode node) {
     List<Variable> capturedVariables = [];
     AssignedVariablesNodeInfo nodeInfo = assignedVariables.getInfoForNode(node);
     for (int variableKey in nodeInfo.read) {
@@ -17101,7 +17097,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (node.initializer != null) {
       if (node.isLate && node.hasDeclaredInitializer) {
-        flowAnalysis.lateInitializer_begin(node);
+        // TODO(62401): Remove the cast when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        ExpressionVariable variable =
+            (node.variable as InternalExpressionVariable).astVariable;
+        if (isClosureContextLoweringEnabled) {
+          _contextAllocationStrategy.handleVariablesCapturedByNode(
+            node,
+            _capturedVariablesForNode(variable),
+          );
+        }
+        flowAnalysis.lateInitializer_begin(variable);
       }
       initializerResult = inferExpression(
         node.initializer!,

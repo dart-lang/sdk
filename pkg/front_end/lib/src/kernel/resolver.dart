@@ -1227,19 +1227,13 @@ class Resolver {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
         VariableDeclaration variable = parameter.variable!;
-        // TODO(62401): Ensure `variable` is an InternalExpressionVariable.
-        if (variable
-            case InternalExpressionVariable(
-                  astVariable: ExpressionVariable variable,
-                ) ||
-                // Coverage-ignore(suite): Not run.
-                ExpressionVariable variable) {
-          typeInferrer.flowAnalysis.declare(
-            variable,
-            new SharedTypeView(variable.type),
-            initialized: true,
-          );
-        }
+        // TODO(62401): Remove the cast when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        typeInferrer.flowAnalysis.declare(
+          (variable as InternalExpressionVariable).astVariable,
+          new SharedTypeView(variable.type),
+          initialized: true,
+        );
       }
     }
   }

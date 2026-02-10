@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test1(positional-parameter directCapturedInLate) → dynamic/* scope=[
+  #ctx1: direct-captured VariableContext([
+    positional-parameter directCapturedInLate;
+  ]),
+] */ /* scope=[
+  #ctx2: not-captured VariableContext([
+    local-variable late first;
+    local-variable late second;
+  ]),
+] */ {
+  first := let final core::int #t1 = directCapturedInLate in let final void #t2 = directCapturedInLate = #t1.{core::num::+}(1){(core::num) → core::int} in #t1 /* #ctx1 */;
+  second := let final core::int #t3 = directCapturedInLate in let final void #t4 = directCapturedInLate = #t3.{core::num::+}(1){(core::num) → core::int} in #t3 /* #ctx1 */;
+  return <core::int>[first, second, directCapturedInLate];
+}
+static method test2(positional-parameter assertCapturedAndDirectCapturedInLate) → dynamic/* scope=[
+  #ctx3: direct-captured VariableContext([
+    positional-parameter assertCapturedAndDirectCapturedInLate;
+  ]),
+] */ /* scope=[
+  #ctx4: not-captured VariableContext([
+    local-variable late variable;
+  ]),
+] */ {
+  assert((() /* #ctx3 */ → core::bool => assertCapturedAndDirectCapturedInLate =={core::num::==}{(core::Object) → core::bool} 0)(){() → core::bool});
+  variable := assertCapturedAndDirectCapturedInLate /* #ctx3 */;
+  return variable;
+}

@@ -150,7 +150,7 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   });
 
   void handleVariablesCapturedByNode(
-    FunctionNode node,
+    ContextConsumer node,
     List<Variable> variables,
   ) {
     Set<VariableContext> contexts = {
