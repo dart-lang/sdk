@@ -192,7 +192,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         continue;
       }
 
-      if (unshadowed.contains(reference.element) &&
+      if (!reference.isQualified &&
+          unshadowed.contains(reference.element) &&
           reference.element is ExecutableElement) {
         await _addThisEdit(reference, newName);
         continue;

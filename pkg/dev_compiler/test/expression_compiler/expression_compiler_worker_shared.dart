@@ -125,16 +125,30 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
         driver.responseController.stream,
         emitsInOrder([
           equals({'succeeded': true}),
-          equals({
-            'succeeded': true,
-            'errors': isEmpty,
-            'warnings': isEmpty,
-            'infos': isEmpty,
-            'compiledProcedure': stringContainsInOrder([
-              'developer',
-              'postEvent',
-            ]),
-          }),
+          // TODO(nshahan): https://github.com/dart-lang/sdk/issues/62643
+          if (driver.setup.canaryFeatures &&
+              driver.setup.moduleFormat == ModuleFormat.ddc)
+            equals({
+              'succeeded': false,
+              'errors': [
+                'Expression evaluation in the context of an SDK library '
+                    'is not currently supported in this environment.',
+              ],
+              'warnings': [],
+              'infos': [],
+              'compiledProcedure': null,
+            })
+          else
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': stringContainsInOrder([
+                'developer',
+                'postEvent',
+              ]),
+            }),
         ]),
       );
     });
@@ -161,16 +175,30 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
         driver.responseController.stream,
         emitsInOrder([
           equals({'succeeded': true}),
-          equals({
-            'succeeded': true,
-            'errors': isEmpty,
-            'warnings': isEmpty,
-            'infos': isEmpty,
-            'compiledProcedure': stringContainsInOrder([
-              'developer',
-              'postEvent',
-            ]),
-          }),
+          // TODO(nshahan): https://github.com/dart-lang/sdk/issues/62643
+          if (driver.setup.canaryFeatures &&
+              driver.setup.moduleFormat == ModuleFormat.ddc)
+            equals({
+              'succeeded': false,
+              'errors': [
+                'Expression evaluation in the context of an SDK library '
+                    'is not currently supported in this environment.',
+              ],
+              'warnings': [],
+              'infos': [],
+              'compiledProcedure': null,
+            })
+          else
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': stringContainsInOrder([
+                'developer',
+                'postEvent',
+              ]),
+            }),
         ]),
       );
     });
@@ -360,6 +388,48 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
               'warnings': isEmpty,
               'infos': isEmpty,
               'compiledProcedure': contains('true'),
+            }),
+          ]),
+        );
+      },
+    );
+
+    test(
+      'compile expressions include correct import format for module system',
+      () {
+        driver.requestController.add({
+          'command': 'UpdateDeps',
+          'inputs': driver.inputs,
+        });
+
+        driver.requestController.add({
+          'command': 'CompileExpression',
+          'expression': '5 is int && 5.isOdd',
+          'line': 5,
+          'column': 1,
+          'jsModules': {},
+          'jsScope': {'formal': 'formal'},
+          'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+          'moduleName': driver.config.getModule('testModule').moduleName,
+        });
+
+        expect(
+          driver.responseController.stream,
+          emitsInOrder([
+            equals({'succeeded': true}),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': driver.setup.emitLibraryBundle
+                  ? StringContainsUnordered([
+                      '"dart:core"',
+                      '"dart:_runtime"',
+                      '"dart:_rti"',
+                      '"dartx"',
+                    ])
+                  : contains('\'dart_sdk\''),
             }),
           ]),
         );
@@ -1684,4 +1754,39 @@ Future<int> runProcess(
       });
 
   return await process.exitCode;
+}
+
+/// A matcher that checks if a string contains all of the expected substrings in
+/// any order.
+class StringContainsUnordered extends Matcher {
+  final List<String> _expected;
+
+  StringContainsUnordered(this._expected);
+
+  @override
+  bool matches(item, Map matchState) {
+    if (item is! String) return false;
+    for (var expected in _expected) {
+      if (!item.contains(expected)) return false;
+    }
+    return true;
+  }
+
+  @override
+  Description describe(Description description) =>
+      description.add('contains all of ').addDescriptionOf(_expected);
+
+  @override
+  Description describeMismatch(
+    item,
+    Description mismatchDescription,
+    Map matchState,
+    bool verbose,
+  ) {
+    if (item is! String) {
+      return mismatchDescription.add('is not a string');
+    }
+    var missing = _expected.where((e) => !item.contains(e)).toList();
+    return mismatchDescription.add('is missing ').addDescriptionOf(missing);
+  }
 }

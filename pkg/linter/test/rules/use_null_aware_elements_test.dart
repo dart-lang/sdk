@@ -158,4 +158,14 @@ Set<int> f(int? x) {
       [lint(36, 2)],
     );
   }
+
+  test_nullCheckPattern_whenClause_list() async {
+    await assertNoDiagnostics(r'''
+List<int> f(int? x) {
+  return [
+    if (x case var y? when y.isEven) y,
+  ];
+}
+''');
+  }
 }
