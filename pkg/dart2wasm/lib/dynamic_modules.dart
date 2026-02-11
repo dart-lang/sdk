@@ -937,7 +937,9 @@ class DynamicModuleInfo {
   void callOverridableDispatch(
       w.InstructionsBuilder b, SelectorInfo selector, Reference interfaceTarget,
       {required bool useUncheckedEntry}) {
-    metadata.invokedOverridableReferences.add(interfaceTarget);
+    if (!isSubmodule) {
+      metadata.invokedOverridableReferences.add(interfaceTarget);
+    }
 
     final localSignature = selector.signature;
     // If any input is not a RefType (i.e. it's an unboxed value) then wrap it
@@ -963,6 +965,21 @@ class DynamicModuleInfo {
     b.local_tee(idLocal);
     b.i32_const(useUncheckedEntry ? 1 : 0);
     b.local_get(idLocal);
+
+    final targetMember = interfaceTarget.asMember;
+    final enclosingClass = targetMember.enclosingClass!;
+    if (enclosingClass.isEliminatedMixin) {
+      // Eliminated mixins will have copies of all the members in the mixed in
+      // class. But the main module will not have known about these copies. So
+      // instead we use a reference to the implementation on the mixed in class
+      // itself. It is an invariant that this is the last type in the
+      // implementedTypes list.
+      final mixedInClass = enclosingClass.implementedTypes.last.classNode;
+      interfaceTarget = translator.hierarchy
+          .getDispatchTarget(mixedInClass, targetMember.name,
+              setter: selector.isSetter)!
+          .reference;
+    }
 
     final mainDispatchTable =
         translator.dynamicMainModuleDispatchTable ?? translator.dispatchTable;
