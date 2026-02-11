@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
@@ -16,38 +17,117 @@ class DartDocumentHighlightsComputer {
 
   /// Computes matching highlight tokens for the requested offset.
   List<Token> compute(int requestedOffset) {
-    // TODO(dantup): Currently we build the set of all highlights regions
-    //  for the whole file, and then filter at the end. If we can compute the
-    //  target element/node up-front, we could avoid collecting the ones we'd
-    //  filter out.
-    var visitor = DartDocumentHighlightsComputerVisitor();
-    _unit.accept(visitor);
+    var coveringNode = _unit.nodeCovering(offset: requestedOffset);
+    if (coveringNode == null) return [];
 
-    bool spansRequestedPosition(Token token) {
-      return token.offset <= requestedOffset && token.end >= requestedOffset;
+    var targets = _computeTargets(coveringNode);
+    if (targets == null) return [];
+
+    var visitor = _DartDocumentHighlightsVisitor(targets);
+    _unit.accept(visitor);
+    return visitor.tokens.toList();
+  }
+
+  /// Computes the highlight target (elements and/or nodes) from the covering
+  /// node at the requested offset.
+  _HighlightTargets? _computeTargets(AstNode coveringNode) {
+    // Handle node targets (loop keyword etc.).
+    var targetNode = _getTargetNode(coveringNode);
+    if (targetNode != null) {
+      return _HighlightTargets.node(targetNode);
     }
 
-    return {
-      // Include the whole group where any token in the group spans the
-      // requested location.
-      for (var tokens in visitor.elementOccurrences.values)
-        if (tokens.any(spansRequestedPosition)) ...tokens,
-      for (var tokens in visitor.nodeOccurrences.values)
-        if (tokens.any(spansRequestedPosition)) ...tokens,
-    }.toList();
+    // Add the obvious target element.
+    var mainTarget = _canonicalizeElement(_getTargetElement(coveringNode));
+
+    // For pattern variables in implicit pattern fields (where the field name
+    // is inferred from the variable name), also include the field element.
+
+    var additionalTarget = switch (coveringNode) {
+      VariablePattern(parent: PatternField(:var element, :var name))
+          when name?.name == null =>
+        _canonicalizeElement(element),
+      _ => null,
+    };
+
+    return _HighlightTargets.elements(mainTarget, additionalTarget);
+  }
+
+  /// Gets the target [AstNode] for [node] if it's a node-based highlight group
+  /// such as a loop keyword.
+  AstNode? _getTargetNode(AstNode node) {
+    return switch (node) {
+      // Loop/switch keywords are targets.
+      ForStatement() ||
+      WhileStatement() ||
+      DoStatement() ||
+      SwitchStatement() => node,
+
+      // Break/continue keywords target their respective targets.
+      BreakStatement(:var target?) || ContinueStatement(:var target?) => target,
+
+      // Return/yield target the function body.
+      ReturnStatement() ||
+      YieldStatement() => node.thisOrAncestorOfType<FunctionBody>(),
+
+      _ => null,
+    };
+  }
+
+  /// Canonicalizes an element so that field formal parameters map to their
+  /// fields and property accessors map to their variables.
+  static Element? _canonicalizeElement(Element? element) {
+    if (element == null) return null;
+    return switch (element) {
+      FieldFormalParameterElement(:var field) => field?.baseElement,
+      PropertyAccessorElement(:var variable)
+          when variable.isOriginDeclaration =>
+        variable.baseElement,
+      _ => element.baseElement,
+    };
+  }
+
+  /// Returns the target element for a given node, if one exists.
+  static Element? _getTargetElement(AstNode node) {
+    return switch (node) {
+      // We don't consider primary constructor bodies as something we ever
+      // provide highlights for.
+      PrimaryConstructorBody() => null,
+
+      // In references to constructors where the constructor has no name, we map
+      // the (type) name to the constructor element.
+      NamedType(parent: ConstructorName(name: null, :var element?)) => element,
+
+      // And in constructor declarations that do have names, we map the type
+      // name to the class element.
+      Identifier(parent: ConstructorDeclaration parent)
+          when parent.name != null && node == parent.typeName =>
+        parent.declaredFragment?.element.enclosingElement,
+
+      // For variable patterns with joins, use the base variable element.
+      DeclaredVariablePattern(
+        declaredFragment: BindPatternVariableFragment(
+          element: BindPatternVariableElement(:var join?),
+        ),
+      ) =>
+        join,
+
+      // Otherwise, default ElementLocator result.
+      _ => ElementLocator.locate(node),
+    };
   }
 }
 
-class DartDocumentHighlightsComputerVisitor
-    extends GeneralizingAstVisitor<void> {
-  /// Occurrences tracked by their elements.
-  final Map<Element, List<Token>> elementOccurrences = {};
+class _DartDocumentHighlightsVisitor extends GeneralizingAstVisitor<void> {
+  final _HighlightTargets _target;
 
-  /// Occurrences tracked by nodes (such as loops and their exit keywords).
-  final Map<AstNode, List<Token>> nodeOccurrences = {};
+  /// Collected tokens matching the target.
+  final Set<Token> tokens = {};
 
-  // Stack to track the current function for return/yield keywords
+  /// Stack to track the current function for return/yield keywords.
   final List<AstNode> _functionStack = [];
+
+  _DartDocumentHighlightsVisitor(this._target);
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
@@ -68,37 +148,24 @@ class DartDocumentHighlightsComputerVisitor
 
   @override
   void visitCatchClauseParameter(CatchClauseParameter node) {
-    if (node.declaredFragment?.element case var element?) {
-      _addOccurrence(element, node.name);
-    }
+    _addOccurrence(node.declaredFragment?.element, node.name);
+
     super.visitCatchClauseParameter(node);
   }
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.namePart.typeName);
+    _addOccurrence(node.declaredFragment?.element, node.namePart.typeName);
 
     super.visitClassDeclaration(node);
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
-
-    super.visitClassTypeAlias(node);
-  }
-
-  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.name case var name?) {
-      _addOccurrence(node.declaredFragment!.element, name);
-    } else {
-      _addOccurrence(
-        node.declaredFragment!.element,
-        // TODO(scheglov): support primary constructors
-        node.typeName!.beginToken,
-      );
-    }
+    _addOccurrence(
+      node.declaredFragment?.element,
+      node.name ?? node.typeName?.beginToken,
+    );
 
     super.visitConstructorDeclaration(node);
   }
@@ -129,19 +196,15 @@ class DartDocumentHighlightsComputerVisitor
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(node.declaredFragment?.element, node.name);
 
     super.visitDeclaredIdentifier(node);
   }
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    var declaredElement = node.declaredFragment!.element;
-    if (declaredElement case BindPatternVariableElement(:var join?)) {
-      _addOccurrence(join.baseElement, node.name);
-    } else {
-      _addOccurrence(declaredElement, node.name);
-    }
+    var declaredElement = node.declaredFragment?.element;
+    _addOccurrence(declaredElement?.join ?? declaredElement, node.name);
 
     super.visitDeclaredVariablePattern(node);
   }
@@ -155,23 +218,21 @@ class DartDocumentHighlightsComputerVisitor
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(node.declaredFragment?.element, node.name);
 
     super.visitEnumConstantDeclaration(node);
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.namePart.typeName);
+    _addOccurrence(node.declaredFragment?.element, node.namePart.typeName);
 
     super.visitEnumDeclaration(node);
   }
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (node case ExtensionDeclaration(:var declaredFragment?, :var name?)) {
-      _addOccurrence(declaredFragment.element, name);
-    }
+    _addOccurrence(node.declaredFragment?.element, node.name);
 
     super.visitExtensionDeclaration(node);
   }
@@ -186,7 +247,7 @@ class DartDocumentHighlightsComputerVisitor
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _addOccurrence(
-      node.declaredFragment!.element,
+      node.declaredFragment?.element,
       node.primaryConstructor.typeName,
     );
 
@@ -194,16 +255,10 @@ class DartDocumentHighlightsComputerVisitor
   }
 
   @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    var declaredElement = node.declaredFragment?.element;
-    if (declaredElement is FieldFormalParameterElement) {
-      var field = declaredElement.field;
-      if (field != null) {
-        _addOccurrence(field, node.name);
-      }
-    }
+  void visitFormalParameter(FormalParameter node) {
+    _addOccurrence(node.declaredFragment?.element, node.name);
 
-    super.visitFieldFormalParameter(node);
+    super.visitFormalParameter(node);
   }
 
   @override
@@ -222,76 +277,57 @@ class DartDocumentHighlightsComputerVisitor
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(node.declaredFragment?.element, node.name);
 
     super.visitFunctionDeclaration(node);
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
-
-    super.visitFunctionTypeAlias(node);
-  }
-
-  @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
-
-    super.visitGenericTypeAlias(node);
-  }
-
-  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    if (node.element case var element?) {
-      _addOccurrence(element, node.name);
-    }
+    _addOccurrence(node.element, node.name);
 
     super.visitImportPrefixReference(node);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(node.declaredFragment?.element, node.name);
 
     super.visitMethodDeclaration(node);
   }
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(node.declaredFragment?.element, node.name);
 
     super.visitMixinDeclaration(node);
   }
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element;
-    if (element != null) {
-      _addOccurrence(element, node.name);
-    }
+    _addOccurrence(node.element, node.name);
 
     super.visitNamedType(node);
   }
 
   @override
   void visitPatternField(PatternField node) {
-    var element = node.element;
     var pattern = node.pattern;
+    var name = node.name?.name;
+
     // If no explicit field name, use the variables name.
-    var name = node.name?.name == null && pattern is VariablePattern
-        ? pattern.name
-        : node.name?.name;
-    if (element != null && name != null) {
-      _addOccurrence(element, name);
+    if (name == null && pattern is VariablePattern) {
+      name = pattern.name;
     }
+    _addOccurrence(node.element, name);
+
     super.visitPatternField(node);
   }
 
   @override
   void visitPrimaryConstructorName(PrimaryConstructorName node) {
     if (node.parent case PrimaryConstructorDeclaration primary) {
-      _addOccurrence(primary.declaredFragment!.element, node.name);
+      _addOccurrence(primary.declaredFragment?.element, node.name);
     }
 
     super.visitPrimaryConstructorName(node);
@@ -302,16 +338,6 @@ class DartDocumentHighlightsComputerVisitor
     _addNodeOccurrence(_functionStack.lastOrNull, node.returnKeyword);
 
     super.visitReturnStatement(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    var nameToken = node.name;
-    if (nameToken != null) {
-      _addOccurrence(node.declaredFragment!.element, nameToken);
-    }
-
-    super.visitSimpleFormalParameter(node);
   }
 
   @override
@@ -326,17 +352,9 @@ class DartDocumentHighlightsComputerVisitor
       return;
     }
 
-    var element = node.writeOrReadElement;
-    if (element != null) {
-      _addOccurrence(element, node.token);
-    }
-    return super.visitSimpleIdentifier(node);
-  }
+    _addOccurrence(node.writeOrReadElement, node.token);
 
-  @override
-  void visitSuperFormalParameter(SuperFormalParameter node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
-    super.visitSuperFormalParameter(node);
+    return super.visitSimpleIdentifier(node);
   }
 
   @override
@@ -347,17 +365,23 @@ class DartDocumentHighlightsComputerVisitor
   }
 
   @override
+  void visitTypeAlias(TypeAlias node) {
+    _addOccurrence(node.declaredFragment?.element, node.name);
+
+    super.visitTypeAlias(node);
+  }
+
+  @override
   void visitTypeParameter(TypeParameter node) {
-    if (node case TypeParameter(:var declaredFragment?)) {
-      _addOccurrence(declaredFragment.element, node.name);
-    }
+    _addOccurrence(node.declaredFragment?.element, node.name);
 
     super.visitTypeParameter(node);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(node.declaredFragment?.element, node.name);
+
     super.visitVariableDeclaration(node);
   }
 
@@ -376,28 +400,48 @@ class DartDocumentHighlightsComputerVisitor
   }
 
   void _addNodeOccurrence(AstNode? node, Token token) {
-    if (node == null) return;
-
-    (nodeOccurrences[node] ??= []).add(token);
+    // Only add the occurrence if it matches our target node.
+    if (node != null && _target.matchesNode(node)) {
+      tokens.add(token);
+    }
   }
 
-  void _addOccurrence(Element element, Token token) {
-    var canonicalElement = _canonicalizeElement(element);
-    if (canonicalElement == null) {
-      return;
+  void _addOccurrence(Element? element, Token? token) {
+    if (element == null || token == null) return;
+
+    var canonicalElement = DartDocumentHighlightsComputer._canonicalizeElement(
+      element,
+    );
+
+    // Only add the occurrence if it's one of our target elements.
+    if (canonicalElement != null && _target.matchesElement(canonicalElement)) {
+      tokens.add(token);
     }
-    (elementOccurrences[canonicalElement] ??= []).add(token);
+  }
+}
+
+/// The highlight target(s) computed from the provided position.
+///
+/// Usually this will contain a single element or a single node, however in some
+/// cases (such as a variable pattern) there may be multiple target elements
+/// (such as a variable and the matched getter).
+class _HighlightTargets {
+  final Element? _targetElement1;
+  final Element? _targetElement2;
+  final AstNode? _targetNode;
+
+  _HighlightTargets.elements([this._targetElement1, this._targetElement2])
+    : _targetNode = null;
+
+  _HighlightTargets.node(this._targetNode)
+    : _targetElement1 = null,
+      _targetElement2 = null;
+
+  bool matchesElement(Element element) {
+    return element == _targetElement1 || element == _targetElement2;
   }
 
-  Element? _canonicalizeElement(Element element) {
-    Element? canonicalElement = element;
-    if (canonicalElement is FieldFormalParameterElement) {
-      canonicalElement = canonicalElement.field;
-    } else if (canonicalElement case PropertyAccessorElement(
-      :var variable,
-    ) when variable.isOriginDeclaration) {
-      canonicalElement = variable;
-    }
-    return canonicalElement?.baseElement;
+  bool matchesNode(AstNode node) {
+    return node == _targetNode;
   }
 }
