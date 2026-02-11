@@ -17,8 +17,6 @@ void main() {
     // * public fields
     // * cancel tear-off (`.cancel;`)
     // * StreamSubscription subtypes
-    // * field initialized in a field initializer and in a field formal
-    //   parameter
     // * multiple declarations in a field declaration list and a variable
     //   declaration list
     // * StreamSubscription being passed into a function
@@ -127,6 +125,45 @@ class C<T> {
 ''');
   }
 
+  test_privateField_initializedInConstructorInitializer_notCanceled() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+class A {
+  StreamSubscription _subscription;
+  A(StreamSubscription subscription) : _subscription = subscription;
+  void f(Stream stream) {
+    _subscription = stream.listen((_) {});
+  }
+}
+''');
+  }
+
+  test_privateField_initializedInConstructorInitializer_primaryConstructorBody_notCanceled() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+class A(StreamSubscription subscription) {
+  StreamSubscription _subscription;
+  this : _subscription = subscription;
+  void f(Stream stream) {
+    _subscription = stream.listen((_) {});
+  }
+}
+''');
+  }
+
+  test_privateField_initializedInFieldFormalParameter_notCanceled() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+class A {
+  StreamSubscription _subscription;
+  A(this._subscription);
+  void f(Stream stream) {
+    _subscription = stream.listen((_) {});
+  }
+}
+''');
+  }
+
   test_privateField_notCanceled() async {
     await assertDiagnostics(
       r'''
@@ -139,6 +176,35 @@ class A {
 }
 ''',
       [lint(57, 13)],
+    );
+  }
+
+  test_privateField_originPrimaryConstructor_canceled() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+class A(var StreamSubscription _subscription) {
+  void f(Stream stream) {
+    _subscription = stream.listen((_) {});
+  }
+  void g() {
+    _subscription.cancel();
+  }
+}
+''');
+  }
+
+  test_privateField_originPrimaryConstructor_notCanceled() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:async';
+// ignore: unused_field_from_primary_constructor
+class A(var StreamSubscription _subscription) {
+  void f(Stream stream) {
+    _subscription = stream.listen((_) {});
+  }
+}
+''',
+      [lint(78, 36)],
     );
   }
 }
