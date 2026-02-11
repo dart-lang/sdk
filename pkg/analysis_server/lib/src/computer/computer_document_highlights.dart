@@ -1,41 +1,53 @@
-// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
-import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
-void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
-  var visitor = DartUnitOccurrencesComputerVisitor();
-  unit.accept(visitor);
-  visitor.occurrences.forEach((engineElement, nodes) {
-    // For legacy protocol, we only support occurrences with the same
-    // length, so we must filter the offset to only those that match the length
-    // from the element.
-    var serverElement = protocol.convertElement(engineElement);
-    // Prefer the length from the mapped element over the element directly,
-    // because 'name3' may contain 'new' for constructors which doesn't match
-    // what is in the source.
-    var length =
-        serverElement.location?.length ?? engineElement.name?.length ?? 0;
-    var offsets = nodes
-        .where((node) => node.length == length)
-        .map((node) => node.offset)
-        .toList();
+class DartDocumentHighlightsComputer {
+  final CompilationUnit _unit;
 
-    var occurrences = protocol.Occurrences(serverElement, offsets, length);
-    collector.addOccurrences(occurrences);
-  });
+  DartDocumentHighlightsComputer(this._unit);
+
+  /// Computes matching highlight tokens for the requested offset.
+  List<Token> compute(int requestedOffset) {
+    // TODO(dantup): Currently we build the set of all highlights regions
+    //  for the whole file, and then filter at the end. If we can compute the
+    //  target element/node up-front, we could avoid collecting the ones we'd
+    //  filter out.
+    var visitor = DartDocumentHighlightsComputerVisitor();
+    _unit.accept(visitor);
+
+    bool spansRequestedPosition(Token token) {
+      return token.offset <= requestedOffset && token.end >= requestedOffset;
+    }
+
+    return {
+      // Include the whole group where any token in the group spans the
+      // requested location.
+      for (var tokens in visitor.elementOccurrences.values)
+        if (tokens.any(spansRequestedPosition)) ...tokens,
+      for (var tokens in visitor.nodeOccurrences.values)
+        if (tokens.any(spansRequestedPosition)) ...tokens,
+    }.toList();
+  }
 }
 
-class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
+class DartDocumentHighlightsComputerVisitor
+    extends GeneralizingAstVisitor<void> {
   /// Occurrences tracked by their elements.
-  final Map<Element, List<Token>> occurrences = {};
+  final Map<Element, List<Token>> elementOccurrences = {};
+
+  /// Occurrences tracked by nodes (such as loops and their exit keywords).
+  final Map<AstNode, List<Token>> nodeOccurrences = {};
+
+  // Stack to track the current function for return/yield keywords
+  final List<AstNode> _functionStack = [];
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
@@ -45,6 +57,13 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     }
 
     super.visitAssignedVariablePattern(node);
+  }
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    _addNodeOccurrence(node.target, node.breakKeyword);
+
+    super.visitBreakStatement(node);
   }
 
   @override
@@ -102,6 +121,13 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitContinueStatement(ContinueStatement node) {
+    _addNodeOccurrence(node.target, node.continueKeyword);
+
+    super.visitContinueStatement(node);
+  }
+
+  @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _addOccurrence(node.declaredFragment!.element, node.name);
 
@@ -118,6 +144,13 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     }
 
     super.visitDeclaredVariablePattern(node);
+  }
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    _addNodeOccurrence(node, node.doKeyword);
+
+    super.visitDoStatement(node);
   }
 
   @override
@@ -171,6 +204,20 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     }
 
     super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    _addNodeOccurrence(node, node.forKeyword);
+
+    super.visitForStatement(node);
+  }
+
+  @override
+  void visitFunctionBody(FunctionBody node) {
+    _functionStack.add(node);
+    super.visitFunctionBody(node);
+    _functionStack.removeLastOrNull();
   }
 
   @override
@@ -251,6 +298,13 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitReturnStatement(ReturnStatement node) {
+    _addNodeOccurrence(_functionStack.lastOrNull, node.returnKeyword);
+
+    super.visitReturnStatement(node);
+  }
+
+  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var nameToken = node.name;
     if (nameToken != null) {
@@ -286,6 +340,13 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitSwitchStatement(SwitchStatement node) {
+    _addNodeOccurrence(node, node.switchKeyword);
+
+    super.visitSwitchStatement(node);
+  }
+
+  @override
   void visitTypeParameter(TypeParameter node) {
     if (node case TypeParameter(:var declaredFragment?)) {
       _addOccurrence(declaredFragment.element, node.name);
@@ -300,12 +361,32 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     super.visitVariableDeclaration(node);
   }
 
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    _addNodeOccurrence(node, node.whileKeyword);
+
+    super.visitWhileStatement(node);
+  }
+
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    _addNodeOccurrence(_functionStack.lastOrNull, node.yieldKeyword);
+
+    super.visitYieldStatement(node);
+  }
+
+  void _addNodeOccurrence(AstNode? node, Token token) {
+    if (node == null) return;
+
+    (nodeOccurrences[node] ??= []).add(token);
+  }
+
   void _addOccurrence(Element element, Token token) {
     var canonicalElement = _canonicalizeElement(element);
     if (canonicalElement == null) {
       return;
     }
-    (occurrences[canonicalElement] ??= []).add(token);
+    (elementOccurrences[canonicalElement] ??= []).add(token);
   }
 
   Element? _canonicalizeElement(Element element) {
