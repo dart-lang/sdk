@@ -2,6 +2,20 @@
 
 **Released on:** Unreleased
 
+### Libraries
+
+#### `dart:js_interop`
+
+- Added `JSIterableProtocol`, `JSIterable`, `JSIteratorProtocol`, `JSIterator`,
+  and `JSIteratorResult` types to model JavaScript's [iteration protocols].
+  `JSArray` and `JSString` now implement `JSIterable`.
+
+  [iteration protocols]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols
+
+- Added extension types to provide `Iterable.toJSIterable`,
+  `JSIterable.toDartIterable`, `Iterator.toJSIterator`, and
+  `JSIterator.toDartIterator`.
+
 ## 3.11.0
 
 **Released on:** Unreleased
@@ -29,16 +43,6 @@ There are no language changes in this release.
 - Added a constructor to `JSSymbol`, as well as `JSSymbol.key`,
   `JSSymbol.description`, and static methods for all well-known ECMAScript
   symbols.
-
-- Added `JSIterableProtocol`, `JSIterable`, `JSIteratorProtocol`, `JSIterator`,
-  and `JSIteratorResult` types to model JavaScript's [iteration protocols].
-  `JSArray` and `JSString` now implement `JSIterable`.
-
-  [iteration protocols]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols
-
-- Added extension types to provide `Iterable.toJSIterable`,
-  `JSIterable.toDartIterable`, `Iterator.toJSIterator`, and
-  `JSIterator.toDartIterator`.
 
 #### `dart:js_util`
 
