@@ -348,7 +348,7 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ movl(EDX, Address(EDI, ESI, TIMES_4, kBytesPerBigIntDigit));
   __ shrdl(EAX, EDX, ECX);
   __ movl(Address(EBX, ESI, TIMES_4, 0), EAX);
-  __ incl(ESI);
+  __ addl(ESI, Immediate(1));
   __ j(NOT_ZERO, &loop, Assembler::kNearJump);
   __ Bind(&last);
   __ shrdl(EDX, ESI, ECX);  // ESI == 0.
@@ -380,7 +380,7 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subl(EAX, ECX);
-  __ incl(EAX);  // To account for the extra test between loops.
+  __ addl(EAX, Immediate(1));  // To account for the extra test between loops.
   __ pushl(EAX);
 
   __ xorl(EDX, EDX);  // EDX = 0, carry flag = 0.
@@ -446,7 +446,7 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subl(EAX, ECX);
-  __ incl(EAX);  // To account for the extra test between loops.
+  __ addl(EAX, Immediate(1));  // To account for the extra test between loops.
   __ pushl(EAX);
 
   __ xorl(EDX, EDX);  // EDX = 0, carry flag = 0.
@@ -1511,7 +1511,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // EDX: ch and temporary.
   __ CombineHashes(EAX, EDX);
 
-  __ incl(EDI);
+  __ addl(EDI, Immediate(1));
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&done);
@@ -1663,7 +1663,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ movzxb(EBX, Address(EDI, EDX, TIMES_1, 0));
   __ movb(FieldAddress(EAX, EDX, TIMES_1, target::OneByteString::data_offset()),
           BL);
-  __ incl(EDX);
+  __ addl(EDX, Immediate(1));
   __ Bind(&check);
   __ cmpl(EDX, ECX);
   __ j(LESS, &loop, Assembler::kNearJump);

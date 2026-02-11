@@ -587,7 +587,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
     __ shlq(RDX, compiler::Immediate(shift + kSmiTagSize));
   } else {
-    __ decq(RDX);
+    __ subq(RDX, compiler::Immediate(1));
     __ AndImmediate(RDX, compiler::Immediate(Smi::RawValue(true_value) -
                                              Smi::RawValue(false_value)));
     if (false_value != 0) {
@@ -3014,7 +3014,8 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         compiler->thread()->isolate_group()->optimization_counter_threshold();
     const int32_t threshold =
         configured_optimization_counter_threshold * (loop_depth() + 1);
-    __ incl(compiler::FieldAddress(temp, Function::usage_counter_offset()));
+    __ addl(compiler::FieldAddress(temp, Function::usage_counter_offset()),
+            compiler::Immediate(1));
     __ cmpl(compiler::FieldAddress(temp, Function::usage_counter_offset()),
             compiler::Immediate(threshold));
     __ j(GREATER_EQUAL, slow_path->osr_entry_label());

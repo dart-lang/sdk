@@ -1300,25 +1300,17 @@ void Assembler::AddImmediate(Register reg,
     return;
   }
   if ((value > 0) || (value == kMinInt64)) {
-    if (value == 1) {
+    if (imm.is_int32() || (width == kFourBytes && imm.is_uint32())) {
       if (width == kFourBytes) {
-        incl(reg);
+        addl(reg, imm);
       } else {
-        incq(reg);
+        addq(reg, imm);
       }
     } else {
-      if (imm.is_int32() || (width == kFourBytes && imm.is_uint32())) {
-        if (width == kFourBytes) {
-          addl(reg, imm);
-        } else {
-          addq(reg, imm);
-        }
-      } else {
-        ASSERT(reg != TMP);
-        ASSERT(width == kEightBytes);
-        LoadImmediate(TMP, imm);
-        addq(reg, TMP);
-      }
+      ASSERT(reg != TMP);
+      ASSERT(width == kEightBytes);
+      LoadImmediate(TMP, imm);
+      addq(reg, TMP);
     }
   } else {
     SubImmediate(reg, Immediate(-value), width);
@@ -1348,15 +1340,11 @@ void Assembler::AddImmediate(const Address& address, const Immediate& imm) {
     return;
   }
   if ((value > 0) || (value == kMinInt64)) {
-    if (value == 1) {
-      incq(address);
+    if (imm.is_int32()) {
+      addq(address, imm);
     } else {
-      if (imm.is_int32()) {
-        addq(address, imm);
-      } else {
-        LoadImmediate(TMP, imm);
-        addq(address, TMP);
-      }
+      LoadImmediate(TMP, imm);
+      addq(address, TMP);
     }
   } else {
     SubImmediate(address, Immediate(-value));
@@ -1373,25 +1361,17 @@ void Assembler::SubImmediate(Register reg,
   }
   if ((value > 0) || (value == kMinInt64) ||
       (value == kMinInt32 && width == kFourBytes)) {
-    if (value == 1) {
+    if (imm.is_int32()) {
       if (width == kFourBytes) {
-        decl(reg);
+        subl(reg, imm);
       } else {
-        decq(reg);
+        subq(reg, imm);
       }
     } else {
-      if (imm.is_int32()) {
-        if (width == kFourBytes) {
-          subl(reg, imm);
-        } else {
-          subq(reg, imm);
-        }
-      } else {
-        ASSERT(reg != TMP);
-        ASSERT(width == kEightBytes);
-        LoadImmediate(TMP, imm);
-        subq(reg, TMP);
-      }
+      ASSERT(reg != TMP);
+      ASSERT(width == kEightBytes);
+      LoadImmediate(TMP, imm);
+      subq(reg, TMP);
     }
   } else {
     AddImmediate(reg, Immediate(-value), width);
@@ -1404,15 +1384,11 @@ void Assembler::SubImmediate(const Address& address, const Immediate& imm) {
     return;
   }
   if ((value > 0) || (value == kMinInt64)) {
-    if (value == 1) {
-      decq(address);
+    if (imm.is_int32()) {
+      subq(address, imm);
     } else {
-      if (imm.is_int32()) {
-        subq(address, imm);
-      } else {
-        LoadImmediate(TMP, imm);
-        subq(address, TMP);
-      }
+      LoadImmediate(TMP, imm);
+      subq(address, TMP);
     }
   } else {
     AddImmediate(address, Immediate(-value));
@@ -1939,7 +1915,7 @@ void Assembler::CompareWords(Register reg1,
                              Label* equals) {
   Label loop;
   Bind(&loop);
-  decq(count);
+  subq(count, Immediate(1));
   j(LESS, equals, Assembler::kNearJump);
   COMPILE_ASSERT(target::kWordSize == 8);
   movq(temp, FieldAddress(reg1, count, TIMES_8, offset));
@@ -2479,7 +2455,7 @@ void Assembler::FinalizeHashForSize(intptr_t bit_size,
   // return (hash == 0) ? 1 : hash;
   Label done;
   j(NOT_ZERO, &done, kNearJump);
-  incl(dst);
+  addl(dst, Immediate(1));
   Bind(&done);
 }
 
