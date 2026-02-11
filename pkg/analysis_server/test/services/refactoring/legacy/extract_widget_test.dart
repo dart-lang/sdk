@@ -1034,8 +1034,8 @@ class MyWidget extends StatelessWidget {
 class Test extends StatelessWidget {
   const Test({
     super.key,
-    required String field,
-  }) : _field = field;
+    required this._field,
+  });
 
   final String _field;
 
@@ -1093,6 +1093,55 @@ class Test extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text('$field $_field');
+  }
+}
+''');
+  }
+
+  Future<void> test_parameters_private_unsupported() async {
+    await indexTestUnit(r'''
+// @dart=3.10
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String _field;
+
+  MyWidget(this._field);
+
+  @override
+  Widget build(BuildContext context) {
+    return ^Text(_field);
+  }
+}
+''');
+    _createRefactoring();
+
+    await _assertSuccessfulRefactoring('''
+// @dart=3.10
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String _field;
+
+  MyWidget(this._field);
+
+  @override
+  Widget build(BuildContext context) {
+    return Test(field: _field);
+  }
+}
+
+class Test extends StatelessWidget {
+  const Test({
+    super.key,
+    required String field,
+  }) : _field = field;
+
+  final String _field;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(_field);
   }
 }
 ''');
