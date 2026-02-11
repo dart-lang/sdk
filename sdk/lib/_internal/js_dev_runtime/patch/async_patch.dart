@@ -132,13 +132,8 @@ _async<T>(Function() initGenerator) {
     }
   }
 
-  if (dart.startAsyncSynchronously) {
-    runBody();
-    isRunningAsEvent = true;
-  } else {
-    isRunningAsEvent = true;
-    scheduleMicrotask(runBody);
-  }
+  runBody();
+  isRunningAsEvent = true;
   return asyncFuture;
 }
 

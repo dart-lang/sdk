@@ -213,13 +213,6 @@ final hOP = JS('!', '#.Object.prototype.hasOwnProperty', global_);
 ///
 Object libraryPrototype = JS('', '#.library', DART_RUNTIME_LIBRARY());
 
-// TODO(vsm): Remove once this flag we've removed the ability to
-// whitelist / fallback on the old behavior.
-bool startAsyncSynchronously = true;
-void setStartAsyncSynchronously([bool value = true]) {
-  startAsyncSynchronously = value;
-}
-
 /// A list of all JS Maps used for caching results, such as by [isSubtypeOf] and
 /// [generic].
 ///
