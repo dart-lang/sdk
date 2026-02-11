@@ -382,7 +382,7 @@ void f() {
   var a = new A<int>();
   var b = new A<String>();
   a./*[1*/fff/*1]*/ = 1;
-  b./*[2*/fff/*2]*/ = 2;
+  b./*[2*/fff/*2]*/ = '';
 }
       ''');
   }
@@ -617,7 +617,7 @@ class Square extends Shape {
   Future<void> test_pattern_record_variable() async {
     await assertOccurrences(kind: ElementKind.PARAMETER, '''
 void f(({int foo}) x, num /*[0*/a/*0]*/) {
-  (foo: /*[1*/a,/*1]*/) = x;
+  (foo: /*[1*/a/*1]*/,) = x;
 }
     );
       ''');

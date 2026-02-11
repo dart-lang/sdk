@@ -121,16 +121,13 @@ class MessageCode extends Code implements Message {
   }
 }
 
-class Template<TOld extends Function, T extends Function> extends Code {
+class Template<T extends Function> extends Code {
   String get messageCode => name;
-
-  final TOld withArgumentsOld;
 
   final T withArguments;
 
   const Template(
     super.name, {
-    required this.withArgumentsOld,
     required this.withArguments,
     super.pseudoSharedCode,
     super.severity = CfeSeverity.error,

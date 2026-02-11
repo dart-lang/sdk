@@ -368,7 +368,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isVoidAllowed = false,
     bool coerceExpression = true,
     Template<
-      Function,
       Message Function({
         required DartType actualType,
         required DartType expectedType,
@@ -411,7 +410,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType initialContextType = runtimeCheckedType ?? contextType;
 
     Template<
-      Function,
       Message Function({
         required DartType actualType,
         required DartType expectedType,
@@ -503,7 +501,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isVoidAllowed = false,
     bool isCoercionAllowed = true,
     Template<
-      Function,
       Message Function({
         required DartType actualType,
         required DartType expectedType,
@@ -518,7 +515,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     contextType = computeGreatestClosure(contextType);
 
     Template<
-      Function,
       Message Function({
         required DartType actualType,
         required DartType expectedType,
@@ -666,7 +662,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isVoidAllowed = false,
     bool coerceExpression = true,
     Template<
-      Function,
       Message Function({
         required DartType actualType,
         required DartType expectedType,
@@ -4892,7 +4887,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If it is, an error message template is returned, which can be used by the
   /// caller to report an invalid cast.  Otherwise, `null` is returned.
   Template<
-    Function,
     Message Function({
       required DartType actualType,
       required DartType expectedType,
@@ -5027,22 +5021,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name name,
     Expression? wrappedExpression,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     missingTemplate,
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     ambiguousTemplate,
   ) {
     List<LocatedMessage>? context;
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     template = missingTemplate;
     if (extensionAccessCandidates != null) {
       context = extensionAccessCandidates
@@ -5385,10 +5370,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression? receiver,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedGetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5413,10 +5395,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool forEffect,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedSetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5437,10 +5416,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression index, {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedOperator;
 
     return _reportMissingOrAmbiguousMember(
@@ -5469,10 +5445,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool forEffect,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5500,10 +5473,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
     assert(binaryName != equalsName);
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5529,10 +5499,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name unaryName, {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5840,7 +5807,6 @@ class _WhyNotPromotedVisitor
       }
       propertyReference = member;
       Template<
-        Function,
         Message Function({
           required String propertyName,
           required String documentationUrl,

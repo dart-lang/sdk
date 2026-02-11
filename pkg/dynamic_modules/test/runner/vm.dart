@@ -202,6 +202,8 @@ class VmExecutor implements TargetExecutor {
       rootScheme,
       '--output',
       '$source.bytecode',
+      '--prefix-library-uris',
+      'import/prefix',
       '$rootScheme:/data/${test.name}/$source',
     ];
     await runProcess(
