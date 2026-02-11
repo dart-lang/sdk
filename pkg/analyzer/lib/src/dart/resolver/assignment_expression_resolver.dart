@@ -91,7 +91,10 @@ class AssignmentExpressionResolver {
 
     var flow = _resolver.flowAnalysis.flow;
     if (flow != null && isIfNull) {
-      flow.ifNullExpression_rightBegin(left, SharedTypeView(node.readType!));
+      flow.ifNullExpression_rightBegin(
+        flow.getExpressionInfo(left),
+        SharedTypeView(node.readType!),
+      );
     }
 
     _resolver.analyzeExpression(right, SharedTypeSchemaView(rhsContext));

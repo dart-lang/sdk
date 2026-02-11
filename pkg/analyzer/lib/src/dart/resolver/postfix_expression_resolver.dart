@@ -238,6 +238,8 @@ class PostfixExpressionResolver {
     var type = _typeSystem.promoteToNonNull(operandType);
     node.recordStaticType(type, resolver: _resolver);
 
-    _resolver.flowAnalysis.flow?.nonNullAssert_end(operand);
+    _resolver.flowAnalysis.flow?.nonNullAssert_end(
+      _resolver.flowAnalysis.flow?.getExpressionInfo(operand),
+    );
   }
 }

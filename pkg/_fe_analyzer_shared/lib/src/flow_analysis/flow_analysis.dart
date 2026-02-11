@@ -716,7 +716,7 @@ abstract class FlowAnalysis<
   /// Call this method after visiting the LHS of an if-null expression ("??")
   /// or if-null assignment ("??=").
   void ifNullExpression_rightBegin(
-    Expression leftHandSide,
+    ExpressionInfo? leftHandSideInfo,
     SharedTypeView leftHandSideType,
   );
 
@@ -858,7 +858,7 @@ abstract class FlowAnalysis<
 
   /// Call this method just after visiting a non-null assertion (`x!`)
   /// expression.
-  void nonNullAssert_end(Expression operand);
+  void nonNullAssert_end(ExpressionInfo? operandInfo);
 
   /// Call this method after visiting the value of a null-aware map entry.
   void nullAwareMapEntry_end({required bool isKeyNullAware});
@@ -1916,13 +1916,15 @@ class FlowAnalysisDebug<
 
   @override
   void ifNullExpression_rightBegin(
-    Expression leftHandSide,
+    ExpressionInfo? leftHandSideInfo,
     SharedTypeView leftHandSideType,
   ) {
     _wrap(
-      'ifNullExpression_rightBegin($leftHandSide, $leftHandSideType)',
-      () =>
-          _wrapped.ifNullExpression_rightBegin(leftHandSide, leftHandSideType),
+      'ifNullExpression_rightBegin($leftHandSideInfo, $leftHandSideType)',
+      () => _wrapped.ifNullExpression_rightBegin(
+        leftHandSideInfo,
+        leftHandSideType,
+      ),
     );
   }
 
@@ -2118,10 +2120,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void nonNullAssert_end(Expression operand) {
+  void nonNullAssert_end(ExpressionInfo? operandInfo) {
     return _wrap(
-      'nonNullAssert_end($operand)',
-      () => _wrapped.nonNullAssert_end(operand),
+      'nonNullAssert_end($operandInfo)',
+      () => _wrapped.nonNullAssert_end(operandInfo),
     );
   }
 
@@ -5724,12 +5726,10 @@ class _FlowAnalysisImpl<
 
   @override
   void ifNullExpression_rightBegin(
-    Expression leftHandSide,
+    ExpressionInfo? leftHandSideInfo,
     SharedTypeView leftHandSideType,
   ) {
-    _Reference? lhsReference = _getExpressionReference(
-      _getExpressionInfo(leftHandSide),
-    );
+    _Reference? lhsReference = _getExpressionReference(leftHandSideInfo);
     FlowModel shortcutState;
     _current = _current.split();
     if (lhsReference != null) {
@@ -6020,10 +6020,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void nonNullAssert_end(Expression operand) {
-    _Reference? operandReference = _getExpressionReference(
-      _getExpressionInfo(operand),
-    );
+  void nonNullAssert_end(ExpressionInfo? operandInfo) {
+    _Reference? operandReference = _getExpressionReference(operandInfo);
     if (operandReference != null) {
       _current = _current.tryMarkNonNullable(this, operandReference).ifTrue;
     }

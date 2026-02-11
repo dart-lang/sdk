@@ -204,7 +204,10 @@ class BinaryExpressionResolver {
     {
       j = contextType;
     }
-    flow?.ifNullExpression_rightBegin(left, SharedTypeView(t1));
+    flow?.ifNullExpression_rightBegin(
+      flow.getExpressionInfo(left),
+      SharedTypeView(t1),
+    );
     _resolver.analyzeExpression(right, SharedTypeSchemaView(j));
     right = _resolver.popRewrite()!;
     flow?.ifNullExpression_end();

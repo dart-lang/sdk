@@ -6619,7 +6619,7 @@ class _MiniAstTypeAnalyzer
     Expression rhs,
   ) {
     var leftType = analyzeExpression(lhs, operations.unknownType).type;
-    flow.ifNullExpression_rightBegin(lhs, leftType);
+    flow.ifNullExpression_rightBegin(flow.getExpressionInfo(lhs), leftType);
     var rightType = analyzeExpression(rhs, operations.unknownType).type;
     flow.ifNullExpression_end();
     return new ExpressionTypeAnalysisResult(
@@ -6715,7 +6715,7 @@ class _MiniAstTypeAnalyzer
       operations.unknownType,
       continueNullShorting: true,
     ).type;
-    flow.nonNullAssert_end(expression);
+    flow.nonNullAssert_end(flow.getExpressionInfo(expression));
     return new ExpressionTypeAnalysisResult(
       type: flow.operations.promoteToNonNull(type),
     );

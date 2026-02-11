@@ -1,0 +1,10 @@
+typedef Callback = void Function();
+
+class Foo {
+  late final Callback? _koCallback;
+  final Callback? _okCallback;
+  Foo({Callback? okCallback, Callback? koCallback})
+      : _okCallback = okCallback {}
+  void thisWorks() {}
+  void thisDoesNot() {}
+}
