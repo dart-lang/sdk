@@ -282,7 +282,7 @@
       "prefer_final_parameters"
     ],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "**AVOID** declaring parameters as `final`.\n\nDeclaring parameters as `final` can lead to unnecessarily verbose code,\nespecially when using the \"parameter_assignments\" rule.\n\n**BAD:**\n```dart\nvoid goodParameter(final String label) { // LINT\n  print(label);\n}\n```\n\n**GOOD:**\n```dart\nvoid badParameter(String label) { // OK\n  print(label);\n}\n```\n\n**BAD:**\n```dart\nvoid goodExpression(final int value) => print(value); // LINT\n```\n\n**GOOD:**\n```dart\nvoid badExpression(int value) => print(value); // OK\n```\n\n**BAD:**\n```dart\n[1, 4, 6, 8].forEach((final value) => print(value + 2)); // LINT\n```\n\n**GOOD:**\n```dart\n[1, 4, 6, 8].forEach((value) => print(value + 2)); // OK\n```",
     "sinceDartSdk": "2.16"
   },
@@ -1161,7 +1161,7 @@
   },
   {
     "name": "invalid_runtime_check_with_js_interop_types",
-    "description": "Avoid runtime type tests with JS interop types where the result may not\n    be platform-consistent.",
+    "description": "Avoid runtime type tests with JS interop types where the result may not be platform-consistent.",
     "categories": [
       "errorProne",
       "web"
@@ -3024,7 +3024,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsEvaluation",
+    "fixStatus": "hasFix",
     "details": "**DON'T** Compare references of unrelated types for equality.\n\nComparing references of a type where neither is a subtype of the other most\nlikely will return `false` and might not reflect programmer's intent.\n\n`Int64` and `Int32` from `package:fixnum` allow comparing to `int` provided\nthe `int` is on the right hand side. The lint allows this as a special case.\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var x = '1';\n  if (x == 1) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction1() {\n  String x = '1';\n  if (x == 1) print('someFunction1'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction13(DerivedClass2 instance) {\n  var other = DerivedClass3();\n\n  if (other == instance) print('someFunction13'); // LINT\n}\n\nclass ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction2() {\n  var x = '1';\n  var y = '2';\n  if (x == y) print(someFunction2); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction3() {\n  for (var i = 0; i < 10; i++) {\n    if (i == 0) print(someFunction3); // OK\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  var x = '1';\n  if (x == null) print(someFunction4); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List someList;\n\n  if (someList.length == 0) print('someFunction7'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction8(ClassBase instance) {\n  DerivedClass1 other;\n\n  if (other == instance) print('someFunction8'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10(unknown) {\n  var what = unknown - 1;\n  for (var index = 0; index < unknown; index++) {\n    if (what == index) print('someFunction10'); // OK\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction11(Mixin instance) {\n  var other = DerivedClass2();\n\n  if (other == instance) print('someFunction11'); // OK\n  if (other != instance) print('!someFunction11'); // OK\n}\n\nclass ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```",
     "sinceDartSdk": "2.0"
   },
