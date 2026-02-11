@@ -4,7 +4,6 @@
 //
 // SharedObjects=ffi_test_functions
 
-// Formatting can break multitests, so don't format them.
 // dart format off
 
 import 'dart:ffi';
@@ -14,8 +13,15 @@ final class A extends Struct {
   external Array<Int8> a;
 
   // This should not crash the FFI transform.
-  @Array.multi([16]) //# 1: compile-time error
-  external Array<Unknown> b; //# 1: compile-time error
+  @Array.multi([16])
+  external Array<Unknown> b;
+  //             ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_SIZED_TYPE_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
+  // [cfe] 'Unknown' isn't a type.
+  // [cfe] Type 'Unknown' not found.
+  //                      ^
+  // [cfe] Expected type 'Array<invalid-type>' to be a valid and instantiated subtype of 'NativeType'.
 }
 
 main() {}

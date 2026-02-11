@@ -29,7 +29,7 @@ class C {
     _sink = File('').openWrite();
   }
 
-  void dispose(filename) {
+  void dispose() {
     _sink.close();
   }
 }
@@ -55,7 +55,21 @@ class C {
 ''');
   }
 
-  test_field_initializedFromExistingSink_explicitThis_notClosed() async {
+  test_field_initializedFromExistingSink_notClosed() async {
+    await assertNoDiagnostics(r'''
+import 'dart:io';
+class C {
+  // ignore: unused_field
+  late IOSink _sink;
+
+  void m(IOSink sink) {
+    _sink = sink;
+  }
+}
+''');
+  }
+
+  test_field_initializedFromExistingSink_notClosed_explicitThis() async {
     await assertNoDiagnostics(r'''
 import 'dart:io';
 class C {
@@ -66,20 +80,6 @@ class C {
 
   void m(IOSink sink) {
     this._sink = sink;
-  }
-}
-''');
-  }
-
-  test_field_initializedFromExistingSink_notClosed() async {
-    await assertNoDiagnostics(r'''
-import 'dart:io';
-class C {
-  // ignore: unused_field
-  late IOSink _sink;
-
-  void m(IOSink sink) {
-    _sink = sink;
   }
 }
 ''');
@@ -97,7 +97,32 @@ class C {
 ''');
   }
 
-  test_field_initializedInFieldFormalParameter() async {
+  test_field_initializedInConstructorInitializer_inPrimaryConstructor_fromExistingSink() async {
+    await assertNoDiagnostics(r'''
+import 'dart:io';
+class C(IOSink sink) {
+  // ignore: unused_field
+  final IOSink _sink;
+
+  this : this._sink = sink;
+}
+''');
+  }
+
+  test_field_initializedInFieldFormalParameter_inPrimaryConstructor_notClosed() async {
+    await assertNoDiagnostics(r'''
+import 'dart:io';
+class C(this._sink) {
+  // ignore: unused_field
+  late IOSink _sink;
+  void init() {
+    _sink = File('').openWrite();
+  }
+}
+''');
+  }
+
+  test_field_initializedInFieldFormalParameter_notClosed() async {
     await assertNoDiagnostics(r'''
 import 'dart:io';
 class C {
@@ -123,6 +148,52 @@ class C {
 ''',
       [lint(68, 5)],
     );
+  }
+
+  test_field_initializedInMethod_originPrimaryConstructor_notClosed() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:io';
+// ignore: unused_field_from_primary_constructor
+class C(var IOSink _sink) {
+  void init() {
+    _sink = File('').openWrite();
+  }
+}
+''',
+      [lint(75, 16)],
+    );
+  }
+
+  test_field_initializedInMethod_withPrimaryConstructor_notClosed() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:io';
+class C() {
+  // ignore: unused_field
+  late IOSink _sink;
+  void init() {
+    _sink = File('').openWrite();
+  }
+}
+''',
+      [lint(70, 5)],
+    );
+  }
+
+  test_field_originPrimaryConstructor_closed() async {
+    await assertNoDiagnostics(r'''
+import 'dart:io';
+class C(var IOSink _sink) {
+  void init() {
+    _sink = File('').openWrite();
+  }
+
+  void dispose() {
+    _sink.close();
+  }
+}
+''');
   }
 
   test_localVariable_closed() async {

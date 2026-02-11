@@ -1193,7 +1193,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ Bind(&push_arguments);
   __ movl(ECX, Address(EDI, EAX, TIMES_4, 0));
   __ pushl(ECX);
-  __ incl(EAX);
+  __ addl(EAX, Immediate(1));
   __ cmpl(EAX, EBX);
   __ j(LESS, &push_arguments, Assembler::kNearJump);
   __ Bind(&done_push_arguments);
@@ -1320,7 +1320,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
   __ Bind(&push_arguments);
   __ movl(ECX, Address(EDI, EAX, TIMES_4, 0));
   __ pushl(ECX);
-  __ incl(EAX);
+  __ addl(EAX, Immediate(1));
   __ cmpl(EAX, EBX);
   __ j(LESS, &push_arguments, Assembler::kNearJump);
   __ Bind(&done_push_arguments);
@@ -1644,7 +1644,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
       __ movl(Address(EAX, ECX, TIMES_4,
                       target::MarkingStackBlock::pointers_offset()),
               EBX);
-      __ incl(ECX);
+      __ addl(ECX, Immediate(1));
       __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
       __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
       __ j(NOT_EQUAL, &done);
@@ -1726,7 +1726,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     // Spilled: EAX, ECX
     // ECX: top_
     // EAX: StoreBufferBlock
-    __ incl(ECX);
+    __ addl(ECX, Immediate(1));
     __ movl(Address(EAX, target::StoreBufferBlock::top_offset()), ECX);
     __ cmpl(ECX, Immediate(target::StoreBufferBlock::kSize));
     __ j(NOT_EQUAL, &done);
@@ -1986,7 +1986,8 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
 // function and not the top-scope function.
 void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
   Register func_reg = EAX;
-  __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
+  __ addl(FieldAddress(func_reg, target::Function::usage_counter_offset()),
+          Immediate(1));
 }
 
 // Loads function into 'temp_reg'.
@@ -1997,7 +1998,8 @@ void StubCodeCompiler::GenerateUsageCounterIncrement(Register temp_reg) {
     __ Comment("Increment function counter");
     __ movl(func_reg,
             FieldAddress(IC_DATA_REG, target::ICData::owner_offset()));
-    __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
+    __ addl(FieldAddress(func_reg, target::Function::usage_counter_offset()),
+            Immediate(1));
   }
 }
 
@@ -2558,7 +2560,7 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
       Immediate(0));
   Label args_count_ok;
   __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
-  __ incl(ECX);
+  __ addl(ECX, Immediate(1));
   __ Bind(&args_count_ok);
 
   // Compute argv.
