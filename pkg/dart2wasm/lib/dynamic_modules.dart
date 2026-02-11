@@ -915,8 +915,21 @@ class DynamicModuleInfo {
         final table = translator.dispatchTable.getWasmTable(ib.moduleBuilder);
         ib.call_indirect(localSignature, table);
       }
-      translator.convertType(ib, localSignature.outputs.single,
-          generalizedMainSignature.outputs.single);
+      // Convert the output to the generalized signature type. Not all calls
+      // have an output. For example, setters where the implied output is never
+      // used.
+      if (localSignature.outputs.isNotEmpty &&
+          generalizedMainSignature.outputs.isNotEmpty) {
+        translator.convertType(ib, localSignature.outputs.single,
+            generalizedMainSignature.outputs.single);
+      } else if (localSignature.outputs.isNotEmpty) {
+        // This can happen when the shared signature from the main module is
+        // different from the local signature in the dynamic module. For
+        // example, one may use setter return values while the other doesn't.
+        ib.drop();
+      } else {
+        assert(generalizedMainSignature.outputs.isEmpty);
+      }
       ib.end();
     };
   }
@@ -968,8 +981,20 @@ class DynamicModuleInfo {
             buildSelectorBranch(interfaceTarget, mainModuleSelector),
         skipSubmodule:
             selector.targets(unchecked: false).allTargetRanges.isEmpty);
-    translator.convertType(
-        b, generalizedSignature.outputs.single, localSignature.outputs.single);
+    // Convert the output to the local signature type. Not all calls have
+    // an output. For example, setters where the implied output is never used.
+    if (generalizedSignature.outputs.isNotEmpty &&
+        localSignature.outputs.isNotEmpty) {
+      translator.convertType(b, generalizedSignature.outputs.single,
+          localSignature.outputs.single);
+    } else if (generalizedSignature.outputs.isNotEmpty) {
+      // This can happen when the shared signature from the main module is
+      // different from the local signature in the dynamic module. For example,
+      // one may use setter return values while the other doesn't.
+      b.drop();
+    } else {
+      assert(localSignature.outputs.isEmpty);
+    }
   }
 }
 
