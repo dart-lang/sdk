@@ -2249,7 +2249,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readResult.inferredType;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -3822,7 +3822,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // This ends any shorting in `node.left`.
     Expression left = lhsResult.expression;
 
-    flowAnalysis.ifNullExpression_rightBegin(left, new SharedTypeView(t1));
+    flowAnalysis.ifNullExpression_rightBegin(
+      flowAnalysis.getExpressionInfo(left),
+      new SharedTypeView(t1),
+    );
 
     // - Let `T2` be the type of `e2` inferred with context type `J`, where:
     //   - If `K` is `_` or `dynamic`, `J = T1`.
@@ -8714,7 +8717,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType operandType = operandResult.inferredType;
 
     node.operand = operand..parent = node;
-    flowAnalysis.nonNullAssert_end(node.operand);
+    flowAnalysis.nonNullAssert_end(
+      flowAnalysis.getExpressionInfo(node.operand),
+    );
     DartType nonNullableResultType = operations
         .promoteToNonNull(new SharedTypeView(operandType))
         .unwrapTypeView();
@@ -9199,7 +9204,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readResult.inferredType;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -9340,7 +9345,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readResult.inferredType;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
     ExpressionInferenceResult writeResult = inferExpression(
@@ -9987,7 +9992,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -10176,7 +10181,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     )..fileOffset = node.readOffset;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
     ExpressionInferenceResult valueResult = inferExpression(
@@ -10401,7 +10406,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
