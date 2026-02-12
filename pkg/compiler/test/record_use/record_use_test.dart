@@ -216,17 +216,4 @@ Future<String?> compileWithUsages({
       .toString();
 }
 
-const dart2jsNotSupported = {
-  // No support for instance constants.
-  // https://github.com/dart-lang/native/issues/2893
-  'instance_class.dart',
-  'instance_complex.dart',
-  'instance_duplicates.dart',
-  'instance_method.dart',
-  'instance_not_annotation.dart',
-  'nested_instance_constant.dart',
-  'nested.dart',
-  'record_enum.dart',
-  'record_instance_constant_empty.dart',
-  'unsupported_instance.dart',
-};
+const Set<String> dart2jsNotSupported = {};
