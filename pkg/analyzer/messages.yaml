@@ -3187,9 +3187,9 @@ CompileTimeErrorCode:
   constConstructorFieldTypeMismatch:
     type: compileTimeError
     parameters:
-      Object valueType: the type of the runtime value of the argument
-      Object fieldName: the name of the field
-      Object fieldType: the type of the field
+      String valueType: the type of the runtime value of the argument
+      String fieldName: the name of the field
+      String fieldType: the type of the field
     problemMessage: "In a const constructor, a value of type '#valueType' can't be assigned to the field '#fieldName', which has type '#fieldType'."
     correctionMessage: "Try using a subtype, or removing the keyword 'const'."
     hasPublishedDocs: false
@@ -3524,7 +3524,7 @@ CompileTimeErrorCode:
   constEvalAssertionFailureWithMessage:
     type: compileTimeError
     parameters:
-      Object message: the message of the assertion
+      String message: the message of the assertion
     problemMessage: "An assertion failed with message '#message'."
     hasPublishedDocs: false
   constEvalExtensionMethod:
@@ -7762,10 +7762,10 @@ CompileTimeErrorCode:
   getterNotSubtypeSetterTypes:
     type: compileTimeError
     parameters:
-      Object getterName: the name of the getter
-      Object getterType: the type of the getter
-      Object setterType: the type of the setter
-      Object setterName: the name of the setter
+      String getterName: the name of the getter
+      Type getterType: the type of the getter
+      Type setterType: the type of the setter
+      String setterName: the name of the setter
     problemMessage: "The return type of getter '#getterName' is '#getterType' which isn't a subtype of the type '#setterType' of its setter '#setterName'."
     correctionMessage: Try changing the types so that they are compatible.
     hasPublishedDocs: true
@@ -8828,8 +8828,8 @@ CompileTimeErrorCode:
   instanceAccessToStaticMemberOfUnnamedExtension:
     type: compileTimeError
     parameters:
-      Object name: the name of the static member
-      Object kind: the kind of the static member (field, getter, setter, or method)
+      String name: the name of the static member
+      String kind: the kind of the static member (field, getter, setter, or method)
     sharedName: instanceAccessToStaticMember
     problemMessage: "The static #kind '#name' can't be accessed through an instance."
     hasPublishedDocs: true
@@ -19233,8 +19233,8 @@ CompileTimeErrorCode:
   variableTypeMismatch:
     type: compileTimeError
     parameters:
-      Object valueType: the type of the object being assigned.
-      Object variableType: the type of the variable being assigned to
+      String valueType: the type of the object being assigned.
+      String variableType: the type of the variable being assigned to
     problemMessage: "A value of type '#valueType' can't be assigned to a const variable of type '#variableType'."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"
     hasPublishedDocs: true
@@ -25274,7 +25274,7 @@ WarningCode:
   deprecatedExtend:
     type: staticWarning
     parameters:
-      Object typeName: the name of the type
+      String typeName: the name of the type
     problemMessage: "Extending '#typeName' is deprecated."
     correctionMessage: Try removing the 'extends' clause.
     hasPublishedDocs: true
@@ -25400,7 +25400,7 @@ WarningCode:
   deprecatedImplement:
     type: staticWarning
     parameters:
-      Object typeName: the name of the type
+      String typeName: the name of the type
     problemMessage: "Implementing '#typeName' is deprecated."
     correctionMessage: Try removing '#typeName' from the 'implements' clause.
     hasPublishedDocs: true
@@ -25451,7 +25451,7 @@ WarningCode:
   deprecatedInstantiate:
     type: staticWarning
     parameters:
-      Object typeName: the name of the type
+      String typeName: the name of the type
     problemMessage: "Instantiating '#typeName' is deprecated."
     correctionMessage: Try instantiating a non-abstract class.
     hasPublishedDocs: true
@@ -25490,7 +25490,7 @@ WarningCode:
   deprecatedMixin:
     type: staticWarning
     parameters:
-      Object typeName: the name of the type
+      String typeName: the name of the type
     problemMessage: "Mixing in '#typeName' is deprecated."
     correctionMessage: Try removing '#typeName' from the 'with' clause.
     hasPublishedDocs: true
@@ -25540,7 +25540,7 @@ WarningCode:
   deprecatedOptional:
     type: staticWarning
     parameters:
-      Object parameterName: the name of the parameter
+      String parameterName: the name of the parameter
     problemMessage: "Omitting an argument for the '#parameterName' parameter is deprecated."
     correctionMessage: Try passing an argument for '#parameterName'.
     hasPublishedDocs: true
@@ -25649,7 +25649,7 @@ WarningCode:
   deprecatedSubclass:
     type: staticWarning
     parameters:
-      Object typeName: the name of the type
+      String typeName: the name of the type
     problemMessage: "Subclassing '#typeName' is deprecated."
     correctionMessage: Try removing the 'extends' clause, or removing '#typeName' from the 'implements' clause.
     hasPublishedDocs: true
@@ -26974,8 +26974,8 @@ WarningCode:
   invalidLanguageVersionOverrideGreater:
     type: staticWarning
     parameters:
-      Object latestMajor: the latest major version
-      Object latestMinor: the latest minor version
+      int latestMajor: the latest major version
+      int latestMinor: the latest minor version
     sharedName: invalidLanguageVersionOverride
     problemMessage: "The language version override can't specify a version greater than the latest known language version: #latestMajor.#latestMinor."
     correctionMessage: Try removing the language version override.
@@ -28789,9 +28789,9 @@ WarningCode:
   replacedLintUse:
     type: staticWarning
     parameters:
-      Object ruleName: the rule name
-      Object since: the SDK version in which the lint was removed
-      Object replacement: the name of a replacing lint
+      String ruleName: the rule name
+      String since: the SDK version in which the lint was removed
+      String replacement: the name of a replacing lint
     problemMessage: "'#ruleName' was replaced by '#replacement' in Dart '#since'."
     correctionMessage: "Replace '#ruleName' with '#replacement'."
     hasPublishedDocs: false
@@ -30547,7 +30547,7 @@ WarningCode:
   unusedField:
     type: staticWarning
     parameters:
-      Object fieldName: the name of the unused field
+      String fieldName: the name of the unused field
     problemMessage: "The value of the field '#fieldName' isn't used."
     correctionMessage: Try removing the field, or using it.
     hasPublishedDocs: true
@@ -30585,8 +30585,8 @@ WarningCode:
   unusedFieldFromPrimaryConstructor:
     type: staticWarning
     parameters:
-      Object fieldName: the name of the unused field
-      Object keyword: the keyword to remove
+      String fieldName: the name of the unused field
+      String keyword: the keyword to remove
     problemMessage: "The value of the field '#fieldName' isn't used."
     correctionMessage: Try removing the '#keyword' keyword to avoid declaring a field, or try using the field, or removing it.
     hasPublishedDocs: false
