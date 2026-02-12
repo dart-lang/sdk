@@ -203,10 +203,10 @@ class ClosureLayouter extends RecursiveVisitor {
       representations;
 
   // Dynamic submodules invoke closures dynamically so they use the base structs
-  // in all cases. Therefore, We only need one global copy of the
-  // ClosureRepresentation for generic and one for non-generic functions.
-  ClosureRepresentation? _dynamicSubmoduleRepresentation;
-  ClosureRepresentation? _dynamicSubmoduleGenericRepresentation;
+  // in all cases. Therefore, we only need one global copy of the
+  // ClosureRepresentation for each type parameter count.
+  final Map<int, ClosureRepresentation>
+      _dynamicSubmoduleGenericRepresentations = {};
 
   Set<Constant> visitedConstants = Set.identity();
 
@@ -484,11 +484,7 @@ class ClosureLayouter extends RecursiveVisitor {
   ClosureRepresentation? getClosureRepresentation(
       int typeCount, int positionalCount, List<String> names) {
     if (translator.dynamicModuleSupportEnabled) {
-      if (typeCount == 0) {
-        return _dynamicSubmoduleRepresentation ??=
-            _createRepresentation(typeCount, 0, const [], null, null, const []);
-      }
-      return _dynamicSubmoduleGenericRepresentation ??=
+      return _dynamicSubmoduleGenericRepresentations[typeCount] ??=
           _createRepresentation(typeCount, 0, const [], null, null, const []);
     }
     final representations =
