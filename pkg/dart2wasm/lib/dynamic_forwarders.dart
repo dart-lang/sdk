@@ -409,6 +409,10 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
 
     final classIdLocal = b.addLocal(w.NumType.i32);
 
+    b.local_get(receiverLocal);
+    b.loadClassId(translator, receiverLocal.type);
+    b.local_set(classIdLocal);
+
     // Continuation of this block calls `noSuchMethod` on the receiver.
     final noSuchMethodBlock = b.block();
 
@@ -432,10 +436,6 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
         if (!callerShape.matchesTarget(targetFunction)) {
           continue;
         }
-
-        b.local_get(receiverLocal);
-        b.loadClassId(translator, receiverLocal.type);
-        b.local_set(classIdLocal);
 
         final classIdNoMatch = b.block();
         final classIdMatch = b.block();
