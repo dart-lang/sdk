@@ -238,7 +238,7 @@ class AnalysisOptionsAnalyzer {
           initialDiagnosticReporter.report(
             diag.includedFileWarning
                 .withArguments(
-                  includingFilePath: includedSource,
+                  includingFilePath: includedSource.fullName,
                   startOffset: spanInChain.start.offset,
                   endOffset: spanInChain.end.offset - 1,
                   warningMessage: 'The file includes itself recursively.',
@@ -466,7 +466,7 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
         diag.unsupportedValue
             .withArguments(
               optionName: AnalysisOptionsFile.format,
-              invalidValue: format.valueOrThrow,
+              invalidValue: format.valueOrThrow.toString(),
               legalValues: AnalysisOptionsFile.trueOrFalseProposal,
             )
             .atSourceSpan(format.span),
@@ -815,7 +815,7 @@ class _LanguageOptionValidator extends OptionsValidator {
                 diag.unsupportedValue
                     .withArguments(
                       optionName: key!,
-                      invalidValue: v.valueOrThrow,
+                      invalidValue: v.valueOrThrow.toString(),
                       legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                     )
                     .atSourceSpan(v.span),
@@ -985,7 +985,7 @@ class _OptionalChecksValueValidator extends OptionsValidator {
                   diag.unsupportedValue
                       .withArguments(
                         optionName: key!,
-                        invalidValue: v.valueOrThrow,
+                        invalidValue: v.valueOrThrow.toString(),
                         legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                       )
                       .atSourceSpan(v.span),
@@ -1140,7 +1140,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
             diag.unsupportedValue
                 .withArguments(
                   optionName: AnalysisOptionsFile.strongMode,
-                  invalidValue: v.valueOrThrow,
+                  invalidValue: v.valueOrThrow.toString(),
                   legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                 )
                 .atSourceSpan(v.span),
@@ -1154,7 +1154,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
                 diag.unsupportedValue
                     .withArguments(
                       optionName: key!,
-                      invalidValue: v.valueOrThrow,
+                      invalidValue: v.valueOrThrow.toString(),
                       legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                     )
                     .atSourceSpan(v.span),

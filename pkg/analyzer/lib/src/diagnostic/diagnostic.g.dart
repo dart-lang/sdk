@@ -6961,7 +6961,7 @@ includedFileParseError = DiagnosticWithArguments(
 /// An error code indicating a specified include file has a warning.
 ///
 /// Parameters:
-/// Object includingFilePath: the path of the file containing the warnings
+/// String includingFilePath: the path of the file containing the warnings
 /// int startOffset: the starting offset of the text in the file that contains
 ///                  the warning
 /// int endOffset: the ending offset of the text in the file that contains the
@@ -6969,7 +6969,7 @@ includedFileParseError = DiagnosticWithArguments(
 /// String warningMessage: the warning message
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object includingFilePath,
+    required String includingFilePath,
     required int startOffset,
     required int endOffset,
     required String warningMessage,
@@ -6983,7 +6983,7 @@ includedFileWarning = DiagnosticWithArguments(
   uniqueName: 'included_file_warning',
   withArguments: _withArgumentsIncludedFileWarning,
   expectedTypes: [
-    ExpectedType.object,
+    ExpectedType.string,
     ExpectedType.int,
     ExpectedType.int,
     ExpectedType.string,
@@ -13712,13 +13712,13 @@ recursiveFactoryRedirect = DiagnosticWithoutArgumentsImpl(
 /// An error code indicating a specified include file includes itself recursively.
 ///
 /// Parameters:
-/// Object includedUri: the URI of the file to be included
-/// Object includingFilePath: the path of the file containing the include
+/// String includedUri: the URI of the file to be included
+/// String includingFilePath: the path of the file containing the include
 ///                           directive
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object includedUri,
-    required Object includingFilePath,
+    required String includedUri,
+    required String includingFilePath,
   })
 >
 recursiveIncludeFile = DiagnosticWithArguments(
@@ -13732,7 +13732,7 @@ recursiveIncludeFile = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'recursive_include_file',
   withArguments: _withArgumentsRecursiveIncludeFile,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
@@ -16849,12 +16849,12 @@ unsupportedOptionWithoutValues = DiagnosticWithArguments(
 ///
 /// Parameters:
 /// String optionName: the option name
-/// Object invalidValue: the unsupported value
+/// String invalidValue: the unsupported value
 /// String legalValues: legal values
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
     required String optionName,
-    required Object invalidValue,
+    required String invalidValue,
     required String legalValues,
   })
 >
@@ -16868,7 +16868,7 @@ unsupportedValue = DiagnosticWithArguments(
   withArguments: _withArgumentsUnsupportedValue,
   expectedTypes: [
     ExpectedType.string,
-    ExpectedType.object,
+    ExpectedType.string,
     ExpectedType.string,
   ],
 );
@@ -19220,7 +19220,7 @@ LocatableDiagnostic _withArgumentsIncludedFileParseError({
 }
 
 LocatableDiagnostic _withArgumentsIncludedFileWarning({
-  required Object includingFilePath,
+  required String includingFilePath,
   required int startOffset,
   required int endOffset,
   required String warningMessage,
@@ -20572,8 +20572,8 @@ LocatableDiagnostic _withArgumentsReadPotentiallyUnassignedFinal({
 }
 
 LocatableDiagnostic _withArgumentsRecursiveIncludeFile({
-  required Object includedUri,
-  required Object includingFilePath,
+  required String includedUri,
+  required String includingFilePath,
 }) {
   return LocatableDiagnosticImpl(diag.recursiveIncludeFile, [
     includedUri,
@@ -21371,7 +21371,7 @@ LocatableDiagnostic _withArgumentsUnsupportedOptionWithoutValues({
 
 LocatableDiagnostic _withArgumentsUnsupportedValue({
   required String optionName,
-  required Object invalidValue,
+  required String invalidValue,
   required String legalValues,
 }) {
   return LocatableDiagnosticImpl(diag.unsupportedValue, [

@@ -314,7 +314,7 @@ AnalysisOptionsWarningCode:
   includedFileWarning:
     type: staticWarning
     parameters:
-      Object includingFilePath: the path of the file containing the warnings
+      String includingFilePath: the path of the file containing the warnings
       int startOffset: the starting offset of the text in the file that contains the warning
       int endOffset: the ending offset of the text in the file that contains the warning
       String warningMessage: the warning message
@@ -591,8 +591,8 @@ AnalysisOptionsWarningCode:
   recursiveIncludeFile:
     type: staticWarning
     parameters:
-      Object includedUri: the URI of the file to be included
-      Object includingFilePath: the path of the file containing the include directive
+      String includedUri: the URI of the file to be included
+      String includingFilePath: the path of the file containing the include directive
     problemMessage: "The URI '#includedUri' included in '#includingFilePath' includes '#includingFilePath', creating a circular reference."
     correctionMessage: "Try changing the chain of 'include's to break the circularity."
     hasPublishedDocs: true
@@ -859,7 +859,7 @@ AnalysisOptionsWarningCode:
     type: staticWarning
     parameters:
       String optionName: the option name
-      Object invalidValue: the unsupported value
+      String invalidValue: the unsupported value
       String legalValues: legal values
     problemMessage: "The value '#invalidValue' isn't supported by '#optionName'."
     correctionMessage: "Try using one of the supported values: #legalValues."
