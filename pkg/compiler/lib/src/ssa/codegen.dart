@@ -2694,12 +2694,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         : target.name;
 
     Object? recordedMethodUses;
-    if (_closedWorld.annotationsData.shouldRecordMethodUses(target)) {
-      recordedMethodUses = _recordMethodUses(
-        target,
-        inputs,
-        node.sourceInformation!,
-      );
+    final sourceInformation = node.sourceInformation;
+    if (sourceInformation != null &&
+        _closedWorld.annotationsData.shouldRecordMethodUses(target)) {
+      recordedMethodUses = _recordMethodUses(target, inputs, sourceInformation);
     }
 
     void invokeWithJavaScriptReceiver(js.Expression receiverExpression) {

@@ -1,4 +1,10 @@
 {
+  "constants": [
+    {
+      "type": "int",
+      "value": 6
+    }
+  ],
   "metadata": {
     "comment": "Resources referenced by annotated resource identifiers",
     "version": "0.4.0",
@@ -11,5 +17,22 @@
       "dart.tool.dart2js.primitives:trust": "false",
       "dart.tool.dart2js.types:trust": "false"
     }
-  }
+  },
+  "recordings": [
+    {
+      "calls": [
+        {
+          "loading_unit": "out",
+          "positional": [
+            0
+          ],
+          "type": "with_arguments"
+        }
+      ],
+      "identifier": {
+        "name": "someExternalFunction",
+        "uri": "package:record_use_js_test/js_interop.dart"
+      }
+    }
+  ]
 }

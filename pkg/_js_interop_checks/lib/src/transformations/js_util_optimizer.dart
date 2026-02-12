@@ -17,6 +17,7 @@ import '../js_interop.dart'
         hasDartJSInteropAnnotation,
         hasJSInteropAnnotation,
         hasNativeAnnotation,
+        hasRecordUseAnnotation,
         hasStaticInteropAnnotation,
         hasTrustTypesAnnotation;
 
@@ -627,6 +628,7 @@ class JsUtilOptimizer extends Transformer {
   /// that the annotations are not erased by lowering the call.
   bool _preferStub(Procedure node) {
     if (isDart2JS) {
+      if (hasRecordUseAnnotation(node)) return true;
       final annotations = node.annotations;
       if (annotations.any(_isPragma)) return true;
       // TODO(sra): Are there other annotations we want to preserve?
