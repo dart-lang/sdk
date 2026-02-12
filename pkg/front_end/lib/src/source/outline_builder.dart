@@ -3202,18 +3202,19 @@ class OutlineBuilder extends StackListenerImpl {
         assert(last != null);
         formals = [last as FormalParameterBuilder];
       }
-
-      Token? tokenBeforeEnd = endToken.previous;
-      if (tokenBeforeEnd != null &&
-          tokenBeforeEnd.isA(TokenType.COMMA) &&
-          kind == MemberKind.PrimaryConstructor &&
-          declarationContext == DeclarationContext.ExtensionType) {
-        _compilationUnit.addProblem(
-          diag.representationFieldTrailingComma,
-          tokenBeforeEnd.charOffset,
-          1,
-          uri,
-        );
+      if (!libraryFeatures.primaryConstructors.isEnabled) {
+        Token? tokenBeforeEnd = endToken.previous;
+        if (tokenBeforeEnd != null &&
+            tokenBeforeEnd.isA(TokenType.COMMA) &&
+            kind == MemberKind.PrimaryConstructor &&
+            declarationContext == DeclarationContext.ExtensionType) {
+          _compilationUnit.addProblem(
+            diag.representationFieldTrailingComma,
+            tokenBeforeEnd.charOffset,
+            1,
+            uri,
+          );
+        }
       }
     } else if (count > 1) {
       Object? last = pop();
