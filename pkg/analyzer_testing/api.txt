@@ -62,6 +62,9 @@ package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart:
   ExpectedContextMessage (non-public)
   ExpectedDiagnostic (non-public)
   PubPackageResolutionTest (non-public)
+package:analyzer_testing/utilities/extensions/diagnostic_code.dart:
+  DiagnosticCodeExtension (extension on DiagnosticCode):
+    constantName (getter: String)
 package:analyzer_testing/utilities/extensions/resource_provider.dart:
   ResourceProviderExtension (extension on ResourceProvider):
     convertPath (method: String Function(String))
