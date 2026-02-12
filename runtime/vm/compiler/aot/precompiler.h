@@ -527,7 +527,7 @@ class Obfuscator : public ValueObject {
     return name.ptr();
   }
 
-  class ObfuscationState : public ZoneAllocated {
+  class ObfuscationState : public ZoneObject {
    public:
     ObfuscationState(Thread* thread,
                      const Array& saved_state,

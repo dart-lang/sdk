@@ -20,6 +20,21 @@ abstract class RuleVisitorRegistry {
   void addAdjacentStrings(AbstractAnalysisRule rule, AstVisitor visitor);
   void addAnnotation(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  @experimental
+  void addAnonymousBlockBody(AbstractAnalysisRule rule, AstVisitor visitor);
+
+  @experimental
+  void addAnonymousExpressionBody(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  );
+
+  @experimental
+  void addAnonymousMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  );
+
   void addArgumentList(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addAsExpression(AbstractAnalysisRule rule, AstVisitor visitor);

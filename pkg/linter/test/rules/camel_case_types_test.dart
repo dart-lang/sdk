@@ -161,7 +161,7 @@ enum foooBar { a }
   test_enum_primaryConstructor_lowerCamel() async {
     await assertDiagnostics(
       r'''
-enum fooBar(var String name) { a('') }
+enum fooBar(final String name) { a('') }
 ''',
       [lint(5, 6)],
     );
@@ -169,7 +169,7 @@ enum fooBar(var String name) { a('') }
 
   test_enum_primaryConstructor_upperCamel() async {
     await assertNoDiagnostics(r'''
-enum FooBar(var String name) { a('') }
+enum FooBar(final String name) { a('') }
 ''');
   }
 

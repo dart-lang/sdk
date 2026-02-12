@@ -21,12 +21,21 @@ import 'package:path/path.dart' as path;
 
 final Uri _pkgVmDir = Platform.script.resolve('../..');
 
-void runTestCaseAot(Uri source, bool throws) async {
+void runTestCaseAot(
+  Uri sourceFileUri,
+  Uri sourcePackageUri,
+  Uri packagesFileUri,
+  bool throws,
+) async {
   final target = VmTarget(TargetFlags(supportMirrors: false));
 
   Component component;
   try {
-    component = await compileTestCaseToKernelProgram(source, target: target);
+    component = await compileTestCaseToKernelProgram(
+      sourcePackageUri,
+      target: target,
+      packagesFileUri: packagesFileUri,
+    );
   } catch (e) {
     if (throws) {
       return;
@@ -52,7 +61,7 @@ void runTestCaseAot(Uri source, bool throws) async {
       useProtobufTreeShakerV2: true,
       treeShakeWriteOnlyFields: true,
       recordedUsages: recordedUsagesFile,
-      source: source,
+      source: sourcePackageUri,
     ),
   );
 
@@ -66,19 +75,34 @@ void runTestCaseAot(Uri source, bool throws) async {
     component.mainMethod!.enclosingLibrary,
   ).replaceAll(_pkgVmDir.toString(), 'org-dartlang-test:///');
 
-  compareResultWithExpectationsFile(source, actual, expectFilePostfix: '.aot');
+  compareResultWithExpectationsFile(
+    sourceFileUri,
+    actual,
+    expectFilePostfix: '.aot',
+  );
 
-  final actualSemantic = RecordedUsages.fromJson(
+  final actualSemantic = Recordings.fromJson(
     jsonDecode(File.fromUri(recordedUsagesFile).readAsStringSync()),
   );
-  final goldenFile = File('${source.toFilePath()}.json.expect');
-  final goldenContents = await goldenFile.readAsString();
-  final golden = RecordedUsages.fromJson(jsonDecode(goldenContents));
-  final semanticEquals = actualSemantic == golden;
+  final goldenFile = File('${sourceFileUri.toFilePath()}.json.expect');
   final update = bool.fromEnvironment('updateExpectations');
+
+  bool semanticEquals = false;
+  if (goldenFile.existsSync()) {
+    try {
+      final goldenContents = await goldenFile.readAsString();
+      final golden = Recordings.fromJson(jsonDecode(goldenContents));
+      semanticEquals = actualSemantic.semanticEquals(golden);
+    } on FormatException {
+      if (!update) {
+        rethrow;
+      }
+    }
+  }
+
   if (!semanticEquals || update) {
     compareResultWithExpectationsFile(
-      source,
+      sourceFileUri,
       File.fromUri(recordedUsagesFile).readAsStringSync(),
       expectFilePostfix: '.json',
     );
@@ -89,9 +113,14 @@ void main(List<String> args) {
   assert(args.isEmpty || args.length == 1);
   final filter = args.firstOrNull;
   group('record-use-transformations', () {
-    final testCasesDir = Directory.fromUri(
-      _pkgVmDir.resolve('testcases/transformations/record_use/'),
+    final recordUseTestDir = _pkgVmDir.resolve(
+      'testcases/transformations/record_use/',
     );
+    final testCasesDir = Directory.fromUri(recordUseTestDir.resolve('lib/'));
+    final packagesFileUri = _pkgVmDir.resolve(
+      '../../.dart_tool/package_config.json',
+    );
+
     for (var file
         in testCasesDir
             .listSync(recursive: true, followLinks: false)
@@ -99,11 +128,42 @@ void main(List<String> args) {
       if (file.path.endsWith('.dart') &&
           !file.path.contains('helper') &&
           (filter == null || file.path.contains(filter))) {
+        final name = path.basename(file.path);
+        final packageUri = Uri.parse('package:record_use_test/$name');
         test(
           '${file.path} aot',
-          () => runTestCaseAot(file.uri, file.path.contains('throws')),
+          () => runTestCaseAot(
+            file.uri,
+            packageUri,
+            packagesFileUri,
+            file.path.contains('throws'),
+          ),
         );
       }
     }
+
+    test('outside_package_throws', () async {
+      final sourceFileUri = recordUseTestDir.resolve(
+        'outside_package_throws.dart',
+      );
+      final target = VmTarget(TargetFlags(supportMirrors: false));
+
+      bool failed = false;
+      try {
+        await compileTestCaseToKernelProgram(
+          sourceFileUri,
+          target: target,
+          packagesFileUri: packagesFileUri,
+        );
+      } catch (e) {
+        failed = true;
+        final message = e.toString();
+        expect(message, contains('RecordUse'));
+        expect(message, contains('package:'));
+      }
+      if (!failed) {
+        fail('Should have failed with a diagnostic error');
+      }
+    });
   });
 }

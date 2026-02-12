@@ -16,6 +16,14 @@
   `JSIterable.toDartIterable`, `Iterator.toJSIterator`, and
   `JSIterator.toDartIterator`.
 
+### Tools
+
+#### Pub
+
+- `dart pub cache repair` now by default only repairs the packages referenced
+  by the current projects pubspec.lock. For the old behavior of repairing all
+  packages use the `--all` flag.
+
 ## 3.11.0
 
 **Released on:** Unreleased
@@ -117,9 +125,16 @@ There are no language changes in this release.
   Given this flag, `dart pub publish --dry-run` will only exit non-zero if your
   project validation has errors.
 
-- `dart pub cache repair` now by default only repairs the packages referenced
-  by the current projects pubspec.lock. For the old behavior of repairing all
-  packages use the `--all` flag.
+## 3.10.9
+
+**Released on:** 2026-02-03
+
+This is a patch release that:
+
+- Fixes a bug that allowed users to access private declarations in other
+  libraries with dot shorthands. (issue [dart-lang/sdk#62504])
+
+[dart-lang/sdk#62504]: https://github.com/dart-lang/sdk/issues/62504
 
 ## 3.10.8
 

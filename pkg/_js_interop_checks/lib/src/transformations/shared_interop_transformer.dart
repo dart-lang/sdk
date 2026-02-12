@@ -282,8 +282,8 @@ class SharedInteropTransformer extends Transformer {
     var exportStatus = _exportChecker.exportStatus[dartClass.reference];
     if (exportStatus == ExportStatus.nonExportable) {
       _diagnosticReporter.report(
-        diag.jsInteropExportClassNotMarkedExportable.withArgumentsOld(
-          dartClass.name,
+        diag.jsInteropExportClassNotMarkedExportable.withArguments(
+          className: dartClass.name,
         ),
         invocation.fileOffset,
         invocation.name.text.length,

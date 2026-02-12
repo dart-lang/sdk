@@ -1,0 +1,65 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+
+  [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "same_1")]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  final field core::String usedFieldWithSameValue;
+
+  [@vm.inferred-type.metadata=dart.core::_OneByteString]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
+  final field core::String usedFieldWithDifferentValues;
+
+  [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "same_3")]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C3
+  final field core::String unusedFieldWithSameValueAndEntryPoint;
+
+  [@vm.inferred-type.metadata=dart.core::_OneByteString]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]
+  final field core::String unusedFieldWithDifferentValues;
+  const constructor •() → self::Foo
+    : self::Foo::usedFieldWithSameValue = #C4, self::Foo::usedFieldWithDifferentValues = #C5, self::Foo::unusedFieldWithSameValueAndEntryPoint = #C6, self::Foo::unusedFieldWithDifferentValues = #C7, super core::Object::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main(core::List<core::String> args) → dynamic {
+  const core::List<self::Foo> foos = #C17;
+  final core::List<self::Foo> newFoos = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::Foo>] core::_GrowableList::_literal1<self::Foo>(new self::Foo::•());
+  {
+    synthesized core::Iterator<self::Foo> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::Foo>]( block {
+      final core::List<self::Foo> #t1 = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::Foo>] core::List::of<self::Foo>(#C17);
+      [@vm.call-site-attributes.metadata=receiverType:dart.core::List<#lib::Foo>] [@vm.direct-call.metadata=dart.core::_GrowableList.addAll] [@vm.inferred-type.metadata=? (skip check)] #t1.{core::List::addAll}{Invariant}(newFoos){(core::Iterable<self::Foo>) → void};
+    } =>#t1).{core::Iterable::iterator}{core::Iterator<self::Foo>};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final self::Foo foo = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=#lib::Foo] :sync-for-iterator.{core::Iterator::current}{self::Foo};
+      {
+        core::print([@vm.direct-call.metadata=#lib::Foo.usedFieldWithSameValue] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "same_1")] foo.{self::Foo::usedFieldWithSameValue}{core::String});
+        core::print([@vm.direct-call.metadata=#lib::Foo.usedFieldWithDifferentValues] [@vm.inferred-type.metadata=dart.core::_OneByteString] foo.{self::Foo::usedFieldWithDifferentValues}{core::String});
+      }
+    }
+  }
+}
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "same_1"
+  #C5 = "diff1_4"
+  #C6 = "same_3"
+  #C7 = "diff2_4"
+  #C8 = "diff1_1"
+  #C9 = "diff2_1"
+  #C10 = self::Foo {usedFieldWithSameValue:#C4, usedFieldWithDifferentValues:#C8, unusedFieldWithSameValueAndEntryPoint:#C6, unusedFieldWithDifferentValues:#C9}
+  #C11 = "diff1_2"
+  #C12 = "diff2_2"
+  #C13 = self::Foo {usedFieldWithSameValue:#C4, usedFieldWithDifferentValues:#C11, unusedFieldWithSameValueAndEntryPoint:#C6, unusedFieldWithDifferentValues:#C12}
+  #C14 = "diff1_3"
+  #C15 = "diff2_3"
+  #C16 = self::Foo {usedFieldWithSameValue:#C4, usedFieldWithDifferentValues:#C14, unusedFieldWithSameValueAndEntryPoint:#C6, unusedFieldWithDifferentValues:#C15}
+  #C17 = <self::Foo>[#C10, #C13, #C16]
+}

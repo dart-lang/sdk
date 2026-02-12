@@ -187,7 +187,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
-    if (_elementWalker == null) {
+    if (node.elementAnnotation == null && _elementWalker == null) {
       ElementAnnotationImpl(_libraryFragment, node);
     }
     _withElementWalker(null, () {
@@ -1090,7 +1090,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forExecutable(fragment), () {
-      node.metadata.accept(this);
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
@@ -1520,7 +1519,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     for (var i = 0; i < variables.length; i++) {
       var variable = variables[i];
       var fragment = variable.declaredFragment!;
-      _setOrCreateMetadataElements(fragment, annotations, visitNodes: false);
+      _setOrCreateMetadataElements(fragment, annotations);
 
       var offset = (i == 0 ? node.parent! : variable).offset;
       var length = variable.end - offset;
@@ -1850,12 +1849,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   void _setOrCreateMetadataElements(
     FragmentImpl fragment,
-    NodeList<AnnotationImpl> annotations, {
-    bool visitNodes = true,
-  }) {
-    if (visitNodes) {
-      annotations.accept(this);
-    }
+    NodeList<AnnotationImpl> annotations,
+  ) {
+    annotations.accept(this);
     if (_elementWalker != null) {
       _setElementAnnotations(annotations, fragment.metadata.annotations);
     } else if (annotations.isNotEmpty) {

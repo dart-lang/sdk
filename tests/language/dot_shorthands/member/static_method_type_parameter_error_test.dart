@@ -5,8 +5,6 @@
 // Errors when the type parameters of the shorthand methods don't match the
 // context type.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 void main() {

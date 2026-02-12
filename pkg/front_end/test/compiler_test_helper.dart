@@ -312,5 +312,6 @@ class BodyBuilderTest extends BodyBuilderImpl {
          assignedVariables: assignedVariables,
          typeEnvironment: typeEnvironment,
          constantContext: constantContext,
+         internalThisVariable: null,
        );
 }

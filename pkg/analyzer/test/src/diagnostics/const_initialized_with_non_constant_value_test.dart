@@ -39,7 +39,10 @@ class Foo {
   foo([int x = field]) {}
 }
 ''',
-      [error(diag.nonConstantDefaultValue, 46, 5)],
+      [
+        error(diag.nonConstantDefaultValue, 46, 5),
+        error(diag.implicitThisReferenceInInitializer, 46, 5),
+      ],
     );
   }
 

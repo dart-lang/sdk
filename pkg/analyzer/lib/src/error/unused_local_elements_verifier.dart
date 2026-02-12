@@ -130,6 +130,28 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    usedElements.addElement(node.element?.enclosingElement);
+    _addParametersForArguments(node.argumentList);
+    super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    usedElements.addElement(node.memberName.element?.enclosingElement);
+    _addParametersForArguments(node.argumentList);
+    super.visitDotShorthandInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    usedElements.addElement(node.propertyName.element?.enclosingElement);
+    super.visitDotShorthandPropertyAccess(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     usedElements.addElement(node.constructorElement?.baseElement);
 

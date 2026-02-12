@@ -219,7 +219,7 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
                                 2 * kBytesPerBigIntDigit));
   __ shldq(RAX, RDX, RCX);
   __ movq(Address(RBX, R8, TIMES_8, 0), RAX);
-  __ decq(R8);
+  __ subq(R8, Immediate(1));
   __ j(NOT_ZERO, &loop, Assembler::kNearJump);
   __ Bind(&last);
   __ shldq(RDX, R8, RCX);  // R8 == 0.
@@ -263,7 +263,7 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ movq(RDX, Address(RDI, RSI, TIMES_8, 2 * kBytesPerBigIntDigit));
   __ shrdq(RAX, RDX, RCX);
   __ movq(Address(RBX, RSI, TIMES_8, 0), RAX);
-  __ incq(RSI);
+  __ addq(RSI, Immediate(1));
   __ j(NOT_ZERO, &loop, Assembler::kNearJump);
   __ Bind(&last);
   __ shrdq(RDX, RSI, RCX);  // RSI == 0.
@@ -296,7 +296,7 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subq(R8, RCX);
-  __ incq(R8);  // To account for the extra test between loops.
+  __ addq(R8, Immediate(1));  // To account for the extra test between loops.
 
   __ xorq(RDX, RDX);  // RDX = 0, carry flag = 0.
   Label add_loop;
@@ -363,7 +363,7 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subq(R8, RCX);
-  __ incq(R8);  // To account for the extra test between loops.
+  __ addq(R8, Immediate(1));  // To account for the extra test between loops.
 
   __ xorq(RDX, RDX);  // RDX = 0, carry flag = 0.
   Label sub_loop;
@@ -502,7 +502,7 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   __ movq(RCX, RDX);
 
   // while (--n > 0)
-  __ decq(R8);  // --n
+  __ subq(R8, Immediate(1));  // --n
   __ j(NOT_ZERO, &muladd_loop, Assembler::kNearJump);
 
   __ testq(RCX, RCX);
@@ -515,7 +515,7 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   Label propagate_carry_loop;
   __ Bind(&propagate_carry_loop);
   __ addq(RSI, Immediate(2 * kBytesPerBigIntDigit));
-  __ incq(Address(RSI, 0));  // c == 0 or 1
+  __ addq(Address(RSI, 0), Immediate(1));  // c == 0 or 1
   __ j(CARRY, &propagate_carry_loop, Assembler::kNearJump);
 
   __ Bind(&done);
@@ -587,7 +587,7 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   __ OBJ(sub)(R8, Address(RSP, 3 * target::kWordSize));  // i is Smi
   __ addq(R8, Immediate(2));
   __ sarq(R8, Immediate(2));
-  __ decq(R8);  // R8 = number of digit pairs to process.
+  __ subq(R8, Immediate(1));  // R8 = number of digit pairs to process.
 
   // uint128_t c = high64(t)
   __ xorq(R13, R13);  // R13 = high64(c) == 0
@@ -603,7 +603,7 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   // n:   R8
 
   // while (--n >= 0)
-  __ decq(R8);  // --n
+  __ subq(R8, Immediate(1));  // --n
   __ j(NEGATIVE, &done, Assembler::kNearJump);
 
   // uint64_t xi = *xip++
@@ -1580,7 +1580,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // RDX: ch and temporary.
   __ CombineHashes(RAX, RDX);
 
-  __ incq(RDI);
+  __ addq(RDI, Immediate(1));
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&done);
@@ -1741,7 +1741,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ movzxb(RBX, Address(RSI, RDX, TIMES_1, 0));
   __ movb(FieldAddress(RAX, RDX, TIMES_1, target::OneByteString::data_offset()),
           ByteRegisterOf(RBX));
-  __ incq(RDX);
+  __ addq(RDX, Immediate(1));
   __ Bind(&check);
   __ cmpq(RDX, RCX);
   __ j(LESS, &loop, Assembler::kNearJump);
@@ -1883,7 +1883,7 @@ void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,
 #else
   __ movq(RAX, Address(THR, target::Thread::next_task_id_offset()));
   __ movq(RBX, RAX);
-  __ incq(RBX);
+  __ addq(RBX, Immediate(1));
   __ movq(Address(THR, target::Thread::next_task_id_offset()), RBX);
   __ SmiTag(RAX);  // Ignore loss of precision.
   __ ret();

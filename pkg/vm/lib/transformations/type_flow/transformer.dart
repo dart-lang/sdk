@@ -9,7 +9,7 @@ import 'dart:core' hide Type;
 
 import 'package:front_end/src/api_prototype/static_weak_references.dart'
     show StaticWeakReferences;
-import 'package:front_end/src/api_prototype/record_use.dart' as RecordUse;
+import 'package:front_end/src/api_prototype/record_use.dart' as record_use;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
@@ -90,10 +90,8 @@ Component transformComponent(
     libraryIndex,
     protobufHandler,
   ).visitComponent(component);
-
   Stopwatch? rtaStopWatch;
   List<Class>? allocatedClasses;
-
   if (useRapidTypeAnalysis) {
     // Rapid type analysis (RTA) is used to quickly calculate
     // the set of allocated classes to make the subsequent
@@ -156,7 +154,7 @@ Component transformComponent(
 
   final transformsStopWatch = new Stopwatch()..start();
 
-  final fieldMorpher = new TreeShaker(
+  final (:fieldMorpher, treeShakeConstant: treeShakeConstant) = new TreeShaker(
     component,
     typeFlowAnalysis,
     coreTypes,
@@ -180,6 +178,7 @@ Component transformComponent(
     new SignatureShaker(
       typeFlowAnalysis,
       tableSelectorAssigner,
+      treeShakeConstant,
     ).transformComponent(component);
   }
 
@@ -191,6 +190,7 @@ Component transformComponent(
     typeFlowAnalysis,
     hierarchy,
     fieldMorpher,
+    treeShakeConstant,
     tableSelectorAssigner,
     unboxingInfo,
     closureIdMetadata,
@@ -344,7 +344,7 @@ class CleanupAnnotations extends RecursiveVisitor {
             protobufHandler?.usesAnnotationClass(cls) ?? false;
         return cls == pragmaClass ||
             usesProtobufAnnotation ||
-            RecordUse.isBeingRecorded(cls);
+            record_use.isRecordUse(cls);
       }
     }
     return false;
@@ -416,6 +416,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final TypeFlowAnalysis _typeFlowAnalysis;
   final ClassHierarchy hierarchy;
   final FieldMorpher fieldMorpher;
+  final Constant Function(Constant) treeShakeConstant;
   final DirectCallMetadataRepository _directCallMetadataRepository;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final InferredArgTypeMetadataRepository _inferredArgTypeMetadata;
@@ -436,6 +437,7 @@ class AnnotateKernel extends RecursiveVisitor {
     this._typeFlowAnalysis,
     this.hierarchy,
     this.fieldMorpher,
+    this.treeShakeConstant,
     this._tableSelectorAssigner,
     this._unboxingInfo,
     this._closureIdMetadata,
@@ -549,6 +551,9 @@ class AnnotateKernel extends RecursiveVisitor {
         skipCheck ||
         receiverNotInt ||
         closureMember != null) {
+      if (constantValue != null) {
+        constantValue = treeShakeConstant(constantValue);
+      }
       return new InferredType(
         exactType,
         concreteClass,
@@ -943,6 +948,7 @@ class TreeShaker {
   late final FieldMorpher fieldMorpher;
   late final _TreeShakerTypeVisitor typeVisitor;
   late final _TreeShakerConstantVisitor constantVisitor;
+  late final _ConstantTreeShaker constantTreeShaker;
   late final _TreeShakerPass1 _pass1;
   late final _TreeShakerPass2 _pass2;
 
@@ -960,15 +966,42 @@ class TreeShaker {
     fieldMorpher = new FieldMorpher(this);
     typeVisitor = new _TreeShakerTypeVisitor(this);
     constantVisitor = new _TreeShakerConstantVisitor(this, typeVisitor);
+    constantTreeShaker = _ConstantTreeShaker();
     _pass1 = new _TreeShakerPass1(this);
     _pass2 = new _TreeShakerPass2(this);
   }
 
-  FieldMorpher transformComponent(Component component) {
+  ({FieldMorpher fieldMorpher, Constant Function(Constant) treeShakeConstant})
+  transformComponent(Component component) {
+    // We eagerly collect the removed instance fields of const classes, doing so
+    // will avoid hanging on to the memory of [this] when returning the
+    // `treeShakerConstant` closure (which may get called with constants not
+    // seen during the two passes below).
+    constantTreeShaker.collectRemovedFields(this, component);
+
     _pass1.transformComponent(component);
     _pass2.transformComponent(component);
 
-    return fieldMorpher.._shaker = null;
+    // We allow tree shaking fields of classes - even if there are
+    // [InstanceConstant]s of the class - as long as we know that the shaken
+    // fields always have the same (constant) value.
+    //
+    // This means that old [InstanceConstant]s are no longer valid as they have
+    // references to now removed [Field]s - we have to lower them to new
+    // constants witout the removed field references.
+    //
+    // The above will deal with [Constant]s that are directly referenced in the
+    // AST. That leaves TFA information that will later be used for
+    //
+    //   - annotating AST with inferred types (see [AnnotateKernel])
+    //   - shaking signatures (see [SignatureShaker])
+    //
+    // These two pieces get [Constant]s from inferred TFA information and have
+    // to use the returned `treeShakeConstant` function to lower the constants.
+    return (
+      fieldMorpher: fieldMorpher.._shaker = null,
+      treeShakeConstant: constantTreeShaker.treeShakeConstant,
+    );
   }
 
   bool isLibraryUsed(Library l) => _usedLibraries.contains(l);
@@ -1770,6 +1803,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   @override
   Constant visitConstant(Constant node, Constant? removalSentinel) {
+    node = shaker.constantTreeShaker.treeShakeConstant(node);
     shaker.constantVisitor.analyzeConstant(node);
     return node;
   }
@@ -2480,6 +2514,7 @@ class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
 
   @override
   visitSetConstant(SetConstant constant) {
+    constant.typeArgument.accept(typeVisitor);
     for (final entry in constant.entries) {
       analyzeConstant(entry);
     }
@@ -2499,6 +2534,8 @@ class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
 
   @override
   visitMapConstant(MapConstant constant) {
+    constant.keyType.accept(typeVisitor);
+    constant.valueType.accept(typeVisitor);
     for (final entry in constant.entries) {
       analyzeConstant(entry.key);
       analyzeConstant(entry.value);
@@ -2507,6 +2544,7 @@ class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
 
   @override
   visitListConstant(ListConstant constant) {
+    constant.typeArgument.accept(typeVisitor);
     for (final Constant entry in constant.entries) {
       analyzeConstant(entry);
     }
@@ -2514,6 +2552,7 @@ class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
 
   @override
   visitRecordConstant(RecordConstant constant) {
+    constant.recordType.accept(typeVisitor);
     for (var value in constant.positional) {
       analyzeConstant(value);
     }
@@ -2578,5 +2617,201 @@ class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
       "Unsupported auxiliary constant "
       "${constant} (${constant.runtimeType}).",
     );
+  }
+}
+
+class _ConstantTreeShaker implements ConstantVisitor<Constant> {
+  final removedInstanceFields = <Field>{};
+  final constants = <Constant, Constant>{};
+
+  void collectRemovedFields(TreeShaker shaker, Component component) {
+    for (final library in component.libraries) {
+      for (final klass in library.classes) {
+        // NOTE: Enum classes will *not* have `hasConstConstructor` set but the
+        // enum values are of course instance constants.
+        if (klass.hasConstConstructor || klass.isEnum) {
+          for (final field in klass.fields) {
+            if (!field.isInstanceMember) continue;
+            if (shaker.retainField(field)) continue;
+            removedInstanceFields.add(field);
+          }
+        }
+      }
+    }
+  }
+
+  Constant treeShakeConstant(Constant constant) {
+    if (removedInstanceFields.isEmpty) return constant;
+    return constants[constant] ??= constant.accept(this);
+  }
+
+  @override
+  Constant visitNullConstant(NullConstant constant) => constant;
+
+  @override
+  Constant visitBoolConstant(BoolConstant constant) => constant;
+
+  @override
+  Constant visitIntConstant(IntConstant constant) => constant;
+
+  @override
+  Constant visitDoubleConstant(DoubleConstant constant) => constant;
+
+  @override
+  Constant visitStringConstant(StringConstant constant) => constant;
+
+  @override
+  Constant visitSymbolConstant(SymbolConstant constant) => constant;
+
+  @override
+  Constant visitStaticTearOffConstant(StaticTearOffConstant constant) =>
+      constant;
+
+  @override
+  Constant visitConstructorTearOffConstant(
+    ConstructorTearOffConstant constant,
+  ) => constant;
+
+  @override
+  Constant visitRedirectingFactoryTearOffConstant(
+    RedirectingFactoryTearOffConstant constant,
+  ) => constant;
+
+  @override
+  Constant visitInstantiationConstant(InstantiationConstant constant) =>
+      constant;
+
+  @override
+  Constant visitTypeLiteralConstant(TypeLiteralConstant constant) => constant;
+
+  @override
+  Constant visitTypedefTearOffConstant(TypedefTearOffConstant constant) =>
+      throw 'TypedefTearOffConstant is not supported '
+          '(should be constant evaluated).';
+
+  @override
+  Constant visitUnevaluatedConstant(UnevaluatedConstant constant) =>
+      throw 'UnevaluatedConstant is not supported '
+          '(should be constant evaluated).';
+
+  @override
+  Constant visitAuxiliaryConstant(AuxiliaryConstant constant) {
+    throw new UnsupportedError(
+      "Unsupported auxiliary constant "
+      "${constant} (${constant.runtimeType}).",
+    );
+  }
+
+  // Handling of all composed constants that may need to be re-written.
+
+  @override
+  Constant visitSetConstant(SetConstant constant) {
+    final newEntries = treeShakeConstantList(constant.entries);
+    if (identical(newEntries, constant.entries)) return constant;
+    return SetConstant(constant.typeArgument, newEntries);
+  }
+
+  @override
+  Constant visitMapConstant(MapConstant constant) {
+    final newEntries = treeShakeMapEntryList(constant.entries);
+    if (identical(newEntries, constant.entries)) return constant;
+    return MapConstant(constant.keyType, constant.valueType, newEntries);
+  }
+
+  @override
+  Constant visitListConstant(ListConstant constant) {
+    final newEntries = treeShakeConstantList(constant.entries);
+    if (identical(newEntries, constant.entries)) return constant;
+    return ListConstant(constant.typeArgument, newEntries);
+  }
+
+  @override
+  Constant visitRecordConstant(RecordConstant constant) {
+    final newPositionals = treeShakeConstantList(constant.positional);
+    final newNamed = treeShakeConstantMap(constant.named);
+    if (identical(newPositionals, constant.positional) &&
+        identical(newNamed, constant.named)) {
+      return constant;
+    }
+    return RecordConstant(newPositionals, newNamed, constant.recordType);
+  }
+
+  @override
+  Constant visitInstanceConstant(InstanceConstant constant) {
+    final newValues = <Reference, Constant>{};
+    bool changed = false;
+    constant.fieldValues.forEach((Reference fieldRef, Constant value) {
+      if (removedInstanceFields.contains(fieldRef.asField)) {
+        changed = true;
+        return;
+      }
+      final newValue = treeShakeConstant(value);
+      newValues[fieldRef] = newValue;
+      if (!identical(newValue, value)) {
+        changed = true;
+      }
+    });
+    if (!changed) return constant;
+    return InstanceConstant(
+      constant.classReference,
+      constant.typeArguments,
+      newValues,
+    );
+  }
+
+  List<Constant> treeShakeConstantList(List<Constant> original) {
+    List<Constant>? newEntries;
+    for (int i = 0; i < original.length; ++i) {
+      final entry = original[i];
+      final entryResult = treeShakeConstant(entry);
+      if (newEntries != null) {
+        newEntries[i] = entryResult;
+      } else if (!identical(entryResult, entry)) {
+        newEntries = List.from(original, growable: false);
+        newEntries[i] = entryResult;
+      }
+    }
+    return newEntries ?? original;
+  }
+
+  Map<String, Constant> treeShakeConstantMap(Map<String, Constant> original) {
+    Map<String, Constant>? newValues;
+    original.forEach((key, value) {
+      final newValue = treeShakeConstant(value);
+      if (newValues != null) {
+        newValues![key] = newValue;
+      } else if (!identical(newValue, value)) {
+        newValues = Map.from(original);
+        newValues![key] = newValue;
+      }
+    });
+    return newValues ?? original;
+  }
+
+  List<ConstantMapEntry> treeShakeMapEntryList(
+    List<ConstantMapEntry> original,
+  ) {
+    List<ConstantMapEntry>? newEntries;
+    for (int i = 0; i < original.length; ++i) {
+      final entry = original[i];
+      final entryResult = treeShakeMapEntry(entry);
+      if (newEntries != null) {
+        newEntries[i] = entryResult;
+      } else if (!identical(entryResult, entry)) {
+        newEntries = List.from(original, growable: false);
+        newEntries[i] = entryResult;
+      }
+    }
+    return newEntries ?? original;
+  }
+
+  ConstantMapEntry treeShakeMapEntry(ConstantMapEntry original) {
+    final newKey = original.key.accept(this);
+    final newValue = original.value.accept(this);
+    if (identical(newKey, original.key) &&
+        identical(newValue, original.value)) {
+      return original;
+    }
+    return ConstantMapEntry(newKey, newValue);
   }
 }

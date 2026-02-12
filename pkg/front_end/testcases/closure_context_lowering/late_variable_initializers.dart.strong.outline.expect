@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+static method test1(positional-parameter directCapturedInLate) → dynamic
+  ;
+static method test2(positional-parameter assertCapturedAndDirectCapturedInLate) → dynamic
+  ;

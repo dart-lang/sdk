@@ -34,6 +34,11 @@ abstract class TypeSystem {
   /// Other type systems may define this operation differently.
   DartType flatten(DartType type);
 
+  /// Compute "future value type" of [type].
+  ///
+  /// https://github.com/dart-lang/language/blob/main/accepted/2.12/nnbd/feature-specification.md#the-future-value-type-of-an-asynchronous-non-generator-function
+  DartType futureValueType(DartType type);
+
   /// Computes the greatest lower bound of [T1] and [T2].
   ///
   /// https://github.com/dart-lang/language

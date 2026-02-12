@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
 // dart format off
 
 // SharedObjects=ffi_test_functions
@@ -15,12 +14,20 @@ void main() {
   final ffiTestFunctions = DynamicLibrary.process();
 
   // Error: a named record field.
-  print(ffiTestFunctions.lookupFunction< //# 1: compile-time error
-    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32, {Int32 foo})>), //# 1: compile-time error
-    void Function(Pointer<Utf8>, int, int)>('PassObjectToC')); //# 1: compile-time error
+  print(ffiTestFunctions.lookupFunction<
+  //                     ^
+  // [cfe] Expected type 'NativeFunction<Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32, {Int32 foo})>)>' to be a valid and instantiated subtype of 'NativeType'.
+    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32, {Int32 foo})>),
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+    void Function(Pointer<Utf8>, int, int)>('PassObjectToC'));
 
   // Error: VarArgs not last.
-  print(ffiTestFunctions.lookupFunction< //# 2: compile-time error
-    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32)>, Int32), //# 2: compile-time error
-    void Function(Pointer<Utf8>, int, int, int)>('PassObjectToC')); //# 2: compile-time error
+  print(ffiTestFunctions.lookupFunction<
+  //                     ^
+  // [cfe] Expected type 'NativeFunction<Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32)>, Int32)>' to be a valid and instantiated subtype of 'NativeType'.
+    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32)>, Int32),
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+    void Function(Pointer<Utf8>, int, int, int)>('PassObjectToC'));
 }

@@ -7199,7 +7199,7 @@ class Code : public Object {
   void Disassemble(DisassemblyFormatter* formatter = nullptr) const;
 
 #if defined(INCLUDE_IL_PRINTER)
-  class Comments : public ZoneAllocated, public CodeComments {
+  class Comments : public ZoneObject, public CodeComments {
    public:
     static Comments& New(intptr_t count);
 

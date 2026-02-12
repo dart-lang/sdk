@@ -26,7 +26,7 @@ using NativeLocations = ZoneGrowableArray<const NativeLocation*>;
 //
 // This class is meant to be embedded in a class that is aware of Dart calling
 // convention constraints.
-class NativeCallingConvention : public ZoneAllocated {
+class NativeCallingConvention : public ZoneObject {
  public:
   static const NativeCallingConvention& FromSignature(
       Zone* zone,

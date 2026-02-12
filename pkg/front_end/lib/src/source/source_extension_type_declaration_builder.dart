@@ -341,8 +341,8 @@ class SourceExtensionTypeDeclarationBuilder
             Message? errorMessage;
             List<LocatedMessage>? errorContext;
             if (typeBuilder.nullabilityBuilder.isNullable) {
-              errorMessage = diag.nullableInterfaceError.withArgumentsOld(
-                typeBuilder.fullNameForErrors,
+              errorMessage = diag.nullableInterfaceError.withArguments(
+                interfaceName: typeBuilder.fullNameForErrors,
               );
             } else {
               errorMessage = diag.superExtensionTypeIsNullableAliased

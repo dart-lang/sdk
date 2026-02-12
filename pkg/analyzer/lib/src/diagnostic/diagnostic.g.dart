@@ -481,6 +481,21 @@ annotationWithTypeArgumentsUninstantiated = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments
+anonymousMethodWrongParameterList = DiagnosticWithoutArgumentsImpl(
+  name: 'anonymous_method_wrong_parameter_list',
+  problemMessage:
+      "An anonymous method with a parameter list must have exactly one required, "
+      "positional parameter.",
+  correctionMessage:
+      "Try removing the parameter list, or changing it to have exactly one "
+      "required positional parameter.",
+  type: DiagnosticType.SYNTACTIC_ERROR,
+  uniqueName: 'anonymous_method_wrong_parameter_list',
+  expectedTypes: [],
+);
+
 /// Parameters:
 /// String argumentName: the name of the argument
 const DiagnosticWithArguments<
@@ -1085,12 +1100,12 @@ baseMixinImplementedOutsideOfLibrary = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String string: undocumented
-/// String string2: undocumented
+/// String actualOperator: The binary operator that was seen.
+/// String expectedOperator: The binary operator that was expected.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String string,
-    required String string2,
+    required String actualOperator,
+    required String expectedOperator,
   })
 >
 binaryOperatorWrittenOut = DiagnosticWithArguments(
@@ -4807,12 +4822,13 @@ experimentalMemberUse = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String string: undocumented
-/// String string2: undocumented
+/// String featureName: The name of of the language feature.
+/// String enabledVersion: The language version in which the language feature
+///                        was enabled.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String string,
-    required String string2,
+    required String featureName,
+    required String enabledVersion,
   })
 >
 experimentNotEnabled = DiagnosticWithArguments(
@@ -4828,9 +4844,9 @@ experimentNotEnabled = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String string: undocumented
+/// String featureName: The name of the language feature.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String string})
+  LocatableDiagnostic Function({required String featureName})
 >
 experimentNotEnabledOffByDefault = DiagnosticWithArguments(
   name: 'experiment_not_enabled_off_by_default',
@@ -5802,6 +5818,38 @@ fieldInitializedByMultipleInitializers = DiagnosticWithArguments(
 
 /// No parameters.
 const DiagnosticWithoutArguments
+fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor =
+    DiagnosticWithoutArgumentsImpl(
+      name:
+          'field_initialized_in_declaration_and_initializer_of_primary_constructor',
+      problemMessage:
+          "Fields can't be initialized in both the primary constructor and at their "
+          "declaration.",
+      correctionMessage: "Try removing one of the initializations.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName:
+          'field_initialized_in_declaration_and_initializer_of_primary_constructor',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const DiagnosticWithoutArguments
+fieldInitializedInDeclarationAndParameterOfPrimaryConstructor =
+    DiagnosticWithoutArgumentsImpl(
+      name:
+          'field_initialized_in_declaration_and_parameter_of_primary_constructor',
+      problemMessage:
+          "Fields can't be initialized in both the primary constructor parameter "
+          "list and at their declaration.",
+      correctionMessage: "Try removing one of the initializations.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName:
+          'field_initialized_in_declaration_and_parameter_of_primary_constructor',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const DiagnosticWithoutArguments
 fieldInitializedInInitializerAndDeclaration = DiagnosticWithoutArgumentsImpl(
   name: 'field_initialized_in_initializer_and_declaration',
   problemMessage:
@@ -6587,7 +6635,8 @@ illegalLanguageVersionOverride = DiagnosticWithArguments(
 /// 0: the illegal name
 ///
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token variableName: The name that can't be used as the name of a variable
+///                     assigned by a pattern assignment.
 const DiagnosticCode illegalPatternAssignmentVariableName =
     DiagnosticCodeWithExpectedTypes(
       name: 'illegal_pattern_assignment_variable_name',
@@ -6603,7 +6652,7 @@ const DiagnosticCode illegalPatternAssignmentVariableName =
 /// 0: the illegal name
 ///
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token identifier: The identifier that can't be referred to.
 const DiagnosticCode illegalPatternIdentifierName =
     DiagnosticCodeWithExpectedTypes(
       name: 'illegal_pattern_identifier_name',
@@ -6618,7 +6667,8 @@ const DiagnosticCode illegalPatternIdentifierName =
 /// 0: the illegal name
 ///
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token variableName: The name that can't be used as a pattern variable
+///                     name.
 const DiagnosticCode illegalPatternVariableName =
     DiagnosticCodeWithExpectedTypes(
       name: 'illegal_pattern_variable_name',
@@ -7735,7 +7785,7 @@ invalidConstantConstPrefix = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Name name: undocumented
+/// Name operatorName: The name of the unsupported operator.
 const DiagnosticCode invalidConstantPatternBinary =
     DiagnosticCodeWithExpectedTypes(
       name: 'invalid_constant_pattern_binary',
@@ -7793,7 +7843,7 @@ invalidConstantPatternNegation = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Name name: undocumented
+/// Name operatorName: The name of the unsupported operator.
 const DiagnosticCode invalidConstantPatternUnary =
     DiagnosticCodeWithExpectedTypes(
       name: 'invalid_constant_pattern_unary',
@@ -9430,8 +9480,8 @@ listElementTypeNotAssignableNullability = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String string: undocumented
-/// Token lexeme: undocumented
+/// String kind: The literal kind.
+/// Token lexeme: The lexeme between `new` and the literal.
 const DiagnosticCode literalWithClass = DiagnosticCodeWithExpectedTypes(
   name: 'literal_with_class',
   problemMessage: "A {0} literal can't be prefixed by '{1}'.",
@@ -10899,6 +10949,20 @@ multiplePositionalParameterGroups = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments multiplePrimaryConstructorBodyDeclarations =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'multiple_primary_constructor_body_declarations',
+      problemMessage:
+          "Only one primary constructor body declaration is allowed.",
+      correctionMessage:
+          "Try removing all but one of the primary constructor body "
+          "declarations.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'multiple_primary_constructor_body_declarations',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments multipleRedirectingConstructorInvocations =
     DiagnosticWithoutArgumentsImpl(
       name: 'multiple_redirecting_constructor_invocations',
@@ -11227,6 +11291,19 @@ negativeVariableDimension = DiagnosticWithoutArgumentsImpl(
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'negative_variable_dimension',
+  expectedTypes: [],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments
+newConstructorDotName = DiagnosticWithoutArgumentsImpl(
+  name: 'new_constructor_dot_name',
+  problemMessage:
+      "Constructors declared with the 'new' keyword can't use '.' before the "
+      "constructor name.",
+  correctionMessage: "Try replacing the '.' with a space.",
+  type: DiagnosticType.SYNTACTIC_ERROR,
+  uniqueName: 'new_constructor_dot_name',
   expectedTypes: [],
 );
 
@@ -13007,7 +13084,7 @@ pathPubspecDoesNotExist = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Name name: undocumented
+/// Name variableName: The name of the variable that was erroneously declared.
 const DiagnosticCode patternAssignmentDeclaresVariable =
     DiagnosticCodeWithExpectedTypes(
       name: 'pattern_assignment_declares_variable',
@@ -15227,7 +15304,7 @@ typeArgumentNotMatchingBounds = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Name name: undocumented
+/// Name typeVariableName: The name of the type variable.
 const DiagnosticCode typeArgumentsOnTypeVariable =
     DiagnosticCodeWithExpectedTypes(
       name: 'type_arguments_on_type_variable',
@@ -17935,12 +18012,12 @@ LocatableDiagnostic _withArgumentsBaseMixinImplementedOutsideOfLibrary({
 }
 
 LocatableDiagnostic _withArgumentsBinaryOperatorWrittenOut({
-  required String string,
-  required String string2,
+  required String actualOperator,
+  required String expectedOperator,
 }) {
   return LocatableDiagnosticImpl(diag.binaryOperatorWrittenOut, [
-    string,
-    string2,
+    actualOperator,
+    expectedOperator,
   ]);
 }
 
@@ -18748,17 +18825,20 @@ LocatableDiagnostic _withArgumentsExperimentalMemberUse({
 }
 
 LocatableDiagnostic _withArgumentsExperimentNotEnabled({
-  required String string,
-  required String string2,
+  required String featureName,
+  required String enabledVersion,
 }) {
-  return LocatableDiagnosticImpl(diag.experimentNotEnabled, [string, string2]);
+  return LocatableDiagnosticImpl(diag.experimentNotEnabled, [
+    featureName,
+    enabledVersion,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsExperimentNotEnabledOffByDefault({
-  required String string,
+  required String featureName,
 }) {
   return LocatableDiagnosticImpl(diag.experimentNotEnabledOffByDefault, [
-    string,
+    featureName,
   ]);
 }
 

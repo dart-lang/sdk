@@ -50,16 +50,19 @@ class StackResource {
 // Zone allocated objects cannot be individually deallocated, but have
 // to rely on the destructor of Zone which is called when the Zone
 // goes out of scope to reclaim memory.
-class ZoneAllocated {
+class ZoneObject {
  public:
-  ZoneAllocated() {}
-  virtual ~ZoneAllocated() = default;
+  ZoneObject() {}
+  virtual ~ZoneObject() = default;
 
   // Implicitly allocate the object in the current zone.
   void* operator new(size_t size);
 
   // Allocate the object in the given zone, which must be the current zone.
   void* operator new(size_t size, Zone* zone);
+
+  // Allow non-allocating placement new.
+  void* operator new(size_t size, void* ptr) { return ptr; }
 
   // Ideally, the delete operator should be protected instead of
   // public, but unfortunately the compiler sometimes synthesizes
@@ -72,13 +75,13 @@ class ZoneAllocated {
   void operator delete(void* pointer) { UNREACHABLE(); }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(ZoneAllocated);
+  DISALLOW_COPY_AND_ASSIGN(ZoneObject);
 };
 
 }  // namespace dart
 
-// Prevent use of `new (zone) DoesNotExtendZoneAllocated()`, which places the
-// DoesNotExtendZoneAllocated on top of the Zone.
+// Prevent use of `new (zone) DoesNotExtendZoneObject()`, which places the
+// DoesNotExtendZoneObject on top of the Zone.
 void* operator new(size_t size, dart::Zone* zone) = delete;
 
 #endif  // RUNTIME_VM_ALLOCATION_H_

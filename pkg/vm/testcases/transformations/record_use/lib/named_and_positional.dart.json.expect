@@ -1,0 +1,86 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 3
+    },
+    {
+      "type": "null"
+    },
+    {
+      "type": "int",
+      "value": 5
+    },
+    {
+      "type": "int",
+      "value": 1
+    },
+    {
+      "type": "int",
+      "value": 2
+    },
+    {
+      "type": "int",
+      "value": 4
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.4.0"
+  },
+  "recordings": [
+    {
+      "calls": [
+        {
+          "loading_unit": "1",
+          "named": {
+            "l": 1,
+            "k": 0
+          },
+          "positional": [
+            0
+          ],
+          "type": "with_arguments"
+        },
+        {
+          "loading_unit": "1",
+          "named": {
+            "k": 3,
+            "l": 1
+          },
+          "positional": [
+            2
+          ],
+          "type": "with_arguments"
+        },
+        {
+          "loading_unit": "1",
+          "named": {
+            "l": 4,
+            "k": 0
+          },
+          "positional": [
+            2
+          ],
+          "type": "with_arguments"
+        },
+        {
+          "loading_unit": "1",
+          "named": {
+            "l": 4,
+            "k": 5
+          },
+          "positional": [
+            2
+          ],
+          "type": "with_arguments"
+        }
+      ],
+      "identifier": {
+        "name": "someStaticMethod",
+        "scope": "SomeClass",
+        "uri": "package:record_use_test/named_and_positional.dart"
+      }
+    }
+  ]
+}

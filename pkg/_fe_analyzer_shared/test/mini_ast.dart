@@ -6510,7 +6510,7 @@ class _MiniAstTypeAnalyzer
     var leftType = analyzeExpression(lhs, operations.unknownType).type;
     ExpressionInfo? leftInfo;
     if (isEquals) {
-      leftInfo = flow.equalityOperand_end(lhs);
+      leftInfo = flow.getExpressionInfo(lhs);
     } else if (isLogical) {
       flow.logicalBinaryOp_rightBegin(
         flow.getExpressionInfo(lhs),
@@ -6525,7 +6525,7 @@ class _MiniAstTypeAnalyzer
         flow.equalityOperation_end(
           leftInfo,
           leftType,
-          flow.equalityOperand_end(rhs),
+          flow.getExpressionInfo(rhs),
           rightType,
           notEqual: isNot,
         ),
@@ -6619,7 +6619,7 @@ class _MiniAstTypeAnalyzer
     Expression rhs,
   ) {
     var leftType = analyzeExpression(lhs, operations.unknownType).type;
-    flow.ifNullExpression_rightBegin(lhs, leftType);
+    flow.ifNullExpression_rightBegin(flow.getExpressionInfo(lhs), leftType);
     var rightType = analyzeExpression(rhs, operations.unknownType).type;
     flow.ifNullExpression_end();
     return new ExpressionTypeAnalysisResult(
@@ -6715,7 +6715,7 @@ class _MiniAstTypeAnalyzer
       operations.unknownType,
       continueNullShorting: true,
     ).type;
-    flow.nonNullAssert_end(expression);
+    flow.nonNullAssert_end(flow.getExpressionInfo(expression));
     return new ExpressionTypeAnalysisResult(
       type: flow.operations.promoteToNonNull(type),
     );
@@ -6782,17 +6782,16 @@ class _MiniAstTypeAnalyzer
   }) {
     var member = _lookupMember(thisType, propertyName);
     var memberType = member?._type ?? operations.dynamicType.unwrapTypeView();
-    var promotedType = flow
-        .propertyGet(
-          node,
-          isSuperAccess
-              ? SuperPropertyTarget.singleton
-              : ThisPropertyTarget.singleton,
-          propertyName,
-          member,
-          SharedTypeView(memberType),
-        )
-        ?.unwrapTypeView();
+    var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
+      isSuperAccess
+          ? SuperPropertyTarget.singleton
+          : ThisPropertyTarget.singleton,
+      propertyName,
+      member,
+      SharedTypeView(memberType),
+    );
+    flow.storeExpressionInfo(node, expressionInfo);
+    var promotedType = wrappedPromotedType?.unwrapTypeView();
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(promotedType ?? memberType),
     );
@@ -6852,7 +6851,7 @@ class _MiniAstTypeAnalyzer
       operations.unknownType,
     ).type;
     flow.asExpression_end(
-      expression,
+      flow.getExpressionInfo(expression),
       subExpressionType: subExpressionType,
       castType: SharedTypeView(type),
     );
@@ -6872,7 +6871,7 @@ class _MiniAstTypeAnalyzer
     flow.storeExpressionInfo(
       node,
       flow.isExpression_end(
-        expression,
+        flow.getExpressionInfo(expression),
         isInverted,
         subExpressionType: subExpressionType,
         checkedType: SharedTypeView(type),
@@ -7437,16 +7436,16 @@ class _MiniAstTypeAnalyzer
     var member = _lookupMember(targetType.unwrapTypeView(), propertyName);
     var memberType =
         member?._type ?? operations.dynamicType.unwrapTypeView<Type>();
-    return flow
-            .propertyGet(
-              propertyGetNode,
-              propertyTarget,
-              propertyName,
-              member,
-              SharedTypeView(memberType),
-            )
-            ?.unwrapTypeView() ??
-        memberType;
+    var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
+      propertyTarget,
+      propertyName,
+      member,
+      SharedTypeView(memberType),
+    );
+    if (propertyGetNode != null) {
+      flow.storeExpressionInfo(propertyGetNode, expressionInfo);
+    }
+    return wrappedPromotedType?.unwrapTypeView() ?? memberType;
   }
 
   void _irVariables(Node node, Iterable<Var> variables) {

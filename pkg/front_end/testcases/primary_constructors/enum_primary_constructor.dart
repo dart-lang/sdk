@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum E1() { // Error
+enum E1() {
   a
 }
 
@@ -18,4 +18,16 @@ enum const E3() {
 enum const E4() { // Error
   a;
   int? b;
+}
+
+enum E5() {
+  a;
+  final int? b;
+  this : b = 0;
+}
+
+enum E6(int? x) {
+  a(0);
+  final int? b;
+  this : b = x;
 }

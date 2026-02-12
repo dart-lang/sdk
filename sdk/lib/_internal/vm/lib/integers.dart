@@ -262,13 +262,6 @@ abstract final class _IntegerImplementation implements int {
   }
 
   num clamp(num lowerLimit, num upperLimit) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (lowerLimit == null) {
-      throw ArgumentError.notNull("lowerLimit");
-    }
-    if (upperLimit == null) {
-      throw ArgumentError.notNull("upperLimit");
-    }
     // Special case for integers.
     if (lowerLimit is int && upperLimit is int && lowerLimit <= upperLimit) {
       if (this < lowerLimit) return lowerLimit;
@@ -393,13 +386,6 @@ abstract final class _IntegerImplementation implements int {
 
   // Returns pow(this, e) % m.
   int modPow(int e, int m) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (e == null) {
-      throw ArgumentError.notNull("exponent");
-    }
-    if (m == null) {
-      throw ArgumentError.notNull("modulus");
-    }
     if (e < 0) throw RangeError.range(e, 0, null, "exponent");
     if (m <= 0) throw RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
@@ -500,10 +486,6 @@ abstract final class _IntegerImplementation implements int {
 
   // Returns 1/this % m, with m > 0.
   int modInverse(int m) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (m == null) {
-      throw ArgumentError.notNull("modulus");
-    }
     if (m <= 0) throw RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
     int t = this;
@@ -517,10 +499,6 @@ abstract final class _IntegerImplementation implements int {
 
   // Returns gcd of abs(this) and abs(other).
   int gcd(int other) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (other == null) {
-      throw ArgumentError.notNull("other");
-    }
     int x = this.abs();
     int y = other.abs();
     if (x == 0) return y;

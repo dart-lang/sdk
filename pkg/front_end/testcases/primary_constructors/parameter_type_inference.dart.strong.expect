@@ -1,0 +1,104 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/parameter_type_inference.dart:19:6: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+//   C0(''); // Error
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_type_inference.dart:20:6: Error: The argument type 'int' can't be assigned to the parameter type 'bool'.
+//   C1(0); // Error
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_type_inference.dart:21:9: Error: The argument type 'bool' can't be assigned to the parameter type 'String'.
+//   C2(c: true); // Error
+//         ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_type_inference.dart:22:9: Error: The argument type 'Null' can't be assigned to the parameter type 'List<int>'.
+//  - 'List' is from 'dart:core'.
+//   C3(d: null); // Error
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object {
+  field core::int a;
+  constructor •([core::int a = #C1]) → self::C0
+    : self::C0::a = a, super core::Object::•()
+    ;
+}
+class C1 extends core::Object {
+  final field core::bool b;
+  constructor •([final core::bool b = #C2]) → self::C1
+    : self::C1::b = b, super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  field core::String c;
+  constructor •({core::String c = #C3}) → self::C2
+    : self::C2::c = c, super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  final field core::List<core::int> d;
+  constructor •({final core::List<core::int> d = #C4}) → self::C3
+    : self::C3::d = d, super core::Object::•()
+    ;
+}
+class C4 extends core::Object {
+  constructor •([core::Object? e = #C1]) → self::C4
+    : super core::Object::•()
+    ;
+}
+class C5 extends core::Object {
+  constructor •({core::Object? f = #C2}) → self::C5
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  new self::C0::•(invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_type_inference.dart:19:6: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+  C0(''); // Error
+     ^" in "" as{TypeError} core::int);
+  new self::C1::•(invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_type_inference.dart:20:6: Error: The argument type 'int' can't be assigned to the parameter type 'bool'.
+  C1(0); // Error
+     ^" in 0 as{TypeError} core::bool);
+  new self::C2::•(c: invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_type_inference.dart:21:9: Error: The argument type 'bool' can't be assigned to the parameter type 'String'.
+  C2(c: true); // Error
+        ^" in true as{TypeError} core::String);
+  new self::C3::•(d: invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_type_inference.dart:22:9: Error: The argument type 'Null' can't be assigned to the parameter type 'List<int>'.
+ - 'List' is from 'dart:core'.
+  C3(d: null); // Error
+        ^" in null as{TypeError} core::List<core::int>);
+}
+static method main() → dynamic {
+  self::C0 c0a = new self::C0::•();
+  core::int a1 = c0a.{self::C0::a}{core::int};
+  self::C0 c0b = new self::C0::•(42);
+  core::int a2 = c0b.{self::C0::a}{core::int};
+  self::C1 c1a = new self::C1::•();
+  core::bool b1 = c1a.{self::C1::b}{core::bool};
+  self::C1 c1b = new self::C1::•(false);
+  core::bool b2 = c1b.{self::C1::b}{core::bool};
+  self::C2 c2a = new self::C2::•();
+  core::String c1 = c2a.{self::C2::c}{core::String};
+  self::C2 c2b = new self::C2::•(c: "bar");
+  core::String c2 = c2b.{self::C2::c}{core::String};
+  self::C3 c3a = new self::C3::•();
+  core::List<core::int> d1 = c3a.{self::C3::d}{core::List<core::int>};
+  self::C3 c3b = new self::C3::•(d: <core::int>[42]);
+  core::List<core::int> d2 = c3b.{self::C3::d}{core::List<core::int>};
+  self::C4 c4a = new self::C4::•();
+  self::C4 c4b = new self::C4::•(42);
+  self::C4 c4c = new self::C4::•(true);
+  self::C5 c5a = new self::C5::•();
+  self::C5 c5b = new self::C5::•(f: false);
+  self::C5 c5c = new self::C5::•(f: 42);
+}
+
+constants  {
+  #C1 = 0
+  #C2 = true
+  #C3 = "foo"
+  #C4 = <core::int>[#C1]
+}

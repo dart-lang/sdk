@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:front_end/src/kernel/record_use.dart' as recordUse;
+import 'package:front_end/src/kernel/record_use.dart' as record_use;
 
 /// Expose only the [collect] method of a [_ConstantCollector] to outside use.
 extension type ConstantCollector(_ConstantCollector _collector) {
@@ -79,7 +79,7 @@ class _ConstantCollector implements ConstantVisitor {
   void visitInstanceConstant(InstanceConstant constant) {
     assert(_expression != null);
     final classNode = constant.classNode;
-    if (_hasRecordUseAnnotation[classNode] ??= recordUse.hasRecordUseAnnotation(
+    if (_hasRecordUseAnnotation[classNode] ??= record_use.isBeingRecorded(
       classNode,
     )) {
       collector(_expression!, constant);

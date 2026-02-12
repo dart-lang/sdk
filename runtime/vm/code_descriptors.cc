@@ -156,7 +156,7 @@ ExceptionHandlersPtr ExceptionHandlerList::FinalizeExceptionHandlers(
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class CatchEntryMovesMapBuilder::TrieNode : public ZoneAllocated {
+class CatchEntryMovesMapBuilder::TrieNode : public ZoneObject {
  public:
   TrieNode() : move_(), entry_state_offset_(-1) {}
   TrieNode(CatchEntryMove move, intptr_t index)

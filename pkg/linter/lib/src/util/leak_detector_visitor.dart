@@ -11,42 +11,6 @@ import 'package:meta/meta.dart';
 
 import '../ast.dart';
 
-/// Builds a function that reports a variable node if none of the [predicates]
-/// return `true` for any node inside the [container] node.
-_VisitVariableDeclaration _buildVariableReporter(
-  AstNode container,
-  AnalysisRule rule,
-  Map<DartTypePredicate, String> predicates, {
-  required _VariableType variableType,
-}) => (VariableDeclaration variable) {
-  if (variable.equals != null && variable.initializer is SimpleIdentifier) {
-    return;
-  }
-
-  var variableElement = variable.declaredFragment?.element;
-  if (variableElement == null) {
-    return;
-  }
-
-  if (!predicates.keys.any((DartTypePredicate p) => p(variableElement.type))) {
-    return;
-  }
-
-  var visitor = _ValidUseVisitor(
-    variable,
-    variableElement,
-    predicates,
-    variableType: variableType,
-  );
-  container.accept(visitor);
-
-  if (visitor.containsValidUse) {
-    return;
-  }
-
-  rule.reportAtNode(variable);
-};
-
 /// Whether any of the [predicates] applies to [methodName] and holds true for
 /// [type].
 bool _hasMatch(
@@ -57,7 +21,7 @@ bool _hasMatch(
 
 bool _isElementEqualToVariable(
   Element? propertyElement,
-  VariableElement? variableElement,
+  VariableElement variableElement,
 ) =>
     propertyElement == variableElement ||
     propertyElement.matches(variableElement);
@@ -116,8 +80,6 @@ bool _isSimpleIdentifierElementEqualToVariable(
 
 typedef DartTypePredicate = bool Function(DartType type);
 
-typedef _VisitVariableDeclaration = void Function(VariableDeclaration node);
-
 abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
@@ -132,13 +94,38 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
     if (unit != null) {
       // When visiting a field declaration, we want to check tree under the
       // containing unit for ConstructorFieldInitializers and FieldFormalParameters.
-      node.fields.variables.forEach(
-        _buildVariableReporter(
+      for (var variable in node.fields.variables) {
+        if (variable.hasSimpleInitializer) continue;
+        var element = variable.declaredFragment?.element;
+        if (element == null) continue;
+        _checkVariable(
+          variable,
+          element,
           unit,
-          rule,
-          predicates,
           variableType: _VariableType.field,
-        ),
+        );
+      }
+    }
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    var unit = getCompilationUnit(node);
+    if (unit == null) return;
+
+    for (var parameter in node.formalParameters.parameters) {
+      var element = parameter.declaredFragment?.element;
+      if (element == null) continue;
+      if (element is! FieldFormalParameterElement || !element.isDeclaring) {
+        continue;
+      }
+      var fieldElement = element.field;
+      if (fieldElement == null) continue;
+      _checkVariable(
+        parameter,
+        fieldElement,
+        unit,
+        variableType: _VariableType.field,
       );
     }
   }
@@ -150,15 +137,40 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
       // When visiting a variable declaration, we want to check tree under the
       // containing function for ReturnStatements. If an interesting variable
       // is returned, don't report it.
-      node.variables.variables.forEach(
-        _buildVariableReporter(
+      for (var variable in node.variables.variables) {
+        if (variable.hasSimpleInitializer) continue;
+        var element = variable.declaredFragment?.element;
+        if (element == null) continue;
+        _checkVariable(
+          variable,
+          element,
           function,
-          rule,
-          predicates,
           variableType: _VariableType.local,
-        ),
-      );
+        );
+      }
     }
+  }
+
+  /// Reports lint at [variable] if none of the [predicates] return `true` for
+  /// any node inside the [container] node.
+  void _checkVariable(
+    AstNode variable,
+    VariableElement variableElement,
+    AstNode container, {
+    required _VariableType variableType,
+  }) {
+    if (!predicates.keys.any((p) => p(variableElement.type))) return;
+
+    var visitor = _ValidUseVisitor(
+      variable,
+      variableElement,
+      predicates,
+      variableType: variableType,
+    );
+    container.accept(visitor);
+    if (visitor.containsValidUse) return;
+
+    rule.reportAtNode(variable);
   }
 }
 
@@ -171,7 +183,7 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
 /// being returned by a function, or being passed as an argument to a function.
 class _ValidUseVisitor extends RecursiveAstVisitor<void> {
   /// The variable under consideration.
-  final VariableDeclaration variable;
+  final AstNode variable;
 
   /// The element of the variable under consideration; stored here as a non-
   /// `null` value.
@@ -202,17 +214,14 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     var rightHandSide = node.rightHandSide;
     if (rightHandSide is SimpleIdentifier) {
       var assignedElement = node.writeElement;
-      if (_isElementEqualToVariable(
-        assignedElement,
-        variable.declaredFragment?.element,
-      )) {
+      if (_isElementEqualToVariable(assignedElement, variableElement)) {
         containsValidUse = true;
         return;
       }
       // Assignment to VariableDeclaration as setter.
       var leftHandSide = node.leftHandSide;
       if (leftHandSide is PropertyAccess &&
-          leftHandSide.propertyName.token.lexeme == variable.name.lexeme) {
+          leftHandSide.propertyName.token.lexeme == variableElement.name) {
         containsValidUse = true;
         return;
       }
@@ -320,6 +329,11 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 
 /// The type of variable being assessed.
 enum _VariableType { field, local }
+
+extension on VariableDeclaration {
+  bool get hasSimpleInitializer =>
+      equals != null && initializer is SimpleIdentifier;
+}
 
 extension on Element? {
   bool matches(VariableElement? requested) {

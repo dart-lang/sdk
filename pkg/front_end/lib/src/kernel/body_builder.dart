@@ -172,11 +172,6 @@ abstract class BodyBuilder {
     required List<FormalParameterBuilder>? formals,
     required int fileOffset,
   });
-
-  /// If the current member is an instance member of a non-extension
-  /// declaration, and the closure context lowering experiment is enabled, this
-  /// field contains the variable representing `this`.
-  ThisVariable? get internalThisVariable;
 }
 
 class BodyBuilderImpl extends StackListenerImpl
@@ -337,8 +332,10 @@ class BodyBuilderImpl extends StackListenerImpl
   /// for `this`.
   final VariableDeclaration? thisVariable;
 
-  @override
-  ThisVariable? internalThisVariable;
+  /// If the current member is an instance member of a non-extension
+  /// declaration, and the closure context lowering experiment is enabled, this
+  /// field contains the variable representing `this`.
+  ThisVariable? _internalThisVariable;
 
   final List<TypeParameter>? thisTypeParameters;
 
@@ -370,6 +367,7 @@ class BodyBuilderImpl extends StackListenerImpl
     required this.typeEnvironment,
     required ConstantContext constantContext,
     required this.extensionScope,
+    required ThisVariable? internalThisVariable,
   }) : _context = context,
        forest = const Forest(),
        enableNative = libraryBuilder.loader.target.backendTarget.enableNative(
@@ -377,47 +375,36 @@ class BodyBuilderImpl extends StackListenerImpl
        ),
        benchmarker = libraryBuilder.loader.target.benchmarker,
        _localScopes = new LocalStack([enclosingScope]),
-       _labelScopes = new LocalStack([new LabelScopeImpl()]) {
+       _labelScopes = new LocalStack([new LabelScopeImpl()]),
+       _internalThisVariable = internalThisVariable {
     this.constantContext = constantContext;
     if (formalParameterScope != null) {
       for (VariableBuilder builder in formalParameterScope!.localVariables) {
-        // TODO(62401): Ensure `builder.variable!` is an
-        // InternalExpressionVariable.
-        if (builder.variable!
-            case InternalExpressionVariable(
-                  astVariable: ExpressionVariable variable,
-                ) ||
-                // Coverage-ignore(suite): Not run.
-                ExpressionVariable variable) {
-          assignedVariables.declare(variable);
-        }
+        // TODO(62401): Remove the cast when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        assignedVariables.declare(
+          (builder.variable as InternalExpressionVariable).astVariable,
+        );
       }
     }
     if (thisVariable != null && context.isConstructor) {
       // The this variable is not part of the [formalParameterScope] in
       // constructors.
-      // TODO(62401): Ensure `thisVariable!` is an InternalExpressionVariable.
-      if (thisVariable!
-          case InternalExpressionVariable(
-                astVariable: ExpressionVariable variable,
-              ) ||
-              // Coverage-ignore(suite): Not run.
-              ExpressionVariable variable) {
-        assignedVariables.declare(variable);
-      }
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      assignedVariables.declare(
+        (thisVariable as InternalExpressionVariable).astVariable,
+      );
     }
-    if (isClosureContextLoweringEnabled &&
-        context.isDeclarationInstanceContext) {
-      ThisVariable variable = new ThisVariable(type: context.thisType!);
-      assignedVariables.declare(variable);
-      internalThisVariable = variable;
+    if (isClosureContextLoweringEnabled && _internalThisVariable != null) {
+      assignedVariables.declare(_internalThisVariable!);
     }
   }
 
   @override
   void readInternalThisVariable() {
-    if (internalThisVariable != null) {
-      assignedVariables.read(internalThisVariable!);
+    if (isClosureContextLoweringEnabled && _internalThisVariable != null) {
+      assignedVariables.read(_internalThisVariable!);
     }
   }
 
@@ -3149,8 +3136,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (!libraryFeatures.digitSeparators.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.digitSeparators.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.digitSeparators.name,
         ),
         token.offset,
         token.length,
@@ -3348,10 +3335,16 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     pushNewLocalVariable(initializer, equalsToken: assignmentOperator);
     if (isLate) {
-      VariableDeclaration node = peek() as VariableDeclaration;
+      VariableInitialization node = peek() as VariableInitialization;
       // This is matched by the call to [beginNode] in
       // [beginVariableInitializer].
-      assignedVariables.storeInfo(node, assignedVariablesInfo!);
+
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      assignedVariables.storeInfo(
+        (node.variable as InternalExpressionVariable).astVariable,
+        assignedVariablesInfo!,
+      );
     }
   }
 
@@ -3408,6 +3401,10 @@ class BodyBuilderImpl extends StackListenerImpl
         astVariable: new LocalVariable(
           cosmeticName: name,
           type: currentLocalVariableType,
+          isFinal: isFinal,
+          isConst: isConst,
+          isLate: isLate,
+          isWildcard: isWildcard,
         ),
         forSyntheticToken: identifier.token.isSynthetic,
         isImplicitlyTyped: currentLocalVariableType == null,
@@ -3415,6 +3412,7 @@ class BodyBuilderImpl extends StackListenerImpl
       variableInitialization = new VariableInitialization(
         variable: internalVariable.asExpressionVariable,
         initializer: initializer,
+        hasDeclaredInitializer: initializer != null,
       );
     } else {
       variableInitialization = internalVariable =
@@ -4708,8 +4706,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (!libraryFeatures.digitSeparators.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.digitSeparators.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.digitSeparators.name,
         ),
         token.offset,
         token.length,
@@ -4786,8 +4784,8 @@ class BodyBuilderImpl extends StackListenerImpl
       if (!libraryFeatures.nullAwareElements.isEnabled) {
         // Coverage-ignore-block(suite): Not run.
         addProblem(
-          diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-            ExperimentalFlag.nullAwareElements.name,
+          diag.experimentNotEnabledOffByDefault.withArguments(
+            featureName: ExperimentalFlag.nullAwareElements.name,
           ),
           (nullAwareKeyToken ?? nullAwareValueToken!).offset,
           noLength,
@@ -5038,8 +5036,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.records.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.records.name,
         ),
         leftBracket.offset,
         noLength,
@@ -5481,15 +5479,12 @@ class BodyBuilderImpl extends StackListenerImpl
     push(parameter);
     // We pass `ignoreDuplicates: true` because the variable might have been
     // previously passed to `declare` in the `BodyBuilder` constructor.
-    // TODO(62401): Ensure `functionParameter` is an InternalExpressionVariable.
-    if (functionParameter
-        case InternalExpressionVariable(
-              astVariable: ExpressionVariable variable,
-            ) ||
-            // Coverage-ignore(suite): Not run.
-            ExpressionVariable variable) {
-      assignedVariables.declare(variable, ignoreDuplicates: true);
-    }
+    // TODO(62401): Remove the cast when the flow analysis uses
+    // [InternalExpressionVariable]s.
+    assignedVariables.declare(
+      (functionParameter as InternalExpressionVariable).astVariable,
+      ignoreDuplicates: true,
+    );
   }
 
   @override
@@ -7464,8 +7459,8 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("NullAwareElement");
     if (!libraryFeatures.nullAwareElements.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.nullAwareElements.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.nullAwareElements.name,
         ),
         nullAwareElement.offset,
         noLength,
@@ -9490,8 +9485,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement problem;
     bool isBreak = keyword.isA(Keyword.BREAK);
     if (name != null) {
-      Template<Function, Message Function({required String label})> template =
-          isBreak
+      Template<Message Function({required String label})> template = isBreak
           ? diag.breakTargetOutsideFunction
           : diag.continueTargetOutsideFunction;
       problem = buildProblemStatement(
@@ -11022,8 +11016,8 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("DotShorthandContext");
     if (!libraryFeatures.dotShorthands.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.dotShorthands.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.dotShorthands.name,
         ),
         token.offset,
         token.length,
@@ -11044,8 +11038,8 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("DotShorthandHead");
     if (!libraryFeatures.dotShorthands.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.dotShorthands.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.dotShorthands.name,
         ),
         token.offset,
         token.length,

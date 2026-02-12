@@ -2,25 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/primary_constructors/representation_field_modifier.dart:11:30: Error: Representation fields can't have modifiers.
-// extension type ET3(final int i) {}
-//                              ^
+// pkg/front_end/testcases/primary_constructors/representation_field_modifier.dart:7:28: Error: Representation fields can't have modifiers.
+// extension type ET2(var int i) {} // Error
+//                            ^
 //
-// pkg/front_end/testcases/primary_constructors/representation_field_modifier.dart:13:20: Error: Expected a representation type.
-// extension type ET4(i) {} // Error
-//                    ^
-//
-// pkg/front_end/testcases/primary_constructors/representation_field_modifier.dart:15:24: Error: Expected a representation type.
+// pkg/front_end/testcases/primary_constructors/representation_field_modifier.dart:13:24: Error: Representation fields can't have modifiers.
 // extension type ET5(var i) {} // Error
 //                        ^
-//
-// pkg/front_end/testcases/primary_constructors/representation_field_modifier.dart:17:26: Error: Expected a representation type.
-// extension type ET6(final i) {} // Error
-//                          ^
-//
-// pkg/front_end/testcases/primary_constructors/representation_field_modifier.dart:17:26: Error: Representation fields can't have modifiers.
-// extension type ET6(final i) {} // Error
-//                          ^
 //
 import self as self;
 import "dart:core" as core;
@@ -40,18 +28,18 @@ extension type ET3(core::int i) {
   constructor • = self::ET3|constructor#;
   constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
-extension type ET4(invalid-type i) {
-  abstract extension-type-member representation-field get i() → invalid-type;
+extension type ET4(dynamic i) {
+  abstract extension-type-member representation-field get i() → core::Object?;
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
-extension type ET5(invalid-type i) {
-  abstract extension-type-member representation-field get i() → invalid-type;
+extension type ET5(dynamic i) {
+  abstract extension-type-member representation-field get i() → core::Object?;
   constructor • = self::ET5|constructor#;
   constructor tearoff • = self::ET5|constructor#_#new#tearOff;
 }
-extension type ET6(invalid-type i) {
-  abstract extension-type-member representation-field get i() → invalid-type;
+extension type ET6(dynamic i) {
+  abstract extension-type-member representation-field get i() → core::Object?;
   constructor • = self::ET6|constructor#;
   constructor tearoff • = self::ET6|constructor#_#new#tearOff;
 }
@@ -73,21 +61,21 @@ static extension-type-member method ET3|constructor#(final core::int i) → self
 }
 static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(i);
-static extension-type-member method ET4|constructor#(invalid-type i) → self::ET4% /* erasure=invalid-type, declared=! */ {
-  lowered final self::ET4% /* erasure=invalid-type, declared=! */ #this = i;
+static extension-type-member method ET4|constructor#(core::Object? i) → self::ET4% /* erasure=dynamic, declared=! */ {
+  lowered final self::ET4% /* erasure=dynamic, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member synthetic method ET4|constructor#_#new#tearOff(invalid-type i) → self::ET4% /* erasure=invalid-type, declared=! */
+static extension-type-member synthetic method ET4|constructor#_#new#tearOff(core::Object? i) → self::ET4% /* erasure=dynamic, declared=! */
   return self::ET4|constructor#(i);
-static extension-type-member method ET5|constructor#(invalid-type i) → self::ET5% /* erasure=invalid-type, declared=! */ {
-  lowered final self::ET5% /* erasure=invalid-type, declared=! */ #this = i;
+static extension-type-member method ET5|constructor#(core::Object? i) → self::ET5% /* erasure=dynamic, declared=! */ {
+  lowered final self::ET5% /* erasure=dynamic, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member synthetic method ET5|constructor#_#new#tearOff(invalid-type i) → self::ET5% /* erasure=invalid-type, declared=! */
+static extension-type-member synthetic method ET5|constructor#_#new#tearOff(core::Object? i) → self::ET5% /* erasure=dynamic, declared=! */
   return self::ET5|constructor#(i);
-static extension-type-member method ET6|constructor#(final invalid-type i) → self::ET6% /* erasure=invalid-type, declared=! */ {
-  lowered final self::ET6% /* erasure=invalid-type, declared=! */ #this = i;
+static extension-type-member method ET6|constructor#(final core::Object? i) → self::ET6% /* erasure=dynamic, declared=! */ {
+  lowered final self::ET6% /* erasure=dynamic, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member synthetic method ET6|constructor#_#new#tearOff(invalid-type i) → self::ET6% /* erasure=invalid-type, declared=! */
+static extension-type-member synthetic method ET6|constructor#_#new#tearOff(core::Object? i) → self::ET6% /* erasure=dynamic, declared=! */
   return self::ET6|constructor#(i);

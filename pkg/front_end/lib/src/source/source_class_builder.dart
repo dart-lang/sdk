@@ -1685,6 +1685,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     FunctionNode? interfaceFunction,
     bool isInterfaceCheck, {
     required Member? localMember,
+    required Substitution? declaredSubstitution,
   }) {
     Substitution? interfaceSubstitution;
     if (interfaceMember.enclosingClass!.typeParameters.isNotEmpty) {
@@ -1773,8 +1774,10 @@ class SourceClassBuilder extends ClassBuilderImpl
         if (!interfaceParameter.isCovariantByClass) {
           DartType declaredBound = declaredParameter.bound;
           DartType interfaceBound = interfaceParameter.bound;
+          if (declaredSubstitution != null) {
+            declaredBound = declaredSubstitution.substituteType(declaredBound);
+          }
           if (interfaceSubstitution != null) {
-            declaredBound = interfaceSubstitution.substituteType(declaredBound);
             interfaceBound = interfaceSubstitution.substituteType(
               interfaceBound,
             );
@@ -1963,6 +1966,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     FunctionNode interfaceFunction = interfaceMember.function;
     FunctionType? interfaceSignatureType = interfaceMember.signatureType;
 
+    Substitution? declaredSubstitution = _computeDeclaredSubstitution(
+      types,
+      declaredMember,
+    );
+
     Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
       types,
       declaredMember,
@@ -1972,11 +1980,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       interfaceFunction,
       isInterfaceCheck,
       localMember: localMember,
-    );
-
-    Substitution? declaredSubstitution = _computeDeclaredSubstitution(
-      types,
-      declaredMember,
+      declaredSubstitution: declaredSubstitution,
     );
 
     _checkTypes(
@@ -2234,6 +2238,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     bool isInterfaceCheck, {
     required Member? localMember,
   }) {
+    Substitution? declaredSubstitution = _computeDeclaredSubstitution(
+      types,
+      declaredMember,
+    );
     Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
       types,
       declaredMember,
@@ -2245,10 +2253,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       null,
       isInterfaceCheck,
       localMember: localMember,
-    );
-    Substitution? declaredSubstitution = _computeDeclaredSubstitution(
-      types,
-      declaredMember,
+      declaredSubstitution: declaredSubstitution,
     );
     DartType declaredType = declaredMember.getterType;
     DartType interfaceType = interfaceMember.getterType;
@@ -2286,6 +2291,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     bool isInterfaceCheck, {
     required Member? localMember,
   }) {
+    Substitution? declaredSubstitution = _computeDeclaredSubstitution(
+      types,
+      declaredMember,
+    );
     Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
       types,
       declaredMember,
@@ -2297,10 +2306,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       null,
       isInterfaceCheck,
       localMember: localMember,
-    );
-    Substitution? declaredSubstitution = _computeDeclaredSubstitution(
-      types,
-      declaredMember,
+      declaredSubstitution: declaredSubstitution,
     );
     DartType declaredType = declaredMember.setterType;
     DartType interfaceType = interfaceMember.setterType;

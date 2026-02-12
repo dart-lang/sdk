@@ -1017,7 +1017,6 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleNoExtensionTypeBody(Token semicolonToken) {
     assert(
       checkState(semicolonToken, [

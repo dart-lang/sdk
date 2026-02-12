@@ -161,8 +161,19 @@ class LocalVariable extends ExpressionVariable {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  LocalVariable({this.cosmeticName, required DartType? type})
-      : type = type ?? const DynamicType();
+  LocalVariable({
+    this.cosmeticName,
+    required DartType? type,
+    bool isFinal = false,
+    bool isConst = false,
+    bool isLate = false,
+    bool isWildcard = false,
+  }) : type = type ?? const DynamicType() {
+    this.isFinal = isFinal;
+    this.isConst = isConst;
+    this.isLate = isLate;
+    this.isWildcard = isWildcard;
+  }
 
   @override
   void addAnnotation(Expression annotation) {
@@ -610,6 +621,10 @@ class PositionalParameter extends FunctionParameter {
   @override
   List<Expression> annotations = const <Expression>[];
 
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  List<VariableContext>? contexts;
+
   PositionalParameter({
     this.cosmeticName,
     required this.type,
@@ -741,6 +756,10 @@ class NamedParameter extends FunctionParameter {
 
   @override
   List<Expression> annotations = const <Expression>[];
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  List<VariableContext>? contexts;
 
   NamedParameter(
       {required this.parameterName,
@@ -1351,7 +1370,7 @@ class SyntheticVariable extends ExpressionVariable {
 /// an `assert` and not captured anywhere outside of `assert`s.
 enum CaptureKind {
   notCaptured,
-  captured,
+  directCaptured,
   assertCaptured;
 }
 
@@ -1477,9 +1496,17 @@ class Scope extends TreeNode {
 /// The root of the sealed hierarchy of the nodes that provide a scope, such as
 /// loops, functions, and blocks.
 sealed class ScopeProvider implements TreeNode {
-  /// The scope of the [ScopeProvider].
+  /// Scope of the [ScopeProvider].
   ///
   /// It's represented as nullable due to the experimental status of the
   /// feature. When the feature isn't enabled, [scope] should return null.
   abstract Scope? scope;
+}
+
+/// The root of the sealed hierarchy of the nodes that consume variable
+/// contexts, that is, they capture variables from those contexts, such as
+/// functions or initialization nodes of late variables.
+sealed class ContextConsumer implements TreeNode {
+  /// Contexts the variables captured by [ContextConsumer] are from.
+  abstract List<VariableContext>? contexts;
 }

@@ -245,8 +245,9 @@ void FlowGraphCompiler::EmitFrameEntry() {
       // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
       if (!is_optimizing()) {
-        __ incl(compiler::FieldAddress(function_reg,
-                                       Function::usage_counter_offset()));
+        __ addl(compiler::FieldAddress(function_reg,
+                                       Function::usage_counter_offset()),
+                compiler::Immediate(1));
       }
       __ cmpl(compiler::FieldAddress(function_reg,
                                      Function::usage_counter_offset()),

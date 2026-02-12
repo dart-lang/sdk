@@ -949,7 +949,7 @@ library
           getter: <testLibrary>::@extensionType::E::@def::0::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::E::@def::0::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::E::@def::0::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -977,7 +977,7 @@ library
           getter: <testLibrary>::@extensionType::E::@def::1::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::E::@def::1::@constructor::new::@formalParameter::it
       constructors
-        declaring isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::E::@def::1::@constructor::new
           firstFragment: #F8
           formalParameters

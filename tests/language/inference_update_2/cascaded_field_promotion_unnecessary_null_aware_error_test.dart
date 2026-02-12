@@ -116,6 +116,8 @@ void cascadedInvocationsPermitted(C c) {
   c._field as int Function();
   c._field.expectStaticType<Exactly<int Function()>>();
   c?.._field().expectStaticType<Exactly<int>>();
+  // [error column 4, length 3]
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 }
 
 main() {

@@ -21,7 +21,7 @@ namespace dart {
 
 // A class to collect the exits from an inlined function during graph
 // construction so they can be plugged into the caller's flow graph.
-class InlineExitCollector : public ZoneAllocated {
+class InlineExitCollector : public ZoneObject {
  public:
   InlineExitCollector(FlowGraph* caller_graph, Definition* call)
       : caller_graph_(caller_graph), call_(call), exits_(4) {}

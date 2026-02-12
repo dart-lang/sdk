@@ -1,0 +1,25 @@
+extension type ET0(int it);
+
+extension type ET1(final bool it);
+
+extension type ET10({required String it});
+
+extension type ET11({required final List<int> it});
+
+extension type ET2([int?it]);
+
+extension type ET3([final bool? it]);
+
+extension type ET4([int it = 42]);
+
+extension type ET5([final bool it = true]);
+
+extension type ET6({String? it});
+
+extension type ET7({final List<int>? it});
+
+extension type ET8({String? it = 'foo'});
+
+extension type ET9({final List<int>? it = const [0]});
+
+main() {}

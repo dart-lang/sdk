@@ -27,9 +27,9 @@ main() {
       expectedExceptions: [EXCEPTION],
     );
 
-    var cantReadFile = diag.cantReadFile.withArgumentsOld(
-      entryPoint,
-      EXCEPTION,
+    var cantReadFile = diag.cantReadFile.withArguments(
+      uri: entryPoint,
+      details: EXCEPTION,
     );
     List<String> expectedLines = [
       "Error: ${cantReadFile.problemMessage}",

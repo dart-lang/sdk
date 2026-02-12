@@ -659,6 +659,7 @@ class LibraryBuilder {
           );
           partUnitNode.declaredFragment = libraryFragment;
           libraryFragment.isSynthetic = !partFile.exists;
+          libraryFragment.isOriginNotExistingFile = !partFile.exists;
           libraryFragment.setCodeRange(0, partUnitNode.length);
 
           units.add(LinkingUnit(node: partUnitNode, fragment: libraryFragment));
@@ -774,7 +775,6 @@ class LibraryBuilder {
       libraryUnitNode.featureSet,
     );
     if (!libraryFile.exists) {
-      libraryElement.isOriginNotExistingFile = true;
       libraryElement.isSynthetic = true;
     }
     libraryElement.languageVersion = libraryUnitNode.languageVersion;
@@ -790,6 +790,7 @@ class LibraryBuilder {
       );
       libraryUnitNode.declaredFragment = libraryFragment;
       libraryFragment.isSynthetic = !libraryFile.exists;
+      libraryFragment.isOriginNotExistingFile = !libraryFile.exists;
       libraryFragment.setCodeRange(0, libraryUnitNode.length);
 
       linkingUnits.add(

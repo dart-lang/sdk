@@ -1844,6 +1844,36 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  TypeImpl visitAnonymousBlockBody(
+    covariant AnonymousBlockBodyImpl node, {
+    TypeImpl? imposedType,
+  }) {
+    throw UnimplementedError(
+      'The anonymous-method feature is not fully implemented',
+    );
+  }
+
+  @override
+  TypeImpl visitAnonymousExpressionBody(
+    covariant AnonymousExpressionBodyImpl node, {
+    TypeImpl? imposedType,
+  }) {
+    throw UnimplementedError(
+      'The anonymous-method feature is not fully implemented',
+    );
+  }
+
+  @override
+  visitAnonymousMethodInvocation(
+    covariant AnonymousMethodInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    throw UnimplementedError(
+      'The anonymous-method feature is not fully implemented',
+    );
+  }
+
+  @override
   void visitAsExpression(
     covariant AsExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,

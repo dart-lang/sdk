@@ -74,7 +74,7 @@ static constexpr intptr_t kDeltaEncodedTypedDataCid = kNativePointer;
 // StorageTrait for HashTable which allows to create hash tables backed by
 // zone memory. Used to compute cluster order for canonical clusters.
 struct GrowableArrayStorageTraits {
-  class Array : public ZoneAllocated {
+  class Array : public ZoneObject {
    public:
     Array(Zone* zone, intptr_t length)
         : length_(length), array_(zone->Alloc<ObjectPtr>(length)) {}
@@ -92,7 +92,7 @@ struct GrowableArrayStorageTraits {
   };
 
   using ArrayPtr = Array*;
-  class ArrayHandle : public ZoneAllocated {
+  class ArrayHandle : public ZoneObject {
    public:
     explicit ArrayHandle(ArrayPtr ptr) : ptr_(ptr) {}
     ArrayHandle() {}
@@ -157,7 +157,7 @@ static void RelocateCodeObjects(
 
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
-class SerializationCluster : public ZoneAllocated {
+class SerializationCluster : public ZoneObject {
  public:
   static constexpr intptr_t kSizeVaries = -1;
   SerializationCluster(const char* name,
@@ -216,7 +216,7 @@ class SerializationCluster : public ZoneAllocated {
   intptr_t target_memory_size_ = 0;
 };
 
-class DeserializationCluster : public ZoneAllocated {
+class DeserializationCluster : public ZoneObject {
  public:
   explicit DeserializationCluster(const char* name,
                                   bool is_canonical = false,
@@ -8311,7 +8311,7 @@ void Serializer::PrepareInstructions(
     //    - followed by stack maps bytes;
     //    - followed by canonical stack map entries.
     //
-    struct StackMapInfo : public ZoneAllocated {
+    struct StackMapInfo : public ZoneObject {
       CompressedStackMapsPtr map;
       intptr_t use_count;
       uint32_t offset;

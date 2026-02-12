@@ -310,58 +310,6 @@ class RegularFieldEncoding with RegularFieldEncodingMixin {
       isInstanceMember:
           !_fragment.builder.isStatic && !_fragment.builder.isTopLevel,
     );
-    // bool isImmutable = _fragment.modifiers.isLate
-    //     ? (_fragment.modifiers.isFinal && _fragment.modifiers.hasInitializer)
-    //     : (_fragment.modifiers.isFinal || _fragment.modifiers.isConst);
-    // _field = isImmutable
-    //     ? new Field.immutable(
-    //         dummyName,
-    //         type: _type,
-    //         isFinal: _fragment.modifiers.isFinal,
-    //         isConst: _fragment.modifiers.isConst,
-    //         isLate: _fragment.modifiers.isLate,
-    //         fileUri: _fragment.fileUri,
-    //         fieldReference: references.fieldReference,
-    //         getterReference: references.getterReference,
-    //         isEnumElement: isEnumElement,
-    //       )
-    //     : new Field.mutable(
-    //         dummyName,
-    //         type: _type,
-    //         isFinal: _fragment.modifiers.isFinal,
-    //         isLate: _fragment.modifiers.isLate,
-    //         fileUri: _fragment.fileUri,
-    //         fieldReference: references.fieldReference,
-    //         getterReference: references.getterReference,
-    //         setterReference: references.setterReference,
-    //       );
-    // nameScheme
-    //     .getFieldMemberName(
-    //       FieldNameType.Field,
-    //       _fragment.name,
-    //       isSynthesized: false,
-    //     )
-    //     .attachMember(_field!);
-    // _field!
-    //   ..fileOffset = _fragment.nameOffset
-    //   ..fileEndOffset = _fragment.endOffset;
-    // _field!..isCovariantByDeclaration = _fragment.modifiers.isCovariant;
-    // if (_fragment.builder.isExtensionMember) {
-    //   _field!
-    //     ..isStatic = true
-    //     ..isExtensionMember = true;
-    // } else if (_fragment.builder.isExtensionTypeMember) {
-    //   _field!
-    //     ..isStatic = _fragment.builder.isStatic
-    //     ..isExtensionTypeMember = true;
-    // } else {
-    //   bool isInstanceMember =
-    //       !_fragment.builder.isStatic && !_fragment.builder.isTopLevel;
-    //   _field!
-    //     ..isStatic = !isInstanceMember
-    //     ..isExtensionMember = false;
-    // }
-    // _field!.isLate = _fragment.modifiers.isLate;
   }
 
   @override
@@ -1532,9 +1480,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
   @override
   void set type(DartType value) {
     assert(
-      _type == null ||
-          // Coverage-ignore(suite): Not run.
-          _type is InferredType,
+      _type == null || _type is InferredType,
       "Type has already been computed for field ${_fragment.name}.",
     );
     _type = value;

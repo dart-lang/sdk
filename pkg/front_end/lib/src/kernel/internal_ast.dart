@@ -1075,6 +1075,10 @@ class InternalPositionalParameter extends TreeNode
   @override
   final bool isLocalFunction;
 
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  List<VariableContext>? contexts;
+
   InternalPositionalParameter({
     required this.astVariable,
     required this.isImplicitlyTyped,
@@ -1165,6 +1169,10 @@ class InternalNamedParameter extends TreeNode
 
   @override
   final bool isLocalFunction;
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  List<VariableContext>? contexts;
 
   InternalNamedParameter({
     required this.astVariable,

@@ -4,8 +4,6 @@
 
 // Testing erroneous ways of using shorthands with the `==` and `!=` operators.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 class ConstConstructorAssert {

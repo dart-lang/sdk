@@ -402,14 +402,14 @@ class ContextManagerImpl implements ContextManager {
       var sdkVersionConstraint = (package is PubPackage)
           ? package.sdkVersionConstraint
           : null;
-      var errors = analyzeAnalysisOptions(
-        FileSource(file),
-        content,
-        driver.sourceFactory,
-        driver.currentSession.analysisContext.contextRoot.root.path,
-        sdkVersionConstraint,
-        resourceProvider,
-      );
+      var errors = AnalysisOptionsAnalyzer(
+        initialSource: FileSource(file),
+        sourceFactory: driver.sourceFactory,
+        contextRoot:
+            driver.currentSession.analysisContext.contextRoot.root.path,
+        sdkVersionConstraint: sdkVersionConstraint,
+        resourceProvider: resourceProvider,
+      ).walkIncludes(content: content);
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(
         errors,

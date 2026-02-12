@@ -609,12 +609,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   Label async_callback;
   Label sync_isolate_group_bound_callback;
+  Label sync_callback_isolate_ownership;
   Label done;
-
-  // If GetFfiCallbackMetadata returned a null thread, it means that the
-  // callback was invoked after it was deleted. In this case, do nothing.
-  __ cmpq(THR, Immediate(0));
-  __ j(EQUAL, &done);
 
   // Check the trampoline type to see how the callback should be invoked.
   __ cmpq(RAX, Immediate(static_cast<uword>(
@@ -626,6 +622,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
               FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
   __ j(EQUAL, &sync_isolate_group_bound_callback, Assembler::kNearJump);
 
+  __ testq(RAX,
+           Immediate(FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
+  __ j(NOT_ZERO, &sync_callback_isolate_ownership, Assembler::kNearJump);
+
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
   // re-enter it afterwards.
@@ -636,6 +636,44 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Takes care to not clobber *any* registers (besides TMP).
   __ EnterFullSafepoint();
+
+  __ jmp(&done);
+
+  __ Bind(&sync_callback_isolate_ownership);
+
+  __ call(TMP);
+
+  // Exit the target isolate.
+  {
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitSyncCallbackTargetIsolate,
+                           RAX, TMP);
+    } else {
+      __ movq(RAX, Immediate(reinterpret_cast<int64_t>(
+                       DLRT_ExitSyncCallbackTargetIsolate)));
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, RAX);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ CallCFunction(RAX);
+
+    __ LeaveFrame();
+
+    __ PopRegisters(return_registers);
+  }
 
   __ jmp(&done, Assembler::kNearJump);
 
@@ -1072,7 +1110,7 @@ static void PushArrayOfArguments(Assembler* assembler) {
   __ addq(RBX, Immediate(target::kCompressedWordSize));
   __ subq(R12, Immediate(target::kWordSize));
   __ Bind(&loop_condition);
-  __ decq(R10);
+  __ subq(R10, Immediate(1));
   __ j(POSITIVE, &loop, Assembler::kNearJump);
 }
 
@@ -1692,7 +1730,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 #else
   __ pushq(Address(RDX, RAX, TIMES_8, 0));
 #endif
-  __ incq(RAX);
+  __ addq(RAX, Immediate(1));
   __ cmpq(RAX, RBX);
   __ j(LESS, &push_arguments, Assembler::kNearJump);
   __ Bind(&done_push_arguments);
@@ -1843,7 +1881,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
   __ LoadImmediate(RAX, Immediate(0));
   __ Bind(&push_arguments);
   __ pushq(Address(RDX, RAX, TIMES_8, 0));
-  __ incq(RAX);
+  __ addq(RAX, Immediate(1));
   __ cmpq(RAX, RBX);
   __ j(LESS, &push_arguments, Assembler::kNearJump);
   __ Bind(&done_push_arguments);
@@ -2005,7 +2043,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 #endif  // DEBUG
       __ jmp(&entry, kJumpLength);
       __ Bind(&loop);
-      __ decq(R10);
+      __ subq(R10, Immediate(1));
       // No generational barrier needed, since we are storing null.
       __ StoreCompressedIntoObjectNoBarrier(
           RAX, Address(R13, R10, TIMES_COMPRESSED_WORD_SIZE, 0), R9);
@@ -2072,7 +2110,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
       Label loop, entry;
       __ jmp(&entry, Assembler::kNearJump);
       __ Bind(&loop);
-      __ decq(R10);
+      __ subq(R10, Immediate(1));
       __ LoadCompressed(R13, FieldAddress(R9, R10, TIMES_COMPRESSED_WORD_SIZE,
                                           target::Context::variable_offset(0)));
       __ StoreCompressedIntoObjectNoBarrier(
@@ -2167,7 +2205,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
       __ movq(Address(TMP, RCX, TIMES_8,
                       target::MarkingStackBlock::pointers_offset()),
               RAX);
-      __ incq(RCX);
+      __ addq(RCX, Immediate(1));
       __ movl(Address(TMP, target::MarkingStackBlock::top_offset()), RCX);
       __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
       __ j(NOT_EQUAL, &done);
@@ -2239,7 +2277,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     // Increment top_ and check for overflow.
     // RCX: top_
     // TMP: StoreBufferBlock
-    __ incq(RCX);
+    __ addq(RCX, Immediate(1));
     __ movl(Address(TMP, target::StoreBufferBlock::top_offset()), RCX);
     __ cmpl(RCX, Immediate(target::StoreBufferBlock::kSize));
     __ j(NOT_EQUAL, &done);
@@ -2567,7 +2605,8 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
     return;
   }
   Register func_reg = RDI;
-  __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
+  __ addl(FieldAddress(func_reg, target::Function::usage_counter_offset()),
+          Immediate(1));
 }
 
 // Loads function into 'temp_reg', preserves IC_DATA_REG.
@@ -2582,7 +2621,8 @@ void StubCodeCompiler::GenerateUsageCounterIncrement(Register temp_reg) {
     __ Comment("Increment function counter");
     __ movq(func_reg,
             FieldAddress(IC_DATA_REG, target::ICData::owner_offset()));
-    __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
+    __ addl(FieldAddress(func_reg, target::Function::usage_counter_offset()),
+            Immediate(1));
   }
 }
 
@@ -3185,7 +3225,7 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
               Immediate(0));
   Label args_count_ok;
   __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
-  __ incq(R11);
+  __ addq(R11, Immediate(1));
   __ Bind(&args_count_ok);
 
   // Compute argv.

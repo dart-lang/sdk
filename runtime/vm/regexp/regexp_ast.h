@@ -34,7 +34,7 @@ class RegExpVisitor : public ValueObject {
 #undef MAKE_CASE
 };
 
-class RegExpTree : public ZoneAllocated {
+class RegExpTree : public ZoneObject {
  public:
   static constexpr intptr_t kInfinity = kMaxInt32;
   virtual ~RegExpTree() {}

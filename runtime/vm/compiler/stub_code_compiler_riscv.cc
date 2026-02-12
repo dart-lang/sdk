@@ -434,11 +434,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   Label something_other_than_sync_callback;
   Label async_callback;
+  Label sync_isolate_group_bound_callback;
   Label done;
-
-  // If GetFfiCallbackMetadata returned a null thread, it means that the
-  // callback was invoked after it was deleted. In this case, do nothing.
-  __ beqz(THR, &done, Assembler::kFarJump);
 
   // Check the trampoline type to see how the callback should be invoked.
 
@@ -459,15 +456,63 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ j(&done, Assembler::kNearJump);
 
   __ Bind(&something_other_than_sync_callback);
-  COMPILE_ASSERT(
-      static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync) == 2);
-  __ subi(T3, T3, 2);
-  __ beqz(T3, &async_callback, Assembler::kNearJump);
+  __ li(T4, static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync));
+  __ beq(T3, T4, &async_callback, Assembler::kNearJump);
 
-  COMPILE_ASSERT(
-      static_cast<uword>(
-          FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound) == 3);
-  // isolate-group-shared callback
+  __ li(T4, static_cast<uword>(
+                FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound));
+  __ beq(T3, T4, &sync_isolate_group_bound_callback, Assembler::kNearJump);
+
+  // Sync callback that entered the target isolate.
+  __ jalr(T2);
+
+  // Exit the target isolate.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+    Label call;
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitSyncCallbackTargetIsolate,
+                           T1, T2);
+    } else {
+      const intptr_t kPCRelativeLoadOffset = 12;
+      intptr_t start = __ CodeSize();
+      __ auipc(T1, 0);
+      __ lx(T1, Address(T1, kPCRelativeLoadOffset));
+      __ j(&call);
+
+      ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
+#if XLEN == 32
+      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitSyncCallbackTargetIsolate));
+#else
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitSyncCallbackTargetIsolate));
+#endif
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, T1);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ Bind(&call);
+    __ jalr(T1);
+
+    __ PopRegisters(return_registers);
+
+    __ LeaveFrame();
+    __ j(&done, Assembler::kNearJump);
+  }
+
+  __ Bind(&sync_isolate_group_bound_callback);
   __ jalr(T2);
 
   // Exit isolate group bound isolate.
@@ -513,9 +558,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ PopRegisters(return_registers);
 
     __ LeaveFrame();
+    __ j(&done, Assembler::kNearJump);
   }
-
-  __ j(&done, Assembler::kNearJump);
 
   __ Bind(&async_callback);
 

@@ -1,0 +1,249 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:5:24: Error: Representation fields can't have modifiers.
+// extension type ET0(var a); // Error
+//                        ^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:7:29: Error: Representation fields can't have modifiers.
+// extension type ET1(var bool a); // Error
+//                             ^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:9:19: Error: Each extension type should have exactly one representation field.
+// extension type ET2(final int a, int b); // Error
+//                   ^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:11:19: Error: Each extension type should have exactly one representation field.
+// extension type ET3(final int a, [bool? b]); // Error
+//                   ^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:13:19: Error: Each extension type should have exactly one representation field.
+// extension type ET4([final int it = 42, bool? b]); // Error
+//                   ^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:15:19: Error: Each extension type should have exactly one representation field.
+// extension type ET5(final int? a, {bool? b}); // Error
+//                   ^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:17:19: Error: Each extension type should have exactly one representation field.
+// extension type ET6({final int? a, bool? b}); // Error
+//                   ^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:19:19: Error: Each extension type should have exactly one representation field.
+// extension type ET7({final int a = 42, bool b = true}); // Error
+//                   ^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:21:19: Error: Each extension type should have exactly one representation field.
+// extension type ET8({required final int a, required int b}); // Error
+//                   ^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:23:20: Error: The 'covariant' modifier can only be used on non-final declaring parameters.
+// Try removing 'covariant'.
+// extension type ET9(covariant int a); // Error
+//                    ^^^^^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:25:21: Error: Can't have modifier 'late' here.
+// Try removing 'late'.
+// extension type ET10(late int a); // Error
+//                     ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:27:21: Error: Can't have modifier 'external' here.
+// Try removing 'external'.
+// extension type ET11(external int a); // Error
+//                     ^^^^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:29:21: Error: Can't have modifier 'const' here.
+// Try removing 'const'.
+// extension type ET12(const int a); // Error
+//                     ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:31:21: Error: Can't have modifier 'required' here.
+// Try removing 'required'.
+// extension type ET13(required int a); // Error
+//                     ^^^^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/extension_type_errors.dart:33:20: Error: Expected a representation field.
+// extension type ET14(); // Error
+//                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type ET0(dynamic a) {
+  abstract extension-type-member representation-field get a() → core::Object?;
+  constructor • = self::ET0|constructor#;
+  constructor tearoff • = self::ET0|constructor#_#new#tearOff;
+}
+extension type ET1(core::bool a) {
+  abstract extension-type-member representation-field get a() → core::bool;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  abstract extension-type-member representation-field get b() → core::int;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  abstract extension-type-member representation-field get b() → core::bool?;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+extension type ET4(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  abstract extension-type-member representation-field get b() → core::bool?;
+  constructor • = self::ET4|constructor#;
+  constructor tearoff • = self::ET4|constructor#_#new#tearOff;
+}
+extension type ET5(core::int? a) {
+  abstract extension-type-member representation-field get a() → core::int?;
+  abstract extension-type-member representation-field get b() → core::bool?;
+  constructor • = self::ET5|constructor#;
+  constructor tearoff • = self::ET5|constructor#_#new#tearOff;
+}
+extension type ET6(core::int? a) {
+  abstract extension-type-member representation-field get a() → core::int?;
+  abstract extension-type-member representation-field get b() → core::bool?;
+  constructor • = self::ET6|constructor#;
+  constructor tearoff • = self::ET6|constructor#_#new#tearOff;
+}
+extension type ET7(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  abstract extension-type-member representation-field get b() → core::bool;
+  constructor • = self::ET7|constructor#;
+  constructor tearoff • = self::ET7|constructor#_#new#tearOff;
+}
+extension type ET8(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  abstract extension-type-member representation-field get b() → core::int;
+  constructor • = self::ET8|constructor#;
+  constructor tearoff • = self::ET8|constructor#_#new#tearOff;
+}
+extension type ET9(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  constructor • = self::ET9|constructor#;
+  constructor tearoff • = self::ET9|constructor#_#new#tearOff;
+}
+extension type ET10(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  constructor • = self::ET10|constructor#;
+  constructor tearoff • = self::ET10|constructor#_#new#tearOff;
+}
+extension type ET11(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  constructor • = self::ET11|constructor#;
+  constructor tearoff • = self::ET11|constructor#_#new#tearOff;
+}
+extension type ET12(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  constructor • = self::ET12|constructor#;
+  constructor tearoff • = self::ET12|constructor#_#new#tearOff;
+}
+extension type ET13(core::int a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  constructor • = self::ET13|constructor#;
+  constructor tearoff • = self::ET13|constructor#_#new#tearOff;
+}
+extension type ET14(invalid-type #) {
+  constructor • = self::ET14|constructor#;
+  constructor tearoff • = self::ET14|constructor#_#new#tearOff;
+}
+static extension-type-member method ET0|constructor#(core::Object? a) → self::ET0% /* erasure=dynamic, declared=! */ {
+  lowered final self::ET0% /* erasure=dynamic, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET0|constructor#_#new#tearOff(core::Object? a) → self::ET0% /* erasure=dynamic, declared=! */
+  return self::ET0|constructor#(a);
+static extension-type-member method ET1|constructor#(core::bool a) → self::ET1% /* erasure=core::bool, declared=! */ {
+  lowered final self::ET1% /* erasure=core::bool, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::bool a) → self::ET1% /* erasure=core::bool, declared=! */
+  return self::ET1|constructor#(a);
+static extension-type-member method ET2|constructor#(final core::int a, core::int b) → self::ET2% /* erasure=core::int, declared=! */ {
+  lowered final self::ET2% /* erasure=core::int, declared=! */ #this = b;
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int a, core::int b) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(a, b);
+static extension-type-member method ET3|constructor#(final core::int a, [core::bool? b = #C1]) → self::ET3% /* erasure=core::int, declared=! */ {
+  lowered final self::ET3% /* erasure=core::int, declared=! */ #this = b;
+  return #this;
+}
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int a, [core::bool? b = #C1]) → self::ET3% /* erasure=core::int, declared=! */
+  return self::ET3|constructor#(a, b);
+static extension-type-member method ET4|constructor#([final core::int it = #C2, core::bool? b = #C1]) → self::ET4% /* erasure=core::int, declared=! */ {
+  lowered final self::ET4% /* erasure=core::int, declared=! */ #this = b;
+  return #this;
+}
+static extension-type-member synthetic method ET4|constructor#_#new#tearOff([core::int it = #C2, core::bool? b = #C1]) → self::ET4% /* erasure=core::int, declared=! */
+  return self::ET4|constructor#(it, b);
+static extension-type-member method ET5|constructor#(final core::int? a, {core::bool? b = #C1}) → self::ET5% /* erasure=core::int?, declared=! */ {
+  lowered final self::ET5% /* erasure=core::int?, declared=! */ #this = b;
+  return #this;
+}
+static extension-type-member synthetic method ET5|constructor#_#new#tearOff(core::int? a, {core::bool? b = #C1}) → self::ET5% /* erasure=core::int?, declared=! */
+  return self::ET5|constructor#(a, b: b);
+static extension-type-member method ET6|constructor#({final core::int? a = #C1, core::bool? b = #C1}) → self::ET6% /* erasure=core::int?, declared=! */ {
+  lowered final self::ET6% /* erasure=core::int?, declared=! */ #this = b;
+  return #this;
+}
+static extension-type-member synthetic method ET6|constructor#_#new#tearOff({core::int? a = #C1, core::bool? b = #C1}) → self::ET6% /* erasure=core::int?, declared=! */
+  return self::ET6|constructor#(a: a, b: b);
+static extension-type-member method ET7|constructor#({final core::int a = #C2, core::bool b = #C3}) → self::ET7% /* erasure=core::int, declared=! */ {
+  lowered final self::ET7% /* erasure=core::int, declared=! */ #this = b;
+  return #this;
+}
+static extension-type-member synthetic method ET7|constructor#_#new#tearOff({core::int a = #C2, core::bool b = #C3}) → self::ET7% /* erasure=core::int, declared=! */
+  return self::ET7|constructor#(a: a, b: b);
+static extension-type-member method ET8|constructor#({required final core::int a, required core::int b}) → self::ET8% /* erasure=core::int, declared=! */ {
+  lowered final self::ET8% /* erasure=core::int, declared=! */ #this = b;
+  return #this;
+}
+static extension-type-member synthetic method ET8|constructor#_#new#tearOff({required core::int a, required core::int b}) → self::ET8% /* erasure=core::int, declared=! */
+  return self::ET8|constructor#(a: a, b: b);
+static extension-type-member method ET9|constructor#(covariant-by-declaration core::int a) → self::ET9% /* erasure=core::int, declared=! */ {
+  lowered final self::ET9% /* erasure=core::int, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET9|constructor#_#new#tearOff(core::int a) → self::ET9% /* erasure=core::int, declared=! */
+  return self::ET9|constructor#(a);
+static extension-type-member method ET10|constructor#(core::int a) → self::ET10% /* erasure=core::int, declared=! */ {
+  lowered final self::ET10% /* erasure=core::int, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET10|constructor#_#new#tearOff(core::int a) → self::ET10% /* erasure=core::int, declared=! */
+  return self::ET10|constructor#(a);
+static extension-type-member method ET11|constructor#(core::int a) → self::ET11% /* erasure=core::int, declared=! */ {
+  lowered final self::ET11% /* erasure=core::int, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET11|constructor#_#new#tearOff(core::int a) → self::ET11% /* erasure=core::int, declared=! */
+  return self::ET11|constructor#(a);
+static extension-type-member method ET12|constructor#(core::int a) → self::ET12% /* erasure=core::int, declared=! */ {
+  lowered final self::ET12% /* erasure=core::int, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET12|constructor#_#new#tearOff(core::int a) → self::ET12% /* erasure=core::int, declared=! */
+  return self::ET12|constructor#(a);
+static extension-type-member method ET13|constructor#(core::int a) → self::ET13% /* erasure=core::int, declared=! */ {
+  lowered final self::ET13% /* erasure=core::int, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET13|constructor#_#new#tearOff(core::int a) → self::ET13% /* erasure=core::int, declared=! */
+  return self::ET13|constructor#(a);
+static extension-type-member method ET14|constructor#() → self::ET14% /* erasure=invalid-type, declared=! */ {
+  lowered final self::ET14% /* erasure=invalid-type, declared=! */ #this;
+  return #this;
+}
+static extension-type-member synthetic method ET14|constructor#_#new#tearOff() → self::ET14% /* erasure=invalid-type, declared=! */
+  return self::ET14|constructor#();
+
+constants  {
+  #C1 = null
+  #C2 = 42
+  #C3 = true
+}

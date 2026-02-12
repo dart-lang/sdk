@@ -4,8 +4,6 @@
 
 // Context type is propagated down in cascades for constructor dot shorthands.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 class Cascade {

@@ -16,7 +16,7 @@ namespace dart {
 
 static constexpr intptr_t kInvalidTryIndex = -1;
 
-class DescriptorList : public ZoneAllocated {
+class DescriptorList : public ZoneObject {
  public:
   explicit DescriptorList(
       Zone* zone,
@@ -47,7 +47,7 @@ class DescriptorList : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
 
-class CompressedStackMapsBuilder : public ZoneAllocated {
+class CompressedStackMapsBuilder : public ZoneObject {
  public:
   explicit CompressedStackMapsBuilder(Zone* zone)
       : encoded_bytes_(zone, kInitialStreamSize) {}
@@ -66,7 +66,7 @@ class CompressedStackMapsBuilder : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(CompressedStackMapsBuilder);
 };
 
-class ExceptionHandlerList : public ZoneAllocated {
+class ExceptionHandlerList : public ZoneObject {
  public:
   struct HandlerDesc {
     intptr_t outer_try_index;    // Try block in which this try block is nested.
@@ -147,7 +147,7 @@ class ExceptionHandlerList : public ZoneAllocated {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 // Used to construct CatchEntryMoves for the AOT mode of compilation.
-class CatchEntryMovesMapBuilder : public ZoneAllocated {
+class CatchEntryMovesMapBuilder : public ZoneObject {
  public:
   CatchEntryMovesMapBuilder();
 
@@ -229,7 +229,7 @@ struct CodeSourceMapOps : AllStatic {
 // us a peephole optimization that merges adjacent advance PC bytecodes. On AOT,
 // this allows to skip encoding our position until we reach a PC where we might
 // throw.
-class CodeSourceMapBuilder : public ZoneAllocated {
+class CodeSourceMapBuilder : public ZoneObject {
  public:
   CodeSourceMapBuilder(
       Zone* zone,

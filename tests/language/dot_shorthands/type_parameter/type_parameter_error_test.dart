@@ -5,8 +5,6 @@
 // Errors when having the wrong type parameters and using type parameters in
 // `.new` or `.new()`.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 class C {

@@ -44,7 +44,7 @@ abstract class Encoding extends Codec<String, List<int>> {
 
   // All aliases (in lowercase) of supported encoding from
   // http://www.iana.org/assignments/character-sets/character-sets.xml.
-  static const Map<String, Encoding> _nameToEncoding = const <String, Encoding>{
+  static const Map<String, Encoding> _nameToEncoding = <String, Encoding>{
     // ISO_8859-1:1987.
     "iso_8859-1:1987": latin1,
     "iso-ir-100": latin1,

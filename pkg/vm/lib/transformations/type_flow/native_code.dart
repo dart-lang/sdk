@@ -7,6 +7,7 @@ library;
 
 import 'dart:core' hide Type;
 
+import 'package:front_end/src/api_prototype/record_use.dart' as record_use;
 import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 
@@ -52,6 +53,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   final EntryPointsListener entryPoints;
   final NativeCodeOracle nativeCodeOracle;
   final PragmaAnnotationParser matcher;
+  late final usedFieldCollector = UsedFieldsCollector(
+    nativeCodeOracle.setMemberReferencedFromNativeCode,
+  );
 
   PragmaEntryPointsVisitor(
     this.entryPoints,
@@ -78,6 +82,13 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
       }
     }
     return types ?? const [];
+  }
+
+  void markFieldsOfAnnotationAsUsed(List<Expression> annotations) {
+    for (final expression in annotations) {
+      if (expression is! ConstantExpression) continue;
+      expression.constant.accept(usedFieldCollector);
+    }
   }
 
   static const _referenceToDocumentation =
@@ -213,6 +224,14 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitField(Field field) {
+    if (field.isInstanceMember &&
+        field.enclosingClass!.hasConstConstructor &&
+        record_use.isBeingRecorded(field.enclosingClass!)) {
+      // If a class has a `@RecordUse` annotation then a user-defined linker
+      // script may want to inspect instance constants of the class, so we have
+      // to preserve all fields.
+      nativeCodeOracle.setMemberReferencedFromNativeCode(field);
+    }
     final types = entryPointTypesFromPragmas(field.annotations);
     if (types.isEmpty) return;
 
@@ -398,4 +417,29 @@ class NativeCodeOracle {
       return typesBuilder.fromStaticType(member.function!.returnType, true);
     }
   }
+}
+
+class UsedFieldsCollector extends RecursiveVisitor
+    with ConstantVisitorDefaultMixin, ConstantReferenceVisitorDefaultMixin {
+  final void Function(Field) onUsedField;
+  final visited = <Constant>{};
+  final visitedClasses = <Class>{};
+
+  UsedFieldsCollector(this.onUsedField);
+
+  @override
+  void defaultConstant(Constant constant) {
+    if (visited.add(constant)) {
+      constant.visitChildren(this);
+      if (constant is InstanceConstant &&
+          visitedClasses.add(constant.classNode)) {
+        for (final fieldReference in constant.fieldValues.keys) {
+          onUsedField(fieldReference.asField);
+        }
+      }
+    }
+  }
+
+  @override
+  void defaultConstantReference(Constant constant) => defaultConstant(constant);
 }

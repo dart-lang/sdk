@@ -368,7 +368,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isVoidAllowed = false,
     bool coerceExpression = true,
     Template<
-      Function,
       Message Function({
         required DartType actualType,
         required DartType expectedType,
@@ -411,7 +410,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType initialContextType = runtimeCheckedType ?? contextType;
 
     Template<
-      Function,
       Message Function({
         required DartType actualType,
         required DartType expectedType,
@@ -503,7 +501,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isVoidAllowed = false,
     bool isCoercionAllowed = true,
     Template<
-      Function,
       Message Function({
         required DartType actualType,
         required DartType expectedType,
@@ -518,7 +515,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     contextType = computeGreatestClosure(contextType);
 
     Template<
-      Function,
       Message Function({
         required DartType actualType,
         required DartType expectedType,
@@ -666,7 +662,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isVoidAllowed = false,
     bool coerceExpression = true,
     Template<
-      Function,
       Message Function({
         required DartType actualType,
         required DartType expectedType,
@@ -1654,15 +1649,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   DartType inferDeclarationType(
     DartType initializerType, {
     bool forSyntheticVariable = false,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     if (forSyntheticVariable) {
       return initializerType;
     } else if (initializerType is NullType) {
-      // If the initializer type is Null or bottom, the inferred type is
-      // dynamic.
-      // TODO(paulberry): this rule is inherited from analyzer behavior but is
-      // not spec'ed anywhere.
-      return const DynamicType();
+      switch (inferenceDefaultType) {
+        case InferenceDefaultType.NullableObject:
+          // For primary constructors, `Object?` used in this case.
+          return coreTypes.objectNullableRawType;
+        case InferenceDefaultType.Dynamic:
+          // If the initializer type is Null or bottom, the inferred type is
+          // dynamic.
+          // TODO(paulberry): this rule is inherited from analyzer behavior but
+          //  is not spec'ed anywhere.
+          return const DynamicType();
+      }
     } else {
       return demoteTypeInLibrary(initializerType);
     }
@@ -1944,7 +1946,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           hoistedExpressions,
         );
         if (isIdenticalCall) {
-          argumentInfo.identicalInfo = flowAnalysis.equalityOperand_end(
+          argumentInfo.identicalInfo = flowAnalysis.getExpressionInfo(
             expression,
           );
         }
@@ -1990,7 +1992,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           DartType inferredType = result.inferredType;
           Expression expression = result.expression;
           if (isIdenticalCall) {
-            deferredArgument.identicalInfo = flowAnalysis.equalityOperand_end(
+            deferredArgument.identicalInfo = flowAnalysis.getExpressionInfo(
               expression,
             );
           }
@@ -2355,19 +2357,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
       VariableDeclaration parameter = positionalParameters[i];
-      // TODO(62401): Ensure `parameter` is an InternalExpressionVariable.
-      if (parameter
-          case InternalExpressionVariable(
-                astVariable: ExpressionVariable parameter,
-              ) ||
-              // Coverage-ignore(suite): Not run.
-              ExpressionVariable parameter) {
-        flowAnalysis.declare(
-          parameter,
-          new SharedTypeView(parameter.type),
-          initialized: true,
-        );
-      }
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      ExpressionVariable parameterAstVariable =
+          (parameter as InternalExpressionVariable).astVariable;
+      flowAnalysis.declare(
+        parameterAstVariable,
+        new SharedTypeView(parameterAstVariable.type),
+        initialized: true,
+      );
       inferMetadata(visitor, parameter);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
@@ -2379,19 +2377,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     for (VariableDeclaration parameter in function.namedParameters) {
-      // TODO(62401): Ensure `parameter` is an InternalExpressionVariable.
-      if (parameter
-          case InternalExpressionVariable(
-                astVariable: ExpressionVariable parameter,
-              ) ||
-              // Coverage-ignore(suite): Not run.
-              ExpressionVariable parameter) {
-        flowAnalysis.declare(
-          parameter,
-          new SharedTypeView(parameter.type),
-          initialized: true,
-        );
-      }
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      ExpressionVariable parameterAstVariable =
+          (parameter as InternalExpressionVariable).astVariable;
+      flowAnalysis.declare(
+        parameterAstVariable,
+        new SharedTypeView(parameterAstVariable.type),
+        initialized: true,
+      );
       inferMetadata(visitor, parameter);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
@@ -3218,243 +3212,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
-  ExpressionInferenceResult _inferInstanceGetterInvocation(
-    InferenceVisitor visitor,
-    int fileOffset,
-    Expression receiver,
-    DartType receiverType,
-    ObjectAccessTarget target,
-    TypeArguments? typeArguments,
-    ActualArguments arguments,
-    DartType typeContext,
-    List<VariableDeclaration>? hoistedExpressions, {
+  ExpressionInferenceResult _finishFieldGetterInvocation(
+    InferenceVisitor visitor, {
+    required int fileOffset,
+    required Expression receiver,
+    required DartType receiverType,
+    required ObjectAccessTarget target,
+    required Member member,
+    required DartType declaredMemberType,
+    required DartType calleeType,
+    required TypeArguments? typeArguments,
+    required ActualArguments arguments,
+    required DartType typeContext,
+    required List<VariableDeclaration>? hoistedExpressions,
     required bool isExpressionInvocation,
   }) {
-    assert(
-      target.isInstanceMember ||
-          target.isObjectMember ||
-          target.isNullableInstanceMember,
-    );
-    Procedure? getter = target.classMember as Procedure;
-    assert(getter.kind == ProcedureKind.Getter);
-
-    // TODO(johnniwinther): This is inconsistent with the handling below. Remove
-    // this or add handling similar to [_inferMethodInvocation].
-    if (receiverType == const DynamicType() &&
-        _isInvalidDynamicTarget(getter.function, arguments)) {
-      target = const ObjectAccessTarget.dynamic();
-      getter = null;
-    }
-
-    DartType calleeType = target.getGetterType(this);
-
-    List<VariableDeclaration>? locallyHoistedExpressions;
-    if (hoistedExpressions == null) {
-      hoistedExpressions = locallyHoistedExpressions = <VariableDeclaration>[];
-    }
-    if (arguments.positionalCount > 0 || arguments.namedCount > 0) {
-      receiver = _hoist(receiver, receiverType, hoistedExpressions);
-    }
-
-    Name originalName = getter!.name;
     Expression originalReceiver = receiver;
-    Member originalTarget = getter;
-    InstanceAccessKind kind;
-    switch (target.kind) {
-      case ObjectAccessTargetKind.instanceMember:
-        kind = InstanceAccessKind.Instance;
-        break;
-      case ObjectAccessTargetKind.nullableInstanceMember:
-        kind = InstanceAccessKind.Nullable;
-        break;
-      case ObjectAccessTargetKind.objectMember:
-        kind = InstanceAccessKind.Object;
-        break;
-      // Coverage-ignore(suite): Not run.
-      default:
-        throw new UnsupportedError('Unexpected target kind $target');
-    }
-    InstanceGet originalPropertyGet = new InstanceGet(
-      kind,
-      originalReceiver,
-      originalName,
-      resultType: calleeType,
-      interfaceTarget: originalTarget,
-    )..fileOffset = fileOffset;
-    Expression propertyGet = originalPropertyGet;
-    if (calleeType is! DynamicType &&
-        receiver is! ThisExpression &&
-        returnedTypeParametersOccurNonCovariantly(
-          getter.enclosingTypeDeclaration!,
-          getter.function.returnType,
-        )) {
-      // Coverage-ignore-block(suite): Not run.
-      propertyGet = new AsExpression(propertyGet, calleeType)
-        ..isTypeError = true
-        ..isCovarianceCheck = true
-        ..fileOffset = fileOffset;
-    }
-
-    if (isExpressionInvocation) {
-      Expression error = problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: diag.implicitCallOfNonMethod.withArguments(type: receiverType),
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-        length: noLength,
-      );
-      return new ExpressionInferenceResult(const InvalidType(), error);
-    }
-
-    ExpressionInferenceResult invocationResult = inferMethodInvocation(
-      visitor,
-      arguments.fileOffset,
-      propertyGet,
-      calleeType,
-      callName,
-      typeArguments,
-      arguments,
-      typeContext,
-      hoistedExpressions: hoistedExpressions,
-      isExpressionInvocation: false,
-      isImplicitCall: true,
-      implicitInvocationPropertyName: getter.name,
-    );
-
-    if (target.isNullable) {
-      // Handles cases like:
-      //   C? c;
-      //   c.foo();
-      // Where C is defined as:
-      //   class C {
-      //     void Function() get foo => () {};
-      //   }
-      List<LocatedMessage>? context = getWhyNotPromotedContext(
-        flowAnalysis.whyNotPromoted(receiver)(),
-        invocationResult.expression,
-        // Coverage-ignore(suite): Not run.
-        (type) => !type.isPotentiallyNullable,
-      );
-      invocationResult = wrapExpressionInferenceResultInProblem(
-        invocationResult,
-        diag.nullableExpressionCallError.withArguments(type: receiverType),
-        fileOffset,
-        noLength,
-        context: context,
-      );
-    }
-
-    if (!libraryBuilder
-        .loader
-        .target
-        .backendTarget
-        .supportsExplicitGetterCalls) {
-      // TODO(johnniwinther): Remove this when dart2js/ddc supports explicit
-      //  getter calls.
-      Expression nullAwareAction = invocationResult.expression;
-      if (nullAwareAction is InstanceInvocation &&
-          // Coverage-ignore(suite): Not run.
-          nullAwareAction.receiver == originalPropertyGet) {
-        // Coverage-ignore-block(suite): Not run.
-        invocationResult = new ExpressionInferenceResult(
-          invocationResult.inferredType,
-          new InstanceGetterInvocation(
-            originalPropertyGet.kind,
-            originalReceiver,
-            originalName,
-            nullAwareAction.arguments,
-            interfaceTarget: originalTarget,
-            functionType: nullAwareAction.functionType,
-          )..fileOffset = nullAwareAction.fileOffset,
-        );
-      } else if (nullAwareAction is DynamicInvocation &&
-          nullAwareAction.receiver == originalPropertyGet) {
-        invocationResult = new ExpressionInferenceResult(
-          invocationResult.inferredType,
-          new InstanceGetterInvocation(
-            originalPropertyGet.kind,
-            originalReceiver,
-            originalName,
-            nullAwareAction.arguments,
-            interfaceTarget: originalTarget,
-            functionType: null,
-          )..fileOffset = nullAwareAction.fileOffset,
-        );
-      } else if (nullAwareAction is FunctionInvocation &&
-          nullAwareAction.receiver == originalPropertyGet) {
-        invocationResult = new ExpressionInferenceResult(
-          invocationResult.inferredType,
-          new InstanceGetterInvocation(
-            originalPropertyGet.kind,
-            originalReceiver,
-            originalName,
-            nullAwareAction.arguments,
-            interfaceTarget: originalTarget,
-            functionType: nullAwareAction.functionType,
-          )..fileOffset = nullAwareAction.fileOffset,
-        );
-      }
-    }
-    invocationResult = _insertHoistedExpression(
-      invocationResult,
-      locallyHoistedExpressions,
-    );
-    return new ExpressionInferenceResult(
-      invocationResult.inferredType,
-      invocationResult.expression,
-    );
-  }
-
-  Expression _hoist(
-    Expression expression,
-    DartType type,
-    List<VariableDeclaration>? hoistedExpressions,
-  ) {
-    if (hoistedExpressions != null &&
-        expression is! ThisExpression &&
-        expression is! FunctionExpression) {
-      VariableDeclaration variable = createVariable(expression, type);
-      hoistedExpressions.add(variable);
-      return createVariableGet(variable);
-    }
-    return expression;
-  }
-
-  ExpressionInferenceResult _insertHoistedExpression(
-    ExpressionInferenceResult result,
-    List<VariableDeclaration>? hoistedExpressions,
-  ) {
-    if (hoistedExpressions != null && hoistedExpressions.isNotEmpty) {
-      Expression expression = result.expression;
-      for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = createLet(hoistedExpressions[index], expression);
-      }
-      return new ExpressionInferenceResult(result.inferredType, expression);
-    }
-    return result;
-  }
-
-  ExpressionInferenceResult _inferInstanceFieldInvocation(
-    InferenceVisitor visitor,
-    int fileOffset,
-    Expression receiver,
-    DartType receiverType,
-    ObjectAccessTarget target,
-    TypeArguments? typeArguments,
-    ActualArguments arguments,
-    DartType typeContext,
-    List<VariableDeclaration>? hoistedExpressions, {
-    required bool isExpressionInvocation,
-  }) {
-    assert(
-      target.isInstanceMember ||
-          target.isObjectMember ||
-          target.isNullableInstanceMember,
-    );
-    Field field = target.classMember as Field;
-    Expression originalReceiver = receiver;
-
-    DartType calleeType = target.getGetterType(this);
 
     List<VariableDeclaration>? locallyHoistedExpressions;
     if (hoistedExpressions == null) {
@@ -3472,8 +3245,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       whyNotPromoted = flowAnalysis.whyNotPromoted(originalReceiver);
     }
 
-    Name originalName = field.name;
-    Member originalTarget = field;
+    Name originalName = member.name;
+    Member originalTarget = member;
     InstanceAccessKind kind;
     switch (target.kind) {
       case ObjectAccessTargetKind.instanceMember:
@@ -3488,6 +3261,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         break;
       // Coverage-ignore(suite): Not run.
       default:
+        // If we ever have function typed fields/getters on Object, this case
+        // can be triggered, if call with inapplicable arguments.
         throw new UnsupportedError('Unexpected target kind $target');
     }
     InstanceGet originalPropertyGet = new InstanceGet(
@@ -3497,22 +3272,24 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       resultType: calleeType,
       interfaceTarget: originalTarget,
     )..fileOffset = fileOffset;
-    DartType? promotedCalleeType = flowAnalysis
-        .propertyGet(
-          originalPropertyGet,
-          computePropertyTarget(originalReceiver),
-          originalName.text,
-          originalTarget,
-          new SharedTypeView(calleeType),
-        )
-        ?.unwrapTypeView();
+    var (
+      SharedTypeView? wrappedPromotedType,
+      ExpressionInfo? expressionInfo,
+    ) = flowAnalysis.propertyGet(
+      computePropertyTarget(originalReceiver),
+      originalName.text,
+      originalTarget,
+      new SharedTypeView(calleeType),
+    );
+    flowAnalysis.storeExpressionInfo(originalPropertyGet, expressionInfo);
+    DartType? promotedCalleeType = wrappedPromotedType?.unwrapTypeView();
     originalPropertyGet.resultType = calleeType;
     Expression propertyGet = originalPropertyGet;
     if (receiver is! ThisExpression &&
         calleeType is! DynamicType &&
         returnedTypeParametersOccurNonCovariantly(
-          field.enclosingTypeDeclaration!,
-          field.type,
+          member.enclosingTypeDeclaration!,
+          declaredMemberType,
         )) {
       propertyGet = new AsExpression(propertyGet, calleeType)
         ..isTypeError = true
@@ -3550,7 +3327,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       isExpressionInvocation: false,
       isImplicitCall: true,
       hoistedExpressions: hoistedExpressions,
-      implicitInvocationPropertyName: field.name,
+      implicitInvocationPropertyName: member.name,
     );
 
     if (target.isNullable) {
@@ -3637,6 +3414,116 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return new ExpressionInferenceResult(
       invocationResult.inferredType,
       invocationResult.expression,
+    );
+  }
+
+  ExpressionInferenceResult _inferInstanceGetterInvocation(
+    InferenceVisitor visitor,
+    int fileOffset,
+    Expression receiver,
+    DartType receiverType,
+    ObjectAccessTarget target,
+    TypeArguments? typeArguments,
+    ActualArguments arguments,
+    DartType typeContext,
+    List<VariableDeclaration>? hoistedExpressions, {
+    required bool isExpressionInvocation,
+  }) {
+    assert(
+      target.isInstanceMember ||
+          target.isObjectMember ||
+          target.isNullableInstanceMember,
+    );
+    Procedure? getter = target.classMember as Procedure;
+    assert(getter.kind == ProcedureKind.Getter);
+
+    if (receiverType == const DynamicType() &&
+        _isInvalidDynamicTarget(getter.function, arguments)) {
+      target = const ObjectAccessTarget.dynamic();
+    }
+
+    DartType calleeType = target.getGetterType(this);
+
+    return _finishFieldGetterInvocation(
+      visitor,
+      fileOffset: fileOffset,
+      receiver: receiver,
+      receiverType: receiverType,
+      target: target,
+      member: getter,
+      declaredMemberType: getter.function.returnType,
+      calleeType: calleeType,
+      typeArguments: typeArguments,
+      arguments: arguments,
+      typeContext: typeContext,
+      hoistedExpressions: hoistedExpressions,
+      isExpressionInvocation: isExpressionInvocation,
+    );
+  }
+
+  Expression _hoist(
+    Expression expression,
+    DartType type,
+    List<VariableDeclaration>? hoistedExpressions,
+  ) {
+    if (hoistedExpressions != null &&
+        expression is! ThisExpression &&
+        expression is! FunctionExpression) {
+      VariableDeclaration variable = createVariable(expression, type);
+      hoistedExpressions.add(variable);
+      return createVariableGet(variable);
+    }
+    return expression;
+  }
+
+  ExpressionInferenceResult _insertHoistedExpression(
+    ExpressionInferenceResult result,
+    List<VariableDeclaration>? hoistedExpressions,
+  ) {
+    if (hoistedExpressions != null && hoistedExpressions.isNotEmpty) {
+      Expression expression = result.expression;
+      for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
+        expression = createLet(hoistedExpressions[index], expression);
+      }
+      return new ExpressionInferenceResult(result.inferredType, expression);
+    }
+    return result;
+  }
+
+  ExpressionInferenceResult _inferInstanceFieldInvocation(
+    InferenceVisitor visitor,
+    int fileOffset,
+    Expression receiver,
+    DartType receiverType,
+    ObjectAccessTarget target,
+    TypeArguments? typeArguments,
+    ActualArguments arguments,
+    DartType typeContext,
+    List<VariableDeclaration>? hoistedExpressions, {
+    required bool isExpressionInvocation,
+  }) {
+    assert(
+      target.isInstanceMember ||
+          target.isObjectMember ||
+          target.isNullableInstanceMember,
+    );
+    Field field = target.classMember as Field;
+    DartType calleeType = target.getGetterType(this);
+
+    return _finishFieldGetterInvocation(
+      visitor,
+      fileOffset: fileOffset,
+      receiver: receiver,
+      receiverType: receiverType,
+      target: target,
+      member: field,
+      declaredMemberType: field.type,
+      calleeType: calleeType,
+      typeArguments: typeArguments,
+      arguments: arguments,
+      typeContext: typeContext,
+      hoistedExpressions: hoistedExpressions,
+      isExpressionInvocation: isExpressionInvocation,
     );
   }
 
@@ -3909,19 +3796,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         DartType type = target.getGetterType(this);
-        type =
-            flowAnalysis
-                .propertyGet(
-                  null,
-                  computePropertyTarget(receiver),
-                  name.text,
-                  (target as ExtensionTypeRepresentationAccessTarget)
-                      .representationField,
-                  new SharedTypeView(type),
-                )
-                // Coverage-ignore(suite): Not run.
-                ?.unwrapTypeView() ??
-            type;
+        var (SharedTypeView? wrappedPromotedType, _) = flowAnalysis.propertyGet(
+          computePropertyTarget(receiver),
+          name.text,
+          (target as ExtensionTypeRepresentationAccessTarget)
+              .representationField,
+          new SharedTypeView(type),
+        );
+        // Coverage-ignore(suite): Not run.
+        type = wrappedPromotedType?.unwrapTypeView() ?? type;
         Expression read = new AsExpression(receiver, type)
           ..isUnchecked = true
           ..fileOffset = fileOffset;
@@ -4187,15 +4070,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, node);
     }
-    DartType? promotedType = flowAnalysis
-        .propertyGet(
-          node,
-          SuperPropertyTarget.singleton,
-          name.text,
-          member,
-          new SharedTypeView(inferredType),
-        )
-        ?.unwrapTypeView();
+    var (
+      SharedTypeView? wrappedPromotedType,
+      ExpressionInfo? expressionInfo,
+    ) = flowAnalysis.propertyGet(
+      SuperPropertyTarget.singleton,
+      name.text,
+      member,
+      new SharedTypeView(inferredType),
+    );
+    flowAnalysis.storeExpressionInfo(node, expressionInfo);
+    DartType? promotedType = wrappedPromotedType?.unwrapTypeView();
     if (promotedType != null) {
       node = new AsExpression(node, promotedType)
         ..isUnchecked = true
@@ -4893,7 +4778,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If it is, an error message template is returned, which can be used by the
   /// caller to report an invalid cast.  Otherwise, `null` is returned.
   Template<
-    Function,
     Message Function({
       required DartType actualType,
       required DartType expectedType,
@@ -5028,22 +4912,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name name,
     Expression? wrappedExpression,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     missingTemplate,
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     ambiguousTemplate,
   ) {
     List<LocatedMessage>? context;
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     template = missingTemplate;
     if (extensionAccessCandidates != null) {
       context = extensionAccessCandidates
@@ -5386,10 +5261,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression? receiver,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedGetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5414,10 +5286,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool forEffect,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedSetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5438,10 +5307,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression index, {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedOperator;
 
     return _reportMissingOrAmbiguousMember(
@@ -5470,10 +5336,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool forEffect,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5501,10 +5364,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
     assert(binaryName != equalsName);
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5530,10 +5390,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name unaryName, {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<
-      Function,
-      Message Function({required String name, required DartType type})
-    >
+    Template<Message Function({required String name, required DartType type})>
     codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5841,7 +5698,6 @@ class _WhyNotPromotedVisitor
       }
       propertyReference = member;
       Template<
-        Function,
         Message Function({
           required String propertyName,
           required String documentationUrl,

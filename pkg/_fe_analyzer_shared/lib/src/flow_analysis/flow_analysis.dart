@@ -240,11 +240,11 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting an "as" expression.
   ///
-  /// [subExpression] should be the expression to which the "as" check was
-  /// applied, and [subExpressionType] should be its static type. [castType]
-  /// should be the type being cast to.
+  /// [subExpressionInfo] should be the expression info for the expression to
+  /// which the "as" check was applied, and [subExpressionType] should be its
+  /// static type. [castType] should be the type being cast to.
   void asExpression_end(
-    Expression subExpression, {
+    ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
     required SharedTypeView castType,
   });
@@ -477,18 +477,11 @@ abstract class FlowAnalysis<
   /// loop.
   void doStatement_end(ExpressionInfo? conditionInfo);
 
-  /// Call this method just after visiting either side of a binary `==` or `!=`
-  /// expression, or an argument to `identical`.
-  ///
-  /// Returns information about the expression that will later be needed by
-  /// [equalityOperation_end].
-  ExpressionInfo? equalityOperand_end(Expression operand);
-
   /// Call this method just after visiting the operands of a binary `==` or `!=`
   /// expression, or an invocation of `identical`.
   ///
   /// [leftOperandInfo] and [rightOperandInfo] should be the values returned by
-  /// [equalityOperand_end] for the left and right operands. [leftOperandType]
+  /// [getExpressionInfo] for the left and right operands. [leftOperandType]
   /// and [rightOperandType] should be the static types of the left and right
   /// operands.
   ///
@@ -723,7 +716,7 @@ abstract class FlowAnalysis<
   /// Call this method after visiting the LHS of an if-null expression ("??")
   /// or if-null assignment ("??=").
   void ifNullExpression_rightBegin(
-    Expression leftHandSide,
+    ExpressionInfo? leftHandSideInfo,
     SharedTypeView leftHandSideType,
   );
 
@@ -780,14 +773,15 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting the LHS of an "is" expression.
   ///
-  /// [subExpression] should be the expression to which the "is" check was
-  /// applied, and [subExpressionType] should be its static type. [isNot] should
-  /// be a boolean indicating whether this is an "is" or an "is!" expression.
-  /// [checkedType] should be the type being checked.
+  /// [subExpressionInfo] should be the expression info for the expression to
+  /// which the "is" check was applied, and [subExpressionType] should be its
+  /// static type. [isNot] should be a boolean indicating whether this is an
+  /// "is" or an "is!" expression. [checkedType] should be the type being
+  /// checked.
   ///
   /// Returns the expression info for the complete "is" expression.
   ExpressionInfo? isExpression_end(
-    Expression subExpression,
+    ExpressionInfo? subExpressionInfo,
     bool isNot, {
     required SharedTypeView subExpressionType,
     required SharedTypeView checkedType,
@@ -864,7 +858,7 @@ abstract class FlowAnalysis<
 
   /// Call this method just after visiting a non-null assertion (`x!`)
   /// expression.
-  void nonNullAssert_end(Expression operand);
+  void nonNullAssert_end(ExpressionInfo? operandInfo);
 
   /// Call this method after visiting the value of a null-aware map entry.
   void nullAwareMapEntry_end({required bool isKeyNullAware});
@@ -1034,8 +1028,7 @@ abstract class FlowAnalysis<
 
   /// Call this method just after visiting a property get expression.
   ///
-  /// [wholeExpression] should be the whole property get, and [propertyName]
-  /// should be the identifier to the right hand side of the `.`.
+  /// [propertyName] should be the identifier to the right hand side of the `.`.
   /// [unpromotedType] should be the static type of the value returned by the
   /// property get.
   ///
@@ -1047,13 +1040,6 @@ abstract class FlowAnalysis<
   /// visited. If it is [SuperPropertyTarget], a property of `super` was just
   /// visited.
   ///
-  /// [wholeExpression] is used by flow analysis to detect the case where the
-  /// property get is used as a subexpression of a larger expression that
-  /// participates in promotion (e.g. promotion of a property of a property).
-  /// If there is no expression corresponding to the property get (e.g. because
-  /// the property is being invoked like a method, or the property get is part
-  /// of a compound assignment), [wholeExpression] may be `null`.
-  ///
   /// [propertyMember] should be whatever data structure the client uses to keep
   /// track of the field or property being accessed. If not `null`, and field
   /// promotion is enabled for the current library,
@@ -1062,10 +1048,12 @@ abstract class FlowAnalysis<
   /// property get, this value can be retrieved from
   /// [PropertyNotPromoted.propertyMember].
   ///
-  /// If the property's type is currently promoted, the promoted type is
-  /// returned. Otherwise `null` is returned.
-  SharedTypeView? propertyGet(
-    Expression? wholeExpression,
+  /// Returns a pair:
+  /// - If the property's type is currently promoted, the first element of the
+  ///   pair is the promoted type. Otherwise it is `null`.
+  /// - The second element of the pair is the expression info for the property
+  ///   get.
+  (SharedTypeView?, ExpressionInfo?) propertyGet(
     PropertyTarget<Expression> target,
     String propertyName,
     Object? propertyMember,
@@ -1501,15 +1489,15 @@ class FlowAnalysisDebug<
 
   @override
   void asExpression_end(
-    Expression subExpression, {
+    ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
     required SharedTypeView castType,
   }) {
     _wrap(
-      'asExpression_end($subExpression, subExpressionType: '
+      'asExpression_end($subExpressionInfo, subExpressionType: '
       '$subExpressionType, castType: $castType)',
       () => _wrapped.asExpression_end(
-        subExpression,
+        subExpressionInfo,
         subExpressionType: subExpressionType,
         castType: castType,
       ),
@@ -1741,13 +1729,6 @@ class FlowAnalysisDebug<
   }
 
   @override
-  ExpressionInfo? equalityOperand_end(Expression operand) => _wrap(
-    'equalityOperand_end($operand)',
-    () => _wrapped.equalityOperand_end(operand),
-    isQuery: true,
-  );
-
-  @override
   ExpressionInfo? equalityOperation_end(
     ExpressionInfo? leftOperandInfo,
     SharedTypeView leftOperandType,
@@ -1935,13 +1916,15 @@ class FlowAnalysisDebug<
 
   @override
   void ifNullExpression_rightBegin(
-    Expression leftHandSide,
+    ExpressionInfo? leftHandSideInfo,
     SharedTypeView leftHandSideType,
   ) {
     _wrap(
-      'ifNullExpression_rightBegin($leftHandSide, $leftHandSideType)',
-      () =>
-          _wrapped.ifNullExpression_rightBegin(leftHandSide, leftHandSideType),
+      'ifNullExpression_rightBegin($leftHandSideInfo, $leftHandSideType)',
+      () => _wrapped.ifNullExpression_rightBegin(
+        leftHandSideInfo,
+        leftHandSideType,
+      ),
     );
   }
 
@@ -2009,16 +1992,16 @@ class FlowAnalysisDebug<
 
   @override
   ExpressionInfo? isExpression_end(
-    Expression subExpression,
+    ExpressionInfo? subExpressionInfo,
     bool isNot, {
     required SharedTypeView subExpressionType,
     required SharedTypeView checkedType,
   }) {
     return _wrap(
-      'isExpression_end($subExpression, $isNot, '
+      'isExpression_end($subExpressionInfo, $isNot, '
       'subExpressionType: $subExpressionType, checkedType: $checkedType)',
       () => _wrapped.isExpression_end(
-        subExpression,
+        subExpressionInfo,
         isNot,
         subExpressionType: subExpressionType,
         checkedType: checkedType,
@@ -2137,10 +2120,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void nonNullAssert_end(Expression operand) {
+  void nonNullAssert_end(ExpressionInfo? operandInfo) {
     return _wrap(
-      'nonNullAssert_end($operand)',
-      () => _wrapped.nonNullAssert_end(operand),
+      'nonNullAssert_end($operandInfo)',
+      () => _wrapped.nonNullAssert_end(operandInfo),
     );
   }
 
@@ -2368,18 +2351,16 @@ class FlowAnalysisDebug<
   }
 
   @override
-  SharedTypeView? propertyGet(
-    Expression? wholeExpression,
+  (SharedTypeView?, ExpressionInfo?) propertyGet(
     PropertyTarget<Expression> target,
     String propertyName,
     Object? propertyMember,
     SharedTypeView unpromotedType,
   ) {
     return _wrap(
-      'propertyGet($wholeExpression, $target, $propertyName, '
+      'propertyGet($target, $propertyName, '
       '$propertyMember, $unpromotedType)',
       () => _wrapped.propertyGet(
-        wholeExpression,
         target,
         propertyName,
         propertyMember,
@@ -5199,7 +5180,7 @@ class _FlowAnalysisImpl<
 
   @override
   void asExpression_end(
-    Expression subExpression, {
+    ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
     required SharedTypeView castType,
   }) {
@@ -5212,9 +5193,7 @@ class _FlowAnalysisImpl<
       _current = _current.setUnreachable();
     }
 
-    _Reference? reference = _getExpressionReference(
-      _getExpressionInfo(subExpression),
-    );
+    _Reference? reference = _getExpressionReference(subExpressionInfo);
     if (reference == null) return;
     _current = _current.tryPromoteForTypeCast(this, reference, castType);
   }
@@ -5500,10 +5479,6 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  ExpressionInfo? equalityOperand_end(Expression operand) =>
-      _getExpressionInfo(operand);
-
-  @override
   ExpressionInfo? equalityOperation_end(
     ExpressionInfo? leftOperandInfo,
     SharedTypeView leftOperandType,
@@ -5751,12 +5726,10 @@ class _FlowAnalysisImpl<
 
   @override
   void ifNullExpression_rightBegin(
-    Expression leftHandSide,
+    ExpressionInfo? leftHandSideInfo,
     SharedTypeView leftHandSideType,
   ) {
-    _Reference? lhsReference = _getExpressionReference(
-      _getExpressionInfo(leftHandSide),
-    );
+    _Reference? lhsReference = _getExpressionReference(leftHandSideInfo);
     FlowModel shortcutState;
     _current = _current.split();
     if (lhsReference != null) {
@@ -5847,7 +5820,7 @@ class _FlowAnalysisImpl<
 
   @override
   ExpressionInfo? isExpression_end(
-    Expression subExpression,
+    ExpressionInfo? subExpressionInfo,
     bool isNot, {
     required SharedTypeView subExpressionType,
     required SharedTypeView checkedType,
@@ -5860,7 +5833,7 @@ class _FlowAnalysisImpl<
       return booleanLiteral(isNot);
     } else {
       _Reference? subExpressionReference = _getExpressionReference(
-        _getExpressionInfo(subExpression),
+        subExpressionInfo,
       );
       if (subExpressionReference != null) {
         ExpressionInfo expressionInfo = _current.tryPromoteForTypeCheck(
@@ -6047,10 +6020,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void nonNullAssert_end(Expression operand) {
-    _Reference? operandReference = _getExpressionReference(
-      _getExpressionInfo(operand),
-    );
+  void nonNullAssert_end(ExpressionInfo? operandInfo) {
+    _Reference? operandReference = _getExpressionReference(operandInfo);
     if (operandReference != null) {
       _current = _current.tryMarkNonNullable(this, operandReference).ifTrue;
     }
@@ -6369,15 +6340,14 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  SharedTypeView? propertyGet(
-    Expression? wholeExpression,
+  (SharedTypeView?, ExpressionInfo?) propertyGet(
     PropertyTarget<Expression> target,
     String propertyName,
     Object? propertyMember,
     SharedTypeView unpromotedType,
   ) {
     SsaNode? targetSsaNode = target._getSsaNode(this);
-    if (targetSsaNode == null) return null;
+    if (targetSsaNode == null) return (null, null);
     var (
       SharedTypeView? promotedType,
       _PropertySsaNode propertySsaNode,
@@ -6395,10 +6365,7 @@ class _FlowAnalysisImpl<
       type: promotedType ?? unpromotedType,
       ssaNode: propertySsaNode,
     );
-    if (wholeExpression != null) {
-      _storeExpressionInfo(wholeExpression, propertyReference);
-    }
-    return promotedType;
+    return (promotedType, propertyReference);
   }
 
   @override

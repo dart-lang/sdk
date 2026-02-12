@@ -427,7 +427,7 @@ class HashingMachOWriteStream : public BaseWriteStream,
 };
 
 // A superclass for all objects that represent some content in the MachO output.
-class MachOContents : public ZoneAllocated {
+class MachOContents : public ZoneObject {
  public:
   explicit MachOContents(bool needs_offset = true, bool in_segment = true)
       // Set the file offset and/or (relative) memory address to 0 if unneeded.

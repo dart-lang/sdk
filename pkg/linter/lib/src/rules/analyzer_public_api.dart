@@ -336,7 +336,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       if (fragment.element case FieldElement element) {
         if (element.isOriginDeclaringFormalParameter) {
-          // ignore:experimental_member_use, parameter_assignments
+          // ignore:parameter_assignments
           fragment = element.declaringFormalParameter!.firstFragment;
         }
       }

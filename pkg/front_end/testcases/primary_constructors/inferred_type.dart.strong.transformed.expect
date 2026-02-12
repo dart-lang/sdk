@@ -1,0 +1,229 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:6:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int d = a; // Error
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:7:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int e = b; // Error
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:8:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int f = c; // Error
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:12:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int d = a; // Error
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:13:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int e = b; // Error
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:14:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int f = c; // Error
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:18:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int d = a; // Error
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:19:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int e = b; // Error
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:20:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int f = c; // Error
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:30:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int a = c1.b; // Error
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:31:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int b = c1.c; // Error
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:32:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int c = c2.b; // Error
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:33:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int d = c2.c; // Error
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:34:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int e = c3.b; // Error
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:35:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int f = c3.c; // Error
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:36:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int g = e1.a; // Error
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:37:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int h = e2.a; // Error
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/inferred_type.dart:38:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+//  - 'Object' is from 'dart:core'.
+//   int i = e3.a; // Error
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::Object? b;
+  final field core::Object? c;
+  field core::int d;
+  field core::int e;
+  field core::int f;
+  constructor •(core::Object? a, core::Object? b, final core::Object? c) → self::C1
+    : self::C1::d = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:6:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int d = a; // Error
+          ^" in a as{TypeError} core::int, self::C1::e = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:7:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int e = b; // Error
+          ^" in b as{TypeError} core::int, self::C1::f = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:8:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int f = c; // Error
+          ^" in c as{TypeError} core::int, self::C1::b = b, self::C1::c = c, super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  field core::Object? b;
+  final field core::Object? c;
+  field core::int d;
+  field core::int e;
+  field core::int f;
+  constructor •([has-declared-initializer core::Object? a = #C1, has-declared-initializer core::Object? b = #C1, final has-declared-initializer core::Object? c = #C1]) → self::C2
+    : self::C2::d = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:12:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int d = a; // Error
+          ^" in a as{TypeError} core::int, self::C2::e = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:13:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int e = b; // Error
+          ^" in b as{TypeError} core::int, self::C2::f = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:14:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int f = c; // Error
+          ^" in c as{TypeError} core::int, self::C2::b = b, self::C2::c = c, super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  field core::Object? b;
+  final field core::Object? c;
+  field core::int d;
+  field core::int e;
+  field core::int f;
+  constructor •({has-declared-initializer core::Object? a = #C1, has-declared-initializer core::Object? b = #C1, final has-declared-initializer core::Object? c = #C1}) → self::C3
+    : self::C3::d = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:18:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int d = a; // Error
+          ^" in a as{TypeError} core::int, self::C3::e = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:19:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int e = b; // Error
+          ^" in b as{TypeError} core::int, self::C3::f = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:20:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int f = c; // Error
+          ^" in c as{TypeError} core::int, self::C3::b = b, self::C3::c = c, super core::Object::•()
+    ;
+}
+extension type ET1(dynamic a) {
+  abstract extension-type-member representation-field get a() → core::Object?;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(dynamic a) {
+  abstract extension-type-member representation-field get a() → core::Object?;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(dynamic a) {
+  abstract extension-type-member representation-field get a() → core::Object?;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::Object? a) → self::ET1% /* erasure=dynamic, declared=! */ {
+  lowered final self::ET1% /* erasure=dynamic, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::Object? a) → self::ET1% /* erasure=dynamic, declared=! */
+  return self::ET1|constructor#(a);
+static extension-type-member method ET2|constructor#([has-declared-initializer core::Object? a = #C1]) → self::ET2% /* erasure=dynamic, declared=! */ {
+  lowered final self::ET2% /* erasure=dynamic, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff([has-declared-initializer core::Object? a = #C1]) → self::ET2% /* erasure=dynamic, declared=! */
+  return self::ET2|constructor#(a);
+static extension-type-member method ET3|constructor#({has-declared-initializer core::Object? a = #C1}) → self::ET3% /* erasure=dynamic, declared=! */ {
+  lowered final self::ET3% /* erasure=dynamic, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff({has-declared-initializer core::Object? a = #C1}) → self::ET3% /* erasure=dynamic, declared=! */
+  return self::ET3|constructor#(a: a);
+static method test(self::C1 c1, self::C2 c2, self::C3 c3, self::ET1% /* erasure=dynamic, declared=! */ e1, self::ET2% /* erasure=dynamic, declared=! */ e2, self::ET3% /* erasure=dynamic, declared=! */ e3) → dynamic {
+  core::int a = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:30:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int a = c1.b; // Error
+             ^" in c1.{self::C1::b}{core::Object?} as{TypeError} core::int;
+  core::int b = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:31:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int b = c1.c; // Error
+             ^" in c1.{self::C1::c}{core::Object?} as{TypeError} core::int;
+  core::int c = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:32:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int c = c2.b; // Error
+             ^" in c2.{self::C2::b}{core::Object?} as{TypeError} core::int;
+  core::int d = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:33:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int d = c2.c; // Error
+             ^" in c2.{self::C2::c}{core::Object?} as{TypeError} core::int;
+  core::int e = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:34:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int e = c3.b; // Error
+             ^" in c3.{self::C3::b}{core::Object?} as{TypeError} core::int;
+  core::int f = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:35:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int f = c3.c; // Error
+             ^" in c3.{self::C3::c}{core::Object?} as{TypeError} core::int;
+  core::int g = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:36:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int g = e1.a; // Error
+             ^" in (e1 as{Unchecked} core::Object?) as{TypeError} core::int;
+  core::int h = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:37:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int h = e2.a; // Error
+             ^" in (e2 as{Unchecked} core::Object?) as{TypeError} core::int;
+  core::int i = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:38:14: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+ - 'Object' is from 'dart:core'.
+  int i = e3.a; // Error
+             ^" in (e3 as{Unchecked} core::Object?) as{TypeError} core::int;
+}
+
+constants  {
+  #C1 = null
+}

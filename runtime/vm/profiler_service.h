@@ -62,7 +62,7 @@ class ProfileFunctionSourcePosition {
   DISALLOW_ALLOCATION();
 };
 
-class ProfileCodeInlinedFunctionsCache : public ZoneAllocated {
+class ProfileCodeInlinedFunctionsCache : public ZoneObject {
  public:
   ProfileCodeInlinedFunctionsCache() : cache_cursor_(0), last_hit_(0) {
     for (intptr_t i = 0; i < kCacheSize; i++) {
@@ -138,7 +138,7 @@ class ProfileCodeInlinedFunctionsCache : public ZoneAllocated {
 };
 
 // Profile data related to a |Function|.
-class ProfileFunction : public ZoneAllocated {
+class ProfileFunction : public ZoneObject {
  public:
   enum Kind {
     kDartFunction,     // Dart function.
@@ -234,7 +234,7 @@ class ProfileCodeAddress {
 };
 
 // Profile data related to a |Code|.
-class ProfileCode : public ZoneAllocated {
+class ProfileCode : public ZoneObject {
  public:
   enum Kind {
     kDartCode,       // Live Dart code.
@@ -329,7 +329,7 @@ class ProfileCode : public ZoneAllocated {
   friend class ProfileBuilder;
 };
 
-class ProfileCodeTable : public ZoneAllocated {
+class ProfileCodeTable : public ZoneObject {
  public:
   ProfileCodeTable() : table_(8) {}
 

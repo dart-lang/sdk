@@ -290,7 +290,7 @@ class CodeBreakpoint {
 
 // ActivationFrame represents one dart function activation frame
 // on the call stack.
-class ActivationFrame : public ZoneAllocated {
+class ActivationFrame : public ZoneObject {
  public:
   enum Kind {
     kRegular,
@@ -488,7 +488,7 @@ class ActivationFrame : public ZoneAllocated {
 };
 
 // Array of function activations on the call stack.
-class DebuggerStackTrace : public ZoneAllocated {
+class DebuggerStackTrace : public ZoneObject {
  public:
   explicit DebuggerStackTrace(int capacity)
       : thread_(Thread::Current()), zone_(thread_->zone()), trace_(capacity) {}

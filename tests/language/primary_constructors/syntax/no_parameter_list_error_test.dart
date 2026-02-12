@@ -7,9 +7,34 @@
 
 // SharedOptions=--enable-experiment=primary-constructors
 
-class C {
+class C1 {
   this : assert(1 != 2);
+  // [error column 3]
+  // [cfe] A primary constructor body requires a primary constructor declaration.
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+}
+
+class C2() {
+  this;
+
+  this : assert(1 != 2);
+  // [error column 3]
+  // [cfe] Only one primary constructor body declaration is allowed.
+  // ^
+  // [analyzer] unspecified
+}
+
+class C3 {
+  this;
+  // [error column 3]
+  // [cfe] A primary constructor body requires a primary constructor declaration.
+  // ^
+  // [analyzer] unspecified
+
+  this : assert(1 != 2);
+  // [error column 3]
+  // [cfe] Only one primary constructor body declaration is allowed.
+  // ^
+  // [analyzer] unspecified
 }

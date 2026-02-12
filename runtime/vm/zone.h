@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_ZONE_H_
 #define RUNTIME_VM_ZONE_H_
 
+#include <utility>
+
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/handles.h"
@@ -19,6 +21,15 @@ namespace dart {
 
 class Zone {
  public:
+  // Allocates memory for T instance and constructs object by calling respective
+  // Args... constructor.
+  template <typename T, typename... Args>
+  T* New(Args&&... args) {
+    static_assert(alignof(T) <= kAlignment);
+    void* memory = reinterpret_cast<void*>(AllocUnsafe(sizeof(T)));
+    return new (memory) T(std::forward<Args>(args)...);
+  }
+
   // Allocate an array sized to hold 'len' elements of type
   // 'ElementType'.  Checks for integer overflow when performing the
   // size computation.

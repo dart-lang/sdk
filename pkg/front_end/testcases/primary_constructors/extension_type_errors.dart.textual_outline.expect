@@ -1,0 +1,29 @@
+extension type ET0(var a);
+
+extension type ET1(var bool a);
+
+extension type ET2(final int a, int b);
+
+extension type ET3(final int a, [bool? b]);
+
+extension type ET4([final int it = 42, bool? b]);
+
+extension type ET5(final int? a, {bool? b});
+
+extension type ET6({final int? a, bool? b});
+
+extension type ET7({final int a = 42, bool b = true});
+
+extension type ET8({required final int a, required int b});
+
+extension type ET9(covariant int a);
+
+extension type ET10(late int a);
+
+extension type ET11(external int a);
+
+extension type ET12(const int a);
+
+extension type ET13(required int a);
+
+extension type ET14();

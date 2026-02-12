@@ -1,0 +1,27 @@
+library #lib;
+import self as self;
+import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
+
+import "package:meta/meta.dart" show RecordUse;
+
+@#C1
+class MyClass extends core::Object /*hasConstConstructor*/  {
+
+  [@vm.inferred-type.metadata=#lib::A (value: const #lib::A{})]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  final field self::A a;
+}
+class A extends core::Object /*hasConstConstructor*/  {
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print(#C3);
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = self::A {}
+  #C3 = self::MyClass {a:#C2}
+}

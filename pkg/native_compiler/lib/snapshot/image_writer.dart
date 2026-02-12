@@ -5,7 +5,7 @@
 import 'dart:typed_data';
 
 abstract base class ImageWriter {
-  int addInstructions(Uint8List instructions);
+  int addInstructions(String symbol, Uint8List instructions);
   int addReadOnlyData(List<Uint8List> data, int length);
   void writeTo(Sink<List<int>> out);
 }

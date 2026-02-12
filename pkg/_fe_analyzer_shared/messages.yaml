@@ -10,19 +10,19 @@
 experimentNotEnabled:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "This requires the '#string' language feature to be enabled."
-  correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
+    String featureName: The name of of the language feature.
+    String enabledVersion: The language version in which the language feature was enabled.
+  problemMessage: "This requires the '#featureName' language feature to be enabled."
+  correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #enabledVersion or higher, and running 'pub get'."
   analyzerCode: experimentNotEnabled
   hasPublishedDocs: false
 
 experimentNotEnabledOffByDefault:
   type: syntacticError
   parameters:
-    String string: undocumented
-  problemMessage: "This requires the experimental '#string' language feature to be enabled."
-  correctionMessage: "Try passing the '--enable-experiment=#string' command line option."
+    String featureName: The name of the language feature.
+  problemMessage: "This requires the experimental '#featureName' language feature to be enabled."
+  correctionMessage: "Try passing the '--enable-experiment=#featureName' command line option."
   analyzerCode: experimentNotEnabledOffByDefault
   hasPublishedDocs: false
   script: |
@@ -529,6 +529,17 @@ varAsTypeName:
   script:
     - "class A { Map<String, var> m; }"
   exampleAllowOtherCodes: true
+
+anonymousMethodWrongParameterList:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An anonymous method with a parameter list must have exactly one required, positional parameter."
+  correctionMessage: "Try removing the parameter list, or changing it to have exactly one required positional parameter."
+  analyzerCode: anonymousMethodWrongParameterList
+  hasPublishedDocs: false
+  experiments: anonymous-methods
+  statement:
+    - "1.(a, b){};"
 
 missingExpressionInThrow:
   type: syntacticError
@@ -1247,9 +1258,9 @@ literalWithClassAndNew:
 literalWithClass:
   type: syntacticError
   parameters:
-    String string: undocumented
-    Token lexeme: undocumented
-  problemMessage: "A #string literal can't be prefixed by '#lexeme'."
+    String kind: The literal kind.
+    Token lexeme: The lexeme between `new` and the literal.
+  problemMessage: "A #kind literal can't be prefixed by '#lexeme'."
   correctionMessage: "Try removing '#lexeme'"
   analyzerCode: literalWithClass
   hasPublishedDocs: false
@@ -1856,8 +1867,8 @@ topLevelOperator:
 typeArgumentsOnTypeVariable:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't use type arguments with type variable '#name'."
+    Name typeVariableName: The name of the type variable.
+  problemMessage: "Can't use type arguments with type variable '#typeVariableName'."
   correctionMessage: "Try removing the type arguments."
   analyzerCode: typeArgumentsOnTypeVariable
   hasPublishedDocs: false
@@ -2016,10 +2027,10 @@ colonInPlaceOfIn:
 binaryOperatorWrittenOut:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Binary operator '#string' is written as '#string2' instead of the written out word."
-  correctionMessage: "Try replacing '#string' with '#string2'."
+    String actualOperator: The binary operator that was seen.
+    String expectedOperator: The binary operator that was expected.
+  problemMessage: "Binary operator '#actualOperator' is written as '#expectedOperator' instead of the written out word."
+  correctionMessage: "Try replacing '#actualOperator' with '#expectedOperator'."
   analyzerCode: binaryOperatorWrittenOut
   hasPublishedDocs: false
   script: |
@@ -2166,8 +2177,8 @@ invalidConstantPatternNegation:
 invalidConstantPatternUnary:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "The unary operator #name is not supported as a constant pattern."
+    Name operatorName: The name of the unsupported operator.
+  problemMessage: "The unary operator #operatorName is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
   analyzerCode: invalidConstantPatternUnary
   hasPublishedDocs: false
@@ -2227,8 +2238,8 @@ invalidConstantPatternConstPrefix:
 invalidConstantPatternBinary:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "The binary operator #name is not supported as a constant pattern."
+    Name operatorName: The name of the unsupported operator.
+  problemMessage: "The binary operator #operatorName is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
   analyzerCode: invalidConstantPatternBinary
   hasPublishedDocs: false
@@ -2240,8 +2251,8 @@ invalidConstantPatternBinary:
 patternAssignmentDeclaresVariable:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "Variable '#name' can't be declared in a pattern assignment."
+    Name variableName: The name of the variable that was erroneously declared.
+  problemMessage: "Variable '#variableName' can't be declared in a pattern assignment."
   correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
   analyzerCode: patternAssignmentDeclaresVariable
   hasPublishedDocs: false
@@ -2296,8 +2307,8 @@ variablePatternKeywordInDeclarationContext:
 illegalPatternVariableName:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
-  problemMessage: The variable declared by a variable pattern can't be named '#lexeme'.
+    Token variableName: The name that can't be used as a pattern variable name.
+  problemMessage: The variable declared by a variable pattern can't be named '#variableName'.
   correctionMessage: Choose a different name.
   analyzerCode: illegalPatternVariableName
   hasPublishedDocs: false
@@ -2314,8 +2325,8 @@ illegalPatternVariableName:
 illegalPatternAssignmentVariableName:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
-  problemMessage: A variable assigned by a pattern assignment can't be named '#lexeme'.
+    Token variableName: The name that can't be used as the name of a variable assigned by a pattern assignment.
+  problemMessage: A variable assigned by a pattern assignment can't be named '#variableName'.
   correctionMessage: Choose a different name.
   analyzerCode: illegalPatternAssignmentVariableName
   hasPublishedDocs: false
@@ -2331,9 +2342,9 @@ illegalPatternAssignmentVariableName:
 illegalPatternIdentifierName:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
-  problemMessage: A pattern can't refer to an identifier named '#lexeme'.
-  correctionMessage: Match the identifier using '== #lexeme'.
+    Token identifier: The identifier that can't be referred to.
+  problemMessage: A pattern can't refer to an identifier named '#identifier'.
+  correctionMessage: Match the identifier using '== #identifier'.
   analyzerCode: illegalPatternIdentifierName
   hasPublishedDocs: false
   comment: |-
@@ -2490,3 +2501,57 @@ factoryConstructorNewName:
     class C {
       factory new() => throw '';
     }
+
+newConstructorDotName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors declared with the 'new' keyword can't use '.' before the constructor name."
+  correctionMessage: "Try replacing the '.' with a space."
+  analyzerCode: newConstructorDotName
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C {
+      new.name();
+    }
+
+nonRedirectingGenerativeConstructorWithPrimary:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Classes with primary constructors can't have non-redirecting generative constructors."
+  correctionMessage: "Try making the constructor redirect to the primary constructor, or remove the primary constructor."
+  analyzerCode: nonRedirectingGenerativeConstructorWithPrimary
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C() {
+      C.named();
+    }
+
+primaryConstructorBodyWithoutDeclaration:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "A primary constructor body requires a primary constructor declaration."
+  correctionMessage: "Try adding the primary constructor declaration."
+  analyzerCode: primaryConstructorBodyWithoutDeclaration
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C {
+      this;
+    }
+
+multiplePrimaryConstructorBodyDeclarations:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Only one primary constructor body declaration is allowed."
+  correctionMessage: "Try removing all but one of the primary constructor body declarations."
+  analyzerCode: multiplePrimaryConstructorBodyDeclarations
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C() {
+      this;
+      this : assert(true);
+    }
+    

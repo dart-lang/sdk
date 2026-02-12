@@ -60,7 +60,7 @@ class BothNativeLocations;
 //
 // NativeLocation does not satisfy the invariant of Location: bitwise
 // inequality cannot be used to determine disjointness.
-class NativeLocation : public ZoneAllocated {
+class NativeLocation : public ZoneObject {
  public:
 #if !defined(FFI_UNIT_TESTS)
   static bool LocationCanBeExpressed(Location loc, Representation rep);

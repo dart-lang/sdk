@@ -1558,7 +1558,9 @@ class KernelTarget {
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.libraryBuilder.addProblem(
-          diag.constConstructorNonFinalField,
+          classDeclaration.isEnum
+              ? diag.enumConstructorNonFinalField
+              : diag.constConstructorNonFinalField,
           constructor.fileOffset,
           noLength,
           constructor.fileUri,
@@ -1617,6 +1619,25 @@ class KernelTarget {
             field.takePrimaryConstructorFieldInitializer(),
           );
         }
+        if (classDeclaration is SourceClassBuilder) {
+          Iterator<SourceConstructorBuilder> otherConstructorIterator =
+              classDeclaration.filteredConstructorsIterator(
+                includeDuplicates: false,
+              );
+          while (otherConstructorIterator.moveNext()) {
+            SourceConstructorBuilder otherConstructor =
+                otherConstructorIterator.current;
+            if (constructor != otherConstructor &&
+                !otherConstructor.isEffectivelyRedirecting) {
+              classDeclaration.libraryBuilder.addProblem(
+                diag.nonRedirectingGenerativeConstructorWithPrimary,
+                otherConstructor.fileOffset,
+                noLength,
+                otherConstructor.fileUri,
+              );
+            }
+          }
+        }
       }
     }
 
@@ -1651,9 +1672,9 @@ class KernelTarget {
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-              diag.fieldNonNullableWithoutInitializerError.withArgumentsOld(
-                fieldBuilder.name,
-                fieldBuilder.fieldType,
+              diag.fieldNonNullableWithoutInitializerError.withArguments(
+                fieldName: fieldBuilder.name,
+                fieldType: fieldBuilder.fieldType,
               ),
               fieldBuilder.fileOffset,
               fieldBuilder.name.length,
@@ -1707,7 +1728,10 @@ class KernelTarget {
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
               diag.fieldNonNullableNotInitializedByConstructorError
-                  .withArgumentsOld(fieldBuilder.name, fieldBuilder.fieldType),
+                  .withArguments(
+                    fieldName: fieldBuilder.name,
+                    fieldType: fieldBuilder.fieldType,
+                  ),
               constructorBuilder.fileOffset,
               noLength,
               constructorBuilder.fileUri,

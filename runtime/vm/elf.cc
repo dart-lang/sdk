@@ -85,7 +85,7 @@ class ElfStringTable;
 // Align note sections and segments to 4 byte boundaries.
 static constexpr intptr_t kNoteAlignment = 4;
 
-class ElfSection : public ZoneAllocated {
+class ElfSection : public ZoneObject {
  public:
   ElfSection(elf::SectionHeaderType t,
              bool allocate,
@@ -238,7 +238,7 @@ class ElfSection : public ZoneAllocated {
 #undef DEFINE_LINEAR_FIELD
 #undef DEFINE_LINEAR_FIELD_METHODS
 
-class Segment : public ZoneAllocated {
+class Segment : public ZoneObject {
  public:
   Segment(Zone* zone,
           ElfSection* initial_section,
@@ -721,7 +721,7 @@ class DynamicTable : public ElfSection {
   }
 
  private:
-  struct Entry : public ZoneAllocated {
+  struct Entry : public ZoneObject {
     Entry(elf::DynamicEntryType tag, intptr_t value) : tag(tag), value(value) {}
 
     void Write(ElfWriteStream* stream) const {

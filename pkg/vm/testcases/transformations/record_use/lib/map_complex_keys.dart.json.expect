@@ -1,0 +1,55 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 1
+    },
+    {
+      "type": "string",
+      "value": "int-key"
+    },
+    {
+      "type": "bool",
+      "value": true
+    },
+    {
+      "type": "string",
+      "value": "bool-key"
+    },
+    {
+      "type": "map",
+      "value": [
+        {
+          "key": 0,
+          "value": 1
+        },
+        {
+          "key": 2,
+          "value": 3
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.4.0"
+  },
+  "recordings": [
+    {
+      "calls": [
+        {
+          "loading_unit": "1",
+          "positional": [
+            4
+          ],
+          "type": "with_arguments"
+        }
+      ],
+      "identifier": {
+        "name": "someStaticMethod",
+        "scope": "SomeClass",
+        "uri": "package:record_use_test/map_complex_keys.dart"
+      }
+    }
+  ]
+}

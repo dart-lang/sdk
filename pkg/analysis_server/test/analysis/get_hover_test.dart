@@ -1955,6 +1955,27 @@ void f() {
     expect(hover.staticType, 'int');
   }
 
+  Future<void> test_parameter_reference_privateNamed() async {
+    newFile(testFilePath, '''
+class A {
+  /// The field documentation.
+  final int _fff;
+  A({this._fff});
+}
+void f() {
+  new A(fff: 42);
+}
+''');
+    var hover = await prepareHover('fff: 42');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, 'The field documentation.');
+    expect(hover.elementDescription, '{int fff}');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int');
+  }
+
   Future<void> test_parameter_reference_recordType() async {
     newFile(testFilePath, '''
 void f((int, String) r) {

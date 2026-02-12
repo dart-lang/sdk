@@ -13,7 +13,7 @@ static method foo(positional-parameter functions) → dynamic/* scope=[
 ] */ {
   a := 0;
   /* scope=[
-    #ctx3: captured VariableContext([
+    #ctx3: direct-captured VariableContext([
       local-variable b;
       local-variable c;
     ]),
@@ -28,7 +28,7 @@ static method foo(positional-parameter functions) → dynamic/* scope=[
       ] */ {
         d := 0;
         /* scope=[
-          #ctx5: captured VariableContext([
+          #ctx5: direct-captured VariableContext([
             local-variable e;
             local-variable f;
           ]),
@@ -71,7 +71,7 @@ static method bar(positional-parameter functions) → dynamic/* scope=[
         local-variable i;
       ]),
     ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})/* scope=[
-      #ctx11: captured VariableContext([
+      #ctx11: direct-captured VariableContext([
         local-variable c;
         local-variable d;
       ]),
@@ -87,7 +87,7 @@ static method bar(positional-parameter functions) → dynamic/* scope=[
         local-variable i;
       ]),
     ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})/* scope=[
-      #ctx13: captured VariableContext([
+      #ctx13: direct-captured VariableContext([
         local-variable c;
         local-variable d;
       ]),

@@ -730,7 +730,6 @@ class _EnumDescription {
         case PrimaryConstructorDeclaration primaryConstructor) {
       for (var parameter in primaryConstructor.formalParameters.parameters) {
         var element = parameter.declaredFragment?.element;
-        // ignore: experimental_member_use
         if (element is! FieldFormalParameterElement || !element.isDeclaring) {
           continue;
         }

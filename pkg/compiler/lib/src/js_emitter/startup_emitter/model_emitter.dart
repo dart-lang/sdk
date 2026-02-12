@@ -113,9 +113,7 @@ class ModelEmitter {
   final DiagnosticReporter _reporter;
   final api.CompilerOutput _outputProvider;
   final DumpInfoJsAstRegistry _dumpInfoRegistry;
-  late final RecordUseCollector _recordUseCollector = RecordUseCollector(
-    _closedWorld,
-  );
+  late final RecordUseCollector _recordUseCollector = RecordUseCollector();
   final Namer _namer;
   final CompilerTask _task;
   final Emitter _emitter;
@@ -777,9 +775,9 @@ var $startupMetricsGlobal =
         api.OutputType.recordedUses,
       )
       ..add(
-        JsonEncoder.withIndent('  ').convert(
-          _recordUseCollector.finish(_options.environment, outputUnitToName),
-        ),
+        JsonEncoder.withIndent(
+          '  ',
+        ).convert(_recordUseCollector.finish(_options.environment)),
       )
       ..close();
   }

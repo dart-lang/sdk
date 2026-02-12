@@ -4,8 +4,6 @@
 
 // Tests for the postfix null assert operator `!`.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import "package:expect/expect.dart";
 
 class C {

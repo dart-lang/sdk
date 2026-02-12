@@ -59,7 +59,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
@@ -229,10 +228,6 @@ abstract class ConstructorElement implements ExecutableElement {
   /// Whether the constructor is a const constructor.
   bool get isConst;
 
-  /// Whether this is a declaring constructor.
-  @experimental
-  bool get isDeclaring;
-
   /// Whether the constructor can be used as a default constructor - unnamed,
   /// and has no required parameters.
   bool get isDefaultConstructor;
@@ -264,8 +259,6 @@ abstract class ConstructorElement implements ExecutableElement {
   bool get isOriginMixinApplication;
 
   /// Whether this is a primary constructor.
-  /// When `true`, [isDeclaring] is also `true`.
-  @experimental
   bool get isPrimary;
 
   @Deprecated(
@@ -1254,7 +1247,6 @@ abstract class FieldElement implements PropertyInducingElement {
   FieldElement get baseElement;
 
   /// The declaring formal parameter, if created from one.
-  @experimental
   FieldFormalParameterElement? get declaringFormalParameter;
 
   @override
@@ -1317,7 +1309,6 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   List<FieldFormalParameterFragment> get fragments;
 
   /// Whether this is a declaring formal parameter.
-  @experimental
   bool get isDeclaring;
 
   /// If this field formal parameter is a named parameter with a private name,
@@ -1335,7 +1326,6 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   /// * Finding the corresponding instance variable.
   ///
   /// * Referring to the parameter in the constructor's doc comment.
-  @experimental
   String? get privateName;
 }
 
@@ -1357,7 +1347,6 @@ abstract class FieldFormalParameterFragment implements FormalParameterFragment {
   /// the original private name.
   ///
   /// In that case, [name] is the corresponding public name for the parameter.
-  @experimental
   String? get privateName;
 }
 
@@ -2395,6 +2384,9 @@ abstract class LibraryFragment implements Fragment {
   /// This includes all of the libraries that are imported using a prefix, and
   /// those that are imported without a prefix.
   List<LibraryElement> get importedLibraries;
+
+  /// Whether the library fragment is created from a file that does not exist.
+  bool get isOriginNotExistingFile;
 
   /// The libraries exported by this unit.
   List<LibraryExport> get libraryExports;

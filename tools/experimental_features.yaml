@@ -211,6 +211,7 @@ features:
         }
       }
     help: "Shorter dot syntax for static accesses."
+    expired: true
 
   native-assets:
     help: 'Compile and bundle native assets.'

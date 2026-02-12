@@ -1,6 +1,11 @@
-# 3.11.0-wip
+# 3.12.0-wip
 
+# 3.11.0
+
+- new lint: `simplify_variable_pattern`
+- deprecated lint: `avoid_null_checks_in_equality_operators`
 - deprecated lint: `prefer_final_parameters`
+- deprecated lint: `use_if_null_to_convert_nulls_to_bools`
 
 # 3.10.0
 

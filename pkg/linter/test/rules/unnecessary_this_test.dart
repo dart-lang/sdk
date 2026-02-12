@@ -62,6 +62,31 @@ class A {
     );
   }
 
+  test_constructorBody_primary_assignment() async {
+    await assertDiagnostics(
+      r'''
+class A.named(num a) {
+  num x = 0;
+  this {
+    this.x = a;
+  }
+}
+''',
+      [lint(49, 4)],
+    );
+  }
+
+  test_constructorBody_primary_shadowedParameters() async {
+    await assertNoDiagnostics(r'''
+class A(num x) {
+  num x = 0;
+  this {
+    this.x = x;
+  }
+}
+''');
+  }
+
   test_constructorBody_shadowedParameters() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -83,6 +108,18 @@ class A {
 }
 ''',
       [lint(45, 4)],
+    );
+  }
+
+  test_constructorInitializer_primary() async {
+    await assertDiagnostics(
+      r'''
+class A(num x) {
+  num x;
+  this : this.x = x;
+}
+''',
+      [lint(35, 4)],
     );
   }
 

@@ -1,0 +1,35 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 14
+    },
+    {
+      "type": "instance",
+      "value": {
+        "i": 0
+      }
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.4.0"
+  },
+  "recordings": [
+    {
+      "calls": [
+        {
+          "loading_unit": "1",
+          "positional": [
+            1
+          ],
+          "type": "with_arguments"
+        }
+      ],
+      "identifier": {
+        "name": "someStaticMethod2",
+        "uri": "package:record_use_test/const_argument_instance.dart"
+      }
+    }
+  ]
+}

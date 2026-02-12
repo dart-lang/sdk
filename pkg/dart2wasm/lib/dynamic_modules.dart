@@ -915,8 +915,21 @@ class DynamicModuleInfo {
         final table = translator.dispatchTable.getWasmTable(ib.moduleBuilder);
         ib.call_indirect(localSignature, table);
       }
-      translator.convertType(ib, localSignature.outputs.single,
-          generalizedMainSignature.outputs.single);
+      // Convert the output to the generalized signature type. Not all calls
+      // have an output. For example, setters where the implied output is never
+      // used.
+      if (localSignature.outputs.isNotEmpty &&
+          generalizedMainSignature.outputs.isNotEmpty) {
+        translator.convertType(ib, localSignature.outputs.single,
+            generalizedMainSignature.outputs.single);
+      } else if (localSignature.outputs.isNotEmpty) {
+        // This can happen when the shared signature from the main module is
+        // different from the local signature in the dynamic module. For
+        // example, one may use setter return values while the other doesn't.
+        ib.drop();
+      } else {
+        assert(generalizedMainSignature.outputs.isEmpty);
+      }
       ib.end();
     };
   }
@@ -924,7 +937,9 @@ class DynamicModuleInfo {
   void callOverridableDispatch(
       w.InstructionsBuilder b, SelectorInfo selector, Reference interfaceTarget,
       {required bool useUncheckedEntry}) {
-    metadata.invokedOverridableReferences.add(interfaceTarget);
+    if (!isSubmodule) {
+      metadata.invokedOverridableReferences.add(interfaceTarget);
+    }
 
     final localSignature = selector.signature;
     // If any input is not a RefType (i.e. it's an unboxed value) then wrap it
@@ -951,6 +966,21 @@ class DynamicModuleInfo {
     b.i32_const(useUncheckedEntry ? 1 : 0);
     b.local_get(idLocal);
 
+    final targetMember = interfaceTarget.asMember;
+    final enclosingClass = targetMember.enclosingClass!;
+    if (enclosingClass.isEliminatedMixin) {
+      // Eliminated mixins will have copies of all the members in the mixed in
+      // class. But the main module will not have known about these copies. So
+      // instead we use a reference to the implementation on the mixed in class
+      // itself. It is an invariant that this is the last type in the
+      // implementedTypes list.
+      final mixedInClass = enclosingClass.implementedTypes.last.classNode;
+      interfaceTarget = translator.hierarchy
+          .getDispatchTarget(mixedInClass, targetMember.name,
+              setter: selector.isSetter)!
+          .reference;
+    }
+
     final mainDispatchTable =
         translator.dynamicMainModuleDispatchTable ?? translator.dispatchTable;
     final mainModuleSelector =
@@ -968,8 +998,20 @@ class DynamicModuleInfo {
             buildSelectorBranch(interfaceTarget, mainModuleSelector),
         skipSubmodule:
             selector.targets(unchecked: false).allTargetRanges.isEmpty);
-    translator.convertType(
-        b, generalizedSignature.outputs.single, localSignature.outputs.single);
+    // Convert the output to the local signature type. Not all calls have
+    // an output. For example, setters where the implied output is never used.
+    if (generalizedSignature.outputs.isNotEmpty &&
+        localSignature.outputs.isNotEmpty) {
+      translator.convertType(b, generalizedSignature.outputs.single,
+          localSignature.outputs.single);
+    } else if (generalizedSignature.outputs.isNotEmpty) {
+      // This can happen when the shared signature from the main module is
+      // different from the local signature in the dynamic module. For example,
+      // one may use setter return values while the other doesn't.
+      b.drop();
+    } else {
+      assert(localSignature.outputs.isEmpty);
+    }
   }
 }
 

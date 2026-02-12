@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' show Directory, File, Platform;
+import 'dart:io' show Directory, File;
 
-import 'package:compiler/compiler_api.dart' as api show OutputType;
-import 'package:compiler/compiler_api.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:expect/expect.dart' show Expect;
@@ -23,37 +22,82 @@ const List<String> compilerOptions = [Flags.writeRecordedUses, Flags.testMode];
 /// Run `dart -DupdateExpectations=true pkg/vm/test/transformations/record_use_test.dart`
 /// to update the shared expectations to the VM output.
 Future<void> main() async {
-  final vmTestCases = Directory('pkg/vm/testcases/transformations/record_use');
-  final jsTestCases = Directory.fromUri(Platform.script.resolve('data'));
-  final testFiles = [...jsTestCases.listSync(), ...vmTestCases.listSync()]
-      .whereType<File>()
-      .where((file) => file.path.endsWith('.dart'))
-      .map(
-        (file) => TestFile(
-          file: file,
-          basename: path.basename(file.path),
-          contents: file.readAsStringSync(),
-          uri: _createUri(path.basename(file.path)),
-        ),
-      );
+  final vmFiles = _getTestFiles(
+    'pkg/vm/testcases/transformations/record_use/lib',
+    'record_use_test',
+  );
+  final jsFiles = _getTestFiles(
+    'pkg/compiler/test/record_use/data/lib',
+    'record_use_js_test',
+  );
 
-  final allFiles = {for (final file in testFiles) file.uri.path: file.contents};
+  final testFiles = [...vmFiles, ...jsFiles];
+
+  final allFiles = {
+    for (final file in vmFiles)
+      '/record_use_test/lib/${file.basename}': file.contents,
+    for (final file in jsFiles)
+      '/record_use_js_test/lib/${file.basename}': file.contents,
+    '/.dart_tool/package_config.json': jsonEncode({
+      "configVersion": 2,
+      "packages": [
+        {
+          "name": "record_use_test",
+          "rootUri": "/record_use_test/",
+          "packageUri": "lib/",
+          "languageVersion": "3.9",
+        },
+        {
+          "name": "record_use_js_test",
+          "rootUri": "/record_use_js_test/",
+          "packageUri": "lib/",
+          "languageVersion": "3.9",
+        },
+        {
+          "name": "meta",
+          "rootUri": Directory.current.uri.resolve('pkg/meta/').toString(),
+          "packageUri": "lib/",
+          "languageVersion": "3.9",
+        },
+      ],
+    }),
+  };
   for (final testFile in testFiles.where((element) => element.hasMain)) {
+    final bool isThrowsTest = testFile.basename.contains('throws');
     test(
       '${testFile.file.path}',
       skip: dart2jsNotSupported.contains(testFile.basename),
       () async {
+        final diagnosticCollector = DiagnosticCollector();
         final recordedUsages = await compileWithUsages(
           entryPoint: testFile.uri,
           memorySourceFiles: allFiles,
+          diagnosticHandler: diagnosticCollector,
+          expectSuccess: !isThrowsTest,
         );
+
+        if (isThrowsTest) {
+          Expect.isTrue(recordedUsages == null);
+          final errors = diagnosticCollector.errors
+              .map((e) => e.text)
+              .join('\n');
+          if (testFile.basename.contains('invalid_location')) {
+            Expect.contains('RecordUse', errors);
+            Expect.contains(
+              'annotation cannot be placed on this element',
+              errors,
+            );
+          }
+          return;
+        }
+
         final goldenFile = File(testFile.file.path + '.json.expect');
         const update = bool.fromEnvironment('updateExpectations');
         if (!goldenFile.existsSync() || update) {
           await goldenFile.create();
-          await goldenFile.writeAsString(recordedUsages);
+          await goldenFile.writeAsString(recordedUsages!);
         } else {
-          final actual = Recordings.fromJson(jsonDecode(recordedUsages));
+          final actual = Recordings.fromJson(jsonDecode(recordedUsages!));
           final goldenContents = await goldenFile.readAsString();
           final golden = Recordings.fromJson(jsonDecode(goldenContents));
           final semanticEquals = actual.semanticEquals(
@@ -62,9 +106,7 @@ Future<void> main() async {
             allowMoreConstArguments: true,
             // Ensure test coverage of tear offs, add pragmas to prevent
             // optimiations if necessary.
-            allowTearOffToStaticPromotion: false,
-            uriMapping: (String uri) =>
-                uri.replaceFirst('memory:sdk/tests/web/native/', ''),
+            allowTearoffToStaticPromotion: false,
             loadingUnitMapping: (String unit) =>
                 const <String, String>{'out': '1', 'out_1': '2'}[unit] ?? unit,
           );
@@ -80,6 +122,49 @@ Future<void> main() async {
       },
     );
   }
+
+  test('outside_package_throws', () async {
+    final entryPoint = Uri.parse('memory:/outside.dart');
+    final memorySourceFiles = {
+      ...allFiles,
+      '/outside.dart': '''
+import 'package:meta/meta.dart' show RecordUse;
+class SomeClass {
+  @RecordUse()
+  static String someStaticMethod(int a) => a.toString();
+}
+void main() {
+  print(SomeClass.someStaticMethod(42));
+}
+''',
+    };
+    final diagnosticCollector = DiagnosticCollector();
+    await compileWithUsages(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      diagnosticHandler: diagnosticCollector,
+      expectSuccess: false,
+    );
+    final errors = diagnosticCollector.errors.map((e) => e.text).join('\n');
+    Expect.contains('RecordUse', errors);
+    Expect.contains('package:', errors);
+  });
+}
+
+Iterable<TestFile> _getTestFiles(String dirPath, String packageName) {
+  return Directory(dirPath)
+      .listSync()
+      .whereType<File>()
+      .where((file) => file.path.endsWith('.dart'))
+      .map(
+        (file) => TestFile(
+          file: file,
+          basename: path.basename(file.path),
+          contents: file.readAsStringSync(),
+          uri: Uri.parse('package:$packageName/${path.basename(file.path)}'),
+          packageName: packageName,
+        ),
+      );
 }
 
 class TestFile {
@@ -87,12 +172,14 @@ class TestFile {
   final String basename;
   final String contents;
   final Uri uri;
+  final String packageName;
 
   const TestFile({
     required this.file,
     required this.basename,
     required this.contents,
     required this.uri,
+    required this.packageName,
   });
 
   bool get hasMain => contents.contains('main()');
@@ -100,28 +187,33 @@ class TestFile {
 
 typedef CompiledOutput = Map<api.OutputType, Map<String, String>>;
 
-Future<String> compileWithUsages({
+Future<String?> compileWithUsages({
   Uri? entryPoint,
   required Map<String, dynamic> memorySourceFiles,
+  api.CompilerDiagnostics? diagnosticHandler,
+  bool expectSuccess = true,
 }) async {
   final outputProvider = OutputCollector();
 
-  CompilationResult result = await runCompiler(
+  api.CompilationResult result = await runCompiler(
     entryPoint: entryPoint,
     memorySourceFiles: memorySourceFiles,
     outputProvider: outputProvider,
+    diagnosticHandler: diagnosticHandler,
     options: [Flags.writeRecordedUses],
+    packageConfig: Uri.parse('memory:/.dart_tool/package_config.json'),
   );
-  Expect.isTrue(result.isSuccess);
+  if (expectSuccess) {
+    Expect.isTrue(result.isSuccess);
+  } else {
+    if (result.isSuccess) {
+      throw 'Compilation succeeded but was expected to fail.';
+    }
+    return null;
+  }
 
-  return outputProvider.outputMap[OutputType.recordedUses]!.values.first
+  return outputProvider.outputMap[api.OutputType.recordedUses]!.values.first
       .toString();
-}
-
-// Pretend this is a dart2js_native test to allow use of 'native' keyword
-// and import of private libraries.
-Uri _createUri(String fileName) {
-  return Uri.parse('memory:sdk/tests/web/native/$fileName');
 }
 
 const dart2jsNotSupported = {
@@ -132,7 +224,9 @@ const dart2jsNotSupported = {
   'instance_duplicates.dart',
   'instance_method.dart',
   'instance_not_annotation.dart',
+  'nested_instance_constant.dart',
   'nested.dart',
   'record_enum.dart',
   'record_instance_constant_empty.dart',
+  'unsupported_instance.dart',
 };

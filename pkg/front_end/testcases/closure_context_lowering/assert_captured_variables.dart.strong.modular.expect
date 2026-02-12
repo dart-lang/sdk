@@ -10,7 +10,7 @@ static method notCaptured(positional-parameter aNotCaptured) → dynamic/* scope
   return;
 }
 static method directCaptured(positional-parameter aCaptured) → dynamic/* scope=[
-  #ctx2: captured VariableContext([
+  #ctx2: direct-captured VariableContext([
     positional-parameter aCaptured;
   ]),
 ] */ {
@@ -34,7 +34,7 @@ static method assertCaptured2(positional-parameter aAssertCaptured2) → dynamic
   };
 }
 static method directOverridingAssertCaptured1(positional-parameter aDirectOverridingAssertCaptured1) → dynamic/* scope=[
-  #ctx5: captured VariableContext([
+  #ctx5: direct-captured VariableContext([
     positional-parameter aDirectOverridingAssertCaptured1;
   ]),
 ] */ {
@@ -42,7 +42,7 @@ static method directOverridingAssertCaptured1(positional-parameter aDirectOverri
   return () /* #ctx5 */ → core::int => aDirectOverridingAssertCaptured1;
 }
 static method directOverridingAssertCaptured2(positional-parameter aDirectOverridingAssertCaptured2) → dynamic/* scope=[
-  #ctx6: captured VariableContext([
+  #ctx6: direct-captured VariableContext([
     positional-parameter aDirectOverridingAssertCaptured2;
   ]),
 ] */ {
@@ -52,7 +52,7 @@ static method directOverridingAssertCaptured2(positional-parameter aDirectOverri
   };
 }
 static method directOverridingAssertCaptured3(positional-parameter aDirectOverridingAssertCaptured3) → dynamic/* scope=[
-  #ctx7: captured VariableContext([
+  #ctx7: direct-captured VariableContext([
     positional-parameter aDirectOverridingAssertCaptured3;
   ]),
 ] */ {

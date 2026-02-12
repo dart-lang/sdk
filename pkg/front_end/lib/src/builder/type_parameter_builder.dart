@@ -273,7 +273,7 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri? fileUri = null; // TODO(ahe): Provide these.
       library.addProblem(
-        diag.typeArgumentsOnTypeVariable.withArgumentsOld(name),
+        diag.typeArgumentsOnTypeVariable.withArguments(typeVariableName: name),
         charOffset,
         name.length,
         fileUri,
@@ -296,7 +296,7 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
     if (arguments != null) {
       // Coverage-ignore-block(suite): Not run.
       library.addProblem(
-        diag.typeArgumentsOnTypeVariable.withArgumentsOld(name),
+        diag.typeArgumentsOnTypeVariable.withArguments(typeVariableName: name),
         charOffset,
         name.length,
         fileUri,
@@ -555,7 +555,7 @@ abstract class StructuralParameterBuilder extends TypeParameterBuilder {
     if (arguments != null) {
       // Coverage-ignore-block(suite): Not run.
       library.addProblem(
-        diag.typeArgumentsOnTypeVariable.withArgumentsOld(name),
+        diag.typeArgumentsOnTypeVariable.withArguments(typeVariableName: name),
         charOffset,
         name.length,
         fileUri,
@@ -597,7 +597,7 @@ abstract class StructuralParameterBuilder extends TypeParameterBuilder {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri? fileUri = null; // TODO(ahe): Provide these.
       library.addProblem(
-        diag.typeArgumentsOnTypeVariable.withArgumentsOld(name),
+        diag.typeArgumentsOnTypeVariable.withArguments(typeVariableName: name),
         charOffset,
         name.length,
         fileUri,

@@ -1,0 +1,15 @@
+class C0([var a = 0]);
+
+class C1([final b = true]);
+
+class C2({var c = 'foo'});
+
+class C3({final d = const [0]});
+
+class C4([e = 0]);
+
+class C5({f = true});
+
+main() {}
+
+test() {}

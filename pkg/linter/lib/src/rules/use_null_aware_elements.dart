@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       } else if (node.caseClause?.guardedPattern.pattern case NullCheckPattern(
         pattern: DeclaredVariablePattern(:var declaredFragment),
-      )) {
+      ) when node.caseClause?.guardedPattern.whenClause == null) {
         // Case of pattern null checks of the form `if (x case var y?) y`.
         nullCheckTarget = declaredFragment?.element;
       }

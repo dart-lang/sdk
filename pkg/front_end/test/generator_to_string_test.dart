@@ -208,6 +208,7 @@ Future<void> main() async {
       assignedVariables: typeInferrer.assignedVariables,
       typeEnvironment: typeInferrer.typeSchemaEnvironment,
       constantContext: ConstantContext.none,
+      internalThisVariable: null,
     );
 
     Generator generator = new ThisAccessGenerator(

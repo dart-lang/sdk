@@ -7496,7 +7496,7 @@ library
           getter: <testLibrary>::@enum::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -7614,7 +7614,7 @@ library
           getter: <testLibrary>::@enum::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -7739,7 +7739,7 @@ library
           getter: <testLibrary>::@enum::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -7878,7 +7878,7 @@ library
           getter: <testLibrary>::@enum::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -8030,7 +8030,7 @@ library
           getter: <testLibrary>::@enum::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -8164,7 +8164,7 @@ library
           setter: <testLibrary>::@enum::A::@setter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -8330,7 +8330,7 @@ library
           getter: <testLibrary>::@enum::B::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::B::@constructor::new::@formalParameter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::B::@constructor::new
           firstFragment: #F9
           formalParameters
@@ -8457,7 +8457,7 @@ library
           getter: <testLibrary>::@enum::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -8566,7 +8566,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -8668,7 +8668,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -8782,7 +8782,7 @@ library
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -8889,7 +8889,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary named
+        const isOriginDeclaration isPrimary named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F4
           superConstructor: dart:core::@class::Enum::@constructor::new
@@ -8986,7 +8986,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary named
+        const isOriginDeclaration isPrimary named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F4
           superConstructor: dart:core::@class::Enum::@constructor::new
@@ -9147,7 +9147,7 @@ library
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::foo
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -9301,7 +9301,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -9399,7 +9399,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
           superConstructor: dart:core::@class::Enum::@constructor::new
@@ -9490,7 +9490,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
           superConstructor: dart:core::@class::Enum::@constructor::new
@@ -9585,7 +9585,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
           constantInitializers
@@ -9698,7 +9698,7 @@ library
           type: int
           getter: <testLibrary>::@enum::E::@getter::x
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           constantInitializers
@@ -9835,7 +9835,7 @@ library
           type: int
           getter: <testLibrary>::@enum::E::@getter::y
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           metadata
@@ -9975,7 +9975,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
           metadata
@@ -10088,7 +10088,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary named
+        const isOriginDeclaration isPrimary named
           reference: <testLibrary>::@enum::E::@constructor::named
           firstFragment: #F4
           constantInitializers
@@ -10284,7 +10284,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
           constantInitializers
@@ -10394,7 +10394,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -19047,7 +19047,7 @@ library
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::bar
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -19184,7 +19184,7 @@ library
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::bar
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
           formalParameters
@@ -19317,7 +19317,7 @@ library
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::bar
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -19463,7 +19463,7 @@ library
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::bar
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -19582,7 +19582,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@enum::E::@getter::bar
       constructors
-        const declaring isOriginDeclaration isPrimary new
+        const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
           formalParameters

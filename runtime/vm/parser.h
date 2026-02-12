@@ -66,7 +66,7 @@ class FieldKeyValueTrait {
 typedef DirectChainedHashMap<FieldKeyValueTrait> FieldSet;
 
 // The class ParsedFunction holds the result of parsing a function.
-class ParsedFunction : public ZoneAllocated {
+class ParsedFunction : public ZoneObject {
  public:
   ParsedFunction(Thread* thread, const Function& function);
 
@@ -248,7 +248,7 @@ class ParsedFunction : public ZoneAllocated {
 
   // Variables needed for the InvokeFieldDispatcher for dynamic closure calls,
   // because they are both read and written to by the builders.
-  struct DynamicClosureCallVars : ZoneAllocated {
+  struct DynamicClosureCallVars : ZoneObject {
     DynamicClosureCallVars(Zone* zone, intptr_t num_named)
         : named_argument_parameter_indices(zone, num_named) {}
 

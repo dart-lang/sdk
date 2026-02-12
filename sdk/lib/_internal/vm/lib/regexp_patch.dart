@@ -155,8 +155,6 @@ class _RegExp implements RegExp {
   });
 
   RegExpMatch? firstMatch(String input) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (input == null) throw ArgumentError.notNull('input');
     final match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;
@@ -165,9 +163,6 @@ class _RegExp implements RegExp {
   }
 
   Iterable<RegExpMatch> allMatches(String string, [int start = 0]) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (string == null) throw ArgumentError.notNull('string');
-    if (start == null) throw ArgumentError.notNull('start');
     if (0 > start || start > string.length) {
       throw RangeError.range(start, 0, string.length);
     }
@@ -175,9 +170,6 @@ class _RegExp implements RegExp {
   }
 
   RegExpMatch? matchAsPrefix(String string, [int start = 0]) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (string == null) throw ArgumentError.notNull('string');
-    if (start == null) throw ArgumentError.notNull('start');
     if (start < 0 || start > string.length) {
       throw RangeError.range(start, 0, string.length);
     }
@@ -187,15 +179,11 @@ class _RegExp implements RegExp {
   }
 
   bool hasMatch(String input) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (input == null) throw ArgumentError.notNull('input');
     List? match = _ExecuteMatch(input, 0);
     return (match == null) ? false : true;
   }
 
   String? stringMatch(String input) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (input == null) throw ArgumentError.notNull('input');
     List? match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;

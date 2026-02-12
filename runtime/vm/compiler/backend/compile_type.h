@@ -40,7 +40,7 @@ class GrowableArray;
 // Values of CompileType form a lattice with a None type as a bottom and a
 // nullable Dynamic type as a top element. Method Union provides a join
 // operation for the lattice.
-class CompileType : public ZoneAllocated {
+class CompileType : public ZoneObject {
  public:
   static constexpr bool kCanBeNull = true;
   static constexpr bool kCannotBeNull = false;
@@ -66,7 +66,7 @@ class CompileType : public ZoneAllocated {
   }
 
   CompileType(const CompileType& other)
-      : ZoneAllocated(),
+      : ZoneObject(),
         flags_(other.flags_),
         cid_(other.cid_),
         type_(other.type_) {}

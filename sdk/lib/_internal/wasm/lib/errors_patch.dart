@@ -52,6 +52,9 @@ class _Error extends Error {
 // JavaScript.
 @pragma("wasm:entry-point")
 class _JavaScriptError extends Error {
+  /// Reference to the error thrown from JavaScript.
+  ///
+  /// This can be any JavaScript object, including `null` and `undefined`.
   final WasmExternRef? _errorRef;
 
   _JavaScriptError(this._errorRef);
@@ -61,14 +64,21 @@ class _JavaScriptError extends Error {
       _JavaScriptError(errorRef);
 
   @override
-  String toString() => JSStringImpl.fromRefUnchecked(
-    JS<WasmExternRef?>("(exn) => exn.toString()", _errorRef),
-  );
+  String toString() => stringify(_errorRef);
 
   @override
   @pragma("wasm:entry-point")
-  StackTrace get stackTrace =>
-      _JavaScriptStack(JS<WasmExternRef?>("(exn) => exn.stack", _errorRef));
+  StackTrace get stackTrace => _JavaScriptStack(
+    JS<WasmExternRef?>("""
+        (exn) => {
+          if (exn instanceof Error) {
+            return exn.stack;
+          } else {
+            return null;
+          }
+        }
+      """, _errorRef),
+  );
 }
 
 class _TypeError extends _Error implements TypeError {

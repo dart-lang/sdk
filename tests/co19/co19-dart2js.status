@@ -201,8 +201,6 @@ LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass
 LibTest/collection/ListMixin/ListMixin_class_A01_t04: Slow, Pass
 LibTest/collection/ListMixin/ListMixin_class_A01_t05: Slow, Pass
 LibTest/collection/ListMixin/ListMixin_class_A01_t06: Slow, Pass
-LibTest/core/List/List_class_A01_t05: Slow, Pass
-LibTest/core/List/List_class_A01_t06: Slow, Pass
 
 [ $compiler == dart2js && $runtime == ff ]
 LibTest/html/Element/onTouchCancel_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF

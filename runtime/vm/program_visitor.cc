@@ -17,7 +17,7 @@
 
 namespace dart {
 
-class WorklistElement : public ZoneAllocated {
+class WorklistElement : public ZoneObject {
  public:
   WorklistElement(Zone* zone, const Object& object)
       : object_(Object::Handle(zone, object.ptr())), next_(nullptr) {}
@@ -448,7 +448,7 @@ void ProgramVisitor::ShareMegamorphicBuckets(Thread* thread) {
   }
 }
 
-class StackMapEntry : public ZoneAllocated {
+class StackMapEntry : public ZoneObject {
  public:
   StackMapEntry(Zone* zone,
                 const CompressedStackMaps::Iterator<CompressedStackMaps>& it)

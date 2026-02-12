@@ -1110,6 +1110,22 @@ var x = ~a;
 ''', () => _xInitializer());
   }
 
+  test_propertyAccess_instanceMethod_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void m() {}
+}
+''');
+    await _assertNotConst(
+      r'''
+import 'a.dart' as p;
+var x = p.A.m;
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('m;')],
+    );
+  }
+
   test_propertyAccess_length_final() async {
     await _assertNotConst(
       r'''
@@ -1168,6 +1184,34 @@ var x = p.A.a + 1;
 ''',
       () => _xInitializer(),
       () => [findNode.simple('a + 1')],
+    );
+  }
+
+  test_propertyAccess_staticMethod_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static void m() {}
+}
+''');
+    await _assertConst(r'''
+import 'a.dart' as p;
+var x = p.A.m;
+''', () => _xInitializer());
+  }
+
+  test_propertyAccess_staticMethod_withPrefix_deferred() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static void m() {}
+}
+''');
+    await _assertNotConst(
+      r'''
+import 'a.dart' deferred as p;
+var x = p.A.m;
+''',
+      () => _xInitializer(),
+      () => [findNode.propertyAccess('p.A.m')],
     );
   }
 

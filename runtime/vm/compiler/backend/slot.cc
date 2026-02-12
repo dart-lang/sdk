@@ -24,7 +24,7 @@ enum NativeSlotsEnumeration {
 //
 // This cache is attached to the CompilerState to ensure that we preserve
 // identity of Slot objects during each individual compilation.
-class SlotCache : public ZoneAllocated {
+class SlotCache : public ZoneObject {
  public:
   // Returns an instance of SlotCache for the current compilation.
   static SlotCache& Instance(Thread* thread) {

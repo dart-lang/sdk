@@ -811,9 +811,9 @@ extension CheckHelper on ProblemReporting {
         fieldType.isPotentiallyNonNullable &&
         !hasInitializer) {
       addProblem(
-        diag.fieldNonNullableWithoutInitializerError.withArgumentsOld(
-          name,
-          fieldType,
+        diag.fieldNonNullableWithoutInitializerError.withArguments(
+          fieldName: name,
+          fieldType: fieldType,
         ),
         nameOffset,
         nameLength,

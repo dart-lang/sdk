@@ -1404,7 +1404,7 @@ class LibraryReader {
       }
     });
 
-    libraryFragment.isSynthetic = _reader.readBool();
+    libraryFragment.readModifiers(_reader);
 
     libraryFragment.libraryImports = _reader.readTypedList(() {
       return _readLibraryImport(containerUnit: libraryFragment);

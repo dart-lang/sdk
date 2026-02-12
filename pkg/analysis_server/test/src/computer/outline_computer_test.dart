@@ -1477,6 +1477,40 @@ class A([final int x = 0]) {}
     expect(element_x.returnType, 'int');
   }
 
+  Future<void> test_privateNamedParameter() async {
+    var unitOutline = await _computeOutline('''
+class C {
+  int? _x;
+  C({this._x});
+}
+''');
+    var topOutlines = unitOutline.children!;
+
+    // The class `C`.
+    expect(topOutlines, hasLength(1));
+    var outline_C = topOutlines[0];
+    var outlines_C = outline_C.children!;
+    expect(outlines_C, hasLength(2));
+
+    // The field '_x'.
+    var outline_x = outlines_C[0];
+    var element_x = outline_x.element;
+    expect(element_x.kind, ElementKind.FIELD);
+    expect(element_x.name, '_x');
+
+    // The constructor.
+    var outline_ctor = outlines_C[1];
+    var element_ctor = outline_ctor.element;
+    expect(element_ctor.kind, ElementKind.CONSTRUCTOR);
+    expect(element_ctor.name, 'C');
+    // TODO(rnystrom): It might be better to show the parameter signature as
+    // it would appear to a caller like `({int? x})`, but that would be a large
+    // change. Currently, outlines always show the parameter signature as it is
+    // declared.
+    // See: https://github.com/dart-lang/sdk/issues/62608
+    expect(element_ctor.parameters, '({this._x})');
+  }
+
   Future<void> test_sourceRanges_fields() async {
     var unitOutline = await _computeOutline('''
 class A {
