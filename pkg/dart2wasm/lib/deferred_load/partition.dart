@@ -69,6 +69,8 @@ class _Algorithm {
   _Algorithm(this.component, this.depsCollector, this.allDeferredImports);
 
   Partitioning run(Set<Reference> roots) {
+    collectDependencies(roots);
+
     // Sentinel used to represent the artificial import of all roots.
     final rootImport = LibraryDependency.import(Library(Uri(), fileUri: Uri()));
     final rootPart = Part(true, {});
@@ -78,28 +80,52 @@ class _Algorithm {
       allDeferredImports,
     );
 
-    // Main algorithm: Enqueue roots and propagate.
+    enqueueRootsAndPropagate(roots);
+    return createParitition(rootPart);
+  }
+
+  void collectDependencies(Set<Reference> roots) {
+    for (final reference in roots) {
+      ensureReferenceDependencies(reference);
+    }
+  }
+
+  void enqueueRootsAndPropagate(Set<Reference> roots) {
     for (final root in roots) {
       referenceQueue.enqueue(root, importSets.rootSet);
     }
+    directReferenceDependencies.forEach((reference, deps) {
+      deps.deferredReferences.forEach((reference, imports) {
+        for (final import in imports) {
+          referenceQueue.enqueue(reference, importSets.initialSetOf(import));
+        }
+      });
+      deps.deferredConstants.forEach((constant, imports) {
+        for (final import in imports) {
+          constantQueue.enqueue(constant, importSets.initialSetOf(import));
+        }
+      });
+    });
+
     while (referenceQueue.isNotEmpty || constantQueue.isNotEmpty) {
       while (referenceQueue.isNotEmpty) {
         final (reference, importsToAdd) = referenceQueue.dequeue();
-        ensureReferenceDependencies(reference);
         final oldSet = referenceToImportSet[reference] ?? importSets.emptySet;
         final newSet = importSets.union(oldSet, importsToAdd);
         updateReference(reference, oldSet, newSet);
       }
       while (constantQueue.isNotEmpty) {
         final (constant, importsToAdd) = constantQueue.dequeue();
-        ensureConstantDependencies(constant);
         final oldSet = constantToImportSet[constant] ?? importSets.emptySet;
         final newSet = importSets.union(oldSet, importsToAdd);
         updateConstant(constant, oldSet, newSet);
       }
     }
+  }
 
-    // Map [Reference]s/[Constant]s to the [Part] they were assigned to.
+  /// Creates a [Partitioning] that maps [Reference]s/[Constant]s to the [Part]
+  /// they were assigned to.
+  Partitioning createParitition(Part rootPart) {
     final referenceToPart = <Reference, Part>{};
     final constantToPart = <Constant, Part>{};
     final parts = <Part>[rootPart];
@@ -141,16 +167,10 @@ class _Algorithm {
     deps.references.forEach(ensureReferenceDependencies);
     deps.deferredReferences.forEach((reference, imports) {
       ensureReferenceDependencies(reference);
-      for (final import in imports) {
-        referenceQueue.enqueue(reference, importSets.initialSetOf(import));
-      }
     });
     deps.constants.forEach(ensureConstantDependencies);
     deps.deferredConstants.forEach((constant, imports) {
       ensureConstantDependencies(constant);
-      for (final import in imports) {
-        constantQueue.enqueue(constant, importSets.initialSetOf(import));
-      }
     });
   }
 

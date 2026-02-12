@@ -131,7 +131,7 @@ void main() async {
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
       final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
-      final constArguments = u.constArgumentsFor(Identifier(
+      final constArguments = u.constArgumentsFor(Definition(
         importUri: 'package:drop_data_asset/src/drop_data_asset.dart',
         scope: 'MyMath',
         name: 'add',
@@ -175,7 +175,7 @@ void main() async {
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
       final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
-      final constantsOf = u.constantsOf(Identifier(
+      final constantsOf = u.constantsOf(Definition(
         importUri: 'package:drop_data_asset/src/drop_data_asset.dart',
         name: 'RecordCallToC',
       ));

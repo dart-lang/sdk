@@ -106,6 +106,50 @@ void f() {
 ''');
   }
 
+  Future<void> test_privateInitializingFormal() async {
+    addTestSource(r'''
+class C {
+  int _a;
+
+  C([!this._a!]);
+}
+
+void f() {
+  C(0);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class C {
+  int _a;
+
+  C({required this._a});
+}
+
+void f() {
+  C(a: 0);
+}
+''');
+  }
+
+  Future<void> test_privateInitializingFormal_unsupported() async {
+    addTestSource(r'''
+// @dart=3.10
+class C {
+  int _a;
+
+  C([!this._a!]);
+}
+
+void f() {
+  C(0);
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
   Future<void> test_single_optionalNamed_0of1() async {
     addTestSource(r'''
 void test(int a, {int ^b}) {}

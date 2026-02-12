@@ -109,8 +109,8 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
 }
 
 Recordings _usages(
-  Map<Identifier, List<CallReference>> calls,
-  Map<Identifier, List<InstanceReference>> instances,
+  Map<Definition, List<CallReference>> calls,
+  Map<Definition, List<InstanceReference>> instances,
 ) {
   return Recordings(
     metadata: Metadata(

@@ -13,7 +13,7 @@ import 'constant_collector.dart';
 class InstanceRecorder {
   /// Keep track of the classes which are recorded, to easily add found
   /// instances.
-  final Map<Identifier, List<InstanceReference>> instancesForClass = {};
+  final Map<Definition, List<InstanceReference>> instancesForClass = {};
 
   /// A function to look up the loading unit for a reference.
   final LoadingUnitLookup _loadingUnitLookup;
@@ -51,11 +51,11 @@ class InstanceRecorder {
     );
   }
 
-  Identifier _definitionFromClass(ast.Class cls) {
+  Definition _definitionFromClass(ast.Class cls) {
     final enclosingLibrary = cls.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
 
-    return Identifier(importUri: importUri, name: cls.name);
+    return Definition(importUri: importUri, name: cls.name);
   }
 
   InstanceReference _createInstanceReference(

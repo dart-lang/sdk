@@ -473,6 +473,26 @@ final class _AvailableWithDeclaration extends Available {
       }
     }
 
+    var supportsPrivateNamedParameters = refactoringContext
+        .resolvedLibraryResult
+        .element
+        .featureSet
+        .isEnabled(Feature.private_named_parameters);
+
+    for (var parameter in selected) {
+      var name = parameter.name?.lexeme;
+      if (name == null) return false;
+
+      // If the parameter has a private name, make sure it can be a private
+      // named parameter.
+      if (Identifier.isPrivateName(name)) {
+        if (!supportsPrivateNamedParameters) return false;
+        // TODO(rnystrom): Check for primary constructor declaring parameter
+        // here once those are implemented.
+        if (parameter is! FieldFormalParameter) return false;
+      }
+    }
+
     return true;
   }
 
