@@ -5190,6 +5190,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       nameScope = LocalScope(nameScope);
       node.nameScope = nameScope;
+      _predeclareForPartsVariables(node.forLoopParts);
       node.forLoopParts.accept(this);
       node.body.accept(this);
     } finally {
@@ -5225,6 +5226,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       nameScope = LocalScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
       node.nameScope = nameScope;
+      _predeclareForPartsVariables(node.forLoopParts);
       node.forLoopParts.accept(this);
       _visitStatementInScope(node.body);
     } finally {
@@ -5768,6 +5770,20 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         diagnosticReporter.report(diag.continueLabelInvalid.at(parentNode));
       }
       return node;
+    }
+  }
+
+  /// Predeclare `for`-parts variables so lexical lookup during traversal of
+  /// `forLoopParts` (initializer, condition, updaters) binds to loop-local
+  /// elements.
+  ///
+  /// This is only about binding. Reads that occur before the declaration point
+  /// are still reported later by error verification.
+  void _predeclareForPartsVariables(ForLoopParts forLoopParts) {
+    if (forLoopParts is ForPartsWithDeclarations) {
+      for (var variable in forLoopParts.variables.variables) {
+        _define(variable.declaredFragment!.element);
+      }
     }
   }
 

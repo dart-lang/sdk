@@ -697,6 +697,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithDeclaration(
+    covariant ForEachPartsWithDeclarationImpl node,
+  ) {
+    node.iterable.accept(this);
+    node.loopVariable.accept(this);
+    var fragment = node.loopVariable.declaredFragment!;
+    _define(fragment.element);
+  }
+
+  @override
   void visitForEachPartsWithPattern(
     covariant ForEachPartsWithPatternImpl node,
   ) {
@@ -717,9 +727,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+  void visitForStatement(covariant ForStatementImpl node) {
     _withNameScope(() {
-      super.visitForPartsWithDeclarations(node);
+      super.visitForStatement(node);
     });
   }
 

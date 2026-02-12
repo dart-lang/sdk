@@ -1034,7 +1034,6 @@ SimpleIdentifier
 ''');
   }
 
-  @failingTest
   test_scope_variables_initializer_uses_outer_sameName() async {
     await assertErrorsInCode(
       r'''

@@ -88,5 +88,6 @@ void testShadowLocal() {
   List<int> x = [1, 2, 3];
   for (var x = x; ;) break;
   //           ^
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   // [cfe] Local variable 'x' can't be referenced before it is declared.
 }
