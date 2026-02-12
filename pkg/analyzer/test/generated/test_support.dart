@@ -12,7 +12,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
-import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_testing/utilities/extensions/string.dart';
 import 'package:test/test.dart';
 
 /// A diagnostic listener that collects all of the diagnostics passed to it for

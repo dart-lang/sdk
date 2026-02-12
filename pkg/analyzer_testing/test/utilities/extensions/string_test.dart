@@ -6,7 +6,7 @@
 // compatible with the `non_constant_identifier_names` lint.
 // ignore_for_file: non_constant_identifier_names
 
-import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_testing/utilities/extensions/string.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

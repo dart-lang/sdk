@@ -65,6 +65,13 @@ package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart:
 package:analyzer_testing/utilities/extensions/resource_provider.dart:
   ResourceProviderExtension (extension on ResourceProvider):
     convertPath (method: String Function(String))
+package:analyzer_testing/utilities/extensions/string.dart:
+  StringExtension (extension on String):
+    isCamelCase (getter: bool)
+    isPascalCase (getter: bool)
+    toCamelCase (method: String Function())
+    toPascalCase (method: String Function())
+    toSnakeCase (method: String Function())
 package:analyzer_testing/utilities/utilities.dart:
   analysisOptionsContent (function: String Function({Map<String, Object?> errors, List<String> experiments, List<String> includes, List<String> legacyPlugins, bool propagateLinterExceptions, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
   pubspecYamlContent (function: String Function({List<String> dependencies, String? name, String? sdkVersion}))
