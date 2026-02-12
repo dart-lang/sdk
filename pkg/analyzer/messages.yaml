@@ -1810,7 +1810,7 @@ CompileTimeErrorCode:
   augmentationModifierExtra:
     type: compileTimeError
     parameters:
-      Object modifier: the lexeme of the modifier.
+      String modifier: the lexeme of the modifier.
     experiment: augmentations
     problemMessage: The augmentation has the '#modifier' modifier that the declaration doesn't have.
     correctionMessage: Try removing the '#modifier' modifier, or adding it to the declaration.
@@ -1818,7 +1818,7 @@ CompileTimeErrorCode:
   augmentationModifierMissing:
     type: compileTimeError
     parameters:
-      Object modifier: the lexeme of the modifier.
+      String modifier: the lexeme of the modifier.
     experiment: augmentations
     problemMessage: The augmentation is missing the '#modifier' modifier that the declaration has.
     correctionMessage: Try adding the '#modifier' modifier, or removing it from the declaration.
@@ -1826,8 +1826,8 @@ CompileTimeErrorCode:
   augmentationOfDifferentDeclarationKind:
     type: compileTimeError
     parameters:
-      Object declarationKind: the name of the declaration kind.
-      Object augmentationKind: the name of the augmentation kind.
+      String declarationKind: the name of the declaration kind.
+      String augmentationKind: the name of the augmentation kind.
     experiment: augmentations
     problemMessage: "Can't augment a #declarationKind with a #augmentationKind."
     correctionMessage: Try changing the augmentation to match the declaration kind.
@@ -1877,7 +1877,7 @@ CompileTimeErrorCode:
   augmentedExpressionNotOperator:
     type: compileTimeError
     parameters:
-      Object operator: the lexeme of the operator.
+      String operator: the lexeme of the operator.
     experiment: augmentations
     problemMessage: The enclosing augmentation doesn't augment the operator '#operator'.
     correctionMessage: Try augmenting or invoking the correct operator.

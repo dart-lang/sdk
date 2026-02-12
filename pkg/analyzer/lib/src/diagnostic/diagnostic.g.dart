@@ -854,9 +854,9 @@ augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object modifier: the lexeme of the modifier.
+/// String modifier: the lexeme of the modifier.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object modifier})
+  LocatableDiagnostic Function({required String modifier})
 >
 augmentationModifierExtra = DiagnosticWithArguments(
   name: 'augmentation_modifier_extra',
@@ -868,13 +868,13 @@ augmentationModifierExtra = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'augmentation_modifier_extra',
   withArguments: _withArgumentsAugmentationModifierExtra,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object modifier: the lexeme of the modifier.
+/// String modifier: the lexeme of the modifier.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object modifier})
+  LocatableDiagnostic Function({required String modifier})
 >
 augmentationModifierMissing = DiagnosticWithArguments(
   name: 'augmentation_modifier_missing',
@@ -885,16 +885,16 @@ augmentationModifierMissing = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'augmentation_modifier_missing',
   withArguments: _withArgumentsAugmentationModifierMissing,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object declarationKind: the name of the declaration kind.
-/// Object augmentationKind: the name of the augmentation kind.
+/// String declarationKind: the name of the declaration kind.
+/// String augmentationKind: the name of the augmentation kind.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object declarationKind,
-    required Object augmentationKind,
+    required String declarationKind,
+    required String augmentationKind,
   })
 >
 augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
@@ -905,7 +905,7 @@ augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'augmentation_of_different_declaration_kind',
   withArguments: _withArgumentsAugmentationOfDifferentDeclarationKind,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
@@ -991,9 +991,9 @@ augmentedExpressionIsSetter = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object operator: the lexeme of the operator.
+/// String operator: the lexeme of the operator.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object operator})
+  LocatableDiagnostic Function({required String operator})
 >
 augmentedExpressionNotOperator = DiagnosticWithArguments(
   name: 'augmented_expression_not_operator',
@@ -1003,7 +1003,7 @@ augmentedExpressionNotOperator = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'augmented_expression_not_operator',
   withArguments: _withArgumentsAugmentedExpressionNotOperator,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -17966,20 +17966,20 @@ LocatableDiagnostic _withArgumentsAssignmentToFinalNoSetter({
 }
 
 LocatableDiagnostic _withArgumentsAugmentationModifierExtra({
-  required Object modifier,
+  required String modifier,
 }) {
   return LocatableDiagnosticImpl(diag.augmentationModifierExtra, [modifier]);
 }
 
 LocatableDiagnostic _withArgumentsAugmentationModifierMissing({
-  required Object modifier,
+  required String modifier,
 }) {
   return LocatableDiagnosticImpl(diag.augmentationModifierMissing, [modifier]);
 }
 
 LocatableDiagnostic _withArgumentsAugmentationOfDifferentDeclarationKind({
-  required Object declarationKind,
-  required Object augmentationKind,
+  required String declarationKind,
+  required String augmentationKind,
 }) {
   return LocatableDiagnosticImpl(diag.augmentationOfDifferentDeclarationKind, [
     declarationKind,
@@ -17988,7 +17988,7 @@ LocatableDiagnostic _withArgumentsAugmentationOfDifferentDeclarationKind({
 }
 
 LocatableDiagnostic _withArgumentsAugmentedExpressionNotOperator({
-  required Object operator,
+  required String operator,
 }) {
   return LocatableDiagnosticImpl(diag.augmentedExpressionNotOperator, [
     operator,
