@@ -11179,15 +11179,15 @@ LinterLintCode:
 
       #### Common fixes
 
-      * If the declaration should be removed in the next release of the package,
+      If the declaration should be removed in the next release of the package,
       then remove the declaration:
 
       ```dart
       void g() {}
       ```
 
-      * If you are not making a breaking change, then use a minor or patch
-        version increment for the package:
+      If you are not making a breaking change, then use a
+      minor or patch version increment for the package:
 
       ```yaml
       %uri="pubspec.yaml"
