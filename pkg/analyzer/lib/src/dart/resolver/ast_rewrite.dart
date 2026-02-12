@@ -38,8 +38,10 @@ class AstRewriter {
   /// [MethodInvocation] if `a` resolves to a function.
   AstNode instanceCreationExpression(
     Scope nameScope,
-    InstanceCreationExpressionImpl node,
-  ) {
+    InstanceCreationExpressionImpl node, {
+    required LibraryElementImpl libraryElement,
+    required InstanceElement? enclosingInstanceElement,
+  }) {
     if (node.keyword != null) {
       // Either `new` or `const` has been specified.
       return node;
@@ -47,7 +49,16 @@ class AstRewriter {
     var typeNode = node.constructorName.type;
     var importPrefix = typeNode.importPrefix;
     if (importPrefix == null) {
-      var element = nameScope.lookup(typeNode.name.lexeme).getter;
+      var name = typeNode.name.lexeme;
+      var element = nameScope.lookup(name).getter;
+      if (element == null && enclosingInstanceElement != null) {
+        if (enclosingInstanceElement is InterfaceElementImpl) {
+          element = enclosingInstanceElement.inheritanceManager.getMember(
+            enclosingInstanceElement,
+            Name(libraryElement.uri, name),
+          );
+        }
+      }
       if (element is ExecutableElement) {
         return _toMethodInvocationOfFunctionReference(
           node: node,

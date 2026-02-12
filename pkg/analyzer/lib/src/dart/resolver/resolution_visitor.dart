@@ -100,6 +100,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// enclosing element.
   ElementHolder _elementHolder;
 
+  /// The enclosing instance element, or `null` if not in an instance element.
+  InstanceElement? _enclosingInstanceElement;
+
   /// Data structure for tracking declared pattern variables.
   late final _VariableBinder _patternVariables = _VariableBinder(
     errors: _VariableBinderErrors(this),
@@ -204,6 +207,22 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.element = element;
 
     if (element == null) {
+      // Recovery: the code might try to refer to an instance field.
+      if (_enclosingInstanceElement
+          case InterfaceElementImpl enclosingInterfaceElement?) {
+        var element = enclosingInterfaceElement.inheritanceManager.getMember(
+          enclosingInterfaceElement,
+          Name.forLibrary(_libraryElement, name).forSetter,
+        );
+        if (element != null) {
+          node.element = element;
+          _diagnosticReporter.report(
+            diag.patternAssignmentNotLocalVariable.at(node.name),
+          );
+          return;
+        }
+      }
+
       _diagnosticReporter.report(
         diag.undefinedIdentifier.withArguments(name: name).at(node.name),
       );
@@ -297,31 +316,32 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forClass(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.namePart.typeParameters);
-        node.namePart.accept(this);
+      _withEnclosingInstanceElement(element, () {
+        _withNameScope(() {
+          _buildTypeParameterElements(node.namePart.typeParameters);
+          node.namePart.accept(this);
 
-        var extendsClause = node.extendsClause;
-        var withClause = node.withClause;
+          var extendsClause = node.extendsClause;
+          var withClause = node.withClause;
 
-        if (extendsClause != null) {
-          _resolveType(
+          if (extendsClause != null) {
+            _resolveType(
+              declaration: node,
+              clause: extendsClause,
+              namedType: extendsClause.superclass,
+            );
+          }
+
+          _resolveWithClause(declaration: node, clause: withClause);
+          _resolveImplementsClause(
             declaration: node,
-            clause: extendsClause,
-            namedType: extendsClause.superclass,
+            clause: node.implementsClause,
           );
-        }
 
-        _resolveWithClause(declaration: node, clause: withClause);
-        _resolveImplementsClause(
-          declaration: node,
-          clause: node.implementsClause,
-        );
-
-        _defineElements(element.getters);
-        _defineElements(element.setters);
-        _defineElements(element.methods);
-        node.body.accept(this);
+          _withScope(InstanceScope(_nameScope, element), () {
+            node.body.accept(this);
+          });
+        });
       });
     });
 
@@ -995,7 +1015,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(
     covariant InstanceCreationExpressionImpl node,
   ) {
-    var newNode = _astRewriter.instanceCreationExpression(_nameScope, node);
+    var newNode = _astRewriter.instanceCreationExpression(
+      _nameScope,
+      node,
+      libraryElement: _libraryElement,
+      enclosingInstanceElement: _enclosingInstanceElement,
+    );
     if (newNode != node) {
       if (node.constructorName.type.typeArguments != null &&
           newNode is MethodInvocation &&
@@ -1953,6 +1978,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _withEnclosingInstanceElement(
+    InstanceElement element,
+    void Function() f,
+  ) {
+    var previous = _enclosingInstanceElement;
+    _enclosingInstanceElement = element;
+    try {
+      f();
+    } finally {
+      _enclosingInstanceElement = previous;
+    }
+  }
+
   /// Run [f] with the new name scope.
   void _withNameScope(void Function() f) {
     var current = _nameScope;
@@ -1961,6 +1999,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       f();
     } finally {
       _nameScope = current;
+    }
+  }
+
+  void _withScope(Scope scope, void Function() f) {
+    var outerScope = _nameScope;
+    try {
+      _nameScope = scope;
+      f();
+    } finally {
+      _nameScope = outerScope;
     }
   }
 
