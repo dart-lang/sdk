@@ -64,7 +64,7 @@ class RecordUseCollector {
     ),
     calls: callMap.map(
       (key, value) => MapEntry(
-        Identifier(
+        Definition(
           name: key.name!,
           scope: key.enclosingClass?.name,
           importUri: key.library.canonicalUri.toString(),
@@ -72,6 +72,6 @@ class RecordUseCollector {
         value,
       ),
     ),
-    instances: <Identifier, List<InstanceReference>>{},
+    instances: <Definition, List<InstanceReference>>{},
   ).toJson();
 }

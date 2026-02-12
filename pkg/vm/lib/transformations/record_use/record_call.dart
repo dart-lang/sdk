@@ -15,7 +15,7 @@ import 'package:vm/transformations/record_use/record_use.dart';
 class CallRecorder {
   /// Keep track of the calls which are recorded, to easily add newly found
   /// ones.
-  final Map<Identifier, List<CallReference>> callsForMethod = {};
+  final Map<Definition, List<CallReference>> callsForMethod = {};
 
   /// A function to look up the loading unit for a reference.
   final LoadingUnitLookup _loadingUnitLookup;
@@ -121,11 +121,11 @@ class CallRecorder {
     }
   }
 
-  Identifier _definitionFromMember(ast.Member target) {
+  Definition _definitionFromMember(ast.Member target) {
     final enclosingLibrary = target.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
 
-    return Identifier(
+    return Definition(
       importUri: importUri,
       scope: target.enclosingClass?.name,
       name: target.name.text,
