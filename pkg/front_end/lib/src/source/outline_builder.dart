@@ -3049,7 +3049,9 @@ class OutlineBuilder extends StackListenerImpl {
     Object? name = pop(NullValues.Identifier);
     TypeBuilder? type = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
-    if (memberKind == MemberKind.PrimaryConstructor && varOrFinal != null) {
+    if (memberKind == MemberKind.PrimaryConstructor &&
+        (varOrFinal != null ||
+            declarationContext == DeclarationContext.ExtensionType)) {
       modifiers |= Modifiers.DeclaringParameter;
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
@@ -3068,6 +3070,7 @@ class OutlineBuilder extends StackListenerImpl {
         parameterName: parameterName,
         nameToken: nameToken,
         thisKeyword: thisKeyword,
+        isDeclaring: modifiers.isDeclaringParameter,
         libraryFeatures: libraryFeatures,
         fileUri: _compilationUnit.fileUri,
       );
@@ -3202,18 +3205,19 @@ class OutlineBuilder extends StackListenerImpl {
         assert(last != null);
         formals = [last as FormalParameterBuilder];
       }
-
-      Token? tokenBeforeEnd = endToken.previous;
-      if (tokenBeforeEnd != null &&
-          tokenBeforeEnd.isA(TokenType.COMMA) &&
-          kind == MemberKind.PrimaryConstructor &&
-          declarationContext == DeclarationContext.ExtensionType) {
-        _compilationUnit.addProblem(
-          diag.representationFieldTrailingComma,
-          tokenBeforeEnd.charOffset,
-          1,
-          uri,
-        );
+      if (!libraryFeatures.primaryConstructors.isEnabled) {
+        Token? tokenBeforeEnd = endToken.previous;
+        if (tokenBeforeEnd != null &&
+            tokenBeforeEnd.isA(TokenType.COMMA) &&
+            kind == MemberKind.PrimaryConstructor &&
+            declarationContext == DeclarationContext.ExtensionType) {
+          _compilationUnit.addProblem(
+            diag.representationFieldTrailingComma,
+            tokenBeforeEnd.charOffset,
+            1,
+            uri,
+          );
+        }
       }
     } else if (count > 1) {
       Object? last = pop();

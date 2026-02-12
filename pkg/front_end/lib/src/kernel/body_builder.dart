@@ -5408,6 +5408,7 @@ class BodyBuilderImpl extends StackListenerImpl
         parameterName: parameterName,
         nameToken: nameToken,
         thisKeyword: thisKeyword,
+        isDeclaring: false,
         libraryFeatures: libraryFeatures,
         fileUri: uri,
       );

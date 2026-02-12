@@ -158,6 +158,7 @@ enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
 enhanced_enums/simple_mixins: RuntimeError
 extension_types/with_dependencies/issue53209_1/main: SemiFuzzFailure
+extension_types/with_dependencies/issue53209_2/main: SemiFuzzFailure
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError

@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Baz extends core::Object {
+  synthetic constructor •() → self::Baz
+    ;
+  set foo(dynamic #synthetic) → void
+    ;
+  get foo() → core::int
+    ;
+  method bar() → void
+    ;
+}
+extension Foo on core::int {
+  get foo = self::Foo|get#foo;
+  set foo = self::Foo|set#foo;
+  method bar = self::Foo|bar;
+  method tearoff bar = self::Foo|get#bar;
+}
+extension type Bar(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  get foo = self::Bar|get#foo;
+  set foo = self::Bar|set#foo;
+  method bar = self::Bar|bar;
+  method tearoff bar = self::Bar|get#bar;
+  constructor • = self::Bar|constructor#;
+  constructor tearoff • = self::Bar|constructor#_#new#tearOff;
+}
+static extension-member method Foo|set#foo(lowered final core::int #this, dynamic #synthetic) → void
+  ;
+static extension-member method Foo|get#foo(lowered final core::int #this) → core::int
+  ;
+static extension-member method Foo|bar(lowered final core::int #this) → void
+  ;
+static extension-member method Foo|get#bar(lowered final core::int #this) → () → void
+  return () → void => self::Foo|bar(#this);
+static extension-type-member method Bar|constructor#(core::int i) → self::Bar% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method Bar|constructor#_#new#tearOff(core::int i) → self::Bar% /* erasure=core::int, declared=! */
+  return self::Bar|constructor#(i);
+static extension-type-member method Bar|set#foo(lowered final self::Bar% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void
+  ;
+static extension-type-member method Bar|get#foo(lowered final self::Bar% /* erasure=core::int, declared=! */ #this) → core::int
+  ;
+static extension-type-member method Bar|bar(lowered final self::Bar% /* erasure=core::int, declared=! */ #this) → void
+  ;
+static extension-type-member method Bar|get#bar(lowered final self::Bar% /* erasure=core::int, declared=! */ #this) → () → void
+  return () → void => self::Bar|bar(#this);

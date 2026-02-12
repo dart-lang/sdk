@@ -2,10 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/declaring_parameter_pre_feature.dart:6:20: Error: This requires the experimental 'primary-constructors' language feature to be enabled.
-// Try passing the '--enable-experiment=primary-constructors' command line option.
+// pkg/front_end/testcases/general/declaring_parameter_pre_feature.dart:6:20: Error: The 'primary-constructors' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to the current release or higher.
 // extension type ET1(var int a) {}
 //                    ^^^
+// pkg/front_end/testcases/general/declaring_parameter_pre_feature.dart:5:1: Context: This is the annotation that opts out this library from the 'primary-constructors' language feature.
+// // @dart=3.9
+// ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/declaring_parameter_pre_feature.dart:8:30: Error: Representation fields can't have modifiers.
 // extension type ET2(final int a) {}

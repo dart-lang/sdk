@@ -1,4 +1,4 @@
-method1(var a) {}
+method1(a) {}
 
 method2() {}
 

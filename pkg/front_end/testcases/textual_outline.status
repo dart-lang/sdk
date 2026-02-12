@@ -7,19 +7,41 @@
 
 # These tests have errors in them which isn't reported by the parser but the
 # formatter still sees as syntax errors and thus won't format.
-regress/annotation_on_type_parameter_name_clash_on_constructor: FormatterCrash
-regress/annotation_on_type_parameter_name_extension_type_constructor: FormatterCrash
 enhanced_enums/external_constructor: FormatterCrash
+extension_types/issue52119: FormatterCrash
+extension_types/issue53212: FormatterCrash
+extension_types/with_dependencies/issue53209_2/main: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash
 general/issue45700.crash: FormatterCrash
 general/issue48919: FormatterCrash
 inference/property_set_bad_setter: FormatterCrash
 nnbd/instance_duplicates: FormatterCrash
+primary_constructors/body_without_primary: FormatterCrash
+primary_constructors/class_primary_constructor: FormatterCrash
+primary_constructors/class_primary_declaring_parameters: FormatterCrash
+primary_constructors/const_class: FormatterCrash
+primary_constructors/enum_primary_constructor: FormatterCrash
+primary_constructors/extension_type: FormatterCrash
+primary_constructors/extension_type_parameter_type_inference: FormatterCrash
+primary_constructors/field_initializers: FormatterCrash
+primary_constructors/field_initializers_order: FormatterCrash
+primary_constructors/fields: FormatterCrash
+primary_constructors/generic_primary_constructor: FormatterCrash
+primary_constructors/inferred_type: FormatterCrash
+primary_constructors/mixin_class: FormatterCrash
+primary_constructors/parameter_scope: FormatterCrash
+primary_constructors/parameter_type_inference: FormatterCrash
+primary_constructors/parameters: FormatterCrash
+primary_constructors/primary_and_generative: FormatterCrash
+primary_constructors/primary_constructor_body: FormatterCrash
+primary_constructors/private_named_declaring_parameters: FormatterCrash
+regress/annotation_on_type_parameter_name_clash_on_constructor: FormatterCrash
+regress/annotation_on_type_parameter_name_extension_type_constructor: FormatterCrash
 regress/erroneous_setter: FormatterCrash
+regress/erroneous_setter_2: FormatterCrash
 regress/issue_30994: FormatterCrash
 regress/issue_31198: FormatterCrash
-super_parameters/var_before_super: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 
 coverage/digit-separators/separators_errors_test: EmptyOutput
