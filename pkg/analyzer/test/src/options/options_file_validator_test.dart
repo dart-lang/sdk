@@ -714,6 +714,145 @@ class OptionsProviderTest with ResourceProviderMixin {
     provider = AnalysisOptionsProvider(sourceFactory);
   }
 
+  test_circularInclude_nontrivial_direct() {
+    // Test that the appropriate error is issued if `analysis_options.yaml`
+    // tries to include another options file which in turn includes
+    // `analysis_options.yaml`.
+    newFile('/other_options.yaml', r'''
+include: analysis_options.yaml
+''');
+    assertErrorsInOptionsFile(
+      r'''
+include: other_options.yaml
+''',
+      [
+        error(
+          diag.recursiveIncludeFile,
+          9,
+          18,
+          messageContains: [
+            "The URI 'analysis_options.yaml' included in "
+                "'/other_options.yaml' includes '/other_options.yaml', "
+                "creating a circular reference.",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_circularInclude_nontrivial_nested() {
+    // Test that the appropriate error is issued if a file included by
+    // `analysis_options.yaml` tries to include itself indirectly.
+    // Note: comments ensure that the `include` directives in each file are at
+    // different file offsets, so that we can validate that the reported source
+    // ranges are correct.
+    newFile('/other_options1.yaml', r'''
+include: other_options2.yaml
+''');
+    newFile('/other_options2.yaml', r'''
+# comment
+include: other_options1.yaml
+''');
+    assertErrorsInOptionsFile(
+      r'''
+# comment
+# comment
+include: other_options1.yaml
+''',
+      [
+        error(
+          diag.includedFileWarning,
+          29,
+          19,
+          messageContains: [
+            // TODO(paulberry): the source location
+            // `/other_options1.yaml(29..19)` is incorrect.
+            "Warning in the included options file "
+                "/other_options1.yaml(29..19): The file includes itself "
+                "recursively.",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_circularInclude_trivial_direct() {
+    // Test that the appropriate error is issued if `analysis_options.yaml`
+    // tries to include itself.
+    assertErrorsInOptionsFile(
+      r'''
+include: analysis_options.yaml
+''',
+      [
+        error(
+          diag.recursiveIncludeFile,
+          9,
+          21,
+          messageContains: [
+            "The URI 'analysis_options.yaml' included in "
+                "'/analysis_options.yaml' includes '/analysis_options.yaml', "
+                "creating a circular reference.",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_circularInclude_trivial_nested() {
+    // Test that the appropriate error is issued if a file included by
+    // `analysis_options.yaml` tries to include itself.
+    // Note: comments ensure that the `include` directives in each file are at
+    // different file offsets, so that we can validate that the reported source
+    // ranges are correct.
+    newFile('/other_options.yaml', r'''
+include: other_options.yaml
+''');
+    assertErrorsInOptionsFile(
+      r'''
+# comment
+include: other_options.yaml
+''',
+      [
+        error(
+          diag.includedFileWarning,
+          19,
+          18,
+          messageContains: [
+            // TODO(paulberry): the source location
+            // `/other_options.yaml(19..19)` is incorrect.
+            "Warning in the included options file /other_options.yaml(19..18): "
+                "The file includes itself recursively.",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_invalidYaml_direct() {
+    assertErrorsInOptionsFile(
+      r'''
+formatter:
+  page_width: 80
+  page_width: 90
+''',
+      [error(diag.parseError, 30, 10)],
+    );
+  }
+
+  test_invalidYaml_nested() {
+    newFile('/other_options.yaml', r'''
+formatter:
+  page_width: 80
+  page_width: 90
+''');
+    assertErrorsInOptionsFile(
+      r'''
+include: other_options.yaml
+''',
+      [error(diag.includedFileParseError, 9, 18)],
+    );
+  }
+
   test_multiplePlugins_firstIsDirectlyIncluded_secondIsDirect_listForm() {
     newFile(convertPath('/other_options.yaml'), '''
 analyzer:
@@ -863,6 +1002,27 @@ analyzer:
     );
   }
 
+  test_nonExistentInclude_direct() {
+    assertErrorsInOptionsFile(
+      r'''
+include: other_options.yaml
+''',
+      [error(diag.includeFileNotFound, 9, 18)],
+    );
+  }
+
+  test_nonExistentInclude_nested() {
+    newFile('/other_options1.yaml', r'''
+include: other_options2.yaml
+''');
+    assertErrorsInOptionsFile(
+      r'''
+include: other_options1.yaml
+''',
+      [error(diag.includeFileNotFound, 9, 19)],
+    );
+  }
+
   test_pluginsInInnerOptions() {
     var code = '''
 plugins:
@@ -903,6 +1063,32 @@ version: 0.0.1
 ''');
     var diagnostics = AnalysisOptionsAnalyzer(
       initialSource: sourceFactory.forUri2(toUri(filePath))!,
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: null,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
+
+    assertErrorsInList(diagnostics, []);
+  }
+
+  test_pluginsInInnerOptions_included_notAtContextRoot() {
+    var inner1Path = '/inner1/analysis_options.yaml';
+    var inner2Path = '/inner2/analysis_options.yaml';
+    newFile(inner2Path, '''
+plugins:
+  one: ^1.0.0
+''');
+    var code = '''
+include: ../inner2/analysis_options.yaml
+''';
+    newFile(inner1Path, code);
+    newFile('/pubspec.yaml', '''
+name: test
+version: 0.0.1
+''');
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: sourceFactory.forUri2(toUri(inner1Path))!,
       sourceFactory: sourceFactory,
       contextRoot: '/',
       sdkVersionConstraint: null,
