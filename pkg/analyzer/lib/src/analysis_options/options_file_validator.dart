@@ -72,9 +72,9 @@ class AnalysisOptionsAnalyzer {
   final AnalysisOptionsProvider optionsProvider;
   String? firstPluginName;
 
-  /// Map whose keys are source files that were reached via `include`
-  /// directives, and whose values are the corresponding [SourceSpan]s of those
-  /// `include` directives.
+  /// Map whose keys are source files containing an `include` directive that is
+  /// currently being visited, and whose values are the corresponding
+  /// [SourceSpan]s of those `include` directives.
   final Map<Source, SourceSpan> includeChain = {};
 
   factory AnalysisOptionsAnalyzer({
@@ -223,21 +223,6 @@ class AnalysisOptionsAnalyzer {
       );
       return;
     }
-    var spanInChain = includeChain[includedSource];
-    if (spanInChain != null) {
-      initialDiagnosticReporter.report(
-        diag.includedFileWarning
-            .withArguments(
-              includingFilePath: includedSource,
-              startOffset: spanInChain.start.offset,
-              // TODO(paulberry): this is wrong (length != endOffset)
-              endOffset: spanInChain.length,
-              warningMessage: 'The file includes itself recursively.',
-            )
-            .atSourceSpan(initialIncludeSpan!),
-      );
-      return;
-    }
 
     try {
       var includedOptions = optionsProvider.getOptionsFromString(
@@ -246,6 +231,22 @@ class AnalysisOptionsAnalyzer {
       var previousDiagnosticListener = diagnosticListener;
       var previousDiagnosticReporter = diagnosticReporter;
       try {
+        assert(includeChain[source] == null);
+        includeChain[source] = includeSpan;
+        var spanInChain = includeChain[includedSource];
+        if (spanInChain != null) {
+          initialDiagnosticReporter.report(
+            diag.includedFileWarning
+                .withArguments(
+                  includingFilePath: includedSource,
+                  startOffset: spanInChain.start.offset,
+                  endOffset: spanInChain.end.offset - 1,
+                  warningMessage: 'The file includes itself recursively.',
+                )
+                .atSourceSpan(initialIncludeSpan!),
+          );
+          return;
+        }
         diagnosticListener = _IncludedDiagnosticListener(
           source: includedSource,
           initialDiagnosticReporter: initialDiagnosticReporter,
@@ -255,12 +256,11 @@ class AnalysisOptionsAnalyzer {
           diagnosticListener,
           includedSource,
         );
-        includeChain[includedSource] = includeSpan;
         _validate(includedOptions);
       } finally {
         diagnosticListener = previousDiagnosticListener;
         diagnosticReporter = previousDiagnosticReporter;
-        includeChain.remove(includedSource);
+        includeChain.remove(source);
       }
       firstPluginName ??= _firstPluginName(includedOptions);
       // Validate the 'plugins' option in [options], taking into account any

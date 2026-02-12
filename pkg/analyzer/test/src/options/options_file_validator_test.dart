@@ -772,10 +772,8 @@ include: other_options1.yaml
           29,
           19,
           messageContains: [
-            // TODO(paulberry): the source location
-            // `/other_options1.yaml(29..19)` is incorrect.
             "Warning in the included options file "
-                "/other_options1.yaml(29..19): The file includes itself "
+                "/other_options1.yaml(9..27): The file includes itself "
                 "recursively.",
           ],
         ),
@@ -825,9 +823,7 @@ include: other_options.yaml
           19,
           18,
           messageContains: [
-            // TODO(paulberry): the source location
-            // `/other_options.yaml(19..19)` is incorrect.
-            "Warning in the included options file /other_options.yaml(19..18): "
+            "Warning in the included options file /other_options.yaml(9..26): "
                 "The file includes itself recursively.",
           ],
         ),
