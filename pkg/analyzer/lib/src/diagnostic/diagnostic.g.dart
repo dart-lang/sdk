@@ -11027,12 +11027,12 @@ const DiagnosticWithoutArguments multipleWithClauses =
     );
 
 /// Parameters:
-/// Object type: the type that should be a valid dart:ffi native type.
+/// Type type: the type that should be a valid dart:ffi native type.
 /// String functionName: the name of the function whose invocation depends on
 ///                      this relationship
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object type,
+    required DartType type,
     required String functionName,
   })
 >
@@ -11047,7 +11047,7 @@ mustBeANativeFunctionType = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'must_be_a_native_function_type',
   withArguments: _withArgumentsMustBeANativeFunctionType,
-  expectedTypes: [ExpectedType.object, ExpectedType.string],
+  expectedTypes: [ExpectedType.type, ExpectedType.string],
 );
 
 /// Parameters:
@@ -20045,7 +20045,7 @@ LocatableDiagnostic _withArgumentsMultiplePlugins({
 }
 
 LocatableDiagnostic _withArgumentsMustBeANativeFunctionType({
-  required Object type,
+  required DartType type,
   required String functionName,
 }) {
   return LocatableDiagnosticImpl(diag.mustBeANativeFunctionType, [

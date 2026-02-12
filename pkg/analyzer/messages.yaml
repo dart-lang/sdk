@@ -21577,7 +21577,7 @@ FfiCode:
   mustBeANativeFunctionType:
     type: compileTimeError
     parameters:
-      Object type: the type that should be a valid dart:ffi native type.
+      Type type: the type that should be a valid dart:ffi native type.
       String functionName: the name of the function whose invocation depends on this relationship
     problemMessage: "The type '#type' given to '#functionName' must be a valid 'dart:ffi' native function type."
     correctionMessage: "Try changing the type to only use members for 'dart:ffi'."

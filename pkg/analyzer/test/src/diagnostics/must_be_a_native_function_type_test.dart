@@ -26,7 +26,14 @@ class C<T extends Function> {
   }
 }
 ''',
-      [error(diag.mustBeANativeFunctionType, 110, 1)],
+      [
+        error(
+          diag.mustBeANativeFunctionType,
+          110,
+          1,
+          messageContains: ["The type 'T' given to 'fromFunction' must be"],
+        ),
+      ],
     );
   }
 
@@ -40,7 +47,14 @@ void f(DynamicLibrary lib) {
   lib.lookupFunction<S, F>('g');
 }
 ''',
-      [error(diag.mustBeANativeFunctionType, 137, 1)],
+      [
+        error(
+          diag.mustBeANativeFunctionType,
+          137,
+          1,
+          messageContains: ["The type 'S' given to 'lookupFunction' must be"],
+        ),
+      ],
     );
   }
 

@@ -549,7 +549,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           // Function annotated with something that isn't a function type.
           _diagnosticReporter.report(
             diag.mustBeANativeFunctionType
-                .withArguments(type: 'T', functionName: 'Native')
+                .withArguments(type: ffiSignature, functionName: 'Native')
                 .at(errorNode),
           );
         } else {

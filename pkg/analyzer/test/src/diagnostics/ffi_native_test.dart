@@ -72,7 +72,16 @@ void main() {
   print(Native.addressOf(foo));
 }
 ''',
-      [error(diag.mustBeANativeFunctionType, 91, 21)],
+      [
+        error(
+          diag.mustBeANativeFunctionType,
+          91,
+          21,
+          messageContains: [
+            "The type 'NativeType' given to 'Native.addressOf' must be",
+          ],
+        ),
+      ],
     );
   }
 
@@ -88,7 +97,16 @@ void main() {
   print(Native.addressOf(foo));
 }
 ''',
-      [error(diag.mustBeANativeFunctionType, 74, 21)],
+      [
+        error(
+          diag.mustBeANativeFunctionType,
+          74,
+          21,
+          messageContains: [
+            "The type 'NativeType' given to 'Native.addressOf' must be",
+          ],
+        ),
+      ],
     );
   }
 
@@ -342,7 +360,16 @@ import 'dart:ffi';
 @Native<IntPtr Function(int)>(symbol: 'doesntmatter')
 external int nonFfiParameter(int v);
 ''',
-      [error(diag.mustBeANativeFunctionType, 86, 15)],
+      [
+        error(
+          diag.mustBeANativeFunctionType,
+          86,
+          15,
+          messageContains: [
+            "The type 'IntPtr Function(int)' given to 'Native' must be",
+          ],
+        ),
+      ],
     );
   }
 
@@ -627,7 +654,14 @@ import 'dart:ffi';
 @Native<IntPtr>()
 external int foo();
 ''',
-      [error(diag.mustBeANativeFunctionType, 51, 3)],
+      [
+        error(
+          diag.mustBeANativeFunctionType,
+          51,
+          3,
+          messageContains: ["The type 'IntPtr' given to 'Native' must be"],
+        ),
+      ],
     );
   }
 
