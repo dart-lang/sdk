@@ -87,27 +87,17 @@ class InformativeDataApplier {
       applier.applyToParts(libraryFragment.parts);
     });
 
-    _applyToAccessors(
-      libraryFragment.getters.withOriginDeclaration,
-      unitInfo.topLevelGetters,
-    );
-    _applyToAccessors(
-      libraryFragment.setters.withOriginDeclaration,
-      unitInfo.topLevelSetters,
-    );
+    _applyToAccessors(libraryFragment.getters, unitInfo.topLevelGetters);
+    _applyToAccessors(libraryFragment.setters, unitInfo.topLevelSetters);
 
     forCorrespondingPairs(
-      libraryFragment.classes
-          .where((fragment) => !fragment.isMixinApplication)
-          .toList(),
+      libraryFragment.classes.where((fragment) => !fragment.isMixinApplication),
       unitInfo.classDeclarations,
       _applyToClassDeclaration,
     );
 
     forCorrespondingPairs(
-      libraryFragment.classes
-          .where((fragment) => fragment.isMixinApplication)
-          .toList(),
+      libraryFragment.classes.where((fragment) => fragment.isMixinApplication),
       unitInfo.classTypeAliases,
       _applyToClassTypeAlias,
     );
@@ -149,12 +139,13 @@ class InformativeDataApplier {
     );
 
     forCorrespondingPairs(
-      libraryFragment.typeAliases.cast<TypeAliasFragmentImpl>().toList(),
+      libraryFragment.typeAliases,
       unitInfo.typeAliases,
       _applyToTypeAlias,
     );
   }
 
+  /// This calls `withOriginDeclaration` on [fragmentList].
   void _applyToAccessors(
     List<PropertyAccessorFragmentImpl> fragmentList,
     List<_InfoExecutableDeclaration> infoList,
@@ -393,15 +384,18 @@ class InformativeDataApplier {
     List<FormalParameterFragmentImpl> parameters,
     List<_InfoFormalParameter> infoList,
   ) {
-    parameters = parameters.where((p) => p.isOriginDeclaration).toList();
-    forCorrespondingPairs(parameters, infoList, (fragment, info) {
-      fragment.setCodeRange(info.codeOffset, info.codeLength);
-      fragment.firstTokenOffset = info.firstTokenOffset;
-      fragment.nameOffset = info.nameOffset;
-      fragment.documentationComment = info.documentationComment;
-      _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
-      _applyToFormalParameters(fragment.formalParameters, info.parameters);
-    });
+    forCorrespondingPairs(
+      parameters.where((p) => p.isOriginDeclaration),
+      infoList,
+      (fragment, info) {
+        fragment.setCodeRange(info.codeOffset, info.codeLength);
+        fragment.firstTokenOffset = info.firstTokenOffset;
+        fragment.nameOffset = info.nameOffset;
+        fragment.documentationComment = info.documentationComment;
+        _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
+        _applyToFormalParameters(fragment.formalParameters, info.parameters);
+      },
+    );
   }
 
   void _applyToFunctionDeclaration(
@@ -568,27 +562,101 @@ class InformativeDataApplier {
 
 class _InfoBuilder {
   _InfoUnit build(CompilationUnit unit) {
+    // Build all needed lists from `unit.declarations` with a single iteration
+    // the list.
+    var classDeclarations = <_InfoClassDeclaration>[];
+    var classTypeAliases = <_InfoClassTypeAlias>[];
+    var enums = <_InfoEnumDeclaration>[];
+    var extensions = <_InfoExtensionDeclaration>[];
+    var extensionTypes = <_InfoExtensionTypeDeclaration>[];
+    var mixinDeclarations = <_InfoMixinDeclaration>[];
+    var topLevelFunctions = <_InfoExecutableDeclaration>[];
+    var topLevelGetters = <_InfoExecutableDeclaration>[];
+    var topLevelSetters = <_InfoExecutableDeclaration>[];
+    var topLevelVariable = <_InfoTopLevelVariable>[];
+    var typeAliases = <_InfoTypeAlias>[];
+    for (var declaration in unit.declarations) {
+      if (declaration is ClassDeclaration) {
+        classDeclarations.add(_buildClass(declaration));
+      } else if (declaration is ClassTypeAlias) {
+        classTypeAliases.add(_buildClassTypeAlias(declaration));
+      } else if (declaration is EnumDeclaration) {
+        enums.add(_buildEnum(declaration));
+      } else if (declaration is ExtensionDeclaration) {
+        extensions.add(_buildExtension(declaration));
+      } else if (declaration is ExtensionTypeDeclaration) {
+        extensionTypes.add(_buildExtensionType(declaration));
+      } else if (declaration is MixinDeclaration) {
+        mixinDeclarations.add(_buildMixin(declaration));
+      } else if (declaration is FunctionDeclaration) {
+        if (declaration.isGetter) {
+          topLevelGetters.add(_buildTopLevelFunction(declaration));
+        } else if (declaration.isSetter) {
+          topLevelSetters.add(_buildTopLevelFunction(declaration));
+        } else {
+          topLevelFunctions.add(_buildTopLevelFunction(declaration));
+        }
+      } else if (declaration is TopLevelVariableDeclaration) {
+        for (var variable in declaration.variables.variables) {
+          topLevelVariable.add(_buildTopLevelVariable(variable));
+        }
+      } else if (declaration is FunctionTypeAlias) {
+        typeAliases.add(_buildFunctionTypeAlias(declaration));
+      } else if (declaration is GenericTypeAlias) {
+        typeAliases.add(_buildGenericTypeAlias(declaration));
+      }
+    }
+
+    // Build all needed lists from `unit.directives` with a single iteration
+    // the list.
+    var imports = <_InfoImport>[];
+    var exports = <_InfoExport>[];
+    var parts = <_InfoPart>[];
+    var rawImports = <ImportDirective>[];
+    var rawExports = <ExportDirective>[];
+    var rawParts = <PartDirective>[];
+    LibraryDirective? firstLibraryDirective;
+    for (var directive in unit.directives) {
+      if (directive is ImportDirective) {
+        rawImports.add(directive);
+        imports.add(_buildImport(directive));
+      } else if (directive is ExportDirective) {
+        rawExports.add(directive);
+        exports.add(_buildExport(directive));
+      } else if (directive is PartDirective) {
+        rawParts.add(directive);
+        parts.add(_buildPart(directive));
+      } else if (directive is LibraryDirective) {
+        firstLibraryDirective ??= directive;
+      }
+    }
+
     return _InfoUnit(
       codeOffset: unit.offset,
       codeLength: unit.length,
       lineStarts: unit.lineInfo.lineStarts,
-      libraryName: _buildLibraryName(unit),
-      libraryConstantOffsets: _buildLibraryConstantOffsets(unit),
+      libraryName: _buildLibraryName(firstLibraryDirective),
+      libraryConstantOffsets: _buildLibraryConstantOffsets(
+        unit.directives.firstOrNull,
+        rawImports,
+        rawExports,
+        rawParts,
+      ),
       docComment: _getDocumentationComment(unit.directives.firstOrNull),
-      imports: _buildImports(unit),
-      exports: _buildExports(unit),
-      parts: _buildParts(unit),
-      classDeclarations: _buildClasses(unit),
-      classTypeAliases: _buildClassTypeAliases(unit),
-      enums: _buildEnums(unit),
-      extensions: _buildExtensions(unit),
-      extensionTypes: _buildExtensionTypes(unit),
-      mixinDeclarations: _buildMixins(unit),
-      topLevelFunctions: _buildTopLevelFunctions(unit),
-      topLevelGetters: _buildTopLevelGetters(unit),
-      topLevelSetters: _buildTopLevelSetters(unit),
-      topLevelVariable: _buildTopLevelVariables(unit),
-      typeAliases: _buildTypeAliases(unit),
+      imports: imports,
+      exports: exports,
+      parts: parts,
+      classDeclarations: classDeclarations,
+      classTypeAliases: classTypeAliases,
+      enums: enums,
+      extensions: extensions,
+      extensionTypes: extensionTypes,
+      mixinDeclarations: mixinDeclarations,
+      topLevelFunctions: topLevelFunctions,
+      topLevelGetters: topLevelGetters,
+      topLevelSetters: topLevelSetters,
+      topLevelVariable: topLevelVariable,
+      typeAliases: typeAliases,
     );
   }
 
@@ -604,13 +672,6 @@ class _InfoBuilder {
     );
   }
 
-  List<_InfoClassDeclaration> _buildClasses(CompilationUnit unit) {
-    return unit.declarations
-        .whereType<ClassDeclaration>()
-        .map(_buildClass)
-        .toList();
-  }
-
   _InfoClassTypeAlias _buildClassTypeAlias(ClassTypeAlias node) {
     return _InfoClassTypeAlias(
       firstTokenOffset: node.offset,
@@ -624,13 +685,6 @@ class _InfoBuilder {
         typeParameters: node.typeParameters,
       ),
     );
-  }
-
-  List<_InfoClassTypeAlias> _buildClassTypeAliases(CompilationUnit unit) {
-    return unit.declarations
-        .whereType<ClassTypeAlias>()
-        .map(_buildClassTypeAlias)
-        .toList();
   }
 
   _InfoCombinator _buildCombinator(Combinator node) {
@@ -767,25 +821,11 @@ class _InfoBuilder {
     );
   }
 
-  List<_InfoEnumDeclaration> _buildEnums(CompilationUnit unit) {
-    return unit.declarations
-        .whereType<EnumDeclaration>()
-        .map(_buildEnum)
-        .toList();
-  }
-
   _InfoExport _buildExport(ExportDirective node) {
     return _InfoExport(
       exportKeywordOffset: node.exportKeyword.offset,
       combinators: _buildCombinators(node.combinators),
     );
-  }
-
-  List<_InfoExport> _buildExports(CompilationUnit unit) {
-    return unit.directives
-        .whereType<ExportDirective>()
-        .map(_buildExport)
-        .toList();
   }
 
   _InfoExtensionDeclaration _buildExtension(ExtensionDeclaration node) {
@@ -797,13 +837,6 @@ class _InfoBuilder {
         members: node.body.members,
       ),
     );
-  }
-
-  List<_InfoExtensionDeclaration> _buildExtensions(CompilationUnit unit) {
-    return unit.declarations
-        .whereType<ExtensionDeclaration>()
-        .map(_buildExtension)
-        .toList();
   }
 
   _InfoExtensionTypeDeclaration _buildExtensionType(
@@ -818,15 +851,6 @@ class _InfoBuilder {
         members: node.body.tryCast<BlockClassBody>()?.members ?? [],
       ),
     );
-  }
-
-  List<_InfoExtensionTypeDeclaration> _buildExtensionTypes(
-    CompilationUnit unit,
-  ) {
-    return unit.declarations
-        .whereType<ExtensionTypeDeclaration>()
-        .map(_buildExtensionType)
-        .toList();
   }
 
   _InfoFieldDeclaration _buildField(VariableDeclaration node) {
@@ -917,13 +941,6 @@ class _InfoBuilder {
     );
   }
 
-  List<_InfoImport> _buildImports(CompilationUnit unit) {
-    return unit.directives
-        .whereType<ImportDirective>()
-        .map(_buildImport)
-        .toList();
-  }
-
   _InstanceData _buildInstanceData(
     Declaration node, {
     required Token? name,
@@ -931,6 +948,28 @@ class _InfoBuilder {
     required List<ClassMember> members,
     List<_InfoFieldDeclaration>? fields,
   }) {
+    // Build all needed lists based on `members` with a single iteration the list.
+    var getters = <_InfoExecutableDeclaration>[];
+    var setters = <_InfoExecutableDeclaration>[];
+    var methods = <_InfoExecutableDeclaration>[];
+    bool processFields = fields == null;
+    fields ??= <_InfoFieldDeclaration>[];
+    for (var member in members) {
+      if (member is MethodDeclaration) {
+        if (member.isGetter) {
+          getters.add(_buildMethodDeclaration(member));
+        } else if (member.isSetter) {
+          setters.add(_buildMethodDeclaration(member));
+        } else {
+          methods.add(_buildMethodDeclaration(member));
+        }
+      } else if (processFields && member is FieldDeclaration) {
+        for (var variable in member.fields.variables) {
+          fields.add(_buildField(variable));
+        }
+      }
+    }
+
     var annotatedNode = node as AnnotatedNode;
     return _InstanceData(
       firstTokenOffset: node.offset,
@@ -939,28 +978,10 @@ class _InfoBuilder {
       nameOffset: name?.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(annotatedNode),
       typeParameters: _buildTypeParameters(typeParameters),
-      fields:
-          fields ??
-          members
-              .whereType<FieldDeclaration>()
-              .expand((declaration) => declaration.fields.variables)
-              .map((node) => _buildField(node))
-              .toList(),
-      getters: members
-          .whereType<MethodDeclaration>()
-          .where((node) => node.isGetter)
-          .map(_buildMethodDeclaration)
-          .toList(),
-      setters: members
-          .whereType<MethodDeclaration>()
-          .where((node) => node.isSetter)
-          .map(_buildMethodDeclaration)
-          .toList(),
-      methods: members
-          .whereType<MethodDeclaration>()
-          .where((node) => !node.isGetter && !node.isSetter)
-          .map(_buildMethodDeclaration)
-          .toList(),
+      fields: fields,
+      getters: getters,
+      setters: setters,
+      methods: methods,
       constantOffsets: _buildConstantOffsets(
         metadata: annotatedNode.metadata,
         typeParameters: typeParameters,
@@ -1001,34 +1022,27 @@ class _InfoBuilder {
     );
   }
 
-  Uint32List _buildLibraryConstantOffsets(CompilationUnit unit) {
-    Directive? firstDirective;
-    for (var directive in unit.directives) {
-      firstDirective ??= directive;
-      if (directive is LibraryDirective) {
-        break;
-      }
-    }
+  Uint32List _buildLibraryConstantOffsets(
+    Directive? firstDirective,
+    List<ImportDirective> imports,
+    List<ExportDirective> exports,
+    List<PartDirective> parts,
+  ) {
     return _buildConstantOffsets(
       metadata: firstDirective?.metadata,
-      importDirectives: unit.directives.whereType<ImportDirective>(),
-      exportDirectives: unit.directives.whereType<ExportDirective>(),
-      partDirectives: unit.directives.whereType<PartDirective>(),
+      importDirectives: imports,
+      exportDirectives: exports,
+      partDirectives: parts,
     );
   }
 
-  _InfoLibraryName _buildLibraryName(CompilationUnit unit) {
+  _InfoLibraryName _buildLibraryName(LibraryDirective? firstLibraryDirective) {
     var nameOffset = -1;
     var nameLength = 0;
-    for (var directive in unit.directives) {
-      if (directive is LibraryDirective) {
-        var libraryName = directive.name;
-        if (libraryName != null) {
-          nameOffset = libraryName.offset;
-          nameLength = libraryName.length;
-        }
-        break;
-      }
+    var libraryName = firstLibraryDirective?.name;
+    if (libraryName != null) {
+      nameOffset = libraryName.offset;
+      nameLength = libraryName.length;
     }
     return _InfoLibraryName(offset: nameOffset, length: nameLength);
   }
@@ -1061,19 +1075,8 @@ class _InfoBuilder {
     );
   }
 
-  List<_InfoMixinDeclaration> _buildMixins(CompilationUnit unit) {
-    return unit.declarations
-        .whereType<MixinDeclaration>()
-        .map(_buildMixin)
-        .toList();
-  }
-
   _InfoPart _buildPart(PartDirective node) {
     return _InfoPart(partKeywordOffset: node.partKeyword.offset);
-  }
-
-  List<_InfoPart> _buildParts(CompilationUnit unit) {
-    return unit.directives.whereType<PartDirective>().map(_buildPart).toList();
   }
 
   _InfoConstructorDeclaration _buildPrimaryConstructor(
@@ -1121,32 +1124,6 @@ class _InfoBuilder {
     );
   }
 
-  List<_InfoExecutableDeclaration> _buildTopLevelFunctions(
-    CompilationUnit unit,
-  ) {
-    return unit.declarations
-        .whereType<FunctionDeclaration>()
-        .where((node) => !(node.isGetter || node.isSetter))
-        .map(_buildTopLevelFunction)
-        .toList();
-  }
-
-  List<_InfoExecutableDeclaration> _buildTopLevelGetters(CompilationUnit unit) {
-    return unit.declarations
-        .whereType<FunctionDeclaration>()
-        .where((node) => node.isGetter)
-        .map(_buildTopLevelFunction)
-        .toList();
-  }
-
-  List<_InfoExecutableDeclaration> _buildTopLevelSetters(CompilationUnit unit) {
-    return unit.declarations
-        .whereType<FunctionDeclaration>()
-        .where((node) => node.isSetter)
-        .map(_buildTopLevelFunction)
-        .toList();
-  }
-
   _InfoTopLevelVariable _buildTopLevelVariable(VariableDeclaration node) {
     var codeOffset = _codeOffsetForVariable(node);
     var declaration = node.parent!.parent as TopLevelVariableDeclaration;
@@ -1161,30 +1138,6 @@ class _InfoBuilder {
         constantInitializer: node.initializer,
       ),
     );
-  }
-
-  List<_InfoTopLevelVariable> _buildTopLevelVariables(CompilationUnit unit) {
-    return unit.declarations
-        .whereType<TopLevelVariableDeclaration>()
-        .expand((declaration) => declaration.variables.variables)
-        .map(_buildTopLevelVariable)
-        .toList();
-  }
-
-  List<_InfoTypeAlias> _buildTypeAliases(CompilationUnit unit) {
-    return unit.declarations
-        .map((declaration) {
-          switch (declaration) {
-            case FunctionTypeAlias():
-              return _buildFunctionTypeAlias(declaration);
-            case GenericTypeAlias():
-              return _buildGenericTypeAlias(declaration);
-            default:
-              return null;
-          }
-        })
-        .nonNulls
-        .toList();
   }
 
   _InfoTypeParameter _buildTypeParameter(TypeParameter node) {
@@ -2341,8 +2294,8 @@ extension _ListOfPropertyAccessorFragment<
   T extends PropertyAccessorFragmentImpl
 >
     on List<T> {
-  List<T> get withOriginDeclaration {
-    return where((e) => e.isOriginDeclaration).toList();
+  Iterable<T> get withOriginDeclaration {
+    return where((e) => e.isOriginDeclaration);
   }
 }
 
@@ -2350,7 +2303,7 @@ extension _ListOfPropertyInducingFragment<
   T extends PropertyInducingFragmentImpl
 >
     on List<T> {
-  List<T> get withOriginDeclaration {
-    return where((e) => e.isOriginDeclaration).toList();
+  Iterable<T> get withOriginDeclaration {
+    return where((e) => e.isOriginDeclaration);
   }
 }

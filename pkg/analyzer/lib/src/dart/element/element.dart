@@ -6480,7 +6480,7 @@ class LibraryElementImpl extends ElementImpl
   bool isFromDeprecatedExport(ExportedReference reference) {
     if (reference is ExportedReferenceExported) {
       for (var location in reference.locations) {
-        var fragment = _fragments[location.fragmentIndex];
+        var fragment = _fragmentAt(location.fragmentIndex);
         var export = fragment.libraryExports[location.exportIndex];
         if (!export.metadata.hasDeprecated) {
           return false;
@@ -6530,6 +6530,11 @@ class LibraryElementImpl extends ElementImpl
     for (var child in children) {
       child.accept(visitor);
     }
+  }
+
+  /// Optimization of [_fragments] when using a single element.
+  LibraryFragmentImpl _fragmentAt(int index) {
+    return index == 0 ? _firstFragment : _partUnits[index - 1];
   }
 
   static T? _getElementByName<T extends Element>(
