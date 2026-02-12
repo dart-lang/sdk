@@ -871,7 +871,7 @@ class Cascade extends Expression {
         .allocateTmp(location: location);
     h.typeAnalyzer._currentCascadeTargetType = h.flow
         .cascadeExpression_afterTarget(
-          target,
+          h.flow.getExpressionInfo(target),
           targetType,
           isNullAware: isNullAware,
         );
@@ -2825,7 +2825,7 @@ class MapEntry extends CollectionElement {
     }
     var keyType = h.typeAnalyzer.analyzeExpression(key, keySchema).type;
     h.flow.nullAwareMapEntry_valueBegin(
-      key,
+      h.flow.getExpressionInfo(key),
       keyType,
       isKeyNullAware: isKeyNullAware,
     );
@@ -5738,7 +5738,7 @@ class VariableDeclaration extends Statement {
       h.flow.initialize(
         variable,
         SharedTypeView(initializerType),
-        initializer,
+        h.flow.getExpressionInfo(initializer),
         isFinal: isFinal,
         isLate: isLate,
         isImplicitlyTyped: declaredType == null,
@@ -5914,7 +5914,7 @@ class VariableReference extends LValue {
         assignmentExpression,
         variable,
         SharedTypeView(writtenType),
-        rhs,
+        h.flow.getExpressionInfo(rhs),
       ),
     );
   }

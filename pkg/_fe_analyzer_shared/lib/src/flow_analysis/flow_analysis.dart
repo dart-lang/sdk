@@ -318,10 +318,10 @@ abstract class FlowAnalysis<
 
   /// Call this method just after visiting the target of a cascade expression.
   ///
-  /// [target] is the target expression (the expression before the first `..` or
-  /// `?..`), and [targetType] is its static type. [isNullAware] indicates
-  /// whether the cascade expression is null-aware (meaning its first separator
-  /// is `?..` rather than `..`).
+  /// [targetInfo] is the expression info for the target expression (the
+  /// expression before the first `..` or `?..`), and [targetType] is its static
+  /// type. [isNullAware] indicates whether the cascade expression is null-aware
+  /// (meaning its first separator is `?..` rather than `..`).
   ///
   /// If the [isNullAware] is `true`, and the client desugars the null-aware
   /// access using a guard variable (e.g., if it desugars `a?.b` into `let x = a
@@ -340,7 +340,7 @@ abstract class FlowAnalysis<
   /// - If this is a null-aware cascade, call [nullAwareAccess_end].
   /// - Call [cascadeExpression_end].
   SharedTypeView cascadeExpression_afterTarget(
-    Expression target,
+    ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     required bool isNullAware,
     Variable? guardVariable,
@@ -626,12 +626,6 @@ abstract class FlowAnalysis<
   /// local function.
   void functionExpression_end();
 
-  /// Gets the [ExpressionInfo] associated with the [expression].
-  ///
-  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
-  /// the [expression], then `null` is returned.
-  ExpressionInfo? getExpressionInfo(Expression? expression);
-
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
   ///
@@ -758,11 +752,12 @@ abstract class FlowAnalysis<
   /// with an implicit value).
   ///
   /// If the initialized value is not known (i.e. because this is a variable
-  /// pattern that's being matched), pass `null` for [initializerExpression].
+  /// pattern that's being matched), pass `null` for
+  /// [initializerExpressionInfo].
   void initialize(
     Variable variable,
     SharedTypeView matchedType,
-    Expression? initializerExpression, {
+    ExpressionInfo? initializerExpressionInfo, {
     required bool isFinal,
     required bool isLate,
     required bool isImplicitlyTyped,
@@ -865,7 +860,7 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting the key of a null-aware map entry.
   void nullAwareMapEntry_valueBegin(
-    Expression key,
+    ExpressionInfo? keyInfo,
     SharedTypeView keyType, {
     required bool isKeyNullAware,
   });
@@ -1423,12 +1418,12 @@ abstract class FlowAnalysis<
 
   /// Registers a write of the given [variable] in the current state.
   ///
-  /// [writtenType] should be the type of the value that was written.
-  /// [node] should be the syntactic construct performing the write.
-  /// [writtenExpression] should be the expression that was written, or `null`
-  /// if the expression that was written is not directly represented in the
-  /// source code (this happens, for example, with compound assignments and with
-  /// for-each loops).
+  /// [writtenType] should be the type of the value that was written.  [node]
+  /// should be the syntactic construct performing the write.
+  /// [writtenExpressionInfo] should be the expression info for the expression
+  /// that was written, or `null` if the expression that was written is not
+  /// directly represented in the source code (this happens, for example, with
+  /// compound assignments and with for-each loops).
   ///
   /// Returns the expression info for the full assignment expression.
   ///
@@ -1438,7 +1433,7 @@ abstract class FlowAnalysis<
     Node node,
     Variable variable,
     SharedTypeView writtenType,
-    Expression? writtenExpression,
+    ExpressionInfo? writtenExpressionInfo,
   );
 
   /// Prints out a summary of the current state of flow analysis, intended for
@@ -1554,16 +1549,16 @@ class FlowAnalysisDebug<
 
   @override
   SharedTypeView cascadeExpression_afterTarget(
-    Expression target,
+    ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     required bool isNullAware,
     Variable? guardVariable,
   }) {
     return _wrap(
-      'cascadeExpression_afterTarget($target, $targetType, isNullAware: '
+      'cascadeExpression_afterTarget($targetInfo, $targetType, isNullAware: '
       '$isNullAware, guardVariable: $guardVariable)',
       () => _wrapped.cascadeExpression_afterTarget(
-        target,
+        targetInfo,
         targetType,
         isNullAware: isNullAware,
         guardVariable: guardVariable,
@@ -1961,19 +1956,19 @@ class FlowAnalysisDebug<
   void initialize(
     Variable variable,
     SharedTypeView matchedType,
-    Expression? initializerExpression, {
+    ExpressionInfo? initializerExpressionInfo, {
     required bool isFinal,
     required bool isLate,
     required bool isImplicitlyTyped,
   }) {
     _wrap(
-      'initialize($variable, $matchedType, $initializerExpression, '
+      'initialize($variable, $matchedType, $initializerExpressionInfo, '
       'isFinal: $isFinal, isLate: $isLate, '
       'isImplicitlyTyped: $isImplicitlyTyped)',
       () => _wrapped.initialize(
         variable,
         matchedType,
-        initializerExpression,
+        initializerExpressionInfo,
         isFinal: isFinal,
         isLate: isLate,
         isImplicitlyTyped: isImplicitlyTyped,
@@ -2134,15 +2129,15 @@ class FlowAnalysisDebug<
 
   @override
   ExpressionInfo? nullAwareAccess_rightBegin(
-    Expression target,
+    ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
     return _wrap(
-      'nullAwareAccess_rightBegin($target, $targetType, '
+      'nullAwareAccess_rightBegin($targetInfo, $targetType, '
       'guardVariable: $guardVariable)',
       () => _wrapped.nullAwareAccess_rightBegin(
-        target,
+        targetInfo,
         targetType,
         guardVariable: guardVariable,
       ),
@@ -2161,15 +2156,15 @@ class FlowAnalysisDebug<
 
   @override
   void nullAwareMapEntry_valueBegin(
-    Expression key,
+    ExpressionInfo? keyInfo,
     SharedTypeView keyType, {
     required bool isKeyNullAware,
   }) {
     _wrap(
-      'nullAwareMapEntry_valueBegin($key, $keyType, '
+      'nullAwareMapEntry_valueBegin($keyInfo, $keyType, '
       'isKeyNullAware: $isKeyNullAware)',
       () => _wrapped.nullAwareMapEntry_valueBegin(
-        key,
+        keyInfo,
         keyType,
         isKeyNullAware: isKeyNullAware,
       ),
@@ -2668,11 +2663,11 @@ class FlowAnalysisDebug<
     Node node,
     Variable variable,
     SharedTypeView writtenType,
-    Expression? writtenExpression,
+    ExpressionInfo? writtenExpressionInfo,
   ) {
     return _wrap(
-      'write($node, $variable, $writtenType, $writtenExpression)',
-      () => _wrapped.write(node, variable, writtenType, writtenExpression),
+      'write($node, $variable, $writtenType, $writtenExpressionInfo)',
+      () => _wrapped.write(node, variable, writtenType, writtenExpressionInfo),
       isQuery: true,
       isPure: false,
     );
@@ -2748,8 +2743,9 @@ abstract interface class FlowAnalysisNullShortingInterface<
   /// It is _not_ necessary to call this method when visiting a cascade; that is
   /// performed automatically by [FlowAnalysis.cascadeExpression_afterTarget].
   ///
-  /// [target] should be the expression just before the null-aware operator, or
-  /// `null` if the null-aware access starts a cascade section.
+  /// [targetInfo] should be the expression info for the expression just before
+  /// the null-aware operator, or `null` if the null-aware access starts a
+  /// cascade section.
   ///
   /// [targetType] should be the type of the expression just before the
   /// null-aware operator, and should be non-null even if the null-aware access
@@ -2770,7 +2766,7 @@ abstract interface class FlowAnalysisNullShortingInterface<
   /// Returns the expression info for the target of the null-aware access, when
   /// it is not null.
   ExpressionInfo? nullAwareAccess_rightBegin(
-    Expression target,
+    ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     Variable? guardVariable,
   });
@@ -2781,6 +2777,12 @@ abstract interface class FlowAnalysisNullShortingInterface<
     Expression expression,
     ExpressionInfo? expressionInfo,
   );
+
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
+  ExpressionInfo? getExpressionInfo(Expression? expression);
 }
 
 /// An instance of the [FlowModel] class represents the information gathered by
@@ -5264,7 +5266,7 @@ class _FlowAnalysisImpl<
 
   @override
   SharedTypeView cascadeExpression_afterTarget(
-    Expression target,
+    ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     required bool isNullAware,
     Variable? guardVariable,
@@ -5280,9 +5282,7 @@ class _FlowAnalysisImpl<
     // hasn't been created yet (e.g. because it's not a read of a local
     // variable), create a fresh SSA node for it, so that field promotions that
     // occur during cascade sections will persist in later cascade sections.
-    _Reference? expressionReference = _getExpressionReference(
-      _getExpressionInfo(target),
-    );
+    _Reference? expressionReference = _getExpressionReference(targetInfo);
     SsaNode ssaNode = expressionReference?.ssaNode ?? new SsaNode();
     // Create a temporary reference to represent the implicit temporary variable
     // that holds the cascade target. It is important that this is different
@@ -5792,7 +5792,7 @@ class _FlowAnalysisImpl<
   void initialize(
     Variable variable,
     SharedTypeView matchedType,
-    Expression? initializerExpression, {
+    ExpressionInfo? initializerExpressionInfo, {
     required bool isFinal,
     required bool isLate,
     required bool isImplicitlyTyped,
@@ -5802,7 +5802,7 @@ class _FlowAnalysisImpl<
     _initialize(
       variableKey,
       matchedType,
-      _getExpressionInfo(initializerExpression),
+      initializerExpressionInfo,
       isFinal: isFinal,
       isLate: isLate,
       isImplicitlyTyped: isImplicitlyTyped,
@@ -6036,12 +6036,12 @@ class _FlowAnalysisImpl<
 
   @override
   ExpressionInfo? nullAwareAccess_rightBegin(
-    Expression target,
+    ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
     return _nullAwareAccess_rightBegin(
-      _getExpressionInfo(target),
+      targetInfo,
       targetType,
       guardVariable: guardVariable,
     );
@@ -6057,12 +6057,12 @@ class _FlowAnalysisImpl<
 
   @override
   void nullAwareMapEntry_valueBegin(
-    Expression key,
+    ExpressionInfo? keyInfo,
     SharedTypeView keyType, {
     required bool isKeyNullAware,
   }) {
     if (!isKeyNullAware) return;
-    _Reference? keyReference = _getExpressionReference(_getExpressionInfo(key));
+    _Reference? keyReference = _getExpressionReference(keyInfo);
     FlowModel shortcutState;
     _current = _current.split();
     if (keyReference != null) {
@@ -6824,14 +6824,9 @@ class _FlowAnalysisImpl<
     Node node,
     Variable variable,
     SharedTypeView writtenType,
-    Expression? writtenExpression,
+    ExpressionInfo? writtenExpressionInfo,
   ) {
-    return _write(
-      node,
-      variable,
-      writtenType,
-      _getExpressionInfo(writtenExpression),
-    );
+    return _write(node, variable, writtenType, writtenExpressionInfo);
   }
 
   /// Computes a [FlowModel] representing the state of execution after the

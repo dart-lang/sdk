@@ -4372,7 +4372,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         node,
         variable.astVariable,
         new SharedTypeView(rhsResult.inferredType),
-        rhsResult.expression,
+        flowAnalysis.getExpressionInfo(rhsResult.expression),
       ),
     );
     DartType resultType = rhsResult.inferredType;

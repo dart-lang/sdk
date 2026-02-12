@@ -1297,7 +1297,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
     }
     flowAnalysis.cascadeExpression_afterTarget(
-      result.expression,
+      flowAnalysis.getExpressionInfo(result.expression),
       new SharedTypeView(result.inferredType),
       isNullAware: node.isNullAware,
       guardVariable: node.variable,
@@ -7304,7 +7304,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     entry.key = key..parent = entry;
 
     flowAnalysis.nullAwareMapEntry_valueBegin(
-      key,
+      flowAnalysis.getExpressionInfo(key),
       new SharedTypeView(keyInferenceResult.inferredType),
       isKeyNullAware: entry.isKeyNullAware,
     );
@@ -17144,7 +17144,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.initialize(
         nodeVariable.astVariable,
         new SharedTypeView(initializerType),
-        initializerResult.expression,
+        flowAnalysis.getExpressionInfo(initializerResult.expression),
         isFinal: node.isFinal,
         isLate: node.isLate,
         isImplicitlyTyped: nodeVariable.isImplicitlyTyped,

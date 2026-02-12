@@ -115,7 +115,7 @@ class AssignmentExpressionResolver {
             node,
             writeElement2,
             SharedTypeView(node.typeOrThrow),
-            hasRead ? null : right,
+            hasRead ? null : flow.getExpressionInfo(right),
           ),
         );
       }
