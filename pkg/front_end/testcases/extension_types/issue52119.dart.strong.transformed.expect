@@ -2,24 +2,24 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue52119.dart:15:30: Error: Expected a representation type.
+// pkg/front_end/testcases/extension_types/issue52119.dart:17:30: Error: Expected a representation type.
 // extension type Bar<T>._(this.i) {
 //                              ^
 //
-// pkg/front_end/testcases/extension_types/issue52119.dart:15:30: Error: Primary constructors in extension types can't use initializing formals.
+// pkg/front_end/testcases/extension_types/issue52119.dart:17:30: Error: Primary constructors in extension types can't use initializing formals.
 // Try removing `this.` from the formal parameter.
 // extension type Bar<T>._(this.i) {
 //                              ^
 //
-// pkg/front_end/testcases/extension_types/issue52119.dart:12:26: Error: Couldn't find constructor 'Foo.unresolved'.
+// pkg/front_end/testcases/extension_types/issue52119.dart:14:26: Error: Couldn't find constructor 'Foo.unresolved'.
 //   Foo.erroneous() : this.unresolved(); // Error
 //                          ^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/issue52119.dart:12:3: Error: Final field 'i' is not initialized by this constructor.
+// pkg/front_end/testcases/extension_types/issue52119.dart:14:3: Error: Final field 'i' is not initialized by this constructor.
 // Try to initialize the field using an initializing formal or a field initializer.
 //   Foo.erroneous() : this.unresolved(); // Error
 //   ^^^^^^^^^
-// pkg/front_end/testcases/extension_types/issue52119.dart:5:26: Context: 'i' is defined here.
+// pkg/front_end/testcases/extension_types/issue52119.dart:7:26: Context: 'i' is defined here.
 // extension type Foo._(int i) {
 //                          ^
 //
@@ -84,7 +84,7 @@ static extension-type-member synthetic method Foo|constructor#_#named#tearOff(co
   return self::Foo|constructor#named(value, subtract: subtract);
 static extension-type-member erroneous method Foo|constructor#erroneous() → self::Foo% /* erasure=core::int, declared=! */ {
   lowered final self::Foo% /* erasure=core::int, declared=! */ #this;
-  invalid-expression "pkg/front_end/testcases/extension_types/issue52119.dart:12:26: Error: Couldn't find constructor 'Foo.unresolved'.
+  invalid-expression "pkg/front_end/testcases/extension_types/issue52119.dart:14:26: Error: Couldn't find constructor 'Foo.unresolved'.
   Foo.erroneous() : this.unresolved(); // Error
                          ^^^^^^^^^^";
   return #this;
