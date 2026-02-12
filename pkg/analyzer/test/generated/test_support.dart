@@ -12,7 +12,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
-import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_testing/utilities/extensions/diagnostic_code.dart';
 import 'package:test/test.dart';
 
 /// A diagnostic listener that collects all of the diagnostics passed to it for
@@ -489,16 +489,4 @@ class TestSourceWithUri extends TestSource {
     }
     return false;
   }
-}
-
-extension on DiagnosticCode {
-  /// The name of the constant in the analyzer package (or other related
-  /// package) that represents this diagnostic code.
-  ///
-  /// This string is used when generating test failure messages that suggest how
-  /// to change test expectations to match the current behavior.
-  ///
-  /// For example, if the unique name is `TestClass.MY_ERROR`, this method will
-  /// return `diag.myError`.
-  String get constantName => 'diag.${lowerCaseUniqueName.toCamelCase()}';
 }

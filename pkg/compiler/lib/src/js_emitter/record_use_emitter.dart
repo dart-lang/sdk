@@ -10,12 +10,17 @@
 /// null, List, Map, or constant objects.
 library;
 
-import 'package:compiler/src/elements/entities.dart';
 import 'package:record_use/record_use_internal.dart';
 
+import '../elements/entities.dart';
 import '../js/js.dart' as js;
 import '../universe/recorded_use.dart'
-    show RecordedCallWithArguments, RecordedTearOff, RecordedUse;
+    show
+        findInstanceValue,
+        RecordedCallWithArguments,
+        RecordedConstInstance,
+        RecordedTearOff,
+        RecordedUse;
 
 class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
   final RecordUseCollector _collector;
@@ -36,24 +41,38 @@ class RecordUseCollector {
   RecordUseCollector();
 
   final Map<FunctionEntity, List<CallReference>> callMap = {};
+  final Map<ClassEntity, List<InstanceReference>> instanceMap = {};
 
   js.JavaScriptAnnotationMonitor monitorFor(String fileName) {
     return _AnnotationMonitor(this, fileName);
   }
 
   void _register(String loadingUnit, RecordedUse recordedUse) {
-    if (!recordedUse.function.library.canonicalUri.isScheme('package')) {
-      return;
+    switch (recordedUse) {
+      case RecordedCallWithArguments():
+        final reference = CallWithArguments(
+          loadingUnit: loadingUnit,
+          namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
+          positionalArguments: recordedUse
+              .positionalArgumentsInRecordUseFormat(),
+        );
+        callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
+        break;
+      case RecordedTearOff():
+        final reference = CallTearoff(loadingUnit: loadingUnit);
+        callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
+        break;
+      case RecordedConstInstance():
+        final instanceValue = findInstanceValue(recordedUse.constant);
+        final reference = InstanceConstantReference(
+          instanceConstant: instanceValue,
+          loadingUnit: loadingUnit,
+        );
+        instanceMap
+            .putIfAbsent(recordedUse.constantClass, () => [])
+            .add(reference);
+        break;
     }
-    final callReference = switch (recordedUse) {
-      RecordedCallWithArguments() => CallWithArguments(
-        loadingUnit: loadingUnit,
-        namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
-        positionalArguments: recordedUse.positionalArgumentsInRecordUseFormat(),
-      ),
-      RecordedTearOff() => CallTearoff(loadingUnit: loadingUnit),
-    };
-    callMap.putIfAbsent(recordedUse.function, () => []).add(callReference);
   }
 
   Map<String, dynamic> finish(Map<String, String> environment) => Recordings(
@@ -72,6 +91,14 @@ class RecordUseCollector {
         value,
       ),
     ),
-    instances: <Definition, List<InstanceReference>>{},
+    instances: instanceMap.map((key, value) {
+      return MapEntry(
+        Definition(
+          importUri: key.library.canonicalUri.toString(),
+          name: key.name,
+        ),
+        value,
+      );
+    }),
   ).toJson();
 }

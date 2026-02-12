@@ -24,3 +24,4 @@ dev_dependencies:
   analyzer_utilities: any
   args: any
   lints: any
+  test_reflective_loader: any

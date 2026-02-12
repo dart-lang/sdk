@@ -2093,7 +2093,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
 
     flowAnalysis.flow!.cascadeExpression_afterTarget(
-      node.target,
+      flowAnalysis.flow!.getExpressionInfo(node.target),
       SharedTypeView(targetType),
       isNullAware: node.isNullAware,
     );
@@ -3309,7 +3309,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
 
     flowAnalysis.flow?.nullAwareMapEntry_valueBegin(
-      node.key,
+      flowAnalysis.flow?.getExpressionInfo(node.key),
       keyType,
       isKeyNullAware: node.keyQuestion != null,
     );
@@ -4216,7 +4216,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis.flow?.initialize(
         node.declaredFragment?.element as PromotableElementImpl,
         SharedTypeView(initializerStaticType),
-        initializer,
+        flowAnalysis.flow?.getExpressionInfo(initializer),
         isFinal: parent.isFinal,
         isLate: parent.isLate,
         isImplicitlyTyped: declaredType == null,

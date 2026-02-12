@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer_testing/utilities/extensions/diagnostic_code.dart';
 import 'package:test/test.dart';
 
 /// A description of a message that is expected to be reported with an error.
@@ -221,7 +222,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
       for (var actual in diagnostics) {
         var contextMessages = actual.contextMessages;
         buffer.write('  error(');
-        buffer.write(actual.diagnosticCode);
+        buffer.write(actual.diagnosticCode.constantName);
         buffer.write(', ');
         buffer.write(actual.offset);
         buffer.write(', ');

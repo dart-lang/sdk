@@ -110,7 +110,7 @@ mixin NullShortingMixin<
     flow.storeExpressionInfo(
       target,
       flow.nullAwareAccess_rightBegin(
-        target,
+        flow.getExpressionInfo(target),
         targetType,
         guardVariable: guardVariable,
       ),
