@@ -1069,6 +1069,7 @@ extension CheckHelper on ProblemReporting {
     required String parameterName,
     required Token nameToken,
     required Token? thisKeyword,
+    required bool isDeclaring,
     required LibraryFeatures libraryFeatures,
     required Uri fileUri,
   }) {
@@ -1078,7 +1079,7 @@ extension CheckHelper on ProblemReporting {
     String? publicName;
     if (kind.isNamed && parameterName.startsWith('_')) {
       // TODO(rnystrom): Also handle declaring field parameters.
-      bool refersToField = thisKeyword != null;
+      bool refersToField = thisKeyword != null || isDeclaring;
 
       if (libraryFeatures.privateNamedParameters.isEnabled) {
         if (!refersToField) {

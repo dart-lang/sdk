@@ -3049,7 +3049,9 @@ class OutlineBuilder extends StackListenerImpl {
     Object? name = pop(NullValues.Identifier);
     TypeBuilder? type = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
-    if (memberKind == MemberKind.PrimaryConstructor && varOrFinal != null) {
+    if (memberKind == MemberKind.PrimaryConstructor &&
+        (varOrFinal != null ||
+            declarationContext == DeclarationContext.ExtensionType)) {
       modifiers |= Modifiers.DeclaringParameter;
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
@@ -3068,6 +3070,7 @@ class OutlineBuilder extends StackListenerImpl {
         parameterName: parameterName,
         nameToken: nameToken,
         thisKeyword: thisKeyword,
+        isDeclaring: modifiers.isDeclaringParameter,
         libraryFeatures: libraryFeatures,
         fileUri: _compilationUnit.fileUri,
       );
