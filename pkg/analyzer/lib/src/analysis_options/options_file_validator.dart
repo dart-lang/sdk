@@ -21,6 +21,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
@@ -71,13 +72,27 @@ class AnalysisOptionsAnalyzer {
   final AnalysisOptionsProvider optionsProvider;
   String? firstPluginName;
 
+  /// The source file currently being visited. This is updated when traversing
+  /// an `include` directive.
+  Source source;
+
+  /// Map whose keys are source files that were reached via `include`
+  /// directives, and whose values are the corresponding [SourceSpan]s of those
+  /// `include` directives.
+  final Map<Source, SourceSpan> includeChain = {};
+
   AnalysisOptionsAnalyzer({
     required this.initialSource,
     required this.sourceFactory,
     required this.contextRoot,
     required this.sdkVersionConstraint,
     required this.resourceProvider,
-  }) : optionsProvider = AnalysisOptionsProvider(sourceFactory);
+  }) : optionsProvider = AnalysisOptionsProvider(sourceFactory),
+       source = initialSource;
+
+  /// Whether the source file currently being visited is the initial source
+  /// file.
+  bool get isPrimarySource => source == initialSource;
 
   List<Diagnostic> walkIncludes({required String content}) {
     try {
@@ -85,7 +100,7 @@ class AnalysisOptionsAnalyzer {
         content,
         sourceUrl: initialSource.uri,
       );
-      _validate(initialSource, options);
+      _validate(options);
     } on OptionsFormatException catch (e) {
       SourceSpan span = e.span!;
       diagnostics.add(
@@ -98,15 +113,16 @@ class AnalysisOptionsAnalyzer {
         ),
       );
     }
+    // Make sure `initialIncludeSpan`, `source`, and `includeChain` have been
+    // restored to their original states.
+    assert(initialIncludeSpan == null);
+    assert(identical(source, initialSource));
+    assert(includeChain.isEmpty);
     return diagnostics;
   }
 
-  void _addDirectErrorOrIncludedError(
-    List<Diagnostic> validationDiagnostics,
-    Source source, {
-    required bool isSourcePrimary,
-  }) {
-    if (!isSourcePrimary) {
+  void _addDirectErrorOrIncludedError(List<Diagnostic> validationDiagnostics) {
+    if (!isPrimarySource) {
       // [source] is an included file, and we should only report diagnostics in
       // [initialSource], noting that the included file has warnings.
       for (Diagnostic diagnostic in validationDiagnostics) {
@@ -134,27 +150,17 @@ class AnalysisOptionsAnalyzer {
   }
 
   // Validates the specified options and any included option files.
-  void _validate(
-    Source source,
-    YamlMap options, {
-    Map<Source, SourceSpan>? includeChain,
-  }) {
-    includeChain ??= {};
-    var isSourcePrimary = initialIncludeSpan == null;
+  void _validate(YamlMap options) {
     var validationErrors = OptionsFileValidator(
       source,
       sdkVersionConstraint: sdkVersionConstraint,
       contextRoot: contextRoot,
-      isPrimarySource: isSourcePrimary,
+      isPrimarySource: isPrimarySource,
       optionsProvider: optionsProvider,
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
     ).validate(options);
-    _addDirectErrorOrIncludedError(
-      validationErrors,
-      source,
-      isSourcePrimary: isSourcePrimary,
-    );
+    _addDirectErrorOrIncludedError(validationErrors);
 
     var includeNode = options.valueAt(AnalysisOptionsFile.include);
     if (includeNode == null) {
@@ -162,8 +168,6 @@ class AnalysisOptionsAnalyzer {
       // options are included.
       _addDirectErrorOrIncludedError(
         _validateLegacyPluginsOption(source, options: options),
-        source,
-        isSourcePrimary: isSourcePrimary,
       );
       return;
     }
@@ -175,25 +179,19 @@ class AnalysisOptionsAnalyzer {
     };
 
     for (var includeValue in includes) {
-      if (isSourcePrimary) {
-        initialIncludeSpan = null;
-        includeChain.clear();
+      var previousInitialIncludeSpan = initialIncludeSpan;
+      try {
+        var includeSpan = includeValue.span;
+        initialIncludeSpan ??= includeSpan;
+        _validateInclude(options, includeSpan);
+      } finally {
+        initialIncludeSpan = previousInitialIncludeSpan;
       }
-      _validateInclude(source, options, includeValue, {
-        ...includeChain,
-      }, isSourcePrimary: isSourcePrimary);
     }
   }
 
-  void _validateInclude(
-    Source source,
-    YamlMap options,
-    YamlNode includeNode,
-    Map<Source, SourceSpan> includeChain, {
-    required bool isSourcePrimary,
-  }) {
-    var includeSpan = includeNode.span;
-    initialIncludeSpan ??= includeSpan;
+  void _validateInclude(YamlMap options, SourceSpan includeSpan) {
+    assert(initialIncludeSpan != null);
     var includeUri = includeSpan.text;
     var (first, last) = (
       includeUri.codeUnits.firstOrNull,
@@ -248,13 +246,20 @@ class AnalysisOptionsAnalyzer {
       );
       return;
     }
-    includeChain[includedSource] = includeSpan;
 
     try {
       var includedOptions = optionsProvider.getOptionsFromString(
         includedSource.stringContents,
       );
-      _validate(includedSource, includedOptions, includeChain: includeChain);
+      var previousSource = source;
+      try {
+        source = includedSource;
+        includeChain[includedSource] = includeSpan;
+        _validate(includedOptions);
+      } finally {
+        source = previousSource;
+        includeChain.remove(includedSource);
+      }
       firstPluginName ??= _firstPluginName(includedOptions);
       // Validate the 'plugins' option in [options], taking into account any
       // plugins enabled by [includedOptions].
@@ -264,8 +269,6 @@ class AnalysisOptionsAnalyzer {
           options: options,
           firstEnabledPluginName: firstPluginName,
         ),
-        source,
-        isSourcePrimary: isSourcePrimary,
       );
     } on OptionsFormatException catch (e) {
       var args = [
