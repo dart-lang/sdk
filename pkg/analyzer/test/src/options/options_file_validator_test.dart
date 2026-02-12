@@ -7,12 +7,14 @@ import 'dart:mirrors';
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
@@ -641,7 +643,12 @@ analyzer:
 
   List<Diagnostic> validate(String source, List<DiagnosticCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
-    var diagnostics = validator.validate(options);
+    var diagnosticListener = RecordingDiagnosticListener();
+    validator.validate(
+      options,
+      DiagnosticReporter(diagnosticListener, StringSource(source, null)),
+    );
+    var diagnostics = diagnosticListener.diagnostics;
     expect(
       diagnostics.map((Diagnostic e) => e.diagnosticCode),
       unorderedEquals(expected),

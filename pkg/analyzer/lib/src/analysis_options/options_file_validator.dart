@@ -48,51 +48,79 @@ String? _firstPluginName(YamlMap options) {
 
 /// Validates the legacy 'plugins' options in [options], given
 /// [firstEnabledPluginName].
-List<Diagnostic> _validateLegacyPluginsOption(
-  Source source, {
+void _validateLegacyPluginsOption(
+  DiagnosticReporter diagnosticReporter, {
   required YamlMap options,
   String? firstEnabledPluginName,
 }) {
-  RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
-  DiagnosticReporter reporter = DiagnosticReporter(recorder, source);
   _LegacyPluginsOptionValidator(
     firstEnabledPluginName,
-  ).validate(reporter, options);
-  return recorder.diagnostics;
+  ).validate(diagnosticReporter, options);
 }
 
 class AnalysisOptionsAnalyzer {
-  final Source initialSource;
+  RecordingDiagnosticListener initialDiagnosticListener =
+      RecordingDiagnosticListener();
+  DiagnosticReporter initialDiagnosticReporter;
+  DiagnosticListener diagnosticListener;
+  DiagnosticReporter diagnosticReporter;
   final SourceFactory sourceFactory;
   final String contextRoot;
   final VersionConstraint? sdkVersionConstraint;
   final ResourceProvider resourceProvider;
-  final List<Diagnostic> diagnostics = [];
   SourceSpan? initialIncludeSpan;
   final AnalysisOptionsProvider optionsProvider;
   String? firstPluginName;
-
-  /// The source file currently being visited. This is updated when traversing
-  /// an `include` directive.
-  Source source;
 
   /// Map whose keys are source files that were reached via `include`
   /// directives, and whose values are the corresponding [SourceSpan]s of those
   /// `include` directives.
   final Map<Source, SourceSpan> includeChain = {};
 
-  AnalysisOptionsAnalyzer({
-    required this.initialSource,
+  factory AnalysisOptionsAnalyzer({
+    required Source initialSource,
+    required SourceFactory sourceFactory,
+    required String contextRoot,
+    required VersionConstraint? sdkVersionConstraint,
+    required ResourceProvider resourceProvider,
+  }) {
+    var initialDiagnosticListener = RecordingDiagnosticListener();
+    var initialDiagnosticReporter = DiagnosticReporter(
+      initialDiagnosticListener,
+      initialSource,
+    );
+    return AnalysisOptionsAnalyzer._(
+      initialDiagnosticListener: initialDiagnosticListener,
+      initialDiagnosticReporter: initialDiagnosticReporter,
+      diagnosticListener: initialDiagnosticListener,
+      diagnosticReporter: initialDiagnosticReporter,
+      sourceFactory: sourceFactory,
+      contextRoot: contextRoot,
+      sdkVersionConstraint: sdkVersionConstraint,
+      resourceProvider: resourceProvider,
+      optionsProvider: AnalysisOptionsProvider(sourceFactory),
+    );
+  }
+
+  AnalysisOptionsAnalyzer._({
+    required this.initialDiagnosticListener,
+    required this.initialDiagnosticReporter,
+    required this.diagnosticListener,
+    required this.diagnosticReporter,
     required this.sourceFactory,
     required this.contextRoot,
     required this.sdkVersionConstraint,
     required this.resourceProvider,
-  }) : optionsProvider = AnalysisOptionsProvider(sourceFactory),
-       source = initialSource;
+    required this.optionsProvider,
+  });
+
+  Source get initialSource => initialDiagnosticReporter.source;
 
   /// Whether the source file currently being visited is the initial source
   /// file.
   bool get isPrimarySource => source == initialSource;
+
+  Source get source => diagnosticReporter.source;
 
   List<Diagnostic> walkIncludes({required String content}) {
     try {
@@ -103,55 +131,26 @@ class AnalysisOptionsAnalyzer {
       _validate(options);
     } on OptionsFormatException catch (e) {
       SourceSpan span = e.span!;
-      diagnostics.add(
-        Diagnostic.tmp(
-          source: initialSource,
-          offset: span.start.offset,
-          length: span.length,
-          diagnosticCode: diag.parseError,
-          arguments: [e.message],
-        ),
+      diagnosticReporter.report(
+        diag.parseError
+            .withArguments(errorMessage: e.message)
+            .atSourceSpan(span),
       );
     }
-    // Make sure `initialIncludeSpan`, `source`, and `includeChain` have been
-    // restored to their original states.
+    // Make sure `initialIncludeSpan`, `source`, `includeChain`,
+    // `diagnosticListener`, and `diagnosticReporter` have been restored to
+    // their original states.
     assert(initialIncludeSpan == null);
     assert(identical(source, initialSource));
     assert(includeChain.isEmpty);
-    return diagnostics;
-  }
-
-  void _addDirectErrorOrIncludedError(List<Diagnostic> validationDiagnostics) {
-    if (!isPrimarySource) {
-      // [source] is an included file, and we should only report diagnostics in
-      // [initialSource], noting that the included file has warnings.
-      for (Diagnostic diagnostic in validationDiagnostics) {
-        var args = [
-          source.fullName,
-          diagnostic.offset.toString(),
-          (diagnostic.offset + diagnostic.length - 1).toString(),
-          diagnostic.message,
-        ];
-        diagnostics.add(
-          Diagnostic.tmp(
-            source: initialSource,
-            offset: initialIncludeSpan!.start.offset,
-            length: initialIncludeSpan!.length,
-            diagnosticCode: diag.includedFileWarning,
-            arguments: args,
-          ),
-        );
-      }
-    } else {
-      // [source] is the options file for [contextRoot]. Report all diagnostics
-      // directly.
-      diagnostics.addAll(validationDiagnostics);
-    }
+    assert(identical(diagnosticListener, initialDiagnosticListener));
+    assert(identical(diagnosticReporter, initialDiagnosticReporter));
+    return initialDiagnosticListener.diagnostics;
   }
 
   // Validates the specified options and any included option files.
   void _validate(YamlMap options) {
-    var validationErrors = OptionsFileValidator(
+    OptionsFileValidator(
       source,
       sdkVersionConstraint: sdkVersionConstraint,
       contextRoot: contextRoot,
@@ -159,16 +158,13 @@ class AnalysisOptionsAnalyzer {
       optionsProvider: optionsProvider,
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
-    ).validate(options);
-    _addDirectErrorOrIncludedError(validationErrors);
+    ).validate(options, diagnosticReporter);
 
     var includeNode = options.valueAt(AnalysisOptionsFile.include);
     if (includeNode == null) {
       // Validate the 'plugins' option in [options], understanding that no other
       // options are included.
-      _addDirectErrorOrIncludedError(
-        _validateLegacyPluginsOption(source, options: options),
-      );
+      _validateLegacyPluginsOption(diagnosticReporter, options: options);
       return;
     }
 
@@ -205,44 +201,40 @@ class AnalysisOptionsAnalyzer {
 
     var includedSource = sourceFactory.resolveUri(source, includeUri);
     if (includedSource == initialSource) {
-      diagnostics.add(
-        Diagnostic.tmp(
-          source: initialSource,
-          offset: initialIncludeSpan!.start.offset,
-          length: initialIncludeSpan!.length,
-          diagnosticCode: diag.recursiveIncludeFile,
-          arguments: [includeUri, source.fullName],
-        ),
+      initialDiagnosticReporter.report(
+        diag.recursiveIncludeFile
+            .withArguments(
+              includedUri: includeUri,
+              includingFilePath: source.fullName,
+            )
+            .atSourceSpan(initialIncludeSpan!),
       );
       return;
     }
     if (includedSource == null || !includedSource.exists()) {
-      diagnostics.add(
-        Diagnostic.tmp(
-          source: initialSource,
-          offset: initialIncludeSpan!.start.offset,
-          length: initialIncludeSpan!.length,
-          diagnosticCode: diag.includeFileNotFound,
-          arguments: [includeUri, source.fullName, contextRoot],
-        ),
+      initialDiagnosticReporter.report(
+        diag.includeFileNotFound
+            .withArguments(
+              includedUri: includeUri,
+              includingFilePath: source.fullName,
+              contextRootPath: contextRoot,
+            )
+            .atSourceSpan(initialIncludeSpan!),
       );
       return;
     }
     var spanInChain = includeChain[includedSource];
     if (spanInChain != null) {
-      diagnostics.add(
-        Diagnostic.tmp(
-          source: initialSource,
-          offset: initialIncludeSpan!.start.offset,
-          length: initialIncludeSpan!.length,
-          diagnosticCode: diag.includedFileWarning,
-          arguments: [
-            includedSource,
-            spanInChain.start.offset,
-            spanInChain.length,
-            'The file includes itself recursively.',
-          ],
-        ),
+      initialDiagnosticReporter.report(
+        diag.includedFileWarning
+            .withArguments(
+              includingFilePath: includedSource,
+              startOffset: spanInChain.start.offset,
+              // TODO(paulberry): this is wrong (length != endOffset)
+              endOffset: spanInChain.length,
+              warningMessage: 'The file includes itself recursively.',
+            )
+            .atSourceSpan(initialIncludeSpan!),
       );
       return;
     }
@@ -251,42 +243,45 @@ class AnalysisOptionsAnalyzer {
       var includedOptions = optionsProvider.getOptionsFromString(
         includedSource.stringContents,
       );
-      var previousSource = source;
+      var previousDiagnosticListener = diagnosticListener;
+      var previousDiagnosticReporter = diagnosticReporter;
       try {
-        source = includedSource;
+        diagnosticListener = _IncludedDiagnosticListener(
+          source: includedSource,
+          initialDiagnosticReporter: initialDiagnosticReporter,
+          initialIncludeSpan: initialIncludeSpan!,
+        );
+        diagnosticReporter = DiagnosticReporter(
+          diagnosticListener,
+          includedSource,
+        );
         includeChain[includedSource] = includeSpan;
         _validate(includedOptions);
       } finally {
-        source = previousSource;
+        diagnosticListener = previousDiagnosticListener;
+        diagnosticReporter = previousDiagnosticReporter;
         includeChain.remove(includedSource);
       }
       firstPluginName ??= _firstPluginName(includedOptions);
       // Validate the 'plugins' option in [options], taking into account any
       // plugins enabled by [includedOptions].
-      _addDirectErrorOrIncludedError(
-        _validateLegacyPluginsOption(
-          source,
-          options: options,
-          firstEnabledPluginName: firstPluginName,
-        ),
+      _validateLegacyPluginsOption(
+        diagnosticReporter,
+        options: options,
+        firstEnabledPluginName: firstPluginName,
       );
     } on OptionsFormatException catch (e) {
-      var args = [
-        includedSource.fullName,
-        e.span!.start.offset.toString(),
-        e.span!.end.offset.toString(),
-        e.message,
-      ];
       // Report diagnostics for included option files on the `include` directive
       // located in the initial options file.
-      diagnostics.add(
-        Diagnostic.tmp(
-          source: initialSource,
-          offset: initialIncludeSpan!.start.offset,
-          length: initialIncludeSpan!.length,
-          diagnosticCode: diag.includedFileParseError,
-          arguments: args,
-        ),
+      initialDiagnosticReporter.report(
+        diag.includedFileParseError
+            .withArguments(
+              includingFilePath: includedSource.fullName,
+              startOffset: e.span!.start.offset,
+              endOffset: e.span!.end.offset,
+              errorMessage: e.message,
+            )
+            .atSourceSpan(initialIncludeSpan!),
       );
     }
   }
@@ -309,13 +304,10 @@ class AnalyzerOptionsValidator extends _CompositeValidator {
 /// Validates options defined in an analysis options file.
 @visibleForTesting
 class OptionsFileValidator {
-  /// The source being validated.
-  final Source _source;
-
   final List<OptionsValidator> _validators;
 
   OptionsFileValidator(
-    this._source, {
+    Source source, {
     VersionConstraint? sdkVersionConstraint,
     required String contextRoot,
     required bool isPrimarySource,
@@ -336,19 +328,16 @@ class OptionsFileValidator {
          ),
          _PluginsOptionsValidator(
            contextRoot: contextRoot,
-           filePath: _source.fullName,
+           filePath: source.fullName,
            isPrimarySource: isPrimarySource,
            resourceProvider: resourceProvider,
          ),
        ];
 
-  List<Diagnostic> validate(YamlMap options) {
-    RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
-    DiagnosticReporter reporter = DiagnosticReporter(recorder, _source);
+  void validate(YamlMap options, DiagnosticReporter reporter) {
     for (var validator in _validators) {
       validator.validate(reporter, options);
     }
-    return recorder.diagnostics;
   }
 }
 
@@ -750,6 +739,46 @@ class _FormatterOptionsValidator extends OptionsValidator {
             .atSourceSpan(valueNode.span),
       );
     }
+  }
+}
+
+/// Implementation of [DiagnosticListener] that converts each reported
+/// [Diagnostic] into a [diag.includedFileWarning] located at the site of an
+/// `include` directive.
+///
+/// This is used by [AnalysisOptionsAnalyzer] to report diagnostics that occur
+/// in included options files.
+class _IncludedDiagnosticListener implements DiagnosticListener {
+  /// The [Source] file in which diagnostics are being reported.
+  final Source source;
+
+  /// The [DiagnosticReporter] for the initial soure file (the one containing
+  /// the first `include` in the chain of `include`s that's currently being
+  /// processed).
+  final DiagnosticReporter initialDiagnosticReporter;
+
+  /// The [SourceSpan] of the first `include` in the chain of `include`s that's
+  /// currently being processed.
+  final SourceSpan initialIncludeSpan;
+
+  _IncludedDiagnosticListener({
+    required this.source,
+    required this.initialDiagnosticReporter,
+    required this.initialIncludeSpan,
+  });
+
+  @override
+  void onDiagnostic(Diagnostic diagnostic) {
+    initialDiagnosticReporter.report(
+      diag.includedFileWarning
+          .withArguments(
+            includingFilePath: source.fullName,
+            startOffset: diagnostic.offset,
+            endOffset: diagnostic.offset + diagnostic.length - 1,
+            warningMessage: diagnostic.message,
+          )
+          .atSourceSpan(initialIncludeSpan),
+    );
   }
 }
 
