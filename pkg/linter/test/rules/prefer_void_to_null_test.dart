@@ -441,4 +441,38 @@ Future<Null>? x;
 Null x;
 ''');
   }
+
+  test_typeLiteral_binaryExpression() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  0 == Null;
+}
+''');
+  }
+
+  test_typeLiteral_binaryExpression_prefixed() async {
+    await assertNoDiagnostics(r'''
+import 'dart:core' as core;
+void f() {
+  0 == core.Null;
+}
+''');
+  }
+
+  test_typeLiteral_expressionStatement() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  Null;
+}
+''');
+  }
+
+  test_typeLiteral_expressionStatement_prefixed() async {
+    await assertNoDiagnostics(r'''
+import 'dart:core' as core;
+void f() {
+  core.Null;
+}
+''');
+  }
 }
