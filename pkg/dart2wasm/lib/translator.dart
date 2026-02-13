@@ -1588,11 +1588,11 @@ class Translator with KernelNodes {
 
   ({
     List<TypeParameter> typeParameters,
-    List<TypeParameter> typeParametersToTypeCheck,
+    List<DartType> typeParametersToTypeCheck,
     List<VariableDeclaration> positional,
-    List<VariableDeclaration> positionalToTypeCheck,
+    List<DartType> positionalToTypeCheck,
     List<VariableDeclaration> named,
-    List<VariableDeclaration> namedToTypeCheck
+    List<DartType> namedToTypeCheck
   }) getParametersToCheck(Member member) {
     final memberFunction = member.function!;
     final List<TypeParameter> typeParameters = member is Constructor
@@ -1608,24 +1608,70 @@ class Translator with KernelNodes {
     // This mirrors what the VM does in
     //    - FlowGraphBuilder::BuildTypeArgumentTypeChecks
     //    - FlowGraphBuilder::BuildArgumentTypeChecks
-    Procedure? forwardingTarget;
+    Member? procedureForwardingTarget;
     if (member is Procedure && member.isForwardingStub) {
-      forwardingTarget = member.concreteForwardingStubTarget as Procedure?;
+      final forwardingTarget = member.concreteForwardingStubTarget;
+      if (forwardingTarget is Field) {
+        assert(
+            typeParameters.isEmpty && named.isEmpty && positional.length == 1);
+        return (
+          typeParameters: [],
+          typeParametersToTypeCheck: [],
+          positional: positional,
+          positionalToTypeCheck: [forwardingTarget.type],
+          named: named,
+          namedToTypeCheck: [],
+        );
+      }
+      procedureForwardingTarget = forwardingTarget as Procedure;
     }
-    final List<TypeParameter> typeParametersToTypeCheck =
-        forwardingTarget?.typeParameters ?? typeParameters;
-    final List<VariableDeclaration> positionalToTypeCheck =
-        forwardingTarget?.function.positionalParameters ?? positional;
-    final List<VariableDeclaration> namedToTypeCheck =
-        forwardingTarget?.function.namedParameters ?? named;
     return (
       typeParameters: typeParameters,
-      typeParametersToTypeCheck: typeParametersToTypeCheck,
+      typeParametersToTypeCheck: _typesFromTypeParameterBounds(
+          procedureForwardingTarget?.function?.typeParameters ??
+              typeParameters),
       positional: positional,
-      positionalToTypeCheck: positionalToTypeCheck,
+      positionalToTypeCheck: _typesFromPositionalParameters(
+          procedureForwardingTarget?.function?.positionalParameters ??
+              positional),
       named: named,
-      namedToTypeCheck: namedToTypeCheck,
+      namedToTypeCheck: _typeFromNamedParameters(
+          named, procedureForwardingTarget?.function?.namedParameters ?? named),
     );
+  }
+
+  List<DartType> _typesFromTypeParameterBounds(
+      List<TypeParameter> typeParameters) {
+    if (typeParameters.isEmpty) return const [];
+    return [for (final param in typeParameters) param.bound];
+  }
+
+  List<DartType> _typesFromPositionalParameters(
+      List<VariableDeclaration> typeParameters) {
+    if (typeParameters.isEmpty) return const [];
+    return [for (final param in typeParameters) param.type];
+  }
+
+  List<DartType> _typeFromNamedParameters(
+    List<VariableDeclaration> namedOrder,
+    List<VariableDeclaration> namedType,
+  ) {
+    if (namedOrder.isEmpty) return const [];
+    final namedTypes = <DartType>[];
+    for (int i = 0; i < namedOrder.length; ++i) {
+      final named = namedOrder[i];
+      DartType? type;
+
+      for (int j = 0; j < namedType.length; ++j) {
+        final other = namedType[j];
+        if (named.name == other.name) {
+          type = other.type;
+          break;
+        }
+      }
+      namedTypes.add(type!);
+    }
+    return namedTypes;
   }
 
   DispatchTable dispatchTableForTarget(Reference target) {

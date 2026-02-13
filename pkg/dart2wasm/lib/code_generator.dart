@@ -245,11 +245,12 @@ abstract class AstCodeGenerator
     }
     final mayNeedToCheckTypes = translator.needToCheckTypesFor(member);
     if (mayNeedToCheckTypes) {
-      for (int i = 0; i < typeParametersToTypeCheck.length; i++) {
-        final typeParameter = typeParametersToTypeCheck[i];
+      for (int i = 0; i < typeParameters.length; i++) {
+        final typeParameter = typeParameters[i];
         if (translator.needToCheckTypeParameter(typeParameter)) {
+          final typeParameterToCheck = typeParametersToTypeCheck[i];
           _generateTypeArgumentBoundCheck(typeParameter.name!,
-              typeLocals[typeParameter]!, typeParameter.bound);
+              typeLocals[typeParameter]!, typeParameterToCheck);
         }
       }
     }
@@ -345,14 +346,13 @@ abstract class AstCodeGenerator
 
     for (int i = 0; i < positional.length; i++) {
       final bool isRequired = i < memberFunction.requiredParameterCount;
-      final typeToCheck = positionalToTypeCheck[i].type;
+      final typeToCheck = positionalToTypeCheck[i];
       setupParamLocal(
           typeToCheck, positional[i], i, paramInfo.positional[i], isRequired);
     }
-    for (var param in named) {
-      final typeToCheck = identical(named, namedToTypeCheck)
-          ? param.type
-          : namedToTypeCheck.singleWhere((n) => n.name == param.name).type;
+    for (int i = 0; i < named.length; i++) {
+      final param = named[i];
+      final typeToCheck = namedToTypeCheck[i];
       setupParamLocal(typeToCheck, param, paramInfo.nameIndex[param.name]!,
           paramInfo.named[param.name], param.isRequired);
     }
