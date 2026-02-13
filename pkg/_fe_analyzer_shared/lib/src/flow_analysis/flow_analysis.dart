@@ -2734,6 +2734,12 @@ abstract interface class FlowAnalysisNullShortingInterface<
   Expression extends Object,
   Variable extends Object
 > {
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
+  ExpressionInfo? getExpressionInfo(Expression? expression);
+
   /// Call this method after visiting an expression using `?.`.
   void nullAwareAccess_end();
 
@@ -2777,12 +2783,6 @@ abstract interface class FlowAnalysisNullShortingInterface<
     Expression expression,
     ExpressionInfo? expressionInfo,
   );
-
-  /// Gets the [ExpressionInfo] associated with the [expression].
-  ///
-  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
-  /// the [expression], then `null` is returned.
-  ExpressionInfo? getExpressionInfo(Expression? expression);
 }
 
 /// An instance of the [FlowModel] class represents the information gathered by
