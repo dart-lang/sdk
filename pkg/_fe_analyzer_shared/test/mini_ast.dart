@@ -6732,7 +6732,10 @@ class _MiniAstTypeAnalyzer
     SharedTypeSchemaView schema,
   ) {
     var analysisResult = analyzeExpression(expression, schema);
-    flow.parenthesizedExpression(node, expression);
+    flow.storeExpressionInfo(
+      node,
+      flow.parenthesizedExpression(flow.getExpressionInfo(expression)),
+    );
     return analysisResult;
   }
 

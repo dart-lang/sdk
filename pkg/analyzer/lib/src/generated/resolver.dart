@@ -3555,7 +3555,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(node.expression, SharedTypeSchemaView(contextType));
     popRewrite();
     typeAnalyzer.visitParenthesizedExpression(node);
-    flowAnalysis.flow?.parenthesizedExpression(node, node.expression);
+    flowAnalysis.flow?.storeExpressionInfo(
+      node,
+      flowAnalysis.flow?.parenthesizedExpression(
+        flowAnalysis.flow?.getExpressionInfo(node.expression),
+      ),
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 

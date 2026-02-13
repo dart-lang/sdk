@@ -891,12 +891,9 @@ abstract class FlowAnalysis<
 
   /// Call this method just after visiting a parenthesized expression.
   ///
-  /// This is only necessary if the implementation uses a different [Expression]
-  /// object to represent a parenthesized expression and its contents.
-  void parenthesizedExpression(
-    Expression outerExpression,
-    Expression innerExpression,
-  );
+  /// [expressionInfo] should be the expression info for the inner expression.
+  /// The expression info for the parenthesized expression is returned.
+  ExpressionInfo? parenthesizedExpression(ExpressionInfo? expressionInfo);
 
   /// Call this method just after visiting the right hand side of a pattern
   /// assignment expression, and before visiting the pattern.
@@ -2208,13 +2205,12 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void parenthesizedExpression(
-    Expression outerExpression,
-    Expression innerExpression,
-  ) {
-    _wrap(
-      'parenthesizedExpression($outerExpression, $innerExpression)',
-      () => _wrapped.parenthesizedExpression(outerExpression, innerExpression),
+  ExpressionInfo? parenthesizedExpression(ExpressionInfo? expressionInfo) {
+    return _wrap(
+      'parenthesizedExpression($expressionInfo)',
+      () => _wrapped.parenthesizedExpression(expressionInfo),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -6135,12 +6131,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void parenthesizedExpression(
-    Expression outerExpression,
-    Expression innerExpression,
-  ) {
-    _forwardExpression(outerExpression, innerExpression);
-  }
+  ExpressionInfo? parenthesizedExpression(ExpressionInfo? expressionInfo) =>
+      expressionInfo;
 
   @override
   void patternAssignment_afterRhs(
