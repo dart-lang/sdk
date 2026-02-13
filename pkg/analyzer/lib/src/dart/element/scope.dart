@@ -838,11 +838,19 @@ class ScopeLookupResultImpl extends ScopeLookupResult {
 }
 
 class TypeParameterScope extends EnclosedScope {
-  TypeParameterScope(super.parent, List<TypeParameterElement> elements) {
+  TypeParameterScope(
+    super.parent,
+    List<TypeParameterElement> elements, {
+    required FeatureSet featureSet,
+  }) {
+    var wildcardVariablesEnabled = featureSet.isEnabled(
+      Feature.wildcard_variables,
+    );
     for (var element in elements) {
-      if (!element.isWildcardVariable) {
-        _addGetter(element);
+      if (wildcardVariablesEnabled && element.name == '_') {
+        continue;
       }
+      _addGetter(element);
     }
   }
 }

@@ -186,6 +186,7 @@ class LibraryAnalyzer {
       parsedUnit.accept(
         ScopeResolverVisitor(
           fileAnalysis.diagnosticReporter,
+          libraryFragment: libraryFragment,
           nameScope: libraryFragment.scope,
         ),
       );
@@ -842,6 +843,7 @@ class LibraryAnalyzer {
     unit.accept(
       ScopeResolverVisitor(
         fileAnalysis.diagnosticReporter,
+        libraryFragment: libraryFragment,
         nameScope: libraryFragment.scope,
         docImportLibraries: docImportLibraries,
       ),

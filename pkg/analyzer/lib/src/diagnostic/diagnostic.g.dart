@@ -796,6 +796,18 @@ const DiagnosticWithoutArguments assignmentToMethod =
     );
 
 /// No parameters.
+const DiagnosticWithoutArguments
+assignmentToPrimaryConstructorParameter = DiagnosticWithoutArgumentsImpl(
+  name: 'assignment_to_primary_constructor_parameter',
+  problemMessage:
+      "A primary constructor parameter can't be assigned to in an initializer.",
+  correctionMessage: "Try removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'assignment_to_primary_constructor_parameter',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const DiagnosticWithoutArguments assignmentToType =
     DiagnosticWithoutArgumentsImpl(
       name: 'assignment_to_type',

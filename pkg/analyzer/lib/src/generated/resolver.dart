@@ -4851,6 +4851,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 // TODO(paulberry): migrate the responsibility for all scope resolution into
 // this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
+  /// The library fragment in which the AST nodes are being resolved.
+  final LibraryFragmentImpl _libraryFragment;
+
   /// The diagnostic reporter that will be informed of any diagnostics that are
   /// found during resolution.
   final DiagnosticReporter diagnosticReporter;
@@ -4884,9 +4887,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// first be visited.
   ScopeResolverVisitor(
     this.diagnosticReporter, {
+    required LibraryFragmentImpl libraryFragment,
     required this.nameScope,
     List<LibraryElement> docImportLibraries = const [],
-  }) : _docImportScope = DocumentationCommentScope(
+  }) : _libraryFragment = libraryFragment,
+       _docImportScope = DocumentationCommentScope(
          nameScope,
          docImportLibraries,
        );
@@ -4954,7 +4959,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.namePart.typeParameters?.accept(this);
       node.extendsClause?.accept(this);
@@ -4981,7 +4990,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       var element = node.declaredFragment!.element;
       nameScope = InstanceScope(
-        TypeParameterScope(nameScope, element.typeParameters),
+        TypeParameterScope(
+          nameScope,
+          element.typeParameters,
+          featureSet: _libraryFragment.library.featureSet,
+        ),
         element,
       );
       _visitDocumentationComment(node.documentationComment);
@@ -5067,7 +5080,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.namePart.typeParameters?.accept(this);
       node.withClause?.accept(this);
@@ -5098,7 +5115,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
@@ -5120,7 +5141,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.primaryConstructor.typeParameters?.accept(this);
       node.implementsClause?.accept(this);
@@ -5244,7 +5269,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       _enclosingClosure = element.tryCast<LocalFunctionElement>();
       node.metadata.accept(this);
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.returnType?.accept(this);
       node.functionExpression.accept(this);
@@ -5272,7 +5301,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         return;
       }
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
 
@@ -5290,7 +5323,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
@@ -5310,7 +5347,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       _visitDocumentationComment(node.documentationComment);
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
@@ -5333,7 +5374,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       super.visitGenericFunctionType(node);
     } finally {
@@ -5347,7 +5392,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.type.accept(this);
@@ -5359,6 +5408,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
             typeParameterList.typeParameters
                 .map((n) => n.declaredFragment!.element)
                 .toList(),
+            featureSet: _libraryFragment.library.featureSet,
           );
         }
         var scope = nameScope = LocalScope(nameScope);
@@ -5437,7 +5487,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
@@ -5472,7 +5526,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);

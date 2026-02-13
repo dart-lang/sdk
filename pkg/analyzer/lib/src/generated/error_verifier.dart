@@ -382,6 +382,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForDeadNullCoalesce(node.readType!, node.rightHandSide);
     }
     _checkForAssignmentToFinal(lhs);
+    _checkForAssignmentToPrimaryConstructorParameterInInitializer(lhs);
 
     _constArgumentsVerifier.visitAssignmentExpression(node);
     super.visitAssignmentExpression(node);
@@ -1442,6 +1443,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
     } else {
       _checkForAssignmentToFinal(operand);
+      _checkForAssignmentToPrimaryConstructorParameterInInitializer(operand);
       _checkForIntNotAssignable(operand);
     }
     super.visitPostfixExpression(node);
@@ -1465,6 +1467,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (operatorType != TokenType.BANG) {
       if (operatorType.isIncrementOperator) {
         _checkForAssignmentToFinal(operand);
+        _checkForAssignmentToPrimaryConstructorParameterInInitializer(operand);
       }
       checkForUseOfVoidResult(operand);
       _checkForIntNotAssignable(operand);
@@ -2287,6 +2290,28 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         element is DynamicElementImpl ||
         element is TypeParameterElement) {
       diagnosticReporter.report(diag.assignmentToType.at(expression));
+    }
+  }
+
+  void _checkForAssignmentToPrimaryConstructorParameterInInitializer(
+    Expression node,
+  ) {
+    var formalParameter = node.tryCast<SimpleIdentifier>()?.element;
+    if (formalParameter is! FormalParameterElement) {
+      return;
+    }
+
+    var enclosing = formalParameter.enclosingElement;
+    if (enclosing is ConstructorElement && enclosing.isPrimary) {
+      switch (_thisContext) {
+        case ThisContext.constructorInitializers:
+        case ThisContext.instanceFieldDeclaration:
+          diagnosticReporter.report(
+            diag.assignmentToPrimaryConstructorParameter.at(node),
+          );
+        default:
+        // OK
+      }
     }
   }
 
