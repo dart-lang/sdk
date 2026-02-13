@@ -10,4 +10,5 @@ developer_sdk_sources = [
   "profiler.dart",
   "service.dart",
   "timeline.dart",
+  "creation_tracking.dart",
 ]

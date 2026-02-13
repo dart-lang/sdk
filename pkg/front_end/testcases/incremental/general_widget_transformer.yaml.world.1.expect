@@ -1,0 +1,59 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "dart:developer";
+
+  @#C1
+  abstract class BaseWidget extends dart.core::Object implements dart.developer::_HasCreationLocation /*hasConstConstructor*/  {
+    final field dart.developer::CreationLocation? dart.developer::_location;
+    const constructor •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::BaseWidget
+      : super dart.core::Object::•(), main::BaseWidget::_location = $creationLocationd_0dea112b090073317d4
+      ;
+  }
+  class MyWidget extends main::BaseWidget /*hasConstConstructor*/  {
+    final field main::BaseWidget? child;
+    const constructor •({main::BaseWidget? child = #C2, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::MyWidget
+      : main::MyWidget::child = child, super main::BaseWidget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    constructor named({main::BaseWidget? child = #C2, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::MyWidget
+      : main::MyWidget::child = child, super main::BaseWidget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static synthetic method _#new#tearOff({main::BaseWidget? child = #C2}) → main::MyWidget
+      return new main::MyWidget::•(child: child, $creationLocationd_0dea112b090073317d4: #C6);
+    static synthetic method _#named#tearOff({main::BaseWidget? child = #C2}) → main::MyWidget
+      return new main::MyWidget::named(child: child, $creationLocationd_0dea112b090073317d4: #C9);
+  }
+  static method main() → void {
+    main::MyWidget w1 = new main::MyWidget::•($creationLocationd_0dea112b090073317d4: #C12);
+    main::MyWidget w2 = new main::MyWidget::named($creationLocationd_0dea112b090073317d4: #C15);
+    main::MyWidget w3 = new main::MyWidget::•(child: new main::MyWidget::•(child: w2, $creationLocationd_0dea112b090073317d4: #C17), $creationLocationd_0dea112b090073317d4: #C19);
+  }
+}
+constants  {
+  #C1 = dart.developer::_TrackCreationLocations {}
+  #C2 = null
+  #C3 = "org-dartlang-test:///main.dart"
+  #C4 = 9.0
+  #C5 = "MyWidget"
+  #C6 = dart.developer::CreationLocation {file:#C3, line:#C4, column:#C4, name:#C5}
+  #C7 = 10.0
+  #C8 = 3.0
+  #C9 = dart.developer::CreationLocation {file:#C3, line:#C7, column:#C8, name:#C5}
+  #C10 = 16.0
+  #C11 = 12.0
+  #C12 = dart.developer::CreationLocation {file:#C3, line:#C10, column:#C11, name:#C5}
+  #C13 = 17.0
+  #C14 = 21.0
+  #C15 = dart.developer::CreationLocation {file:#C3, line:#C13, column:#C14, name:#C5}
+  #C16 = 19.0
+  #C17 = dart.developer::CreationLocation {file:#C3, line:#C16, column:#C11, name:#C5}
+  #C18 = 18.0
+  #C19 = dart.developer::CreationLocation {file:#C3, line:#C18, column:#C11, name:#C5}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///main.dart:
+- CreationLocation. (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+

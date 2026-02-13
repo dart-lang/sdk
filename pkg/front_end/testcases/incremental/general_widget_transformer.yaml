@@ -1,0 +1,68 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+type: newworld
+target: dartdevc
+trackWidgetCreation: true
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'dart:developer';
+
+        @trackCreationLocations
+        abstract class BaseWidget {
+          const BaseWidget();
+        }
+
+        class MyWidget extends BaseWidget {
+          const MyWidget({this.child});
+          MyWidget.named({this.child});
+
+          final BaseWidget? child;
+        }
+
+        void main() {
+          var w1 = MyWidget();
+          var w2 = MyWidget.named();
+          var w3 = MyWidget(
+            child: MyWidget(child: w2),
+          );
+        }
+    expectedLibraryCount: 1
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'dart:developer';
+
+        @trackCreationLocations
+        abstract class BaseWidget {
+          const BaseWidget();
+        }
+
+        class MyWidget extends BaseWidget {
+          const MyWidget({this.child});
+          MyWidget.named({this.child});
+
+          final BaseWidget? child;
+        }
+
+        void main() {
+          var w1 = MyWidget();
+          var w2 = MyWidget.named();
+          var w3 = MyWidget(
+            child: MyWidget(child: w2),
+          );
+          const w4 = MyWidget();
+          var w5 = const MyWidget(
+            child: MyWidget(child: w4),
+          );
+        }
+    expectedLibraryCount: 1
+    advancedInvalidation: bodiesOnly

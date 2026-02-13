@@ -84,6 +84,7 @@ part 'http_profiling.dart';
 part 'profiler.dart';
 part 'service.dart';
 part 'timeline.dart';
+part 'creation_tracking.dart';
 
 /// If [when] is true, stop the program as if a breakpoint were hit at the
 /// following statement.
