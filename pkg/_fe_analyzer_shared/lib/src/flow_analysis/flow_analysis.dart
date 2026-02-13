@@ -146,24 +146,16 @@ class ExpressionInfo {
 /// code.
 class ExpressionPropertyTarget<Expression extends Object>
     extends PropertyTarget<Expression> {
-  /// The expression whose property is being accessed.
-  final Expression expression;
-
   /// The expression info for the expression whose property is being accessed.
   final ExpressionInfo? expressionInfo;
 
-  ExpressionPropertyTarget(this.expression, this.expressionInfo) : super._();
+  ExpressionPropertyTarget(this.expressionInfo) : super._();
 
   @override
-  String toString() => 'ExpressionPropertyTarget($expression, $expressionInfo)';
+  String toString() => 'ExpressionPropertyTarget($expressionInfo)';
 
   @override
   SsaNode? _getSsaNode(covariant _PropertyTargetHelper<Expression> helper) {
-    ExpressionInfo? expressionInfoCheck = helper._getExpressionInfo(expression);
-    assert(
-      identical(expressionInfo, expressionInfoCheck),
-      '$expressionInfo != $expressionInfoCheck',
-    );
     return _getExpressionReference(expressionInfo)?.ssaNode;
   }
 }
@@ -7156,7 +7148,10 @@ class _FlowAnalysisImpl<
     _current = context._previous;
   }
 
-  @override
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
   ExpressionInfo? _getExpressionInfo(Expression? expression) =>
       _expressionInfoMap[expression];
 
@@ -8053,12 +8048,6 @@ abstract class _PropertyTargetHelper<Expression extends Object> {
 
   /// SSA node representing the implicit variable `this`.
   SsaNode get _thisSsaNode;
-
-  /// Gets the [ExpressionInfo] associated with the [expression].
-  ///
-  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
-  /// the [expression], then `null` is returned.
-  ExpressionInfo? _getExpressionInfo(Expression? expression);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
