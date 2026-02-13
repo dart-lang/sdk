@@ -403,12 +403,12 @@ analysisOptionDeprecated = DiagnosticWithArguments(
 /// An error code indicating that the given option is deprecated.
 ///
 /// Parameters:
-/// Object optionName: the option name
-/// Object replacementOptionName: the replacement option name
+/// String optionName: the option name
+/// String replacementOptionName: the replacement option name
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object optionName,
-    required Object replacementOptionName,
+    required String optionName,
+    required String replacementOptionName,
   })
 >
 analysisOptionDeprecatedWithReplacement = DiagnosticWithArguments(
@@ -419,7 +419,7 @@ analysisOptionDeprecatedWithReplacement = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'analysis_option_deprecated_with_replacement',
   withArguments: _withArgumentsAnalysisOptionDeprecatedWithReplacement,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
@@ -17890,8 +17890,8 @@ LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
 }
 
 LocatableDiagnostic _withArgumentsAnalysisOptionDeprecatedWithReplacement({
-  required Object optionName,
-  required Object replacementOptionName,
+  required String optionName,
+  required String replacementOptionName,
 }) {
   return LocatableDiagnosticImpl(diag.analysisOptionDeprecatedWithReplacement, [
     optionName,

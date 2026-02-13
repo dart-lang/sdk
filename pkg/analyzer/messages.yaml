@@ -206,8 +206,8 @@ AnalysisOptionsWarningCode:
   analysisOptionDeprecatedWithReplacement:
     type: staticWarning
     parameters:
-      Object optionName: the option name
-      Object replacementOptionName: the replacement option name
+      String optionName: the option name
+      String replacementOptionName: the replacement option name
     sharedName: analysisOptionDeprecated
     problemMessage: "The option '#optionName' is no longer supported."
     correctionMessage: "Try using the new '#replacementOptionName' option."
