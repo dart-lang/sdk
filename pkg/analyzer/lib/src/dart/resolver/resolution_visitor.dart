@@ -316,28 +316,28 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forClass(fragment), () {
-      _withEnclosingInstanceElement(element, () {
-        _withNameScope(() {
-          _buildTypeParameterElements(node.namePart.typeParameters);
-          node.namePart.accept(this);
+      _withNameScope(() {
+        _buildTypeParameterElements(node.namePart.typeParameters);
+        node.namePart.accept(this);
 
-          var extendsClause = node.extendsClause;
-          var withClause = node.withClause;
+        var extendsClause = node.extendsClause;
+        var withClause = node.withClause;
 
-          if (extendsClause != null) {
-            _resolveType(
-              declaration: node,
-              clause: extendsClause,
-              namedType: extendsClause.superclass,
-            );
-          }
-
-          _resolveWithClause(declaration: node, clause: withClause);
-          _resolveImplementsClause(
+        if (extendsClause != null) {
+          _resolveType(
             declaration: node,
-            clause: node.implementsClause,
+            clause: extendsClause,
+            namedType: extendsClause.superclass,
           );
+        }
 
+        _resolveWithClause(declaration: node, clause: withClause);
+        _resolveImplementsClause(
+          declaration: node,
+          clause: node.implementsClause,
+        );
+
+        _withEnclosingInstanceElement(element, () {
           _withScope(InstanceScope(_nameScope, element), () {
             node.body.accept(this);
           });
@@ -566,10 +566,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           clause: node.implementsClause,
         );
 
-        _defineElements(element.getters);
-        _defineElements(element.setters);
-        _defineElements(element.methods);
-        node.body.accept(this);
+        _withEnclosingInstanceElement(element, () {
+          _withScope(InstanceScope(_nameScope, element), () {
+            node.body.accept(this);
+          });
+        });
       });
     });
 
@@ -602,10 +603,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         node.typeParameters?.accept(this);
         node.onClause?.accept(this);
 
-        _defineElements(element.getters);
-        _defineElements(element.setters);
-        _defineElements(element.methods);
-        node.body.accept(this);
+        _withEnclosingInstanceElement(element, () {
+          _withScope(ExtensionScope(_nameScope, element), () {
+            node.body.accept(this);
+          });
+        });
       });
     });
   }
@@ -633,10 +635,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           clause: node.implementsClause,
         );
 
-        _defineElements(element.getters);
-        _defineElements(element.setters);
-        _defineElements(element.methods);
-        node.body.accept(this);
+        _withEnclosingInstanceElement(element, () {
+          _withScope(InstanceScope(_nameScope, element), () {
+            node.body.accept(this);
+          });
+        });
       });
     });
 
@@ -1170,10 +1173,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           clause: node.implementsClause,
         );
 
-        _defineElements(element.getters);
-        _defineElements(element.setters);
-        _defineElements(element.methods);
-        node.body.accept(this);
+        _withEnclosingInstanceElement(element, () {
+          _withScope(InstanceScope(_nameScope, element), () {
+            node.body.accept(this);
+          });
+        });
       });
     });
   }
@@ -1670,15 +1674,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _define(Element element) {
     if (_nameScope case LocalScope nameScope) {
       nameScope.add(element);
-    }
-  }
-
-  /// Define given [elements] in the [_nameScope].
-  void _defineElements(List<Element> elements) {
-    int length = elements.length;
-    for (int i = 0; i < length; i++) {
-      var element = elements[i];
-      _define(element);
     }
   }
 

@@ -2756,8 +2756,6 @@ MethodInvocation
 ''');
   }
 
-  @FailingTest(reason: 'No lookup in this')
-  // TODO(scheglov): this result here is wrong
   test_instanceMethod_targetOfFunctionCall_enum_mixin() async {
     await assertNoErrorsInCode('''
 extension on Function {
@@ -2776,7 +2774,22 @@ enum B with A {
 
     var reference = findNode.functionReference('foo<int>');
     assertResolvedNodeText(reference, r'''
-TODO
+FunctionReference
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@mixin::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
 ''');
   }
 
@@ -2883,8 +2896,6 @@ FunctionReference
 ''');
   }
 
-  @FailingTest(reason: 'No lookup in this')
-  // TODO(scheglov): this result here is wrong
   test_instanceMethod_targetOfFunctionCall_mixin_constraint() async {
     await assertNoErrorsInCode('''
 extension on Function {
@@ -2902,7 +2913,22 @@ mixin M on A {
 
     var reference = findNode.functionReference('foo<int>');
     assertResolvedNodeText(reference, r'''
-TODO
+FunctionReference
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
 ''');
   }
 
