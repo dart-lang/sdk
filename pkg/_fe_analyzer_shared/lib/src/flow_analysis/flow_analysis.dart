@@ -149,14 +149,23 @@ class ExpressionPropertyTarget<Expression extends Object>
   /// The expression whose property is being accessed.
   final Expression expression;
 
-  ExpressionPropertyTarget(this.expression) : super._();
+  /// The expression info for the expression whose property is being accessed.
+  final ExpressionInfo? expressionInfo;
+
+  ExpressionPropertyTarget(this.expression, this.expressionInfo) : super._();
 
   @override
-  String toString() => 'ExpressionPropertyTarget($expression)';
+  String toString() => 'ExpressionPropertyTarget($expression, $expressionInfo)';
 
   @override
-  SsaNode? _getSsaNode(covariant _PropertyTargetHelper<Expression> helper) =>
-      _getExpressionReference(helper._getExpressionInfo(expression))?.ssaNode;
+  SsaNode? _getSsaNode(covariant _PropertyTargetHelper<Expression> helper) {
+    ExpressionInfo? expressionInfoCheck = helper._getExpressionInfo(expression);
+    assert(
+      identical(expressionInfo, expressionInfoCheck),
+      '$expressionInfo != $expressionInfoCheck',
+    );
+    return _getExpressionReference(expressionInfo)?.ssaNode;
+  }
 }
 
 /// Implementation of flow analysis to be shared between the analyzer and the

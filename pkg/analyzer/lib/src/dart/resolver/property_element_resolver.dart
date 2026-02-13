@@ -597,7 +597,10 @@ class PropertyElementResolver with ScopeHelpers {
           isCascaded
               ? CascadePropertyTarget.singleton
                     as PropertyTarget<ExpressionImpl>
-              : ExpressionPropertyTarget(target),
+              : ExpressionPropertyTarget(
+                  target,
+                  flow.getExpressionInfo(target),
+                ),
           propertyName.name,
           result.getter2,
           SharedTypeView(unpromotedType),

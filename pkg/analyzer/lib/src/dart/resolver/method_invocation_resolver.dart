@@ -1398,7 +1398,10 @@ class MethodInvocationResolver with ScopeHelpers {
         var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
           target is SuperExpressionImpl
               ? SuperPropertyTarget.singleton
-              : ExpressionPropertyTarget(target),
+              : ExpressionPropertyTarget(
+                  target,
+                  flow.getExpressionInfo(target),
+                ),
           methodName.name,
           methodName.element,
           SharedTypeView(getterReturnType),

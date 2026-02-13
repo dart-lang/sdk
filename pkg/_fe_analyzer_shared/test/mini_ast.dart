@@ -4466,7 +4466,7 @@ class Property extends PromotableLValue {
     _PropertyElement? member = _computeMember(h);
     return h.flow
         .promotedPropertyType(
-          ExpressionPropertyTarget(target),
+          ExpressionPropertyTarget(target, h.flow.getExpressionInfo(target)),
           propertyName,
           member,
           SharedTypeView(member!._type),
@@ -4479,7 +4479,7 @@ class Property extends PromotableLValue {
     _PropertyElement? member = _computeMember(h);
     return h.flow
         .propertyPromotionChainForTesting(
-          ExpressionPropertyTarget(target),
+          ExpressionPropertyTarget(target, h.flow.getExpressionInfo(target)),
           propertyName,
           member,
         )
@@ -7424,13 +7424,16 @@ class _MiniAstTypeAnalyzer
       _harness.irBuilder.readTmp(_currentCascadeTargetIR!, location: location);
       targetType = _currentCascadeTargetType!;
     } else {
-      propertyTarget = ExpressionPropertyTarget(target);
       targetType = analyzeExpression(
         target,
         operations.unknownType,
         continueNullShorting: true,
       ).type;
       if (isNullAware) targetType = createNullAwareGuard(target, targetType);
+      propertyTarget = ExpressionPropertyTarget(
+        target,
+        flow.getExpressionInfo(target),
+      );
     }
     // Look up the type of the member, applying type promotion if necessary.
     var member = _lookupMember(targetType.unwrapTypeView(), propertyName);

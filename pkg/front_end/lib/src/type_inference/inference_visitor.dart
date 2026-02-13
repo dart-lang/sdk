@@ -1362,7 +1362,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return CascadePropertyTarget.singleton;
     } else {
       // `target` is an ordinary expression.
-      return new ExpressionPropertyTarget(target);
+      return new ExpressionPropertyTarget(
+        target,
+        flow.getExpressionInfo(target),
+      );
     }
   }
 
