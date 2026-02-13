@@ -879,7 +879,7 @@ abstract final class _StringBase implements String {
   @pragma("vm:recognized", "other")
   @pragma("vm:entry-point", "call")
   @pragma("vm:never-inline")
-  static String _interpolate(final List values) {
+  static String _interpolate(List values) {
     final numValues = values.length;
     int totalLength = 0;
     int i = 0;

@@ -597,7 +597,7 @@ final class _Smi extends _IntegerImplementation {
 
   // Find the number of decimal digits in a positive smi.
   // Never called with numbers < 100. These are handled before calling.
-  static int _positiveBase10Length(var smi) {
+  static int _positiveBase10Length(smi) {
     // A positive smi has length <= 19 if 63-bit,  <=10 if 31-bit.
     // Avoid comparing a 31-bit smi to a non-smi.
     if (smi < 1000) return 3;
@@ -658,7 +658,7 @@ final class _Smi extends _IntegerImplementation {
 
   // Find the number of decimal digits in a negative smi.
   // Never called with numbers > -100. These are handled before calling.
-  static int _negativeBase10Length(var negSmi) {
+  static int _negativeBase10Length(negSmi) {
     // A negative smi has length <= 19 if 63-bit, <=10 if 31-bit.
     // Avoid comparing a 31-bit smi to a non-smi.
     if (negSmi > -1000) return 3;

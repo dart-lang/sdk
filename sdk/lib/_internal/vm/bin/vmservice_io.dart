@@ -74,7 +74,7 @@ void _populateResidentCompilerInfoFile(
   /// was supplied on the command line, the CLI argument should be forwarded as
   /// the argument to this parameter. If neither option was supplied, the
   /// argument to this parameter should be [null].
-  final String? residentCompilerInfoFilePathArgumentFromCli,
+  String? residentCompilerInfoFilePathArgumentFromCli,
 ) {
   _residentCompilerInfoFile = getResidentCompilerInfoFileConsideringArgsImpl(
     residentCompilerInfoFilePathArgumentFromCli,

@@ -654,7 +654,7 @@ class NoSuchMethodError {
     }
     var namedArguments = _namedArguments;
     if (namedArguments != null) {
-      namedArguments.forEach((Symbol key, var value) {
+      namedArguments.forEach((Symbol key, value) {
         sb.write(comma);
         sb.write(_symbolToString(key));
         sb.write(": ");
