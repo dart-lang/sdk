@@ -369,6 +369,7 @@ class LibraryBuilder {
         nodesToBuildType,
         element.typeSystem,
         linkingUnit.fragment.scope,
+        libraryFragment: linkingUnit.fragment,
       );
       linkingUnit.node.accept(resolver);
     }

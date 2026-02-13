@@ -30,6 +30,9 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 /// the type is set, otherwise we keep it empty, so we will attempt to infer
 /// it later).
 class ReferenceResolver extends ThrowingAstVisitor<void> {
+  /// The library fragment in which the AST nodes are being resolved.
+  final LibraryFragmentImpl libraryFragment;
+
   final Linker linker;
   final TypeSystemImpl typeSystem;
   final NodesToBuildType nodesToBuildType;
@@ -40,8 +43,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     this.linker,
     this.nodesToBuildType,
     this.typeSystem,
-    this.scope,
-  );
+    this.scope, {
+    required this.libraryFragment,
+  });
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
@@ -82,6 +86,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       scope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.metadata.accept(this);
@@ -112,6 +117,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       scope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
     LinkingNodeContext(node, scope);
 
@@ -137,7 +143,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredFragment!.element;
 
-    scope = TypeParameterScope(scope, element.typeParameters);
+    scope = TypeParameterScope(
+      scope,
+      element.typeParameters,
+      featureSet: libraryFragment.library.featureSet,
+    );
     LinkingNodeContext(node, scope);
 
     node.metadata.accept(this);
@@ -165,6 +175,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       scope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.metadata.accept(this);
@@ -212,6 +223,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       scope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.metadata.accept(this);
@@ -243,6 +255,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       scope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.metadata.accept(this);
@@ -291,6 +304,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       scope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.type?.accept(this);
@@ -315,6 +329,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       outerScope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
     LinkingNodeContext(node, scope);
 
@@ -341,6 +356,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       outerScope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.returnType?.accept(this);
@@ -363,6 +379,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       scope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.returnType?.accept(this);
@@ -381,6 +398,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       outerScope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.returnType?.accept(this);
@@ -405,6 +423,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       outerScope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.metadata.accept(this);
@@ -436,6 +455,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       scope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
     LinkingNodeContext(node, scope);
 
@@ -457,6 +477,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       scope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.metadata.accept(this);
@@ -592,6 +613,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(
       scope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
+      featureSet: libraryFragment.library.featureSet,
     );
 
     node.type?.accept(this);
