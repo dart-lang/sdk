@@ -1,3 +1,7 @@
-test1(int directCapturedInLate) {}
+test1(int directCaptured) {}
 
-test2(int assertCapturedAndDirectCapturedInLate) {}
+test2(int directCaptured) {}
+
+test3(int assertCaptured) {}
+
+test4(int directCaptured) {}

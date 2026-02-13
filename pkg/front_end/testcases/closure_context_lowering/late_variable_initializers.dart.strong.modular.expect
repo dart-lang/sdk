@@ -2,9 +2,9 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method test1(positional-parameter directCapturedInLate) → dynamic/* scope=[
+static method test1(positional-parameter directCaptured) → dynamic/* scope=[
   #ctx1: direct-captured VariableContext([
-    positional-parameter directCapturedInLate;
+    positional-parameter directCaptured;
   ]),
 ] */ /* scope=[
   #ctx2: not-captured VariableContext([
@@ -12,20 +12,55 @@ static method test1(positional-parameter directCapturedInLate) → dynamic/* sco
     local-variable late second;
   ]),
 ] */ {
-  first := let final core::int #t1 = directCapturedInLate in let final void #t2 = directCapturedInLate = #t1.{core::num::+}(1){(core::num) → core::int} in #t1 /* #ctx1 */;
-  second := let final core::int #t3 = directCapturedInLate in let final void #t4 = directCapturedInLate = #t3.{core::num::+}(1){(core::num) → core::int} in #t3 /* #ctx1 */;
-  return <core::int>[first, second, directCapturedInLate];
+  first := let final core::int #t1 = directCaptured in let final void #t2 = directCaptured = #t1.{core::num::+}(1){(core::num) → core::int} in #t1 /* #ctx1 */;
+  second := let final core::int #t3 = directCaptured in let final void #t4 = directCaptured = #t3.{core::num::+}(1){(core::num) → core::int} in #t3 /* #ctx1 */;
+  return <core::int>[first, second, directCaptured];
 }
-static method test2(positional-parameter assertCapturedAndDirectCapturedInLate) → dynamic/* scope=[
+static method test2(positional-parameter directCaptured) → dynamic/* scope=[
   #ctx3: direct-captured VariableContext([
-    positional-parameter assertCapturedAndDirectCapturedInLate;
+    positional-parameter directCaptured;
   ]),
 ] */ /* scope=[
   #ctx4: not-captured VariableContext([
     local-variable late variable;
   ]),
 ] */ {
-  assert((() /* #ctx3 */ → core::bool => assertCapturedAndDirectCapturedInLate =={core::num::==}{(core::Object) → core::bool} 0)(){() → core::bool});
-  variable := assertCapturedAndDirectCapturedInLate /* #ctx3 */;
+  assert((() /* #ctx3 */ → core::bool => directCaptured =={core::num::==}{(core::Object) → core::bool} 0)(){() → core::bool});
+  variable := directCaptured /* #ctx3 */;
   return variable;
+}
+static method test3(positional-parameter assertCaptured) → dynamic/* scope=[
+  #ctx5: assert-captured VariableContext([
+    positional-parameter assertCaptured;
+  ]),
+] */ {
+  assert((() /* #ctx5 */ → core::bool /* scope=[
+    #ctx6: not-captured VariableContext([
+      local-variable late isZero;
+    ]),
+  ] */ {
+    isZero := assertCaptured =={core::num::==}{(core::Object) → core::bool} 0 /* #ctx5 */;
+    return isZero;
+  })(){() → core::bool});
+}
+static method test4(positional-parameter directCaptured) → dynamic/* scope=[
+  #ctx7: direct-captured VariableContext([
+    positional-parameter directCaptured;
+  ]),
+] */ {
+  if(directCaptured.{core::num::>}(0){(core::num) → core::bool})/* scope=[
+    #ctx8: not-captured VariableContext([
+      local-variable late value;
+    ]),
+  ] */ {
+    value := let final core::int #t5 = directCaptured in let final void #t6 = directCaptured = #t5.{core::num::-}(1){(core::num) → core::int} in #t5 /* #ctx7 */;
+    return value;
+  }
+  else {
+    function assertIsZero() /* #ctx7 */ → Null {
+      assert(directCaptured =={core::num::==}{(core::Object) → core::bool} 0);
+    }
+    assertIsZero(){() → Null};
+    return 0;
+  }
 }
