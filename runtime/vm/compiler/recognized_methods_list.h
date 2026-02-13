@@ -44,7 +44,7 @@ namespace dart {
   V(CoreLibrary, _Record, get:_numFields, Record_numFields, 0x7ba4f393)        \
   V(CoreLibrary, _Record, get:_shape, Record_shape, 0x70c40933)                \
   V(CoreLibrary, _Record, _fieldAt, Record_fieldAt, 0xb47fa0b3)                \
-  V(CoreLibrary, _StringBase, _interpolate, StringBaseInterpolate, 0xc2be3a8b) \
+  V(CoreLibrary, _StringBase, _interpolate, StringBaseInterpolate, 0xecb2534a) \
   V(CoreLibrary, _StringBase, codeUnitAt, StringBaseCodeUnitAt, 0x17dbf511)    \
   V(CoreLibrary, _IntegerImplementation, toDouble, IntegerToDouble,            \
     0x97557386)                                                                \

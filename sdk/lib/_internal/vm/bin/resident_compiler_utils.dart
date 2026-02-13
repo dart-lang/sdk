@@ -16,7 +16,7 @@ String maybeUriToFilename(String maybeUri) {
 
 /// Joins [a] and [b] with a backslash if [Platform.isWindows] is true,
 /// otherwise joins [a] and [b] with a slash.
-String joinPathComponents(final String a, final String b) =>
+String joinPathComponents(String a, String b) =>
     !Platform.isWindows ? '$a/$b' : '$a\\$b';
 
 /// The user's home directory for the current platform, or [null] if it can't be

@@ -64,7 +64,7 @@ throwsIfReceiverMaterializesMoreThanOnce() async {
   isolateErrors.close();
 }
 
-void receiver(final transferable) {
+void receiver(transferable) {
   transferable.materialize();
   transferable.materialize();
 }

@@ -18,23 +18,23 @@ arrayGet(List array, int index) {
   return JS('var', '#[#]', array, index);
 }
 
-void arraySet(List array, int index, var value) {
+void arraySet(List array, int index, value) {
   JS('var', '#[#] = #', array, index, value);
 }
 
-propertyGet(var object, String property) {
+propertyGet(object, String property) {
   return JS('var', '#[#]', object, property);
 }
 
-bool callHasOwnProperty(var function, var object, String property) {
+bool callHasOwnProperty(function, object, String property) {
   return JS('bool', '#.call(#, #)', function, object, property);
 }
 
-void propertySet(var object, String property, var value) {
+void propertySet(object, String property, value) {
   JS('var', '#[#] = #', object, property, value);
 }
 
-getPropertyFromPrototype(var object, String name) {
+getPropertyFromPrototype(object, String name) {
   return JS('var', 'Object.getPrototypeOf(#)[#]', object, name);
 }
 
@@ -55,7 +55,7 @@ Function? alternateTagFunction;
 /// constructor is to be avoided.  Initialized by [initHooks].
 Function? prototypeForTagFunction;
 
-String toStringForNativeObject(var obj) {
+String toStringForNativeObject(obj) {
   // TODO(sra): Is this code dead?
   // [getTagFunction] might be uninitialized, but in usual usage, toString has
   // been called via an interceptor and initialized it.
@@ -68,7 +68,7 @@ String toStringForNativeObject(var obj) {
 int hashCodeForNativeObject(object) => Primitives.objectHashCode(object);
 
 /// Sets a JavaScript property on an object.
-void defineProperty(var obj, String property, var value) {
+void defineProperty(obj, String property, value) {
   JS(
     'void',
     'Object.defineProperty(#, #, '

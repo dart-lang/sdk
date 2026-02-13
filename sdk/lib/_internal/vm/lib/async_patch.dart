@@ -23,7 +23,7 @@ external void _trySetStackTrace(Object error, StackTrace stackTrace);
 
 // This function is used when lowering `await for` statements.
 @pragma('dyn-module:language-impl:callable')
-void _asyncStarMoveNextHelper(var stream) {
+void _asyncStarMoveNextHelper(stream) {
   if (stream is! _StreamImpl) {
     return;
   }

@@ -82,7 +82,7 @@ final class _ReceivePortImpl extends Stream implements ReceivePort {
   }
 
   StreamSubscription listen(
-    void onData(var message)?, {
+    void onData(message)?, {
     Function? onError,
     void onDone()?,
     bool? cancelOnError,
@@ -156,7 +156,7 @@ final class _RawReceivePort implements RawReceivePort {
   @pragma("vm:external-name", "RawReceivePort_getSendPort")
   external SendPort get sendPort;
 
-  bool operator ==(var other) {
+  bool operator ==(other) {
     return (other is _RawReceivePort) && (this._get_id() == other._get_id());
   }
 
@@ -182,7 +182,7 @@ final class _RawReceivePort implements RawReceivePort {
 
   // Called from the VM to dispatch a message.
   @pragma("vm:entry-point", "call")
-  static _handleMessage(int id, var message) {
+  static _handleMessage(int id, message) {
     final Function? handler = _portMap[id]?._handler;
     if (handler == null) {
       return null;
@@ -236,11 +236,11 @@ final class _SendPort implements SendPort {
 
   /*--- public interface ---*/
   @pragma("vm:entry-point", "call")
-  void send(var message) {
+  void send(message) {
     _sendInternal(message);
   }
 
-  bool operator ==(var other) {
+  bool operator ==(other) {
     return (other is _SendPort) && (this._get_id() == other._get_id());
   }
 
@@ -256,7 +256,7 @@ final class _SendPort implements SendPort {
 
   // Forward the implementation of sending messages to the VM.
   @pragma("vm:external-name", "SendPort_sendInternal_")
-  external void _sendInternal(var message);
+  external void _sendInternal(message);
 }
 
 typedef _UnaryFunction(Never args);
@@ -421,7 +421,7 @@ final class Isolate {
     SendPort readyPort,
     String uri,
     Function topLevelFunction,
-    var message,
+    message,
     bool paused,
     bool errorsAreFatal,
     SendPort? onExit,
@@ -434,7 +434,7 @@ final class Isolate {
   static Future<Isolate> spawnUri(
     Uri uri,
     List<String> args,
-    var message, {
+    message, {
     bool paused = false,
     SendPort? onExit,
     SendPort? onError,
@@ -576,7 +576,7 @@ final class Isolate {
     SendPort readyPort,
     String uri,
     List<String> args,
-    var message,
+    message,
     bool paused,
     SendPort? onExit,
     SendPort? onError,

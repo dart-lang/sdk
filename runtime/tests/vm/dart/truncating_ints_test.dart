@@ -9,16 +9,16 @@
 import "package:expect/expect.dart";
 
 @pragma('vm:never-inline')
-add_smi(var a, var b) => a + b;
+add_smi(a, b) => a + b;
 
 @pragma('vm:never-inline')
-add_mint(var a, var b) => a + b;
+add_mint(a, b) => a + b;
 
 @pragma('vm:never-inline')
 add_mint_consts() => 0x5000000000000000 + 0x6000000000000000;
 
 @pragma('vm:never-inline')
-test_add(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
+test_add(v2, v3, v3fxx, v5fxx, v7fxx, n60xx) {
   for (var i = 0; i < 20; i++) {
     Expect.equals(5, add_smi(v2, v3));
   }
@@ -44,16 +44,16 @@ test_add(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
 }
 
 @pragma('vm:never-inline')
-sub_smi(var a, var b) => a - b;
+sub_smi(a, b) => a - b;
 
 @pragma('vm:never-inline')
-sub_mint(var a, var b) => a - b;
+sub_mint(a, b) => a - b;
 
 @pragma('vm:never-inline')
 sub_mint_consts() => (-0x5000000000000000) - 0x6000000000000000;
 
 @pragma('vm:never-inline')
-test_sub(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
+test_sub(v2, v3, v3fxx, v5fxx, v7fxx, n60xx) {
   for (var i = 0; i < 20; i++) {
     Expect.equals(1, sub_smi(v3, v2));
   }
@@ -79,16 +79,16 @@ test_sub(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
 }
 
 @pragma('vm:never-inline')
-mul_smi(var a, var b) => a * b;
+mul_smi(a, b) => a * b;
 
 @pragma('vm:never-inline')
-mul_mint(var a, var b) => a * b;
+mul_mint(a, b) => a * b;
 
 @pragma('vm:never-inline')
 mul_mint_consts() => 0x5000000000000001 * 0x6000000000000001;
 
 @pragma('vm:never-inline')
-test_mul(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
+test_mul(v2, v3, v3fxx, v5fxx, v7fxx, n60xx) {
   for (var i = 0; i < 20; i++) {
     Expect.equals(6, mul_smi(v2, v3));
   }
@@ -110,25 +110,25 @@ test_mul(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
 }
 
 @pragma('vm:never-inline')
-shl_smi(var a, var b) => a << b;
+shl_smi(a, b) => a << b;
 
 @pragma('vm:never-inline')
-shl_mint(var a, var b) => a << b;
+shl_mint(a, b) => a << b;
 
 @pragma('vm:never-inline')
-shl_mint_by_const16(var a) => a << 16;
+shl_mint_by_const16(a) => a << 16;
 
 @pragma('vm:never-inline')
-shl_smi_by_const96(var a) => a << 96;
+shl_smi_by_const96(a) => a << 96;
 
 @pragma('vm:never-inline')
-shl_mint_by_const96(var a) => a << 96;
+shl_mint_by_const96(a) => a << 96;
 
 @pragma('vm:never-inline')
 shl_mint_consts() => 0x77665544aabbccdd << 48;
 
 @pragma('vm:never-inline')
-test_shl(var v2, var v3, var v8, var v40) {
+test_shl(v2, v3, v8, v40) {
   for (var i = 0; i < 20; i++) {
     Expect.equals(16, shl_smi(v2, v3));
   }

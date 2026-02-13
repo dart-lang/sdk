@@ -252,7 +252,7 @@ class RangeError extends ArgumentError {
   // It currently isn't in all cases.
   /// Create a new [RangeError] with the given [message].
   @pragma("vm:entry-point")
-  RangeError(var message) : start = null, end = null, super(message);
+  RangeError(message) : start = null, end = null, super(message);
 
   /// Create a new [RangeError] with a message for the given [value].
   ///
