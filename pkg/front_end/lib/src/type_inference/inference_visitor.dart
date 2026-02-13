@@ -4203,7 +4203,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: receiver.fileOffset,
             length: 1,
             context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(receiver)(),
+              flowAnalysis.whyNotPromoted(
+                flowAnalysis.getExpressionInfo(receiver),
+              )(),
               element,
               // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable,
@@ -4247,7 +4249,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fileOffset: receiver.fileOffset,
           length: 1,
           context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             element,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -7162,7 +7166,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: receiver.fileOffset,
             length: 1,
             context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(receiver)(),
+              flowAnalysis.whyNotPromoted(
+                flowAnalysis.getExpressionInfo(receiver),
+              )(),
               entry,
               // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable,
@@ -7187,7 +7193,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fileOffset: receiver.fileOffset,
           length: 1,
           context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             entry,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -7236,7 +7244,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fileOffset: receiver.fileOffset,
           length: 1,
           context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             entry,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -9974,7 +9984,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     VariableDeclaration? indexVariable;
     Expression readIndex = indexResult.expression;
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedIndex =
-        flowAnalysis.whyNotPromoted(readIndex);
+        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(readIndex));
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
       writeIndex = clonePureExpression(readIndex);
@@ -11349,7 +11359,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression? propertyGetNode,
   }) {
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
-        flowAnalysis.whyNotPromoted(receiver);
+        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(receiver));
 
     readTarget ??= findInterfaceMember(
       receiverType,
@@ -11629,7 +11639,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     VariableDeclaration? indexVariable;
     Expression readIndex = indexResult.expression;
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedIndex =
-        flowAnalysis.whyNotPromoted(readIndex);
+        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(readIndex));
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
       writeIndex = clonePureExpression(readIndex);
@@ -13926,7 +13936,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       const UnknownType(),
     );
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
-        flowAnalysis.whyNotPromoted(leftResult.expression);
+        flowAnalysis.whyNotPromoted(
+          flowAnalysis.getExpressionInfo(leftResult.expression),
+        );
     return _computeBinaryExpression(
       node.fileOffset,
       typeContext,
@@ -14023,7 +14035,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       expressionResult = inferExpression(node.expression, const UnknownType());
     }
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
-        flowAnalysis.whyNotPromoted(expressionResult.expression);
+        flowAnalysis.whyNotPromoted(
+          flowAnalysis.getExpressionInfo(expressionResult.expression),
+        );
     return _computeUnaryExpression(
       node.fileOffset,
       expressionResult.expression,

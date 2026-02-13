@@ -608,7 +608,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             contextType == assignabilityResult.supertype &&
             expression is! NullLiteral &&
             expressionType is! NullType) {
-          whyNotPromoted ??= flowAnalysis.whyNotPromoted(expression);
+          whyNotPromoted ??= flowAnalysis.whyNotPromoted(
+            flowAnalysis.getExpressionInfo(expression),
+          );
           result = _wrapUnassignableExpression(
             expression,
             expressionType,
@@ -2718,7 +2720,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         //     void Function() get call => () {};
         //   }
         List<LocatedMessage>? context = getWhyNotPromotedContext(
-          flowAnalysis.whyNotPromoted(receiver)(),
+          flowAnalysis.whyNotPromoted(
+            flowAnalysis.getExpressionInfo(receiver),
+          )(),
           staticInvocation,
           // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable,
@@ -2773,7 +2777,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       if (target.isNullable) {
         List<LocatedMessage>? context = getWhyNotPromotedContext(
-          flowAnalysis.whyNotPromoted(receiver)(),
+          flowAnalysis.whyNotPromoted(
+            flowAnalysis.getExpressionInfo(receiver),
+          )(),
           staticInvocation,
           // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable,
@@ -2919,7 +2925,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression replacement = result.applyResult(expression);
     if (target.isNullableCallFunction) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
-        flowAnalysis.whyNotPromoted(receiver)(),
+        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(receiver))(),
         expression,
         // Coverage-ignore(suite): Not run.
         (type) => !type.isPotentiallyNullable,
@@ -3166,7 +3172,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     replacement = result.applyResult(replacement);
     if (target.isNullable) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
-        flowAnalysis.whyNotPromoted(receiver)(),
+        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(receiver))(),
         expression,
         // Coverage-ignore(suite): Not run.
         (type) => !type.isPotentiallyNullable,
@@ -3242,7 +3248,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // We won't report the error until later (after we have an
       // invocationResult), but we need to gather "why not promoted" info now,
       // before we tell flow analysis about the property get.
-      whyNotPromoted = flowAnalysis.whyNotPromoted(originalReceiver);
+      whyNotPromoted = flowAnalysis.whyNotPromoted(
+        flowAnalysis.getExpressionInfo(originalReceiver),
+      );
     }
 
     Name originalName = member.name;
@@ -3715,7 +3723,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   (void Function())? r;
           //   r.$1();
           List<LocatedMessage>? context = getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             receiver,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -3766,7 +3776,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   ({void Function() foo})? r;
           //   r.foo();
           List<LocatedMessage>? context = getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             receiver,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -3820,7 +3832,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   method(Foo? r) => r.bar();
           //
           List<LocatedMessage>? context = getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             receiver,
             (type) => !type.isPotentiallyNullable,
           );

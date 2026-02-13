@@ -143,7 +143,7 @@ class _WhyNotPromoted extends Expression {
       h.operations.unknownType,
     );
     h.flow.forwardExpression(this, target);
-    callback(h.flow.whyNotPromoted(this)());
+    callback(h.flow.whyNotPromoted(h.flow.getExpressionInfo(this))());
     return analysisResult;
   }
 }

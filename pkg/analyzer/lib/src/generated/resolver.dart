@@ -994,7 +994,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Stack: (Expression condition)
     var condition = popRewrite()!;
 
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
@@ -1022,7 +1024,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Stack: (Expression condition)
     var condition = popRewrite()!;
 
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
@@ -1434,7 +1438,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         SharedTypeSchemaView(result.indexContextType),
       );
       popRewrite();
-      var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
+      var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+        flowAnalysis.flow?.getExpressionInfo(node.index),
+      );
       checkIndexExpressionIndex(
         node.index,
         readElement: hasRead
@@ -1928,7 +1934,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       locatableDiagnostic: diag.nonBoolExpression,
-      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
+      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(
+        flowAnalysis.flow?.getExpressionInfo(node.condition),
+      ),
     );
     flowAnalysis.flow?.assert_afterCondition(
       flowAnalysis.flow?.getExpressionInfo(node.condition),
@@ -1953,7 +1961,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       locatableDiagnostic: diag.nonBoolExpression,
-      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
+      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(
+        flowAnalysis.flow?.getExpressionInfo(node.condition),
+      ),
     );
     flowAnalysis.flow?.assert_afterCondition(
       flowAnalysis.flow?.getExpressionInfo(node.condition),
@@ -2217,7 +2227,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       SharedTypeSchemaView(typeProvider.boolType),
     );
     condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
@@ -2323,7 +2335,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var expression = node.expression;
     analyzeExpression(expression, SharedTypeSchemaView(fieldType));
     expression = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(expression),
+    );
     if (fieldElement != null && enclosingFunction != null) {
       var enclosingConstructor = enclosingFunction as ConstructorElementImpl;
       checkForFieldInitializerNotAssignable(
@@ -2407,7 +2421,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.flow?.doStatement_conditionBegin();
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
     condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
@@ -3153,7 +3169,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       SharedTypeSchemaView(result.indexContextType),
     );
     popRewrite();
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(node.index),
+    );
     checkIndexExpressionIndex(
       node.index,
       readElement: result.readElement2 as InternalExecutableElement?,
@@ -4259,7 +4277,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.flow?.whileStatement_conditionBegin(node);
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
     condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
 
     boolExpressionVerifier.checkForNonBoolCondition(
       node.condition,

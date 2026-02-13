@@ -1356,9 +1356,10 @@ abstract class FlowAnalysis<
   void whileStatement_end();
 
   /// Call this method when an error occurs that may be due to a lack of type
-  /// promotion, to retrieve information about why [target] was not promoted.
+  /// promotion, to retrieve information about why an expression was not
+  /// promoted.
   ///
-  /// This call must be made right after visiting [target].
+  /// [targetInfo] should be the expression info for the expression of interest.
   ///
   /// The returned value is a function yielding a map whose keys are types that
   /// the user might have been expecting the target to be promoted to, and whose
@@ -1381,7 +1382,7 @@ abstract class FlowAnalysis<
   /// need to be generated, and then defer invoking the returned function until
   /// it is determined that an error actually occurred.
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted(
-    Expression target,
+    ExpressionInfo? targetInfo,
   );
 
   /// Call this method when an error occurs that may be due to a lack of type
@@ -2634,11 +2635,11 @@ class FlowAnalysisDebug<
 
   @override
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted(
-    Expression target,
+    ExpressionInfo? targetInfo,
   ) {
     return _wrap(
-      'whyNotPromoted($target)',
-      () => _trackWhyNotPromoted(_wrapped.whyNotPromoted(target)),
+      'whyNotPromoted($targetInfo)',
+      () => _trackWhyNotPromoted(_wrapped.whyNotPromoted(targetInfo)),
       isQuery: true,
     );
   }
@@ -6782,9 +6783,9 @@ class _FlowAnalysisImpl<
 
   @override
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted(
-    Expression target,
+    ExpressionInfo? targetInfo,
   ) {
-    if (_expressionInfoMap[target] case _Reference reference) {
+    if (targetInfo case _Reference reference) {
       PromotionModel? currentPromotionInfo = _current.promotionInfo?.get(
         this,
         reference.promotionKey,
