@@ -278,19 +278,6 @@ f() {
     );
   }
 
-  test_forStatement_ForPartsWithDeclarations_initializer() async {
-    await assertErrorsInCode(
-      '''
-void f() {
-  for (var x = x;;) {
-    x;
-  }
-}
-''',
-      [error(diag.undefinedIdentifier, 26, 1)],
-    );
-  }
-
   test_forStatement_inBody() async {
     await assertNoErrorsInCode('''
 f() {

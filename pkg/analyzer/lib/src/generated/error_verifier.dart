@@ -420,7 +420,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitBlock(covariant BlockImpl node) {
-    _withHiddenElements(node.statements, () {
+    _withHiddenElementsForStatements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitBlock(node);
     });
@@ -985,6 +985,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitForElement(covariant ForElementImpl node) {
+    _withHiddenElementsForForParts(node.forLoopParts, () {
+      super.visitForElement(node);
+    });
+  }
+
+  @override
   void visitFormalParameterList(covariant FormalParameterListImpl node) {
     _duplicateDefinitionVerifier.checkParameters(node);
     _checkUseOfCovariantInParameters(node);
@@ -998,6 +1005,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     _duplicateDefinitionVerifier.checkForVariables(node.variables);
     super.visitForPartsWithDeclarations(node);
+  }
+
+  @override
+  void visitForStatement(covariant ForStatementImpl node) {
+    _withHiddenElementsForForParts(node.forLoopParts, () {
+      super.visitForStatement(node);
+    });
   }
 
   @override
@@ -1724,7 +1738,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSwitchCase(covariant SwitchCaseImpl node) {
-    _withHiddenElements(node.statements, () {
+    _withHiddenElementsForStatements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitSwitchCase(node);
     });
@@ -1732,7 +1746,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSwitchDefault(covariant SwitchDefaultImpl node) {
-    _withHiddenElements(node.statements, () {
+    _withHiddenElementsForStatements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitSwitchDefault(node);
     });
@@ -1746,7 +1760,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSwitchPatternCase(covariant SwitchPatternCaseImpl node) {
-    _withHiddenElements(node.statements, () {
+    _withHiddenElementsForStatements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitSwitchPatternCase(node);
     });
@@ -6908,28 +6922,59 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _withHiddenElements(List<Statement> statements, void Function() f) {
-    _hiddenElements = HiddenElements(_hiddenElements, statements);
+  void _withHiddenElements(HiddenElements hiddenElements, void Function() f) {
+    var outerElements = _hiddenElements;
+    _hiddenElements = hiddenElements;
     try {
       f();
     } finally {
-      _hiddenElements = _hiddenElements!.outerElements;
+      _hiddenElements = outerElements;
     }
+  }
+
+  void _withHiddenElementsForForParts(
+    ForLoopParts forLoopParts,
+    void Function() f,
+  ) {
+    if (forLoopParts is ForPartsWithDeclarations) {
+      _withHiddenElements(
+        HiddenElements.forElements(
+          _hiddenElements,
+          forLoopParts.variables.variables.map(
+            (variable) => variable.declaredFragment!.element,
+          ),
+        ),
+        f,
+      );
+    } else {
+      f();
+    }
+  }
+
+  void _withHiddenElementsForStatements(
+    List<Statement> statements,
+    void Function() f,
+  ) {
+    _withHiddenElements(
+      HiddenElements.forElements(
+        _hiddenElements,
+        BlockScope.elementsInStatements(statements),
+      ),
+      f,
+    );
   }
 
   void _withHiddenElementsGuardedPattern(
     GuardedPatternImpl guardedPattern,
     void Function() f,
   ) {
-    _hiddenElements = HiddenElements.forGuardedPattern(
-      _hiddenElements,
-      guardedPattern,
+    _withHiddenElements(
+      HiddenElements.forElements(
+        _hiddenElements,
+        guardedPattern.variables.values,
+      ),
+      f,
     );
-    try {
-      f();
-    } finally {
-      _hiddenElements = _hiddenElements!.outerElements;
-    }
   }
 
   /// Executes [f] with [state] as the current [ThisContext].
@@ -6973,20 +7018,9 @@ class HiddenElements {
   final Set<Element> _elements = {};
 
   /// Initialize a newly created set of hidden elements to include all of the
-  /// elements defined in the set of [outerElements] and all of the elements
-  /// declared in the given [statements].
-  HiddenElements(this.outerElements, List<Statement> statements) {
-    _initializeElements(statements);
-  }
-
-  /// Initialize a newly created set of hidden elements to include all of the
-  /// elements defined in the set of [outerElements] and all of the elements
-  /// declared in the given [guardedPattern].
-  HiddenElements.forGuardedPattern(
-    this.outerElements,
-    GuardedPatternImpl guardedPattern,
-  ) {
-    _elements.addAll(guardedPattern.variables.values);
+  /// elements defined in [outerElements] and the given [elements].
+  HiddenElements.forElements(this.outerElements, Iterable<Element> elements) {
+    _elements.addAll(elements);
   }
 
   /// Return `true` if this set of elements contains the given [element].
@@ -7003,12 +7037,6 @@ class HiddenElements {
   /// hidden.
   void declare(Element element) {
     _elements.remove(element);
-  }
-
-  /// Initialize the list of elements that are not yet declared to be all of the
-  /// elements declared somewhere in the given [statements].
-  void _initializeElements(List<Statement> statements) {
-    _elements.addAll(BlockScope.elementsInStatements(statements));
   }
 }
 

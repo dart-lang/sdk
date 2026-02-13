@@ -90,6 +90,14 @@ class NamedTypeResolver with ScopeHelpers {
       var prefixToken = importPrefix.name;
       var prefixName = prefixToken.lexeme;
       var prefixElement = nameScope.lookup(prefixName).getter;
+
+      // Might be shadowed by an instance member.
+      // Look again to report `prefixShadowedByLocalDeclaration`.
+      prefixElement ??=
+          enclosingClass?.getMethod(prefixName) ??
+          enclosingClass?.getGetter(prefixName) ??
+          enclosingClass?.getSetter(prefixName);
+
       importPrefix.element = prefixElement;
 
       if (prefixElement == null) {

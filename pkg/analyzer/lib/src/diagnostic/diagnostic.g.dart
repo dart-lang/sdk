@@ -854,9 +854,9 @@ augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object modifier: the lexeme of the modifier.
+/// String modifier: the lexeme of the modifier.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object modifier})
+  LocatableDiagnostic Function({required String modifier})
 >
 augmentationModifierExtra = DiagnosticWithArguments(
   name: 'augmentation_modifier_extra',
@@ -868,13 +868,13 @@ augmentationModifierExtra = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'augmentation_modifier_extra',
   withArguments: _withArgumentsAugmentationModifierExtra,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object modifier: the lexeme of the modifier.
+/// String modifier: the lexeme of the modifier.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object modifier})
+  LocatableDiagnostic Function({required String modifier})
 >
 augmentationModifierMissing = DiagnosticWithArguments(
   name: 'augmentation_modifier_missing',
@@ -885,16 +885,16 @@ augmentationModifierMissing = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'augmentation_modifier_missing',
   withArguments: _withArgumentsAugmentationModifierMissing,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object declarationKind: the name of the declaration kind.
-/// Object augmentationKind: the name of the augmentation kind.
+/// String declarationKind: the name of the declaration kind.
+/// String augmentationKind: the name of the augmentation kind.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object declarationKind,
-    required Object augmentationKind,
+    required String declarationKind,
+    required String augmentationKind,
   })
 >
 augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
@@ -905,7 +905,7 @@ augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'augmentation_of_different_declaration_kind',
   withArguments: _withArgumentsAugmentationOfDifferentDeclarationKind,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
@@ -991,9 +991,9 @@ augmentedExpressionIsSetter = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object operator: the lexeme of the operator.
+/// String operator: the lexeme of the operator.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object operator})
+  LocatableDiagnostic Function({required String operator})
 >
 augmentedExpressionNotOperator = DiagnosticWithArguments(
   name: 'augmented_expression_not_operator',
@@ -1003,7 +1003,7 @@ augmentedExpressionNotOperator = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'augmented_expression_not_operator',
   withArguments: _withArgumentsAugmentedExpressionNotOperator,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -2110,14 +2110,14 @@ constConstructorConstantFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
 /// object results in an uncaught exception being thrown.
 ///
 /// Parameters:
-/// Object valueType: the type of the runtime value of the argument
-/// Object fieldName: the name of the field
-/// Object fieldType: the type of the field
+/// String valueType: the type of the runtime value of the argument
+/// String fieldName: the name of the field
+/// String fieldType: the type of the field
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object valueType,
-    required Object fieldName,
-    required Object fieldType,
+    required String valueType,
+    required String fieldName,
+    required String fieldType,
   })
 >
 constConstructorFieldTypeMismatch = DiagnosticWithArguments(
@@ -2130,9 +2130,9 @@ constConstructorFieldTypeMismatch = DiagnosticWithArguments(
   uniqueName: 'const_constructor_field_type_mismatch',
   withArguments: _withArgumentsConstConstructorFieldTypeMismatch,
   expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
   ],
 );
 
@@ -2322,9 +2322,9 @@ const DiagnosticWithoutArguments constEvalAssertionFailure =
     );
 
 /// Parameters:
-/// Object message: the message of the assertion
+/// String message: the message of the assertion
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object message})
+  LocatableDiagnostic Function({required String message})
 >
 constEvalAssertionFailureWithMessage = DiagnosticWithArguments(
   name: 'const_eval_assertion_failure_with_message',
@@ -2332,7 +2332,7 @@ constEvalAssertionFailureWithMessage = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'const_eval_assertion_failure_with_message',
   withArguments: _withArgumentsConstEvalAssertionFailureWithMessage,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -3256,9 +3256,9 @@ deprecatedExportUse = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object typeName: the name of the type
+/// String typeName: the name of the type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object typeName})
+  LocatableDiagnostic Function({required String typeName})
 >
 deprecatedExtend = DiagnosticWithArguments(
   name: 'deprecated_extend',
@@ -3268,7 +3268,7 @@ deprecatedExtend = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_extend',
   withArguments: _withArgumentsDeprecatedExtend,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -3315,9 +3315,9 @@ deprecatedField = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object typeName: the name of the type
+/// String typeName: the name of the type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object typeName})
+  LocatableDiagnostic Function({required String typeName})
 >
 deprecatedImplement = DiagnosticWithArguments(
   name: 'deprecated_implement',
@@ -3327,7 +3327,7 @@ deprecatedImplement = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_implement',
   withArguments: _withArgumentsDeprecatedImplement,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -3344,9 +3344,9 @@ const DiagnosticWithoutArguments deprecatedImplementsFunction =
     );
 
 /// Parameters:
-/// Object typeName: the name of the type
+/// String typeName: the name of the type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object typeName})
+  LocatableDiagnostic Function({required String typeName})
 >
 deprecatedInstantiate = DiagnosticWithArguments(
   name: 'deprecated_instantiate',
@@ -3356,7 +3356,7 @@ deprecatedInstantiate = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_instantiate',
   withArguments: _withArgumentsDeprecatedInstantiate,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// A hint code indicating reference to a deprecated lint.
@@ -3434,9 +3434,9 @@ deprecatedMemberUseWithMessage = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object typeName: the name of the type
+/// String typeName: the name of the type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object typeName})
+  LocatableDiagnostic Function({required String typeName})
 >
 deprecatedMixin = DiagnosticWithArguments(
   name: 'deprecated_mixin',
@@ -3446,7 +3446,7 @@ deprecatedMixin = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_mixin',
   withArguments: _withArgumentsDeprecatedMixin,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -3475,9 +3475,9 @@ const DiagnosticWithoutArguments deprecatedNewInCommentReference =
     );
 
 /// Parameters:
-/// Object parameterName: the name of the parameter
+/// String parameterName: the name of the parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object parameterName})
+  LocatableDiagnostic Function({required String parameterName})
 >
 deprecatedOptional = DiagnosticWithArguments(
   name: 'deprecated_optional',
@@ -3487,13 +3487,13 @@ deprecatedOptional = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_optional',
   withArguments: _withArgumentsDeprecatedOptional,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object typeName: the name of the type
+/// String typeName: the name of the type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object typeName})
+  LocatableDiagnostic Function({required String typeName})
 >
 deprecatedSubclass = DiagnosticWithArguments(
   name: 'deprecated_subclass',
@@ -3505,7 +3505,7 @@ deprecatedSubclass = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_subclass',
   withArguments: _withArgumentsDeprecatedSubclass,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -6415,16 +6415,16 @@ const DiagnosticWithoutArguments getterInFunction =
     );
 
 /// Parameters:
-/// Object getterName: the name of the getter
-/// Object getterType: the type of the getter
-/// Object setterType: the type of the setter
-/// Object setterName: the name of the setter
+/// String getterName: the name of the getter
+/// Type getterType: the type of the getter
+/// Type setterType: the type of the setter
+/// String setterName: the name of the setter
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object getterName,
-    required Object getterType,
-    required Object setterType,
-    required Object setterName,
+    required String getterName,
+    required DartType getterType,
+    required DartType setterType,
+    required String setterName,
   })
 >
 getterNotSubtypeSetterTypes = DiagnosticWithArguments(
@@ -6438,10 +6438,10 @@ getterNotSubtypeSetterTypes = DiagnosticWithArguments(
   uniqueName: 'getter_not_subtype_setter_types',
   withArguments: _withArgumentsGetterNotSubtypeSetterTypes,
   expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.string,
+    ExpectedType.type,
+    ExpectedType.type,
+    ExpectedType.string,
   ],
 );
 
@@ -6961,7 +6961,7 @@ includedFileParseError = DiagnosticWithArguments(
 /// An error code indicating a specified include file has a warning.
 ///
 /// Parameters:
-/// Object includingFilePath: the path of the file containing the warnings
+/// String includingFilePath: the path of the file containing the warnings
 /// int startOffset: the starting offset of the text in the file that contains
 ///                  the warning
 /// int endOffset: the ending offset of the text in the file that contains the
@@ -6969,7 +6969,7 @@ includedFileParseError = DiagnosticWithArguments(
 /// String warningMessage: the warning message
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object includingFilePath,
+    required String includingFilePath,
     required int startOffset,
     required int endOffset,
     required String warningMessage,
@@ -6983,7 +6983,7 @@ includedFileWarning = DiagnosticWithArguments(
   uniqueName: 'included_file_warning',
   withArguments: _withArgumentsIncludedFileWarning,
   expectedTypes: [
-    ExpectedType.object,
+    ExpectedType.string,
     ExpectedType.int,
     ExpectedType.int,
     ExpectedType.string,
@@ -7446,11 +7446,11 @@ instanceAccessToStaticMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object name: the name of the static member
-/// Object kind: the kind of the static member (field, getter, setter, or
+/// String name: the name of the static member
+/// String kind: the kind of the static member (field, getter, setter, or
 ///              method)
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object name, required Object kind})
+  LocatableDiagnostic Function({required String name, required String kind})
 >
 instanceAccessToStaticMemberOfUnnamedExtension = DiagnosticWithArguments(
   name: 'instance_access_to_static_member',
@@ -7459,7 +7459,7 @@ instanceAccessToStaticMemberOfUnnamedExtension = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'instance_access_to_static_member_of_unnamed_extension',
   withArguments: _withArgumentsInstanceAccessToStaticMemberOfUnnamedExtension,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
@@ -8357,12 +8357,12 @@ invalidLanguageVersionOverrideEquals = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object latestMajor: the latest major version
-/// Object latestMinor: the latest minor version
+/// int latestMajor: the latest major version
+/// int latestMinor: the latest minor version
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object latestMajor,
-    required Object latestMinor,
+    required int latestMajor,
+    required int latestMinor,
   })
 >
 invalidLanguageVersionOverrideGreater = DiagnosticWithArguments(
@@ -8375,7 +8375,7 @@ invalidLanguageVersionOverrideGreater = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'invalid_language_version_override_greater',
   withArguments: _withArgumentsInvalidLanguageVersionOverrideGreater,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.int, ExpectedType.int],
 );
 
 /// No parameters.
@@ -11027,12 +11027,12 @@ const DiagnosticWithoutArguments multipleWithClauses =
     );
 
 /// Parameters:
-/// Object type: the type that should be a valid dart:ffi native type.
+/// Type type: the type that should be a valid dart:ffi native type.
 /// String functionName: the name of the function whose invocation depends on
 ///                      this relationship
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object type,
+    required DartType type,
     required String functionName,
   })
 >
@@ -11047,7 +11047,7 @@ mustBeANativeFunctionType = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'must_be_a_native_function_type',
   withArguments: _withArgumentsMustBeANativeFunctionType,
-  expectedTypes: [ExpectedType.object, ExpectedType.string],
+  expectedTypes: [ExpectedType.type, ExpectedType.string],
 );
 
 /// Parameters:
@@ -13712,13 +13712,13 @@ recursiveFactoryRedirect = DiagnosticWithoutArgumentsImpl(
 /// An error code indicating a specified include file includes itself recursively.
 ///
 /// Parameters:
-/// Object includedUri: the URI of the file to be included
-/// Object includingFilePath: the path of the file containing the include
+/// String includedUri: the URI of the file to be included
+/// String includingFilePath: the path of the file containing the include
 ///                           directive
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object includedUri,
-    required Object includingFilePath,
+    required String includedUri,
+    required String includingFilePath,
   })
 >
 recursiveIncludeFile = DiagnosticWithArguments(
@@ -13732,7 +13732,7 @@ recursiveIncludeFile = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'recursive_include_file',
   withArguments: _withArgumentsRecursiveIncludeFile,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
@@ -14206,14 +14206,14 @@ replacedLint = DiagnosticWithArguments(
 /// An error code indicating use of a removed lint rule.
 ///
 /// Parameters:
-/// Object ruleName: the rule name
-/// Object since: the SDK version in which the lint was removed
-/// Object replacement: the name of a replacing lint
+/// String ruleName: the rule name
+/// String since: the SDK version in which the lint was removed
+/// String replacement: the name of a replacing lint
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object ruleName,
-    required Object since,
-    required Object replacement,
+    required String ruleName,
+    required String since,
+    required String replacement,
   })
 >
 replacedLintUse = DiagnosticWithArguments(
@@ -14224,9 +14224,9 @@ replacedLintUse = DiagnosticWithArguments(
   uniqueName: 'replaced_lint_use',
   withArguments: _withArgumentsReplacedLintUse,
   expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
   ],
 );
 
@@ -16849,12 +16849,12 @@ unsupportedOptionWithoutValues = DiagnosticWithArguments(
 ///
 /// Parameters:
 /// String optionName: the option name
-/// Object invalidValue: the unsupported value
+/// String invalidValue: the unsupported value
 /// String legalValues: legal values
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
     required String optionName,
-    required Object invalidValue,
+    required String invalidValue,
     required String legalValues,
   })
 >
@@ -16868,7 +16868,7 @@ unsupportedValue = DiagnosticWithArguments(
   withArguments: _withArgumentsUnsupportedValue,
   expectedTypes: [
     ExpectedType.string,
-    ExpectedType.object,
+    ExpectedType.string,
     ExpectedType.string,
   ],
 );
@@ -16964,9 +16964,9 @@ unusedElementParameter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object fieldName: the name of the unused field
+/// String fieldName: the name of the unused field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object fieldName})
+  LocatableDiagnostic Function({required String fieldName})
 >
 unusedField = DiagnosticWithArguments(
   name: 'unused_field',
@@ -16976,16 +16976,16 @@ unusedField = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unused_field',
   withArguments: _withArgumentsUnusedField,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object fieldName: the name of the unused field
-/// Object keyword: the keyword to remove
+/// String fieldName: the name of the unused field
+/// String keyword: the keyword to remove
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object fieldName,
-    required Object keyword,
+    required String fieldName,
+    required String keyword,
   })
 >
 unusedFieldFromPrimaryConstructor = DiagnosticWithArguments(
@@ -16997,7 +16997,7 @@ unusedFieldFromPrimaryConstructor = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unused_field_from_primary_constructor',
   withArguments: _withArgumentsUnusedFieldFromPrimaryConstructor,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
@@ -17283,12 +17283,12 @@ variablePatternKeywordInDeclarationContext = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object valueType: the type of the object being assigned.
-/// Object variableType: the type of the variable being assigned to
+/// String valueType: the type of the object being assigned.
+/// String variableType: the type of the variable being assigned to
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object valueType,
-    required Object variableType,
+    required String valueType,
+    required String variableType,
   })
 >
 variableTypeMismatch = DiagnosticWithArguments(
@@ -17301,7 +17301,7 @@ variableTypeMismatch = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'variable_type_mismatch',
   withArguments: _withArgumentsVariableTypeMismatch,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
@@ -17966,20 +17966,20 @@ LocatableDiagnostic _withArgumentsAssignmentToFinalNoSetter({
 }
 
 LocatableDiagnostic _withArgumentsAugmentationModifierExtra({
-  required Object modifier,
+  required String modifier,
 }) {
   return LocatableDiagnosticImpl(diag.augmentationModifierExtra, [modifier]);
 }
 
 LocatableDiagnostic _withArgumentsAugmentationModifierMissing({
-  required Object modifier,
+  required String modifier,
 }) {
   return LocatableDiagnosticImpl(diag.augmentationModifierMissing, [modifier]);
 }
 
 LocatableDiagnostic _withArgumentsAugmentationOfDifferentDeclarationKind({
-  required Object declarationKind,
-  required Object augmentationKind,
+  required String declarationKind,
+  required String augmentationKind,
 }) {
   return LocatableDiagnosticImpl(diag.augmentationOfDifferentDeclarationKind, [
     declarationKind,
@@ -17988,7 +17988,7 @@ LocatableDiagnostic _withArgumentsAugmentationOfDifferentDeclarationKind({
 }
 
 LocatableDiagnostic _withArgumentsAugmentedExpressionNotOperator({
-  required Object operator,
+  required String operator,
 }) {
   return LocatableDiagnosticImpl(diag.augmentedExpressionNotOperator, [
     operator,
@@ -18365,9 +18365,9 @@ LocatableDiagnostic _withArgumentsConstantPatternNeverMatchesValueType({
 }
 
 LocatableDiagnostic _withArgumentsConstConstructorFieldTypeMismatch({
-  required Object valueType,
-  required Object fieldName,
-  required Object fieldType,
+  required String valueType,
+  required String fieldName,
+  required String fieldType,
 }) {
   return LocatableDiagnosticImpl(diag.constConstructorFieldTypeMismatch, [
     valueType,
@@ -18421,7 +18421,7 @@ LocatableDiagnostic _withArgumentsConstConstructorWithNonConstSuper({
 }
 
 LocatableDiagnostic _withArgumentsConstEvalAssertionFailureWithMessage({
-  required Object message,
+  required String message,
 }) {
   return LocatableDiagnosticImpl(diag.constEvalAssertionFailureWithMessage, [
     message,
@@ -18528,7 +18528,7 @@ LocatableDiagnostic _withArgumentsDeprecatedExportUse({required String name}) {
   return LocatableDiagnosticImpl(diag.deprecatedExportUse, [name]);
 }
 
-LocatableDiagnostic _withArgumentsDeprecatedExtend({required Object typeName}) {
+LocatableDiagnostic _withArgumentsDeprecatedExtend({required String typeName}) {
   return LocatableDiagnosticImpl(diag.deprecatedExtend, [typeName]);
 }
 
@@ -18537,13 +18537,13 @@ LocatableDiagnostic _withArgumentsDeprecatedField({required String fieldName}) {
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedImplement({
-  required Object typeName,
+  required String typeName,
 }) {
   return LocatableDiagnosticImpl(diag.deprecatedImplement, [typeName]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedInstantiate({
-  required Object typeName,
+  required String typeName,
 }) {
   return LocatableDiagnosticImpl(diag.deprecatedInstantiate, [typeName]);
 }
@@ -18576,18 +18576,18 @@ LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsDeprecatedMixin({required Object typeName}) {
+LocatableDiagnostic _withArgumentsDeprecatedMixin({required String typeName}) {
   return LocatableDiagnosticImpl(diag.deprecatedMixin, [typeName]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedOptional({
-  required Object parameterName,
+  required String parameterName,
 }) {
   return LocatableDiagnosticImpl(diag.deprecatedOptional, [parameterName]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedSubclass({
-  required Object typeName,
+  required String typeName,
 }) {
   return LocatableDiagnosticImpl(diag.deprecatedSubclass, [typeName]);
 }
@@ -19105,10 +19105,10 @@ LocatableDiagnostic _withArgumentsGenericStructSubclass({
 }
 
 LocatableDiagnostic _withArgumentsGetterNotSubtypeSetterTypes({
-  required Object getterName,
-  required Object getterType,
-  required Object setterType,
-  required Object setterName,
+  required String getterName,
+  required DartType getterType,
+  required DartType setterType,
+  required String setterName,
 }) {
   return LocatableDiagnosticImpl(diag.getterNotSubtypeSetterTypes, [
     getterName,
@@ -19220,7 +19220,7 @@ LocatableDiagnostic _withArgumentsIncludedFileParseError({
 }
 
 LocatableDiagnostic _withArgumentsIncludedFileWarning({
-  required Object includingFilePath,
+  required String includingFilePath,
   required int startOffset,
   required int endOffset,
   required String warningMessage,
@@ -19403,8 +19403,8 @@ LocatableDiagnostic _withArgumentsInstanceAccessToStaticMember({
 
 LocatableDiagnostic
 _withArgumentsInstanceAccessToStaticMemberOfUnnamedExtension({
-  required Object name,
-  required Object kind,
+  required String name,
+  required String kind,
 }) {
   return LocatableDiagnosticImpl(
     diag.instanceAccessToStaticMemberOfUnnamedExtension,
@@ -19539,8 +19539,8 @@ LocatableDiagnostic _withArgumentsInvalidImplementationOverrideSetter({
 }
 
 LocatableDiagnostic _withArgumentsInvalidLanguageVersionOverrideGreater({
-  required Object latestMajor,
-  required Object latestMinor,
+  required int latestMajor,
+  required int latestMinor,
 }) {
   return LocatableDiagnosticImpl(diag.invalidLanguageVersionOverrideGreater, [
     latestMajor,
@@ -20045,7 +20045,7 @@ LocatableDiagnostic _withArgumentsMultiplePlugins({
 }
 
 LocatableDiagnostic _withArgumentsMustBeANativeFunctionType({
-  required Object type,
+  required DartType type,
   required String functionName,
 }) {
   return LocatableDiagnosticImpl(diag.mustBeANativeFunctionType, [
@@ -20572,8 +20572,8 @@ LocatableDiagnostic _withArgumentsReadPotentiallyUnassignedFinal({
 }
 
 LocatableDiagnostic _withArgumentsRecursiveIncludeFile({
-  required Object includedUri,
-  required Object includingFilePath,
+  required String includedUri,
+  required String includingFilePath,
 }) {
   return LocatableDiagnosticImpl(diag.recursiveIncludeFile, [
     includedUri,
@@ -20727,9 +20727,9 @@ LocatableDiagnostic _withArgumentsReplacedLint({
 }
 
 LocatableDiagnostic _withArgumentsReplacedLintUse({
-  required Object ruleName,
-  required Object since,
-  required Object replacement,
+  required String ruleName,
+  required String since,
+  required String replacement,
 }) {
   return LocatableDiagnosticImpl(diag.replacedLintUse, [
     ruleName,
@@ -21371,7 +21371,7 @@ LocatableDiagnostic _withArgumentsUnsupportedOptionWithoutValues({
 
 LocatableDiagnostic _withArgumentsUnsupportedValue({
   required String optionName,
-  required Object invalidValue,
+  required String invalidValue,
   required String legalValues,
 }) {
   return LocatableDiagnosticImpl(diag.unsupportedValue, [
@@ -21399,13 +21399,13 @@ LocatableDiagnostic _withArgumentsUnusedElementParameter({
   return LocatableDiagnosticImpl(diag.unusedElementParameter, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnusedField({required Object fieldName}) {
+LocatableDiagnostic _withArgumentsUnusedField({required String fieldName}) {
   return LocatableDiagnosticImpl(diag.unusedField, [fieldName]);
 }
 
 LocatableDiagnostic _withArgumentsUnusedFieldFromPrimaryConstructor({
-  required Object fieldName,
-  required Object keyword,
+  required String fieldName,
+  required String keyword,
 }) {
   return LocatableDiagnosticImpl(diag.unusedFieldFromPrimaryConstructor, [
     fieldName,
@@ -21457,8 +21457,8 @@ LocatableDiagnostic _withArgumentsUriHasNotBeenGenerated({
 }
 
 LocatableDiagnostic _withArgumentsVariableTypeMismatch({
-  required Object valueType,
-  required Object variableType,
+  required String valueType,
+  required String variableType,
 }) {
   return LocatableDiagnosticImpl(diag.variableTypeMismatch, [
     valueType,

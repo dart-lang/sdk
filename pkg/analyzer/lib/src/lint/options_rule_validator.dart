@@ -419,8 +419,8 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         reporter.report(
           diag.unsupportedValue
               .withArguments(
-                optionName: value,
-                invalidValue: ruleValue,
+                optionName: value.toString(),
+                invalidValue: ruleValue.toString(),
                 legalValues: validLintValues.quotedAndCommaSeparatedWithOr,
               )
               .atSourceSpan(warningNode.span),

@@ -90,7 +90,16 @@ void g() {
   NativeCallable<int Function(int)>.isolateLocal(f, exceptionalReturn: 4);
 }
 ''',
-      [error(diag.mustBeANativeFunctionType, 55, 46)],
+      [
+        error(
+          diag.mustBeANativeFunctionType,
+          55,
+          46,
+          messageContains: [
+            "The type 'int Function(int)' given to 'NativeCallable' must be",
+          ],
+        ),
+      ],
     );
   }
 
