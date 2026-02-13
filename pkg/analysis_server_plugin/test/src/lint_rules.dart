@@ -58,6 +58,59 @@ class NoBoolsRule extends AnalysisRule {
   }
 }
 
+class TestDiagnosticCode extends DiagnosticCode {
+  const TestDiagnosticCode(
+    String name,
+    String message, {
+    this.type = DiagnosticType.STATIC_WARNING,
+  }) : super(
+         problemMessage: message,
+         name: name,
+         uniqueName: 'TestErrorCode.$name',
+       );
+
+  @override
+  final DiagnosticType type;
+
+  @override
+  DiagnosticSeverity get severity => type.severity;
+}
+
+class NoInteger10Rule extends AnalysisRule {
+  static const code = TestDiagnosticCode(
+    'no_integer_10',
+    'No integer 10 message',
+  );
+
+  NoInteger10Rule()
+    : super(name: 'no_integer_10', description: 'No integer 10 desc');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _NoIntegersVisitor(this);
+    registry.addIntegerLiteral(this, visitor);
+  }
+}
+
+class _NoIntegersVisitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  _NoIntegersVisitor(this.rule);
+
+  @override
+  void visitIntegerLiteral(IntegerLiteral node) {
+    if (node.value == 10) {
+      rule.reportAtNode(node);
+    }
+  }
+}
+
 class NoDoublesCustomSeverityRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'no_doubles_custom_severity',
