@@ -29,10 +29,12 @@ Uint8List writeUnitInformative(CompilationUnit unit) {
 class InformativeDataApplier {
   bool _shouldDeferApplyMembersOffsets = true;
 
-  void applyFromNode(LibraryFragmentImpl fragment, CompilationUnit node) {
+  void applyFromBytes(
+    LibraryFragmentImpl fragment,
+    Uint8List informativeBytes,
+  ) {
     _shouldDeferApplyMembersOffsets = false;
-    var unitInfo = _InfoBuilder().build(node);
-    _applyFromInfo(fragment, unitInfo);
+    _applyFromBytes(fragment, informativeBytes);
   }
 
   void applyToLibrary(
@@ -2257,7 +2259,7 @@ class _SafeListIterator<T> {
 
 extension on BinaryReader {
   List<T> readList<T>(T Function(BinaryReader) read) {
-    return readTypedList(() => read(this));
+    return readTypedListFromBinaryReader(read);
   }
 }
 

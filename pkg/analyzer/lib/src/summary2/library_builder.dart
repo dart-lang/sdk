@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -31,7 +33,11 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 class DefiningLinkingUnit extends LinkingUnit {
-  DefiningLinkingUnit({required super.node, required super.fragment});
+  DefiningLinkingUnit({
+    required super.node,
+    required super.fragment,
+    required super.informativeBytes,
+  });
 }
 
 class ImplicitEnumNodes {
@@ -195,9 +201,9 @@ class LibraryBuilder {
     );
 
     for (var linkingUnit in units) {
-      InformativeDataApplier().applyFromNode(
+      InformativeDataApplier().applyFromBytes(
         linkingUnit.fragment,
-        linkingUnit.node,
+        linkingUnit.informativeBytes,
       );
     }
 
@@ -662,7 +668,13 @@ class LibraryBuilder {
           libraryFragment.isOriginNotExistingFile = !partFile.exists;
           libraryFragment.setCodeRange(0, partUnitNode.length);
 
-          units.add(LinkingUnit(node: partUnitNode, fragment: libraryFragment));
+          units.add(
+            LinkingUnit(
+              node: partUnitNode,
+              fragment: libraryFragment,
+              informativeBytes: partFile.unlinked2.informativeBytes,
+            ),
+          );
 
           _buildDirectives(kind: includedPart, containerUnit: libraryFragment);
 
@@ -794,7 +806,11 @@ class LibraryBuilder {
       libraryFragment.setCodeRange(0, libraryUnitNode.length);
 
       linkingUnits.add(
-        DefiningLinkingUnit(node: libraryUnitNode, fragment: libraryFragment),
+        DefiningLinkingUnit(
+          node: libraryUnitNode,
+          fragment: libraryFragment,
+          informativeBytes: libraryFile.unlinked2.informativeBytes,
+        ),
       );
 
       libraryElement.firstFragment = libraryFragment;
@@ -819,8 +835,13 @@ class LibraryBuilder {
 class LinkingUnit {
   final ast.CompilationUnitImpl node;
   final LibraryFragmentImpl fragment;
+  final Uint8List informativeBytes;
 
-  LinkingUnit({required this.node, required this.fragment});
+  LinkingUnit({
+    required this.node,
+    required this.fragment,
+    required this.informativeBytes,
+  });
 }
 
 /// This class examines all the [InterfaceElementImpl]s in a library and

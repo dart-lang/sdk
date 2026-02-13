@@ -228,6 +228,19 @@ class BinaryReader {
     }, growable: false);
   }
 
+  /// Same as [readTypedList] but with the given function taking [BinaryReader]
+  /// which can sometimes avoid the allocation of a context and a closure in the
+  /// VM.
+  List<T> readTypedListFromBinaryReader<T>(T Function(BinaryReader) read) {
+    var length = readUint30();
+    if (length == 0) {
+      return const <Never>[];
+    }
+    return List<T>.generate(length, (_) {
+      return read(this);
+    }, growable: false);
+  }
+
   int readUint30() {
     var byte = readByte();
     if (byte & 0x80 == 0) {

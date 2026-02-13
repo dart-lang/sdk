@@ -3698,6 +3698,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitFunctionDeclaration(
     covariant FunctionDeclarationImpl node,
   ) {
+    if (isClosureContextLoweringEnabled) {
+      _contextAllocationStrategy.handleVariablesCapturedByNode(
+        node.function,
+        _capturedVariablesForNode(node),
+      );
+      _handleDeclarationsOfParameters([
+        ...node.function.positionalParameters,
+        ...node.function.namedParameters,
+      ]);
+    }
+
     bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
     _inTryOrLocalFunction = true;
     VariableDeclaration variable = node.variable;
