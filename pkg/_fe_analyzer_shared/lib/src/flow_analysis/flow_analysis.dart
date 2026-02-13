@@ -5644,7 +5644,7 @@ class _FlowAnalysisImpl<
 
   @override
   ExpressionInfo? getExpressionInfo(Expression? expression) =>
-      _getExpressionInfo(expression);
+      _expressionInfoMap[expression];
 
   @override
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
@@ -6447,7 +6447,7 @@ class _FlowAnalysisImpl<
     Expression expression,
     ExpressionInfo? expressionInfo,
   ) {
-    _storeExpressionInfo(expression, expressionInfo);
+    _expressionInfoMap[expression] = expressionInfo;
   }
 
   @override
@@ -7140,13 +7140,6 @@ class _FlowAnalysisImpl<
     _current = context._previous;
   }
 
-  /// Gets the [ExpressionInfo] associated with the [expression].
-  ///
-  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
-  /// the [expression], then `null` is returned.
-  ExpressionInfo? _getExpressionInfo(Expression? expression) =>
-      _expressionInfoMap[expression];
-
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
   ///
@@ -7689,15 +7682,6 @@ class _FlowAnalysisImpl<
       scrutineeSsaNode ?? new SsaNode(),
       scrutineeType,
     ).restoreConditionVariableState(scrutineeInfo, this, _current);
-  }
-
-  /// Associates [expression] with the given [expressionInfo] object, for later
-  /// retrieval by [_getExpressionInfo].
-  void _storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  ) {
-    _expressionInfoMap[expression] = expressionInfo;
   }
 
   TrivialVariableReference _thisOrSuperReference(
