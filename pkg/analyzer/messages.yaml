@@ -1703,6 +1703,12 @@ CompileTimeErrorCode:
       #### Common fixes
 
       Rewrite the code so that there isn't an assignment to a method.
+  assignmentToPrimaryConstructorParameter:
+    type: compileTimeError
+    parameters: none
+    problemMessage: "A primary constructor parameter can't be assigned to in an initializer."
+    correctionMessage: "Try removing the assignment."
+    hasPublishedDocs: false
   assignmentToType:
     type: compileTimeError
     parameters: none

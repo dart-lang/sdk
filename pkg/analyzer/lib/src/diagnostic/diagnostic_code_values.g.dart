@@ -64,6 +64,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.assignmentToFinalNoSetter,
   diag.assignmentToFunction,
   diag.assignmentToMethod,
+  diag.assignmentToPrimaryConstructorParameter,
   diag.assignmentToType,
   diag.asyncForInWrongContext,
   diag.asyncKeywordUsedAsIdentifier,

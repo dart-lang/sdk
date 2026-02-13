@@ -200,6 +200,8 @@ assignment_to_const:
   notes: |-
     Making the field non-const doesn't seem to be a good choice, but it is a
     possibility.
+assignment_to_primary_constructor_parameter:
+  status: needsEvaluation
 assignment_to_final:
   status: hasFix
 assignment_to_final_local:

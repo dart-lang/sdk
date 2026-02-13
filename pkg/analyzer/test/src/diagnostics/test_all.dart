@@ -34,6 +34,8 @@ import 'assignment_to_final_no_setter_test.dart'
 import 'assignment_to_final_test.dart' as assignment_to_final;
 import 'assignment_to_function_test.dart' as assignment_to_function;
 import 'assignment_to_method_test.dart' as assignment_to_method;
+import 'assignment_to_primary_constructor_parameter_test.dart'
+    as assignment_to_primary_constructor_parameter;
 import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_for_in_wrong_context_test.dart' as async_for_in_wrong_context;
 import 'async_keyword_used_as_identifier_test.dart'
@@ -969,6 +971,7 @@ main() {
     assignment_to_final.main();
     assignment_to_function.main();
     assignment_to_method.main();
+    assignment_to_primary_constructor_parameter.main();
     assignment_to_type.main();
     async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
