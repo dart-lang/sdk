@@ -99,7 +99,7 @@ class AssignmentExpressionResolver {
 
     _resolver.analyzeExpression(right, SharedTypeSchemaView(rhsContext));
     right = _resolver.popRewrite()!;
-    var whyNotPromoted = flow?.whyNotPromoted(right);
+    var whyNotPromoted = flow?.whyNotPromoted(flow.getExpressionInfo(right));
 
     _resolveTypes(
       node,

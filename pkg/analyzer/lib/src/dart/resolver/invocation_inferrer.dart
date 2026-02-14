@@ -688,7 +688,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
               staticType: argument.typeOrThrow,
             ),
           );
-          whyNotPromotedArguments.add(flow.whyNotPromoted(argument));
+          whyNotPromotedArguments.add(
+            flow.whyNotPromoted(flow.getExpressionInfo(argument)),
+          );
         }
         if (parameter != null) {
           inferrer?.constrainArgument(

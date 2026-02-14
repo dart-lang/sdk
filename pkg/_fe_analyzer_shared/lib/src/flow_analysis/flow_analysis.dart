@@ -146,17 +146,18 @@ class ExpressionInfo {
 /// code.
 class ExpressionPropertyTarget<Expression extends Object>
     extends PropertyTarget<Expression> {
-  /// The expression whose property is being accessed.
-  final Expression expression;
+  /// The expression info for the expression whose property is being accessed.
+  final ExpressionInfo? expressionInfo;
 
-  ExpressionPropertyTarget(this.expression) : super._();
-
-  @override
-  String toString() => 'ExpressionPropertyTarget($expression)';
+  ExpressionPropertyTarget(this.expressionInfo) : super._();
 
   @override
-  SsaNode? _getSsaNode(covariant _PropertyTargetHelper<Expression> helper) =>
-      _getExpressionReference(helper._getExpressionInfo(expression))?.ssaNode;
+  String toString() => 'ExpressionPropertyTarget($expressionInfo)';
+
+  @override
+  SsaNode? _getSsaNode(covariant _PropertyTargetHelper<Expression> helper) {
+    return _getExpressionReference(expressionInfo)?.ssaNode;
+  }
 }
 
 /// Implementation of flow analysis to be shared between the analyzer and the
@@ -890,12 +891,9 @@ abstract class FlowAnalysis<
 
   /// Call this method just after visiting a parenthesized expression.
   ///
-  /// This is only necessary if the implementation uses a different [Expression]
-  /// object to represent a parenthesized expression and its contents.
-  void parenthesizedExpression(
-    Expression outerExpression,
-    Expression innerExpression,
-  );
+  /// [expressionInfo] should be the expression info for the inner expression.
+  /// The expression info for the parenthesized expression is returned.
+  ExpressionInfo? parenthesizedExpression(ExpressionInfo? expressionInfo);
 
   /// Call this method just after visiting the right hand side of a pattern
   /// assignment expression, and before visiting the pattern.
@@ -1358,9 +1356,10 @@ abstract class FlowAnalysis<
   void whileStatement_end();
 
   /// Call this method when an error occurs that may be due to a lack of type
-  /// promotion, to retrieve information about why [target] was not promoted.
+  /// promotion, to retrieve information about why an expression was not
+  /// promoted.
   ///
-  /// This call must be made right after visiting [target].
+  /// [targetInfo] should be the expression info for the expression of interest.
   ///
   /// The returned value is a function yielding a map whose keys are types that
   /// the user might have been expecting the target to be promoted to, and whose
@@ -1383,7 +1382,7 @@ abstract class FlowAnalysis<
   /// need to be generated, and then defer invoking the returned function until
   /// it is determined that an error actually occurred.
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted(
-    Expression target,
+    ExpressionInfo? targetInfo,
   );
 
   /// Call this method when an error occurs that may be due to a lack of type
@@ -2207,13 +2206,12 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void parenthesizedExpression(
-    Expression outerExpression,
-    Expression innerExpression,
-  ) {
-    _wrap(
-      'parenthesizedExpression($outerExpression, $innerExpression)',
-      () => _wrapped.parenthesizedExpression(outerExpression, innerExpression),
+  ExpressionInfo? parenthesizedExpression(ExpressionInfo? expressionInfo) {
+    return _wrap(
+      'parenthesizedExpression($expressionInfo)',
+      () => _wrapped.parenthesizedExpression(expressionInfo),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2637,11 +2635,11 @@ class FlowAnalysisDebug<
 
   @override
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted(
-    Expression target,
+    ExpressionInfo? targetInfo,
   ) {
     return _wrap(
-      'whyNotPromoted($target)',
-      () => _trackWhyNotPromoted(_wrapped.whyNotPromoted(target)),
+      'whyNotPromoted($targetInfo)',
+      () => _trackWhyNotPromoted(_wrapped.whyNotPromoted(targetInfo)),
       isQuery: true,
     );
   }
@@ -2734,6 +2732,12 @@ abstract interface class FlowAnalysisNullShortingInterface<
   Expression extends Object,
   Variable extends Object
 > {
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
+  ExpressionInfo? getExpressionInfo(Expression? expression);
+
   /// Call this method after visiting an expression using `?.`.
   void nullAwareAccess_end();
 
@@ -2777,12 +2781,6 @@ abstract interface class FlowAnalysisNullShortingInterface<
     Expression expression,
     ExpressionInfo? expressionInfo,
   );
-
-  /// Gets the [ExpressionInfo] associated with the [expression].
-  ///
-  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
-  /// the [expression], then `null` is returned.
-  ExpressionInfo? getExpressionInfo(Expression? expression);
 }
 
 /// An instance of the [FlowModel] class represents the information gathered by
@@ -5647,7 +5645,7 @@ class _FlowAnalysisImpl<
 
   @override
   ExpressionInfo? getExpressionInfo(Expression? expression) =>
-      _getExpressionInfo(expression);
+      _expressionInfoMap[expression];
 
   @override
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
@@ -6134,12 +6132,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void parenthesizedExpression(
-    Expression outerExpression,
-    Expression innerExpression,
-  ) {
-    _forwardExpression(outerExpression, innerExpression);
-  }
+  ExpressionInfo? parenthesizedExpression(ExpressionInfo? expressionInfo) =>
+      expressionInfo;
 
   @override
   void patternAssignment_afterRhs(
@@ -6454,7 +6448,7 @@ class _FlowAnalysisImpl<
     Expression expression,
     ExpressionInfo? expressionInfo,
   ) {
-    _storeExpressionInfo(expression, expressionInfo);
+    _expressionInfoMap[expression] = expressionInfo;
   }
 
   @override
@@ -6789,9 +6783,9 @@ class _FlowAnalysisImpl<
 
   @override
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted(
-    Expression target,
+    ExpressionInfo? targetInfo,
   ) {
-    if (_expressionInfoMap[target] case _Reference reference) {
+    if (targetInfo case _Reference reference) {
       PromotionModel? currentPromotionInfo = _current.promotionInfo?.get(
         this,
         reference.promotionKey,
@@ -7146,10 +7140,6 @@ class _FlowAnalysisImpl<
     _SimpleContext context = _stack.removeLast() as _FunctionExpressionContext;
     _current = context._previous;
   }
-
-  @override
-  ExpressionInfo? _getExpressionInfo(Expression? expression) =>
-      _expressionInfoMap[expression];
 
   /// Gets the matched value type that should be used to type check the pattern
   /// currently being analyzed.
@@ -7695,15 +7685,6 @@ class _FlowAnalysisImpl<
     ).restoreConditionVariableState(scrutineeInfo, this, _current);
   }
 
-  /// Associates [expression] with the given [expressionInfo] object, for later
-  /// retrieval by [_getExpressionInfo].
-  void _storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  ) {
-    _expressionInfoMap[expression] = expressionInfo;
-  }
-
   TrivialVariableReference _thisOrSuperReference(
     SharedTypeView staticType, {
     required bool isSuper,
@@ -8044,12 +8025,6 @@ abstract class _PropertyTargetHelper<Expression extends Object> {
 
   /// SSA node representing the implicit variable `this`.
   SsaNode get _thisSsaNode;
-
-  /// Gets the [ExpressionInfo] associated with the [expression].
-  ///
-  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
-  /// the [expression], then `null` is returned.
-  ExpressionInfo? _getExpressionInfo(Expression? expression);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a

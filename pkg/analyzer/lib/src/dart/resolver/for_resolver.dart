@@ -243,7 +243,7 @@ class ForResolver {
       );
       condition = _resolver.popRewrite()!;
       var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-        condition,
+        _resolver.flowAnalysis.flow?.getExpressionInfo(condition),
       );
       _resolver.boolExpressionVerifier.checkForNonBoolCondition(
         condition,

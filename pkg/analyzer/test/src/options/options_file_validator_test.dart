@@ -725,7 +725,7 @@ class OptionsProviderTest with ResourceProviderMixin {
     // Test that the appropriate error is issued if `analysis_options.yaml`
     // tries to include another options file which in turn includes
     // `analysis_options.yaml`.
-    newFile('/other_options.yaml', r'''
+    var other = newFile('/other_options.yaml', r'''
 include: analysis_options.yaml
 ''');
     assertErrorsInOptionsFile(
@@ -739,7 +739,7 @@ include: other_options.yaml
           18,
           messageContains: [
             "The URI 'analysis_options.yaml' included in "
-                "'/other_options.yaml' includes '/other_options.yaml', "
+                "'${other.path}' includes '${other.path}', "
                 "creating a circular reference.",
           ],
         ),
@@ -753,7 +753,7 @@ include: other_options.yaml
     // Note: comments ensure that the `include` directives in each file are at
     // different file offsets, so that we can validate that the reported source
     // ranges are correct.
-    newFile('/other_options1.yaml', r'''
+    var other1 = newFile('/other_options1.yaml', r'''
 include: other_options2.yaml
 ''');
     newFile('/other_options2.yaml', r'''
@@ -773,7 +773,7 @@ include: other_options1.yaml
           19,
           messageContains: [
             "Warning in the included options file "
-                "/other_options1.yaml(9..27): The file includes itself "
+                "${other1.path}(9..27): The file includes itself "
                 "recursively.",
           ],
         ),
@@ -784,6 +784,7 @@ include: other_options1.yaml
   test_circularInclude_trivial_direct() {
     // Test that the appropriate error is issued if `analysis_options.yaml`
     // tries to include itself.
+    var convertedPath = convertPath(optionsFilePath);
     assertErrorsInOptionsFile(
       r'''
 include: analysis_options.yaml
@@ -795,7 +796,7 @@ include: analysis_options.yaml
           21,
           messageContains: [
             "The URI 'analysis_options.yaml' included in "
-                "'/analysis_options.yaml' includes '/analysis_options.yaml', "
+                "'$convertedPath' includes '$convertedPath', "
                 "creating a circular reference.",
           ],
         ),
@@ -809,7 +810,7 @@ include: analysis_options.yaml
     // Note: comments ensure that the `include` directives in each file are at
     // different file offsets, so that we can validate that the reported source
     // ranges are correct.
-    newFile('/other_options.yaml', r'''
+    var other = newFile('/other_options.yaml', r'''
 include: other_options.yaml
 ''');
     assertErrorsInOptionsFile(
@@ -823,7 +824,7 @@ include: other_options.yaml
           19,
           18,
           messageContains: [
-            "Warning in the included options file /other_options.yaml(9..26): "
+            "Warning in the included options file ${other.path}(9..26): "
                 "The file includes itself recursively.",
           ],
         ),

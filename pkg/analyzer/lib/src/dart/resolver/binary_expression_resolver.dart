@@ -121,7 +121,9 @@ class BinaryExpressionResolver {
       SharedTypeSchemaView(UnknownInferredType.instance),
     );
     var right = _resolver.popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(right);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(right),
+    );
 
     if (!leftExtensionOverride) {
       flow?.storeExpressionInfo(
@@ -260,7 +262,9 @@ class BinaryExpressionResolver {
       SharedTypeSchemaView(_typeProvider.boolType),
     );
     left = _resolver.popRewrite()!;
-    var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
+    var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.flow?.getExpressionInfo(left),
+    );
 
     flow?.logicalBinaryOp_rightBegin(
       flow.getExpressionInfo(left),
@@ -275,7 +279,7 @@ class BinaryExpressionResolver {
     );
     right = _resolver.popRewrite()!;
     var rightWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      right,
+      _resolver.flowAnalysis.flow?.getExpressionInfo(right),
     );
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
@@ -301,7 +305,9 @@ class BinaryExpressionResolver {
       SharedTypeSchemaView(_typeProvider.boolType),
     );
     left = _resolver.popRewrite()!;
-    var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
+    var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.flow?.getExpressionInfo(left),
+    );
 
     flow?.logicalBinaryOp_rightBegin(
       flow.getExpressionInfo(left),
@@ -316,7 +322,7 @@ class BinaryExpressionResolver {
     );
     right = _resolver.popRewrite()!;
     var rightWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      right,
+      _resolver.flowAnalysis.flow?.getExpressionInfo(right),
     );
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
@@ -355,7 +361,9 @@ class BinaryExpressionResolver {
       SharedTypeSchemaView(rightContextType),
     );
     var right = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(right);
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.flow?.getExpressionInfo(right),
+    );
 
     _resolveUserDefinableType(node);
     _resolver.checkForArgumentTypeNotAssignableForArgument(

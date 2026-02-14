@@ -40,7 +40,7 @@ class FixProcessorMapTest {
   }
 
   void test_nonLintProducerMap() {
-    _assertMap(registeredFixGenerators.nonLintProducers);
+    _assertMap(registeredFixGenerators.warningProducers);
   }
 
   void test_registerFixForLint() {
