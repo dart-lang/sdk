@@ -1124,6 +1124,29 @@ PrimaryConstructorBody
 ''');
   }
 
+  test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter_shadowedClassName() async {
+    await assertNoErrorsInCode(r'''
+class A(final int A()) {
+  this : assert(A() > 0);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
   test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter() async {
     await assertNoErrorsInCode(r'''
 class A(this.a) {
@@ -1148,6 +1171,34 @@ PrimaryConstructorBody
       rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter_shadowedClassName() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int _);
+}
+
+class B(this.A) {
+  final int Function() A;
+  this : assert(A() > 0);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: int Function()
+  staticType: int
 ''');
   }
 
@@ -1201,6 +1252,30 @@ PrimaryConstructorBody
       rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_superFormalParameter_shadowedClassName() async {
+    await assertNoErrorsInCode(r'''
+class A(int Function() A);
+class B(super.A) extends A {
+  this : assert(A() > 0);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: int Function()
+  staticType: int
 ''');
   }
 

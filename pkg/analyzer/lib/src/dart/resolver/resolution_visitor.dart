@@ -316,8 +316,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forClass(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.namePart.typeParameters);
+      _withTypeParameterScope(node.namePart.typeParameters, () {
         node.namePart.accept(this);
 
         var extendsClause = node.extendsClause;
@@ -357,8 +356,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forClass(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
+      _withTypeParameterScope(node.typeParameters, () {
         node.typeParameters?.accept(this);
 
         _resolveType(
@@ -381,23 +379,28 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var fragment = _elementWalker!.getConstructor();
-    var element = fragment.element;
     node.declaredFragment = fragment;
 
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementHolder(ElementHolder(fragment), () {
       _withElementWalker(null, () {
-        _withNameScope(() {
-          node.typeName?.accept(this);
+        node.typeName?.accept(this);
 
-          _withElementWalker(ElementWalker.forExecutable(fragment), () {
-            node.parameters.accept(this);
-          });
-          _defineFormalParameters(element.formalParameters);
+        _withElementWalker(ElementWalker.forExecutable(fragment), () {
+          node.parameters.accept(this);
+        });
 
-          node.redirectedConstructor?.accept(this);
-          node.initializers.accept(this);
+        _withScope(
+          ConstructorInitializerScope(_nameScope, fragment.element),
+          () {
+            node.initializers.accept(this);
+          },
+        );
+
+        node.redirectedConstructor?.accept(this);
+
+        _withFormalParameterScope(fragment.element.formalParameters, () {
           node.body.accept(this);
         });
       });
@@ -556,8 +559,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forEnum(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.namePart.typeParameters);
+      _withTypeParameterScope(node.namePart.typeParameters, () {
         node.namePart.accept(this);
 
         _resolveWithClause(declaration: node, clause: node.withClause);
@@ -598,8 +600,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forExtension(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
+      _withTypeParameterScope(node.typeParameters, () {
         node.typeParameters?.accept(this);
         node.onClause?.accept(this);
 
@@ -624,10 +625,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forExtensionType(fragment), () {
-      _withNameScope(() {
-        var typeParameters = node.primaryConstructor.typeParameters;
-        _buildTypeParameterElements(typeParameters);
-
+      _withTypeParameterScope(node.primaryConstructor.typeParameters, () {
         node.primaryConstructor.accept(this);
 
         _resolveImplementsClause(
@@ -680,8 +678,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _withElementWalker(
         _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
         () {
-          _withNameScope(() {
-            _buildTypeParameterElements(node.typeParameters);
+          _withTypeParameterScope(node.typeParameters, () {
             node.typeParameters?.accept(this);
             node.type?.accept(this);
             if (_elementWalker != null) {
@@ -779,8 +776,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _withElementWalker(
         _elementWalker != null ? ElementWalker.forExecutable(fragment) : null,
         () {
-          _withNameScope(() {
-            _buildTypeParameterElements(expression.typeParameters);
+          _withTypeParameterScope(expression.typeParameters, () {
             expression.typeParameters?.accept(this);
             if (_elementWalker == null) {
               fragment.typeParameters = holder.typeParameters;
@@ -797,9 +793,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
                   node.returnType?.type ?? _dynamicType;
             }
 
-            _defineFormalParameters(fragment.element.formalParameters);
             _withElementWalker(null, () {
-              expression.body.accept(this);
+              _withFormalParameterScope(fragment.element.formalParameters, () {
+                expression.body.accept(this);
+              });
             });
           });
         },
@@ -837,16 +834,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var holder = ElementHolder(fragment);
     _withElementHolder(holder, () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
+      _withTypeParameterScope(node.typeParameters, () {
         node.typeParameters?.accept(this);
         fragment.typeParameters = holder.typeParameters;
 
         node.parameters!.accept(this);
         fragment.formalParameters = holder.formalParameters;
 
-        _defineFormalParameters(fragment.element.formalParameters);
-        node.body.accept(this);
+        _withFormalParameterScope(fragment.element.formalParameters, () {
+          node.body.accept(this);
+        });
       });
     });
 
@@ -862,18 +859,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var holder = ElementHolder(fragment);
     _withElementHolder(holder, () {
-      _withNameScope(() {
-        // Apply existing type parameter elements to nodes.
-        _withElementWalker(ElementWalker.forTypedef(fragment), () {
-          _buildTypeParameterElements(node.typeParameters);
+      // Apply existing type parameter elements to nodes.
+      _withElementWalker(ElementWalker.forTypedef(fragment), () {
+        _withTypeParameterScope(node.typeParameters, () {
           node.typeParameters?.accept(this);
-        });
 
-        // Run without walker to create fresh formal parameter elements.
-        _withElementWalker(null, () {
-          node.returnType?.accept(this);
-          node.parameters.accept(this);
-          fragment.encloseElements(holder.formalParameters);
+          // Run without walker to create fresh formal parameter elements.
+          _withElementWalker(null, () {
+            node.returnType?.accept(this);
+            node.parameters.accept(this);
+            fragment.encloseElements(holder.formalParameters);
+          });
         });
       });
     });
@@ -913,8 +909,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _withElementWalker(
         _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
         () {
-          _withNameScope(() {
-            _buildTypeParameterElements(node.typeParameters);
+          _withTypeParameterScope(node.typeParameters, () {
             node.typeParameters?.accept(this);
             if (_elementWalker == null) {
               fragment.typeParameters = holder.typeParameters;
@@ -960,8 +955,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var holder = ElementHolder(fragment);
     _withElementHolder(holder, () {
       _withElementWalker(null, () {
-        _withNameScope(() {
-          _buildTypeParameterElements(node.typeParameters);
+        _withTypeParameterScope(node.typeParameters, () {
           node.typeParameters?.accept(this);
           fragment.typeParameters = holder.typeParameters;
 
@@ -992,8 +986,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forGenericTypeAlias(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
+      _withTypeParameterScope(node.typeParameters, () {
         node.typeParameters?.accept(this);
         node.type.accept(this);
       });
@@ -1002,9 +995,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIfElement(covariant IfElementImpl node) {
-    _withNameScope(() {
-      _visitIf(node);
-    });
+    _visitIf(node);
   }
 
   @override
@@ -1128,16 +1119,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forExecutable(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
+      _withTypeParameterScope(node.typeParameters, () {
         node.typeParameters?.accept(this);
         node.parameters?.accept(this);
         node.returnType?.accept(this);
 
         _withElementWalker(null, () {
           _withElementHolder(ElementHolder(fragment), () {
-            _defineFormalParameters(fragment.element.formalParameters);
-            node.body.accept(this);
+            _withFormalParameterScope(fragment.element.formalParameters, () {
+              node.body.accept(this);
+            });
           });
         });
       });
@@ -1163,8 +1154,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _withElementWalker(ElementWalker.forMixin(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
+      _withTypeParameterScope(node.typeParameters, () {
         node.typeParameters?.accept(this);
 
         _resolveOnClause(declaration: node, clause: node.onClause);
@@ -1251,11 +1241,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (node.declaration case var declaration?) {
       var fragment = declaration.declaredFragment!;
       _withElementHolder(ElementHolder(fragment), () {
-        _withNameScope(() {
-          _defineFormalParameters(fragment.element.formalParameters);
-          _withElementWalker(null, () {
-            super.visitPrimaryConstructorBody(node);
-          });
+        _withElementWalker(null, () {
+          var element = fragment.element;
+          node.visitChildrenWithHooks(
+            this,
+            visitInitializers: (initializers) {
+              _withScope(ConstructorInitializerScope(_nameScope, element), () {
+                initializers.accept(this);
+              });
+            },
+            visitBody: (body) {
+              _withScope(PrimaryParameterScope(_nameScope, element), () {
+                body.accept(this);
+              });
+            },
+          );
         });
       });
     } else {
@@ -1276,10 +1276,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _withElementHolder(ElementHolder(fragment), () {
       _withElementWalker(null, () {
-        _withNameScope(() {
-          _withElementWalker(ElementWalker.forExecutable(fragment), () {
-            node.formalParameters.accept(this);
-          });
+        _withElementWalker(ElementWalker.forExecutable(fragment), () {
+          node.formalParameters.accept(this);
         });
       });
     });
@@ -1394,8 +1392,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _withElementWalker(
         _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
         () {
-          _withNameScope(() {
-            _buildTypeParameterElements(node.typeParameters);
+          _withTypeParameterScope(node.typeParameters, () {
             node.typeParameters?.accept(this);
             node.type?.accept(this);
             if (_elementWalker != null) {
@@ -1428,14 +1425,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.expression.accept(this);
 
     for (var case_ in node.cases) {
-      _withNameScope(() {
-        _resolveGuardedPattern(
-          case_.guardedPattern,
-          then: () {
-            case_.expression.accept(this);
-          },
-        );
-      });
+      _resolveGuardedPattern(
+        case_.guardedPattern,
+        then: () {
+          case_.expression.accept(this);
+        },
+      );
     }
   }
 
@@ -1566,6 +1561,40 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Ensure that each type parameter from the [typeParameterList] has its
+  /// fragment set, either from the [_elementWalker] or newly created.
+  ///
+  /// Returns the corresponding elements in declaration order.
+  List<TypeParameterElement> _bindTypeParameterElements(
+    TypeParameterListImpl? typeParameterList,
+  ) {
+    if (typeParameterList == null) return const [];
+
+    var elements = <TypeParameterElement>[];
+
+    for (var typeParameter in typeParameterList.typeParameters) {
+      var name = typeParameter.name;
+
+      TypeParameterFragmentImpl fragment;
+      if (_elementWalker != null) {
+        fragment = _elementWalker!.getTypeParameter();
+      } else {
+        fragment = TypeParameterFragmentImpl(
+          name: name.lexeme,
+          firstTokenOffset: typeParameter.offset,
+        );
+        fragment.nameOffset = name.offset;
+        _elementHolder.addTypeParameter(fragment);
+
+        _setCodeRange(fragment, typeParameter);
+      }
+      typeParameter.declaredFragment = fragment;
+      elements.add(fragment.element);
+    }
+
+    return elements;
+  }
+
   /// Builds the label elements associated with [labels] and stores them in the
   /// element holder.
   void _buildLabelElements(List<Label> labels, bool onSwitchMember) {
@@ -1638,53 +1667,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Ensure that each type parameters from the [typeParameterList] has its
-  /// element set, either from the [_elementWalker] or new, and define these
-  /// elements in the [_nameScope].
-  void _buildTypeParameterElements(TypeParameterList? typeParameterList) {
-    if (typeParameterList == null) return;
-
-    for (var typeParameter in typeParameterList.typeParameters) {
-      typeParameter as TypeParameterImpl;
-      var name = typeParameter.name;
-
-      TypeParameterFragmentImpl fragment;
-      if (_elementWalker != null) {
-        fragment = _elementWalker!.getTypeParameter();
-      } else {
-        fragment = TypeParameterFragmentImpl(
-          name: name.lexeme,
-          firstTokenOffset: typeParameter.offset,
-        );
-        fragment.nameOffset = name.offset;
-        _elementHolder.addTypeParameter(fragment);
-
-        _setCodeRange(fragment, typeParameter);
-      }
-      typeParameter.declaredFragment = fragment;
-
-      if (!_isWildCardVariable(fragment.name)) {
-        _define(fragment.element);
-      }
-
-      _setOrCreateMetadataElements(fragment, typeParameter.metadata);
-    }
-  }
-
   void _define(Element element) {
     if (_nameScope case LocalScope nameScope) {
       nameScope.add(element);
-    }
-  }
-
-  /// Define given [parameters] in the [_nameScope].
-  void _defineFormalParameters(List<FormalParameterElement> parameters) {
-    int length = parameters.length;
-    for (int i = 0; i < length; i++) {
-      var formalParameter = parameters[i];
-      if (!formalParameter.isInitializingFormal) {
-        _define(formalParameter);
-      }
     }
   }
 
@@ -1996,6 +1981,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _withFormalParameterScope(
+    List<FormalParameterElement> parameters,
+    void Function() f,
+  ) {
+    _withScope(FormalParameterScope(_nameScope, parameters), f);
+  }
+
   /// Run [f] with the new name scope.
   void _withNameScope(void Function() f) {
     var current = _nameScope;
@@ -2015,6 +2007,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     } finally {
       _nameScope = outerScope;
     }
+  }
+
+  void _withTypeParameterScope(
+    TypeParameterListImpl? typeParameterList,
+    void Function() f,
+  ) {
+    var elements = _bindTypeParameterElements(typeParameterList);
+    _withScope(
+      TypeParameterScope(
+        _nameScope,
+        elements,
+        featureSet: _libraryElement.featureSet,
+      ),
+      f,
+    );
   }
 
   /// We always build local elements for [VariableDeclarationStatement]s and
