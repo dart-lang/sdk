@@ -3682,7 +3682,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: contextType,
     );
     if (rewrittenPropertyAccess != null) {
-      _resolvePropertyAccessRhs(rewrittenPropertyAccess, contextType);
+      _resolvePropertyAccessRhs(
+        rewrittenPropertyAccess,
+        contextType,
+        originalNode: node,
+      );
       // We did record that `node` was replaced with `rewrittenPropertyAccess`.
       // But if `rewrittenPropertyAccess` was itself rewritten, replace the
       // rewrite result of `node`.
@@ -4498,8 +4502,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void _resolvePropertyAccessRhs(
     PropertyAccessImpl node,
-    TypeImpl contextType,
-  ) {
+    TypeImpl contextType, {
+    PrefixedIdentifierImpl? originalNode,
+  }) {
     if (node.isNullAware) {
       _startNullAwareAccess(node.target);
       nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
@@ -4509,6 +4514,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node: node,
       hasRead: true,
       hasWrite: false,
+      originalNode: originalNode,
     );
 
     _resolvePropertyAccessRhs_common(

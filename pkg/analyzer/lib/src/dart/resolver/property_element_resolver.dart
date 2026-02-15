@@ -273,6 +273,7 @@ class PropertyElementResolver with ScopeHelpers {
     required PropertyAccessImpl node,
     required bool hasRead,
     required bool hasWrite,
+    PrefixedIdentifierImpl? originalNode,
   }) {
     var target = node.realTarget;
     var propertyName = node.propertyName;
@@ -304,6 +305,7 @@ class PropertyElementResolver with ScopeHelpers {
       propertyName: propertyName,
       hasRead: hasRead,
       hasWrite: hasWrite,
+      originalNode: originalNode,
     );
   }
 
@@ -484,6 +486,7 @@ class PropertyElementResolver with ScopeHelpers {
     required SimpleIdentifier propertyName,
     required bool hasRead,
     required bool hasWrite,
+    PrefixedIdentifierImpl? originalNode,
   }) {
     //
     // If this property access is of the form 'C.m' where 'C' is a class,
@@ -602,7 +605,7 @@ class PropertyElementResolver with ScopeHelpers {
           result.getter2,
           SharedTypeView(unpromotedType),
         );
-        flow.storeExpressionInfo(node, expressionInfo);
+        flow.storeExpressionInfo(originalNode ?? node, expressionInfo);
         getType = wrappedPromotedType?.unwrapTypeView();
       }
       getType ??= unpromotedType;
