@@ -764,9 +764,8 @@ class BooleanLiteral extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    var type = h.typeAnalyzer.analyzeBoolLiteral(this, value);
     h.irBuilder.atom('$value', Kind.expression, location: location);
-    return new ExpressionTypeAnalysisResult(type: SharedTypeView(type));
+    return h.typeAnalyzer.analyzeBoolLiteral(this, value);
   }
 }
 
@@ -6545,9 +6544,9 @@ class _MiniAstTypeAnalyzer
     }
   }
 
-  Type analyzeBoolLiteral(Expression node, bool value) {
+  ExpressionTypeAnalysisResult analyzeBoolLiteral(Expression node, bool value) {
     flow.storeExpressionInfo(node, flow.booleanLiteral(value));
-    return operations.boolType.unwrapTypeView();
+    return ExpressionTypeAnalysisResult(type: operations.boolType);
   }
 
   void analyzeBreakStatement(Statement? target) {
