@@ -209,19 +209,8 @@ class ExitCodeHandler {
         intptr_t exit_code_fd = ProcessInfoList::LookupProcessExitFd(pid);
         if (exit_code_fd != 0) {
           int message[2] = {exit_code, negative};
-          ssize_t result;
-
-          // Block SIGPIPE so writing to a closed pipe does not terminate the process.
-          sigset_t block_sigpipe, old_mask;
-          sigemptyset(&block_sigpipe);
-          sigaddset(&block_sigpipe, SIGPIPE);
-          pthread_sigmask(SIG_BLOCK, &block_sigpipe, &old_mask);
-
-          result =
+          ssize_t result =
               FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
-              
-          pthread_sigmask(SIG_SETMASK, &old_mask, nullptr);
-
           // If the process has been closed, the read end of the exit
           // pipe has been closed. It is therefore not a problem that
           // write fails with a broken pipe error. Other errors should
