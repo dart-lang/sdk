@@ -24003,6 +24003,79 @@ library
 ''');
   }
 
+  test_primaryConstructor_fieldTypeAnnotation_usesClassScope() async {
+    var library = await buildLibrary('''
+class A(int A) {
+  A? field;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginDeclaration field (nameOffset:22) (firstTokenOffset:22) (offset:22)
+              element: <testLibrary>::@class::A::@field::field
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F4 requiredPositional A (nameOffset:12) (firstTokenOffset:8) (offset:12)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
+          getters
+            #F5 synthetic isOriginVariable field (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+              element: <testLibrary>::@class::A::@getter::field
+          setters
+            #F6 synthetic isOriginVariable field (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+              element: <testLibrary>::@class::A::@setter::field
+              formalParameters
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+                  element: <testLibrary>::@class::A::@setter::field::@formalParameter::value
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isOriginDeclaration field
+          reference: <testLibrary>::@class::A::@field::field
+          firstFragment: #F2
+          type: A?
+          getter: <testLibrary>::@class::A::@getter::field
+          setter: <testLibrary>::@class::A::@setter::field
+      constructors
+        isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional A
+              firstFragment: #F4
+              type: int
+      getters
+        synthetic isOriginVariable field
+          reference: <testLibrary>::@class::A::@getter::field
+          firstFragment: #F5
+          returnType: A?
+          variable: <testLibrary>::@class::A::@field::field
+      setters
+        synthetic isOriginVariable field
+          reference: <testLibrary>::@class::A::@setter::field
+          firstFragment: #F6
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F7
+              type: A?
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::field
+''');
+  }
+
   test_primaryConstructor_formalParameter_optionalNamed_this_private() async {
     var library = await buildLibrary('''
 class A({this._foo}) {

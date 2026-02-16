@@ -1558,6 +1558,23 @@ FieldDeclaration
   declaredFragment: <null>
 ''');
   }
+
+  test_primaryInitializerScope_fieldTypeAnnotation_shadowedClassName() async {
+    await assertNoErrorsInCode(r'''
+class A(int A) {
+  A? field;
+}
+''');
+
+    var node = findNode.namedType('A? field');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  question: ?
+  element: <testLibrary>::@class::A
+  type: A?
+''');
+  }
 }
 
 /// Coding for formal parameters of super constructor:
