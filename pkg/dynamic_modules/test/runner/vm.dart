@@ -202,8 +202,17 @@ class VmExecutor implements TargetExecutor {
       rootScheme,
       '--output',
       '$source.bytecode',
-      '--prefix-library-uris',
-      'import/prefix',
+      if (test.name.endsWith('_prefixed'))
+      // unique prefix for each module
+      ...[
+        '--prefix-library-uris',
+        name,
+      ] else
+      // the same prefix for all modules
+      ...[
+        '--prefix-library-uris',
+        'import/prefix',
+      ],
       '$rootScheme:/data/${test.name}/$source',
     ];
     await runProcess(
