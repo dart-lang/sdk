@@ -143,17 +143,62 @@ class A {
 ''');
   }
 
-  Future<void> test_one_fix() async {
+  Future<void> test_named() async {
     await resolveTestCode('''
 class A {
-  X() {}
+  void m() {}
+  A.named();
+}
+''');
+    await assertHasFix('''
+class A {
+  A.named();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_newHead_named() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+  new named();
+}
+''');
+    await assertHasFix('''
+class A {
+  new named();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_newHead_unnamed() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+  new();
+}
+''');
+    await assertHasFix('''
+class A {
+  new();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_unnamed() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
   A();
 }
 ''');
     await assertHasFix('''
 class A {
   A();
-  X() {}
+  void m() {}
 }
 ''');
   }

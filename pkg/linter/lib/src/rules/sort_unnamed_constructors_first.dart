@@ -8,6 +8,8 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -42,17 +44,17 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   void check(NodeList<ClassMember> members) {
-    var seenConstructor = false;
+    var seenNamedConstructor = false;
     // Members are sorted by source position in the AST.
     for (var member in members) {
       if (member is ConstructorDeclaration) {
-        if (member.name == null) {
-          if (seenConstructor) {
-            // TODO(scheglov): support primary constructors
-            rule.reportAtNode(member.typeName);
+        if (member.declaredFragment!.element.name == 'new') {
+          if (seenNamedConstructor) {
+            var errorRange = member.errorRange;
+            rule.reportAtOffset(errorRange.offset, errorRange.length);
           }
         } else {
-          seenConstructor = true;
+          seenNamedConstructor = true;
         }
       }
     }
@@ -72,7 +74,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (node.primaryConstructor.constructorName == null) return;
     if (node.body case BlockClassBody body) {
       check(body.members);
     }
