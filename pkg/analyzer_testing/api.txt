@@ -92,13 +92,13 @@ dart:core:
 package:_fe_analyzer_shared/src/base/errors.dart:
   Diagnostic (referenced)
   DiagnosticCode (referenced)
-package:analyzer/analysis_rule/analysis_rule.dart:
-  AbstractAnalysisRule (referenced)
 package:analyzer/file_system/file_system.dart:
   File (referenced)
   Folder (referenced)
   Link (referenced)
   ResourceProvider (referenced)
+package:analyzer/src/analysis_rule/analysis_rule.dart:
+  AbstractAnalysisRule (referenced)
 package:analyzer/utilities/package_config_file_builder.dart:
   PackageConfigFileBuilder (referenced)
 package:path/src/context.dart:
