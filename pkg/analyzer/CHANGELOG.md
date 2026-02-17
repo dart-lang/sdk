@@ -1,4 +1,4 @@
-## 10.1.0-dev
+## 10.1.0
 
 * Add `TypeSystem.futureValueType`.
 * Remove experimental `ConstructorElement.isDeclaring`.

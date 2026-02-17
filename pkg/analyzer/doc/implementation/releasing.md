@@ -157,6 +157,8 @@ To prepare the packages for publishing, follow these steps.
     * Update the `analyzer_plugin` dependency to be the **exact** version from step 3.
     * Update `pkg/analysis_server_plugin/CHANGELOG.md` to set the version for the release entry.
 
+6. **Prepare the commit message**: see git `ef20543995d1a1052993881c62d6525e426336e7` as example.
+
 [_fe_analyzer_shared source]: https://github.com/dart-lang/sdk/tree/main/pkg/_fe_analyzer_shared
 [_fe_analyzer_shared pub package]: https://pub.dev/packages/_fe_analyzer_shared
 [analyzer source]: https://github.com/dart-lang/sdk/tree/main/pkg/analyzer
