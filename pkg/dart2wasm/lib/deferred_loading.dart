@@ -255,7 +255,7 @@ class DeferredLoadingLowering extends Transformer {
   late final Procedure _checkLibraryIsLoadedFromLoadId = coreTypes.index
       .getTopLevelProcedure('dart:_internal', 'checkLibraryIsLoadedFromLoadId');
 
-  Map<String, int> _libraryLoadIds = {};
+  Map<LibraryDependency, int> _libraryLoadIds = {};
 
   DeferredLoadingLowering(this.coreTypes, this.loadingMap);
 
@@ -271,31 +271,30 @@ class DeferredLoadingLowering extends Transformer {
   }
 
   @override
-  TreeNode visitLibrary(Library node) {
+  TreeNode visitComponent(Component node) {
     // Assign a load ID to each deferred import.
     _libraryLoadIds = {};
-    for (final dep in node.dependencies) {
-      if (!dep.isDeferred) continue;
-      final name = dep.name!;
-      _libraryLoadIds[name] = loadingMap.loadIds[(node, name)]!;
+    for (final library in node.libraries) {
+      for (final dep in library.dependencies) {
+        if (!dep.isDeferred) continue;
+        final name = dep.name!;
+        _libraryLoadIds[dep] = loadingMap.loadIds[(library, name)]!;
+      }
     }
 
-    // Don't visit this library if there are no deferred imports.
-    return _libraryLoadIds.isEmpty ? node : super.visitLibrary(node);
+    return super.visitComponent(node);
   }
 
   @override
   TreeNode visitLoadLibrary(LoadLibrary node) {
-    final import = node.import;
-    final loadId = _libraryLoadIds[import.name!]!;
+    final loadId = _libraryLoadIds[node.import]!;
     return StaticInvocation(
         _loadLibraryFromLoadId, Arguments([IntLiteral(loadId)]));
   }
 
   @override
   TreeNode visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    final import = node.import;
-    final loadId = _libraryLoadIds[import.name!]!;
+    final loadId = _libraryLoadIds[node.import]!;
     return StaticInvocation(
         _checkLibraryIsLoadedFromLoadId, Arguments([IntLiteral(loadId)]));
   }
