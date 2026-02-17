@@ -64,8 +64,8 @@ const intptr_t kMaxAddrSpaceInWords = kMaxAddrSpaceMB >> kWordSizeLog2
 const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 30720;
 const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 
-#define kPosInfinity bit_cast<double>(DART_UINT64_C(0x7ff0000000000000))
-#define kNegInfinity bit_cast<double>(DART_UINT64_C(0xfff0000000000000))
+#define kPosInfinity bit_cast<double>(0x7ff0000000000000)
+#define kNegInfinity bit_cast<double>(0xfff0000000000000)
 
 #if defined(PRODUCT) && defined(DEBUG)
 #error Both PRODUCT and DEBUG defined.

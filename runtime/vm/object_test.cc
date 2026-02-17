@@ -416,9 +416,9 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
   Smi& c = Smi::Handle(Smi::New(-1));
 
   Mint& mint1 = Mint::Handle();
-  mint1 ^= Integer::New(DART_2PART_UINT64_C(0x7FFFFFFF, 100));
+  mint1 ^= Integer::New(0x7FFFFFFF00000100);
   Mint& mint2 = Mint::Handle();
-  mint2 ^= Integer::New(-DART_2PART_UINT64_C(0x7FFFFFFF, 100));
+  mint2 ^= Integer::New(-0x7FFFFFFF00000100);
   EXPECT_EQ(-1, a.CompareWith(mint1));
   EXPECT_EQ(1, a.CompareWith(mint2));
   EXPECT_EQ(-1, c.CompareWith(mint1));
@@ -525,7 +525,7 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
   {
     Mint& med = Mint::Handle();
     EXPECT(med.IsNull());
-    int64_t v = DART_2PART_UINT64_C(1, 0);
+    int64_t v = 0x100000000;
     med ^= Integer::New(v);
     EXPECT_EQ(v, med.Value());
     EXPECT_EQ(v, Integer::Value(med.ptr()));
@@ -542,31 +542,31 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
     EXPECT(i.IsMint());
     EXPECT_EQ(-2147419168, i.Value());
   }
-  Integer& i = Integer::Handle(Integer::New(DART_2PART_UINT64_C(1, 0)));
+  Integer& i = Integer::Handle(Integer::New(0x100000000));
   EXPECT(i.IsMint());
   EXPECT(i.ptr()->IsMint());
   EXPECT(!i.IsSmi());
   EXPECT(!i.ptr()->IsSmi());
   EXPECT(i.Value() != 0);
-  Integer& i1 = Integer::Handle(Integer::New(DART_2PART_UINT64_C(1010, 0)));
+  Integer& i1 = Integer::Handle(Integer::New(0x101000000000));
   Mint& i2 = Mint::Handle();
-  i2 ^= Integer::New(DART_2PART_UINT64_C(1010, 0));
+  i2 ^= Integer::New(0x101000000000);
   EXPECT(i1.Equals(i2));
   EXPECT(!i.Equals(i1));
-  int64_t test = DART_2PART_UINT64_C(1010, 0);
+  int64_t test = 0x101000000000;
   EXPECT_EQ(test, i2.Value());
   EXPECT_EQ(test, Integer::Value(i2.ptr()));
 
   Mint& a = Mint::Handle();
-  a ^= Integer::New(DART_2PART_UINT64_C(5, 0));
+  a ^= Integer::New(0x500000000);
   Mint& b = Mint::Handle();
-  b ^= Integer::New(DART_2PART_UINT64_C(3, 0));
+  b ^= Integer::New(0x300000000);
   EXPECT_EQ(1, a.CompareWith(b));
   EXPECT_EQ(-1, b.CompareWith(a));
   EXPECT_EQ(0, a.CompareWith(a));
 
   Mint& c = Mint::Handle();
-  c ^= Integer::New(-DART_2PART_UINT64_C(3, 0));
+  c ^= Integer::New(-0x300000000);
   Smi& smi1 = Smi::Handle(Smi::New(4));
   Smi& smi2 = Smi::Handle(Smi::New(-4));
   EXPECT_EQ(1, a.CompareWith(smi1));
@@ -574,7 +574,7 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
   EXPECT_EQ(-1, c.CompareWith(smi1));
   EXPECT_EQ(-1, c.CompareWith(smi2));
 
-  int64_t mint_value = DART_2PART_UINT64_C(0x7FFFFFFF, 64);
+  int64_t mint_value = 0x7FFFFFFF00000064;
   const String& mint_string = String::Handle(String::New("0x7FFFFFFF00000064"));
   Mint& mint1 = Mint::Handle();
   mint1 ^= Integer::NewCanonical(mint_string);
@@ -2773,7 +2773,7 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
 ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
   extern void GenerateEmbedSmiInCode(compiler::Assembler * assembler,
                                      intptr_t value);
-  const intptr_t kSmiTestValue = DART_INT64_C(5) << 32;
+  const intptr_t kSmiTestValue = static_cast<intptr_t>(5) << 32;
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler _assembler_(&object_pool_builder);
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
