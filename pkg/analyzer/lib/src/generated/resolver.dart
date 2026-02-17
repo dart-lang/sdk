@@ -3489,7 +3489,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Any "why not promoted" information that flow analysis had associated with
     // `node.expression` now needs to be forwarded to `node`, so that when
     // `visitArgumentList` iterates through the arguments, it will find it.
-    flowAnalysis.flow?.forwardExpression(node, node.expression);
+    flowAnalysis.flow?.storeExpressionInfo(
+      node,
+      flowAnalysis.flow?.getExpressionInfo(node.expression),
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 

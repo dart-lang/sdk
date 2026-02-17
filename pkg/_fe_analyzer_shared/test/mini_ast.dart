@@ -6067,7 +6067,7 @@ class WrappedExpression extends Expression {
       h.irBuilder.let(afterTmp, location: location);
       h.irBuilder.let(exprTmp, location: location);
     }
-    h.flow.forwardExpression(this, expr);
+    h.flow.storeExpressionInfo(this, h.flow.getExpressionInfo(expr));
     if (before != null) {
       h.irBuilder.let(beforeTmp, location: location);
     }

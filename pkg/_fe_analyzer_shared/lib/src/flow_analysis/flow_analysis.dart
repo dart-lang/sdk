@@ -593,29 +593,6 @@ abstract class FlowAnalysis<
   /// See [forEach_bodyBegin] for details.
   void forEach_end();
 
-  /// Call this method to forward information on [oldExpression] to
-  /// [newExpression].
-  ///
-  /// This method must be called immediately after visiting the expression, and
-  /// before continuing to visit its parent.
-  ///
-  /// This can be used to preserve promotions through a replacement from
-  /// [oldExpression] to [newExpression]. For instance when rewriting
-  ///
-  ///    method(int i) {
-  ///      if (i is int) { ... } else { ... }
-  ///    }
-  ///
-  ///  to
-  ///
-  ///    method(int i) {
-  ///      if (i is int || throw ...) { ... } else { ... }
-  ///    }
-  ///
-  ///  the promotion `i is int` can be forwarded to `i is int || throw ...` and
-  ///  there preserved in the surrounding if statement.
-  void forwardExpression(Expression newExpression, Expression oldExpression);
-
   /// Call this method just before visiting the body of a function expression or
   /// local function.
   ///
@@ -1817,14 +1794,6 @@ class FlowAnalysisDebug<
   @override
   void forEach_end() {
     return _wrap('forEach_end()', () => _wrapped.forEach_end());
-  }
-
-  @override
-  void forwardExpression(Expression newExpression, Expression oldExpression) {
-    return _wrap(
-      'forwardExpression($newExpression, $oldExpression)',
-      () => _wrapped.forwardExpression(newExpression, oldExpression),
-    );
   }
 
   @override
@@ -5629,11 +5598,6 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void forwardExpression(Expression newExpression, Expression oldExpression) {
-    _forwardExpression(newExpression, oldExpression);
-  }
-
-  @override
   void functionExpression_begin(Node node) {
     _functionExpression_begin(node);
   }
@@ -7116,12 +7080,6 @@ class _FlowAnalysisImpl<
       );
     } else {
       return const _NoEqualityInformation();
-    }
-  }
-
-  void _forwardExpression(Expression newExpression, Expression oldExpression) {
-    if (_expressionInfoMap[oldExpression] case var expressionInfo?) {
-      _expressionInfoMap[newExpression] = expressionInfo;
     }
   }
 
