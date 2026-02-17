@@ -788,7 +788,25 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
       staticType = operations.unknownType.unwrapTypeSchemaView();
     }
-    return ExpressionTypeAnalysisResult(type: SharedTypeView(staticType));
+    var flowAnalysisInfo = flowAnalysis.flow?.getExpressionInfo(expression);
+    assert(() {
+      // When the AST is rewritten, the analyzer's convention is to associate
+      // flow analysis expression info with the original expression, not the
+      // replacement. (Note, however, that it's ok to associate the same info
+      // with both expressions.)
+      var replacementFlowAnalysisInfo = flowAnalysis.flow?.getExpressionInfo(
+        replacementExpression,
+      );
+      assert(
+        replacementFlowAnalysisInfo == null ||
+            identical(flowAnalysisInfo, replacementFlowAnalysisInfo),
+      );
+      return true;
+    }());
+    return ExpressionTypeAnalysisResult(
+      type: SharedTypeView(staticType),
+      flowAnalysisInfo: flowAnalysisInfo,
+    );
   }
 
   @override

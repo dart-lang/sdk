@@ -425,10 +425,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (nullShortingTargetDepth != null &&
         nullShortingDepth > nullShortingTargetDepth) {
       pushRewrite(result.expression);
+      ExpressionInfo? flowAnalysisInfo = flowAnalysis.getExpressionInfo(
+        result.expression,
+      );
+      assert(() {
+        // When the AST is rewritten, the front end's convention is to associate
+        // flow analysis expression info with the replacement expression, not
+        // the original. (Note, however, that it's ok to associate the same info
+        // with both expressions.)
+        ExpressionInfo? originalFlowAnalysisInfo = flowAnalysis
+            .getExpressionInfo(expression);
+        assert(
+          originalFlowAnalysisInfo == null ||
+              identical(flowAnalysisInfo, originalFlowAnalysisInfo),
+        );
+        return true;
+      }());
       DartType inferredType = finishNullShorting(
         nullShortingTargetDepth,
         new ExpressionTypeAnalysisResult(
           type: new SharedTypeView(result.inferredType),
+          flowAnalysisInfo: flowAnalysisInfo,
         ),
         wholeExpression: expression,
       ).type.unwrapTypeView();
@@ -14404,12 +14421,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     //
     // TODO(paulberry): eliminate the need for this--see
     // https://github.com/dart-lang/sdk/issues/52189.
-    flow.storeExpressionInfo(
-      node,
-      flow.getExpressionInfo(expressionResult.expression),
+    ExpressionInfo? flowAnalysisInfo = flow.getExpressionInfo(
+      expressionResult.expression,
     );
+    flow.storeExpressionInfo(node, flowAnalysisInfo);
     return new ExpressionTypeAnalysisResult(
       type: new SharedTypeView(expressionResult.inferredType),
+      flowAnalysisInfo: flowAnalysisInfo,
     );
   }
 
