@@ -53,6 +53,21 @@ class AssignmentOfDoNotStoreTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_cascadeExpression_assignment() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = A()..f = v;
+
+class A {
+  String f = '';
+}
+
+@doNotStore
+String get v => '';
+''');
+  }
+
   test_class_containingInstanceGetter() async {
     await assertErrorsInCode(
       '''
@@ -180,6 +195,35 @@ class A {
     );
   }
 
+  test_localVariable_assignment() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+String? get v => '';
+
+void f() {
+  // ignore: unused_local_variable
+  final String? g;
+  g = v ?? v;
+}
+''');
+  }
+
+  test_localVariable_declaration() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+String? get v => '';
+
+void f() {
+  // ignore: unused_local_variable
+  final g = v ?? v;
+}
+''');
+  }
+
   test_methodReturnValue() async {
     await assertErrorsInCode(
       '''
@@ -264,19 +308,18 @@ class A {
     );
   }
 
-  test_topLevelGVariable_assignment_getter() async {
+  @FailingTest(reason: 'Not yet implemented')
+  test_topLevelVariable_asExpression() async {
     await assertErrorsInCode(
       '''
 import 'package:meta/meta.dart';
 
-String top = v;
+final f = v as Object;
 
 @doNotStore
 String get v => '';
 ''',
-      [
-        error(diag.assignmentOfDoNotStore, 47, 1, messageContains: ["'v'"]),
-      ],
+      [error(diag.assignmentOfDoNotStore, 44, 1)],
     );
   }
 
@@ -314,6 +357,22 @@ String v = c();
     );
   }
 
+  test_topLevelVariable_assignment_getter() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+
+String top = v;
+
+@doNotStore
+String get v => '';
+''',
+      [
+        error(diag.assignmentOfDoNotStore, 47, 1, messageContains: ["'v'"]),
+      ],
+    );
+  }
+
   test_topLevelVariable_assignment_method() async {
     await assertErrorsInCode(
       '''
@@ -330,6 +389,118 @@ class A{
         error(diag.assignmentOfDoNotStore, 47, 7, messageContains: ["'v'"]),
       ],
     );
+  }
+
+  test_topLevelVariable_cascadeExpression_propertyAccess() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = A()..v;
+
+class A {
+  @doNotStore
+  String get v => '';
+}
+''');
+  }
+
+  @FailingTest(reason: 'Not yet implemented')
+  test_topLevelVariable_cascadeExpression_target() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+
+final f = v..runtimeType;
+
+@doNotStore
+String get v => '';
+''',
+      [error(diag.assignmentOfDoNotStore, 44, 1)],
+    );
+  }
+
+  test_topLevelVariable_conditionalExpression() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+
+class A {
+  final f = 1 == 2 ? v : v;
+}
+
+@doNotStore
+String get v => '';
+''',
+      [
+        error(diag.assignmentOfDoNotStore, 65, 1),
+        error(diag.assignmentOfDoNotStore, 69, 1),
+      ],
+    );
+  }
+
+  @FailingTest(reason: 'Not yet implemented')
+  test_topLevelVariable_dotShorthandPropertyAccess() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+
+final A f = .v;
+
+class A {
+  @doNotStore
+  static A get v => A();
+}
+''',
+      [error(diag.assignmentOfDoNotStore, 47, 1)],
+    );
+  }
+
+  test_topLevelVariable_forElement() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = [for (var _ in [1]) v];
+
+@doNotStore
+String get v => '';
+''');
+  }
+
+  test_topLevelVariable_ifElement() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = [if (true) v];
+
+@doNotStore
+String get v => '';
+''');
+  }
+
+  test_topLevelVariable_instanceCreationExpression() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  A(Object? a);
+}
+
+final f = A(v);
+
+@doNotStore
+String get v => '';
+''');
+  }
+
+  test_topLevelVariable_isExpression() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = v is int;
+
+@doNotStore
+String get v => '';
+''');
   }
 
   test_topLevelVariable_libraryAnnotation() async {
@@ -354,23 +525,171 @@ class A {
     );
   }
 
-  test_topLevelVariable_ternary() async {
+  test_topLevelVariable_listLiteral() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = [v];
+
+@doNotStore
+String? get v => '';
+''');
+  }
+
+  test_topLevelVariable_mapLiteral_key() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = {v: 1};
+
+@doNotStore
+String get v => '';
+''');
+  }
+
+  test_topLevelVariable_mapLiteral_value() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = {1: v};
+
+@doNotStore
+String get v => '';
+''');
+  }
+
+  test_topLevelVariable_nonAssignment_argToFunctionCall() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+var top = print(v);
+
+@doNotStore
+String get v => '';
+''');
+  }
+
+  @FailingTest(reason: 'Not yet implemented')
+  test_topLevelVariable_nullAssert() async {
     await assertErrorsInCode(
       '''
 import 'package:meta/meta.dart';
 
+final f = v!;
+
+@doNotStore
+String? get v => '';
+''',
+      [error(diag.assignmentOfDoNotStore, 44, 1)],
+    );
+  }
+
+  test_topLevelVariable_nullAwareElement() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = [?v];
+
+@doNotStore
+String? get v => '';
+''');
+  }
+
+  test_topLevelVariable_prefixExpression() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = -v;
+
+@doNotStore
+int get v => 1;
+''');
+  }
+
+  test_topLevelVariable_recordLiteral_namedField() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = (a: v, );
+
+@doNotStore
+String? get v => '';
+''');
+  }
+
+  test_topLevelVariable_recordLiteral_positionalField() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = (v, );
+
+@doNotStore
+String? get v => '';
+''');
+  }
+
+  test_topLevelVariable_setLiteral() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = {v};
+
 @doNotStore
 String get v => '';
+''');
+  }
 
-class A {
-  static bool c = false;
-  final f = c ? v : v;
-}
+  test_topLevelVariable_spreadElement() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = [...v];
+
+@doNotStore
+List<String> get v => [];
+''');
+  }
+
+  @FailingTest(reason: 'Not yet implemented')
+  test_topLevelVariable_switchExpression_caseBody() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+
+final f = switch (1 == 2) {
+  true => v,
+  false => '',
+};
+
+@doNotStore
+String? get v => '';
 ''',
-      [
-        error(diag.assignmentOfDoNotStore, 118, 1),
-        error(diag.assignmentOfDoNotStore, 122, 1),
-      ],
+      [error(diag.assignmentOfDoNotStore, 72, 1)],
     );
+  }
+
+  test_topLevelVariable_switchExpression_condition() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = switch (v) {
+  '' => 1,
+  _ => 2,
+};
+
+@doNotStore
+String? get v => '';
+''');
+  }
+
+  test_topLevelVariable_throwExpression() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+final f = throw v;
+
+@doNotStore
+String get v => '';
+''');
   }
 }

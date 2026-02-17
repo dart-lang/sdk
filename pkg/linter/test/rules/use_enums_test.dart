@@ -315,6 +315,63 @@ class A {
 ''');
   }
 
+  test_primaryConstructor_hashCode() async {
+    await assertNoDiagnostics(r'''
+class const A._(final int hashCode) {
+  static const A a = A._(1);
+  static const A b = A._(2);
+}
+''');
+  }
+
+  test_primaryConstructor_index() async {
+    await assertNoDiagnostics(r'''
+class const A._(final int index) {
+  static const A a = A._(1);
+  static const A b = A._(2);
+}
+''');
+  }
+
+  test_primaryConstructor_noLint_nonConst() async {
+    await assertNoDiagnostics(r'''
+class _A(int x) {
+  static final _A a = _A(1);
+  static final _A b = _A(2);
+}
+''');
+  }
+
+  test_primaryConstructor_private() async {
+    await assertDiagnostics(
+      r'''
+class const A._(final int value) {
+  static const A a = A._(1);
+  static const A b = A._(2);
+}
+''',
+      [lint(12, 1)],
+    );
+  }
+
+  test_primaryConstructor_public() async {
+    await assertNoDiagnostics(r'''
+class const A(final int value) {
+  static const A a = A(1);
+  static const A b = A(2);
+}
+''');
+  }
+
+  test_primaryConstructor_values() async {
+    await assertNoDiagnostics(r'''
+class const A._(final int values) {
+  static const A a = A._(1);
+  static const A b = A._(2);
+}
+''');
+  }
+
   test_referencedFactoryConstructor() async {
     await assertDiagnostics(
       r'''
