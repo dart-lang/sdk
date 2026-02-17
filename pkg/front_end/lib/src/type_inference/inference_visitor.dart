@@ -301,7 +301,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       promotedType: nonNullReceiverType,
     );
 
-    flowAnalysis.forwardExpression(variableGet, receiver);
+    flowAnalysis.storeExpressionInfo(
+      variableGet,
+      flowAnalysis.getExpressionInfo(receiver),
+    );
     return variableGet;
   }
 
@@ -390,7 +393,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           createVariable(result.expression, result.inferredType),
           createReachabilityError(expression.fileOffset, diag.neverValueError),
         );
-        flowAnalysis.forwardExpression(replacement, result.expression);
+        flowAnalysis.storeExpressionInfo(
+          replacement,
+          flowAnalysis.getExpressionInfo(result.expression),
+        );
         result = new ExpressionInferenceResult(
           result.inferredType,
           replacement,
@@ -419,10 +425,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (nullShortingTargetDepth != null &&
         nullShortingDepth > nullShortingTargetDepth) {
       pushRewrite(result.expression);
+      ExpressionInfo? flowAnalysisInfo = flowAnalysis.getExpressionInfo(
+        result.expression,
+      );
+      assert(() {
+        // When the AST is rewritten, the front end's convention is to associate
+        // flow analysis expression info with the replacement expression, not
+        // the original. (Note, however, that it's ok to associate the same info
+        // with both expressions.)
+        ExpressionInfo? originalFlowAnalysisInfo = flowAnalysis
+            .getExpressionInfo(expression);
+        assert(
+          originalFlowAnalysisInfo == null ||
+              identical(flowAnalysisInfo, originalFlowAnalysisInfo),
+        );
+        return true;
+      }());
       DartType inferredType = finishNullShorting(
         nullShortingTargetDepth,
         new ExpressionTypeAnalysisResult(
           type: new SharedTypeView(result.inferredType),
+          flowAnalysisInfo: flowAnalysisInfo,
         ),
         wholeExpression: expression,
       ).type.unwrapTypeView();
@@ -9429,7 +9452,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Forward the expression in cases where flow analysis needs to use the
     // expression information. For example, for keeping the promotion in the
     // following if statement in `if ((x ??= 2) == null) { ... }`.
-    flowAnalysis.forwardExpression(replacement, writeResult.expression);
+    flowAnalysis.storeExpressionInfo(
+      replacement,
+      flowAnalysis.getExpressionInfo(writeResult.expression),
+    );
 
     return new ExpressionInferenceResult(inferredType, replacement);
   }
@@ -12413,7 +12439,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           readResult.inferredType,
           readResult.expression,
         );
-    flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);
+    flowAnalysis.storeExpressionInfo(
+      expressionInferenceResult.expression,
+      flowAnalysis.getExpressionInfo(node),
+    );
     return expressionInferenceResult;
   }
 
@@ -13003,7 +13032,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ),
       fileOffset: node.fileOffset,
     );
-    flowAnalysis.forwardExpression(replacement, node);
+    flowAnalysis.storeExpressionInfo(
+      replacement,
+      flowAnalysis.getExpressionInfo(node),
+    );
     return new ExpressionInferenceResult(
       result.inferredType,
       result.applyResult(replacement),
@@ -14382,16 +14414,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // to flow analysis are the original (pre-lowered) expressions, whereas the
     // expressions passed to flow analysis by the CFE are the lowered
     // expressions. Since the caller of `dispatchExpression` is the shared
-    // analysis logic, we need to use `flow.forwardExpression` let flow analysis
-    // know that in future, we'll be referring to the expression using `node`
-    // (its pre-lowered form) rather than `expressionResult.expression` (its
-    // post-lowered form).
+    // analysis logic, we need to transfer the flow analysis information that's
+    // associated with `expressionResult.expression` (the post-lowered
+    // expression) so that it becomes associated with `node` (the pre-lowered
+    // expression).
     //
     // TODO(paulberry): eliminate the need for this--see
     // https://github.com/dart-lang/sdk/issues/52189.
-    flow.forwardExpression(node, expressionResult.expression);
+    ExpressionInfo? flowAnalysisInfo = flow.getExpressionInfo(
+      expressionResult.expression,
+    );
+    flow.storeExpressionInfo(node, flowAnalysisInfo);
     return new ExpressionTypeAnalysisResult(
       type: new SharedTypeView(expressionResult.inferredType),
+      flowAnalysisInfo: flowAnalysisInfo,
     );
   }
 
@@ -17033,7 +17069,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
     }
 
-    flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);
+    flowAnalysis.storeExpressionInfo(
+      expressionInferenceResult.expression,
+      flowAnalysis.getExpressionInfo(node),
+    );
     return expressionInferenceResult;
   }
 

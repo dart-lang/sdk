@@ -459,7 +459,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               ..isTypeError = true
               ..isForDynamic = expressionType is DynamicType
               ..fileOffset = fileOffset;
-        flowAnalysis.forwardExpression(asExpression, expression);
+        flowAnalysis.storeExpressionInfo(
+          asExpression,
+          flowAnalysis.getExpressionInfo(expression),
+        );
         return new ExpressionInferenceResult(
           expressionType,
           asExpression,
@@ -641,7 +644,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (result != null) {
-      flowAnalysis.forwardExpression(result, expression);
+      flowAnalysis.storeExpressionInfo(
+        result,
+        flowAnalysis.getExpressionInfo(expression),
+      );
       return new ExpressionInferenceResult(
         expressionType,
         result,
@@ -4260,7 +4266,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Future calls to flow analysis will be using `resultExpression` to refer
       // to the variable get, so instruct flow analysis to forward the
       // expression information.
-      flowAnalysis.forwardExpression(resultExpression, node);
+      flowAnalysis.storeExpressionInfo(
+        resultExpression,
+        flowAnalysis.getExpressionInfo(node),
+      );
     } else {
       resultExpression = node..expressionVariable = variable.astVariable;
     }
@@ -4400,7 +4409,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Future calls to flow analysis will be using `resultExpression` to refer
       // to the variable set, so instruct flow analysis to forward the
       // expression information.
-      flowAnalysis.forwardExpression(resultExpression, node);
+      flowAnalysis.storeExpressionInfo(
+        resultExpression,
+        flowAnalysis.getExpressionInfo(node),
+      );
     } else {
       node.value = rhs..parent = node;
       resultExpression = node..expressionVariable = variable.astVariable;

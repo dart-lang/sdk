@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../flow_analysis/flow_analysis.dart';
 import '../types/shared_type.dart';
 import 'type_analyzer.dart';
 
@@ -69,7 +70,11 @@ class ExpressionTypeAnalysisResult {
   /// The static type of the expression.
   final SharedTypeView type;
 
-  ExpressionTypeAnalysisResult({required this.type});
+  /// The [ExpressionInfo] object associated with the expression by flow
+  /// analysis, if any.
+  final ExpressionInfo? flowAnalysisInfo;
+
+  ExpressionTypeAnalysisResult({required this.type, this.flowAnalysisInfo});
 }
 
 /// Result for analyzing an if-case statement or element in
