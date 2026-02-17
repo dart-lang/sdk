@@ -24,9 +24,15 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "generate",
-        "scope": "OtherClass",
+      "definition": {
+        "path": [
+          {
+            "name": "OtherClass"
+          },
+          {
+            "name": "generate"
+          }
+        ],
         "uri": "package:record_use_test/complex.dart"
       }
     }

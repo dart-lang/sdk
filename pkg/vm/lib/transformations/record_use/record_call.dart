@@ -125,10 +125,9 @@ class CallRecorder {
     final enclosingLibrary = target.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
 
-    return Definition(
-      importUri: importUri,
-      scope: target.enclosingClass?.name,
-      name: target.name.text,
-    );
+    return Definition(importUri, [
+      if (target.enclosingClass?.name != null) Name(target.enclosingClass!.name),
+      Name(target.name.text),
+    ]);
   }
 }

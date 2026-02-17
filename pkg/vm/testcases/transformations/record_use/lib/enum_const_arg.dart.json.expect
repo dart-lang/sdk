@@ -31,8 +31,12 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "doSomething",
+      "definition": {
+        "path": [
+          {
+            "name": "doSomething"
+          }
+        ],
         "uri": "package:record_use_test/enum_const_arg.dart"
       }
     }

@@ -132,9 +132,8 @@ void main() async {
       final actualRecordedUsages = recordedUsages.readAsStringSync();
       final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
       final constArguments = u.constArgumentsFor(Definition(
-        importUri: 'package:drop_data_asset/src/drop_data_asset.dart',
-        scope: 'MyMath',
-        name: 'add',
+        'package:drop_data_asset/src/drop_data_asset.dart',
+        [Name('MyMath'), Name('add')],
       ));
       expect(constArguments.length, 1);
       expect(constArguments.first.named.isEmpty, true);
@@ -176,8 +175,8 @@ void main() async {
       final actualRecordedUsages = recordedUsages.readAsStringSync();
       final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
       final constantsOf = u.constantsOf(Definition(
-        importUri: 'package:drop_data_asset/src/drop_data_asset.dart',
-        name: 'RecordCallToC',
+        'package:drop_data_asset/src/drop_data_asset.dart',
+        [Name('RecordCallToC')],
       ));
       expect(constantsOf.length, 0);
     });

@@ -26,8 +26,12 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "someStaticMethod2",
+      "definition": {
+        "path": [
+          {
+            "name": "someStaticMethod2"
+          }
+        ],
         "uri": "package:record_use_test/const_argument_instance.dart"
       }
     }

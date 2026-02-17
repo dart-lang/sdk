@@ -20,8 +20,12 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "someTopLevelMethod",
+      "definition": {
+        "path": [
+          {
+            "name": "someTopLevelMethod"
+          }
+        ],
         "uri": "package:record_use_test/top_level_method.dart"
       }
     }
