@@ -249,7 +249,7 @@ class ExpressionCompilerWorker {
       ..fileSystem = fileSystem
       ..omitPlatform = true
       ..environmentDefines = addGeneratedVariables({
-        if (environmentDefines != null) ...environmentDefines,
+        ...?environmentDefines,
       }, enableAsserts: enableAsserts)
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)

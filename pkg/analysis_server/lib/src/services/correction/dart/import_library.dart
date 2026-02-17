@@ -74,10 +74,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     if (names.isEmpty) {
       return const [];
     }
-    return [
-      for (var name in names)
-        if (await name.producers case var producers?) ...producers,
-    ];
+    return [for (var name in names) ...?(await name.producers)];
   }
 
   /// A map of all the diagnostic codes that this fix can be applied to and the

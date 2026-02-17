@@ -75,7 +75,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         //     {..., if (x != null) x, ...}
         case (
           PromotableElementImpl(),
-          SimpleIdentifier(canonicalElement: var reference),
+          SimpleIdentifier(canonicalElement: var reference) ||
+              SpreadElement(
+                expression: SimpleIdentifier(canonicalElement: var reference),
+              ),
         ):
         // List and set elements with getters:
         //
@@ -84,9 +87,15 @@ class _Visitor extends SimpleAstVisitor<void> {
         case (
           GetterElement(),
           PostfixExpression(
-            operand: SimpleIdentifier(canonicalElement: var reference),
-            operator: Token(lexeme: '!'),
-          ),
+                operand: SimpleIdentifier(canonicalElement: var reference),
+                operator: Token(lexeme: '!'),
+              ) ||
+              SpreadElement(
+                expression: PostfixExpression(
+                  operand: SimpleIdentifier(canonicalElement: var reference),
+                  operator: Token(lexeme: '!'),
+                ),
+              ),
         ):
           if (nullCheckTarget == reference) {
             rule.reportAtToken(node.ifKeyword);

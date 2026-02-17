@@ -7139,7 +7139,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     );
     return [
       if (types && typeArguments != null) ...typeArguments,
-      if (positionalArguments != null) ...positionalArguments,
+      ...?positionalArguments,
       if (namedArguments != null) js_ast.ObjectInitializer([...namedArguments]),
     ];
   }
