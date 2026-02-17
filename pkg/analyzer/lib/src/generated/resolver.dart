@@ -5436,14 +5436,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var type = node.type;
-    if (type == null) {
-      // The function type hasn't been resolved yet, so we can't create a scope
-      // for its parameters.
-      super.visitGenericFunctionType(node);
-      return;
-    }
-
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
