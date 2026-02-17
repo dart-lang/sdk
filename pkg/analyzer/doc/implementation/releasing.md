@@ -124,6 +124,8 @@ To start a new minor version for the analyzer and related packages, follow these
     * Update the `analyzer_plugin` dependency to be the **exact** version from step 2.
     * Update `pkg/analysis_server_plugin/CHANGELOG.md` to add a new section for the new version.
 
+5. **Prepare the commit message**: see git `98c4f54c0f56b0f08d3fa7d5ddf4bcaf905764ff` as example.
+
 ## Workflow: Prepare a release
 
 To prepare the packages for publishing, follow these steps.
