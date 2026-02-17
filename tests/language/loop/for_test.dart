@@ -10,7 +10,7 @@ class Helper {
     for (;;) return 1;
   }
 
-  static int f2(var n) {
+  static int f2(n) {
     int i = 0;
     for (; i < n; i++) ;
     return i;

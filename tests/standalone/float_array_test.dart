@@ -148,7 +148,7 @@ storeIt64(Float64List a, int index, value) {
   a[index] = value;
 }
 
-testPolymorphicLoad(var list) {
+testPolymorphicLoad(list) {
   return list[0];
 }
 

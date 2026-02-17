@@ -63,13 +63,13 @@ class MirrorsReader extends MirrorsVisitor {
     return !visited.add(mirror);
   }
 
-  reportError(var receiver, String tag, var exception, StackTrace? stackTrace) {
+  reportError(receiver, String tag, exception, StackTrace? stackTrace) {
     String errorTag = '${receiver.runtimeType}.$tag';
     errors.add(new ReadError(errorTag, exception, stackTrace));
   }
 
   visitUnsupported(
-    var receiver,
+    receiver,
     String tag,
     UnsupportedError? exception,
     StackTrace stackTrace,
@@ -82,24 +82,18 @@ class MirrorsReader extends MirrorsVisitor {
   }
 
   /// Override to specify that access is expected to be unsupported.
-  bool expectUnsupported(
-    var receiver,
-    String tag,
-    UnsupportedError? exception,
-  ) => false;
+  bool expectUnsupported(receiver, String tag, UnsupportedError? exception) =>
+      false;
 
   /// Override to allow unsupported access.
-  bool allowUnsupported(
-    var receiver,
-    String tag,
-    UnsupportedError? exception,
-  ) => false;
+  bool allowUnsupported(receiver, String tag, UnsupportedError? exception) =>
+      false;
 
   /// Evaluates the function [f]. Subclasses can override this to handle
   /// specific exceptions.
   dynamic evaluate(dynamic f) => f();
 
-  visit(var receiver, String tag, var value) {
+  visit(receiver, String tag, value) {
     if (value is Function) {
       try {
         var result = evaluate(value);

@@ -32,7 +32,7 @@ class IsolatedHttpServer {
     });
 
     // Handle status messages from the server.
-    _statusPort.listen((var status) {
+    _statusPort.listen((status) {
       if (status.isStarted) {
         _startedCallback(status.port);
       }

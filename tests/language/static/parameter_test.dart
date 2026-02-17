@@ -2,49 +2,57 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
-foo(x
-    , static int y // //# 01: syntax error
-    , final static y // //# 02: syntax error
-    , {static y} // //# 03: syntax error
-    , [static y] // //# 04: syntax error
-    ) {}
+foo1(x, static int y) {}
+//      ^^^^^^
+// [cfe] Can't have modifier 'static' here.
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+foo2(x, static y) {}
+//      ^^^^^^
+// [cfe] Can't have modifier 'static' here.
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+foo3(x, {static y}) {}
+//       ^^^^^^
+// [cfe] Can't have modifier 'static' here.
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+foo4(x, [static y]) {}
+//       ^^^^^^
+// [cfe] Can't have modifier 'static' here.
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 
 class C {
-  bar(x
-      , static int y // //# 05: syntax error
-      , final static y // //# 06: syntax error
-      , {static y} // //# 07: syntax error
-      , [static y] // //# 08: syntax error
-      ) {}
+  bar5(x, static int y) {}
+  //      ^^^^^^
+  // [cfe] Can't have modifier 'static' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  bar6(x, static y) {}
+  //      ^^^^^^
+  // [cfe] Can't have modifier 'static' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  bar7(x, {static y}) {}
+  //       ^^^^^^
+  // [cfe] Can't have modifier 'static' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  bar8(x, [static y]) {}
+  //       ^^^^^^
+  // [cfe] Can't have modifier 'static' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 
-  static baz(x
-      , static int y // //# 09: syntax error
-      , final static y // //# 10: syntax error
-      , {static y} // //# 11: syntax error
-      , [static y] // //# 12: syntax error
-      ) {}
+  static baz9(x, static int y) {}
+  //             ^^^^^^
+  // [cfe] Can't have modifier 'static' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  static baz10(x, static y) {}
+  //              ^^^^^^
+  // [cfe] Can't have modifier 'static' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  static baz11(x, {static y}) {}
+  //               ^^^^^^
+  // [cfe] Can't have modifier 'static' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  static baz12(x, [static y]) {}
+  //               ^^^^^^
+  // [cfe] Can't have modifier 'static' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 }
 
-main() {
-  foo(1
-      , 1 // //# 01: continued
-      , 1 // //# 02: continued
-      , y: 1 // //# 03: continued
-      , 1 // //# 04: continued
-      );
-  new C().bar(1
-      , 1 // //# 05: continued
-      , 1 // //# 06: continued
-      , y: 1 // //# 07: continued
-      , 1 // //# 08: continued
-      );
-  C.baz(1
-      , 1 // //# 09: continued
-      , 1 // //# 10: continued
-      , y: 1 // //# 11: continued
-      , 1 // //# 12: continued
-      );
-}
+void main() {}

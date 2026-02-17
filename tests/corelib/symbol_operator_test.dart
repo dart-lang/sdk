@@ -40,7 +40,7 @@ main() {
   testSymbolNotInstanceOperator("//");
 }
 
-void testSymbol(Symbol constSymbol, var mirrorSymbol, String name) {
+void testSymbol(Symbol constSymbol, mirrorSymbol, String name) {
   if (constSymbol != mirrorSymbol) {
     throw "Not equal #$name, \$$name: $constSymbol, $mirrorSymbol";
   }
