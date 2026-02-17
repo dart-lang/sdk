@@ -121,7 +121,10 @@ class MessageCode extends Code implements Message {
   }
 }
 
-class Template<T extends Function> extends Code {
+/// Note: the type argument `T` should be instantiated with a function type. But
+/// it is typed as `extends Object` in order to reduce the risk of accidental
+/// dynamic invocation of [withArguments].
+class Template<T extends Object> extends Code {
   String get messageCode => name;
 
   final T withArguments;
