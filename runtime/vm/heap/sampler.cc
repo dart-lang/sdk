@@ -224,7 +224,7 @@ void HeapProfileSampler::SampleNewSpaceAllocation(intptr_t allocation_size) {
   // Clean up interval state in preparation for a new interval.
   ResetIntervalState();
 
-  if (UNLIKELY(allocation_size >= sampling_interval_)) {
+  if (allocation_size >= sampling_interval_) [[unlikely]] {
     last_sample_size_ = allocation_size;
     // Reset the sampling interval, but only count the sample once.
     NumberOfSamplesLocked(allocation_size);

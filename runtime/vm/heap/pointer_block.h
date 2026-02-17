@@ -175,7 +175,7 @@ class BlockWorkList : public ValueObject {
   DART_FORCE_INLINE
   bool Pop(ObjectPtr* object) {
     ASSERT(local_input_ != nullptr);
-    if (UNLIKELY(local_input_->IsEmpty())) {
+    if (local_input_->IsEmpty()) [[unlikely]] {
       if (!local_output_->IsEmpty()) {
         auto temp = local_output_;
         local_output_ = local_input_;
@@ -218,7 +218,7 @@ class BlockWorkList : public ValueObject {
   }
 
   void Push(ObjectPtr raw_obj) {
-    if (UNLIKELY(local_output_->IsFull())) {
+    if (local_output_->IsFull()) [[unlikely]] {
       stack_->PushBlock(local_output_);
       local_output_ = stack_->PopEmptyBlock();
     }
@@ -350,7 +350,7 @@ class LocalBlockWorkList : public ValueObject {
   }
 
   void Push(T obj) {
-    if (UNLIKELY(head_->IsFull())) {
+    if (head_->IsFull()) [[unlikely]] {
       PointerBlock<Size>* next = new PointerBlock<Size>();
       next->next_ = head_;
       head_ = next;

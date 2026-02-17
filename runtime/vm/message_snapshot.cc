@@ -556,7 +556,7 @@ class ClassMessageDeserializationCluster
         uri = String::New(d->ReadAscii());   // Library URI.
         name = String::New(d->ReadAscii());  // Class name.
         lib = Library::LookupLibrary(d->thread(), uri);
-        if (UNLIKELY(lib.IsNull())) {
+        if (lib.IsNull()) [[unlikely]] {
           FATAL("Not found: %s %s\n", uri.ToCString(), name.ToCString());
         }
         if (name.Equals(Symbols::TopLevel())) {
@@ -564,7 +564,7 @@ class ClassMessageDeserializationCluster
         } else {
           cls = lib.LookupClass(name);
         }
-        if (UNLIKELY(cls.IsNull())) {
+        if (cls.IsNull()) [[unlikely]] {
           FATAL("Not found: %s %s\n", uri.ToCString(), name.ToCString());
         }
         cls.EnsureIsFinalized(d->thread());

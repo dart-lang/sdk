@@ -261,7 +261,7 @@ class Interpreter {
 
 #if !defined(PRODUCT)
     auto* const class_table = thread->isolate_group()->class_table();
-    if (UNLIKELY(class_table->ShouldTraceAllocationFor(class_id))) {
+    if (class_table->ShouldTraceAllocationFor(class_id)) [[unlikely]] {
       // Fall back to the runtime for profiled allocation of classes.
       return false;
     }
@@ -269,7 +269,7 @@ class Interpreter {
 
     const uword top = thread->top();
     const intptr_t remaining = thread->end() - top;
-    if (LIKELY(remaining >= instance_size)) {
+    if (remaining >= instance_size) [[likely]] {
       thread->set_top(top + instance_size);
       Object::InitializeHeader(top, class_id, instance_size);
       *result = UntaggedObject::FromAddr(top);

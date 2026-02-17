@@ -201,13 +201,13 @@ class InterpreterHelpers {
     intptr_t guarded_list_length =
         Smi::Value(field->untag()->guarded_list_length());
 
-    if (UNLIKELY(guarded_list_length >= Field::kUnknownFixedLength)) {
+    if (guarded_list_length >= Field::kUnknownFixedLength) [[unlikely]] {
       // Guarding length, check this in the runtime.
       return true;
     }
 
-    if (UNLIKELY(field->untag()->static_type_exactness_state_ >=
-                 StaticTypeExactnessState::Uninitialized().Encode())) {
+    if (field->untag()->static_type_exactness_state_ >=
+        StaticTypeExactnessState::Uninitialized().Encode()) [[unlikely]] {
       // Guarding "exactness", check this in the runtime.
       return true;
     }
@@ -611,7 +611,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   // (in the case of an unhandled exception) or it must be returned to the
   // caller of the interpreter to be propagated.
   const intptr_t result_cid = result->GetClassId();
-  if (UNLIKELY(result_cid == kUnhandledExceptionCid)) {
+  if (result_cid == kUnhandledExceptionCid) [[unlikely]] {
     (*SP)[0] = UnhandledException::RawCast(result)->untag()->exception();
     (*SP)[1] = UnhandledException::RawCast(result)->untag()->stacktrace();
     (*SP)[2] = 0;  // Do not bypass debugger.
@@ -623,7 +623,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     }
     UNREACHABLE();
   }
-  if (UNLIKELY(IsErrorClassId(result_cid))) {
+  if (IsErrorClassId(result_cid)) [[unlikely]] {
     // Unwind to entry frame.
     fp_ = *FP;
     pc_ = SavedCallerPC(fp_);
@@ -718,8 +718,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
   intptr_t receiver_cid = call_base[receiver_idx]->GetClassId();
 
   FunctionPtr target;
-  if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, argdesc_,
-                                     &target))) {
+  if (!lookup_cache_.Lookup(receiver_cid, target_name, argdesc_, &target))
+      [[unlikely]] {
     // Table lookup miss.
     top[0] = null_value;  // Clean up slot as it may be visited by GC.
     top[1] = call_base[receiver_idx];
@@ -1057,10 +1057,10 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 #define UNBOX_INT64(value, obj, selector)                                      \
   int64_t value;                                                               \
   {                                                                            \
-    if (LIKELY(!obj.IsHeapObject())) {                                         \
+    if (!obj.IsHeapObject()) [[likely]] {                                      \
       value = Smi::Value(Smi::RawCast(obj));                                   \
     } else {                                                                   \
-      if (UNLIKELY(obj == null_value)) {                                       \
+      if (obj == null_value) [[unlikely]] {                                    \
         SP[0] = selector.ptr();                                                \
         goto ThrowNullError;                                                   \
       }                                                                        \
@@ -1069,7 +1069,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
   }
 
 #define BOX_INT64_RESULT(result)                                               \
-  if (LIKELY(Smi::IsValid(result))) {                                          \
+  if (Smi::IsValid(result)) [[likely]] {                                       \
     SP[0] = Smi::New(static_cast<intptr_t>(result));                           \
   } else if (!AllocateMint(thread, result, pc, FP, SP)) {                      \
     HANDLE_EXCEPTION;                                                          \
@@ -1079,7 +1079,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 #define UNBOX_DOUBLE(value, obj, selector)                                     \
   double value;                                                                \
   {                                                                            \
-    if (UNLIKELY(obj == null_value)) {                                         \
+    if (obj == null_value) [[unlikely]] {                                      \
       SP[0] = selector.ptr();                                                  \
       goto ThrowNullError;                                                     \
     }                                                                          \
@@ -1383,7 +1383,7 @@ bool Interpreter::AssertAssignableField(Thread* thread,
   }
 
   SubtypeTestCachePtr cache = subtype_test_cache_;
-  if (UNLIKELY(cache == SubtypeTestCache::null())) {
+  if (cache == SubtypeTestCache::null()) [[unlikely]] {
     // Allocate new cache.
     SP[1] = instance;        // Preserve.
     SP[2] = field;           // Preserve.
@@ -1544,10 +1544,10 @@ bool Interpreter::AllocateArray(Thread* thread,
                                 const KBCInstr* pc,
                                 ObjectPtr* FP,
                                 ObjectPtr* SP) {
-  if (LIKELY(!length_object->IsHeapObject())) {
+  if (!length_object->IsHeapObject()) [[likely]] {
     const intptr_t length = Smi::Value(Smi::RawCast(length_object));
-    if (LIKELY(static_cast<uintptr_t>(length) <=
-               static_cast<uintptr_t>(Array::kMaxNewSpaceElements))) {
+    if (static_cast<uintptr_t>(length) <=
+        static_cast<uintptr_t>(Array::kMaxNewSpaceElements)) [[likely]] {
       ASSERT(Array::IsValidLength(length));
       ArrayPtr result;
       if (TryAllocate(thread, kArrayCid, Array::InstanceSize(length),
@@ -2271,7 +2271,7 @@ SwitchDispatchNoSingleStep:
       ObjectPtr* call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      if (UNLIKELY(receiver == null_value)) {
+      if (receiver == null_value) [[unlikely]] {
         SP[0] = Symbols::call().ptr();
         goto ThrowNullError;
       }
@@ -2344,7 +2344,7 @@ SwitchDispatchNoSingleStep:
       NativeFunction native_function =
           reinterpret_cast<NativeFunction>(LOAD_CONSTANT_RAW(rD + 1));
 
-      if (UNLIKELY(trampoline == nullptr || native_function == nullptr)) {
+      if (trampoline == nullptr || native_function == nullptr) [[unlikely]] {
         SP[1] = 0;  // Unused space for result.
         SP[2] = function;
         SP[3] = Smi::New(rD);
@@ -2494,7 +2494,7 @@ SwitchDispatchNoSingleStep:
     FieldPtr field = Field::RawCast(LOAD_CONSTANT(rD));
     InstancePtr value = Instance::RawCast(*SP--);
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
-    if (UNLIKELY(thread->isolate() == nullptr)) {
+    if (thread->isolate() == nullptr) [[unlikely]] {
       SP[0] = field;
       goto ThrowStaticFieldAccessedWithoutIsolateError;
     }
@@ -2506,7 +2506,7 @@ SwitchDispatchNoSingleStep:
     BYTECODE(LoadStatic, D);
     FieldPtr field = Field::RawCast(LOAD_CONSTANT(rD));
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
-    if (UNLIKELY(thread->isolate() == nullptr)) {
+    if (thread->isolate() == nullptr) [[unlikely]] {
       SP[0] = field;
       goto ThrowStaticFieldAccessedWithoutIsolateError;
     }
@@ -2676,7 +2676,7 @@ SwitchDispatchNoSingleStep:
   {
     BYTECODE(Allocate, D);
     ClassPtr cls = Class::RawCast(LOAD_CONSTANT(rD));
-    if (LIKELY(InterpreterHelpers::IsAllocateFinalized(cls))) {
+    if (InterpreterHelpers::IsAllocateFinalized(cls)) [[likely]] {
       const intptr_t class_id = cls->untag()->id_;
       ASSERT(Class::is_valid_id(class_id));
       const intptr_t instance_size =
@@ -2721,7 +2721,7 @@ SwitchDispatchNoSingleStep:
     BYTECODE(AllocateT, 0);
     ClassPtr cls = Class::RawCast(SP[0]);
     TypeArgumentsPtr type_args = TypeArguments::RawCast(SP[-1]);
-    if (LIKELY(InterpreterHelpers::IsAllocateFinalized(cls))) {
+    if (InterpreterHelpers::IsAllocateFinalized(cls)) [[likely]] {
       const intptr_t class_id = cls->untag()->id_;
       const intptr_t instance_size =
           cls->untag()->host_instance_size_in_words_ * kCompressedWordSize;
@@ -3019,7 +3019,7 @@ SwitchDispatchNoSingleStep:
   {
     BYTECODE(NullCheck, D);
 
-    if (UNLIKELY(SP[0] == null_value)) {
+    if (SP[0] == null_value) [[unlikely]] {
       // Load selector.
       SP[0] = LOAD_CONSTANT(rD);
       goto ThrowNullError;
@@ -3077,11 +3077,11 @@ SwitchDispatchNoSingleStep:
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::TruncDivOperator());
     UNBOX_INT64(b, SP[1], Symbols::TruncDivOperator());
-    if (UNLIKELY(b == 0)) {
+    if (b == 0) [[unlikely]] {
       goto ThrowIntegerDivisionByZeroException;
     }
     int64_t result;
-    if (UNLIKELY((a == Mint::kMinValue) && (b == -1))) {
+    if ((a == Mint::kMinValue) && (b == -1)) [[unlikely]] {
       result = Mint::kMinValue;
     } else {
       result = a / b;
@@ -3096,11 +3096,11 @@ SwitchDispatchNoSingleStep:
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Percent());
     UNBOX_INT64(b, SP[1], Symbols::Percent());
-    if (UNLIKELY(b == 0)) {
+    if (b == 0) [[unlikely]] {
       goto ThrowIntegerDivisionByZeroException;
     }
     int64_t result;
-    if (UNLIKELY((a == Mint::kMinValue) && (b == -1))) {
+    if ((a == Mint::kMinValue) && (b == -1)) [[unlikely]] {
       result = 0;
     } else {
       result = a % b;
@@ -3417,7 +3417,7 @@ SwitchDispatchNoSingleStep:
     ASSERT(!Field::UnboxedBit::decode(field->untag()->kind_bits_));
     ObjectPtr value = GET_FIELD(instance, offset_in_words);
 
-    if (UNLIKELY(value == Object::sentinel().ptr())) {
+    if (value == Object::sentinel().ptr()) [[unlikely]] {
       SP[1] = 0;  // Result slot.
       SP[2] = instance;
       SP[3] = field;
@@ -3436,8 +3436,8 @@ SwitchDispatchNoSingleStep:
     *++SP = value;
 
 #if !defined(PRODUCT)
-    if (UNLIKELY(
-            Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))) {
+    if (Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))
+        [[unlikely]] {
       if (!AssertAssignableField<true>(thread, pc, FP, SP, instance, field,
                                        Instance::RawCast(value))) {
         HANDLE_EXCEPTION;
@@ -3479,7 +3479,7 @@ SwitchDispatchNoSingleStep:
     if (Field::FinalBit::decode(field->untag()->kind_bits_)) {
       // Check that final field was not initialized already.
       ObjectPtr old_value = GET_FIELD(instance, offset_in_words);
-      if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+      if (old_value != Object::sentinel().ptr()) [[unlikely]] {
         SP[0] = field;
         SP[1] = 0;  // Unused space for result.
         Exit(thread, FP, SP + 2, pc);
@@ -3524,7 +3524,7 @@ SwitchDispatchNoSingleStep:
     // Field object is cached in function's data_.
     FieldPtr field = Field::RawCast(function->untag()->data());
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
-    if (UNLIKELY(thread->isolate() == nullptr)) {
+    if (thread->isolate() == nullptr) [[unlikely]] {
       SP[0] = field;
       goto ThrowStaticFieldAccessedWithoutIsolateError;
     }
@@ -3548,8 +3548,8 @@ SwitchDispatchNoSingleStep:
     *++SP = value;
 
 #if !defined(PRODUCT)
-    if (UNLIKELY(
-            Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))) {
+    if (Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))
+        [[unlikely]] {
       if (!AssertAssignableField<true>(thread, pc, FP, SP,
                                        Instance::RawCast(null_value), field,
                                        Instance::RawCast(value))) {
@@ -3591,8 +3591,8 @@ SwitchDispatchNoSingleStep:
     *++SP = value;
 
 #if !defined(PRODUCT)
-    if (UNLIKELY(
-            Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))) {
+    if (Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))
+        [[unlikely]] {
       if (!AssertAssignableField<true>(thread, pc, FP, SP,
                                        Instance::RawCast(null_value), field,
                                        Instance::RawCast(value))) {
@@ -3613,7 +3613,7 @@ SwitchDispatchNoSingleStep:
     // Field object is cached in function's data_.
     FieldPtr field = Field::RawCast(function->untag()->data());
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
-    if (UNLIKELY(thread->isolate() == nullptr)) {
+    if (thread->isolate() == nullptr) [[unlikely]] {
       SP[0] = field;
       goto ThrowStaticFieldAccessedWithoutIsolateError;
     }
@@ -3622,7 +3622,7 @@ SwitchDispatchNoSingleStep:
     ASSERT(Field::FinalBit::decode(field->untag()->kind_bits_));
     // Check that final field was not initialized already.
     ObjectPtr old_value = thread->field_table_values()[field_id];
-    if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+    if (old_value != Object::sentinel().ptr()) [[unlikely]] {
       ++SP;
       SP[0] = field;
       SP[1] = 0;  // Unused space for result.
@@ -3654,7 +3654,7 @@ SwitchDispatchNoSingleStep:
     if (Field::FinalBit::decode(field->untag()->kind_bits_)) {
       // Check that final field was not initialized already.
       ObjectPtr old_value = thread->shared_field_table_values()[field_id];
-      if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+      if (old_value != Object::sentinel().ptr()) [[unlikely]] {
         ++SP;
         SP[0] = field;
         SP[1] = 0;  // Unused space for result.

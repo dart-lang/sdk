@@ -1468,7 +1468,7 @@ uword PageSpace::TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size) {
   }
 
   intptr_t remaining = freelist->end() - freelist->top();
-  if (UNLIKELY(remaining < size)) {
+  if (remaining < size) [[unlikely]] {
     FreeListElement* block = freelist->TryAllocateLargeLocked(size);
     if (block == nullptr) {
       // Allocating from a new page (if growth policy allows) will have the

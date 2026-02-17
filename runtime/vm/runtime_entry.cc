@@ -457,11 +457,15 @@ DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
 }
 
 static Heap::Space SpaceForRuntimeAllocation() {
-  return UNLIKELY(FLAG_runtime_allocate_old) ? Heap::kOld : Heap::kNew;
+  if (FLAG_runtime_allocate_old) [[unlikely]] {
+    return Heap::kOld;
+  } else {
+    return Heap::kNew;
+  }
 }
 
 static void RuntimeAllocationEpilogue(Thread* thread) {
-  if (UNLIKELY(FLAG_runtime_allocate_spill_tlab)) {
+  if (FLAG_runtime_allocate_spill_tlab) [[unlikely]] {
     static RelaxedAtomic<uword> count = 0;
     if ((count++ % 10) == 0) {
       thread->heap()->new_space()->AbandonRemainingTLAB(thread);
@@ -4841,7 +4845,7 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
   ObjectPtr result =
       interpreter->Call(function, argdesc, argc, argv, Array::null(), thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  if (UNLIKELY(IsErrorClassId(result->GetClassId()))) {
+  if (IsErrorClassId(result->GetClassId())) [[unlikely]] {
     // Must not leak handles in the caller's zone.
     HANDLESCOPE(thread);
     // Protect the result in a handle before transitioning, which may trigger
@@ -4916,7 +4920,7 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
     result = interpreter->Resume(thread, fp, sp, value.ptr(), exception.ptr(),
                                  stack_trace.ptr());
   }
-  if (UNLIKELY(IsErrorClassId(result.GetClassId()))) {
+  if (IsErrorClassId(result.GetClassId())) [[unlikely]] {
     Exceptions::PropagateError(Error::Cast(result));
   }
   arguments.SetReturn(result);
