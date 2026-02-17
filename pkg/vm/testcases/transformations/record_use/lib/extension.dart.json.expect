@@ -20,8 +20,12 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "_extension#0|callWithArgs",
+      "definition": {
+        "path": [
+          {
+            "name": "_extension#0|callWithArgs"
+          }
+        ],
         "uri": "package:record_use_test/extension.dart"
       }
     }

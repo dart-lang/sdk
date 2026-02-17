@@ -30,8 +30,12 @@
   },
   "recordings": [
     {
-      "identifier": {
-        "name": "MyClass",
+      "definition": {
+        "path": [
+          {
+            "name": "MyClass"
+          }
+        ],
         "uri": "package:record_use_test/nested.dart"
       },
       "instances": [
@@ -48,8 +52,12 @@
       ]
     },
     {
-      "identifier": {
-        "name": "MyOtherClass",
+      "definition": {
+        "path": [
+          {
+            "name": "MyOtherClass"
+          }
+        ],
         "uri": "package:record_use_test/nested.dart"
       },
       "instances": [

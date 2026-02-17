@@ -83,20 +83,16 @@ class RecordUseCollector {
     ),
     calls: callMap.map(
       (key, value) => MapEntry(
-        Definition(
-          name: key.name!,
-          scope: key.enclosingClass?.name,
-          importUri: key.library.canonicalUri.toString(),
-        ),
+        Definition(key.library.canonicalUri.toString(), [
+          if (key.enclosingClass?.name != null) Name(key.enclosingClass!.name),
+          Name(key.name!),
+        ]),
         value,
       ),
     ),
     instances: instanceMap.map((key, value) {
       return MapEntry(
-        Definition(
-          importUri: key.library.canonicalUri.toString(),
-          name: key.name,
-        ),
+        Definition(key.library.canonicalUri.toString(), [Name(key.name)]),
         value,
       );
     }),

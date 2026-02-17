@@ -34,6 +34,7 @@ class DeprecatedConsistency extends MultiAnalysisRule {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFieldFormalParameter(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -44,32 +45,55 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var constructorElement = node.declaredFragment?.element;
-    if (constructorElement != null &&
-        constructorElement.enclosingElement.hasDeprecated &&
-        !constructorElement.hasDeprecated) {
-      // TODO(scheglov): support primary constructors
-      var nodeToAnnotate = node.name ?? node.typeName!;
-      rule.reportAtOffset(
-        nodeToAnnotate.offset,
-        nodeToAnnotate.length,
-        diagnosticCode: diag.deprecatedConsistencyConstructor,
+    var errorNode = node.name ?? node.typeName;
+    if (errorNode != null) {
+      _checkConstructor(
+        node.declaredFragment!.element,
+        errorNode.offset,
+        errorNode.length,
       );
     }
   }
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
+    _checkParameter(node);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    var errorNode = node.constructorName?.name ?? node.typeName;
+    _checkConstructor(
+      node.declaredFragment!.element,
+      errorNode.offset,
+      errorNode.length,
+    );
+  }
+
+  void _checkConstructor(ConstructorElement element, int offset, int length) {
+    if (element.enclosingElement.metadata.hasDeprecated &&
+        !element.metadata.hasDeprecated) {
+      rule.reportAtOffset(
+        offset,
+        length,
+        diagnosticCode: diag.deprecatedConsistencyConstructor,
+      );
+    }
+  }
+
+  void _checkParameter(FormalParameter node) {
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement is! FieldFormalParameterElement) return;
 
     var field = declaredElement.field;
     if (field == null) return;
 
-    if (field.hasDeprecated && !declaredElement.hasDeprecated) {
+    if (field.metadata.hasDeprecated &&
+        !declaredElement.metadata.hasDeprecated) {
       rule.reportAtNode(node, diagnosticCode: diag.deprecatedConsistencyField);
     }
-    if (!field.hasDeprecated && declaredElement.hasDeprecated) {
+    if (!field.metadata.hasDeprecated &&
+        declaredElement.metadata.hasDeprecated) {
       var fieldFragment = field.firstFragment;
       var nameOffset = fieldFragment.nameOffset;
       if (nameOffset == null) return;
@@ -82,8 +106,4 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
     }
   }
-}
-
-extension on Element {
-  bool get hasDeprecated => metadata.hasDeprecated;
 }

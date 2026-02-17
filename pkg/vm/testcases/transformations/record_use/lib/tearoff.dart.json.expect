@@ -11,9 +11,15 @@
           "type": "tearoff"
         }
       ],
-      "identifier": {
-        "name": "someStaticMethod",
-        "scope": "SomeClass",
+      "definition": {
+        "path": [
+          {
+            "name": "SomeClass"
+          },
+          {
+            "name": "someStaticMethod"
+          }
+        ],
         "uri": "package:record_use_test/tearoff.dart"
       }
     }

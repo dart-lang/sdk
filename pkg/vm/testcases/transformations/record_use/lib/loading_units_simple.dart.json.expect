@@ -20,9 +20,15 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "someStaticMethod",
-        "scope": "SomeClass",
+      "definition": {
+        "path": [
+          {
+            "name": "SomeClass"
+          },
+          {
+            "name": "someStaticMethod"
+          }
+        ],
         "uri": "package:record_use_test/loading_units_simple.dart"
       }
     },
@@ -36,9 +42,15 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "someStaticMethod",
-        "scope": "SomeClass",
+      "definition": {
+        "path": [
+          {
+            "name": "SomeClass"
+          },
+          {
+            "name": "someStaticMethod"
+          }
+        ],
         "uri": "package:record_use_test/loading_units_simple_helper.dart"
       }
     }

@@ -27,8 +27,12 @@
   },
   "recordings": [
     {
-      "identifier": {
-        "name": "MyClass",
+      "definition": {
+        "path": [
+          {
+            "name": "MyClass"
+          }
+        ],
         "uri": "package:record_use_test/instance_duplicates.dart"
       },
       "instances": [

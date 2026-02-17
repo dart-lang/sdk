@@ -46,8 +46,12 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "recorded",
+      "definition": {
+        "path": [
+          {
+            "name": "recorded"
+          }
+        ],
         "uri": "package:record_use_test/unsupported_collections.dart"
       }
     }

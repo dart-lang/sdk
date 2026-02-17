@@ -29,8 +29,12 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "someExternalFunction",
+      "definition": {
+        "path": [
+          {
+            "name": "someExternalFunction"
+          }
+        ],
         "uri": "package:record_use_js_test/js_interop.dart"
       }
     }

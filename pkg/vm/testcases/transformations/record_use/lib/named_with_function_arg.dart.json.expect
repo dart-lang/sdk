@@ -23,8 +23,12 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "Ext|foo",
+      "definition": {
+        "path": [
+          {
+            "name": "Ext|foo"
+          }
+        ],
         "uri": "package:record_use_test/named_with_function_arg.dart"
       }
     }

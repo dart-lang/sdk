@@ -26,14 +26,22 @@
           "type": "with_arguments"
         }
       ],
-      "identifier": {
-        "name": "recorded",
+      "definition": {
+        "path": [
+          {
+            "name": "recorded"
+          }
+        ],
         "uri": "package:record_use_test/unsupported_instance.dart"
       }
     },
     {
-      "identifier": {
-        "name": "MyClass",
+      "definition": {
+        "path": [
+          {
+            "name": "MyClass"
+          }
+        ],
         "uri": "package:record_use_test/unsupported_instance.dart"
       },
       "instances": [
