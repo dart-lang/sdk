@@ -83,6 +83,9 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
   if (node is MixinDeclaration) {
     return node.name;
   }
+  if (node is PrimaryConstructorBody) {
+    return node.thisKeyword;
+  }
   if (node is TopLevelVariableDeclaration) {
     return node.variables;
   }
