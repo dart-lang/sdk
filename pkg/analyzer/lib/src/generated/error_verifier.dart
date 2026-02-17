@@ -669,6 +669,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitConstructorReference(covariant ConstructorReferenceImpl node) {
+    _constArgumentsVerifier.visitConstructorReference(node);
     _typeArgumentsVerifier.checkConstructorReference(node);
     _checkForInvalidGenerativeConstructorReference(
       node.constructorName,
@@ -1083,6 +1084,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFunctionReference(FunctionReference node) {
+    _constArgumentsVerifier.visitFunctionReference(node);
     _typeArgumentsVerifier.checkFunctionReference(node);
     super.visitFunctionReference(node);
   }
@@ -1451,6 +1453,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    _constArgumentsVerifier.visitPrefixedIdentifier(node);
     if (node.parent is! Annotation) {
       var typeReference = getTypeReference(node.prefix);
       SimpleIdentifier name = node.identifier;
@@ -1557,6 +1560,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
+    _constArgumentsVerifier.visitPropertyAccess(node);
     var target = node.realTarget;
     var typeReference = getTypeReference(target);
     SimpleIdentifier propertyName = node.propertyName;
@@ -1631,6 +1635,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
+    _constArgumentsVerifier.visitSimpleIdentifier(node);
     _checkForAmbiguousImport(
       name: node.token,
       element: node.writeOrReadElement,

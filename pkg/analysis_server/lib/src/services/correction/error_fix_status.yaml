@@ -2400,6 +2400,8 @@ strict_top_level_inference_split_to_types:
     the LUB of those value(s)' type(s).
 switch_on_type:
   status: noFix
+tearoff_with_must_be_const_parameter:
+  status: needsEvaluation
 test_types_in_equals:
   status: noFix
 throw_in_finally:

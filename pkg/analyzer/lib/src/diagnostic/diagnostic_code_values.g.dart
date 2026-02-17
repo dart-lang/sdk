@@ -964,6 +964,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.switchHasCaseAfterDefaultCase,
   diag.switchHasMultipleDefaultCases,
   diag.tearoffOfGenerativeConstructorOfAbstractClass,
+  diag.tearoffWithMustBeConstParameter,
   diag.textDirectionCodePointInComment,
   diag.textDirectionCodePointInLiteral,
   diag.throwOfInvalidType,
