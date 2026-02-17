@@ -41,8 +41,8 @@ TransformSetErrorCode:
   invalidCharacter:
     type: compileTimeError
     parameters:
-      Object p0: the character that is invalid
-    problemMessage: "Invalid character '#p0'."
+      String text: the character that is invalid
+    problemMessage: "Invalid character '#text'."
     hasPublishedDocs: false
   invalidKey:
     type: compileTimeError
@@ -96,8 +96,8 @@ TransformSetErrorCode:
   missingToken:
     type: compileTimeError
     parameters:
-      Object p0: a description of the expected kinds of tokens
-    problemMessage: "Expected to find #p0."
+      String validKinds: a description of the expected kinds of tokens
+    problemMessage: "Expected to find #validKinds."
     hasPublishedDocs: false
   missingUri:
     type: compileTimeError
@@ -107,20 +107,20 @@ TransformSetErrorCode:
   undefinedVariable:
     type: compileTimeError
     parameters:
-      Object p0: the missing key
-    problemMessage: "The variable '#p0' isn't defined."
+      String key: the missing key
+    problemMessage: "The variable '#key' isn't defined."
     hasPublishedDocs: false
   unexpectedTransformSetToken:
     type: compileTimeError
     parameters:
-      Object p0: the token that was unexpectedly found
-    problemMessage: "Didn't expect to find #p0."
+      String tokenKind: the token that was unexpectedly found
+    problemMessage: "Didn't expect to find #tokenKind."
     hasPublishedDocs: false
   unknownAccessor:
     type: compileTimeError
     parameters:
-      Object p0: a description of the expected kind of token
-    problemMessage: "The accessor '#p0' is invalid."
+      String accessor: a description of the expected kind of token
+    problemMessage: "The accessor '#accessor' is invalid."
     hasPublishedDocs: false
   unsupportedKey:
     type: compileTimeError
@@ -141,13 +141,13 @@ TransformSetErrorCode:
   wrongToken:
     type: compileTimeError
     parameters:
-      Object p0: a description of the expected kind of token
-      Object p1: a description of the actual kind of token
-    problemMessage: "Expected to find #p0, but found #p1."
+      String validKinds: a description of the expected kind of token
+      String actualKind: a description of the actual kind of token
+    problemMessage: "Expected to find #validKinds, but found #actualKind."
     hasPublishedDocs: false
   yamlSyntaxError:
     type: compileTimeError
     parameters:
-      Object p0: the message produced by the YAML parser
-    problemMessage: "Parse error: #p0"
+      String message: the message produced by the YAML parser
+    problemMessage: "Parse error: #message"
     hasPublishedDocs: false

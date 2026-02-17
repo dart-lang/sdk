@@ -83,9 +83,9 @@ invalidChangeForKind = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the character that is invalid
+/// String text: the character that is invalid
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String text})
 >
 invalidCharacter = DiagnosticWithArguments(
   name: 'invalid_character',
@@ -93,7 +93,7 @@ invalidCharacter = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'invalid_character',
   withArguments: _withArgumentsInvalidCharacter,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
@@ -217,9 +217,9 @@ const DiagnosticWithoutArguments missingTemplateEnd =
     );
 
 /// Parameters:
-/// Object p0: a description of the expected kinds of tokens
+/// String validKinds: a description of the expected kinds of tokens
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String validKinds})
 >
 missingToken = DiagnosticWithArguments(
   name: 'missing_token',
@@ -227,7 +227,7 @@ missingToken = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'missing_token',
   withArguments: _withArgumentsMissingToken,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -240,9 +240,9 @@ const DiagnosticWithoutArguments missingUri = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object p0: the missing key
+/// String key: the missing key
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String key})
 >
 undefinedVariable = DiagnosticWithArguments(
   name: 'undefined_variable',
@@ -250,13 +250,13 @@ undefinedVariable = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_variable',
   withArguments: _withArgumentsUndefinedVariable,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: the token that was unexpectedly found
+/// String tokenKind: the token that was unexpectedly found
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String tokenKind})
 >
 unexpectedTransformSetToken = DiagnosticWithArguments(
   name: 'unexpected_transform_set_token',
@@ -264,13 +264,13 @@ unexpectedTransformSetToken = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'unexpected_transform_set_token',
   withArguments: _withArgumentsUnexpectedTransformSetToken,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: a description of the expected kind of token
+/// String accessor: a description of the expected kind of token
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String accessor})
 >
 unknownAccessor = DiagnosticWithArguments(
   name: 'unknown_accessor',
@@ -278,7 +278,7 @@ unknownAccessor = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'unknown_accessor',
   withArguments: _withArgumentsUnknownAccessor,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
@@ -318,10 +318,13 @@ const DiagnosticWithoutArguments unsupportedVersion =
     );
 
 /// Parameters:
-/// Object p0: a description of the expected kind of token
-/// Object p1: a description of the actual kind of token
+/// String validKinds: a description of the expected kind of token
+/// String actualKind: a description of the actual kind of token
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
+  LocatableDiagnostic Function({
+    required String validKinds,
+    required String actualKind,
+  })
 >
 wrongToken = DiagnosticWithArguments(
   name: 'wrong_token',
@@ -329,13 +332,13 @@ wrongToken = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'wrong_token',
   withArguments: _withArgumentsWrongToken,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: the message produced by the YAML parser
+/// String message: the message produced by the YAML parser
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String message})
 >
 yamlSyntaxError = DiagnosticWithArguments(
   name: 'yaml_syntax_error',
@@ -343,7 +346,7 @@ yamlSyntaxError = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'yaml_syntax_error',
   withArguments: _withArgumentsYamlSyntaxError,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 LocatableDiagnostic _withArgumentsConflictingKey({
@@ -373,8 +376,8 @@ LocatableDiagnostic _withArgumentsInvalidChangeForKind({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsInvalidCharacter({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.invalidCharacter, [p0]);
+LocatableDiagnostic _withArgumentsInvalidCharacter({required String text}) {
+  return LocatableDiagnosticImpl(diag.invalidCharacter, [text]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidKey({required String keyType}) {
@@ -416,22 +419,22 @@ LocatableDiagnostic _withArgumentsMissingOneOfMultipleKeys({
   return LocatableDiagnosticImpl(diag.missingOneOfMultipleKeys, [validKeys]);
 }
 
-LocatableDiagnostic _withArgumentsMissingToken({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.missingToken, [p0]);
+LocatableDiagnostic _withArgumentsMissingToken({required String validKinds}) {
+  return LocatableDiagnosticImpl(diag.missingToken, [validKinds]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedVariable({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.undefinedVariable, [p0]);
+LocatableDiagnostic _withArgumentsUndefinedVariable({required String key}) {
+  return LocatableDiagnosticImpl(diag.undefinedVariable, [key]);
 }
 
 LocatableDiagnostic _withArgumentsUnexpectedTransformSetToken({
-  required Object p0,
+  required String tokenKind,
 }) {
-  return LocatableDiagnosticImpl(diag.unexpectedTransformSetToken, [p0]);
+  return LocatableDiagnosticImpl(diag.unexpectedTransformSetToken, [tokenKind]);
 }
 
-LocatableDiagnostic _withArgumentsUnknownAccessor({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unknownAccessor, [p0]);
+LocatableDiagnostic _withArgumentsUnknownAccessor({required String accessor}) {
+  return LocatableDiagnosticImpl(diag.unknownAccessor, [accessor]);
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedKey({required String key}) {
@@ -439,12 +442,12 @@ LocatableDiagnostic _withArgumentsUnsupportedKey({required String key}) {
 }
 
 LocatableDiagnostic _withArgumentsWrongToken({
-  required Object p0,
-  required Object p1,
+  required String validKinds,
+  required String actualKind,
 }) {
-  return LocatableDiagnosticImpl(diag.wrongToken, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.wrongToken, [validKinds, actualKind]);
 }
 
-LocatableDiagnostic _withArgumentsYamlSyntaxError({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.yamlSyntaxError, [p0]);
+LocatableDiagnostic _withArgumentsYamlSyntaxError({required String message}) {
+  return LocatableDiagnosticImpl(diag.yamlSyntaxError, [message]);
 }
