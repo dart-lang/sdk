@@ -7067,6 +7067,24 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  shared.ExpressionTypeAnalysisResult finishNullShorting(
+    int targetDepth,
+    shared.ExpressionTypeAnalysisResult innerResult, {
+    required Expression wholeExpression,
+  }) {
+    var analysisResult = super.finishNullShorting(
+      targetDepth,
+      innerResult,
+      wholeExpression: wholeExpression,
+    );
+    // If any expression info or expression reference was stored for the
+    // null-aware expression, it was only valid in the case where the target
+    // expression was not null. So it needs to be cleared now.
+    flow.storeExpressionInfo(wholeExpression, null);
+    return analysisResult;
+  }
+
+  @override
   shared.MapPatternEntry<Expression, Pattern>? getMapPatternEntry(
     Node element,
   ) {

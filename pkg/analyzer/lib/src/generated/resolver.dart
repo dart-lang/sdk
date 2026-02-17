@@ -231,6 +231,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final AssignmentExpressionResolver _assignmentExpressionResolver =
       AssignmentExpressionResolver(resolver: this);
+
   late final BinaryExpressionResolver _binaryExpressionResolver;
   late final ConstructorReferenceResolver _constructorReferenceResolver =
       ConstructorReferenceResolver(this);
@@ -243,7 +244,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final PrefixExpressionResolver _prefixExpressionResolver;
   late final VariableDeclarationResolver _variableDeclarationResolver;
   late final YieldStatementResolver _yieldStatementResolver;
-
   late final NullSafetyDeadCodeVerifier nullSafetyDeadCodeVerifier;
 
   late final InvocationInferenceHelper inferenceHelper;
@@ -937,6 +937,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
     }
+  }
+
+  @override
+  shared.ExpressionTypeAnalysisResult finishNullShorting(
+    int targetDepth,
+    shared.ExpressionTypeAnalysisResult innerResult, {
+    required ExpressionImpl wholeExpression,
+  }) {
+    var analysisResult = super.finishNullShorting(
+      targetDepth,
+      innerResult,
+      wholeExpression: wholeExpression,
+    );
+    // If any expression info or expression reference was stored for the
+    // null-aware expression, it was only valid in the case where the target
+    // expression was not null. So it needs to be cleared now.
+    flow.storeExpressionInfo(wholeExpression, null);
+    return analysisResult;
   }
 
   @override

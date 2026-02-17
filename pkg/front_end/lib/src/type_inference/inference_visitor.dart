@@ -276,6 +276,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ClosureContext get closureContext => _closureContext!;
 
+  @override
+  ExpressionTypeAnalysisResult finishNullShorting(
+    int targetDepth,
+    ExpressionTypeAnalysisResult innerResult, {
+    required Expression wholeExpression,
+  }) {
+    ExpressionTypeAnalysisResult analysisResult = super.finishNullShorting(
+      targetDepth,
+      innerResult,
+      wholeExpression: wholeExpression,
+    );
+    // If any expression info or expression reference was stored for the
+    // null-aware expression, it was only valid in the case where the target
+    // expression was not null. So it needs to be cleared now.
+    flow.storeExpressionInfo(wholeExpression, null);
+    return analysisResult;
+  }
+
   /// Helper that creates a variable, a variable get, and a null aware guard
   /// for a null aware access on [receiver] with static type [receiverType] and
   /// non-null type [nonNullReceiverType].
