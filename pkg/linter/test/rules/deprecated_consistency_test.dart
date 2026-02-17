@@ -67,6 +67,36 @@ class A {
 ''');
   }
 
+  test_classDeprecated_primaryConstructor() async {
+    await assertDiagnostics(
+      r'''
+@deprecated
+class A();
+''',
+      [lint(18, 1)],
+    );
+  }
+
+  test_classDeprecated_primaryConstructor_deprecated() async {
+    await assertNoDiagnostics(r'''
+@deprecated
+class A() {
+  @deprecated
+  this;
+}
+''');
+  }
+
+  test_classDeprecated_primaryConstructor_named() async {
+    await assertDiagnostics(
+      r'''
+@deprecated
+class A.named();
+''',
+      [lint(20, 5)],
+    );
+  }
+
   test_constructorFieldFormalDeprecated_field() async {
     await assertDiagnostics(
       r'''
@@ -102,6 +132,26 @@ class B extends A {
 ''');
   }
 
+  test_extensionTypeDeprecated_primaryConstructor() async {
+    await assertDiagnostics(
+      r'''
+@deprecated
+extension type E(int i) {}
+''',
+      [lint(27, 1)],
+    );
+  }
+
+  test_extensionTypeDeprecated_primaryConstructor_deprecated() async {
+    await assertNoDiagnostics(r'''
+@deprecated
+extension type E(int i) {
+  @deprecated
+  this;
+}
+''');
+  }
+
   test_fieldDeprecated_fieldFormalParameter() async {
     await assertDiagnostics(
       r'''
@@ -123,5 +173,26 @@ class A {
   A({@deprecated this.a});
 }
 ''');
+  }
+
+  test_primaryConstructor_thisParameter_deprecated() async {
+    await assertNoDiagnostics(r'''
+class A({@deprecated this.a = 1}) {
+  @deprecated
+  int a;
+}
+''');
+  }
+
+  test_primaryConstructor_thisParameter_fieldDeprecated() async {
+    await assertDiagnostics(
+      r'''
+class A(this.a) {
+  @deprecated
+  int a;
+}
+''',
+      [lint(8, 6)],
+    );
   }
 }
