@@ -309,11 +309,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   void createNullAwareGuard(VariableDeclaration variable) {
-    startNullShorting(
-      new NullAwareGuard(variable, variable.fileOffset, this),
+    flowAnalysis.storeExpressionInfo(
       variable.initializer!,
-      new SharedTypeView(variable.type),
-      guardVariable: variable,
+      startNullShorting(
+        new NullAwareGuard(variable, variable.fileOffset, this),
+        flowAnalysis.getExpressionInfo(variable.initializer!),
+        new SharedTypeView(variable.type),
+        guardVariable: variable,
+      ),
     );
   }
 

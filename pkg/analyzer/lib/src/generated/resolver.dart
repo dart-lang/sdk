@@ -4660,10 +4660,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           argumentList: ArgumentListImpl(arguments: [var expression]),
         ):
         case var expression:
-          startNullShorting(
-            null,
+          flow.storeExpressionInfo(
             expression,
-            SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
+            startNullShorting(
+              null,
+              flow.getExpressionInfo(expression),
+              SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
+            ),
           );
       }
     }

@@ -6941,7 +6941,10 @@ class _MiniAstTypeAnalyzer
     SharedTypeView targetType,
   ) {
     var tmp = _harness.irBuilder.allocateTmp(location: target.location);
-    startNullShorting(tmp, target, targetType);
+    flow.storeExpressionInfo(
+      target,
+      startNullShorting(tmp, flow.getExpressionInfo(target), targetType),
+    );
     _harness.irBuilder.readTmp(tmp, location: target.location);
     return operations.promoteToNonNull(targetType);
   }

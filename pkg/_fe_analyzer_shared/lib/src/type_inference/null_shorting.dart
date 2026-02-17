@@ -86,8 +86,12 @@ mixin NullShortingMixin<
   /// Starts null shorting for a null-aware expression that participates in
   /// null-shorting.
   ///
-  /// [target] should be the target of the null-aware operation (the expression
-  /// to the left of the `?.`), and [targetType] should be its static type.
+  /// [targetInfo] should be the flow analysis expression info for the target of
+  /// the null-aware operation (the expression to the left of the `?.`), and
+  /// [targetType] should be its static type.
+  ///
+  /// The flow analysis expression info for the target (assuming it is not null)
+  /// is returned.
   ///
   /// [guard] should be the data structure that will be used by the client to
   /// desugar the null-aware access. It will be passed to
@@ -99,23 +103,21 @@ mixin NullShortingMixin<
   /// should pass in the variable used for desugaring as [guardVariable]. Flow
   /// analysis will ensure that this variable is promoted to the appropriate
   /// type in the "not null" code path.
-  void startNullShorting(
+  ExpressionInfo? startNullShorting(
     Guard guard,
-    Expression target,
+    ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
     // Ensure the initializer of [_nullAwareVariable] is promoted to
     // non-nullable.
-    flow.storeExpressionInfo(
-      target,
-      flow.nullAwareAccess_rightBegin(
-        flow.getExpressionInfo(target),
-        targetType,
-        guardVariable: guardVariable,
-      ),
+    targetInfo = flow.nullAwareAccess_rightBegin(
+      targetInfo,
+      targetType,
+      guardVariable: guardVariable,
     );
     _guards.add(guard);
+    return targetInfo;
   }
 }
 
