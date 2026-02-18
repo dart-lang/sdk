@@ -8,6 +8,8 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -44,8 +46,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var member in members) {
       if (member is ConstructorDeclaration) {
         if (other) {
-          // TODO(scheglov): support primary constructors
-          rule.reportAtNode(member.typeName);
+          rule.reportAtSourceRange(member.errorRange);
+        }
+      } else if (member is PrimaryConstructorBody) {
+        if (other) {
+          rule.reportAtToken(member.thisKeyword);
         }
       } else {
         other = true;

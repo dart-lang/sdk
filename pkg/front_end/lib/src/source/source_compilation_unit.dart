@@ -1454,9 +1454,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           ? feature.enabledVersion.toText()
           : "the current release";
       if (_languageVersion.isExplicit) {
-        message = diag.experimentOptOutExplicit.withArgumentsOld(
-          feature.flag.name,
-          enabledVersionText,
+        message = diag.experimentOptOutExplicit.withArguments(
+          featureName: feature.flag.name,
+          enabledVersion: enabledVersionText,
         );
         addProblem(
           message,
@@ -1465,7 +1465,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           fileUri,
           context: <LocatedMessage>[
             diag.experimentOptOutComment
-                .withArgumentsOld(feature.flag.name)
+                .withArguments(featureName: feature.flag.name)
                 .withLocation(
                   _languageVersion.fileUri!,
                   _languageVersion.charOffset,
@@ -1474,9 +1474,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           ],
         );
       } else {
-        message = diag.experimentOptOutImplicit.withArgumentsOld(
-          feature.flag.name,
-          enabledVersionText,
+        message = diag.experimentOptOutImplicit.withArguments(
+          featureName: feature.flag.name,
+          enabledVersion: enabledVersionText,
         );
         addProblem(message, charOffset, length, fileUri);
       }
@@ -1496,8 +1496,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           addProblem(message, charOffset, length, fileUri);
         }
       } else {
-        message = diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          feature.flag.name,
+        message = diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: feature.flag.name,
         );
         addProblem(message, charOffset, length, fileUri);
       }

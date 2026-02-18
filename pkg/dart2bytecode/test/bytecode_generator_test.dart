@@ -23,6 +23,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
+import 'package:vm/kernel_front_end.dart' show createLoadedLibrariesSet;
 import 'package:vm/modular/target/vm.dart';
 
 /// Environment define to update expectation files on failures.
@@ -33,17 +34,18 @@ final String dartSdkPkgDir = Platform.script.resolve('../..').toFilePath();
 runTestCase(Uri source, {bool isClosureContextLoweringEnabled = false}) async {
   final target = VmTarget(TargetFlags(
       isClosureContextLoweringEnabled: isClosureContextLoweringEnabled));
-  Component component =
-      await compileTestCaseToKernelProgram(source, target: target);
+  final result = await compileTestCaseToKernelProgram(source, target: target);
 
-  final mainLibrary = component.mainMethod!.enclosingLibrary;
-  final coreTypes = CoreTypes(component);
-  final hierarchy = ClassHierarchy(component, coreTypes);
+  final mainLibrary = result.component.mainMethod!.enclosingLibrary;
 
   final sink = ByteSink();
-  generateBytecode(component, sink,
+  final coreTypes = result.coreTypes ?? CoreTypes(result.component);
+  final hierarchy =
+      result.classHierarchy ?? ClassHierarchy(result.component, coreTypes);
+  generateBytecode(result.component, sink,
       options: BytecodeOptions(),
       libraries: [mainLibrary],
+      extraLoadedLibraries: result.loadedLibraries,
       coreTypes: coreTypes,
       hierarchy: hierarchy,
       target: target);
@@ -58,25 +60,48 @@ runTestCase(Uri source, {bool isClosureContextLoweringEnabled = false}) async {
   compareResultWithExpectationsFile(source, actual);
 }
 
-Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
+// Similar to CompilerResult from pkg/vm/bin/kernel_service.dart.
+class CompilerResult {
+  final Component component;
+  final Set<Library> loadedLibraries;
+  final ClassHierarchy? classHierarchy;
+  final CoreTypes? coreTypes;
+
+  CompilerResult(
+    this.component,
+    this.loadedLibraries,
+    this.classHierarchy,
+    this.coreTypes,
+  );
+}
+
+Future<CompilerResult> compileTestCaseToKernelProgram(Uri sourceUri,
     {required Target target}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform.dill');
   final options = CompilerOptions()
     ..target = target
+    ..omitPlatform = true
     ..additionalDills = <Uri>[platformKernel]
     ..environmentDefines = {}
     ..onDiagnostic = (CfeDiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };
 
-  final Component component =
-      (await kernelForProgram(sourceUri, options))!.component!;
+  final result = (await kernelForProgram(sourceUri, options))!;
+  final Component component = result.component!;
 
   // Make sure the library name is the same and does not depend on the order
   // of test cases.
   component.mainMethod!.enclosingLibrary.name = '#lib';
-  return component;
+  return CompilerResult(
+    component,
+    // Use the same calculation as SingleShotCompilerWrapper.
+    createLoadedLibrariesSet(result.loadedComponents, result.sdkComponent,
+        includePlatform: false),
+    result.classHierarchy,
+    result.coreTypes,
+  );
 }
 
 class ByteSink implements Sink<List<int>> {
@@ -175,6 +200,7 @@ main() {
     'field_initializers.dart',
     'optional_params.dart',
     'bootstrapping.dart',
+    'ffi.dart',
   };
 
   group('gen-bytecode-with-closure-context-lowering', () {

@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
@@ -162,6 +163,12 @@ class LibraryAnalyzer {
           : null;
 
       // TODO(scheglov): We don't need to do this for the whole unit.
+      var elementWalker = ElementWalker.forCompilationUnit(
+        libraryFragment,
+        libraryFilePath: _library.file.path,
+        unitFilePath: file.path,
+      );
+      parsedUnit.accept(ElementBindingVisitor(libraryFragment, elementWalker));
       parsedUnit.accept(
         ResolutionVisitor(
           libraryFragment: libraryFragment,
@@ -169,11 +176,6 @@ class LibraryAnalyzer {
           nameScope: libraryFragment.scope,
           strictInference: _analysisOptions.strictInference,
           strictCasts: _analysisOptions.strictCasts,
-          elementWalker: ElementWalker.forCompilationUnit(
-            libraryFragment,
-            libraryFilePath: _library.file.path,
-            unitFilePath: file.path,
-          ),
           dataForTesting: inferenceDataForTesting,
         ),
       );
@@ -186,6 +188,7 @@ class LibraryAnalyzer {
       parsedUnit.accept(
         ScopeResolverVisitor(
           fileAnalysis.diagnosticReporter,
+          libraryFragment: libraryFragment,
           nameScope: libraryFragment.scope,
         ),
       );
@@ -812,6 +815,12 @@ class LibraryAnalyzer {
     TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
         _testingData != null ? TypeConstraintGenerationDataForTesting() : null;
 
+    var elementWalker = ElementWalker.forCompilationUnit(
+      libraryFragment,
+      libraryFilePath: _library.file.path,
+      unitFilePath: fileAnalysis.file.path,
+    );
+    unit.accept(ElementBindingVisitor(libraryFragment, elementWalker));
     unit.accept(
       ResolutionVisitor(
         libraryFragment: libraryFragment,
@@ -819,11 +828,6 @@ class LibraryAnalyzer {
         nameScope: libraryFragment.scope,
         strictInference: _analysisOptions.strictInference,
         strictCasts: _analysisOptions.strictCasts,
-        elementWalker: ElementWalker.forCompilationUnit(
-          libraryFragment,
-          libraryFilePath: _library.file.path,
-          unitFilePath: fileAnalysis.file.path,
-        ),
         dataForTesting: inferenceDataForTesting,
       ),
     );
@@ -842,6 +846,7 @@ class LibraryAnalyzer {
     unit.accept(
       ScopeResolverVisitor(
         fileAnalysis.diagnosticReporter,
+        libraryFragment: libraryFragment,
         nameScope: libraryFragment.scope,
         docImportLibraries: docImportLibraries,
       ),

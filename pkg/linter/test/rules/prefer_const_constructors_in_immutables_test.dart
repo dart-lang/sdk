@@ -300,6 +300,19 @@ class A {
     );
   }
 
+  test_immutable_nonConstConstructor_newSyntax() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  new();
+}
+''',
+      [lint(56, 3)],
+    );
+  }
+
   test_immutable_nonConstConstructor_primary() async {
     await assertDiagnostics(
       r'''

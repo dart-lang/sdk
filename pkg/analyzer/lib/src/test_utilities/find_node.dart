@@ -38,6 +38,8 @@ class FindNode {
 
   Block get singleBlock => _single();
 
+  BlockFunctionBody get singleBlockFunctionBody => _single();
+
   CascadeExpression get singleCascadeExpression => _single();
 
   ClassDeclaration get singleClassDeclaration => _single();

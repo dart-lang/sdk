@@ -1,0 +1,72 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int? _a;
+  final field core::int? _b;
+  field core::int _c;
+  final field core::int _d;
+  constructor •({core::int? a = #C1, final core::int? b = #C1, required core::int c, required final core::int d}) → self::C
+    : self::C::_a = a, self::C::_b = b, self::C::_c = c, self::C::_d = d, super core::Object::•()
+    ;
+}
+class E extends core::_Enum /*isEnum*/  {
+  final field core::int? _a;
+  final field core::int _b;
+  enum-element static const field self::E x = #C5;
+  enum-element static const field self::E y = #C7;
+  static const field core::List<self::E> values = #C8;
+  const constructor •(core::int #index, core::String #name, {final core::int? a = #C1, required final core::int b}) → self::E
+    : self::E::_a = a, self::E::_b = b, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+extension type ET1(core::int? _a) {
+  abstract extension-type-member representation-field get _a() → core::int?;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int _a) {
+  abstract extension-type-member representation-field get _a() → core::int;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#({core::int? a = #C1}) → self::ET1% /* erasure=core::int?, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int?, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff({core::int? a = #C1}) → self::ET1% /* erasure=core::int?, declared=! */
+  return self::ET1|constructor#(a: a);
+static extension-type-member method ET2|constructor#({required core::int a}) → self::ET2% /* erasure=core::int, declared=! */ {
+  lowered final self::ET2% /* erasure=core::int, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff({required core::int a}) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(a: a);
+static method main() → dynamic {
+  new self::C::•(c: 0, d: 1);
+  new self::C::•(a: 0, b: 1, c: 2, d: 3);
+  self::ET1|constructor#();
+  self::ET1|constructor#(a: 0);
+  self::ET2|constructor#(a: 1);
+}
+
+constants  {
+  #C1 = null
+  #C2 = 1
+  #C3 = 0
+  #C4 = "x"
+  #C5 = self::E {_a:#C1, _b:#C2, index:#C3, _name:#C4}
+  #C6 = "y"
+  #C7 = self::E {_a:#C3, _b:#C2, index:#C2, _name:#C6}
+  #C8 = <self::E>[#C5, #C7]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///private_named_declaring_parameters.dart:
+- E. (from org-dartlang-testcase:///private_named_declaring_parameters.dart:11:7)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

@@ -349,15 +349,15 @@ class MallocDirectChainedHashMap
 
 template <typename KeyValueTrait>
 class ZoneDirectChainedHashMap
-    : public BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone> {
+    : public BaseDirectChainedHashMap<KeyValueTrait, ZoneObject, Zone> {
  public:
   ZoneDirectChainedHashMap()
-      : BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone>(
+      : BaseDirectChainedHashMap<KeyValueTrait, ZoneObject, Zone>(
             ThreadState::Current()->zone()) {}
   explicit ZoneDirectChainedHashMap(
       Zone* zone,
       intptr_t initial_size = ZoneDirectChainedHashMap::kInitialSize)
-      : BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone>(
+      : BaseDirectChainedHashMap<KeyValueTrait, ZoneObject, Zone>(
             zone,
             initial_size) {}
 
@@ -445,12 +445,12 @@ class BaseCStringSet
   DISALLOW_COPY_AND_ASSIGN(BaseCStringSet);
 };
 
-class ZoneCStringSet : public BaseCStringSet<ZoneAllocated, Zone> {
+class ZoneCStringSet : public BaseCStringSet<ZoneObject, Zone> {
  public:
   ZoneCStringSet()
-      : BaseCStringSet<ZoneAllocated, Zone>(ThreadState::Current()->zone()) {}
+      : BaseCStringSet<ZoneObject, Zone>(ThreadState::Current()->zone()) {}
   explicit ZoneCStringSet(Zone* zone)
-      : BaseCStringSet<ZoneAllocated, Zone>(zone) {}
+      : BaseCStringSet<ZoneObject, Zone>(zone) {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ZoneCStringSet);

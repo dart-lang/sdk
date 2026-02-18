@@ -13,7 +13,7 @@ part of "dart:convert";
 abstract interface class ChunkedConversionSink<T> implements Sink<T> {
   ChunkedConversionSink();
   factory ChunkedConversionSink.withCallback(
-    void callback(List<T> accumulated),
+    void Function(List<T> accumulated) callback,
   ) = _SimpleCallbackSink<T>;
 
   /// Adds chunked data to this sink.

@@ -2,12 +2,12 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/super_parameters/issue48714.dart:13:18: Error: Can't have modifier 'const' here.
+// pkg/front_end/testcases/super_parameters/issue48714.dart:15:18: Error: Can't have modifier 'const' here.
 // Try removing 'const'.
 //   Extended.three(const super.value); // Error.
 //                  ^^^^^
 //
-// pkg/front_end/testcases/super_parameters/issue48714.dart:12:16: Error: Can't have modifier 'var' here.
+// pkg/front_end/testcases/super_parameters/issue48714.dart:14:16: Error: Can't have modifier 'var' here.
 // Try removing 'var'.
 //   Extended.two(var super.value); // Error.
 //                ^^^

@@ -17,6 +17,7 @@ import 'package:frontend_server/resident_frontend_server_utils.dart'
     show invokeReplaceCachedDill;
 import 'package:path/path.dart';
 import 'package:pub/pub.dart';
+import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../experiments.dart';
@@ -56,17 +57,42 @@ class RunCommand extends DartdevCommand {
     bool verbose = false,
     this.nativeAssetsExperimentEnabled = false,
     this.dataAssetsExperimentEnabled = false,
-  }) : super(cmdName, '''Run a Dart program from a file or a local package.
+  }) : super(cmdName, '''
+Run a Dart program from a file or a local or remote package.
 
-Usage: dart [vm-options] run [arguments] <dart-file>|<local-package> [args]
+Usage:
+
+Running a local script or package executable:
+  dart run [vm-options] <dart-file>|<local-package>[:<executable>] args
+Running a remote package executable:
+  dart run <remote-package>[:<executable?]@[<descriptor>]> [args]
 
 <dart-file>
   A path to a Dart script (e.g., `bin/main.dart`).
 
 <local-package>
-  An executable from a local package dependency, in the format <package>[:<executable>].
-  For example, `test:test` runs the `test` executable from the `test` package.
-  If the executable is not specified, the package name is used.''', verbose) {
+  The name of a package in the local package resolution.
+
+<executable>
+  The name of an executable in the package to execute.
+
+  For example, `dart run test:test` runs the `test` executable from the `test` package.
+  If the executable is not specified, the package name is used.
+
+<descriptor>
+  A YAML formatted string that describes how to locate the
+  remote package, the same you could use in a pubspec.
+
+  For example, to run the latest stable `pubviz` package from pub.dev:
+    dart run pubviz@
+  To specify a version constraint:
+    dart run pubviz@^4.0.0
+  To specify a custom package host:
+    dart run 'pubviz@{hosted: https://my_repository.com, version: ^1.0.0}'
+  To run from a git package:
+    dart run 'pubviz@{git: https://github.com/kevmoo/pubviz}'
+
+See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     argParser
       ..addFlag(
         residentOption,
@@ -327,58 +353,12 @@ Usage: dart [vm-options] run [arguments] <dart-file>|<local-package> [args]
             'extension development environment.',
       )
       ..addFlag('debug-dds', hide: true)
-      ..addExperimentalFlags(verbose: verbose)
-      ..addFlag(
-        'enable-experiment-remote-run',
-        negatable: false,
-        hide: !verbose,
-        help: '''
-Enables running executables from remote packages.
-
-  When running a remote executable, all other command-line flags are disabled,
-  except for the options for remote executables. `dart run <remote-executable>`
-  uses `dart install` under the hood and compiles the app into a standalone
-  executable, preventing passing VM options.
-
-  (Syntax is expected to change in the future.)
-
-  From a hosted package server:
-    <hosted-url>/<package>[@<version>][:<executable>]
-
-    Downloads the package from a hosted package server and runs the specified
-    executable.
-    If a version is provided, the specified version is downloaded.
-    If an executable is not specified, the package name is used.
-    For example, `https://pub.dev/dcli@1.0.0:dcli_complete` runs the
-    `dcli_complete` executable from version 1.0.0 of the `dcli` package.
-
-  From a git repository:
-    <git-url>[:<executable>]
-
-    Clones the git repository and runs the specified executable from it.
-    If an executable is not specified, the package name from the cloned
-    repository's pubspec.yaml is used.
-    The git url can be any valid git url.''',
-      )
-      ..addOption(
-        hide: !verbose,
-        gitPathOption,
-        help:
-            'Path of git package in repository. '
-            'Only applies when using a git url for <remote-executable>.',
-      )
-      ..addOption(
-        hide: !verbose,
-        gitRefOption,
-        help:
-            'Git branch or commit to be retrieved. '
-            'Only applies when using a git url for <remote-executable>.',
-      );
+      ..addExperimentalFlags(verbose: verbose);
   }
 
   @override
   String get invocation =>
-      '${super.invocation} [<dart-file|package-target> [args]]';
+      'dart run [vm-options] <dart-file>|<local-pkg>|<remote-pkg>@<descriptor> <program-args...>';
 
   @override
   CommandCategory get commandCategory => CommandCategory.project;
@@ -468,8 +448,8 @@ Enables running executables from remote packages.
       runArgs = args.rest.skip(1).toList();
     }
 
-    if (args.flag('enable-experiment-remote-run') &&
-        _isRemoteRun(mainCommand)) {
+    final atIndex = mainCommand.indexOf('@');
+    if (atIndex != -1) {
       return _runRemote(args, mainCommand, runArgs);
     }
     return _runLocal(args, mainCommand, runArgs);
@@ -497,12 +477,6 @@ Enables running executables from remote packages.
         '--$quietOption flag is passed.',
       );
       return errorExitCode;
-    }
-    if (args.wasParsed(gitPathOption) || args.wasParsed(gitRefOption)) {
-      usageException(
-        'Options `--$gitPathOption` and `--$gitRefOption` '
-        'can only be used with a remote executable.',
-      );
     }
 
     String? nativeAssets;
@@ -639,140 +613,6 @@ Enables running executables from remote packages.
     return 0;
   }
 
-  static RemoteSourceKind? _remoteSourceKindFromArgument(String argument) {
-    if (argument.startsWith('git@')) {
-      return RemoteSourceKind.git;
-    }
-    final potentialUri = argument
-        .split(_colonButNoSlashes)
-        .first
-        .split('@')
-        .first;
-    final endsWithDotGitRegex = RegExp(r'\.git[/\\]?$');
-    if (endsWithDotGitRegex.hasMatch(potentialUri)) {
-      return RemoteSourceKind.git;
-    }
-    final parsedUri = Uri.tryParse(potentialUri);
-    if (parsedUri != null) {
-      switch (parsedUri.scheme.toLowerCase()) {
-        case 'git':
-          return RemoteSourceKind.git;
-        case 'http':
-        case 'https':
-          return RemoteSourceKind.hosted;
-      }
-    }
-    final parsedGitSshUrl = GitSshUrl.tryParse(potentialUri);
-    if (parsedGitSshUrl != null) {
-      return RemoteSourceKind.git;
-    }
-
-    // Local execution.
-    return null;
-  }
-
-  static bool _isRemoteRun(String mainCommand) {
-    return _remoteSourceKindFromArgument(mainCommand) != null;
-  }
-
-  /// Parse the arguments for remote run.
-  ///
-  /// Constructs a [InstallCommandParsedArguments] to be able to reuse the
-  /// [InstallCommand] implementation.
-  InstallCommandParsedArguments _parseRemoteArguments(String mainCommand) {
-    final argResults = this.argResults!;
-
-    final sourceKind = _remoteSourceKindFromArgument(mainCommand)!;
-
-    final gitPath = argResults.option(gitPathOption);
-    var gitRef = argResults.option(gitRefOption);
-    if (sourceKind != RemoteSourceKind.git &&
-        (gitPath != null || gitRef != null)) {
-      usageException(
-        'Options `--$gitPathOption` and `--$gitRefOption` '
-        'can only be used with a git source.',
-      );
-    }
-
-    for (final option in argResults.options) {
-      if (argResults.wasParsed(option) &&
-          option != gitPathOption &&
-          option != gitRefOption &&
-          option != verbosityOption &&
-          option != 'enable-experiment-remote-run') {
-        usageException(
-          'Option $option cannot be used in remote runs. '
-          '`dart run <remote-executable>` uses `dart install` under the hood '
-          'and compiles the app into a standalone executable.',
-        );
-      }
-    }
-
-    String? hostedUrl;
-    String? versionConstraint;
-    final String source;
-    switch (sourceKind) {
-      case RemoteSourceKind.git:
-        if (mainCommand.startsWith('git@') && mainCommand.contains('.git')) {
-          // Valid values might contain a colon for the command or not:
-          // - git@github.com:org/repo.git
-          // - git@github.com:org/repo.git:executable
-          // Drop everything after the 2nd colon for the git repository.
-          source = mainCommand.split(':').sublist(0, 2).join(':');
-        } else {
-          source = mainCommand.split(_colonButNoSlashes).first;
-        }
-      case RemoteSourceKind.hosted:
-        final parsedUri = Uri.parse(
-          mainCommand.split('@').first.split(_colonButNoSlashes).first,
-        );
-        hostedUrl = '${parsedUri.scheme}://${parsedUri.host}';
-        source = parsedUri.path.replaceFirst('/', '');
-        versionConstraint =
-            mainCommand
-                .split('@')
-                .lastButNotFirstOrNull
-                ?.split(_colonButNoSlashes)
-                .first ??
-            'any';
-        if (versionConstraint.isEmpty) {
-          versionConstraint = 'any';
-        }
-      case RemoteSourceKind.path:
-        throw StateError('Unreachable');
-    }
-
-    return InstallCommandParsedArguments(
-      source: source,
-      sourceKind: sourceKind,
-      versionConstraint: versionConstraint,
-      gitPath: gitPath,
-      gitRef: gitRef,
-      hostedUrl: hostedUrl,
-      overwrite: false,
-    );
-  }
-
-  Future<String> _findPackageName(
-    InstallCommandParsedArguments parsedArgs,
-  ) async {
-    switch (parsedArgs.sourceKind) {
-      case RemoteSourceKind.git:
-        return await getPackageNameFromGitRepo(
-          parsedArgs.source,
-          ref: parsedArgs.gitRef,
-          path: parsedArgs.gitPath,
-          relativeTo: Directory.current.path,
-          tagPattern: null,
-        );
-      case RemoteSourceKind.hosted:
-        return parsedArgs.source;
-
-      case RemoteSourceKind.path:
-        throw StateError('Unreachable');
-    }
-  }
-
   /// Installs (if needed) and runs the remote executable.
   ///
   /// Installs the app bundle at the same location as `dart install` but does
@@ -782,9 +622,38 @@ Enables running executables from remote packages.
     String mainCommand,
     List<String> runArgs,
   ) async {
-    final parsedArgs = _parseRemoteArguments(mainCommand);
-    final packageName = await _findPackageName(parsedArgs);
+    for (final option in args.options) {
+      if (args.wasParsed(option) && option != verbosityOption) {
+        usageException(
+          'Option --$option cannot be used in remote runs. '
+          '`dart run <remote-executable>` uses `dart install` under the hood '
+          'and compiles the app into a standalone executable.',
+        );
+      }
+    }
+    final atIndex = mainCommand.indexOf('@');
+    assert(atIndex != -1);
+    final command = mainCommand.substring(0, atIndex);
+    final descriptorString = mainCommand.substring(atIndex + 1);
+    final Object? descriptor;
+    try {
+      descriptor = loadYaml(descriptorString);
+    } on FormatException catch (e) {
+      usageException(
+        'Failed to parse remote executable descriptor "$descriptorString": $e',
+      );
+    }
 
+    final colonIndex = command.indexOf(':');
+    final String packageName;
+    final String executable;
+    if (colonIndex == -1) {
+      packageName = command;
+      executable = command;
+    } else {
+      packageName = command.substring(0, colonIndex);
+      executable = command.substring(colonIndex + 1);
+    }
     return await InstallCommand.inTempDir((tempDirectory) async {
       try {
         // Create a helper package for running a pub-resolve and pulling in the
@@ -796,7 +665,11 @@ Enables running executables from remote packages.
         InstallCommand.createHelperPackagePubspec(
           helperPackageDir: helperPackageDirectory,
           packageName: packageName,
-          parsedArgs: parsedArgs,
+          parsedArgs: DescriptorInstallCommandParsedArguments(
+            packageName: packageName,
+            descriptor: descriptor,
+            overwrite: false,
+          ),
         );
         await InstallCommand.resolveHelperPackage(helperPackageDirectory);
         final helperPackageLockFile = File.fromUri(
@@ -804,7 +677,6 @@ Enables running executables from remote packages.
         );
 
         final appBundleDirectory = InstallCommand.selectAppBundleDirectory(
-          parsedArgs,
           packageName,
           helperPackageDirectory,
           helperPackageLockFile,
@@ -858,14 +730,6 @@ Enables running executables from remote packages.
           );
         }
 
-        final mainCommandRemainder = mainCommand.substring(
-          parsedArgs.source.length,
-        );
-        final executable =
-            mainCommandRemainder
-                .split(_colonButNoSlashes)
-                .lastButNotFirstOrNull ??
-            packageName;
         final executableUri = appBundleDirectory.directory.uri.resolve(
           'bundle/bin/$executable',
         );
@@ -887,17 +751,6 @@ Enables running executables from remote packages.
     });
   }
 }
-
-extension<T> on List<T> {
-  /// Return the last element, but only if there are at least two elements.
-  T? get lastButNotFirstOrNull {
-    if (length < 2) return null;
-    return last;
-  }
-}
-
-/// Does not match the :// in an url scheme or the :\ in a Windows path.
-final _colonButNoSlashes = RegExp(r':(?!(//|\\))');
 
 /// Keep in sync with [getExecutableForCommand].
 ///

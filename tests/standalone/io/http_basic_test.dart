@@ -38,7 +38,7 @@ class TestServerMain {
     });
 
     // Handle status messages from the server.
-    _statusPort.listen((var status) {
+    _statusPort.listen((status) {
       if (status.isStarted) {
         _startedCallback(status.port);
       }
@@ -160,7 +160,7 @@ class TestServer {
 
   SendPort get dispatchSendPort => _dispatchPort.sendPort;
 
-  void dispatch(var message) {
+  void dispatch(message) {
     TestServerCommand command = message[0];
     SendPort replyTo = message[1];
     if (command.isStart) {

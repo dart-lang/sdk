@@ -677,15 +677,19 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
-            token: T
-            element: #E0 T
+          expression: TypeLiteral
+            type: NamedType
+              name: T
+              element: #E0 T
+              type: T
             staticType: Type
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
-            token: U
-            element: #E1 U
+          expression: TypeLiteral
+            type: NamedType
+              name: U
+              element: #E1 U
+              type: U
             staticType: Type
           semicolon: ;
       rightBracket: }
@@ -3139,12 +3143,19 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructorBody_duplicate() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A({bool it = false}) {
-  this : assert(it);
-  this : assert(!it);
+  this : assert(it) {
+    it;
+  }
+  this : assert(!it) {
+    it;
+  }
 }
-''');
+''',
+      [error(diag.multiplePrimaryConstructorBodyDeclarations, 74, 4)],
+    );
 
     var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
@@ -3195,8 +3206,17 @@ ExtensionTypeDeclaration
               element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
               staticType: bool
             rightParenthesis: )
-        body: EmptyFunctionBody
-          semicolon: ;
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: it
+                  element: <testLibrary>::@extensionType::A::@getter::it
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
       PrimaryConstructorBody
         thisKeyword: this
         colon: :
@@ -3213,8 +3233,17 @@ ExtensionTypeDeclaration
               element: <null>
               staticType: bool
             rightParenthesis: )
-        body: EmptyFunctionBody
-          semicolon: ;
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: it
+                  element: <testLibrary>::@extensionType::A::@getter::it
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@15
 ''');
@@ -3470,6 +3499,24 @@ ExtensionTypeDeclaration
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@15
 ''');
+  }
+
+  test_typeParameter_bound_undefined() async {
+    await assertErrorsInCode(
+      r'''
+extension type E<T extends Unresolved>(int it) {}
+''',
+      [error(diag.undefinedClass, 27, 10)],
+    );
+  }
+
+  test_typeParameter_metadata_undefined() async {
+    await assertErrorsInCode(
+      r'''
+extension type E<@Unresolved T>(int it) {}
+''',
+      [error(diag.undefinedAnnotation, 17, 11)],
+    );
   }
 
   test_typeParameters() async {

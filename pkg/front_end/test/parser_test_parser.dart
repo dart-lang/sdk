@@ -3653,8 +3653,7 @@ class TestParser extends Parser {
   @override
   void reportRecoverableErrorWithToken(
     Token token,
-    codes.Template<Function, codes.Message Function({required Token lexeme})>
-    template,
+    codes.Template<codes.Message Function({required Token lexeme})> template,
   ) {
     doPrint(
       'reportRecoverableErrorWithToken('

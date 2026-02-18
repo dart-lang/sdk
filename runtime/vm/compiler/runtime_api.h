@@ -295,11 +295,7 @@ constexpr word kWordMin = -(static_cast<uword>(1) << (kBitsPerWord - 1));
 constexpr uword kUwordMax = static_cast<word>(-1);
 
 // The number of bits in the _magnitude_ of a Smi, not counting the sign bit.
-#if !defined(DART_COMPRESSED_POINTERS)
-constexpr intptr_t kSmiBits = kBitsPerWord - 2;
-#else
-constexpr intptr_t kSmiBits = 30;
-#endif
+constexpr intptr_t kSmiBits = kCompressedWordSize * kBitsPerByte - 2;
 constexpr word kSmiMax = (static_cast<uword>(1) << kSmiBits) - 1;
 constexpr word kSmiMin = -(static_cast<uword>(1) << kSmiBits);
 

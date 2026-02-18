@@ -49,6 +49,58 @@ void main() async {
     });
   });
 
+  test('dart compile only bails in bin/', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runDart(
+        arguments: ['pub', 'get'],
+        workingDirectory: dartAppUri,
+        logger: logger,
+      );
+
+      // 1. Compiling in bin/ should fail.
+      final resultBin = await runDart(
+        arguments: [
+          'compile',
+          'exe',
+          'bin/dart_app.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(resultBin.exitCode, 255);
+      expect(
+        resultBin.stderr,
+        contains(
+          "'dart compile' does not support build hooks, use 'dart build' instead.",
+        ),
+      );
+
+      // 2. Compiling outside bin/ should succeed (even if it might fail at runtime).
+      final otherFile = File.fromUri(dartAppUri.resolve('tool/other.dart'));
+      await otherFile.parent.create(recursive: true);
+      await otherFile.writeAsString('void main() { print("hello"); }');
+
+      final resultOther = await runDart(
+        arguments: [
+          '-v',
+          'compile',
+          'exe',
+          'tool/other.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+      );
+      expect(resultOther.exitCode, 0);
+      final exePath = dartAppUri.resolve('tool/other.exe').toFilePath();
+      final resultRun = await runProcess(
+        executable: Uri.file(exePath),
+        logger: logger,
+      );
+      expect(resultRun.stdout, contains('hello'));
+    });
+  });
+
   test('Recorded usages in dart2js', timeout: longTimeout, () async {
     await recordUseTest('drop_data_asset', (dartAppUri) async {
       await runDart(
@@ -79,14 +131,14 @@ void main() async {
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
       final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
-      final constArguments = u.constArgumentsFor(Identifier(
-        importUri: 'package:drop_data_asset/src/drop_data_asset.dart',
-        scope: 'MyMath',
-        name: 'add',
+      final constArguments = u.constArgumentsFor(Definition(
+        'package:drop_data_asset/src/drop_data_asset.dart',
+        [Name('MyMath'), Name('add')],
       ));
       expect(constArguments.length, 1);
       expect(constArguments.first.named.isEmpty, true);
-      expect(constArguments.first.positional, [3, 4]);
+      expect(constArguments.first.positional,
+          const [IntConstant(3), IntConstant(4)]);
     });
   });
 
@@ -122,9 +174,9 @@ void main() async {
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
       final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
-      final constantsOf = u.constantsOf(Identifier(
-        importUri: 'package:drop_data_asset/src/drop_data_asset.dart',
-        name: 'RecordCallToC',
+      final constantsOf = u.constantsOf(Definition(
+        'package:drop_data_asset/src/drop_data_asset.dart',
+        [Name('RecordCallToC')],
       ));
       expect(constantsOf.length, 0);
     });

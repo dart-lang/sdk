@@ -18,29 +18,25 @@ import 'dart:typed_data';
 
 part 'regexp_helper.dart';
 
-// TODO(joshualitt): After we have JS types and more efficient JS interop, we
-// should be able to rewrite a significant amount of logic in this file and
-// `js_runtime_blob` such that most of the conversion logic can live in Dart.
-// TODO(joshualitt): In many places we use `WasmExternRef?` when the ref can't
-// be null, we should use `WasmExternRef` in those cases.
-
-/// [JSValue] is just a box [WasmExternRef?]. For now, it is the single box for
-/// all JS types, but in time we may want to make each JS type a unique box
-/// type.
+/// [JSValue] is just a box for a `ref null extern` that is not a JS `null` or
+/// `undefined`.
+///
+/// This is the type that all JS interop types (`JSAny`, `JSNumber` etc.) are an
+/// extension of.
 class JSValue {
+  /// This reference is always non-null and it never points to a JS `undefined`.
+  /// We currently don't make it non-nullable as that makes it impossible to
+  /// dummy-initialize locals with `JSValue` type.
   final WasmExternRef? _ref;
 
-  JSValue(this._ref);
+  JSValue(this._ref) : assert(!isDartNull(_ref));
 
-  // TODO(joshualitt): Remove [box] and [unbox] once `JSNull` is boxed and users
-  // have been migrated over to the helpers in `dart:js_interop`.
   static JSValue? box(WasmExternRef? ref) =>
       isDartNull(ref) ? null : JSValue(ref);
 
   static T boxT<T>(WasmExternRef? ref) => unsafeCastOpaque<T>(box(ref));
 
-  // We need to handle the case of a nullable [JSValue] to match the semantics
-  // of the JS backends.
+  @pragma('wasm:prefer-inline')
   static WasmExternRef? unbox(JSValue? v) =>
       v == null ? WasmExternRef.nullRef : v._ref;
 
@@ -62,9 +58,6 @@ class JSValue {
 
   @override
   String toString() => stringify(_ref);
-
-  // Overrides to avoid using [ObjectToJS].
-  WasmExternRef? get toExternRef => _ref;
 }
 
 // Extension helpers to convert to an externref.

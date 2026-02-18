@@ -305,7 +305,9 @@ void b() {
 ''');
 
     await assertErrorsInFile2(a, [error(diag.invalidAnnotationTarget, 35, 11)]);
-    await assertErrorsInFile2(b, []);
+    await assertErrorsInFile2(b, [
+      error(diag.invalidUseOfDoNotSubmitMember, 31, 1),
+    ]);
   }
 
   test_method() async {

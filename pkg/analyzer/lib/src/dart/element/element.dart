@@ -61,7 +61,6 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 part 'element.g.dart';
@@ -726,10 +725,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   @trackedIncludedInId
   bool get isConst => _firstFragment.isConst;
-
-  @override
-  @trackedIncludedInId
-  bool get isDeclaring => _firstFragment.isDeclaring;
 
   @override
   @trackedIndirectly
@@ -2792,7 +2787,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldFormalParameterElementImpl? get declaringFormalParameter {
     if (enclosingElement case InterfaceElementImpl enclosingElement) {
       var declaringConstructor = enclosingElement.constructors.firstWhereOrNull(
-        (constructor) => constructor.isDeclaring,
+        (constructor) => constructor.isPrimary,
       );
       return declaringConstructor?.formalParameters
           .whereType<FieldFormalParameterElementImpl>()
@@ -3069,7 +3064,6 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
 class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
     with _FieldFormalParameterFragmentImplMixin
     implements FieldFormalParameterFragment {
-  @experimental
   @override
   final String? privateName;
 
@@ -4156,8 +4150,6 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
   GetterFragmentImpl? nextFragment;
 
   GetterFragmentImpl({required super.name});
-
-  GetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   void addFragment(GetterFragmentImpl fragment) {
     fragment.element = element;
@@ -6052,11 +6044,7 @@ class LibraryElementImpl extends ElementImpl
     globalResultRequirements?.record_library_isOriginNotExistingFile(
       element: this,
     );
-    return hasModifier(Modifier.ORIGIN_NOT_EXISTING_FILE);
-  }
-
-  set isOriginNotExistingFile(bool value) {
-    setModifier(Modifier.ORIGIN_NOT_EXISTING_FILE, value);
+    return _firstFragment.isOriginNotExistingFile;
   }
 
   @Deprecated('Use isOriginNotExistingFile instead')
@@ -6492,7 +6480,7 @@ class LibraryElementImpl extends ElementImpl
   bool isFromDeprecatedExport(ExportedReference reference) {
     if (reference is ExportedReferenceExported) {
       for (var location in reference.locations) {
-        var fragment = _fragments[location.fragmentIndex];
+        var fragment = _fragmentAt(location.fragmentIndex);
         var export = fragment.libraryExports[location.exportIndex];
         if (!export.metadata.hasDeprecated) {
           return false;
@@ -6542,6 +6530,11 @@ class LibraryElementImpl extends ElementImpl
     for (var child in children) {
       child.accept(visitor);
     }
+  }
+
+  /// Optimization of [_fragments] when using a single element.
+  LibraryFragmentImpl _fragmentAt(int index) {
+    return index == 0 ? _firstFragment : _partUnits[index - 1];
   }
 
   static T? _getElementByName<T extends Element>(
@@ -6646,8 +6639,9 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
 }
 
 /// A concrete implementation of [LibraryFragment].
+@GenerateFragmentImpl(modifiers: _LibraryFragmentImplModifiers.values)
 class LibraryFragmentImpl extends FragmentImpl
-    with DeferredResolutionReadingMixin
+    with DeferredResolutionReadingMixin, _LibraryFragmentImplMixin
     implements LibraryFragment {
   @override
   final Source source;
@@ -8983,17 +8977,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   /// [name] and [offset].
   PropertyAccessorFragmentImpl({required this.name, super.firstTokenOffset});
 
-  /// Initialize a newly created synthetic property accessor element to be
-  /// associated with the given [variable].
-  PropertyAccessorFragmentImpl.forVariable(
-    PropertyInducingFragmentImpl variable,
-  ) : name = variable.name,
-      super(firstTokenOffset: null) {
-    isAbstract = variable is FieldFragmentImpl && variable.isAbstract;
-    isStatic = variable.isStatic;
-    isSynthetic = true;
-  }
-
   @override
   PropertyAccessorElementImpl get element;
 
@@ -9370,8 +9353,6 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
   SetterFragmentImpl? nextFragment;
 
   SetterFragmentImpl({required super.name});
-
-  SetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
   @override
   String? get lookupName {
@@ -10678,7 +10659,6 @@ enum _ClassFragmentImplModifiers {
 
 enum _ConstructorFragmentImplModifiers {
   isConst,
-  isDeclaring,
   isFactory,
   isOriginDeclaration,
   isOriginImplicitDefault,
@@ -10730,6 +10710,8 @@ enum _FragmentImplModifiers {
   /// constructor for a class that does not explicitly define any constructors.
   isSynthetic,
 }
+
+enum _LibraryFragmentImplModifiers { isOriginNotExistingFile }
 
 enum _MethodFragmentImplModifiers { isOriginDeclaration, isOriginInterface }
 

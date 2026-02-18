@@ -120,6 +120,21 @@ void f(String? s) {
 
 @reflectiveTest
 class InvalidNullAwareOperatorTest extends PubPackageResolutionTest {
+  test_cascade_firstSectionOnly_getterReturningFunction() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  int Function() get g => () => 0;
+}
+
+f(C c) {
+  c?..g().toString();
+}
+''',
+      [error(diag.invalidNullAwareOperator, 60, 3)],
+    );
+  }
+
   test_cascade_firstSectionOnly_indexExpression() async {
     await assertErrorsInCode(
       '''

@@ -658,7 +658,7 @@ class NoProducerOverlapsTest {
         )
         .map((e) => e.key);
     var bulkFixForNonLintCodes = registeredFixGenerators
-        .nonLintProducers
+        .warningProducers
         .entries
         .where(
           (e) => e.value.any(

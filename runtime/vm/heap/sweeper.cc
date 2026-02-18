@@ -113,11 +113,11 @@ bool GCSweeper::SweepPage(Page* page, FreeList* freelist) {
           *reinterpret_cast<uword*>(cursor) = kBreakInstructionFiller;
           cursor += kWordSize;
         }
-      } else if (UNLIKELY(dontneed_on_sweep)) {
+      } else if (dontneed_on_sweep) [[unlikely]] {
         uword page_aligned_start = Utils::RoundUp(
             current + FreeListElement::kLargeHeaderSize, page_size);
         uword page_aligned_end = Utils::RoundDown(free_end, page_size);
-        if (UNLIKELY(page_aligned_start < page_aligned_end)) {
+        if (page_aligned_start < page_aligned_end) [[unlikely]] {
           VirtualMemory::DontNeed(reinterpret_cast<void*>(page_aligned_start),
                                   page_aligned_end - page_aligned_start);
         }

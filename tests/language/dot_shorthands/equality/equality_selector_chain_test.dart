@@ -4,8 +4,6 @@
 
 // Testing the == and != behaviour for dot shorthands with selector chains.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 void main() {

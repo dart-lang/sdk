@@ -356,7 +356,7 @@ FunctionExpressionInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: a@null
+          baseElement: a@23
           substitution: {T: int}
         staticType: int
     rightParenthesis: )

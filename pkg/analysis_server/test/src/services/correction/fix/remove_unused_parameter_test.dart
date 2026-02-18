@@ -327,6 +327,33 @@ class C {
 }
 ''');
   }
+
+  Future<void> test_primaryConstructor_named_optionalNamed() async {
+    await resolveTestCode('''
+class C.named({int? x});
+''');
+    await assertHasFix('''
+class C.named();
+''');
+  }
+
+  Future<void> test_primaryConstructor_unnamed_multiple() async {
+    await resolveTestCode('''
+class C(int x, var int y);
+''');
+    await assertHasFix('''
+class C(var int y);
+''');
+  }
+
+  Future<void> test_primaryConstructor_unnamed_requiredPositional() async {
+    await resolveTestCode('''
+class C(int x);
+''');
+    await assertHasFix('''
+class C();
+''');
+  }
 }
 
 /// Situations exist where unused parameters are flagged by hints, rather

@@ -264,7 +264,9 @@ class MiniAstBuilder extends StackListener {
     debugEvent("ConditionalUris");
     if (count != 0) {
       internalProblem(
-        fe_diag.internalProblemUnsupported.withArgumentsOld("Conditional URIs"),
+        fe_diag.internalProblemUnsupported.withArguments(
+          operation: "Conditional URIs",
+        ),
         -1,
         null,
       );
@@ -544,7 +546,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
+  void handleFunctionBodySkipped(Token beginToken, Token endToken, bool isExpressionBody) {
     if (isExpressionBody) pop();
     push(NullValues.FunctionBody);
   }
@@ -729,9 +731,9 @@ class MiniAstBuilder extends StackListener {
       assert(optional('?', questionMark));
       var feature = ExperimentalFeatures.non_nullable;
       handleRecoverableError(
-        fe_diag.experimentNotEnabled.withArgumentsOld(
-          feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
+        fe_diag.experimentNotEnabled.withArguments(
+          featureName: feature.enableString,
+          enabledVersion: _versionAsString(ExperimentStatus.currentVersion),
         ),
         questionMark,
         questionMark,
@@ -742,9 +744,9 @@ class MiniAstBuilder extends StackListener {
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
     var feature = ExperimentalFeatures.non_nullable;
     handleRecoverableError(
-      fe_diag.experimentNotEnabled.withArgumentsOld(
-        feature.enableString,
-        _versionAsString(ExperimentStatus.currentVersion),
+      fe_diag.experimentNotEnabled.withArguments(
+        featureName: feature.enableString,
+        enabledVersion: _versionAsString(ExperimentStatus.currentVersion),
       ),
       bang,
       bang,

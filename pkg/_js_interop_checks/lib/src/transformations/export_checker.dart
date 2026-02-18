@@ -114,8 +114,9 @@ class ExportChecker {
 
     if (classHasJSExport && js_interop.getJSExportName(cls).isNotEmpty) {
       _diagnosticReporter.report(
-        diag.jsInteropExportDartInterfaceHasNonEmptyJSExportValue
-            .withArgumentsOld(cls.name),
+        diag.jsInteropExportDartInterfaceHasNonEmptyJSExportValue.withArguments(
+          className: cls.name,
+        ),
         cls.fileOffset,
         cls.name.length,
         cls.location?.file,
@@ -213,7 +214,7 @@ class ExportChecker {
         String name = member.name.text;
         if (name.isEmpty) name = '<unnamed>';
         _diagnosticReporter.report(
-          diag.jsInteropExportDisallowedMember.withArgumentsOld(name),
+          diag.jsInteropExportDisallowedMember.withArguments(memberName: name),
           member.fileOffset,
           member.name.text.length,
           member.location?.file,

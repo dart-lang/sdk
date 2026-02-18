@@ -38,7 +38,7 @@ char** Platform::argv_ = nullptr;
 
 class PlatformWin {
  public:
-  static void InitOnce() {
+  static void InitOnce(bool install_crash_handler) {
     // Set up a no-op handler so that CRT functions return an error instead of
     // hitting an assertion failure.
     // See: https://msdn.microsoft.com/en-us/library/a9yf33zb.aspx
@@ -73,7 +73,9 @@ class PlatformWin {
     UINT existing_mode = SetErrorMode(new_mode);
     SetErrorMode(new_mode | existing_mode);
     // Set up global exception handler to be able to dump stack trace on crash.
-    SetExceptionHandler();
+    if (install_crash_handler) {
+      SetExceptionHandler();
+    }
   }
 
   // Windows top-level unhandled exception handler function.
@@ -131,8 +133,8 @@ class CoInitializeScope : public ValueObject {
   HRESULT hres;
 };
 
-bool Platform::Initialize() {
-  PlatformWin::InitOnce();
+bool Platform::Initialize(bool install_crash_handler /* = true */) {
+  PlatformWin::InitOnce(install_crash_handler);
   return true;
 }
 

@@ -206,15 +206,6 @@ class EmbedderSdk extends AbstractDartSdk {
 
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
-  @Deprecated("Use 'EmbedderSdk.new2' instead.")
-  EmbedderSdk(
-    super.resourceProvider,
-    Map<Folder, YamlMap>? embedderYamls, {
-    required Version languageVersion,
-  }) : _languageVersion = languageVersion {
-    embedderYamls?.forEach(_processEmbedderYaml);
-  }
-
   EmbedderSdk.new2(
     super.resourceProvider,
     Folder libFolder,
@@ -307,16 +298,19 @@ class EmbedderSdk extends AbstractDartSdk {
     libraryMap.setLibrary(name, library);
   }
 
-  /// Given the 'embedderYamls' from [EmbedderYamlLocator] check each one for
-  /// the top level key 'embedded_libs'. Under the 'embedded_libs' key are key
-  /// value pairs. Each key is a 'dart:' library uri and each value is a path
-  /// (relative to the directory containing `_embedder.yaml`) to a dart script
-  /// for the given library. For example:
+  /// Given a sky_engine embedder YAML [map], checks for the top level key
+  /// 'embedded_libs'.
   ///
+  /// Under the 'embedded_libs' key are key/value pairs. Each key is a 'dart:'
+  /// library URI and each value is a path (relative to the directory containing
+  /// `_embedder.yaml`) to a dart script for the given library. For example:
+  ///
+  /// ```yaml
   /// embedded_libs:
   ///   'dart:io': '../../sdk/io/io.dart'
+  /// ```
   ///
-  /// If a key doesn't begin with `dart:` it is ignored.
+  /// If a key doesn't begin with `dart:`, it is ignored.
   void _processEmbedderYaml(Folder libDir, YamlMap? map) {
     if (map == null) return;
     var embeddedLibs = map[_embeddedLibMapKey] as YamlNode;

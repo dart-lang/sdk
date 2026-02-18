@@ -140,6 +140,7 @@ front_end/PatchInjectionFailed/example: missingExample # Patching.
 front_end/PatternMatchingError/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
 front_end/PositionalAfterNamedArgument/example: missingExample # Seemingly only issued in Analyzer
 front_end/RecordUseCannotBePlacedHere/example: missingExample # No coverage.
+front_end/RecordUseOutsideOfPackage/example: missingExample # No coverage.
 front_end/SdkRootNotFound/example: missingExample # Issued on what is essentially a wrong setup.
 front_end/SdkSpecificationNotFound/example: missingExample # Issued on what is essentially a wrong setup.
 front_end/SdkSummaryNotFound/example: missingExample # Issued on what is essentially a wrong setup.
@@ -167,6 +168,8 @@ front_end/WasmExternInvalidTarget/example: missingExample # only issued by wasm 
 front_end/WasmIntrinsicTearOff/example: missingExample # only issued by wasm build
 front_end/WasmExternMemoryMissingAnnotation/example: missingExample # only issued by wasm build
 front_end/WebLiteralCannotBeRepresentedExactly/example: missingExample # only issued on web build
+_fe_analyzer_shared/AnonymousMethodWrongParameterList/statement1: noMessageReported # Only issued in analyzer
+_fe_analyzer_shared/AnonymousMethodWrongParameterList/part_wrapped_statement1: noMessageReported # Only issued in analyzer
 
 # Can we do better?
 _fe_analyzer_shared/ConstAndFinal/declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?

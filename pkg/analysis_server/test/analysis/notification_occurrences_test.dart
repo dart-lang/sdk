@@ -382,7 +382,7 @@ void f() {
   var a = new A<int>();
   var b = new A<String>();
   a./*[1*/fff/*1]*/ = 1;
-  b./*[2*/fff/*2]*/ = 2;
+  b./*[2*/fff/*2]*/ = '';
 }
       ''');
   }
@@ -433,6 +433,24 @@ void f(int aaa, int bbb, {int? ccc, int? /*[0*/ddd/*0]*/}) {
 void g() {
   f(0, ccc: 2, 1, /*[2*/ddd/*2]*/: 3);
 }
+      ''');
+  }
+
+  Future<void> test_parameter_privateNamed() async {
+    // TODO(rnystrom): The legacy protocol requires all occurrences to have the
+    // same length. Since the argument name uses the corresponding public name,
+    // it doesn't show up as an occurence for the field element. The LSP
+    // implementation doesn't have this problem.
+    // https://github.com/dart-lang/sdk/issues/62607
+    await assertOccurrences(kind: ElementKind.FIELD, '''
+    class C {
+      int? /*[0*/_aaa/*0]*/;
+      C({this./*[1*/_aaa/*1]*/});
+    }
+
+    void f() {
+      C(aaa: 123);
+    }
       ''');
   }
 
@@ -599,7 +617,7 @@ class Square extends Shape {
   Future<void> test_pattern_record_variable() async {
     await assertOccurrences(kind: ElementKind.PARAMETER, '''
 void f(({int foo}) x, num /*[0*/a/*0]*/) {
-  (foo: /*[1*/a,/*1]*/) = x;
+  (foo: /*[1*/a/*1]*/,) = x;
 }
     );
       ''');
@@ -670,6 +688,50 @@ import '' as p;
 class /*[0*/A/*0]*/ {}
 
 p./*[1*/A/*1]*/? a;
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_constructorName() async {
+    await assertOccurrences(
+      kind: ElementKind.CONSTRUCTOR,
+      elementName: 'Aaa.named',
+      '''
+class Aaa./*[0*/named/*0]*/() {
+  this {}
+}
+
+Aaa a = Aaa./*[1*/named/*1]*/();
+''',
+    );
+  }
+
+  Future<void> test_primaryConstructor_named_typeName() async {
+    await assertOccurrences(kind: ElementKind.CLASS, '''
+class /*[0*/Aaa/*0]*/.named() {
+  this {}
+}
+
+/*[1*/Aaa/*1]*/ a = /*[2*/Aaa/*2]*/.named();
+''');
+  }
+
+  Future<void> test_primaryConstructor_unnamed_constructorInvocation() async {
+    await assertOccurrences(kind: ElementKind.CONSTRUCTOR, '''
+class Aaa() {
+  this {}
+}
+
+Aaa a = /*[0*/Aaa/*0]*/();
+''');
+  }
+
+  Future<void> test_primaryConstructor_unnamed_typeName() async {
+    await assertOccurrences(kind: ElementKind.CLASS, '''
+class /*[0*/Aaa/*0]*/() {
+  this {}
+}
+
+/*[1*/Aaa/*1]*/ a = Aaa();
 ''');
   }
 

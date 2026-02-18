@@ -51,21 +51,12 @@ bool IsTreeShaken(const char* name, Dart_Handle handle, const char* error) {
   return false;
 }
 
-#if defined(_MSC_VER)
-#define FATAL(fmt, ...)                                                        \
-  do {                                                                         \
-    fprintf(stderr, "Failed at %s:%d: " fmt "!\n", __FILE__, __LINE__,         \
-            __VA_ARGS__);                                                      \
-    abort();                                                                   \
-  } while (false)
-#else
 #define FATAL(fmt, ...)                                                        \
   do {                                                                         \
     fprintf(stderr, "Failed at %s:%d: " fmt "!\n", __FILE__, __LINE__,         \
             ##__VA_ARGS__);                                                    \
     abort();                                                                   \
   } while (false)
-#endif
 
 #define CHECK(H)                                                               \
   do {                                                                         \

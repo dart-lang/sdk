@@ -17,6 +17,7 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
+import 'package:analyzer_testing/utilities/extensions/diagnostic_code.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
 
@@ -124,12 +125,9 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
       if (actual.diagnosticCode is LintCode) {
         buffer.write('  lint(');
       } else {
-        buffer.write('  error(${actual.diagnosticCode}, ');
+        buffer.write('  error(${actual.diagnosticCode.constantName}, ');
       }
       buffer.write('${actual.offset}, ${actual.length}');
-      if (actual.diagnosticCode.lowerCaseName != _analysisRule) {
-        buffer.write(", name: '${actual.diagnosticCode.lowerCaseName}'");
-      }
       buffer.writeln('),');
     }
 

@@ -1232,7 +1232,10 @@ class PrimaryConstructorDeclaration
   }) {
     _fragment.builder = constructorBuilder;
     _bodyFragment?.builder = constructorBuilder;
-    _bodyFragment?.primaryConstructorFragment = _fragment;
+    _bodyFragment?.registerPrimaryConstructorFragment(
+      problemReporting,
+      _fragment,
+    );
     _fragment.primaryConstructorBodyFragment = _bodyFragment;
     _typeParameters = encodingStrategy.createTypeParameters(
       declarationBuilder: declarationBuilder,

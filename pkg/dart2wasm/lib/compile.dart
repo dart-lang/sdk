@@ -725,8 +725,7 @@ Future<CompilationResult> _runCodegenPhase(
       return moduleOutput.moduleImportName;
     }
 
-    record_use.transformComponent(
-        component, options.recordedUsesFile!, options.mainUri,
+    record_use.transformComponent(component, options.recordedUsesFile!,
         loadingUnitLookup: loadingUnitForNode);
   }
 
@@ -775,7 +774,8 @@ Future<ModuleStrategy> _createModuleStrategy(
   final isDynamicSubmodule =
       options.dynamicModuleType == DynamicModuleType.submodule;
   if (options.translatorOptions.enableDeferredLoading) {
-    return DeferredLoadingModuleStrategy(component, options, target, coreTypes);
+    return DeferredLoadingModuleStrategy(
+        component, options, target, coreTypes, ioManager);
   } else if (options.translatorOptions.enableMultiModuleStressTestMode) {
     return StressTestModuleStrategy(
         component, coreTypes, options, target, classHierarchy);

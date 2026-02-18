@@ -2,7 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:compiler/src/deferred_load/program_split_constraints/builder.dart';
 import 'package:kernel/kernel.dart';
+
+/// An [ImportSetTransition] is similar to a [SetTransition]
+/// except its source and transitions are represented as a single [ImportSet].
+class ImportSetTransition {
+  /// The [ImportSet] which, if contained in another [ImportSet] means
+  /// [transitions] should be applied.
+  final ImportSet source;
+
+  /// The [ImportSet] which should be applied if [source] is present in an
+  /// [ImportSet].
+  final ImportSet transitions;
+
+  ImportSetTransition(this.source, this.transitions);
+}
 
 /// Indirectly represents a deferred import in an [ImportSet].
 ///
@@ -30,6 +45,10 @@ class _DeferredImport {
 class ImportSetLattice {
   /// A map of [LibraryDependency] to its initial [ImportSet].
   final Map<LibraryDependency, ImportSet> initialSets = {};
+
+  /// A list of [ImportSetTransition]s which should be applied to
+  /// [ImportSet]s either during [union] or just before finalization.
+  final List<ImportSetTransition> importSetTransitions = [];
 
   /// Index of deferred imports that defines the canonical order used by the
   /// operations below.
@@ -82,6 +101,29 @@ class ImportSetLattice {
     initialSets[rootImport] = _rootSet;
   }
 
+  /// Initializes the [initialSet] map.
+  void buildInitialSets(
+    Map<LibraryDependency, Set<LibraryDependency>> initialTransitions,
+  ) {
+    initialTransitions.forEach((import, setOfImports) {
+      initialSets[import] = setOfImportsToImportSet(setOfImports);
+    });
+  }
+
+  /// Builds a list of [ImportSetTransition]s which should be applied
+  /// before finalizing [ImportSet]s.
+  void buildSetTransitions(
+      List<SetTransition<LibraryDependency>> setTransitions) {
+    for (var setTransition in setTransitions) {
+      importSetTransitions.add(
+        ImportSetTransition(
+          setOfImportsToImportSet(setTransition.source),
+          setOfImportsToImportSet(setTransition.transitions),
+        ),
+      );
+    }
+  }
+
   /// Get the import set that includes the union of [a] and [b].
   ImportSet union(ImportSet a, ImportSet b) {
     if (a is _EmptyImportSet) return b;
@@ -125,6 +167,52 @@ class ImportSetLattice {
       result = result._add(imports[i]);
     }
     return result;
+  }
+
+  /// Computes a map of transitions, such that the key of every entry in the map
+  /// should be replaced with the value.
+  Map<ImportSet, ImportSet> computeFinalTransitions(Set<ImportSet> imports) {
+    var finalTransitions = <ImportSet, ImportSet>{};
+    var allCandidateTransitions = <ImportSet, Set<ImportSetTransition>>{};
+    bool process(ImportSet originalImportSet) {
+      // If we've already got [finalTransitions] for this [originalImportSet],
+      // i.e. if we've processed it before, we use the processed [ImportSet] for
+      // the next iteration.
+      var importSet = finalTransitions[originalImportSet] ?? originalImportSet;
+      var appliedTransitions = <ImportSetTransition>[];
+
+      // Try and apply any [ImportSetTransition]s that have not yet been
+      // applied to this [ImportSet].
+      var candidateTransitions = allCandidateTransitions[originalImportSet]!;
+      for (var transition in candidateTransitions) {
+        if (originalImportSet.containsAll(transition.source)) {
+          importSet = union(importSet, transition.transitions);
+          appliedTransitions.add(transition);
+        }
+      }
+
+      // Update [finalTransitions] and remove any applied transitions from
+      // [candidateTransitions] so that they will not be applied again.
+      finalTransitions[originalImportSet] = importSet;
+      candidateTransitions.removeAll(appliedTransitions);
+      return appliedTransitions.isNotEmpty;
+    }
+
+    for (var import in imports) {
+      allCandidateTransitions[import] = importSetTransitions.toSet();
+    }
+
+    // Determine any final transitions.
+    // Note: We have to keep running this algorithm until we reach a fixed
+    // point.
+    var hasChanges = true;
+    do {
+      hasChanges = false;
+      for (var import in imports) {
+        hasChanges |= process(import);
+      }
+    } while (hasChanges);
+    return finalTransitions;
   }
 
   /// Get the index for an [import] according to the canonical order.

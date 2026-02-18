@@ -69,8 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     var elementAnnotation = node.elementAnnotation;
     if (elementAnnotation != null && elementAnnotation.isDeprecated) {
-      var nodeToReport = node.name;
-      rule.reportAtOffset(nodeToReport.offset, nodeToReport.length);
+      rule.reportAtNode(node.name);
     }
   }
 }

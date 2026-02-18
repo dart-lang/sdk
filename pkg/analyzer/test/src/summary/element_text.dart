@@ -354,7 +354,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isConst, 'const ');
-      _sink.writeIf(e.isDeclaring, 'declaring ');
       _sink.writeIf(e.isFactory, 'factory ');
       _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
 
@@ -1266,6 +1265,7 @@ class _Element2Writer extends _AbstractElementWriter {
   void _writeLibraryFragment(LibraryFragmentImpl f) {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
+      _sink.writeIf(f.isOriginNotExistingFile, 'isOriginNotExistingFile ');
 
       var uriStr = f.source.uri.toString();
       if (uriStr == 'package:test/test.dart') {

@@ -5,6 +5,7 @@
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:cfg/ir/constant_value.dart';
 
@@ -365,7 +366,10 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   @override
   void leaveDartFrame() {
     // Restore and untag pool pointer.
-    ldr(poolPointerReg, RegOffsetAddress(FP, -2 * wordSize));
+    ldr(
+      poolPointerReg,
+      RegOffsetAddress(FP, Arm64StackFrame.poolPointerOffsetFromFP),
+    );
     sub(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
 
     mov(stackPointerReg, FP);
@@ -571,6 +575,34 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
         add(dst, src, ExtRegOperand(tempReg, .UXTX, 0), sz);
       } else {
         add(dst, src, tempReg, sz);
+      }
+    }
+  }
+
+  @override
+  void subImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert(sz.is32or64);
+    assert(_isInt(sz.bitWidth, value) || _isUint(sz.bitWidth, value));
+    if (value == 0) {
+      if (dst != src) {
+        mov(dst, src, sz);
+      }
+    } else if (canEncodeImm12(value)) {
+      sub(dst, src, Immediate(value), sz);
+    } else if (canEncodeImm12(-value)) {
+      add(dst, src, Immediate(-value), sz);
+    } else {
+      assert(src != tempReg);
+      loadImmediate(tempReg, value);
+      if (dst == SP || src == SP) {
+        sub(dst, src, ExtRegOperand(tempReg, .UXTX, 0), sz);
+      } else {
+        sub(dst, src, tempReg, sz);
       }
     }
   }

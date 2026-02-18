@@ -359,6 +359,24 @@ bool b = ^false;
     expect(result.fixes.first.fixes, hasLength(4));
   }
 
+  Future<void> test_handleEditGetFixes_nonLintCode() async {
+    writeAnalysisOptionsWithPlugin();
+    var code = TestCode.parseNormalized('''
+var n = ^10;
+''');
+    newFile(filePath, code.code);
+
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var response = await channel.sendRequest(
+      protocol.EditGetFixesParams(filePath, code.position.offset),
+    );
+    var result = protocol.EditGetFixesResult.fromResponse(response);
+    expect(result.fixes.first.fixes, hasLength(4));
+  }
+
   Future<void> test_lintCodesCanHaveConfigurableSeverity() async {
     writeAnalysisOptionsWithPlugin({'no_doubles_custom_severity': 'error'});
     newFile(filePath, 'double x = 3.14;');
@@ -462,10 +480,13 @@ C? c;
         'no_type_annotations',
       ]),
     );
-    expect(details.warningRules, unorderedEquals(['no_bools']));
+    expect(
+      details.warningRules,
+      unorderedEquals(['no_bools', 'no_integer_10']),
+    );
     expect(details.fixes, hasLength(1));
     var fix = details.fixes.single;
-    expect(fix.codes, ['no_bools']);
+    expect(fix.codes, ['no_bools', 'no_integer_10']);
     expect(fix.id, 'dart.fix.wrapInQuotes');
     expect(fix.message, 'Wrap in quotes');
     expect(details.assists, hasLength(1));
@@ -907,11 +928,13 @@ class _NoLiteralsPlugin extends Plugin {
   void register(PluginRegistry registry) {
     registry.registerLintRule(NeedsPackageRule());
     registry.registerWarningRule(NoBoolsRule());
+    registry.registerWarningRule(NoInteger10Rule());
     registry.registerLintRule(NoDoublesRule());
     registry.registerLintRule(NoDoublesCustomSeverityRule());
     registry.registerLintRule(NoReferencesToStringsRule());
     registry.registerLintRule(NoTypeAnnotationsRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
+    registry.registerFixForRule(NoInteger10Rule.code, _WrapInQuotes.new);
     registry.registerAssist(_InvertBoolean.new);
   }
 }

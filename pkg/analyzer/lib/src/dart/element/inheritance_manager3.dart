@@ -311,22 +311,25 @@ class InheritanceManager3 {
     required Interface interface,
   }) {
     var map = interface.map;
-    for (var entry in map.entries) {
-      var name = entry.key;
-      var candidate = entry.value;
 
-      candidate = SubstitutedExecutableElementImpl.from(
-        candidate,
-        substitution,
-      );
-
-      var candidates = namedCandidates[name];
-      if (candidates == null) {
-        candidates = <InternalExecutableElement>[];
-        namedCandidates[name] = candidates;
+    /// Optimization: Simple/common case of no substitution.
+    if (identical(substitution, Substitution.empty)) {
+      for (var entry in map.entries) {
+        var candidates = namedCandidates[entry.key] ??=
+            <InternalExecutableElement>[];
+        candidates.add(entry.value);
       }
-
-      candidates.add(candidate);
+    } else {
+      for (var entry in map.entries) {
+        var candidate = entry.value;
+        candidate = SubstitutedExecutableElementImpl.from(
+          candidate,
+          substitution,
+        );
+        var candidates = namedCandidates[entry.key] ??=
+            <InternalExecutableElement>[];
+        candidates.add(candidate);
+      }
     }
   }
 
@@ -408,6 +411,7 @@ class InheritanceManager3 {
   ///
   /// If such signature does not exist, return `null`, and if [conflicts] is
   /// not `null`, add a new [Conflict] to it.
+  @pragma("vm:prefer-inline")
   InternalExecutableElement? _combineSignatures({
     required InterfaceElementImpl targetClass,
     required List<InternalExecutableElement> candidates,
@@ -419,6 +423,27 @@ class InheritanceManager3 {
       return candidates[0];
     }
 
+    return _combineSignaturesImpl(
+      targetClass: targetClass,
+      candidates: candidates,
+      name: name,
+      conflicts: conflicts,
+    );
+  }
+
+  /// Combine [candidates] into a single signature in the [targetClass].
+  ///
+  /// If such signature does not exist, return `null`, and if [conflicts] is
+  /// not `null`, add a new [Conflict] to it.
+  ///
+  /// Split from [_combineSignatures] to allow the common case (only 1
+  /// candidate) to be inlined.
+  InternalExecutableElement? _combineSignaturesImpl({
+    required InterfaceElementImpl targetClass,
+    required List<InternalExecutableElement> candidates,
+    required Name name,
+    List<Conflict>? conflicts,
+  }) {
     var targetLibrary = targetClass.library;
     var typeSystem = targetLibrary.typeSystem;
 
@@ -545,13 +570,18 @@ class InheritanceManager3 {
         interface: superTypeInterface,
       );
 
-      for (var entry in superTypeInterface.implemented.entries) {
-        var executable = entry.value;
-        executable = SubstitutedExecutableElementImpl.from(
-          executable,
-          substitution,
-        );
-        implemented[entry.key] = executable;
+      /// Optimization: Simple/common case of no substitution.
+      if (identical(substitution, Substitution.empty)) {
+        implemented.addAll(superTypeInterface.implemented);
+      } else {
+        for (var entry in superTypeInterface.implemented.entries) {
+          var executable = entry.value;
+          executable = SubstitutedExecutableElementImpl.from(
+            executable,
+            substitution,
+          );
+          implemented[entry.key] = executable;
+        }
       }
 
       superImplemented.add(implemented);
@@ -561,7 +591,10 @@ class InheritanceManager3 {
     // optimal. We always have just one member for each name in super,
     // multiple candidates happen only when we merge super and multiple
     // interfaces. Consider using `Map<Name, ExecutableElement>` here.
-    var mixinsConflicts = <List<Conflict>>[];
+
+    // Made nullable for the common case that there are no mixins or no
+    // conflicts.
+    List<List<Conflict>>? mixinsConflicts;
     for (var mixin in element.mixins) {
       var mixinElement = mixin.element;
       var substitution = Substitution.fromInterfaceType(mixin);
@@ -625,7 +658,7 @@ class InheritanceManager3 {
         }
       }
 
-      mixinsConflicts.add(mixinConflicts);
+      (mixinsConflicts ??= <List<Conflict>>[]).add(mixinConflicts);
 
       implemented = Map.of(implemented);
       _addMixinMembers(
@@ -665,7 +698,7 @@ class InheritanceManager3 {
       namedCandidates,
     );
 
-    var noSuchMethodForwarders = <Name>{};
+    Set<Name>? noSuchMethodForwarders;
     if (element is ClassElementImpl && element.isAbstract) {
       if (superTypeInterface != null) {
         noSuchMethodForwarders = superTypeInterface.noSuchMethodForwarders;
@@ -679,7 +712,7 @@ class InheritanceManager3 {
           if (!implemented.containsKey(name) ||
               superForwarders != null && superForwarders.contains(name)) {
             implemented[name] = entry.value;
-            noSuchMethodForwarders.add(name);
+            (noSuchMethodForwarders ??= {}).add(name);
           }
         }
       }
@@ -687,25 +720,31 @@ class InheritanceManager3 {
 
     // TODO(scheglov): Instead of merging conflicts we could report them on
     // the corresponding mixins applied in the class.
-    for (var mixinConflicts in mixinsConflicts) {
-      if (mixinConflicts.isNotEmpty) {
-        conflicts.addAll(mixinConflicts);
+    if (mixinsConflicts != null) {
+      for (var mixinConflicts in mixinsConflicts) {
+        if (mixinConflicts.isNotEmpty) {
+          conflicts.addAll(mixinConflicts);
+        }
       }
     }
 
-    implemented = implemented.map<Name, InternalExecutableElement>((
-      key,
-      value,
-    ) {
-      var result = _inheritCovariance(element, namedCandidates, key, value);
-      return MapEntry(key, result);
-    });
+    for (var entry in implemented.entries) {
+      var result = _inheritCovariance(
+        element,
+        namedCandidates,
+        entry.key,
+        entry.value,
+      );
+      if (!identical(entry.value, result)) {
+        implemented[entry.key] = result;
+      }
+    }
 
     return Interface._(
       map: interface,
       declared: declared,
       implemented: implemented,
-      noSuchMethodForwarders: noSuchMethodForwarders,
+      noSuchMethodForwarders: noSuchMethodForwarders ?? const {},
       overridden: namedCandidates,
       redeclared: const {},
       superImplemented: superImplemented,

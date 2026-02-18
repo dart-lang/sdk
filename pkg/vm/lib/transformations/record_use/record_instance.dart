@@ -13,17 +13,10 @@ import 'constant_collector.dart';
 class InstanceRecorder {
   /// Keep track of the classes which are recorded, to easily add found
   /// instances.
-  final Map<Identifier, List<InstanceReference>> instancesForClass = {};
-
-  /// Keep track of the calls which are recorded, to easily add newly found
-  /// ones.
-  final Map<Identifier, String> loadingUnitForDefinition = {};
+  final Map<Definition, List<InstanceReference>> instancesForClass = {};
 
   /// A function to look up the loading unit for a reference.
   final LoadingUnitLookup _loadingUnitLookup;
-
-  /// The source uri to base relative URIs off of.
-  final Uri _source;
 
   /// A visitor traversing and collecting constants.
   late final ConstantCollector collector;
@@ -32,7 +25,7 @@ class InstanceRecorder {
   //TODO(mosum): add verbose mode to enable this
   bool exactLocation = false;
 
-  InstanceRecorder(this._source, this._loadingUnitLookup) {
+  InstanceRecorder(this._loadingUnitLookup) {
     collector = ConstantCollector.collectWith(_collectInstance);
   }
 
@@ -50,35 +43,25 @@ class InstanceRecorder {
   /// Collect the name and definition location of the invocation. This is
   /// shared across multiple calls to the same method.
   void _addToUsage(ast.Class cls, InstanceReference instance) {
-    var (:identifier, :loadingUnit) = _definitionFromClass(cls);
+    final identifier = _definitionFromClass(cls);
     instancesForClass.update(
       identifier,
       (usage) => usage..add(instance),
       ifAbsent: () => [instance],
     );
-    loadingUnitForDefinition.update(identifier, (value) {
-      assert(value == loadingUnit);
-      return value;
-    }, ifAbsent: () => loadingUnit);
   }
 
-  ({Identifier identifier, String loadingUnit}) _definitionFromClass(
-    ast.Class cls,
-  ) {
+  Definition _definitionFromClass(ast.Class cls) {
     final enclosingLibrary = cls.enclosingLibrary;
-    final file = getImportUri(enclosingLibrary, _source);
+    final importUri = enclosingLibrary.importUri.toString();
 
-    return (
-      identifier: Identifier(importUri: file, name: cls.name),
-      loadingUnit: _loadingUnitLookup(cls),
-    );
+    return Definition(importUri, [Name(cls.name)]);
   }
 
   InstanceReference _createInstanceReference(
     ast.ConstantExpression expression,
     ast.InstanceConstant constant,
-  ) => InstanceReference(
-    location: expression.location!.recordLocation(_source, exactLocation),
+  ) => InstanceConstantReference(
     instanceConstant: evaluateInstanceConstant(constant),
     loadingUnit: _loadingUnitLookup(expression),
   );

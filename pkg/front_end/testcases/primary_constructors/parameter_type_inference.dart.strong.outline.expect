@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object {
+  field core::int a;
+  constructor •([core::int a = 0]) → self::C0
+    ;
+}
+class C1 extends core::Object {
+  final field core::bool b;
+  constructor •([final core::bool b = true]) → self::C1
+    ;
+}
+class C2 extends core::Object {
+  field core::String c;
+  constructor •({core::String c = "foo"}) → self::C2
+    ;
+}
+class C3 extends core::Object {
+  final field core::List<core::int> d;
+  constructor •({final core::List<core::int> d = const <core::int>[0]}) → self::C3
+    ;
+}
+class C4 extends core::Object {
+  constructor •([core::Object? e = 0]) → self::C4
+    ;
+}
+class C5 extends core::Object {
+  constructor •({core::Object? f = true}) → self::C5
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///parameter_type_inference.dart:11:21 -> ListConstant(const <int>[0])
+Extra constant evaluation: evaluated: 1, effectively constant: 1

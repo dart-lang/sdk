@@ -74,17 +74,14 @@ class ImportLibrary extends MultiCorrectionProducer {
     if (names.isEmpty) {
       return const [];
     }
-    return [
-      for (var name in names)
-        if (await name.producers case var producers?) ...producers,
-    ];
+    return [for (var name in names) ...?(await name.producers)];
   }
 
   /// A map of all the diagnostic codes that this fix can be applied to and the
   /// generators that can be used to apply the fix.
   Map<DiagnosticCode, List<MultiProducerGenerator>> get _codesWhereThisIsValid {
     var producerGenerators = _ImportKind.values.map((key) => key.fn).toList();
-    var nonLintMultiProducers = registeredFixGenerators.nonLintMultiProducers;
+    var nonLintMultiProducers = registeredFixGenerators.warningMultiProducers;
     return {
       for (var MapEntry(:key, :value) in nonLintMultiProducers.entries)
         if (value.containsAny(producerGenerators)) key: value,

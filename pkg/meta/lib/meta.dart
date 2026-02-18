@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: library_private_types_in_public_api
-
 /// Annotations that developers can use to express the intentions that otherwise
 /// can't be deduced by statically analyzing the source code.
 ///
@@ -23,12 +21,14 @@ library meta;
 
 import 'meta_meta.dart';
 
-/// Used to annotate a function `f`. Indicates that `f` always throws an
-/// exception. Any functions that override `f`, in class inheritance, are also
-/// expected to conform to this contract.
+/// Annotation marking a function as always throwing.
 ///
-/// Tools, such as the analyzer, can use this to understand whether a block of
-/// code "exits". For example:
+/// Used to annotate a function. Indicates that the function always throws.
+/// Any instance members that override an annotated function
+/// are also expected to conform to this contract.
+///
+/// In pre Dart 2.0 code, tools like as the analyzer could use this to
+/// understand whether a block of code "exits". For example:
 ///
 /// ```dart
 /// @alwaysThrows toss() { throw 'Thrown'; }
@@ -57,22 +57,30 @@ import 'meta_meta.dart';
 /// After Dart 2.9, you can instead specify a return type of `Never`
 /// to indicate that a function never returns.
 @Deprecated("Use a return type of 'Never' instead")
-const _AlwaysThrows alwaysThrows = _AlwaysThrows();
+const Object alwaysThrows = _AlwaysThrows();
 
-/// Used to annotate a [Future]-returning function (including constructors,
-/// getters, methods, and operators), or a [Future]-typed field (including
-/// top-level, instance, and static) `f`. Indicates that the [Future] value that
-/// `f` returns does not need to be awaited. Any methods that override `f` in
-/// class inheritance, are also expected to conform to this contract.
+/// Annotation on asynchronous function whose [Future] can be ignored.
 ///
-/// Tools, such as the analyzer, can use this to understand whether to report
-/// that a [Future]-typed value does not need to be awaited:
+/// Used to annotate a [Future]-returning function (including constructors,
+/// getters, methods, and operators), or a [Future]-typed variable declaration
+/// (including top-level, instance, and static variables).
+/// Indicates that the [Future] value does not need to be awaited.
+/// This means both that the future will *not* complete with an error,
+/// and that any value it completes with does not need to be disposed or handled
+/// in any way.
+///
+/// Any instance member that override an annotated member,
+/// are also expected to conform to this contract.
+///
+/// Tools, such as the analyzer, can use this to decide whether to report
+/// that a [Future]-typed value needs to be awaited:
 ///
 /// ```dart
-/// @awaitNotRequired Future<LogMessage> log(String message) { ... }
+/// @awaitNotRequired
+/// Future<LogMessage> log(String message) { ... }
 ///
 /// void fn() {
-///   log('Message'); // Not important to wait for logging to complete.
+///   log('Message'); // Not necessary to wait for logging to complete.
 /// }
 /// ```
 ///
@@ -84,13 +92,15 @@ const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 /// Tools, such as the analyzer, can also provide feedback if
 ///
 /// * the annotation is associated with anything other than a constructor,
-///   function, method, operator, field, or top-level variable, or
+///   function, method, operator or variable, or
 /// * the annotation is associated with a constructor, function, method, or
 ///   operator that does not return a [Future], or
 /// * the annotation is associated with a field or top-level variable that is
 ///   not typed as a [Future].
-const _AwaitNotRequired awaitNotRequired = _AwaitNotRequired();
+const Object awaitNotRequired = _AwaitNotRequired();
 
+/// Annotation that no longer has any effect.
+///
 /// Used to annotate a parameter of an instance method that overrides another
 /// method.
 ///
@@ -102,8 +112,10 @@ const _AwaitNotRequired awaitNotRequired = _AwaitNotRequired();
 /// removed in a future release of `package:meta`.
 /// In Dart 2 and later, you can instead use the built-in `covariant` modifier.
 @Deprecated('Use the `covariant` modifier instead')
-const _Checked checked = _Checked();
+const Object checked = _Checked();
 
+/// Annotation on function or property whose value must not be stored.
+///
 /// Used to annotate a method, getter, top-level function, or top-level getter
 /// to indicate that the value obtained by invoking it should not be stored in a
 /// field or top-level variable. The annotation can also be applied to a class
@@ -122,8 +134,10 @@ const _Checked checked = _Checked();
 ///   `doNotStore`, or
 /// * an invocation of a member that has this annotation is assigned to a field
 ///   or top-level variable.
-const _DoNotStore doNotStore = _DoNotStore();
+const Object doNotStore = _DoNotStore();
 
+/// Annotation marking declaration that should be removed before publishing.
+///
 /// Used to annotate an optional parameter, method, getter or top-level getter
 /// or function that is not intended to be accessed in checked-in code, but
 /// might be ephemerally used during development or local testing.
@@ -158,8 +172,10 @@ const _DoNotStore doNotStore = _DoNotStore();
 ///   being referenced by a declaration that is also annotated with
 ///   `@doNotSubmit` _or_ referencing a parameter that is annotated with
 ///   `@doNotSubmit` in the same method or function.
-const _DoNotSubmit doNotSubmit = _DoNotSubmit();
+const Object doNotSubmit = _DoNotSubmit();
 
+/// Annotation marking declaration as experimental and subject to change.
+///
 /// Used to annotate a library, or any declaration that is part of the public
 /// interface of a library (such as top-level members, class members, and
 /// function parameters) to indicate that the annotated API is experimental and
@@ -180,22 +196,29 @@ const _DoNotSubmit doNotSubmit = _DoNotSubmit();
 ///   library, or
 /// * the declaration is referenced by a package that has not explicitly
 ///   indicated its intention to use experimental APIs (details TBD).
-const _Experimental experimental = _Experimental();
+const Object experimental = _Experimental();
 
-/// Used to annotate an instance or static method `m`. Indicates that `m` must
-/// either be abstract or must return a newly allocated object or `null`. In
-/// addition, every method that either implements or overrides `m` is implicitly
-/// annotated with this same annotation.
+/// Annotation on a function that creates new objects.
+///
+/// Used to annotate an instance or static method.
+///
+/// Indicates that the method must either be abstract (for an instance method)
+/// or must return either a newly allocated object or `null`.
+/// In addition, every instance method that implements or overrides the method
+/// is implicitly annotated with this same annotation.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with anything other than a method, or
 /// * a method that has this annotation can return anything other than a newly
 ///   allocated object or `null`.
-const _Factory factory = _Factory();
+const Object factory = _Factory();
 
-/// Used to annotate a class `C`. Indicates that `C` and all subtypes of `C`
-/// must be immutable.
+/// Annotation on an immutable class.
+///
+/// Used to annotate a class declaration.
+///
+/// Indicates that the class, and all subtypes of it, must be immutable.
 ///
 /// A class is immutable if all of the instance fields of the class, whether
 /// defined directly or inherited, are `final`.
@@ -207,6 +230,8 @@ const _Factory factory = _Factory();
 ///   class that has this annotation is not immutable.
 const Immutable immutable = Immutable();
 
+/// Annotation on declaration that should not be used outside of its package.
+///
 /// Used to annotate a declaration which should only be used from within the
 /// package in which it is declared, and which should not be exposed from said
 /// package's public API.
@@ -219,25 +244,31 @@ const Immutable immutable = Immutable();
 ///   private class, mixin, or extension, a value of a private enum, or a
 ///   constructor of a private class, or
 /// * the declaration is referenced outside the package in which it is declared.
-const _Internal internal = _Internal();
+const Object internal = _Internal();
 
+/// Annotation on a test framework function that introduces a single test.
+///
 /// Used to annotate a test framework function that runs a single test.
 ///
 /// Tools, such as IDEs, can show invocations of such function in a file
 /// structure view to help the user navigating in large test files.
 ///
 /// The first parameter of the function must be the description of the test.
-const _IsTest isTest = _IsTest();
+const Object isTest = _IsTest();
 
+/// Annotation on a test framework function that introduces a group of tests.
+///
 /// Used to annotate a test framework function that runs a group of tests.
 ///
 /// Tools, such as IDEs, can show invocations of such function in a file
 /// structure view to help the user navigating in large test files.
 ///
 /// The first parameter of the function must be the description of the group.
-const _IsTestGroup isTestGroup = _IsTestGroup();
+const Object isTestGroup = _IsTestGroup();
 
-/// Used to annotate a const constructor `c`. Indicates that any invocation of
+/// Annotation on constructor that must be invoked with `const` if possible.
+///
+/// Used to annotate a const constructor. Indicates that any invocation of
 /// the constructor must use the keyword `const` unless one or more of the
 /// arguments to the constructor is not a compile-time constant.
 ///
@@ -248,9 +279,9 @@ const _IsTestGroup isTestGroup = _IsTestGroup();
 /// * an invocation of a constructor that has this annotation is not invoked
 ///   using the `const` keyword unless one or more of the arguments to the
 ///   constructor is not a compile-time constant.
-const _Literal literal = _Literal();
+const Object literal = _Literal();
 
-/// Used to annotate a parameter which should be constant.
+/// Annotation on a parameter whose arguments must be constants.
 ///
 /// The Dart type system does not allow distinguishing values of constant
 /// expressions from other values of the same type, so a function cannot
@@ -264,7 +295,7 @@ const _Literal literal = _Literal();
 /// inherit the annotation. If the subclass member also wants a constant
 /// argument, it must annotate its own parameter as well.
 ///
-/// Notice that if an annotatated instance member overrides a superclass member
+/// Notice that if an annotated instance member overrides a superclass member
 /// where the same parameter is not annotated with this annotation, then a user
 /// can cast to the superclass and invoke with a non-constant argument without
 /// any warnings.
@@ -298,12 +329,15 @@ const _Literal literal = _Literal();
 /// }
 /// ```
 @experimental
-const _MustBeConst mustBeConst = _MustBeConst();
+const Object mustBeConst = _MustBeConst();
 
-/// Used to annotate an instance member `m` declared on a class or mixin `C`.
-/// Indicates that every concrete subclass of `C` must directly override `m`.
+/// Annotation on instance members that must be overridden by subclasses.
 ///
-/// The intention of this annotation is to "re-abtract" a member that was
+/// Used to annotate an instance member in a class or mixin declaration.
+/// Indicates that every concrete subclass must declare an override for the
+/// annotated member.
+///
+/// The intention of this annotation is to "re-abstract" a member that was
 /// previously concrete, and to ensure that subclasses provide their own
 /// implementation of the member. For example:
 ///
@@ -349,47 +383,60 @@ const _MustBeConst mustBeConst = _MustBeConst();
 ///   there is a concrete class `D` which is a subclass of `C` (directly or
 ///   indirectly), and `D` does not directly declare a concrete override of `m`
 ///   and does not directly declare a concrete override of `noSuchMethod`.
-const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
+const Object mustBeOverridden = _MustBeOverridden();
 
-/// Used to annotate an instance member (method, getter, setter, operator, or
-/// field) `m`. Indicates that every invocation of a member that overrides `m`
-/// must also invoke `m`. In addition, every method that overrides `m` is
-/// implicitly annotated with this same annotation.
+/// Annotation on instance member that overriding members must call.
 ///
-/// Note that private members with this annotation cannot be validly overridden
+/// Used to annotate an instance member (method, getter, setter, operator, or
+/// field). Indicates that every invocation of an overriding member
+/// will also invoke the current implementation of the member.
+/// In addition, every overriding member is implicitly annotated
+/// with this same annotation.
+///
+/// Note that private members with this annotation cannot be overridden
 /// outside of the library that defines the annotated member.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with anything other than an instance member,
-///   or
+/// * the annotation is applied to an instance member with no concrete
+///   implementation, or
 /// * a member that overrides a member that has this annotation can return
 ///   without invoking the overridden member.
-const _MustCallSuper mustCallSuper = _MustCallSuper();
+const Object mustCallSuper = _MustCallSuper();
 
+/// Annotation on instance member that must not be overridden.
+///
 /// Used to annotate an instance member (method, getter, setter, operator, or
-/// field) `m` in a class `C` or mixin `M`. Indicates that `m` should not be
-/// overridden in any classes that extend or mixin `C` or `M`.
+/// field) in a class or mixin declaration. Indicates that the member must
+/// not be overridden in any subclass that extends the class or
+/// mixes in the mixin.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with anything other than an instance member,
 /// * the annotation is associated with an abstract member (because subclasses
-///   are required to override the member),
+///   would be required to override the member),
 /// * the annotation is associated with an extension method,
-/// * the annotation is associated with a member `m` in class `C`, and there is
-///   a class `D` or mixin `M`, that extends or mixes in `C`, that declares an
+/// * the annotation is associated with a member `m` in class or mixin `C`,
+///   and there is a class `D` that extends or mixes in `C`, that declares an
 ///   overriding member `m`.
-const _NonVirtual nonVirtual = _NonVirtual();
+const Object nonVirtual = _NonVirtual();
 
+/// Annotation on type arguments that can safely be omitted.
+///
 /// Used to annotate a class, mixin, extension, function, method, or typedef
-/// declaration `C`. Indicates that any type arguments declared on `C` are to
-/// be treated as optional.
+/// declaration. Indicates that any type arguments of the declaration are
+/// optional.
 ///
 /// Tools such as the analyzer and linter can use this information to suppress
-/// warnings that would otherwise require type arguments on `C` to be provided.
-const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
+/// warnings that would otherwise require type arguments to be provided.
+/// _The language itself always allows omitting type arguments, this annotation
+/// only affects optional and opt-in warnings about omitting type arguments._
+const Object optionalTypeArgs = _OptionalTypeArgs();
 
+/// Annotation on instance member that should only be used by subclasses.
+///
 /// Used to annotate an instance member in a class or mixin which is meant to
 /// be visible only within the declaring library, and to other instance members
 /// of the class or mixin, and their subtypes.
@@ -414,7 +461,6 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with anything other than an instance member,
-///   or
 /// * a reference to a member `m` which has this annotation, declared in a
 ///   class or mixin `C`, is found outside of the declaring library and outside
 ///   of an instance member in any class that extends, implements, or mixes in
@@ -425,10 +471,9 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 // TODO(srawlins): Add a sentence which defines "referencing" and explicitly
 // mentions tearing off, here and on the other annotations which use the word
 // "referenced."
-const _Protected protected = _Protected();
+const Object protected = _Protected();
 
-/// Used to annotate an instance member of an extension type that
-/// redeclares a member from a superinterface.
+/// Annotation on extension type members which redeclare superinterface members.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
@@ -436,15 +481,16 @@ const _Protected protected = _Protected();
 ///   member of an extension type (a method, operator, getter, or setter) or
 /// * is applied to a member that does not redeclare a member from either the
 ///   extended type or a superinterface.
-const _Redeclare redeclare = _Redeclare();
+const Object redeclare = _Redeclare();
 
-/// Annotation for intentionally loosening restrictions on subtyping that would
-/// otherwise cause lint warnings to be produced by the `implicit_reopen` lint.
+/// Annotation on declaration with less access restrictions than superinterface.
 ///
 /// Indicates that the annotated class, mixin, or mixin class declaration
 /// intentionally allows subtypes outside the library to implement it, or extend
 /// it, or mix it in, even though it has some superinterfaces whose restrictions
 /// prevent inheritance.
+/// Such a subtype would otherwise cause lint warnings from the
+/// `implicit_reopen` lint.
 ///
 /// A class, mixin, or mixin class declaration prevents inheritance if:
 ///
@@ -466,8 +512,10 @@ const _Redeclare redeclare = _Redeclare();
 ///   class.
 /// * The annotation is applied to a class or mixin which does not require it.
 ///   (The intent to reopen was not satisfied.)
-const _Reopen reopen = _Reopen();
+const Object reopen = _Reopen();
 
+/// Annotation on named parameter that should always have an argument supplied.
+///
 /// Used to annotate a named parameter `p` in a method or function `f`.
 /// Indicates that every invocation of `f` must include an argument
 /// corresponding to `p`, despite the fact that `p` would otherwise be an
@@ -494,11 +542,10 @@ const _Reopen reopen = _Reopen();
     'named parameter as required.')
 const Required required = Required();
 
-/// Annotation marking a class as not allowed as a super-type
-/// outside of the current package.
+/// Annotation on class that must not be subclassed outside of its package.
 ///
 /// Classes in the same package as the marked class may extend, implement or
-/// mix-in the annotated class.
+/// mix-in the annotated class as normal.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
@@ -511,8 +558,10 @@ const Required required = Required();
 /// control what forms of subtyping are allowed outside the current library.
 /// To learn more about using class modifiers, check out the
 /// [Class modifiers](https://dart.dev/language/class-modifiers) documentation.
-const _Sealed sealed = _Sealed();
+const Object sealed = _Sealed();
 
+/// Annotation on function or property whose value must not be ignored.
+///
 /// Used to annotate a method, field, or getter within a class, mixin, or
 /// extension, or a or top-level getter, variable or function to indicate that
 /// the value obtained by invoking it should be used. A value is considered used
@@ -527,6 +576,8 @@ const _Sealed sealed = _Sealed();
 ///   variable or function annotated with `@useResult` is not used.
 const UseResult useResult = UseResult();
 
+/// Annotation which no longer has any effect.
+///
 /// Used to annotate a field that is allowed to be overridden in Strong Mode.
 ///
 /// **Deprecated:** This annotation is deprecated and will be
@@ -535,8 +586,10 @@ const UseResult useResult = UseResult();
 /// so this annotation no longer has any meaning.
 /// All uses of the annotation should be removed.
 @Deprecated('No longer has meaning')
-const _Virtual virtual = _Virtual();
+const Object virtual = _Virtual();
 
+/// Annotation on declaration that should not be used outside of its package.
+///
 /// Used to annotate an instance member that was made public so that it could be
 /// overridden but that is not intended to be referenced from outside the
 /// defining library.
@@ -546,10 +599,19 @@ const _Virtual virtual = _Virtual();
 /// * the annotation is associated with a declaration other than a public
 ///   instance member in a class or mixin, or
 /// * the member is referenced outside of the defining library.
-const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
+const Object visibleForOverriding = _VisibleForOverriding();
 
-/// Used to annotate a declaration that was made public, so that it is more
-/// visible than otherwise necessary, to make code testable.
+/// Annotation on a public declaration that should only be used in tests.
+///
+/// Used to annotate a declaration that was made public only for tests.
+///
+/// The declaration should not be treated as available, and should not
+/// be used outside of testing, and not outside of the declaring package
+/// unless explicitly allowed.
+///
+/// The annotation is only intended for declarations that are otherwise
+/// publicly available, meaning an accessible declaration in the `lib/` folder
+/// of a package.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
@@ -557,10 +619,20 @@ const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
 ///   of a package, or a private declaration, or a declaration in an unnamed
 ///   static extension, or
 /// * the declaration is referenced outside of its defining library or a
-///   library which is in the `test` folder of the defining package.
-const _VisibleForTesting visibleForTesting = _VisibleForTesting();
+///   library which is in the `test` folder of a package.
+const Object visibleForTesting = _VisibleForTesting();
 
-/// Used to annotate a class.
+/// Annotation on an immutable class.
+///
+/// Used to annotate a class declaration.
+///
+/// Indicates that the class, and all subtypes of it, must be immutable.
+///
+/// A class is immutable if all of the instance fields of the class, whether
+/// defined directly or inherited, are `final`.
+///
+/// This class has a [reason] field that can be displayed as part of the
+/// error message if a subclass is not immutable.
 ///
 /// See [immutable] for more details.
 @Target({
@@ -572,28 +644,33 @@ class Immutable {
   /// A human-readable explanation of the reason why the class is immutable.
   final String reason;
 
-  /// Initialize a newly created instance to have the given [reason].
+  /// Creates annotation for being immutable with the given [reason].
   const Immutable([this.reason = '']);
 }
 
-/// Annotates a static method to be recorded.
+/// Annotation on static method or class whose accesses will be recorded.
 ///
-/// Applies to static functions, top-level functions, or extension methods.
+/// Applies to static functions, top-level functions, extension methods, or
+/// classes with constant constructors.
 ///
 /// During compilation, all statically resolved calls to an annotated function
-/// are registered, and information about the annotated functions, the calls,
-/// and their arguments, is then made available to post-compile steps.
-// TODO(srawlins): Enforce with `TargetKind.method`.
+/// or accesses to constant instances of an annotated class in reachable code
+/// are recorded. Information about these usages is then made available to
+/// post-compile steps.
+///
+/// Only usages in reachable code (executable code) are tracked.
+/// Usages appearing within metadata (annotations) are ignored.
+// TODO(srawlins): Enforce with `TargetKind.method` or `TargetKind.classType`.
 @experimental
 class RecordUse {
   /// Creates a [RecordUse] instance.
   ///
-  /// This annotation can be placed as an annotation on functions whose
-  /// statically resolved calls should be registered
+  /// This annotation can be placed as an annotation on functions or classes
+  /// whose usages in reachable code should be registered.
   const RecordUse();
 }
 
-/// Used to annotate a named parameter `p` in a method or function `f`.
+/// Annotation on a required named parameter.
 ///
 /// See [required] for more details.
 ///
@@ -625,7 +702,15 @@ class Required {
   const Required([this.reason = '']);
 }
 
+/// Annotation on function or property whose value must not be ignored.
+///
 /// See [useResult] for more details.
+///
+/// Using this class's constructor allows providing a [reason] text
+/// that can be displayed along with the error if a result value is not used.
+///
+/// Also allows defining a separate parameter of the same function,
+/// which if passed, will be considered as using the the result.
 @Target({
   TargetKind.constructor,
   TargetKind.field,
@@ -653,6 +738,19 @@ class UseResult {
   /// checked.  For values that need to be used unconditionally, use the unnamed
   /// `UseResult` constructor, or if no reason is specified, the [useResult]
   /// constant.
+  ///
+  /// Example:
+  /// ```dart
+  /// @UseResult.unless(
+  ///   parameterDefined: 'disposer',
+  ///   reason: 'must be disposed',
+  /// )
+  /// Resource allocateResource({Disposer? disposer}) {
+  ///   var resource = _newResource();
+  ///   disposer?.scheduleDisposal(resource);
+  ///   return resource;
+  /// }
+  /// ```
   ///
   /// Tools, such as the analyzer, can provide feedback if
   ///

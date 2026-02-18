@@ -119,12 +119,6 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
         // In the case of producing fixes, it's probably preferable to not
         // suggest a fix, if we fail to produce one.
         return;
-      } on YamlException {
-        // Same issue as above, remove when YamlEditor throws AssertionError
-        // instead of YamlException, which should never be thrown here.
-        // TODO(jonasfj): Remove this after landing and rolling to the Dart SDK:
-        //                https://github.com/dart-lang/tools/pull/2299
-        return;
       }
 
       var edit = editor.edits.single;

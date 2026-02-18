@@ -42,6 +42,7 @@ import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_builder.dart';
 import '../fragment/fragment.dart';
+import '../util/helpers.dart';
 import '../util/local_stack.dart';
 import 'fragment_factory.dart';
 import 'name_space_builder.dart';
@@ -758,7 +759,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
   }
 
-  Uri _resolve(Uri baseUri, String? uri, int uriOffset, {isPart = false}) {
+  Uri _resolve(Uri baseUri, String? uri, int uriOffset, {bool isPart = false}) {
     if (uri == null) {
       // Coverage-ignore-block(suite): Not run.
       _problemReporting.addProblem(
@@ -1404,6 +1405,10 @@ class FragmentFactoryImpl implements FragmentFactory {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
 
+    // The name space is, while initially empty, created to support the lowering
+    // of extension (type) constructors which clone the extension (type) type
+    // parameters into the nominal parameter name space of the primary
+    // constructor.
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -1411,7 +1416,15 @@ class FragmentFactoryImpl implements FragmentFactory {
       new TypeScope(
         TypeScopeKind.memberTypeParameters,
         new NominalParameterScope(
-          _typeScopes.current.lookupScope,
+          libraryFeatures.primaryConstructors.isEnabled
+              // Contrary to most other declarations, the type parameter scope
+              // of a primary constructor is _not_ the current type scope, which
+              // is the type parameter scope of the enclosing declaration, but
+              // instead the body scope of the enclosing declaration.
+              ? enclosingDeclaration.bodyScope
+              // Prior to the primary constructors feature, the enclosing scope
+              // was the current type scope.
+              : _typeScopes.current.lookupScope,
           nominalParameterNameSpace,
         ),
         _typeScopes.current,
@@ -1453,13 +1466,18 @@ class FragmentFactoryImpl implements FragmentFactory {
     NominalParameterNameSpace typeParameterNameSpace =
         _nominalParameterNameSpaces.pop();
 
+    if (enclosingDeclaration.kind == DeclarationFragmentKind.enumDeclaration) {
+      // Primary constructors in enums are always constant.
+      isConst = true;
+    }
+
     PrimaryConstructorFragment fragment = new PrimaryConstructorFragment(
       constructorName: constructorName,
       fileUri: _compilationUnit.fileUri,
       startOffset: startOffset,
       formalsOffset: formalsOffset,
       modifiers: isConst ? Modifiers.Const : Modifiers.empty,
-      returnType: addInferableType(),
+      returnType: addInferableType(InferenceDefaultType.Dynamic),
       typeParameterNameSpace: typeParameterNameSpace,
       typeParameterScope: typeParameterScope.lookupScope,
       formals: formals,
@@ -1545,7 +1563,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       endOffset: endOffset,
       modifiers: modifiers - Modifiers.Abstract,
       metadata: metadata,
-      returnType: addInferableType(),
+      returnType: addInferableType(InferenceDefaultType.Dynamic),
       typeParameters: typeParameters,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: _declarationFragments.current.bodyScope,
@@ -1584,6 +1602,8 @@ class FragmentFactoryImpl implements FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required int endOffset,
     required Token? beginInitializers,
+    required bool hasBody,
+    required int bodyOffset,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1595,6 +1615,8 @@ class FragmentFactoryImpl implements FragmentFactory {
           enclosingScope: _declarationFragments.current.bodyScope,
           enclosingDeclaration: enclosingDeclaration,
           enclosingCompilationUnit: _compilationUnit,
+          hasBody: hasBody,
+          bodyOffset: bodyOffset,
         );
     _addFragment(fragment);
     offsetMap.registerPrimaryConstructorBody(beginToken, fragment);
@@ -1607,6 +1629,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required TypeBuilder type,
     required String name,
     required int nameOffset,
+    required Token? defaultValueToken,
   }) {
     _declarationFragments.current.registerPrimaryConstructorField(
       _addPrimaryConstructorField(
@@ -1615,6 +1638,7 @@ class FragmentFactoryImpl implements FragmentFactory {
         type: type,
         name: name,
         nameOffset: nameOffset,
+        defaultValueToken: defaultValueToken,
       ),
     );
   }
@@ -1923,7 +1947,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       isTopLevel: enclosingDeclaration == null,
       metadata: metadata,
       modifiers: modifiers,
-      returnType: returnType ?? addInferableType(),
+      returnType: returnType ?? addInferableType(InferenceDefaultType.Dynamic),
       declaredTypeParameters: typeParameters,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
@@ -2084,7 +2108,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       isTopLevel: enclosingDeclaration == null,
       metadata: metadata,
       modifiers: modifiers,
-      returnType: returnType ?? addInferableType(),
+      returnType: returnType ?? addInferableType(InferenceDefaultType.Dynamic),
       declaredTypeParameters: typeParameters,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
@@ -2134,7 +2158,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           metadata: metadata,
           modifiers: modifiers,
           isTopLevel: isTopLevel,
-          type: type ?? addInferableType(),
+          type: type ?? addInferableType(InferenceDefaultType.Dynamic),
           name: info.identifier.name,
           nameOffset: info.identifier.nameOffset,
           endOffset: info.endOffset,
@@ -2190,6 +2214,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required TypeBuilder type,
     required String name,
     required int nameOffset,
+    required Token? defaultValueToken,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -2204,6 +2229,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           enclosingScope: enclosingDeclaration.bodyScope,
           enclosingDeclaration: enclosingDeclaration,
           enclosingCompilationUnit: _compilationUnit,
+          defaultValueToken: defaultValueToken,
         );
     _addFragment(fragment);
     return fragment;
@@ -2248,7 +2274,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       nameOffset: nameOffset,
       fileOffset: nameOffset,
       fileUri: _compilationUnit.fileUri,
-      initializerToken: initializerToken,
+      defaultValueToken: initializerToken,
       hasImmediatelyDeclaredInitializer: initializerToken != null,
       isWildcard: isWildcard,
       publicName: publicName,
@@ -2437,8 +2463,12 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
-  InferableTypeBuilder addInferableType() {
-    return _compilationUnit.loader.inferableTypes.addInferableType();
+  InferableTypeBuilder addInferableType(
+    InferenceDefaultType inferenceDefaultType,
+  ) {
+    return _compilationUnit.loader.inferableTypes.addInferableType(
+      inferenceDefaultType,
+    );
   }
 
   void _addFragment(Fragment fragment) {

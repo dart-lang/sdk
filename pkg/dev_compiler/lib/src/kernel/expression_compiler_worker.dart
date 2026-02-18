@@ -25,6 +25,7 @@ import '../compiler/js_names.dart';
 import '../compiler/module_builder.dart' show ModuleFormat, parseModuleFormat;
 import 'asset_file_system.dart';
 import 'compiler.dart' show ProgramCompiler;
+import 'compiler_new.dart' show LibraryBundleCompiler;
 import 'expression_compiler.dart' show ExpressionCompiler;
 import 'target.dart' show DevCompilerTarget;
 
@@ -248,7 +249,7 @@ class ExpressionCompilerWorker {
       ..fileSystem = fileSystem
       ..omitPlatform = true
       ..environmentDefines = addGeneratedVariables({
-        if (environmentDefines != null) ...environmentDefines,
+        ...?environmentDefines,
       }, enableAsserts: enableAsserts)
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
@@ -497,22 +498,40 @@ class ExpressionCompilerWorker {
     var coreTypes = incrementalCompilerResult.coreTypes;
     var hierarchy = incrementalCompilerResult.classHierarchy;
 
-    var kernel2jsCompiler = ProgramCompiler(
-      finalComponent,
-      hierarchy,
-      Options(
-        sourceMap: true,
-        summarizeApi: false,
-        moduleName: moduleName,
-        canaryFeatures: _canaryFeatures,
-        enableAsserts: _enableAsserts,
-      ),
-      _moduleCache.componentForLibrary,
-      _moduleCache.moduleNameForComponent,
-      coreTypes: coreTypes,
-      ticker: _processedOptions.ticker,
+    var options = Options(
+      sourceMap: true,
+      summarizeApi: false,
+      moduleName: moduleName,
+      moduleFormats: [_moduleFormat],
+      canaryFeatures: _canaryFeatures,
+      enableAsserts: _enableAsserts,
     );
-
+    if (isSdk && options.emitLibraryBundle) {
+      errors.add(
+        'Expression evaluation in the context of an SDK library '
+        'is not currently supported in this environment.',
+      );
+      return null;
+    }
+    var kernel2jsCompiler = options.emitLibraryBundle
+        ? LibraryBundleCompiler(
+            finalComponent,
+            hierarchy,
+            options,
+            _moduleCache.componentForLibrary,
+            _moduleCache.moduleNameForComponent,
+            coreTypes: coreTypes,
+            ticker: _processedOptions.ticker,
+          )
+        : ProgramCompiler(
+            finalComponent,
+            hierarchy,
+            options,
+            _moduleCache.componentForLibrary,
+            _moduleCache.moduleNameForComponent,
+            coreTypes: coreTypes,
+            ticker: _processedOptions.ticker,
+          );
     assert(
       originalComponent.libraries.toSet().length ==
           originalComponent.libraries.length,
@@ -538,9 +557,7 @@ class ExpressionCompilerWorker {
 
     expressionCompiler = ExpressionCompiler(
       _compilerOptions,
-      _moduleFormat == ModuleFormat.ddc && _canaryFeatures
-          ? ModuleFormat.ddcLibraryBundle
-          : _moduleFormat,
+      options.emitLibraryBundle ? ModuleFormat.ddcLibraryBundle : _moduleFormat,
       errors,
       incrementalCompiler,
       kernel2jsCompiler,

@@ -328,8 +328,8 @@ class FlowGraphBuilder {
     CField field, {
     bool checkNotInitialized = false,
   }) {
-    final object = pop();
     final value = pop();
+    final object = pop();
     final instr = StoreInstanceField(
       graph,
       currentSourcePosition,

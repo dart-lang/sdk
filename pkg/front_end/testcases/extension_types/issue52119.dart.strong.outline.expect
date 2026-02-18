@@ -2,11 +2,11 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue52119.dart:15:30: Error: Expected a representation type.
+// pkg/front_end/testcases/extension_types/issue52119.dart:17:30: Error: Expected a representation type.
 // extension type Bar<T>._(this.i) {
 //                              ^
 //
-// pkg/front_end/testcases/extension_types/issue52119.dart:15:30: Error: Primary constructors in extension types can't use initializing formals.
+// pkg/front_end/testcases/extension_types/issue52119.dart:17:30: Error: Primary constructors in extension types can't use initializing formals.
 // Try removing `this.` from the formal parameter.
 // extension type Bar<T>._(this.i) {
 //                              ^

@@ -1634,6 +1634,10 @@ class VariableStatement extends Statement implements VariableDeclaration {
   @override
   Expression? initializer; // May be null.
 
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  List<VariableContext>? contexts;
+
   VariableStatement(this._name,
       {this.initializer,
       this.type = const DynamicType(),
@@ -2063,13 +2067,21 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 /// The statement that marks the declaration of the variable in the source Dart
 /// program. If the [initializer] is `null`, the variable was declared without
 /// an initializer.
-class VariableInitialization extends Statement implements Annotatable {
+class VariableInitialization extends Statement
+    implements Annotatable, ContextConsumer {
   ExpressionVariable variable;
 
   Expression? initializer;
 
-  VariableInitialization({required this.variable, required this.initializer}) {
+  @override
+  List<VariableContext>? contexts;
+
+  VariableInitialization(
+      {required this.variable,
+      required this.initializer,
+      bool hasDeclaredInitializer = false}) {
     variable.variableInitialization = this;
+    this.hasDeclaredInitializer = hasDeclaredInitializer;
   }
 
   static const int FlagHasDeclaredInitializer = 1 << 0;

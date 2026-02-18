@@ -6,7 +6,7 @@
 // constructors.
 
 class Klass {
-  Klass(var v) : field_ = v {}
+  Klass(v) : field_ = v {}
   final uninitializedFinalField_;
   //    ^
   // [cfe] Final field 'uninitializedFinalField_' is not initialized.

@@ -7807,11 +7807,6 @@ LinterLintCode:
         return result;
       }
       ```
-
-      **This rule is experimental.**
-      It is being evaluated, and it might be changed or removed.
-      Feedback on its behavior is welcome! The primary relevant issue is
-      [dart-lang/sdk#58773](https://github.com/dart-lang/sdk/issues/58773).
   omitObviousPropertyTypes:
     type: lint
     parameters: none
@@ -7861,11 +7856,6 @@ LinterLintCode:
         static String? myStaticVariable = 'Hello';
       }
       ```
-
-      **This rule is experimental.**
-      It is being evaluated, and it might be changed or removed.
-      Feedback on its behavior is welcome! The primary relevant issue is
-      [dart-lang/sdk#59550](https://github.com/dart-lang/sdk/issues/59550).
   oneMemberAbstracts:
     type: lint
     parameters:
@@ -11179,15 +11169,15 @@ LinterLintCode:
 
       #### Common fixes
 
-      * If the declaration should be removed in the next release of the package,
+      If the declaration should be removed in the next release of the package,
       then remove the declaration:
 
       ```dart
       void g() {}
       ```
 
-      * If you are not making a breaking change, then use a minor or patch
-        version increment for the package:
+      If you are not making a breaking change, then use a
+      minor or patch version increment for the package:
 
       ```yaml
       %uri="pubspec.yaml"
@@ -11992,11 +11982,6 @@ LinterLintCode:
 
       const List<List<Ingredient>> cookbook = ...;
       ```
-
-      **This rule is experimental.**
-      It is being evaluated, and it might be changed or removed.
-      Feedback on its behavior is welcome! The primary relevant issue is
-      [dart-lang/sdk#58773](https://github.com/dart-lang/sdk/issues/58773).
   specifyNonobviousPropertyTypes:
     type: lint
     parameters: none
@@ -12043,11 +12028,6 @@ LinterLintCode:
             myTopLevelVariable.update('foo', null);
       }
       ```
-
-      **This rule is experimental.**
-      It is being evaluated, and it might be changed or removed.
-      Feedback on its behavior is welcome! The primary relevant issue is
-      [dart-lang/sdk#59550](https://github.com/dart-lang/sdk/issues/59550).
   strictTopLevelInferenceAddType:
     type: lint
     parameters: none

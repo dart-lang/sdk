@@ -19,7 +19,7 @@ static method callClosure(positional-parameter func) → void/* scope=[
     func(){() → void};
 }
 static method foo42() → void /* scope=[
-  #ctx2: captured VariableContext([
+  #ctx2: direct-captured VariableContext([
     local-variable a;
     local-variable b;
     local-variable c;
@@ -41,7 +41,7 @@ static method foo42() → void /* scope=[
   });
   #L1:
   while (true)/* scope=[
-    #ctx3: captured VariableContext([
+    #ctx3: direct-captured VariableContext([
       local-variable e;
       local-variable f;
       local-variable g;
@@ -69,7 +69,7 @@ static method foo42() → void /* scope=[
       break #L1;
   }
   for /* scope=[
-    #ctx4: captured VariableContext([
+    #ctx4: direct-captured VariableContext([
       local-variable i;
       local-variable h;
     ]),
@@ -80,7 +80,7 @@ static method foo42() → void /* scope=[
       core::print(i);
     });
     for /* scope=[
-      #ctx5: captured VariableContext([
+      #ctx5: direct-captured VariableContext([
         local-variable j;
         local-variable k;
       ]),

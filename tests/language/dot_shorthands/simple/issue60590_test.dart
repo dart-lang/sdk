@@ -5,8 +5,6 @@
 // Additional test cases in enums, initializer lists, initializers, top-level
 // fields from https://github.com/dart-lang/sdk/issues/60590.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import 'package:expect/expect.dart';
 
 import '../dot_shorthand_helper.dart';

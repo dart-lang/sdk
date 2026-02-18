@@ -113,7 +113,7 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
             if (extractIntValue(named.value) == null) {
               _diagnosticReporter.report(
                   diag.constEvalNonConstantVariableGet
-                      .withArguments(nameOKEmpty: named.name),
+                      .withArguments(name: named.name),
                   named.value.fileOffset,
                   1,
                   _currentMember!.fileUri);

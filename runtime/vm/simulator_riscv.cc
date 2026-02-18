@@ -412,7 +412,7 @@ int64_t Simulator::Call(intx_t entry,
 }
 
 void Simulator::Execute() {
-  if (LIKELY(FLAG_trace_sim_after == ULLONG_MAX)) {
+  if (FLAG_trace_sim_after == ULLONG_MAX) [[likely]] {
     ExecuteNoTrace();
   } else {
     ExecuteTrace();

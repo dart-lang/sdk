@@ -119,6 +119,14 @@ var aa = A();
 ''');
   }
 
+  test_newSyntax() async {
+    await assertNoDiagnostics(r'''
+class A {
+  new();
+}
+''');
+  }
+
   test_primaryConstructorDeclaration_new() async {
     await assertDiagnostics(
       r'''

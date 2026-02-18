@@ -7,7 +7,7 @@ library source_mapping_crash_test;
 part 'source_mapping_crash_source.dart';
 
 class Sub extends Super {
-  Sub(var x) : super(x.y);
+  Sub(x) : super(x.y);
 }
 
 class X {

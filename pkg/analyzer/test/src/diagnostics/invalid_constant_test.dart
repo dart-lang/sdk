@@ -242,4 +242,50 @@ void main() {
       [error(diag.invalidConstant, 148, 4)],
     );
   }
+
+  test_prefixed_static_constructor() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart' as lib1;
+
+class B {
+  final Object? a;
+  const B() : a = lib1.A.new;
+}
+''');
+  }
+
+  test_prefixed_static_field() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {
+  static const int c = 0;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart' as lib1;
+
+class B {
+  final Object? a;
+  const B() : a = lib1.A.c;
+}
+''');
+  }
+
+  test_prefixed_static_method() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {
+  static int let(int v) => v;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart' as lib1;
+
+class B {
+  final Object? a;
+  const B() : a = lib1.A.let;
+}
+''');
+  }
 }

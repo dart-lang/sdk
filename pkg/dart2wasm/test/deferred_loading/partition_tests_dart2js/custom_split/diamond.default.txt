@@ -1,0 +1,132 @@
+Part 0
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step1
+  References
+     - pkg/compiler/test/custom_split/data/diamond/step1.dart::@methods::step
+  Constants
+
+Part 1
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2a
+  References
+     - pkg/compiler/test/custom_split/data/diamond/step2a.dart::@methods::step
+  Constants
+
+Part 2
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2b
+  References
+     - pkg/compiler/test/custom_split/data/diamond/step2b.dart::@methods::step
+  Constants
+
+Part 3
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step3
+  References
+     - pkg/compiler/test/custom_split/data/diamond/step3.dart::@methods::step
+  Constants
+
+Part 4
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step1
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2a
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step12a
+  Constants
+     - StringConstant("12a")
+
+Part 5
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step1
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2b
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step12b
+  Constants
+     - StringConstant("12b")
+
+Part 6
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step1
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step3
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step13
+  Constants
+     - StringConstant("13")
+
+Part 7
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step1
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2a
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2b
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step12ab
+  Constants
+     - StringConstant("12ab")
+
+Part 8
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step1
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2a
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step3
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step12a3
+  Constants
+     - StringConstant("12a3")
+
+Part 9
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step1
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2b
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step3
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step12b3
+  Constants
+     - StringConstant("12b3")
+
+Part 10
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step1
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2a
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2b
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step3
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step12ab3
+  Constants
+     - StringConstant("12ab3")
+
+Part 11
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2a
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step3
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step2a3
+  Constants
+     - StringConstant("2a3")
+
+Part 12
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2a
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2b
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step2ab
+  Constants
+     - StringConstant("2ab")
+
+Part 13
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2a
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2b
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step3
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step2ab3
+  Constants
+     - StringConstant("2ab3")
+
+Part 14
+  ImportSet
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step2b
+     - pkg/compiler/test/custom_split/data/diamond/main.dart prefix: step3
+  References
+     - pkg/compiler/test/custom_split/data/diamond/shared.dart::@methods::step2b3
+  Constants
+     - StringConstant("2b3")

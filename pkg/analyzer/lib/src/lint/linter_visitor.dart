@@ -8,6 +8,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/analysis_rule_timers.dart';
+import 'package:meta/meta.dart';
 
 part 'linter_visitor.g.dart';
 

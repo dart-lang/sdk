@@ -56,23 +56,51 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    late Set<Element> referencedElements = {
-      ...collectReferences(node.parent),
-      if (node.parent?.parent case FunctionDeclaration(
-        :var documentationComment,
-      ))
-        ...collectReferences(documentationComment),
-    };
+    var justUnderscoresParameters = <FormalParameter>[];
 
     for (var parameter in node.parameters) {
       var parameterName = parameter.name;
       if (parameterName == null) continue;
       var element = parameter.declaredFragment?.element;
+      if (element is FieldFormalParameterElement && element.isDeclaring) {
+        continue;
+      }
       var name = element?.name;
       if (isJustUnderscores(name)) {
-        if (!referencedElements.contains(element)) {
-          rule.reportAtToken(parameterName);
-        }
+        justUnderscoresParameters.add(parameter);
+      }
+    }
+
+    if (justUnderscoresParameters.isEmpty) return;
+
+    var functionDeclaration = node.parent;
+    if (functionDeclaration is FunctionExpression) {
+      functionDeclaration = functionDeclaration.parent;
+    }
+
+    var referencedElements = switch (functionDeclaration) {
+      ConstructorDeclaration() => collectReferences(
+        functionDeclaration.body,
+        documentationComment: functionDeclaration.documentationComment,
+      ),
+      FunctionDeclaration() => collectReferences(
+        functionDeclaration.functionExpression.body,
+        documentationComment: functionDeclaration.documentationComment,
+      ),
+      MethodDeclaration() => collectReferences(
+        functionDeclaration.body,
+        documentationComment: functionDeclaration.documentationComment,
+      ),
+      PrimaryConstructorDeclaration() => collectReferences(
+        functionDeclaration.body?.body,
+        documentationComment: functionDeclaration.body?.documentationComment,
+      ),
+      _ => const <Element>{},
+    };
+
+    for (var parameter in justUnderscoresParameters) {
+      if (!referencedElements.contains(parameter.declaredFragment!.element)) {
+        rule.reportAtToken(parameter.name!);
       }
     }
   }
@@ -90,10 +118,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  static Set<Element> collectReferences(AstNode? node) {
-    if (node == null) return {};
+  static Set<Element> collectReferences(
+    FunctionBody? node, {
+    Comment? documentationComment,
+  }) {
+    if (node == null) return const {};
     var visitor = _BodyVisitor();
     node.accept(visitor);
+    if (documentationComment != null) {
+      documentationComment.accept(visitor);
+    }
     return visitor.referencedElements;
   }
 

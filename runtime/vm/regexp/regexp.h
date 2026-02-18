@@ -89,7 +89,7 @@ class CharacterRange {
 
 // A set of unsigned integers that behaves especially well on small
 // integers (< 32).  May do zone-allocation.
-class OutSet : public ZoneAllocated {
+class OutSet : public ZoneObject {
  public:
   OutSet() : first_(0), remaining_(nullptr), successors_(nullptr) {}
   OutSet* Extend(unsigned value, Zone* zone);
@@ -381,7 +381,7 @@ class QuickCheckDetails {
   DISALLOW_ALLOCATION();
 };
 
-class RegExpNode : public ZoneAllocated {
+class RegExpNode : public ZoneObject {
  public:
   explicit RegExpNode(Zone* zone)
       : replacement_(nullptr), trace_count_(0), zone_(zone) {
@@ -858,7 +858,7 @@ class NegativeSubmatchSuccess : public EndNode {
   intptr_t clear_capture_start_;
 };
 
-class Guard : public ZoneAllocated {
+class Guard : public ZoneObject {
  public:
   enum Relation { LT, GEQ };
   Guard(intptr_t reg, Relation op, intptr_t value)
@@ -1093,7 +1093,7 @@ ContainedInLattice AddRange(ContainedInLattice a,
                             intptr_t ranges_size,
                             Interval new_range);
 
-class BoyerMoorePositionInfo : public ZoneAllocated {
+class BoyerMoorePositionInfo : public ZoneObject {
  public:
   explicit BoyerMoorePositionInfo(Zone* zone)
       : map_(new (zone) ZoneGrowableArray<bool>(kMapSize)),
@@ -1129,7 +1129,7 @@ class BoyerMoorePositionInfo : public ZoneAllocated {
   ContainedInLattice surrogate_;  // Surrogate UTF-16 code units.
 };
 
-class BoyerMooreLookahead : public ZoneAllocated {
+class BoyerMooreLookahead : public ZoneObject {
  public:
   BoyerMooreLookahead(intptr_t length, RegExpCompiler* compiler, Zone* Zone);
 
@@ -1427,7 +1427,7 @@ class Analysis : public NodeVisitor {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Analysis);
 };
 
-struct RegExpCompileData : public ZoneAllocated {
+struct RegExpCompileData : public ZoneObject {
   RegExpCompileData()
       : tree(nullptr),
         node(nullptr),

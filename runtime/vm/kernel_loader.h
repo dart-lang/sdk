@@ -144,7 +144,7 @@ class ClassIndex {
   DISALLOW_COPY_AND_ASSIGN(ClassIndex);
 };
 
-struct UriToSourceTableEntry : public ZoneAllocated {
+struct UriToSourceTableEntry : public ZoneObject {
   UriToSourceTableEntry() {}
 
   const String* uri = nullptr;

@@ -1,0 +1,36 @@
+{
+  "constants": [
+    {
+      "type": "string",
+      "value": "hello-world"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.4.0"
+  },
+  "recordings": [
+    {
+      "calls": [
+        {
+          "loading_unit": "1",
+          "named": {
+            "s": 0
+          },
+          "positional": [
+            null
+          ],
+          "type": "with_arguments"
+        }
+      ],
+      "definition": {
+        "path": [
+          {
+            "name": "Ext|foo"
+          }
+        ],
+        "uri": "package:record_use_test/named_with_function_arg.dart"
+      }
+    }
+  ]
+}

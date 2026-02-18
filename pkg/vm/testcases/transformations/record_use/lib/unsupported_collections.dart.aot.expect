@@ -1,0 +1,27 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::recorded(#C2);
+  self::recorded(#C4);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method someStaticMethod() → void {}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+@#C5
+static method recorded([@vm.inferred-arg-type.metadata=!] core::Object arg) → void {}
+constants  {
+  #C1 = static-tearoff self::someStaticMethod
+  #C2 = <() → void>[#C1]
+  #C3 = "key"
+  #C4 = <core::String, () → void>{#C3:#C1}
+  #C5 = meta::RecordUse {}
+}

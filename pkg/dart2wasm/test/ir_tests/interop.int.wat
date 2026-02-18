@@ -4,8 +4,8 @@
   (type $BoxedInt (sub $#Top (struct
     (field $field0 i32)
     (field $value i64))))
+  (func $"dart2wasm._297 (import)" (import "dart2wasm" "_297") (param externref) (result externref))
   (func $"dart2wasm._298 (import)" (import "dart2wasm" "_298") (param externref) (result externref))
-  (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param externref) (result externref))
   (global $"intValueNullable initialized" (mut i32) <...>)
   (global $intValueNullable (mut (ref null $BoxedInt)) <...>)
   (func $intValue implicit getter (result i64) <...>)
@@ -15,20 +15,20 @@
   (func $"testIntConstant <noInline>"
     i64.const 1
     call $jsifyInt
-    call $"dart2wasm._298 (import)"
+    call $"dart2wasm._297 (import)"
     call $toDartInt
     call $"sinkInt <noInline>"
   )
   (func $"testIntConstantNullable <noInline>"
     ref.null noextern
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._298 (import)"
     call $toDartNullableInt
     call $"sinkIntNullable <noInline>"
   )
   (func $"testIntValue <noInline>"
     call $"intValue implicit getter"
     call $jsifyInt
-    call $"dart2wasm._298 (import)"
+    call $"dart2wasm._297 (import)"
     call $toDartInt
     call $"sinkInt <noInline>"
   )
@@ -60,7 +60,7 @@
       local.get $var0
       call $jsifyRaw
     end
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._298 (import)"
     call $toDartNullableInt
     call $"sinkIntNullable <noInline>"
   )

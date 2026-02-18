@@ -26,7 +26,7 @@ void f() {
     );
   }
 
-  test_class_field() async {
+  test_class_instanceField_ofSelf() async {
     await assertErrorsInCode(
       '''
 class A {
@@ -39,6 +39,95 @@ class A {
 ''',
       [error(diag.patternAssignmentNotLocalVariable, 42, 1)],
     );
+
+    var node = findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: AssignedVariablePattern
+      name: x
+      element: <testLibrary>::@class::A::@setter::x
+      matchedValueType: InvalidType
+    rightParenthesis: )
+    matchedValueType: InvalidType
+  equals: =
+  expression: IntegerLiteral
+    literal: 0
+    staticType: int
+  patternTypeSchema: _
+  staticType: int
+''');
+  }
+
+  test_class_instanceField_ofSuperClass() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  var x = 0;
+}
+
+class B extends A {
+  void f() {
+    (x) = 0;
+  }
+}
+''',
+      [error(diag.patternAssignmentNotLocalVariable, 64, 1)],
+    );
+
+    var node = findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: AssignedVariablePattern
+      name: x
+      element: <testLibrary>::@class::A::@setter::x
+      matchedValueType: InvalidType
+    rightParenthesis: )
+    matchedValueType: InvalidType
+  equals: =
+  expression: IntegerLiteral
+    literal: 0
+    staticType: int
+  patternTypeSchema: _
+  staticType: int
+''');
+  }
+
+  test_class_staticField() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  static var x = 0;
+
+  void f() {
+    (x) = 0;
+  }
+}
+''',
+      [error(diag.patternAssignmentNotLocalVariable, 49, 1)],
+    );
+
+    var node = findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: AssignedVariablePattern
+      name: x
+      element: <testLibrary>::@class::A::@getter::x
+      matchedValueType: InvalidType
+    rightParenthesis: )
+    matchedValueType: InvalidType
+  equals: =
+  expression: IntegerLiteral
+    literal: 0
+    staticType: int
+  patternTypeSchema: _
+  staticType: int
+''');
   }
 
   test_class_typeParameter() async {

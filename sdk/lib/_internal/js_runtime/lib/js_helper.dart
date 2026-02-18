@@ -135,7 +135,7 @@ getType(int index) {
 /// JS engine.
 requiresPreamble() {}
 
-bool isJsIndexable(var object, var record) {
+bool isJsIndexable(object, record) {
   if (record != null) {
     var result = dispatchRecordIndexability(record);
     if (result != null) return result;
@@ -2227,22 +2227,22 @@ copyAndJsonifyProperties(from, Map to) {
 }
 
 /// Returns the property [index] of the JavaScript array [array].
-getIndex(var array, int index) {
+getIndex(array, int index) {
   return JS('var', r'#[#]', array, index);
 }
 
 /// Returns the length of the JavaScript array [array].
-int getLength(var array) {
+int getLength(array) {
   return JS('int', r'#.length', array);
 }
 
 _invokeClosure(
   Function closure,
   int numberOfArguments,
-  var arg1,
-  var arg2,
-  var arg3,
-  var arg4,
+  arg1,
+  arg2,
+  arg3,
+  arg4,
 ) {
   switch (numberOfArguments) {
     case 0:
@@ -3038,11 +3038,11 @@ final class BoundClosure extends TearOffClosure {
   }
 }
 
-bool jsHasOwnProperty(var jsObject, String property) {
+bool jsHasOwnProperty(jsObject, String property) {
   return JS('bool', r'#.hasOwnProperty(#)', jsObject, property);
 }
 
-jsPropertyAccess(var jsObject, String property) {
+jsPropertyAccess(jsObject, String property) {
   return JS('var', r'#[#]', jsObject, property);
 }
 

@@ -2,21 +2,12 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:5:8: Error: Generative enum constructors must be marked as 'const'.
-// enum E1() { // Error
-//        ^
-//
-// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:6:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   a
-//   ^
-//
 // pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:15:14: Error: Final field 'b' is not initialized.
 // Try to initialize the field in the declaration or in every constructor.
 //   final int? b; // Error
 //              ^
 //
-// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:18:14: Error: Constructor is marked 'const' so all fields must be final.
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:18:14: Error: Enum constructors are constant so all fields must be final.
 // enum const E4() { // Error
 //              ^
 // pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:20:8: Context: Field isn't final, but constructor is 'const'.
@@ -27,23 +18,17 @@ import self as self;
 import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
-  enum-element static const field invalid-type a = invalid-expression "pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:6:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  a
-  ^";
-  static const field core::List<self::E1> values = invalid-expression "pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:6:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  a
-  ^";
-  constructor •(core::int #index, core::String #name) → self::E1
+  enum-element static const field self::E1 a = #C3;
+  static const field core::List<self::E1> values = #C4;
+  const constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
-  enum-element static const field self::E2 a = #C3;
-  static const field core::List<self::E2> values = #C4;
+  enum-element static const field self::E2 a = #C5;
+  static const field core::List<self::E2> values = #C6;
   const constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
@@ -51,9 +36,9 @@ class E2 extends core::_Enum /*isEnum*/  {
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class E3 extends core::_Enum /*isEnum*/  {
-  enum-element static const field self::E3 a = #C6;
+  enum-element static const field self::E3 a = #C8;
   final field core::int? b = null;
-  static const field core::List<self::E3> values = #C7;
+  static const field core::List<self::E3> values = #C9;
   const constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
@@ -61,33 +46,62 @@ class E3 extends core::_Enum /*isEnum*/  {
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 class E4 extends core::_Enum /*isEnum*/  {
-  enum-element static const field self::E4 a = #C8;
+  enum-element static const field self::E4 a = #C10;
   field core::int? b = null;
-  static const field core::List<self::E4> values = #C9;
+  static const field core::List<self::E4> values = #C11;
   const constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
 }
+class E5 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E5 a = #C12;
+  final field core::int? b;
+  static const field core::List<self::E5> values = #C13;
+  const constructor •(core::int #index, core::String #name) → self::E5
+    : self::E5::b = 0, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E6 a = #C14;
+  final field core::int? b;
+  static const field core::List<self::E6> values = #C15;
+  const constructor •(core::int #index, core::String #name, core::int? x) → self::E6
+    : self::E6::b = x, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
 
 constants  {
   #C1 = 0
   #C2 = "a"
-  #C3 = self::E2 {index:#C1, _name:#C2}
-  #C4 = <self::E2>[#C3]
-  #C5 = null
-  #C6 = self::E3 {b:#C5, index:#C1, _name:#C2}
-  #C7 = <self::E3>[#C6]
-  #C8 = self::E4 {b:#C5, index:#C1, _name:#C2}
-  #C9 = <self::E4>[#C8]
+  #C3 = self::E1 {index:#C1, _name:#C2}
+  #C4 = <self::E1>[#C3]
+  #C5 = self::E2 {index:#C1, _name:#C2}
+  #C6 = <self::E2>[#C5]
+  #C7 = null
+  #C8 = self::E3 {b:#C7, index:#C1, _name:#C2}
+  #C9 = <self::E3>[#C8]
+  #C10 = self::E4 {b:#C7, index:#C1, _name:#C2}
+  #C11 = <self::E4>[#C10]
+  #C12 = self::E5 {b:#C1, index:#C1, _name:#C2}
+  #C13 = <self::E5>[#C12]
+  #C14 = self::E6 {b:#C1, index:#C1, _name:#C2}
+  #C15 = <self::E6>[#C14]
 }
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///enum_primary_constructor.dart:
-- E2. (from org-dartlang-testcase:///enum_primary_constructor.dart:9:14)
+- E1. (from org-dartlang-testcase:///enum_primary_constructor.dart:5:8)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- E2. (from org-dartlang-testcase:///enum_primary_constructor.dart:9:14)
 - E3. (from org-dartlang-testcase:///enum_primary_constructor.dart:13:14)
 - E4. (from org-dartlang-testcase:///enum_primary_constructor.dart:18:14)
+- E5. (from org-dartlang-testcase:///enum_primary_constructor.dart:23:8)
+- E6. (from org-dartlang-testcase:///enum_primary_constructor.dart:29:8)

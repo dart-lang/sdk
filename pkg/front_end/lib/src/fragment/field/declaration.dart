@@ -37,6 +37,7 @@ import '../../source/type_parameter_factory.dart';
 import '../../type_inference/inference_results.dart';
 import '../../type_inference/type_inference_engine.dart';
 import '../../type_inference/type_inferrer.dart';
+import '../../util/helpers.dart';
 import '../fragment.dart';
 import '../getter/declaration.dart';
 import '../setter/declaration.dart';
@@ -278,6 +279,9 @@ class RegularFieldDeclaration
   }
 
   @override
+  InferenceDefaultType get inferenceDefaultType => InferenceDefaultType.Dynamic;
+
+  @override
   void buildBody(CoreTypes coreTypes, Expression? initializer) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
@@ -345,7 +349,7 @@ class RegularFieldDeclaration
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
     // into the outline.
-    Token? token = _fragment.constInitializerToken;
+    Token? token = _fragment.takeConstInitializerToken();
     if (!hasBodyBeenBuilt && token != null) {
       if ((_fragment.modifiers.isConst ||
           (isFinal &&
@@ -361,6 +365,7 @@ class RegularFieldDeclaration
             bodyBuilderContext: bodyBuilderContext,
             declaredFieldType: fieldType,
             token: token,
+            inferenceDefaultType: inferenceDefaultType,
           );
           buildBody(classHierarchy.coreTypes, initializer);
         }
@@ -374,6 +379,7 @@ class RegularFieldDeclaration
     required BodyBuilderContext bodyBuilderContext,
     DartType? declaredFieldType,
     required Token token,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     LookupScope scope = _fragment.enclosingScope;
     ExpressionInferenceResult expressionInferenceResult = libraryBuilder.loader
@@ -391,6 +397,7 @@ class RegularFieldDeclaration
               .dataForTesting
               // Coverage-ignore(suite): Not run.
               ?.inferenceData,
+          inferenceDefaultType: inferenceDefaultType,
         );
     if (computeSharedExpressionForTesting) {
       // Coverage-ignore-block(suite): Not run.
@@ -577,7 +584,7 @@ class RegularFieldDeclaration
     }
 
     type.registerInferredTypeListener(this);
-    Token? token = _fragment.initializerToken;
+    Token? token = _fragment.takeInitializerToken();
     if (type is InferableTypeBuilder) {
       if (!_fragment.modifiers.hasInitializer && isStatic) {
         // A static field without type and initializer will always be inferred
@@ -646,6 +653,7 @@ class RegularFieldDeclaration
         libraryBuilder: libraryBuilder,
         bodyBuilderContext: createBodyBuilderContext(),
         token: token,
+        inferenceDefaultType: InferenceDefaultType.Dynamic,
       );
     } else {
       return (const DynamicType(), null);
@@ -948,6 +956,8 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
 
   Expression? get cachedFieldInitializer => _fieldInitializerCache;
 
+  InferenceDefaultType get inferenceDefaultType;
+
   @override
   void buildFieldInitializer({
     required TypeInferrer typeInferrer,
@@ -966,6 +976,7 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
               fileUri: fileUri,
               declaredType: fieldType,
               initializer: initializer,
+              inferenceDefaultType: inferenceDefaultType,
             )
             .expression;
         _hasInitializerBeenComputed = true;

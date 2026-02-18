@@ -1,0 +1,25 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/mixin_class.dart:5:15: Error: Can't use 'M1' as a mixin because it has constructors.
+// mixin class M1() {
+//               ^
+//
+// pkg/front_end/testcases/primary_constructors/mixin_class.dart:9:15: Error: Can't use 'M2' as a mixin because it has constructors.
+// mixin class M2() {
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+mixin class M1 extends core::Object {
+  constructor •() → self::M1
+    : super core::Object::•() {}
+}
+mixin class M2 extends core::Object {
+  field core::int v;
+  constructor •() → self::M2
+    : self::M2::v = 0, super core::Object::•()
+    ;
+}

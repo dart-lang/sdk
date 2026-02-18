@@ -15,14 +15,14 @@ namespace dart {
 // BitmapBuilder is used to build a bitmap. The implementation is optimized
 // for a dense set of small bit maps without a fixed upper bound (e.g: a
 // pointer map description of a stack).
-class BitmapBuilder : public ZoneAllocated {
+class BitmapBuilder : public ZoneObject {
  public:
   BitmapBuilder() : length_(0), data_size_in_bytes_(kInlineCapacityInBytes) {
     memset(data_.inline_, 0, data_size_in_bytes_);
   }
 
   BitmapBuilder(const BitmapBuilder& other)
-      : ZoneAllocated(),
+      : ZoneObject(),
         length_(other.length_),
         data_size_in_bytes_(other.data_size_in_bytes_) {
     if (data_size_in_bytes_ == kInlineCapacityInBytes) {

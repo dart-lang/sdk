@@ -206,8 +206,8 @@ AnalysisOptionsWarningCode:
   analysisOptionDeprecatedWithReplacement:
     type: staticWarning
     parameters:
-      Object optionName: the option name
-      Object replacementOptionName: the replacement option name
+      String optionName: the option name
+      String replacementOptionName: the replacement option name
     sharedName: analysisOptionDeprecated
     problemMessage: "The option '#optionName' is no longer supported."
     correctionMessage: "Try using the new '#replacementOptionName' option."
@@ -314,7 +314,7 @@ AnalysisOptionsWarningCode:
   includedFileWarning:
     type: staticWarning
     parameters:
-      Object includingFilePath: the path of the file containing the warnings
+      String includingFilePath: the path of the file containing the warnings
       int startOffset: the starting offset of the text in the file that contains the warning
       int endOffset: the ending offset of the text in the file that contains the warning
       String warningMessage: the warning message
@@ -591,8 +591,8 @@ AnalysisOptionsWarningCode:
   recursiveIncludeFile:
     type: staticWarning
     parameters:
-      Object includedUri: the URI of the file to be included
-      Object includingFilePath: the path of the file containing the include directive
+      String includedUri: the URI of the file to be included
+      String includingFilePath: the path of the file containing the include directive
     problemMessage: "The URI '#includedUri' included in '#includingFilePath' includes '#includingFilePath', creating a circular reference."
     correctionMessage: "Try changing the chain of 'include's to break the circularity."
     hasPublishedDocs: true
@@ -859,7 +859,7 @@ AnalysisOptionsWarningCode:
     type: staticWarning
     parameters:
       String optionName: the option name
-      Object invalidValue: the unsupported value
+      String invalidValue: the unsupported value
       String legalValues: legal values
     problemMessage: "The value '#invalidValue' isn't supported by '#optionName'."
     correctionMessage: "Try using one of the supported values: #legalValues."
@@ -1703,6 +1703,12 @@ CompileTimeErrorCode:
       #### Common fixes
 
       Rewrite the code so that there isn't an assignment to a method.
+  assignmentToPrimaryConstructorParameter:
+    type: compileTimeError
+    parameters: none
+    problemMessage: "A primary constructor parameter can't be assigned to in an initializer."
+    correctionMessage: "Try removing the assignment."
+    hasPublishedDocs: false
   assignmentToType:
     type: compileTimeError
     parameters: none
@@ -1810,7 +1816,7 @@ CompileTimeErrorCode:
   augmentationModifierExtra:
     type: compileTimeError
     parameters:
-      Object modifier: the lexeme of the modifier.
+      String modifier: the lexeme of the modifier.
     experiment: augmentations
     problemMessage: The augmentation has the '#modifier' modifier that the declaration doesn't have.
     correctionMessage: Try removing the '#modifier' modifier, or adding it to the declaration.
@@ -1818,7 +1824,7 @@ CompileTimeErrorCode:
   augmentationModifierMissing:
     type: compileTimeError
     parameters:
-      Object modifier: the lexeme of the modifier.
+      String modifier: the lexeme of the modifier.
     experiment: augmentations
     problemMessage: The augmentation is missing the '#modifier' modifier that the declaration has.
     correctionMessage: Try adding the '#modifier' modifier, or removing it from the declaration.
@@ -1826,8 +1832,8 @@ CompileTimeErrorCode:
   augmentationOfDifferentDeclarationKind:
     type: compileTimeError
     parameters:
-      Object declarationKind: the name of the declaration kind.
-      Object augmentationKind: the name of the augmentation kind.
+      String declarationKind: the name of the declaration kind.
+      String augmentationKind: the name of the augmentation kind.
     experiment: augmentations
     problemMessage: "Can't augment a #declarationKind with a #augmentationKind."
     correctionMessage: Try changing the augmentation to match the declaration kind.
@@ -1877,7 +1883,7 @@ CompileTimeErrorCode:
   augmentedExpressionNotOperator:
     type: compileTimeError
     parameters:
-      Object operator: the lexeme of the operator.
+      String operator: the lexeme of the operator.
     experiment: augmentations
     problemMessage: The enclosing augmentation doesn't augment the operator '#operator'.
     correctionMessage: Try augmenting or invoking the correct operator.
@@ -3187,9 +3193,9 @@ CompileTimeErrorCode:
   constConstructorFieldTypeMismatch:
     type: compileTimeError
     parameters:
-      Object valueType: the type of the runtime value of the argument
-      Object fieldName: the name of the field
-      Object fieldType: the type of the field
+      String valueType: the type of the runtime value of the argument
+      String fieldName: the name of the field
+      String fieldType: the type of the field
     problemMessage: "In a const constructor, a value of type '#valueType' can't be assigned to the field '#fieldName', which has type '#fieldType'."
     correctionMessage: "Try using a subtype, or removing the keyword 'const'."
     hasPublishedDocs: false
@@ -3524,7 +3530,7 @@ CompileTimeErrorCode:
   constEvalAssertionFailureWithMessage:
     type: compileTimeError
     parameters:
-      Object message: the message of the assertion
+      String message: the message of the assertion
     problemMessage: "An assertion failed with message '#message'."
     hasPublishedDocs: false
   constEvalExtensionMethod:
@@ -4623,7 +4629,6 @@ CompileTimeErrorCode:
   dotShorthandMissingContext:
     type: compileTimeError
     parameters: none
-    experiment: dot-shorthands
     problemMessage: "A dot shorthand can't be used where there is no context type."
     hasPublishedDocs: true
     documentation: |-
@@ -4677,7 +4682,6 @@ CompileTimeErrorCode:
       String getterName: the name of the static getter
       String typeName: the name of the enclosing type where the getter is being looked for
     sharedName: dotShorthandUndefinedMember
-    experiment: dot-shorthands
     problemMessage: "The static getter '#getterName' isn't defined for the context type '#typeName'."
     correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '#getterName'."
     hasPublishedDocs: true
@@ -4732,7 +4736,6 @@ CompileTimeErrorCode:
       String name: the name of the static method or constructor
       String contextType: the name of the enclosing type where the method or constructor is being looked for
     sharedName: dotShorthandUndefinedMember
-    experiment: dot-shorthands
     problemMessage: "The static method or constructor '#name' isn't defined for the context type '#contextType'."
     correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'."
     hasPublishedDocs: true
@@ -5770,7 +5773,7 @@ CompileTimeErrorCode:
   exportLegacySymbol:
     type: compileTimeError
     parameters:
-      Object p0: the name of a symbol defined in a legacy library
+      String p0: the name of a symbol defined in a legacy library
     removedIn: "3.0"
     problemMessage: "The symbol '#p0' is defined in a legacy library, and can't be re-exported from a library with null safety enabled."
     correctionMessage: Try removing the export or migrating the legacy library.
@@ -7024,6 +7027,18 @@ CompileTimeErrorCode:
         C() : f = 1;
       }
       ```
+  fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor:
+    type: compileTimeError
+    parameters: none
+    problemMessage: "Fields can't be initialized in both the primary constructor and at their declaration."
+    correctionMessage: Try removing one of the initializations.
+    hasPublishedDocs: false
+  fieldInitializedInDeclarationAndParameterOfPrimaryConstructor:
+    type: compileTimeError
+    parameters: none
+    problemMessage: "Fields can't be initialized in both the primary constructor parameter list and at their declaration."
+    correctionMessage: Try removing one of the initializations.
+    hasPublishedDocs: false
   fieldInitializedInParameterAndInitializer:
     type: compileTimeError
     parameters: none
@@ -7742,10 +7757,10 @@ CompileTimeErrorCode:
   getterNotAssignableSetterTypes:
     type: compileTimeError
     parameters:
-      Object p0: the name of the getter
-      Object p1: the type of the getter
-      Object p2: the type of the setter
-      Object p3: the name of the setter
+      String p0: the name of the getter
+      String p1: the type of the getter
+      String p2: the type of the setter
+      String p3: the name of the setter
     removedIn: "3.4"
     problemMessage: "The return type of getter '#p0' is '#p1' which isn't assignable to the type '#p2' of its setter '#p3'."
     correctionMessage: Try changing the types so that they are compatible.
@@ -7753,10 +7768,10 @@ CompileTimeErrorCode:
   getterNotSubtypeSetterTypes:
     type: compileTimeError
     parameters:
-      Object getterName: the name of the getter
-      Object getterType: the type of the getter
-      Object setterType: the type of the setter
-      Object setterName: the name of the setter
+      String getterName: the name of the getter
+      Type getterType: the type of the getter
+      Type setterType: the type of the setter
+      String setterName: the name of the setter
     problemMessage: "The return type of getter '#getterName' is '#getterType' which isn't a subtype of the type '#setterType' of its setter '#setterName'."
     correctionMessage: Try changing the types so that they are compatible.
     hasPublishedDocs: true
@@ -8389,8 +8404,8 @@ CompileTimeErrorCode:
   inconsistentCaseExpressionTypes:
     type: compileTimeError
     parameters:
-      Object p0: the expression source code that is the unexpected type
-      Object p1: the name of the expected type
+      String p0: the expression source code that is the unexpected type
+      String p1: the name of the expected type
     removedIn: "3.4"
     problemMessage: "Case expressions must have the same types, '#p0' isn't a '#p1'."
     hasPublishedDocs: false
@@ -8819,8 +8834,8 @@ CompileTimeErrorCode:
   instanceAccessToStaticMemberOfUnnamedExtension:
     type: compileTimeError
     parameters:
-      Object name: the name of the static member
-      Object kind: the kind of the static member (field, getter, setter, or method)
+      String name: the name of the static member
+      String kind: the kind of the static member (field, getter, setter, or method)
     sharedName: instanceAccessToStaticMember
     problemMessage: "The static #kind '#name' can't be accessed through an instance."
     hasPublishedDocs: true
@@ -9335,9 +9350,9 @@ CompileTimeErrorCode:
   invalidCastFunction:
     type: compileTimeError
     parameters:
-      Object p0: the name of the function
-      Object p1: the type of the function
-      Object p2: the expected function type
+      String p0: the name of the function
+      String p1: the type of the function
+      String p2: the expected function type
     removedIn: "3.0"
     problemMessage: "The function '#p0' has type '#p1' that isn't of expected type '#p2'. This means its parameter or return type doesn't match what is expected."
     hasPublishedDocs: false
@@ -9346,8 +9361,8 @@ CompileTimeErrorCode:
   invalidCastFunctionExpr:
     type: compileTimeError
     parameters:
-      Object p0: the type of the torn-off function expression
-      Object p1: the expected function type
+      String p0: the type of the torn-off function expression
+      String p1: the expected function type
     removedIn: "3.0"
     problemMessage: The function expression type '#p0' isn't of type '#p1'. This means its parameter or return type doesn't match what is expected. Consider changing parameter type(s) or the returned type(s).
     hasPublishedDocs: false
@@ -9356,9 +9371,9 @@ CompileTimeErrorCode:
   invalidCastLiteral:
     type: compileTimeError
     parameters:
-      Object p0: the lexeme of the literal
-      Object p1: the type of the literal
-      Object p2: the expected type
+      String p0: the lexeme of the literal
+      String p1: the type of the literal
+      String p2: the expected type
     removedIn: "3.0"
     problemMessage: "The literal '#p0' with type '#p1' isn't of expected type '#p2'."
     hasPublishedDocs: false
@@ -9367,8 +9382,8 @@ CompileTimeErrorCode:
   invalidCastLiteralList:
     type: compileTimeError
     parameters:
-      Object p0: the type of the list literal
-      Object p1: the expected type
+      String p0: the type of the list literal
+      String p1: the expected type
     removedIn: "3.0"
     problemMessage: "The list literal type '#p0' isn't of expected type '#p1'. The list's type can be changed with an explicit generic type argument or by changing the element types."
     hasPublishedDocs: false
@@ -9377,8 +9392,8 @@ CompileTimeErrorCode:
   invalidCastLiteralMap:
     type: compileTimeError
     parameters:
-      Object p0: the type of the map literal
-      Object p1: the expected type
+      String p0: the type of the map literal
+      String p1: the expected type
     removedIn: "3.0"
     problemMessage: "The map literal type '#p0' isn't of expected type '#p1'. The map's type can be changed with an explicit generic type arguments or by changing the key and value types."
     hasPublishedDocs: false
@@ -9387,8 +9402,8 @@ CompileTimeErrorCode:
   invalidCastLiteralSet:
     type: compileTimeError
     parameters:
-      Object p0: the type of the set literal
-      Object p1: the expected type
+      String p0: the type of the set literal
+      String p1: the expected type
     removedIn: "3.0"
     problemMessage: "The set literal type '#p0' isn't of expected type '#p1'. The set's type can be changed with an explicit generic type argument or by changing the element types."
     hasPublishedDocs: false
@@ -9397,9 +9412,9 @@ CompileTimeErrorCode:
   invalidCastMethod:
     type: compileTimeError
     parameters:
-      Object p0: the name of the torn-off method
-      Object p1: the type of the torn-off method
-      Object p2: the expected function type
+      String p0: the name of the torn-off method
+      String p1: the type of the torn-off method
+      String p2: the expected function type
     removedIn: "3.0"
     problemMessage: "The method tear-off '#p0' has type '#p1' that isn't of expected type '#p2'. This means its parameter or return type doesn't match what is expected."
     hasPublishedDocs: false
@@ -9408,8 +9423,8 @@ CompileTimeErrorCode:
   invalidCastNewExpr:
     type: compileTimeError
     parameters:
-      Object p0: the type of the instantiated object
-      Object p1: the expected type
+      String p0: the type of the instantiated object
+      String p1: the expected type
     removedIn: "3.0"
     problemMessage: "The constructor returns type '#p0' that isn't of expected type '#p1'."
     hasPublishedDocs: false
@@ -10966,7 +10981,7 @@ CompileTimeErrorCode:
   missingDartLibrary:
     type: compileTimeError
     parameters:
-      Object p0: the name of the library
+      String p0: the name of the library
     removedIn: "3.10"
     problemMessage: "Required library '#p0' is missing."
     correctionMessage: Re-install the Dart or Flutter SDK.
@@ -13122,12 +13137,6 @@ CompileTimeErrorCode:
 
       class B implements A {}
       ```
-  nonRedirectingGenerativeConstructorWithPrimary:
-    type: compileTimeError
-    parameters: none
-    problemMessage: "Classes with primary constructors can't have non-redirecting generative constructors."
-    correctionMessage: "Try making the constructor redirect to the primary constructor, or remove the primary constructor."
-    hasPublishedDocs: false
   nonSyncFactory:
     type: compileTimeError
     parameters: none
@@ -14904,12 +14913,6 @@ CompileTimeErrorCode:
         return x;
       }
       ```
-  primaryConstructorBodyWithoutDeclaration:
-    type: compileTimeError
-    parameters: none
-    problemMessage: "A primary constructor body requires a primary constructor declaration."
-    correctionMessage: "Try adding the primary constructor declaration."
-    hasPublishedDocs: false
   primaryConstructorCannotRedirect:
     type: compileTimeError
     parameters: none
@@ -17230,8 +17233,8 @@ CompileTimeErrorCode:
   switchExpressionNotAssignable:
     type: compileTimeError
     parameters:
-      Object p0: the static type of the switch expression
-      Object p1: the static type of the case expressions
+      String p0: the static type of the switch expression
+      String p1: the static type of the case expressions
     removedIn: "3.0"
     problemMessage: "Type '#p0' of the switch expression isn't assignable to the type '#p1' of case expressions."
     hasPublishedDocs: true
@@ -19236,8 +19239,8 @@ CompileTimeErrorCode:
   variableTypeMismatch:
     type: compileTimeError
     parameters:
-      Object valueType: the type of the object being assigned.
-      Object variableType: the type of the variable being assigned to
+      String valueType: the type of the object being assigned.
+      String variableType: the type of the variable being assigned to
     problemMessage: "A value of type '#valueType' can't be assigned to a const variable of type '#variableType'."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"
     hasPublishedDocs: true
@@ -19450,7 +19453,6 @@ CompileTimeErrorCode:
       String className: the name of the class being instantiated
       String constructorName: the name of the constructor being invoked
     sharedName: wrongNumberOfTypeArgumentsConstructor
-    experiment: dot-shorthands
     problemMessage: "The dot shorthand resolves to the constructor '#className.#constructorName', and type parameters can't be applied to dot shorthand constructor invocations."
     correctionMessage: Try removing the type arguments, or adding a class name, followed by the type arguments, then the constructor name.
     hasPublishedDocs: true
@@ -21581,7 +21583,7 @@ FfiCode:
   mustBeANativeFunctionType:
     type: compileTimeError
     parameters:
-      Object type: the type that should be a valid dart:ffi native type.
+      Type type: the type that should be a valid dart:ffi native type.
       String functionName: the name of the function whose invocation depends on this relationship
     problemMessage: "The type '#type' given to '#functionName' must be a valid 'dart:ffi' native function type."
     correctionMessage: "Try changing the type to only use members for 'dart:ffi'."
@@ -22211,8 +22213,8 @@ FfiCode:
   subtypeOfFfiClassInExtends:
     type: compileTimeError
     parameters:
-      Object subclassName: the name of the subclass
-      Object superclassName: the name of the class being extended, implemented, or mixed in
+      String subclassName: the name of the subclass
+      String superclassName: the name of the class being extended, implemented, or mixed in
     removedIn: "3.0"
     sharedName: subtypeOfFfiClass
     problemMessage: "The class '#subclassName' can't extend '#superclassName'."
@@ -22262,8 +22264,8 @@ FfiCode:
   subtypeOfFfiClassInImplements:
     type: compileTimeError
     parameters:
-      Object subclassName: the name of the subclass
-      Object superclassName: the name of the class being extended, implemented, or mixed in
+      String subclassName: the name of the subclass
+      String superclassName: the name of the class being extended, implemented, or mixed in
     removedIn: "3.0"
     sharedName: subtypeOfFfiClass
     problemMessage: "The class '#subclassName' can't implement '#superclassName'."
@@ -22272,8 +22274,8 @@ FfiCode:
   subtypeOfFfiClassInWith:
     type: compileTimeError
     parameters:
-      Object subclassName: the name of the subclass
-      Object superclassName: the name of the class being extended, implemented, or mixed in
+      String subclassName: the name of the subclass
+      String superclassName: the name of the class being extended, implemented, or mixed in
     removedIn: "3.0"
     sharedName: subtypeOfFfiClass
     problemMessage: "The class '#subclassName' can't mix in '#superclassName'."
@@ -22529,7 +22531,7 @@ HintCode:
   importOfLegacyLibraryIntoNullSafe:
     type: hint
     parameters:
-      Object p0: the name of the library
+      String p0: the name of the library
     removedIn: "3.0"
     problemMessage: "The library '#p0' is legacy, and shouldn't be imported into a null safe library."
     correctionMessage: Try migrating the imported library.
@@ -22909,7 +22911,7 @@ ParserErrorCode:
   invalidOperatorForSuper:
     type: syntacticError
     parameters:
-      Object p0: the operator being applied to 'super'
+      String p0: the operator being applied to 'super'
     removedIn: "3.10"
     problemMessage: "The operator '#p0' can't be used with 'super'."
     hasPublishedDocs: false
@@ -23021,7 +23023,7 @@ ParserErrorCode:
   missingTerminatorForParameterGroup:
     type: syntacticError
     parameters:
-      Object p0: the terminator that is missing
+      String p0: the terminator that is missing
     removedIn: "2.12"
     problemMessage: "There is no '#p0' to close the parameter group."
     correctionMessage: "Try inserting a '#p0' at the end of the group."
@@ -23071,7 +23073,7 @@ ParserErrorCode:
   multipleVariablesInForEach:
     type: syntacticError
     parameters:
-      Object p0: the number of variables being declared
+      String p0: the number of variables being declared
     removedIn: "2.12"
     problemMessage: "A single loop variable must be declared in a for-each loop before the 'in', but #p0 were found."
     correctionMessage: Try moving all but one of the declarations inside the loop body.
@@ -23133,7 +23135,7 @@ ParserErrorCode:
   nonUserDefinableOperator:
     type: syntacticError
     parameters:
-      Object p0: the operator that the user is trying to define
+      String p0: the operator that the user is trying to define
     removedIn: "2.12"
     problemMessage: "The operator '#p0' isn't user definable."
     hasPublishedDocs: false
@@ -23268,7 +23270,7 @@ ParserErrorCode:
   unexpectedTerminatorForParameterGroup:
     type: syntacticError
     parameters:
-      Object p0: the starting character that was missing
+      String p0: the starting character that was missing
     removedIn: "2.12"
     problemMessage: "There is no '#p0' to open a parameter group."
     correctionMessage: "Try inserting the '#p0' at the appropriate location."
@@ -23348,8 +23350,8 @@ ParserErrorCode:
   wrongTerminatorForParameterGroup:
     type: syntacticError
     parameters:
-      Object p0: the terminator that was expected
-      Object p1: the terminator that was found
+      String p0: the terminator that was expected
+      String p1: the terminator that was found
     removedIn: "2.12"
     problemMessage: "Expected '#p0' to close parameter group."
     correctionMessage: "Try replacing '#p0' with '#p1'."
@@ -24304,7 +24306,7 @@ ScannerErrorCode:
   unableGetContent:
     type: syntacticError
     parameters:
-      Object p0: the path of the file that cannot be read
+      String p0: the path of the file that cannot be read
     removedIn: "2.6"
     problemMessage: Unable to get content of '#p0'.
     hasPublishedDocs: false
@@ -24818,7 +24820,7 @@ WarningCode:
       @doNotStore
       int f() => 1;
 
-      var x = [!f()!];
+      var x = [!f!]();
       ```
 
       #### Common fixes
@@ -25278,7 +25280,7 @@ WarningCode:
   deprecatedExtend:
     type: staticWarning
     parameters:
-      Object typeName: the name of the type
+      String typeName: the name of the type
     problemMessage: "Extending '#typeName' is deprecated."
     correctionMessage: Try removing the 'extends' clause.
     hasPublishedDocs: true
@@ -25404,7 +25406,7 @@ WarningCode:
   deprecatedImplement:
     type: staticWarning
     parameters:
-      Object typeName: the name of the type
+      String typeName: the name of the type
     problemMessage: "Implementing '#typeName' is deprecated."
     correctionMessage: Try removing '#typeName' from the 'implements' clause.
     hasPublishedDocs: true
@@ -25455,7 +25457,7 @@ WarningCode:
   deprecatedInstantiate:
     type: staticWarning
     parameters:
-      Object typeName: the name of the type
+      String typeName: the name of the type
     problemMessage: "Instantiating '#typeName' is deprecated."
     correctionMessage: Try instantiating a non-abstract class.
     hasPublishedDocs: true
@@ -25494,7 +25496,7 @@ WarningCode:
   deprecatedMixin:
     type: staticWarning
     parameters:
-      Object typeName: the name of the type
+      String typeName: the name of the type
     problemMessage: "Mixing in '#typeName' is deprecated."
     correctionMessage: Try removing '#typeName' from the 'with' clause.
     hasPublishedDocs: true
@@ -25544,7 +25546,7 @@ WarningCode:
   deprecatedOptional:
     type: staticWarning
     parameters:
-      Object parameterName: the name of the parameter
+      String parameterName: the name of the parameter
     problemMessage: "Omitting an argument for the '#parameterName' parameter is deprecated."
     correctionMessage: Try passing an argument for '#parameterName'.
     hasPublishedDocs: true
@@ -25653,7 +25655,7 @@ WarningCode:
   deprecatedSubclass:
     type: staticWarning
     parameters:
-      Object typeName: the name of the type
+      String typeName: the name of the type
     problemMessage: "Subclassing '#typeName' is deprecated."
     correctionMessage: Try removing the 'extends' clause, or removing '#typeName' from the 'implements' clause.
     hasPublishedDocs: true
@@ -26978,8 +26980,8 @@ WarningCode:
   invalidLanguageVersionOverrideGreater:
     type: staticWarning
     parameters:
-      Object latestMajor: the latest major version
-      Object latestMinor: the latest minor version
+      int latestMajor: the latest major version
+      int latestMinor: the latest minor version
     sharedName: invalidLanguageVersionOverride
     problemMessage: "The language version override can't specify a version greater than the latest known language version: #latestMajor.#latestMinor."
     correctionMessage: Try removing the language version override.
@@ -28116,7 +28118,7 @@ WarningCode:
   missingReturn:
     type: staticWarning
     parameters:
-      Object p0: the name of the declared return type
+      String p0: the name of the declared return type
     removedIn: "3.0"
     problemMessage: "This function has a return type of '#p0', but doesn't end with a return statement."
     correctionMessage: "Try adding a return statement, or changing the return type to 'void'."
@@ -28343,6 +28345,13 @@ WarningCode:
 
       int g(@mustBeConst int value) => value + 1;
       ```
+  tearoffWithMustBeConstParameter:
+    type: staticWarning
+    parameters:
+      String name: the name of the function
+    problemMessage: "The function '#name' has a parameter marked as '@mustBeConst' and can't be torn off."
+    correctionMessage: Try calling the function directly with a constant argument.
+    hasPublishedDocs: false
   nonConstCallToLiteralConstructorUsingNew:
     type: staticWarning
     parameters:
@@ -28793,9 +28802,9 @@ WarningCode:
   replacedLintUse:
     type: staticWarning
     parameters:
-      Object ruleName: the rule name
-      Object since: the SDK version in which the lint was removed
-      Object replacement: the name of a replacing lint
+      String ruleName: the rule name
+      String since: the SDK version in which the lint was removed
+      String replacement: the name of a replacing lint
     problemMessage: "'#ruleName' was replaced by '#replacement' in Dart '#since'."
     correctionMessage: "Replace '#ruleName' with '#replacement'."
     hasPublishedDocs: false
@@ -28828,7 +28837,7 @@ WarningCode:
       @doNotStore
       int f() => 0;
 
-      int g() => [!f()!];
+      int g() => [!f!]();
       ```
 
       #### Common fixes
@@ -28859,7 +28868,7 @@ WarningCode:
   sdkVersionAsyncExportedFromCore:
     type: staticWarning
     parameters:
-      Object p0: the name of the class
+      String p0: the name of the class
     removedIn: "3.2"
     problemMessage: "The class '#p0' wasn't exported from 'dart:core' until version 2.1, but this code is required to be able to run on earlier versions."
     correctionMessage: "Try either importing 'dart:async' or updating the SDK constraints."
@@ -28965,7 +28974,7 @@ WarningCode:
   sdkVersionBoolOperatorInConstContext:
     type: staticWarning
     parameters:
-      Object p0: the name of the operator
+      String p0: the name of the operator
     removedIn: "3.2"
     problemMessage: "The use of the operator '#p0' for 'bool' operands in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
@@ -30551,7 +30560,7 @@ WarningCode:
   unusedField:
     type: staticWarning
     parameters:
-      Object fieldName: the name of the unused field
+      String fieldName: the name of the unused field
     problemMessage: "The value of the field '#fieldName' isn't used."
     correctionMessage: Try removing the field, or using it.
     hasPublishedDocs: true
@@ -30589,8 +30598,8 @@ WarningCode:
   unusedFieldFromPrimaryConstructor:
     type: staticWarning
     parameters:
-      Object fieldName: the name of the unused field
-      Object keyword: the keyword to remove
+      String fieldName: the name of the unused field
+      String keyword: the keyword to remove
     problemMessage: "The value of the field '#fieldName' isn't used."
     correctionMessage: Try removing the '#keyword' keyword to avoid declaring a field, or try using the field, or removing it.
     hasPublishedDocs: false

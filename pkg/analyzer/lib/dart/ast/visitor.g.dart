@@ -37,6 +37,24 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitAnnotation(Annotation node) => visitNode(node);
 
+  @experimental
+  @override
+  R? visitAnonymousBlockBody(AnonymousBlockBody node) =>
+      visitAnonymousMethodBody(node);
+
+  @experimental
+  @override
+  R? visitAnonymousExpressionBody(AnonymousExpressionBody node) =>
+      visitAnonymousMethodBody(node);
+
+  @experimental
+  R? visitAnonymousMethodBody(AnonymousMethodBody node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitAnonymousMethodInvocation(AnonymousMethodInvocation node) =>
+      visitExpression(node);
+
   @override
   R? visitArgumentList(ArgumentList node) => visitNode(node);
 
@@ -754,6 +772,27 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAnnotation(Annotation node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitAnonymousBlockBody(AnonymousBlockBody node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitAnonymousExpressionBody(AnonymousExpressionBody node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
     node.visitChildren(this);
     return null;
   }
@@ -1854,6 +1893,18 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitAnnotation(Annotation node) => null;
 
+  @experimental
+  @override
+  R? visitAnonymousBlockBody(AnonymousBlockBody node) => null;
+
+  @experimental
+  @override
+  R? visitAnonymousExpressionBody(AnonymousExpressionBody node) => null;
+
+  @experimental
+  @override
+  R? visitAnonymousMethodInvocation(AnonymousMethodInvocation node) => null;
+
   @override
   R? visitArgumentList(ArgumentList node) => null;
 
@@ -2424,6 +2475,19 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAnnotation(Annotation node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitAnonymousBlockBody(AnonymousBlockBody node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitAnonymousExpressionBody(AnonymousExpressionBody node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitAnonymousMethodInvocation(AnonymousMethodInvocation node) =>
+      _throw(node);
 
   @override
   R? visitArgumentList(ArgumentList node) => _throw(node);
@@ -3025,6 +3089,33 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitAnnotation(Annotation node) {
     stopwatch.start();
     T? result = _baseVisitor.visitAnnotation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitAnonymousBlockBody(AnonymousBlockBody node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitAnonymousBlockBody(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitAnonymousExpressionBody(AnonymousExpressionBody node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitAnonymousExpressionBody(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitAnonymousMethodInvocation(node);
     stopwatch.stop();
     return result;
   }
@@ -4486,6 +4577,20 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAnnotation(Annotation node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitAnonymousBlockBody(AnonymousBlockBody node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitAnonymousExpressionBody(AnonymousExpressionBody node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitAnonymousMethodInvocation(AnonymousMethodInvocation node) =>
+      visitNode(node);
 
   @override
   R? visitArgumentList(ArgumentList node) => visitNode(node);

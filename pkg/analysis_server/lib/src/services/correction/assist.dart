@@ -171,11 +171,6 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Convert to multiline string',
   );
-  static const convertToNormalParameter = AssistKind(
-    'dart.assist.convert.toConstructorNormalParameter',
-    DartAssistKindPriority.default_,
-    'Convert to normal parameter',
-  );
   static const convertToNullAware = AssistKind(
     'dart.assist.convert.toNullAware',
     DartAssistKindPriority.default_,

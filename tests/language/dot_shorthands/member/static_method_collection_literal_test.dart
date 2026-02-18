@@ -5,8 +5,6 @@
 // Context type is propagated down in collection literals.
 // Testing with static method shorthands.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 void main() {

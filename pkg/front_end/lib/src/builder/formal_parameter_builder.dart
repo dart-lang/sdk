@@ -35,6 +35,7 @@ import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
+import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'omitted_type_builder.dart';
@@ -106,7 +107,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
   ///
   /// This is stored until outlines have been built through
   /// [buildOutlineExpressions].
-  Token? _initializerToken;
+  Token? _defaultValueToken;
 
   bool initializerWasInferred = false;
 
@@ -134,14 +135,14 @@ class FormalParameterBuilder extends NamedBuilderImpl
     required this.fileOffset,
     required this.fileUri,
     this.isExtensionThis = false,
-    Token? initializerToken,
+    Token? defaultValueToken,
     required this.hasImmediatelyDeclaredInitializer,
     this.isWildcard = false,
     this.publicName,
     required this.nameOffset,
     required this.isClosureContextLoweringEnabled,
   }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
-       this._initializerToken = initializerToken {
+       this._defaultValueToken = defaultValueToken {
     type.registerInferredTypeListener(this);
   }
 
@@ -278,13 +279,15 @@ class FormalParameterBuilder extends NamedBuilderImpl
     return new FormalParameterBuilder(
       kind: kind,
       modifiers: modifiers | Modifiers.InitializingFormal,
-      type: builderFactory.addInferableType(),
+      type: builderFactory.addInferableType(
+        InferenceDefaultType.NullableObject,
+      ),
       name: name,
       fileOffset: fileOffset,
       nameOffset: nameOffset,
       fileUri: fileUri,
       isExtensionThis: isExtensionThis,
-      initializerToken: _takeInitializerToken(),
+      defaultValueToken: copyDefaultValueToken(),
       hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
       publicName: publicName,
       isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
@@ -367,16 +370,28 @@ class FormalParameterBuilder extends NamedBuilderImpl
     }
   }
 
-  /// Returns the [_initializerToken] field and clears it.
+  /// Returns the [_defaultValueToken] field and clears it.
   ///
   /// This is used to transfer ownership of the token to the receiver. Tokens
   /// need to be cleared during the outline phase to avoid holding the token
   /// stream in memory.
-  Token? _takeInitializerToken() {
-    Token? initializerToken = _initializerToken;
-    _initializerToken = null;
+  Token? _takeDefaultValueToken() {
+    Token? initializerToken = _defaultValueToken;
+    _defaultValueToken = null;
     return initializerToken;
   }
+
+  /// Returns the [_defaultValueToken] field and without clearing it.
+  ///
+  /// This is used to copy ownership of the token to the receiver, such that
+  /// both this [FormalParameterBuilder] and the receiver owns a copy. Tokens
+  /// need to be cleared during the outline phase to avoid holding the token
+  /// stream in memory.
+  ///
+  /// This is used when creating primary constructor formal parameters, where
+  /// the default value should be used both to infer the field type and to
+  /// create the default value for the constructor parameter.
+  Token? copyDefaultValueToken() => _defaultValueToken;
 
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
@@ -391,7 +406,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
     // into the outline. For all other formals we need to call
     // buildOutlineExpressions to clear initializerToken to prevent
     // consuming too much memory.
-    Token? initializerToken = _takeInitializerToken();
+    Token? initializerToken = _takeDefaultValueToken();
     if (_needsDefaultValuesBuiltAsOutlineExpressions(memberBuilder)) {
       if (initializerToken != null) {
         BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(

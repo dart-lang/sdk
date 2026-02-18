@@ -7199,7 +7199,7 @@ class Code : public Object {
   void Disassemble(DisassemblyFormatter* formatter = nullptr) const;
 
 #if defined(INCLUDE_IL_PRINTER)
-  class Comments : public ZoneAllocated, public CodeComments {
+  class Comments : public ZoneObject, public CodeComments {
    public:
     static Comments& New(intptr_t count);
 
@@ -10374,10 +10374,8 @@ class SmiTraits : AllStatic {
 class Mint : public Integer {
  public:
   static constexpr intptr_t kBits = 63;  // 64-th bit is sign.
-  static constexpr int64_t kMaxValue =
-      static_cast<int64_t>(DART_2PART_UINT64_C(0x7FFFFFFF, FFFFFFFF));
-  static constexpr int64_t kMinValue =
-      static_cast<int64_t>(DART_2PART_UINT64_C(0x80000000, 00000000));
+  static constexpr int64_t kMaxValue = 0x7FFFFFFFFFFFFFFF;
+  static constexpr int64_t kMinValue = 0x8000000000000000;
 
   static intptr_t value_offset() { return OFFSET_OF(UntaggedMint, value_); }
 

@@ -158,6 +158,7 @@ enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
 enhanced_enums/simple_mixins: RuntimeError
 extension_types/with_dependencies/issue53209_1/main: SemiFuzzFailure
+extension_types/with_dependencies/issue53209_2/main: SemiFuzzFailure
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
@@ -265,3 +266,4 @@ closure_context_lowering/foo42: Crash
 closure_context_lowering/foo45: Crash
 closure_context_lowering/foo48: Crash
 closure_context_lowering/assert_captured_variables: Crash
+closure_context_lowering/late_variable_initializers: Crash

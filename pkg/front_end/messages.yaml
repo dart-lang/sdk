@@ -445,8 +445,8 @@ constEvalFailedAssertionWithNonStringMessage:
 
 constEvalNonConstantVariableGet:
   parameters:
-    NameOKEmpty nameOKEmpty: undocumented
-  problemMessage: "The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed."
+    NameOKEmpty name: The variable name.
+  problemMessage: "The variable '#name' is not a constant, only constant expressions are allowed."
 
 constEvalDeferredLibrary:
   parameters:
@@ -3219,12 +3219,6 @@ duplicatedDeclarationCause:
   problemMessage: "Previous declaration of '#name'."
   severity: CONTEXT
 
-duplicatedDeclarationSyntheticCause:
-  parameters:
-    Name name: undocumented
-  problemMessage: "Previous declaration of '#name' is implied by this definition."
-  severity: CONTEXT
-
 # Use this message when a duplicated declaration is used.
 duplicatedDeclarationUse:
   parameters:
@@ -3709,6 +3703,16 @@ constConstructorNonFinalField:
       int i;
       const Foo(this.i);
     }
+
+enumConstructorNonFinalField:
+  parameters: none
+  problemMessage: "Enum constructors are constant so all fields must be final."
+  experiments: primary-constructors
+  script:
+    - |
+      enum E(var int x) { a(0) }
+    - |
+      enum E() { a; int x = 0; }
 
 constConstructorNonFinalFieldCause:
   parameters: none
@@ -5844,9 +5848,9 @@ optionalNonNullableWithoutInitializerError:
 
 fieldNonNullableWithoutInitializerError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "Field '#name' should be initialized because its type '#type' doesn't allow null."
+    Name fieldName: The name of the field.
+    Type fieldType: The type of the field.
+  problemMessage: "Field '#fieldName' should be initialized because its type '#fieldType' doesn't allow null."
   script: |
     class Foo {
       int x;
@@ -5854,9 +5858,9 @@ fieldNonNullableWithoutInitializerError:
 
 fieldNonNullableNotInitializedByConstructorError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
+    Name fieldName: The name of the field.
+    Type fieldType: The type of the field.
+  problemMessage: "This constructor should initialize field '#fieldName' because its type '#fieldType' doesn't allow null."
   script: |
     class Foo {
       int x;
@@ -5866,10 +5870,10 @@ fieldNonNullableNotInitializedByConstructorError:
 
 experimentOptOutExplicit:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The '#string' language feature is disabled for this library."
-  correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string2 or higher."
+    String featureName: The name of the language feature.
+    String enabledVersion: The language version in which the feature was enabled.
+  problemMessage: "The '#featureName' language feature is disabled for this library."
+  correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #enabledVersion or higher."
   script: |
     // @dart=2.14
     class Foo {}
@@ -5880,10 +5884,10 @@ experimentOptOutExplicit:
 
 experimentOptOutImplicit:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The '#string' language feature is disabled for this library."
-  correctionMessage: "Try removing the package language version or setting the language version to #string2 or higher."
+    String featureName: The name of the language feature.
+    String enabledVersion: The language version in which the feature was enabled.
+  problemMessage: "The '#featureName' language feature is disabled for this library."
+  correctionMessage: "Try removing the package language version or setting the language version to #enabledVersion or higher."
   script:
     .dart_tool/package_config.json: |
       {
@@ -5907,8 +5911,8 @@ experimentOptOutImplicit:
 
 experimentOptOutComment:
   parameters:
-    String string: undocumented
-  problemMessage: "This is the annotation that opts out this library from the '#string' language feature."
+    String featureName: The name of the language feature.
+  problemMessage: "This is the annotation that opts out this library from the '#featureName' language feature."
   severity: CONTEXT
 
 awaitInLateLocalInitializer:
@@ -5921,16 +5925,16 @@ awaitInLateLocalInitializer:
 
 nullableSuperclassError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't extend '#name' because it's nullable."
+    Name supertypeName: The name of the supertype.
+  problemMessage: "Can't extend '#supertypeName' because it's nullable."
   correctionMessage: "Try removing the question mark."
   script: |
     class Foo extends Object? {}
 
 nullableInterfaceError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't implement '#name' because it's nullable."
+    Name interfaceName: The name of the interface that couldn't be implemented.
+  problemMessage: "Can't implement '#interfaceName' because it's nullable."
   correctionMessage: "Try removing the question mark."
   script: |
     class Foo {}
@@ -5938,8 +5942,8 @@ nullableInterfaceError:
 
 nullableMixinError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't mix '#name' in because it's nullable."
+    Name mixinName: The name of the type that couldn't be mixed in.
+  problemMessage: "Can't mix '#mixinName' in because it's nullable."
   correctionMessage: "Try removing the question mark."
   script: |
     mixin Foo {}
@@ -5947,9 +5951,9 @@ nullableMixinError:
 
 jsInteropDartClassExtendsJSClass:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
+    Name className: The name of the class that cannot extend a JS interop class.
+    Name superclassName: The name of the JS interop class.
+  problemMessage: "Dart class '#className' cannot extend JS interop class '#superclassName'."
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
 
 jsInteropDartJsInteropAnnotationForStaticInteropOnly:
@@ -5969,21 +5973,21 @@ jsInteropEnclosingClassJSAnnotationContext:
 
 jsInteropExportClassNotMarkedExportable:
   parameters:
-    Name name: undocumented
-  problemMessage: "Class '#name' does not have a `@JSExport` on it or any of its members."
+    Name className: The name of the class that is not marked exportable.
+  problemMessage: "Class '#className' does not have a `@JSExport` on it or any of its members."
   correctionMessage: "Use the `@JSExport` annotation on this class."
 
 jsInteropExportDartInterfaceHasNonEmptyJSExportValue:
   parameters:
-    Name name: undocumented
-  problemMessage: "The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored."
+    Name className: The name of the class with a non-empty `@JSExport` value.
+  problemMessage: "The value in the `@JSExport` annotation on the class or mixin '#className' will be ignored."
   correctionMessage: "Remove the value in the annotation."
   severity: WARNING
 
 jsInteropExportDisallowedMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported."
+    Name memberName: The name of the problematic member.
+  problemMessage: "Member '#memberName' is not a concrete instance member or declares type parameters, and therefore can't be exported."
   correctionMessage: "Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead."
 
 jsInteropExportInvalidInteropTypeArgument:
@@ -6088,9 +6092,9 @@ jsInteropFunctionToJSTypeParameters:
 
 jsInteropFunctionToJSTypeViolation:
   parameters:
-    String conversion: undocumented
-    String string2: undocumented
-  problemMessage: "Function converted via '#conversion' contains invalid types in its function signature: '#string2'."
+    String conversion: The "toJS" conversion in use.
+    String typeWithDiasllowedPartsHighlighted: The function type, with disallowed types surrounded by asterisks.
+  problemMessage: "Function converted via '#conversion' contains invalid types in its function signature: '#typeWithDiasllowedPartsHighlighted'."
   correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 jsInteropInvalidStaticClassMemberName:
@@ -6099,9 +6103,9 @@ jsInteropInvalidStaticClassMemberName:
 
 jsInteropJSClassExtendsDartClass:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
+    Name className: The name of the class that extends a Dart class.
+    Name superclassName: The name of the extended Dart class.
+  problemMessage: "JS interop class '#className' cannot extend Dart class '#superclassName'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
 
 jsInteropNamedParameters:
@@ -6111,11 +6115,11 @@ jsInteropNamedParameters:
 
 jsInteropNativeClassInAnnotation:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string3: undocumented
-  problemMessage: "Non-static JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
-  correctionMessage: "Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '#name2'."
+    Name className: The name of the problematic class.
+    Name nativeClassName: The name of the conflicting natively supported class.
+    String uri: The URI in which the conflict occurs.
+  problemMessage: "Non-static JS interop class '#className' conflicts with natively supported class '#nativeClassName' in '#uri'."
+  correctionMessage: "Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '#nativeClassName'."
 
 jsInteropNonExternalConstructor:
   parameters: none
@@ -6129,8 +6133,8 @@ jsInteropNonExternalMember:
 
 jsInteropObjectLiteralConstructorPositionalParameters:
   parameters:
-    String string: undocumented
-  problemMessage: "#string should not contain any positional parameters."
+    String kind: The kind of the erroneous construct.
+  problemMessage: "#kind should not contain any positional parameters."
   correctionMessage: "Try replacing them with named parameters instead."
 
 jsInteropOperatorCannotBeRenamed:
@@ -6145,23 +6149,23 @@ jsInteropOperatorsNotSupported:
 
 jsInteropNonStaticWithStaticInteropSupertype:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
-  correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
+    Name className: The name of the problematic class.
+    Name superclassName: The name of the conflicting superclass.
+  problemMessage: "Class '#className' does not have an `@staticInterop` annotation, but has supertype '#superclassName', which does."
+  correctionMessage: "Try marking '#className' as a `@staticInterop` class, or don't inherit '#superclassName'."
 
 # TODO(srujzs): Is there any way to save the correction message into a variable
 # to avoid duplication?
 jsInteropStaticInteropExternalAccessorTypeViolation:
   parameters:
-    Type type: undocumented
+    Type type: The invalid type.
   problemMessage: "External JS interop member contains an invalid type: '#type'."
   correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 jsInteropStaticInteropExternalFunctionTypeViolation:
   parameters:
-    String string2: undocumented
-  problemMessage: "External JS interop member contains invalid types in its function signature: '#string2'."
+    String typeWithDiasllowedPartsHighlighted: The function type, with disallowed types surrounded by asterisks.
+  problemMessage: "External JS interop member contains invalid types in its function signature: '#typeWithDiasllowedPartsHighlighted'."
   correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 jsInteropStaticInteropGenerativeConstructor:
@@ -6171,20 +6175,20 @@ jsInteropStaticInteropGenerativeConstructor:
 
 jsInteropStaticInteropMockMissingGetterOrSetter:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-    String string2: undocumented
-    Name name2: undocumented
-    String string3: undocumented
-  problemMessage: "Dart class '#name' has a #string, but does not have a #string2 to implement any of the following extension member(s) with export name '#name2': #string3."
-  correctionMessage: "Declare an exportable #string2 that implements one of these extension members."
+    Name className: The name of the problematic class.
+    String accessorKindPresent: The kind of accessor that is present ("getter" or "setter").
+    String accessorKindAbsent: The kind of accessor that is not present ("getter" or "setter").
+    Name exportName: The export name.
+    String missingMembers: A list of the missing members, separated by ", ".
+  problemMessage: "Dart class '#className' has a #accessorKindPresent, but does not have a #accessorKindAbsent to implement any of the following extension member(s) with export name '#exportName': #missingMembers."
+  correctionMessage: "Declare an exportable #accessorKindAbsent that implements one of these extension members."
 
 jsInteropStaticInteropMockMissingImplements:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string: undocumented
-  problemMessage: "Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string."
+    Name className: The name of the problematic class.
+    Name exportName: The export name.
+    String missingMembers: A list of the missing members, separated by ", ".
+  problemMessage: "Dart class '#className' does not have any members that implement any of the following extension member(s) with export name '#exportName': #missingMembers."
   correctionMessage: "Declare an exportable member that implements one of these extension members."
 
 jsInteropStaticInteropMockNotStaticInteropType:
@@ -6679,13 +6683,6 @@ unmatchedPatchDeclaration:
   problemMessage: "Patch '#declarationName' doesn't match a declaration in the origin library."
   correctionMessage: "Try changing the name to an existing declaration or removing the '@patch' annotation."
 
-unmatchedAugmentationConstructor:
-  parameters:
-    Name name: undocumented
-  problemMessage: "Augmentation constructor '#name' doesn't match a constructor in the augmented class."
-  correctionMessage: "Try changing the name to an existing constructor or removing the 'augment' modifier."
-  experiments: augmentations
-
 nonAugmentationMemberConflictCause:
   parameters: none
   problemMessage: "This is the existing member."
@@ -6942,8 +6939,8 @@ finalClassExtendedOutsideOfLibrary:
 
 finalClassImplementedOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be implemented outside of its library because it's a final class."
+    Name className: The name of the class that can't be implemented outside of its library.
+  problemMessage: "The class '#className' can't be implemented outside of its library because it's a final class."
   script:
     main.dart:
       import 'lib.dart';
@@ -6953,8 +6950,8 @@ finalClassImplementedOutsideOfLibrary:
 
 finalClassUsedAsMixinConstraintOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class."
+    Name className: The name of the class that can't be used as a mixin superclass constraint outside of its library.
+  problemMessage: "The class '#className' can't be used as a mixin superclass constraint outside of its library because it's a final class."
   script:
     main.dart:
       import 'lib.dart';
@@ -6964,9 +6961,9 @@ finalClassUsedAsMixinConstraintOutsideOfLibrary:
 
 subtypeOfBaseIsNotBaseFinalOrSealed:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'."
+    Name className: The name of the problematic class.
+    Name superclassName: The name of the superclass that is `base`.
+  problemMessage: "The type '#className' must be 'base', 'final' or 'sealed' because the supertype '#superclassName' is 'base'."
   correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
   script: |
       base class A {}
@@ -6974,9 +6971,9 @@ subtypeOfBaseIsNotBaseFinalOrSealed:
 
 subtypeOfFinalIsNotBaseFinalOrSealed:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'final'."
+    Name typeName: The name of the problematic type.
+    Name supertypeName: The name of the supertype that is `final`.
+  problemMessage: "The type '#typeName' must be 'base', 'final' or 'sealed' because the supertype '#supertypeName' is 'final'."
   correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
   script: |
       final class A {}
@@ -6984,9 +6981,9 @@ subtypeOfFinalIsNotBaseFinalOrSealed:
 
 mixinSubtypeOfBaseIsNotBase:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'base'."
+    Name className: The name of the problematic class.
+    Name superclassName: The name of the superclass that is `base`.
+  problemMessage: "The mixin '#className' must be 'base' because the supertype '#superclassName' is 'base'."
   correctionMessage: "Try adding 'base' to the mixin."
   script: |
       base class A {}
@@ -6994,9 +6991,9 @@ mixinSubtypeOfBaseIsNotBase:
 
 mixinSubtypeOfFinalIsNotBase:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'final'."
+    Name typeName: The name of the problematic mixin.
+    Name supertypeName: The name of the supertype that is `final`.
+  problemMessage: "The mixin '#typeName' must be 'base' because the supertype '#supertypeName' is 'final'."
   correctionMessage: "Try adding 'base' to the mixin."
   script: |
       final class A {}
@@ -7177,6 +7174,10 @@ patternAssignmentNotLocalVariable:
 recordUseCannotBePlacedHere:
   parameters: none
   problemMessage: "`RecordUse` annotation cannot be placed on this element."
+
+recordUseOutsideOfPackage:
+  parameters: none
+  problemMessage: "`RecordUse` annotations are only supported in libraries with a `package:` URI."
 
 wasmImportOrExportInUserCode:
   parameters: none
@@ -7614,7 +7615,6 @@ dotShorthandsConstructorInvocationWithTypeArguments:
   parameters: none
   problemMessage: "A dot shorthand constructor invocation can't have type arguments."
   correctionMessage: "Try adding the class name and type arguments explicitly before the constructor name."
-  experiments: dot-shorthands
   script: |
     class C<X> {
       C.foo();
@@ -7627,7 +7627,6 @@ dotShorthandsInvalidContext:
   parameters:
     Name dotShorthandName: The name of the dot shorthand that was sought.
   problemMessage: "No type was provided to find the dot shorthand '#dotShorthandName'."
-  experiments: dot-shorthands
   script: |
     void main() {
       var x = .one;
@@ -7639,7 +7638,6 @@ dotShorthandsUndefinedGetter:
     Type contextType: The dot shorthand context type in which the getter was sought.
   problemMessage: "The static getter or field '#getterName' isn't defined for the type '#contextType'."
   correctionMessage: "Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#getterName'."
-  experiments: dot-shorthands
   script: |
     class C {
       C get foo => C();
@@ -7654,7 +7652,6 @@ dotShorthandsUndefinedInvocation:
     Type contextType: The dot shorthand context type in which the static method or constructor was sought.
   problemMessage: "The static method or constructor '#memberName' isn't defined for the type '#contextType'."
   correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#memberName'."
-  experiments: dot-shorthands
   script: |
     class C {
       C foo() => C();

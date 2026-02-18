@@ -47,6 +47,7 @@ import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
 import '../type_inference/type_schema.dart';
+import '../util/helpers.dart';
 import 'assigned_variables_impl.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
 import 'body_builder.dart';
@@ -103,6 +104,7 @@ class Resolver {
       thisVariable: null,
       thisTypeParameters: null,
       formalParameterScope: null,
+      internalThisVariable: null,
     );
     List<int> indicesOfAnnotationsToBeInferred = [];
 
@@ -184,6 +186,7 @@ class Resolver {
       thisVariable: null,
       thisTypeParameters: null,
       formalParameterScope: null,
+      internalThisVariable: null,
     );
     BuildEnumConstantResult? result;
     ActualArguments arguments;
@@ -230,6 +233,7 @@ class Resolver {
             fileUri: fileUri,
             declaredType: const UnknownType(),
             initializer: initializer,
+            inferenceDefaultType: InferenceDefaultType.Dynamic,
           );
       initializer = inferenceResult.expression;
       fieldType = inferenceResult.inferredType;
@@ -249,6 +253,7 @@ class Resolver {
     DartType? declaredFieldType,
     required Token startToken,
     required InferenceDataForTesting? inferenceDataForTesting,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
@@ -266,6 +271,8 @@ class Resolver {
       thisVariable: null,
       thisTypeParameters: null,
       formalParameterScope: null,
+      // TODO(cstefantsova): Should a [ThisVariable] be created here?
+      internalThisVariable: null,
     );
     BuildFieldInitializerResult result = bodyBuilder.buildFieldInitializer(
       startToken: startToken,
@@ -276,6 +283,7 @@ class Resolver {
           fileUri: fileUri,
           declaredType: declaredFieldType,
           initializer: result.initializer,
+          inferenceDefaultType: inferenceDefaultType,
         );
     context.performBacklog(result.annotations);
     return expressionInferenceResult;
@@ -314,6 +322,8 @@ class Resolver {
       thisVariable: null,
       thisTypeParameters: null,
       formalParameterScope: null,
+      // TODO(cstefantsova): Should a [ThisVariable] be created here?
+      internalThisVariable: null,
     );
     BuildFieldsResult result = bodyBuilder.buildFields(
       startToken: startToken,
@@ -373,6 +383,8 @@ class Resolver {
           functionBodyBuildingContext.inferenceDataForTesting,
     );
     ConstantContext constantContext = bodyBuilderContext.constantContext;
+    ThisVariable? internalThisVariable = bodyBuilderContext
+        .createInternalThisVariable();
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
@@ -381,6 +393,7 @@ class Resolver {
       thisTypeParameters: functionBodyBuildingContext.thisTypeParameters,
       formalParameterScope: formalParameterScope,
       constantContext: constantContext,
+      internalThisVariable: internalThisVariable,
     );
     Token token = startToken;
     try {
@@ -402,7 +415,7 @@ class Resolver {
         thisVariable: functionBodyBuildingContext.thisVariable,
         initializers: result.initializers,
         constantContext: constantContext,
-        internalThisVariable: bodyBuilder.internalThisVariable,
+        internalThisVariable: internalThisVariable,
       );
       context.performBacklog(result.annotations);
     }
@@ -448,6 +461,8 @@ class Resolver {
       formalParameterScope: formalParameterScope,
       thisVariable: null,
       thisTypeParameters: null,
+      // TODO(cstefantsova): Should [ThisVariable] be created here?
+      internalThisVariable: null,
     );
     constructorBuilder.inferFormalTypes(_classHierarchy);
     BuildInitializersResult result = bodyBuilder.buildInitializers(
@@ -513,6 +528,8 @@ class Resolver {
       thisTypeParameters: null,
       // TODO(johnniwinther): Should we provide this?
       formalParameterScope: null,
+      // TODO(cstefantsova): Should a [ThisVariable] be created here?
+      internalThisVariable: null,
     );
     return bodyBuilder.buildInitializersUnfinished(
       beginInitializers: beginInitializers,
@@ -544,6 +561,7 @@ class Resolver {
       thisVariable: null,
       thisTypeParameters: null,
       formalParameterScope: null,
+      internalThisVariable: null,
     );
     BuildMetadataListResult result = bodyBuilder.buildMetadataList(
       metadata: metadata,
@@ -593,6 +611,7 @@ class Resolver {
       thisVariable: null,
       thisTypeParameters: null,
       formalParameterScope: null,
+      internalThisVariable: null,
     );
     BuildParameterInitializerResult result = bodyBuilder
         .buildParameterInitializer(initializerToken: initializerToken);
@@ -637,6 +656,8 @@ class Resolver {
           functionBodyBuildingContext.inferenceDataForTesting,
     );
     ConstantContext constantContext = bodyBuilderContext.constantContext;
+    ThisVariable? internalThisVariable = bodyBuilderContext
+        .createInternalThisVariable();
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
@@ -645,6 +666,7 @@ class Resolver {
       thisTypeParameters: functionBodyBuildingContext.thisTypeParameters,
       formalParameterScope: formalParameterScope,
       constantContext: constantContext,
+      internalThisVariable: internalThisVariable,
     );
     try {
       BuildPrimaryConstructorResult result = bodyBuilder
@@ -663,7 +685,7 @@ class Resolver {
           thisVariable: functionBodyBuildingContext.thisVariable,
           initializers: result.initializers,
           constantContext: constantContext,
-          internalThisVariable: bodyBuilder.internalThisVariable,
+          internalThisVariable: internalThisVariable,
         );
 
         context.performBacklog(result.annotations);
@@ -713,6 +735,8 @@ class Resolver {
     ProblemReporting problemReporting = libraryBuilder;
     LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
     ConstantContext constantContext = bodyBuilderContext.constantContext;
+    ThisVariable? internalThisVariable = bodyBuilderContext
+        .createInternalThisVariable();
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
@@ -721,6 +745,7 @@ class Resolver {
       formalParameterScope: formalParameterScope,
       thisVariable: functionBodyBuildingContext.thisVariable,
       thisTypeParameters: functionBodyBuildingContext.thisTypeParameters,
+      internalThisVariable: internalThisVariable,
     );
     constructorBuilder.inferFormalTypes(_classHierarchy);
     try {
@@ -742,7 +767,7 @@ class Resolver {
         constantContext: constantContext,
         initializers: result.initializers,
         thisVariable: functionBodyBuildingContext.thisVariable,
-        internalThisVariable: bodyBuilder.internalThisVariable,
+        internalThisVariable: internalThisVariable,
       );
       context.performBacklog(result.annotations);
     }
@@ -794,6 +819,7 @@ class Resolver {
       thisTypeParameters: functionBodyBuildingContext.thisTypeParameters,
       formalParameterScope: formalParameterScope,
       constantContext: constantContext,
+      internalThisVariable: null,
     );
     BuildRedirectingFactoryMethodResult result = bodyBuilder
         .buildRedirectingFactoryMethod(token: token, metadata: metadata);
@@ -826,6 +852,8 @@ class Resolver {
 
     LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
     ConstantContext constantContext = bodyBuilderContext.constantContext;
+    ThisVariable? internalThisVariable = bodyBuilderContext
+        .createInternalThisVariable();
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
@@ -835,6 +863,7 @@ class Resolver {
       // TODO(johnniwinther): Should we provide these?
       thisTypeParameters: null,
       formalParameterScope: null,
+      internalThisVariable: internalThisVariable,
     );
     int fileOffset = token.charOffset;
 
@@ -937,7 +966,7 @@ class Resolver {
           body: fakeReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
           parameters: formalParameters,
-          internalThisVariable: bodyBuilder.internalThisVariable,
+          internalThisVariable: internalThisVariable,
         );
     assert(
       fakeReturn == inferredFunctionBody.body,
@@ -1066,6 +1095,7 @@ class Resolver {
     required VariableDeclaration? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
     required LocalScope? formalParameterScope,
+    required ThisVariable? internalThisVariable,
   }) {
     _benchmarker
     // Coverage-ignore(suite): Not run.
@@ -1078,6 +1108,7 @@ class Resolver {
       thisVariable: thisVariable,
       thisTypeParameters: thisTypeParameters,
       constantContext: constantContext,
+      internalThisVariable: internalThisVariable,
     );
     _benchmarker
         // Coverage-ignore(suite): Not run.
@@ -1093,6 +1124,7 @@ class Resolver {
     required VariableDeclaration? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
     required ConstantContext constantContext,
+    required ThisVariable? internalThisVariable,
   }) {
     return new BodyBuilderImpl(
       libraryBuilder: context.libraryBuilder,
@@ -1108,6 +1140,7 @@ class Resolver {
       assignedVariables: context.assignedVariables,
       typeEnvironment: context.typeEnvironment,
       constantContext: constantContext,
+      internalThisVariable: internalThisVariable,
     );
   }
 
@@ -1194,19 +1227,13 @@ class Resolver {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
         VariableDeclaration variable = parameter.variable!;
-        // TODO(62401): Ensure `variable` is an InternalExpressionVariable.
-        if (variable
-            case InternalExpressionVariable(
-                  astVariable: ExpressionVariable variable,
-                ) ||
-                // Coverage-ignore(suite): Not run.
-                ExpressionVariable variable) {
-          typeInferrer.flowAnalysis.declare(
-            variable,
-            new SharedTypeView(variable.type),
-            initialized: true,
-          );
-        }
+        // TODO(62401): Remove the cast when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        typeInferrer.flowAnalysis.declare(
+          (variable as InternalExpressionVariable).astVariable,
+          new SharedTypeView(variable.type),
+          initialized: true,
+        );
       }
     }
   }

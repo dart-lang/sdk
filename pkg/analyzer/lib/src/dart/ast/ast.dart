@@ -78,7 +78,11 @@ abstract final class AdjacentStrings implements StringLiteral {
   NodeList<StringLiteral> get strings;
 }
 
-@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('strings')])
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('strings', isInValueExpressionSlot: true),
+  ],
+)
 final class AdjacentStringsImpl extends StringLiteralImpl
     implements AdjacentStrings {
   @generated
@@ -119,6 +123,13 @@ final class AdjacentStringsImpl extends StringLiteralImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAdjacentStrings(this, contextType: contextType);
   }
@@ -127,6 +138,23 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   @override
   void visitChildren(AstVisitor visitor) {
     strings.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<StringLiteralImpl>)? visitStrings,
+  }) {
+    if (visitStrings != null) {
+      visitStrings(strings);
+    } else {
+      strings.accept(visitor);
+    }
   }
 
   @override
@@ -202,6 +230,15 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
       return commentToken;
     }
     return metadataToken;
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities {
+    return <SyntacticEntity>[
+      ?_documentationComment,
+      ..._metadata,
+      ...super.childEntities,
+    ];
   }
 
   @override
@@ -434,11 +471,59 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
     typeArguments?.accept(visitor);
     constructorName?.accept(visitor);
     arguments?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(IdentifierImpl)? visitName,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(SimpleIdentifierImpl)? visitConstructorName,
+    void Function(ArgumentListImpl)? visitArguments,
+  }) {
+    if (visitName != null) {
+      visitName(name);
+    } else {
+      name.accept(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (constructorName case var constructorName?) {
+      if (visitConstructorName != null) {
+        visitConstructorName(constructorName);
+      } else {
+        constructorName.accept(visitor);
+      }
+    }
+    if (arguments case var arguments?) {
+      if (visitArguments != null) {
+        visitArguments(arguments);
+      } else {
+        arguments.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -461,6 +546,485 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
       if (arguments._containsOffset(rangeOffset, rangeEnd)) {
         return arguments;
       }
+    }
+    return null;
+  }
+}
+
+/// The body of an anonymous method invocation with a block.
+///
+///    anonymousBlockBody ::= [Block]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class AnonymousBlockBody implements AnonymousMethodBody {
+  /// The block which is the body of the enclosing anonymous method.
+  Block get block;
+}
+
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('block')])
+@experimental
+final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
+    implements AnonymousBlockBody {
+  @generated
+  BlockImpl _block;
+
+  @generated
+  AnonymousBlockBodyImpl({required BlockImpl block}) : _block = block {
+    _becomeParentOf(block);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return block.beginToken;
+  }
+
+  @generated
+  @override
+  BlockImpl get block => _block;
+
+  @generated
+  set block(BlockImpl block) {
+    _block = _becomeParentOf(block);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return block.endToken;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()..addNode('block', block);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitAnonymousBlockBody(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @override
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+      resolver.visitAnonymousBlockBody(this, imposedType: imposedType);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    block.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(BlockImpl)? visitBlock,
+  }) {
+    if (visitBlock != null) {
+      visitBlock(block);
+    } else {
+      block.accept(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (block._containsOffset(rangeOffset, rangeEnd)) {
+      return block;
+    }
+    return null;
+  }
+}
+
+/// The body of an anonymous method invocation with an arrow.
+///
+///     anonymousExpressionBody ::= '=>' [ExpressionWithoutCascade]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class AnonymousExpressionBody implements AnonymousMethodBody {
+  /// The body expression.
+  Expression get expression;
+
+  /// The '=>' token.
+  Token get functionDefinition;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('functionDefinition'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+  ],
+)
+@experimental
+final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
+    implements AnonymousExpressionBody {
+  @generated
+  @override
+  final Token functionDefinition;
+
+  @generated
+  ExpressionImpl _expression;
+
+  @generated
+  AnonymousExpressionBodyImpl({
+    required this.functionDefinition,
+    required ExpressionImpl expression,
+  }) : _expression = expression {
+    _becomeParentOf(expression);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return functionDefinition;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return expression.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get expression => _expression;
+
+  @generated
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('functionDefinition', functionDefinition)
+    ..addNode('expression', expression);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitAnonymousExpressionBody(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @override
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+      resolver.visitAnonymousExpressionBody(this, imposedType: imposedType);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    }
+    return null;
+  }
+}
+
+/// The body of an anonymous method invocation.
+///
+///    anonymousBody ::=
+///        [AnonymousBlockBody] | [AnonymousExpressionBody]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class AnonymousMethodBody implements AstNode {}
+
+@experimental
+sealed class AnonymousMethodBodyImpl extends AstNodeImpl
+    implements AnonymousMethodBody {
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType);
+}
+
+/// The invocation of an anonymous block method of an object.
+///
+///    anonymousMethodInvocation ::=
+///        [Expression] ('.' | '?.' | '..' | '?..') [AnonymousMethod]
+///    anonymousMethod ::=
+///        [FormalParameterList]? [AnonymousMethodBody]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class AnonymousMethodInvocation implements Expression {
+  /// The body of the anonymous method being invoked.
+  AnonymousMethodBody get body;
+
+  /// Whether this expression is cascaded.
+  ///
+  /// If it is, then the target of this expression isn't stored locally but is
+  /// stored in the nearest ancestor that is a [CascadeExpression].
+  bool get isCascaded;
+
+  /// Whether this property access is null aware (as opposed to non-null).
+  bool get isNullAware;
+
+  /// The property access operator.
+  Token get operator;
+
+  /// The parameters associated with the constructor.
+  FormalParameterList? get parameters;
+
+  /// The expression used to compute the receiver of the invocation.
+  ///
+  /// If this invocation isn't part of a cascade expression, then this is the
+  /// same as [target]. If this invocation is part of a cascade expression,
+  /// then the target stored with the cascade expression is returned.
+  Expression get realTarget;
+
+  /// The expression computing the object defining the property being accessed,
+  /// or `null` if this property access is part of a cascade expression.
+  ///
+  /// Use [realTarget] to get the target independent of whether this is part of
+  /// a cascade expression.
+  Expression? get target;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('target'),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('parameters'),
+    GenerateNodeProperty('body'),
+  ],
+)
+@experimental
+final class AnonymousMethodInvocationImpl extends ExpressionImpl
+    with DotShorthandMixin
+    implements AnonymousMethodInvocation {
+  @generated
+  ExpressionImpl? _target;
+
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  FormalParameterListImpl? _parameters;
+
+  @generated
+  AnonymousMethodBodyImpl _body;
+
+  @generated
+  AnonymousMethodInvocationImpl({
+    required ExpressionImpl? target,
+    required this.operator,
+    required FormalParameterListImpl? parameters,
+    required AnonymousMethodBodyImpl body,
+  }) : _target = target,
+       _parameters = parameters,
+       _body = body {
+    _becomeParentOf(target);
+    _becomeParentOf(parameters);
+    _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (target case var target?) {
+      return target.beginToken;
+    }
+    return operator;
+  }
+
+  @generated
+  @override
+  AnonymousMethodBodyImpl get body => _body;
+
+  @generated
+  set body(AnonymousMethodBodyImpl body) {
+    _body = _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  /* TODO(eernst)
+  AnonymousMethodElementImpl get anonymousMethodElement =>
+      AnonymousMethodElementImpl(
+        AnonymousMethodFragmentImpl(firstTokenOffset: beginToken.offset),
+      );
+  */
+
+  @override
+  bool get isAssignable => false;
+
+  @override
+  bool get isCascaded =>
+      operator.type == TokenType.PERIOD_PERIOD ||
+      operator.type == TokenType.QUESTION_PERIOD_PERIOD;
+
+  @override
+  bool get isNullAware {
+    if (isCascaded) {
+      return _ancestorCascade.isNullAware;
+    }
+    return operator.type == TokenType.QUESTION_PERIOD ||
+        operator.type == TokenType.QUESTION_PERIOD_PERIOD;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl? get parameters => _parameters;
+
+  @generated
+  set parameters(FormalParameterListImpl? parameters) {
+    _parameters = _becomeParentOf(parameters);
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  ExpressionImpl get realTarget {
+    if (isCascaded) {
+      return _ancestorCascade.target;
+    }
+    return _target!;
+  }
+
+  @generated
+  @override
+  ExpressionImpl? get target => _target;
+
+  @generated
+  set target(ExpressionImpl? target) {
+    _target = _becomeParentOf(target);
+  }
+
+  /// The cascade that contains this [AnonymousMethodInvocation].
+  ///
+  /// This method assumes that [isCascaded] is `true`.
+  CascadeExpressionImpl get _ancestorCascade {
+    assert(isCascaded);
+    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
+      if (ancestor is CascadeExpressionImpl) {
+        return ancestor;
+      }
+    }
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('target', target)
+    ..addToken('operator', operator)
+    ..addNode('parameters', parameters)
+    ..addNode('body', body);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitAnonymousMethodInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitAnonymousMethodInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    target?.accept(visitor);
+    parameters?.accept(visitor);
+    body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitTarget,
+    void Function(FormalParameterListImpl)? visitParameters,
+    void Function(AnonymousMethodBodyImpl)? visitBody,
+  }) {
+    if (target case var target?) {
+      if (visitTarget != null) {
+        visitTarget(target);
+      } else {
+        target.accept(visitor);
+      }
+    }
+    if (parameters case var parameters?) {
+      if (visitParameters != null) {
+        visitParameters(parameters);
+      } else {
+        parameters.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (target case var target?) {
+      if (target._containsOffset(rangeOffset, rangeEnd)) {
+        return target;
+      }
+    }
+    if (parameters case var parameters?) {
+      if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+        return parameters;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
     }
     return null;
   }
@@ -496,7 +1060,7 @@ abstract final class ArgumentList implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('arguments'),
+    GenerateNodeProperty('arguments', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
@@ -571,8 +1135,32 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     arguments.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<ExpressionImpl>)? visitArguments,
+  }) {
+    if (visitArguments != null) {
+      visitArguments(arguments);
+    } else {
+      arguments.accept(visitor);
+    }
   }
 
   @generated
@@ -630,7 +1218,7 @@ abstract final class AsExpression implements Expression {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('asOperator'),
     GenerateNodeProperty('type'),
   ],
@@ -703,6 +1291,13 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAsExpression(this, contextType: contextType);
   }
@@ -712,6 +1307,29 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     type.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+    void Function(TypeAnnotationImpl)? visitType,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
+    if (visitType != null) {
+      visitType(type);
+    } else {
+      type.accept(visitor);
+    }
   }
 
   @generated
@@ -739,9 +1357,9 @@ abstract final class AssertInitializer
   childEntitiesOrder: [
     GenerateNodeProperty('assertKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('condition'),
+    GenerateNodeProperty('condition', isInValueExpressionSlot: true),
     GenerateNodeProperty('comma'),
-    GenerateNodeProperty('message'),
+    GenerateNodeProperty('message', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
@@ -829,9 +1447,41 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
     message?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitCondition,
+    void Function(ExpressionImpl)? visitMessage,
+  }) {
+    if (visitCondition != null) {
+      visitCondition(condition);
+    } else {
+      condition.accept(visitor);
+    }
+    if (message case var message?) {
+      if (visitMessage != null) {
+        visitMessage(message);
+      } else {
+        message.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -887,9 +1537,9 @@ abstract final class AssertStatement implements Assertion, Statement {
   childEntitiesOrder: [
     GenerateNodeProperty('assertKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('condition'),
+    GenerateNodeProperty('condition', isInValueExpressionSlot: true),
     GenerateNodeProperty('comma'),
-    GenerateNodeProperty('message'),
+    GenerateNodeProperty('message', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('semicolon'),
   ],
@@ -984,9 +1634,41 @@ final class AssertStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
     message?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitCondition,
+    void Function(ExpressionImpl)? visitMessage,
+  }) {
+    if (visitCondition != null) {
+      visitCondition(condition);
+    } else {
+      condition.accept(visitor);
+    }
+    if (message case var message?) {
+      if (visitMessage != null) {
+        visitMessage(message);
+      } else {
+        message.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -1065,6 +1747,13 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
     return resolverVisitor.operations.unknownType.unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -1079,6 +1768,10 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -1108,7 +1801,7 @@ abstract final class AssignmentExpression
   childEntitiesOrder: [
     GenerateNodeProperty('leftHandSide'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightHandSide'),
+    GenerateNodeProperty('rightHandSide', isInValueExpressionSlot: true),
   ],
 )
 final class AssignmentExpressionImpl extends ExpressionImpl
@@ -1212,6 +1905,13 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(rightHandSide, child);
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAssignmentExpression(this, contextType: contextType);
   }
@@ -1221,6 +1921,29 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     leftHandSide.accept(visitor);
     rightHandSide.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitLeftHandSide,
+    void Function(ExpressionImpl)? visitRightHandSide,
+  }) {
+    if (visitLeftHandSide != null) {
+      visitLeftHandSide(leftHandSide);
+    } else {
+      leftHandSide.accept(visitor);
+    }
+    if (visitRightHandSide != null) {
+      visitRightHandSide(rightHandSide);
+    } else {
+      rightHandSide.accept(visitor);
+    }
   }
 
   @generated
@@ -1389,6 +2112,14 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   Token? findPrevious(Token target) =>
       util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
 
+  /// Returns `true` if [child] is in a slot of this node that allows a value
+  /// expression.
+  ///
+  /// For example, in `a + b`, both `a` and `b` are in value expression slots.
+  /// However, in `x is T`, `T` is in a type reference slot, so it is not
+  /// in a value expression slot.
+  bool isInValueExpressionSlot(AstNode child) => false;
+
   @override
   E? thisOrAncestorMatching<E extends AstNode>(
     bool Function(AstNode) predicate,
@@ -1531,7 +2262,7 @@ abstract final class AwaitExpression implements Expression {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('awaitKeyword'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class AwaitExpressionImpl extends ExpressionImpl
@@ -1587,6 +2318,13 @@ final class AwaitExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitAwaitExpression(this, contextType: contextType);
   }
@@ -1595,6 +2333,23 @@ final class AwaitExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -1630,9 +2385,9 @@ abstract final class BinaryExpression
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand'),
+    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand'),
+    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
   ],
 )
 final class BinaryExpressionImpl extends ExpressionImpl
@@ -1710,6 +2465,13 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitBinaryExpression(this, contextType: contextType);
   }
@@ -1719,6 +2481,29 @@ final class BinaryExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
     rightOperand.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitLeftOperand,
+    void Function(ExpressionImpl)? visitRightOperand,
+  }) {
+    if (visitLeftOperand != null) {
+      visitLeftOperand(leftOperand);
+    } else {
+      leftOperand.accept(visitor);
+    }
+    if (visitRightOperand != null) {
+      visitRightOperand(rightOperand);
+    } else {
+      rightOperand.accept(visitor);
+    }
   }
 
   @generated
@@ -1817,8 +2602,32 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     members.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<ClassMemberImpl>)? visitMembers,
+  }) {
+    if (visitMembers != null) {
+      visitMembers(members);
+    } else {
+      members.accept(visitor);
+    }
   }
 
   @generated
@@ -1918,6 +2727,13 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitBlockFunctionBody(this, imposedType: imposedType);
@@ -1926,6 +2742,23 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   @override
   void visitChildren(AstVisitor visitor) {
     block.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(BlockImpl)? visitBlock,
+  }) {
+    if (visitBlock != null) {
+      visitBlock(block);
+    } else {
+      block.accept(visitor);
+    }
   }
 
   @generated
@@ -1994,8 +2827,32 @@ final class BlockImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     statements.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+  }) {
+    if (visitStatements != null) {
+      visitStatements(statements);
+    } else {
+      statements.accept(visitor);
+    }
   }
 
   @generated
@@ -2066,6 +2923,13 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitBooleanLiteral(this, contextType: contextType);
   }
@@ -2073,6 +2937,10 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -2175,8 +3043,34 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     label?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitLabel,
+  }) {
+    if (label case var label?) {
+      if (visitLabel != null) {
+        visitLabel(label);
+      } else {
+        label.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -2221,7 +3115,7 @@ abstract final class CascadeExpression implements Expression {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('target'),
+    GenerateNodeProperty('target', isInValueExpressionSlot: true),
     GenerateNodeProperty('cascadeSections'),
   ],
 )
@@ -2287,6 +3181,13 @@ final class CascadeExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(target, child);
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitCascadeExpression(this, contextType: contextType);
   }
@@ -2296,6 +3197,29 @@ final class CascadeExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     target.accept(visitor);
     cascadeSections.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitTarget,
+    void Function(NodeListImpl<ExpressionImpl>)? visitCascadeSections,
+  }) {
+    if (visitTarget != null) {
+      visitTarget(target);
+    } else {
+      target.accept(visitor);
+    }
+    if (visitCascadeSections != null) {
+      visitCascadeSections(cascadeSections);
+    } else {
+      cascadeSections.accept(visitor);
+    }
   }
 
   @generated
@@ -2382,8 +3306,32 @@ final class CaseClauseImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     guardedPattern.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(GuardedPatternImpl)? visitGuardedPattern,
+  }) {
+    if (visitGuardedPattern != null) {
+      visitGuardedPattern(guardedPattern);
+    } else {
+      guardedPattern.accept(visitor);
+    }
   }
 
   @generated
@@ -2497,6 +3445,13 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
     return resolverVisitor.analyzeCastPatternSchema().unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -2529,6 +3484,29 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
     type.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DartPatternImpl)? visitPattern,
+    void Function(TypeAnnotationImpl)? visitType,
+  }) {
+    if (visitPattern != null) {
+      visitPattern(pattern);
+    } else {
+      pattern.accept(visitor);
+    }
+    if (visitType != null) {
+      visitType(type);
+    } else {
+      type.accept(visitor);
+    }
   }
 
   @generated
@@ -2746,11 +3724,59 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     exceptionType?.accept(visitor);
     exceptionParameter?.accept(visitor);
     stackTraceParameter?.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitExceptionType,
+    void Function(CatchClauseParameterImpl)? visitExceptionParameter,
+    void Function(CatchClauseParameterImpl)? visitStackTraceParameter,
+    void Function(BlockImpl)? visitBody,
+  }) {
+    if (exceptionType case var exceptionType?) {
+      if (visitExceptionType != null) {
+        visitExceptionType(exceptionType);
+      } else {
+        exceptionType.accept(visitor);
+      }
+    }
+    if (exceptionParameter case var exceptionParameter?) {
+      if (visitExceptionParameter != null) {
+        visitExceptionParameter(exceptionParameter);
+      } else {
+        exceptionParameter.accept(visitor);
+      }
+    }
+    if (stackTraceParameter case var stackTraceParameter?) {
+      if (visitStackTraceParameter != null) {
+        visitStackTraceParameter(stackTraceParameter);
+      } else {
+        stackTraceParameter.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -2826,7 +3852,18 @@ final class CatchClauseParameterImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -3249,6 +4286,13 @@ final class ClassDeclarationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     namePart.accept(visitor);
@@ -3257,6 +4301,62 @@ final class ClassDeclarationImpl
     implementsClause?.accept(visitor);
     nativeClause?.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ClassNamePartImpl)? visitNamePart,
+    void Function(ExtendsClauseImpl)? visitExtendsClause,
+    void Function(WithClauseImpl)? visitWithClause,
+    void Function(ImplementsClauseImpl)? visitImplementsClause,
+    void Function(NativeClauseImpl)? visitNativeClause,
+    void Function(ClassBodyImpl)? visitBody,
+  }) {
+    super.visitChildren(visitor);
+    if (visitNamePart != null) {
+      visitNamePart(namePart);
+    } else {
+      namePart.accept(visitor);
+    }
+    if (extendsClause case var extendsClause?) {
+      if (visitExtendsClause != null) {
+        visitExtendsClause(extendsClause);
+      } else {
+        extendsClause.accept(visitor);
+      }
+    }
+    if (withClause case var withClause?) {
+      if (visitWithClause != null) {
+        visitWithClause(withClause);
+      } else {
+        withClause.accept(visitor);
+      }
+    }
+    if (implementsClause case var implementsClause?) {
+      if (visitImplementsClause != null) {
+        visitImplementsClause(implementsClause);
+      } else {
+        implementsClause.accept(visitor);
+      }
+    }
+    if (nativeClause case var nativeClause?) {
+      if (visitNativeClause != null) {
+        visitNativeClause(nativeClause);
+      } else {
+        nativeClause.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -3566,12 +4666,59 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     typeParameters?.accept(visitor);
     superclass.accept(visitor);
     withClause.accept(visitor);
     implementsClause?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(NamedTypeImpl)? visitSuperclass,
+    void Function(WithClauseImpl)? visitWithClause,
+    void Function(ImplementsClauseImpl)? visitImplementsClause,
+  }) {
+    super.visitChildren(visitor);
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (visitSuperclass != null) {
+      visitSuperclass(superclass);
+    } else {
+      superclass.accept(visitor);
+    }
+    if (visitWithClause != null) {
+      visitWithClause(withClause);
+    } else {
+      withClause.accept(visitor);
+    }
+    if (implementsClause case var implementsClause?) {
+      if (visitImplementsClause != null) {
+        visitImplementsClause(implementsClause);
+      } else {
+        implementsClause.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -3838,8 +4985,32 @@ final class CommentReferenceImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(CommentReferableExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -4220,11 +5391,11 @@ abstract final class ConditionalExpression implements Expression {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('condition'),
+    GenerateNodeProperty('condition', isInValueExpressionSlot: true),
     GenerateNodeProperty('question'),
-    GenerateNodeProperty('thenExpression'),
+    GenerateNodeProperty('thenExpression', isInValueExpressionSlot: true),
     GenerateNodeProperty('colon'),
-    GenerateNodeProperty('elseExpression'),
+    GenerateNodeProperty('elseExpression', isInValueExpressionSlot: true),
   ],
 )
 final class ConditionalExpressionImpl extends ExpressionImpl
@@ -4319,6 +5490,13 @@ final class ConditionalExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitConditionalExpression(this, contextType: contextType);
   }
@@ -4329,6 +5507,35 @@ final class ConditionalExpressionImpl extends ExpressionImpl
     condition.accept(visitor);
     thenExpression.accept(visitor);
     elseExpression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitCondition,
+    void Function(ExpressionImpl)? visitThenExpression,
+    void Function(ExpressionImpl)? visitElseExpression,
+  }) {
+    if (visitCondition != null) {
+      visitCondition(condition);
+    } else {
+      condition.accept(visitor);
+    }
+    if (visitThenExpression != null) {
+      visitThenExpression(thenExpression);
+    } else {
+      thenExpression.accept(visitor);
+    }
+    if (visitElseExpression != null) {
+      visitElseExpression(elseExpression);
+    } else {
+      elseExpression.accept(visitor);
+    }
   }
 
   @generated
@@ -4394,7 +5601,7 @@ abstract final class Configuration implements AstNode {
     GenerateNodeProperty('leftParenthesis'),
     GenerateNodeProperty('name'),
     GenerateNodeProperty('equalToken'),
-    GenerateNodeProperty('value'),
+    GenerateNodeProperty('value', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('uri'),
   ],
@@ -4501,10 +5708,48 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(value, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
     value?.accept(visitor);
     uri.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DottedNameImpl)? visitName,
+    void Function(StringLiteralImpl)? visitValue,
+    void Function(StringLiteralImpl)? visitUri,
+  }) {
+    if (visitName != null) {
+      visitName(name);
+    } else {
+      name.accept(visitor);
+    }
+    if (value case var value?) {
+      if (visitValue != null) {
+        visitValue(value);
+      } else {
+        value.accept(visitor);
+      }
+    }
+    if (visitUri != null) {
+      visitUri(uri);
+    } else {
+      uri.accept(visitor);
+    }
   }
 
   @generated
@@ -4571,7 +5816,7 @@ abstract final class ConstantPattern implements DartPattern {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('constKeyword'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class ConstantPatternImpl extends DartPatternImpl
@@ -4635,6 +5880,13 @@ final class ConstantPatternImpl extends DartPatternImpl
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -4655,6 +5907,23 @@ final class ConstantPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -4965,6 +6234,13 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     typeName?.accept(visitor);
@@ -4972,6 +6248,52 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     initializers.accept(visitor);
     redirectedConstructor?.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitTypeName,
+    void Function(FormalParameterListImpl)? visitParameters,
+    void Function(NodeListImpl<ConstructorInitializerImpl>)? visitInitializers,
+    void Function(ConstructorNameImpl)? visitRedirectedConstructor,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    super.visitChildren(visitor);
+    if (typeName case var typeName?) {
+      if (visitTypeName != null) {
+        visitTypeName(typeName);
+      } else {
+        typeName.accept(visitor);
+      }
+    }
+    if (visitParameters != null) {
+      visitParameters(parameters);
+    } else {
+      parameters.accept(visitor);
+    }
+    if (visitInitializers != null) {
+      visitInitializers(initializers);
+    } else {
+      initializers.accept(visitor);
+    }
+    if (redirectedConstructor case var redirectedConstructor?) {
+      if (visitRedirectedConstructor != null) {
+        visitRedirectedConstructor(redirectedConstructor);
+      } else {
+        redirectedConstructor.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -5034,7 +6356,7 @@ abstract final class ConstructorFieldInitializer
     GenerateNodeProperty('period'),
     GenerateNodeProperty('fieldName'),
     GenerateNodeProperty('equals'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
@@ -5122,9 +6444,39 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     fieldName.accept(visitor);
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitFieldName,
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitFieldName != null) {
+      visitFieldName(fieldName);
+    } else {
+      fieldName.accept(visitor);
+    }
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -5252,9 +6604,41 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
     name?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NamedTypeImpl)? visitType,
+    void Function(SimpleIdentifierImpl)? visitName,
+  }) {
+    if (visitType != null) {
+      visitType(type);
+    } else {
+      type.accept(visitor);
+    }
+    if (name case var name?) {
+      if (visitName != null) {
+        visitName(name);
+      } else {
+        name.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -5334,6 +6718,13 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitConstructorReference(this, contextType: contextType);
   }
@@ -5342,6 +6733,23 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ConstructorNameImpl)? visitConstructorName,
+  }) {
+    if (visitConstructorName != null) {
+      visitConstructorName(constructorName);
+    } else {
+      constructorName.accept(visitor);
+    }
   }
 
   @generated
@@ -5434,8 +6842,32 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitName,
+  }) {
+    if (visitName != null) {
+      visitName(name);
+    } else {
+      name.accept(visitor);
+    }
   }
 
   @generated
@@ -5541,8 +6973,34 @@ final class ContinueStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     label?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitLabel,
+  }) {
+    if (label case var label?) {
+      if (visitLabel != null) {
+        visitLabel(label);
+      } else {
+        label.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -5787,9 +7245,36 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     type?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+  }) {
+    super.visitChildren(visitor);
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -5914,6 +7399,13 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -5945,6 +7437,25 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+  }) {
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -5987,7 +7498,7 @@ abstract final class DefaultFormalParameter implements FormalParameter {
   childEntitiesOrder: [
     GenerateNodeProperty('parameter'),
     GenerateNodeProperty('separator'),
-    GenerateNodeProperty('defaultValue'),
+    GenerateNodeProperty('defaultValue', isInValueExpressionSlot: true),
     GenerateNodeProperty('kind', type: ParameterKind),
   ],
 )
@@ -6094,9 +7605,41 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(defaultValue, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     parameter.accept(visitor);
     defaultValue?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NormalFormalParameterImpl)? visitParameter,
+    void Function(ExpressionImpl)? visitDefaultValue,
+  }) {
+    if (visitParameter != null) {
+      visitParameter(parameter);
+    } else {
+      parameter.accept(visitor);
+    }
+    if (defaultValue case var defaultValue?) {
+      if (visitDefaultValue != null) {
+        visitDefaultValue(defaultValue);
+      } else {
+        defaultValue.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -6175,7 +7718,7 @@ abstract final class DoStatement implements Statement {
     GenerateNodeProperty('body'),
     GenerateNodeProperty('whileKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('condition'),
+    GenerateNodeProperty('condition', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('semicolon'),
   ],
@@ -6269,9 +7812,39 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(condition, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     body.accept(visitor);
     condition.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(StatementImpl)? visitBody,
+    void Function(ExpressionImpl)? visitCondition,
+  }) {
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
+    if (visitCondition != null) {
+      visitCondition(condition);
+    } else {
+      condition.accept(visitor);
+    }
   }
 
   @generated
@@ -6425,6 +7998,13 @@ final class DotShorthandConstructorInvocationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDotShorthandConstructorInvocation(
       this,
@@ -6438,6 +8018,37 @@ final class DotShorthandConstructorInvocationImpl
     constructorName.accept(visitor);
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitConstructorName,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitConstructorName != null) {
+      visitConstructorName(constructorName);
+    } else {
+      constructorName.accept(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept(visitor);
+    }
   }
 
   @generated
@@ -6544,6 +8155,13 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDotShorthandInvocation(this, contextType: contextType);
   }
@@ -6554,6 +8172,37 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     memberName.accept(visitor);
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitMemberName,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitMemberName != null) {
+      visitMemberName(memberName);
+    } else {
+      memberName.accept(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept(visitor);
+    }
   }
 
   @generated
@@ -6666,6 +8315,13 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDotShorthandPropertyAccess(this, contextType: contextType);
   }
@@ -6674,6 +8330,23 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     propertyName.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitPropertyName,
+  }) {
+    if (visitPropertyName != null) {
+      visitPropertyName(propertyName);
+    } else {
+      propertyName.accept(visitor);
+    }
   }
 
   @generated
@@ -6736,8 +8409,32 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     components.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<SimpleIdentifierImpl>)? visitComponents,
+  }) {
+    if (visitComponents != null) {
+      visitComponents(components);
+    } else {
+      components.accept(visitor);
+    }
   }
 
   @generated
@@ -6809,6 +8506,13 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDoubleLiteral(this, contextType: contextType);
   }
@@ -6816,6 +8520,10 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -6866,7 +8574,18 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -6919,6 +8638,13 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitEmptyFunctionBody(this, imposedType: imposedType);
@@ -6926,6 +8652,10 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -6979,7 +8709,18 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -7074,6 +8815,13 @@ final class EnumBodyImpl extends AstNodeImpl implements EnumBody {
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumBody(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
@@ -7082,6 +8830,29 @@ final class EnumBodyImpl extends AstNodeImpl implements EnumBody {
   void visitChildren(AstVisitor visitor) {
     constants.accept(visitor);
     members.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<EnumConstantDeclarationImpl>)? visitConstants,
+    void Function(NodeListImpl<ClassMemberImpl>)? visitMembers,
+  }) {
+    if (visitConstants != null) {
+      visitConstants(constants);
+    } else {
+      constants.accept(visitor);
+    }
+    if (visitMembers != null) {
+      visitMembers(members);
+    } else {
+      members.accept(visitor);
+    }
   }
 
   @generated
@@ -7208,10 +8979,50 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     constructorSelector?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ConstructorSelectorImpl)? visitConstructorSelector,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (constructorSelector case var constructorSelector?) {
+      if (visitConstructorSelector != null) {
+        visitConstructorSelector(constructorSelector);
+      } else {
+        constructorSelector.accept(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept(visitor);
+    }
   }
 
   @generated
@@ -7336,9 +9147,36 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     arguments?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(EnumConstantArgumentsImpl)? visitArguments,
+  }) {
+    super.visitChildren(visitor);
+    if (arguments case var arguments?) {
+      if (visitArguments != null) {
+        visitArguments(arguments);
+      } else {
+        arguments.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -7588,12 +9426,59 @@ final class EnumDeclarationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     namePart.accept(visitor);
     withClause?.accept(visitor);
     implementsClause?.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ClassNamePartImpl)? visitNamePart,
+    void Function(WithClauseImpl)? visitWithClause,
+    void Function(ImplementsClauseImpl)? visitImplementsClause,
+    void Function(EnumBodyImpl)? visitBody,
+  }) {
+    super.visitChildren(visitor);
+    if (visitNamePart != null) {
+      visitNamePart(namePart);
+    } else {
+      namePart.accept(visitor);
+    }
+    if (withClause case var withClause?) {
+      if (visitWithClause != null) {
+        visitWithClause(withClause);
+      } else {
+        withClause.accept(visitor);
+      }
+    }
+    if (implementsClause case var implementsClause?) {
+      if (visitImplementsClause != null) {
+        visitImplementsClause(implementsClause);
+      } else {
+        implementsClause.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -7693,11 +9578,48 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     uri.accept(visitor);
     configurations.accept(visitor);
     combinators.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(StringLiteralImpl)? visitUri,
+    void Function(NodeListImpl<ConfigurationImpl>)? visitConfigurations,
+    void Function(NodeListImpl<CombinatorImpl>)? visitCombinators,
+  }) {
+    super.visitChildren(visitor);
+    if (visitUri != null) {
+      visitUri(uri);
+    } else {
+      uri.accept(visitor);
+    }
+    if (visitConfigurations != null) {
+      visitConfigurations(configurations);
+    } else {
+      configurations.accept(visitor);
+    }
+    if (visitCombinators != null) {
+      visitCombinators(combinators);
+    } else {
+      combinators.accept(visitor);
+    }
   }
 
   @generated
@@ -7835,7 +9757,7 @@ abstract final class ExpressionFunctionBody implements FunctionBody {
     GenerateNodeProperty('keyword'),
     GenerateNodeProperty('star'),
     GenerateNodeProperty('functionDefinition'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -7925,6 +9847,13 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExpressionFunctionBody(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
   @override
   TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitExpressionFunctionBody(this, imposedType: imposedType);
@@ -7933,6 +9862,23 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -8187,7 +10133,7 @@ abstract final class ExpressionStatement implements Statement {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -8248,8 +10194,32 @@ final class ExpressionStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -8330,8 +10300,32 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     superclass.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NamedTypeImpl)? visitSuperclass,
+  }) {
+    if (visitSuperclass != null) {
+      visitSuperclass(superclass);
+    } else {
+      superclass.accept(visitor);
+    }
   }
 
   @generated
@@ -8529,11 +10523,52 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     typeParameters?.accept(visitor);
     onClause?.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(ExtensionOnClauseImpl)? visitOnClause,
+    void Function(BlockClassBodyImpl)? visitBody,
+  }) {
+    super.visitChildren(visitor);
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (onClause case var onClause?) {
+      if (visitOnClause != null) {
+        visitOnClause(onClause);
+      } else {
+        onClause.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -8627,8 +10662,32 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     extendedType.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitExtendedType,
+  }) {
+    if (visitExtendedType != null) {
+      visitExtendedType(extendedType);
+    } else {
+      extendedType.accept(visitor);
+    }
   }
 
   @generated
@@ -8798,6 +10857,13 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitExtensionOverride(this, contextType: contextType);
   }
@@ -8808,6 +10874,39 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     importPrefix?.accept(visitor);
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (importPrefix case var importPrefix?) {
+      if (visitImportPrefix != null) {
+        visitImportPrefix(importPrefix);
+      } else {
+        importPrefix.accept(visitor);
+      }
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept(visitor);
+    }
   }
 
   @generated
@@ -9128,11 +11227,50 @@ final class ExtensionTypeDeclarationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     primaryConstructor.accept(visitor);
     implementsClause?.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(PrimaryConstructorDeclarationImpl)? visitPrimaryConstructor,
+    void Function(ImplementsClauseImpl)? visitImplementsClause,
+    void Function(ClassBodyImpl)? visitBody,
+  }) {
+    super.visitChildren(visitor);
+    if (visitPrimaryConstructor != null) {
+      visitPrimaryConstructor(primaryConstructor);
+    } else {
+      primaryConstructor.accept(visitor);
+    }
+    if (implementsClause case var implementsClause?) {
+      if (visitImplementsClause != null) {
+        visitImplementsClause(implementsClause);
+      } else {
+        implementsClause.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -9311,9 +11449,34 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     fields.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(VariableDeclarationListImpl)? visitFields,
+  }) {
+    super.visitChildren(visitor);
+    if (visitFields != null) {
+      visitFields(fields);
+    } else {
+      fields.accept(visitor);
+    }
   }
 
   @generated
@@ -9541,11 +11704,54 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     type?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(FormalParameterListImpl)? visitParameters,
+  }) {
+    super.visitChildren(visitor);
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept(visitor);
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (parameters case var parameters?) {
+      if (visitParameters != null) {
+        visitParameters(parameters);
+      } else {
+        parameters.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -9643,7 +11849,11 @@ abstract final class ForEachPartsWithDeclaration implements ForEachParts {
   childEntitiesOrder: [
     GenerateNodeProperty('loopVariable'),
     GenerateNodeProperty('inKeyword', isSuper: true),
-    GenerateNodeProperty('iterable', isSuper: true),
+    GenerateNodeProperty(
+      'iterable',
+      isSuper: true,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
@@ -9695,9 +11905,39 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(iterable, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     loopVariable.accept(visitor);
     iterable.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DeclaredIdentifierImpl)? visitLoopVariable,
+    void Function(ExpressionImpl)? visitIterable,
+  }) {
+    if (visitLoopVariable != null) {
+      visitLoopVariable(loopVariable);
+    } else {
+      loopVariable.accept(visitor);
+    }
+    if (visitIterable != null) {
+      visitIterable(iterable);
+    } else {
+      iterable.accept(visitor);
+    }
   }
 
   @generated
@@ -9728,7 +11968,11 @@ abstract final class ForEachPartsWithIdentifier implements ForEachParts {
   childEntitiesOrder: [
     GenerateNodeProperty('identifier'),
     GenerateNodeProperty('inKeyword', isSuper: true),
-    GenerateNodeProperty('iterable', isSuper: true),
+    GenerateNodeProperty(
+      'iterable',
+      isSuper: true,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
@@ -9780,9 +12024,39 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(iterable, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     identifier.accept(visitor);
     iterable.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitIdentifier,
+    void Function(ExpressionImpl)? visitIterable,
+  }) {
+    if (visitIdentifier != null) {
+      visitIdentifier(identifier);
+    } else {
+      identifier.accept(visitor);
+    }
+    if (visitIterable != null) {
+      visitIterable(iterable);
+    } else {
+      iterable.accept(visitor);
+    }
   }
 
   @generated
@@ -9820,7 +12094,11 @@ abstract final class ForEachPartsWithPattern implements ForEachParts {
     GenerateNodeProperty('keyword'),
     GenerateNodeProperty('pattern'),
     GenerateNodeProperty('inKeyword', isSuper: true),
-    GenerateNodeProperty('iterable', isSuper: true),
+    GenerateNodeProperty(
+      'iterable',
+      isSuper: true,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
@@ -9899,10 +12177,46 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(iterable, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
     pattern.accept(visitor);
     iterable.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<AnnotationImpl>)? visitMetadata,
+    void Function(DartPatternImpl)? visitPattern,
+    void Function(ExpressionImpl)? visitIterable,
+  }) {
+    if (visitMetadata != null) {
+      visitMetadata(metadata);
+    } else {
+      metadata.accept(visitor);
+    }
+    if (visitPattern != null) {
+      visitPattern(pattern);
+    } else {
+      pattern.accept(visitor);
+    }
+    if (visitIterable != null) {
+      visitIterable(iterable);
+    } else {
+      iterable.accept(visitor);
+    }
   }
 
   @generated
@@ -9934,7 +12248,7 @@ abstract final class ForElement
     GenerateNodeProperty('leftParenthesis'),
     GenerateNodeProperty('forLoopParts'),
     GenerateNodeProperty('rightParenthesis'),
-    GenerateNodeProperty('body'),
+    GenerateNodeProperty('body', isInValueExpressionSlot: true),
   ],
 )
 final class ForElementImpl extends CollectionElementImpl
@@ -10025,6 +12339,13 @@ final class ForElementImpl extends CollectionElementImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForElement(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(body, child);
+  }
+
   @override
   void resolveElement(
     ResolverVisitor resolver,
@@ -10039,6 +12360,29 @@ final class ForElementImpl extends CollectionElementImpl
   void visitChildren(AstVisitor visitor) {
     forLoopParts.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ForLoopPartsImpl)? visitForLoopParts,
+    void Function(CollectionElementImpl)? visitBody,
+  }) {
+    if (visitForLoopParts != null) {
+      visitForLoopParts(forLoopParts);
+    } else {
+      forLoopParts.accept(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -10379,8 +12723,32 @@ final class FormalParameterListImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     parameters.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<FormalParameterImpl>)? visitParameters,
+  }) {
+    if (visitParameters != null) {
+      visitParameters(parameters);
+    } else {
+      parameters.accept(visitor);
+    }
   }
 
   @generated
@@ -10493,9 +12861,17 @@ abstract final class ForPartsWithDeclarations implements ForParts {
   childEntitiesOrder: [
     GenerateNodeProperty('variables'),
     GenerateNodeProperty('leftSeparator', isSuper: true),
-    GenerateNodeProperty('condition', isSuper: true),
+    GenerateNodeProperty(
+      'condition',
+      isSuper: true,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
-    GenerateNodeProperty('updaters', isSuper: true),
+    GenerateNodeProperty(
+      'updaters',
+      isSuper: true,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ForPartsWithDeclarationsImpl extends ForPartsImpl
@@ -10554,10 +12930,48 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return !identical(variables, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
     condition?.accept(visitor);
     updaters.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(VariableDeclarationListImpl)? visitVariables,
+    void Function(ExpressionImpl)? visitCondition,
+    void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters,
+  }) {
+    if (visitVariables != null) {
+      visitVariables(variables);
+    } else {
+      variables.accept(visitor);
+    }
+    if (condition case var condition?) {
+      if (visitCondition != null) {
+        visitCondition(condition);
+      } else {
+        condition.accept(visitor);
+      }
+    }
+    if (visitUpdaters != null) {
+      visitUpdaters(updaters);
+    } else {
+      updaters.accept(visitor);
+    }
   }
 
   @generated
@@ -10596,11 +13010,19 @@ abstract final class ForPartsWithExpression implements ForParts {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('initialization'),
+    GenerateNodeProperty('initialization', isInValueExpressionSlot: true),
     GenerateNodeProperty('leftSeparator', isSuper: true),
-    GenerateNodeProperty('condition', isSuper: true),
+    GenerateNodeProperty(
+      'condition',
+      isSuper: true,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
-    GenerateNodeProperty('updaters', isSuper: true),
+    GenerateNodeProperty(
+      'updaters',
+      isSuper: true,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ForPartsWithExpressionImpl extends ForPartsImpl
@@ -10662,10 +13084,50 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     initialization?.accept(visitor);
     condition?.accept(visitor);
     updaters.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitInitialization,
+    void Function(ExpressionImpl)? visitCondition,
+    void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters,
+  }) {
+    if (initialization case var initialization?) {
+      if (visitInitialization != null) {
+        visitInitialization(initialization);
+      } else {
+        initialization.accept(visitor);
+      }
+    }
+    if (condition case var condition?) {
+      if (visitCondition != null) {
+        visitCondition(condition);
+      } else {
+        condition.accept(visitor);
+      }
+    }
+    if (visitUpdaters != null) {
+      visitUpdaters(updaters);
+    } else {
+      updaters.accept(visitor);
+    }
   }
 
   @generated
@@ -10704,9 +13166,17 @@ abstract final class ForPartsWithPattern implements ForParts {
   childEntitiesOrder: [
     GenerateNodeProperty('variables'),
     GenerateNodeProperty('leftSeparator', isSuper: true),
-    GenerateNodeProperty('condition', isSuper: true),
+    GenerateNodeProperty(
+      'condition',
+      isSuper: true,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
-    GenerateNodeProperty('updaters', isSuper: true),
+    GenerateNodeProperty(
+      'updaters',
+      isSuper: true,
+      isInValueExpressionSlot: true,
+    ),
   ],
 )
 final class ForPartsWithPatternImpl extends ForPartsImpl
@@ -10764,10 +13234,48 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return !identical(variables, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
     condition?.accept(visitor);
     updaters.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(PatternVariableDeclarationImpl)? visitVariables,
+    void Function(ExpressionImpl)? visitCondition,
+    void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters,
+  }) {
+    if (visitVariables != null) {
+      visitVariables(variables);
+    } else {
+      variables.accept(visitor);
+    }
+    if (condition case var condition?) {
+      if (visitCondition != null) {
+        visitCondition(condition);
+      } else {
+        condition.accept(visitor);
+      }
+    }
+    if (visitUpdaters != null) {
+      visitUpdaters(updaters);
+    } else {
+      updaters.accept(visitor);
+    }
   }
 
   @generated
@@ -10900,9 +13408,39 @@ final class ForStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     forLoopParts.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ForLoopPartsImpl)? visitForLoopParts,
+    void Function(StatementImpl)? visitBody,
+  }) {
+    if (visitForLoopParts != null) {
+      visitForLoopParts(forLoopParts);
+    } else {
+      forLoopParts.accept(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -11058,7 +13596,7 @@ abstract final class FunctionDeclaration
     GenerateNodeProperty('returnType'),
     GenerateNodeProperty('propertyKeyword'),
     GenerateNodeProperty('name'),
-    GenerateNodeProperty('functionExpression'),
+    GenerateNodeProperty('functionExpression', isInValueExpressionSlot: true),
   ],
 )
 final class FunctionDeclarationImpl
@@ -11172,10 +13710,43 @@ final class FunctionDeclarationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(functionExpression, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     returnType?.accept(visitor);
     functionExpression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(FunctionExpressionImpl)? visitFunctionExpression,
+  }) {
+    super.visitChildren(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept(visitor);
+      }
+    }
+    if (visitFunctionExpression != null) {
+      visitFunctionExpression(functionExpression);
+    } else {
+      functionExpression.accept(visitor);
+    }
   }
 
   @generated
@@ -11251,8 +13822,32 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     functionDeclaration.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(FunctionDeclarationImpl)? visitFunctionDeclaration,
+  }) {
+    if (visitFunctionDeclaration != null) {
+      visitFunctionDeclaration(functionDeclaration);
+    } else {
+      functionDeclaration.accept(visitor);
+    }
   }
 
   @generated
@@ -11392,6 +13987,13 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitFunctionExpression(this, contextType: contextType);
   }
@@ -11402,6 +14004,39 @@ final class FunctionExpressionImpl extends ExpressionImpl
     typeParameters?.accept(visitor);
     parameters?.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(FormalParameterListImpl)? visitParameters,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (parameters case var parameters?) {
+      if (visitParameters != null) {
+        visitParameters(parameters);
+      } else {
+        parameters.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -11509,6 +14144,13 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitFunctionExpressionInvocation(this, contextType: contextType);
   }
@@ -11519,6 +14161,37 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     function.accept(visitor);
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitFunction,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitFunction != null) {
+      visitFunction(function);
+    } else {
+      function.accept(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept(visitor);
+    }
   }
 
   @generated
@@ -11647,6 +14320,13 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitFunctionReference(this, contextType: contextType);
   }
@@ -11656,6 +14336,31 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   void visitChildren(AstVisitor visitor) {
     function.accept(visitor);
     typeArguments?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitFunction,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+  }) {
+    if (visitFunction != null) {
+      visitFunction(function);
+    } else {
+      function.accept(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -11801,11 +14506,52 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     returnType?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(FormalParameterListImpl)? visitParameters,
+  }) {
+    super.visitChildren(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept(visitor);
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (visitParameters != null) {
+      visitParameters(parameters);
+    } else {
+      parameters.accept(visitor);
+    }
   }
 
   @generated
@@ -12017,11 +14763,52 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     returnType?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(FormalParameterListImpl)? visitParameters,
+  }) {
+    super.visitChildren(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept(visitor);
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (visitParameters != null) {
+      visitParameters(parameters);
+    } else {
+      parameters.accept(visitor);
+    }
   }
 
   @generated
@@ -12099,6 +14886,9 @@ class GenerateNodeProperty {
   /// specified (because it can be inferred from the public API declaration).
   final Type? type;
 
+  /// Whether the child is in a ValueExpression slot.
+  final bool isInValueExpressionSlot;
+
   const GenerateNodeProperty(
     this.name, {
     this.isSuper = false,
@@ -12108,6 +14898,7 @@ class GenerateNodeProperty {
     this.superNullAssertOverride = false,
     this.tokenGroupId,
     this.type,
+    this.isInValueExpressionSlot = false,
   });
 }
 
@@ -12273,10 +15064,50 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     returnType?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(FormalParameterListImpl)? visitParameters,
+  }) {
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept(visitor);
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (visitParameters != null) {
+      visitParameters(parameters);
+    } else {
+      parameters.accept(visitor);
+    }
   }
 
   @generated
@@ -12426,10 +15257,43 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     typeParameters?.accept(visitor);
     type.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(TypeAnnotationImpl)? visitType,
+  }) {
+    super.visitChildren(visitor);
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (visitType != null) {
+      visitType(type);
+    } else {
+      type.accept(visitor);
+    }
   }
 
   @generated
@@ -12535,9 +15399,41 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
     whenClause?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DartPatternImpl)? visitPattern,
+    void Function(WhenClauseImpl)? visitWhenClause,
+  }) {
+    if (visitPattern != null) {
+      visitPattern(pattern);
+    } else {
+      pattern.accept(visitor);
+    }
+    if (whenClause case var whenClause?) {
+      if (visitWhenClause != null) {
+        visitWhenClause(whenClause);
+      } else {
+        whenClause.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -12613,8 +15509,32 @@ final class HideCombinatorImpl extends CombinatorImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     hiddenNames.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<SimpleIdentifierImpl>)? visitHiddenNames,
+  }) {
+    if (visitHiddenNames != null) {
+      visitHiddenNames(hiddenNames);
+    } else {
+      hiddenNames.accept(visitor);
+    }
   }
 
   @generated
@@ -12693,12 +15613,12 @@ abstract final class IfElement implements CollectionElement {
   childEntitiesOrder: [
     GenerateNodeProperty('ifKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('caseClause'),
     GenerateNodeProperty('rightParenthesis'),
-    GenerateNodeProperty('thenElement'),
+    GenerateNodeProperty('thenElement', isInValueExpressionSlot: true),
     GenerateNodeProperty('elseKeyword'),
-    GenerateNodeProperty('elseElement'),
+    GenerateNodeProperty('elseElement', isInValueExpressionSlot: true),
   ],
 )
 final class IfElementImpl extends CollectionElementImpl
@@ -12831,6 +15751,15 @@ final class IfElementImpl extends CollectionElementImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIfElement(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child) ||
+        identical(thenElement, child) ||
+        identical(elseElement, child);
+  }
+
   @override
   void resolveElement(
     ResolverVisitor resolver,
@@ -12847,6 +15776,45 @@ final class IfElementImpl extends CollectionElementImpl
     caseClause?.accept(visitor);
     thenElement.accept(visitor);
     elseElement?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+    void Function(CaseClauseImpl)? visitCaseClause,
+    void Function(CollectionElementImpl)? visitThenElement,
+    void Function(CollectionElementImpl)? visitElseElement,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
+    if (caseClause case var caseClause?) {
+      if (visitCaseClause != null) {
+        visitCaseClause(caseClause);
+      } else {
+        caseClause.accept(visitor);
+      }
+    }
+    if (visitThenElement != null) {
+      visitThenElement(thenElement);
+    } else {
+      thenElement.accept(visitor);
+    }
+    if (elseElement case var elseElement?) {
+      if (visitElseElement != null) {
+        visitElseElement(elseElement);
+      } else {
+        elseElement.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -12930,7 +15898,7 @@ abstract final class IfStatement implements Statement {
   childEntitiesOrder: [
     GenerateNodeProperty('ifKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('caseClause'),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('thenStatement'),
@@ -13070,11 +16038,57 @@ final class IfStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     caseClause?.accept(visitor);
     thenStatement.accept(visitor);
     elseStatement?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+    void Function(CaseClauseImpl)? visitCaseClause,
+    void Function(StatementImpl)? visitThenStatement,
+    void Function(StatementImpl)? visitElseStatement,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
+    if (caseClause case var caseClause?) {
+      if (visitCaseClause != null) {
+        visitCaseClause(caseClause);
+      } else {
+        caseClause.accept(visitor);
+      }
+    }
+    if (visitThenStatement != null) {
+      visitThenStatement(thenStatement);
+    } else {
+      thenStatement.accept(visitor);
+    }
+    if (elseStatement case var elseStatement?) {
+      if (visitElseStatement != null) {
+        visitElseStatement(elseStatement);
+      } else {
+        elseStatement.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -13164,8 +16178,32 @@ final class ImplementsClauseImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     interfaces.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<NamedTypeImpl>)? visitInterfaces,
+  }) {
+    if (visitInterfaces != null) {
+      visitInterfaces(interfaces);
+    } else {
+      interfaces.accept(visitor);
+    }
   }
 
   @generated
@@ -13287,6 +16325,13 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitImplicitCallReference(this, contextType: contextType);
   }
@@ -13296,6 +16341,31 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     typeArguments?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -13430,12 +16500,57 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     uri.accept(visitor);
     configurations.accept(visitor);
     prefix?.accept(visitor);
     combinators.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(StringLiteralImpl)? visitUri,
+    void Function(NodeListImpl<ConfigurationImpl>)? visitConfigurations,
+    void Function(SimpleIdentifierImpl)? visitPrefix,
+    void Function(NodeListImpl<CombinatorImpl>)? visitCombinators,
+  }) {
+    super.visitChildren(visitor);
+    if (visitUri != null) {
+      visitUri(uri);
+    } else {
+      uri.accept(visitor);
+    }
+    if (visitConfigurations != null) {
+      visitConfigurations(configurations);
+    } else {
+      configurations.accept(visitor);
+    }
+    if (prefix case var prefix?) {
+      if (visitPrefix != null) {
+        visitPrefix(prefix);
+      } else {
+        prefix.accept(visitor);
+      }
+    }
+    if (visitCombinators != null) {
+      visitCombinators(combinators);
+    } else {
+      combinators.accept(visitor);
+    }
   }
 
   @generated
@@ -13582,7 +16697,18 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -13661,11 +16787,11 @@ abstract final class IndexExpression implements MethodReferenceExpression {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('target'),
+    GenerateNodeProperty('target', isInValueExpressionSlot: true),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('question'),
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('index'),
+    GenerateNodeProperty('index', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -13859,6 +16985,13 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitIndexExpression(this, contextType: contextType);
   }
@@ -13868,6 +17001,31 @@ final class IndexExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
     index.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitTarget,
+    void Function(ExpressionImpl)? visitIndex,
+  }) {
+    if (target case var target?) {
+      if (visitTarget != null) {
+        visitTarget(target);
+      } else {
+        target.accept(visitor);
+      }
+    }
+    if (visitIndex != null) {
+      visitIndex(index);
+    } else {
+      index.accept(visitor);
+    }
   }
 
   @generated
@@ -14042,6 +17200,13 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitInstanceCreationExpression(this, contextType: contextType);
   }
@@ -14052,6 +17217,37 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
     constructorName.accept(visitor);
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ConstructorNameImpl)? visitConstructorName,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitConstructorName != null) {
+      visitConstructorName(constructorName);
+    } else {
+      constructorName.accept(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept(visitor);
+    }
   }
 
   @generated
@@ -14146,6 +17342,13 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitIntegerLiteral(this, contextType: contextType);
   }
@@ -14153,6 +17356,10 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -14253,7 +17460,7 @@ abstract final class InterpolationExpression implements InterpolationElement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -14317,8 +17524,32 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -14410,7 +17641,18 @@ final class InterpolationStringImpl extends InterpolationElementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -14520,7 +17762,7 @@ abstract final class IsExpression implements Expression {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('isOperator'),
     GenerateNodeProperty('notOperator'),
     GenerateNodeProperty('type'),
@@ -14600,6 +17842,13 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitIsExpression(this, contextType: contextType);
   }
@@ -14609,6 +17858,29 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     type.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+    void Function(TypeAnnotationImpl)? visitType,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
+    if (visitType != null) {
+      visitType(type);
+    } else {
+      type.accept(visitor);
+    }
   }
 
   @generated
@@ -14718,9 +17990,39 @@ final class LabeledStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     statement.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<LabelImpl>)? visitLabels,
+    void Function(StatementImpl)? visitStatement,
+  }) {
+    if (visitLabels != null) {
+      visitLabels(labels);
+    } else {
+      labels.accept(visitor);
+    }
+    if (visitStatement != null) {
+      visitStatement(statement);
+    } else {
+      statement.accept(visitor);
+    }
   }
 
   @generated
@@ -14794,8 +18096,32 @@ final class LabelImpl extends AstNodeImpl implements Label {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     label.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitLabel,
+  }) {
+    if (visitLabel != null) {
+      visitLabel(label);
+    } else {
+      label.accept(visitor);
+    }
   }
 
   @generated
@@ -14898,9 +18224,36 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     name?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(LibraryIdentifierImpl)? visitName,
+  }) {
+    super.visitChildren(visitor);
+    if (name case var name?) {
+      if (visitName != null) {
+        visitName(name);
+      } else {
+        name.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -14992,6 +18345,13 @@ final class LibraryIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitLibraryIdentifier(this, contextType: contextType);
   }
@@ -15000,6 +18360,23 @@ final class LibraryIdentifierImpl extends IdentifierImpl
   @override
   void visitChildren(AstVisitor visitor) {
     components.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<SimpleIdentifierImpl>)? visitComponents,
+  }) {
+    if (visitComponents != null) {
+      visitComponents(components);
+    } else {
+      components.accept(visitor);
+    }
   }
 
   @generated
@@ -15037,7 +18414,11 @@ abstract final class ListLiteral implements TypedLiteral {
     GenerateNodeProperty('constKeyword', isSuper: true),
     GenerateNodeProperty('typeArguments', isSuper: true),
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('elements', isNodeListFinal: false),
+    GenerateNodeProperty(
+      'elements',
+      isNodeListFinal: false,
+      isInValueExpressionSlot: true,
+    ),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -15104,6 +18485,13 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return !identical(typeArguments, child);
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitListLiteral(this, contextType: contextType);
   }
@@ -15113,6 +18501,31 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(NodeListImpl<CollectionElementImpl>)? visitElements,
+  }) {
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (visitElements != null) {
+      visitElements(elements);
+    } else {
+      elements.accept(visitor);
+    }
   }
 
   @generated
@@ -15250,6 +18663,13 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -15269,6 +18689,31 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(NodeListImpl<ListPatternElementImpl>)? visitElements,
+  }) {
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (visitElements != null) {
+      visitElements(elements);
+    } else {
+      elements.accept(visitor);
+    }
   }
 
   @generated
@@ -15417,6 +18862,13 @@ final class LogicalAndPatternImpl extends DartPatternImpl
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -15438,6 +18890,29 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
     rightOperand.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DartPatternImpl)? visitLeftOperand,
+    void Function(DartPatternImpl)? visitRightOperand,
+  }) {
+    if (visitLeftOperand != null) {
+      visitLeftOperand(leftOperand);
+    } else {
+      leftOperand.accept(visitor);
+    }
+    if (visitRightOperand != null) {
+      visitRightOperand(rightOperand);
+    } else {
+      rightOperand.accept(visitor);
+    }
   }
 
   @generated
@@ -15550,6 +19025,13 @@ final class LogicalOrPatternImpl extends DartPatternImpl
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -15572,6 +19054,29 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
     rightOperand.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DartPatternImpl)? visitLeftOperand,
+    void Function(DartPatternImpl)? visitRightOperand,
+  }) {
+    if (visitLeftOperand != null) {
+      visitLeftOperand(leftOperand);
+    } else {
+      leftOperand.accept(visitor);
+    }
+    if (visitRightOperand != null) {
+      visitRightOperand(rightOperand);
+    } else {
+      rightOperand.accept(visitor);
+    }
   }
 
   @generated
@@ -15614,10 +19119,10 @@ abstract final class MapLiteralEntry implements CollectionElement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('keyQuestion'),
-    GenerateNodeProperty('key'),
+    GenerateNodeProperty('key', isInValueExpressionSlot: true),
     GenerateNodeProperty('separator'),
     GenerateNodeProperty('valueQuestion'),
-    GenerateNodeProperty('value'),
+    GenerateNodeProperty('value', isInValueExpressionSlot: true),
   ],
 )
 final class MapLiteralEntryImpl extends CollectionElementImpl
@@ -15699,6 +19204,13 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteralEntry(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
   @override
   void resolveElement(
     ResolverVisitor resolver,
@@ -15713,6 +19225,29 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
   void visitChildren(AstVisitor visitor) {
     key.accept(visitor);
     value.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitKey,
+    void Function(ExpressionImpl)? visitValue,
+  }) {
+    if (visitKey != null) {
+      visitKey(key);
+    } else {
+      key.accept(visitor);
+    }
+    if (visitValue != null) {
+      visitValue(value);
+    } else {
+      value.accept(visitor);
+    }
   }
 
   @generated
@@ -15776,7 +19311,7 @@ abstract final class MapPatternEntry implements AstNode, MapPatternElement {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('key'),
+    GenerateNodeProperty('key', isInValueExpressionSlot: true),
     GenerateNodeProperty('separator'),
     GenerateNodeProperty('value'),
   ],
@@ -15847,9 +19382,39 @@ final class MapPatternEntryImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(key, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     key.accept(visitor);
     value.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitKey,
+    void Function(DartPatternImpl)? visitValue,
+  }) {
+    if (visitKey != null) {
+      visitKey(key);
+    } else {
+      key.accept(visitor);
+    }
+    if (visitValue != null) {
+      visitValue(value);
+    } else {
+      value.accept(visitor);
+    }
   }
 
   @generated
@@ -15960,6 +19525,13 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -15973,6 +19545,31 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(NodeListImpl<MapPatternElementImpl>)? visitElements,
+  }) {
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (visitElements != null) {
+      visitElements(elements);
+    } else {
+      elements.accept(visitor);
+    }
   }
 
   @generated
@@ -16246,12 +19843,61 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     returnType?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters?.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(FormalParameterListImpl)? visitParameters,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    super.visitChildren(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept(visitor);
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (parameters case var parameters?) {
+      if (visitParameters != null) {
+        visitParameters(parameters);
+      } else {
+        parameters.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -16477,6 +20123,13 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitMethodInvocation(this, contextType: contextType);
   }
@@ -16488,6 +20141,45 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     methodName.accept(visitor);
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitTarget,
+    void Function(SimpleIdentifierImpl)? visitMethodName,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (target case var target?) {
+      if (visitTarget != null) {
+        visitTarget(target);
+      } else {
+        target.accept(visitor);
+      }
+    }
+    if (visitMethodName != null) {
+      visitMethodName(methodName);
+    } else {
+      methodName.accept(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept(visitor);
+    }
   }
 
   @generated
@@ -16740,12 +20432,61 @@ final class MixinDeclarationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     typeParameters?.accept(visitor);
     onClause?.accept(visitor);
     implementsClause?.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(MixinOnClauseImpl)? visitOnClause,
+    void Function(ImplementsClauseImpl)? visitImplementsClause,
+    void Function(BlockClassBodyImpl)? visitBody,
+  }) {
+    super.visitChildren(visitor);
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (onClause case var onClause?) {
+      if (visitOnClause != null) {
+        visitOnClause(onClause);
+      } else {
+        onClause.accept(visitor);
+      }
+    }
+    if (implementsClause case var implementsClause?) {
+      if (visitImplementsClause != null) {
+        visitImplementsClause(implementsClause);
+      } else {
+        implementsClause.accept(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -16839,8 +20580,32 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     superclassConstraints.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<NamedTypeImpl>)? visitSuperclassConstraints,
+  }) {
+    if (visitSuperclassConstraints != null) {
+      visitSuperclassConstraints(superclassConstraints);
+    } else {
+      superclassConstraints.accept(visitor);
+    }
   }
 
   @generated
@@ -16901,7 +20666,7 @@ abstract final class NamedExpression implements Expression {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('name'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class NamedExpressionImpl extends ExpressionImpl
@@ -16972,6 +20737,13 @@ final class NamedExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitNamedExpression(this, contextType: contextType);
   }
@@ -16981,6 +20753,29 @@ final class NamedExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(LabelImpl)? visitName,
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitName != null) {
+      visitName(name);
+    } else {
+      name.accept(visitor);
+    }
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -17145,9 +20940,43 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     importPrefix?.accept(visitor);
     typeArguments?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+  }) {
+    if (importPrefix case var importPrefix?) {
+      if (visitImportPrefix != null) {
+        visitImportPrefix(importPrefix);
+      } else {
+        importPrefix.accept(visitor);
+      }
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -17286,8 +21115,34 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+  }) {
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -17373,8 +21228,34 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     name?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(StringLiteralImpl)? visitName,
+  }) {
+    if (name case var name?) {
+      if (visitName != null) {
+        visitName(name);
+      } else {
+        name.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -17468,6 +21349,13 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitNativeFunctionBody(this, imposedType: imposedType);
@@ -17476,6 +21364,25 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   @override
   void visitChildren(AstVisitor visitor) {
     stringLiteral?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(StringLiteralImpl)? visitStringLiteral,
+  }) {
+    if (stringLiteral case var stringLiteral?) {
+      if (visitStringLiteral != null) {
+        visitStringLiteral(stringLiteral);
+      } else {
+        stringLiteral.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -17822,6 +21729,13 @@ final class NullAssertPatternImpl extends DartPatternImpl
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -17842,6 +21756,23 @@ final class NullAssertPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DartPatternImpl)? visitPattern,
+  }) {
+    if (visitPattern != null) {
+      visitPattern(pattern);
+    } else {
+      pattern.accept(visitor);
+    }
   }
 
   @generated
@@ -17869,7 +21800,7 @@ abstract final class NullAwareElement implements CollectionElement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('question'),
-    GenerateNodeProperty('value'),
+    GenerateNodeProperty('value', isInValueExpressionSlot: true),
   ],
 )
 final class NullAwareElementImpl extends CollectionElementImpl
@@ -17918,6 +21849,13 @@ final class NullAwareElementImpl extends CollectionElementImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAwareElement(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
   @override
   void resolveElement(
     ResolverVisitor resolver,
@@ -17931,6 +21869,23 @@ final class NullAwareElementImpl extends CollectionElementImpl
   @override
   void visitChildren(AstVisitor visitor) {
     value.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitValue,
+  }) {
+    if (visitValue != null) {
+      visitValue(value);
+    } else {
+      value.accept(visitor);
+    }
   }
 
   @generated
@@ -18023,6 +21978,13 @@ final class NullCheckPatternImpl extends DartPatternImpl
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -18043,6 +22005,23 @@ final class NullCheckPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DartPatternImpl)? visitPattern,
+  }) {
+    if (visitPattern != null) {
+      visitPattern(pattern);
+    } else {
+      pattern.accept(visitor);
+    }
   }
 
   @generated
@@ -18097,6 +22076,13 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitNullLiteral(this, contextType: contextType);
   }
@@ -18104,6 +22090,10 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -18209,6 +22199,13 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -18240,6 +22237,29 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
     fields.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NamedTypeImpl)? visitType,
+    void Function(NodeListImpl<PatternFieldImpl>)? visitFields,
+  }) {
+    if (visitType != null) {
+      visitType(type);
+    } else {
+      type.accept(visitor);
+    }
+    if (visitFields != null) {
+      visitFields(fields);
+    } else {
+      fields.accept(visitor);
+    }
   }
 
   @generated
@@ -18275,7 +22295,7 @@ abstract final class ParenthesizedExpression implements Expression {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
@@ -18350,6 +22370,13 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitParenthesizedExpression(this, contextType: contextType);
   }
@@ -18358,6 +22385,23 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -18470,6 +22514,13 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -18485,6 +22536,23 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DartPatternImpl)? visitPattern,
+  }) {
+    if (visitPattern != null) {
+      visitPattern(pattern);
+    } else {
+      pattern.accept(visitor);
+    }
   }
 
   @generated
@@ -18569,9 +22637,34 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     uri.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(StringLiteralImpl)? visitUri,
+  }) {
+    super.visitChildren(visitor);
+    if (visitUri != null) {
+      visitUri(uri);
+    } else {
+      uri.accept(visitor);
+    }
   }
 
   @generated
@@ -18701,10 +22794,45 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     uri?.accept(visitor);
     libraryName?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(StringLiteralImpl)? visitUri,
+    void Function(LibraryIdentifierImpl)? visitLibraryName,
+  }) {
+    super.visitChildren(visitor);
+    if (uri case var uri?) {
+      if (visitUri != null) {
+        visitUri(uri);
+      } else {
+        uri.accept(visitor);
+      }
+    }
+    if (libraryName case var libraryName?) {
+      if (visitLibraryName != null) {
+        visitLibraryName(libraryName);
+      } else {
+        libraryName.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -18747,7 +22875,7 @@ abstract final class PatternAssignment implements Expression {
   childEntitiesOrder: [
     GenerateNodeProperty('pattern'),
     GenerateNodeProperty('equals'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class PatternAssignmentImpl extends ExpressionImpl
@@ -18825,6 +22953,13 @@ final class PatternAssignmentImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPatternAssignment(this, contextType: contextType);
   }
@@ -18834,6 +22969,29 @@ final class PatternAssignmentImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DartPatternImpl)? visitPattern,
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitPattern != null) {
+      visitPattern(pattern);
+    } else {
+      pattern.accept(visitor);
+    }
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -18958,9 +23116,41 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     name?.accept(visitor);
     pattern.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(PatternFieldNameImpl)? visitName,
+    void Function(DartPatternImpl)? visitPattern,
+  }) {
+    if (name case var name?) {
+      if (visitName != null) {
+        visitName(name);
+      } else {
+        name.accept(visitor);
+      }
+    }
+    if (visitPattern != null) {
+      visitPattern(pattern);
+    } else {
+      pattern.accept(visitor);
+    }
   }
 
   @generated
@@ -19037,7 +23227,18 @@ final class PatternFieldNameImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -19070,7 +23271,7 @@ abstract final class PatternVariableDeclaration implements AnnotatedNode {
     GenerateNodeProperty('keyword'),
     GenerateNodeProperty('pattern'),
     GenerateNodeProperty('equals'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
@@ -19163,10 +23364,41 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     pattern.accept(visitor);
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DartPatternImpl)? visitPattern,
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    super.visitChildren(visitor);
+    if (visitPattern != null) {
+      visitPattern(pattern);
+    } else {
+      pattern.accept(visitor);
+    }
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -19255,8 +23487,32 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     declaration.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(PatternVariableDeclarationImpl)? visitDeclaration,
+  }) {
+    if (visitDeclaration != null) {
+      visitDeclaration(declaration);
+    } else {
+      declaration.accept(visitor);
+    }
   }
 
   @generated
@@ -19294,7 +23550,7 @@ abstract final class PostfixExpression
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('operand'),
+    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
     GenerateNodeProperty('operator'),
   ],
 )
@@ -19369,6 +23625,15 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
 
+  @DoNotGenerate(reason: 'Role depends on operator.')
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    if (operator.type.isIncrementOperator) {
+      return false;
+    }
+    return true;
+  }
+
   @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
@@ -19379,6 +23644,23 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitOperand,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept(visitor);
+    }
   }
 
   @generated
@@ -19509,6 +23791,13 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPrefixedIdentifier(this, contextType: contextType);
   }
@@ -19518,6 +23807,29 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   void visitChildren(AstVisitor visitor) {
     prefix.accept(visitor);
     identifier.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitPrefix,
+    void Function(SimpleIdentifierImpl)? visitIdentifier,
+  }) {
+    if (visitPrefix != null) {
+      visitPrefix(prefix);
+    } else {
+      prefix.accept(visitor);
+    }
+    if (visitIdentifier != null) {
+      visitIdentifier(identifier);
+    } else {
+      identifier.accept(visitor);
+    }
   }
 
   @generated
@@ -19559,7 +23871,7 @@ abstract final class PrefixExpression
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('operand'),
+    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
   ],
 )
 final class PrefixExpressionImpl extends ExpressionImpl
@@ -19633,6 +23945,15 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
 
+  @DoNotGenerate(reason: 'Role depends on operator.')
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    if (operator.type.isIncrementOperator) {
+      return false;
+    }
+    return true;
+  }
+
   @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
@@ -19643,6 +23964,23 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitOperand,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept(visitor);
+    }
   }
 
   @generated
@@ -19773,10 +24111,41 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     initializers.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<ConstructorInitializerImpl>)? visitInitializers,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    super.visitChildren(visitor);
+    if (visitInitializers != null) {
+      visitInitializers(initializers);
+    } else {
+      initializers.accept(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -19942,6 +24311,13 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPrimaryConstructorDeclaration(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
@@ -19951,6 +24327,39 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     typeParameters?.accept(visitor);
     constructorName?.accept(visitor);
     formalParameters.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(PrimaryConstructorNameImpl)? visitConstructorName,
+    void Function(FormalParameterListImpl)? visitFormalParameters,
+  }) {
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (constructorName case var constructorName?) {
+      if (visitConstructorName != null) {
+        visitConstructorName(constructorName);
+      } else {
+        constructorName.accept(visitor);
+      }
+    }
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
+    } else {
+      formalParameters.accept(visitor);
+    }
   }
 
   @generated
@@ -20027,7 +24436,18 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -20193,6 +24613,13 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitPropertyAccess(this, contextType: contextType);
   }
@@ -20202,6 +24629,31 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
     propertyName.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitTarget,
+    void Function(SimpleIdentifierImpl)? visitPropertyName,
+  }) {
+    if (target case var target?) {
+      if (visitTarget != null) {
+        visitTarget(target);
+      } else {
+        target.accept(visitor);
+      }
+    }
+    if (visitPropertyName != null) {
+      visitPropertyName(propertyName);
+    } else {
+      propertyName.accept(visitor);
+    }
   }
 
   @generated
@@ -20251,7 +24703,7 @@ abstract final class RecordLiteral implements Literal {
   childEntitiesOrder: [
     GenerateNodeProperty('constKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('fields'),
+    GenerateNodeProperty('fields', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
@@ -20314,6 +24766,13 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitRecordLiteral(this, contextType: contextType);
   }
@@ -20322,6 +24781,23 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<ExpressionImpl>)? visitFields,
+  }) {
+    if (visitFields != null) {
+      visitFields(fields);
+    } else {
+      fields.accept(visitor);
+    }
   }
 
   @generated
@@ -20420,6 +24896,13 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -20452,6 +24935,23 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<PatternFieldImpl>)? visitFields,
+  }) {
+    if (visitFields != null) {
+      visitFields(fields);
+    } else {
+      fields.accept(visitor);
+    }
   }
 
   @generated
@@ -20638,9 +25138,42 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     positionalFields.accept(visitor);
     namedFields?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<RecordTypeAnnotationPositionalFieldImpl>)?
+    visitPositionalFields,
+    void Function(RecordTypeAnnotationNamedFieldsImpl)? visitNamedFields,
+  }) {
+    if (visitPositionalFields != null) {
+      visitPositionalFields(positionalFields);
+    } else {
+      positionalFields.accept(visitor);
+    }
+    if (namedFields case var namedFields?) {
+      if (visitNamedFields != null) {
+        visitNamedFields(namedFields);
+      } else {
+        namedFields.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -20717,9 +25250,39 @@ final class RecordTypeAnnotationNamedFieldImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
     type.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<AnnotationImpl>)? visitMetadata,
+    void Function(TypeAnnotationImpl)? visitType,
+  }) {
+    if (visitMetadata != null) {
+      visitMetadata(metadata);
+    } else {
+      metadata.accept(visitor);
+    }
+    if (visitType != null) {
+      visitType(type);
+    } else {
+      type.accept(visitor);
+    }
   }
 
   @generated
@@ -20806,8 +25369,33 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<RecordTypeAnnotationNamedFieldImpl>)?
+    visitFields,
+  }) {
+    if (visitFields != null) {
+      visitFields(fields);
+    } else {
+      fields.accept(visitor);
+    }
   }
 
   @generated
@@ -20879,9 +25467,39 @@ final class RecordTypeAnnotationPositionalFieldImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
     type.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<AnnotationImpl>)? visitMetadata,
+    void Function(TypeAnnotationImpl)? visitType,
+  }) {
+    if (visitMetadata != null) {
+      visitMetadata(metadata);
+    } else {
+      metadata.accept(visitor);
+    }
+    if (visitType != null) {
+      visitType(type);
+    } else {
+      type.accept(visitor);
+    }
   }
 
   @generated
@@ -21006,9 +25624,41 @@ final class RedirectingConstructorInvocationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     constructorName?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitConstructorName,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (constructorName case var constructorName?) {
+      if (visitConstructorName != null) {
+        visitConstructorName(constructorName);
+      } else {
+        constructorName.accept(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept(visitor);
+    }
   }
 
   @generated
@@ -21048,7 +25698,7 @@ abstract final class RelationalPattern implements DartPattern {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('operand'),
+    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
   ],
 )
 final class RelationalPatternImpl extends DartPatternImpl
@@ -21112,6 +25762,13 @@ final class RelationalPatternImpl extends DartPatternImpl
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -21132,6 +25789,23 @@ final class RelationalPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitOperand,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept(visitor);
+    }
   }
 
   @generated
@@ -21200,7 +25874,18 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -21350,10 +26035,48 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     constructorName?.accept(visitor);
     fieldMetadata.accept(visitor);
     fieldType.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(RepresentationConstructorNameImpl)? visitConstructorName,
+    void Function(NodeListImpl<AnnotationImpl>)? visitFieldMetadata,
+    void Function(TypeAnnotationImpl)? visitFieldType,
+  }) {
+    if (constructorName case var constructorName?) {
+      if (visitConstructorName != null) {
+        visitConstructorName(constructorName);
+      } else {
+        constructorName.accept(visitor);
+      }
+    }
+    if (visitFieldMetadata != null) {
+      visitFieldMetadata(fieldMetadata);
+    } else {
+      fieldMetadata.accept(visitor);
+    }
+    if (visitFieldType != null) {
+      visitFieldType(fieldType);
+    } else {
+      fieldType.accept(visitor);
+    }
   }
 
   @generated
@@ -21450,8 +26173,34 @@ final class RestPatternElementImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     pattern?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(DartPatternImpl)? visitPattern,
+  }) {
+    if (pattern case var pattern?) {
+      if (visitPattern != null) {
+        visitPattern(pattern);
+      } else {
+        pattern.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -21512,6 +26261,13 @@ final class RethrowExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitRethrowExpression(this, contextType: contextType);
   }
@@ -21519,6 +26275,10 @@ final class RethrowExpressionImpl extends ExpressionImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -21547,7 +26307,7 @@ abstract final class ReturnStatement implements Statement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('returnKeyword'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -21607,8 +26367,34 @@ final class ReturnStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     expression?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (expression case var expression?) {
+      if (visitExpression != null) {
+        visitExpression(expression);
+      } else {
+        expression.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -21672,7 +26458,18 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -21747,7 +26544,7 @@ abstract final class SetOrMapLiteral implements TypedLiteral {
     GenerateNodeProperty('constKeyword', isSuper: true),
     GenerateNodeProperty('typeArguments', isSuper: true),
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('elements'),
+    GenerateNodeProperty('elements', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -21842,6 +26639,13 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return !identical(typeArguments, child);
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSetOrMapLiteral(this, contextType: contextType);
   }
@@ -21851,6 +26655,31 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(NodeListImpl<CollectionElementImpl>)? visitElements,
+  }) {
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept(visitor);
+      }
+    }
+    if (visitElements != null) {
+      visitElements(elements);
+    } else {
+      elements.accept(visitor);
+    }
   }
 
   @generated
@@ -21928,8 +26757,32 @@ final class ShowCombinatorImpl extends CombinatorImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     shownNames.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<SimpleIdentifierImpl>)? visitShownNames,
+  }) {
+    if (visitShownNames != null) {
+      visitShownNames(shownNames);
+    } else {
+      shownNames.accept(visitor);
+    }
   }
 
   @generated
@@ -22082,9 +26935,36 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     type?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+  }) {
+    super.visitChildren(visitor);
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -22322,6 +27202,13 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSimpleIdentifier(this, contextType: contextType);
   }
@@ -22329,6 +27216,10 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -22430,6 +27321,13 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSimpleStringLiteral(this, contextType: contextType);
   }
@@ -22437,6 +27335,10 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @override
   void _appendStringValue(StringBuffer buffer) {
@@ -22500,7 +27402,7 @@ abstract final class SpreadElement implements CollectionElement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('spreadOperator'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class SpreadElementImpl extends CollectionElementImpl
@@ -22555,6 +27457,13 @@ final class SpreadElementImpl extends CollectionElementImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSpreadElement(this);
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
   @override
   void resolveElement(
     ResolverVisitor resolver,
@@ -22568,6 +27477,23 @@ final class SpreadElementImpl extends CollectionElementImpl
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -22724,6 +27650,13 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitStringInterpolation(this, contextType: contextType);
   }
@@ -22732,6 +27665,23 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   @override
   void visitChildren(AstVisitor visitor) {
     elements.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<InterpolationElementImpl>)? visitElements,
+  }) {
+    if (visitElements != null) {
+      visitElements(elements);
+    } else {
+      elements.accept(visitor);
+    }
   }
 
   @override
@@ -22980,9 +27930,41 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     constructorName?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(SimpleIdentifierImpl)? visitConstructorName,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (constructorName case var constructorName?) {
+      if (visitConstructorName != null) {
+        visitConstructorName(constructorName);
+      } else {
+        constructorName.accept(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept(visitor);
+    }
   }
 
   @generated
@@ -23046,6 +28028,13 @@ final class SuperExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSuperExpression(this, contextType: contextType);
   }
@@ -23053,6 +28042,10 @@ final class SuperExpressionImpl extends ExpressionImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -23274,11 +28267,54 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     type?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(FormalParameterListImpl)? visitParameters,
+  }) {
+    super.visitChildren(visitor);
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept(visitor);
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept(visitor);
+      }
+    }
+    if (parameters case var parameters?) {
+      if (visitParameters != null) {
+        visitParameters(parameters);
+      } else {
+        parameters.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -23320,7 +28356,7 @@ abstract final class SwitchCase implements SwitchMember {
   childEntitiesOrder: [
     GenerateNodeProperty('labels', isSuper: true),
     GenerateNodeProperty('keyword', isSuper: true),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('colon', isSuper: true),
     GenerateNodeProperty('statements', isSuper: true),
   ],
@@ -23382,10 +28418,46 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     expression.accept(visitor);
     statements.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<LabelImpl>)? visitLabels,
+    void Function(ExpressionImpl)? visitExpression,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+  }) {
+    if (visitLabels != null) {
+      visitLabels(labels);
+    } else {
+      labels.accept(visitor);
+    }
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
+    if (visitStatements != null) {
+      visitStatements(statements);
+    } else {
+      statements.accept(visitor);
+    }
   }
 
   @generated
@@ -23463,9 +28535,39 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     statements.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<LabelImpl>)? visitLabels,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+  }) {
+    if (visitLabels != null) {
+      visitLabels(labels);
+    } else {
+      labels.accept(visitor);
+    }
+    if (visitStatements != null) {
+      visitStatements(statements);
+    } else {
+      statements.accept(visitor);
+    }
   }
 
   @generated
@@ -23533,7 +28635,7 @@ abstract final class SwitchExpressionCase implements AstNode {
   childEntitiesOrder: [
     GenerateNodeProperty('guardedPattern'),
     GenerateNodeProperty('arrow'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class SwitchExpressionCaseImpl extends AstNodeImpl
@@ -23604,9 +28706,39 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     guardedPattern.accept(visitor);
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(GuardedPatternImpl)? visitGuardedPattern,
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitGuardedPattern != null) {
+      visitGuardedPattern(guardedPattern);
+    } else {
+      guardedPattern.accept(visitor);
+    }
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -23626,7 +28758,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   childEntitiesOrder: [
     GenerateNodeProperty('switchKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('cases'),
@@ -23717,6 +28849,13 @@ final class SwitchExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSwitchExpression(this, contextType: contextType);
   }
@@ -23726,6 +28865,29 @@ final class SwitchExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     cases.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+    void Function(NodeListImpl<SwitchExpressionCaseImpl>)? visitCases,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
+    if (visitCases != null) {
+      visitCases(cases);
+    } else {
+      cases.accept(visitor);
+    }
   }
 
   @generated
@@ -23898,10 +29060,46 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     guardedPattern.accept(visitor);
     statements.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<LabelImpl>)? visitLabels,
+    void Function(GuardedPatternImpl)? visitGuardedPattern,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+  }) {
+    if (visitLabels != null) {
+      visitLabels(labels);
+    } else {
+      labels.accept(visitor);
+    }
+    if (visitGuardedPattern != null) {
+      visitGuardedPattern(guardedPattern);
+    } else {
+      guardedPattern.accept(visitor);
+    }
+    if (visitStatements != null) {
+      visitStatements(statements);
+    } else {
+      statements.accept(visitor);
+    }
   }
 
   @generated
@@ -23968,7 +29166,7 @@ class SwitchStatementCaseGroup {
   childEntitiesOrder: [
     GenerateNodeProperty('switchKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('members'),
@@ -24059,9 +29257,39 @@ final class SwitchStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(expression, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     members.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+    void Function(NodeListImpl<SwitchMemberImpl>)? visitMembers,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
+    if (visitMembers != null) {
+      visitMembers(members);
+    } else {
+      members.accept(visitor);
+    }
   }
 
   @generated
@@ -24152,6 +29380,13 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSymbolLiteral(this, contextType: contextType);
   }
@@ -24159,6 +29394,10 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -24229,6 +29468,13 @@ final class ThisExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitThisExpression(this, contextType: contextType);
   }
@@ -24236,6 +29482,10 @@ final class ThisExpressionImpl extends ExpressionImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
@@ -24260,7 +29510,7 @@ abstract final class ThrowExpression implements Expression {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('throwKeyword'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class ThrowExpressionImpl extends ExpressionImpl
@@ -24316,6 +29566,13 @@ final class ThrowExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitThrowExpression(this, contextType: contextType);
   }
@@ -24324,6 +29581,23 @@ final class ThrowExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -24446,9 +29720,34 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     variables.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(VariableDeclarationListImpl)? visitVariables,
+  }) {
+    super.visitChildren(visitor);
+    if (visitVariables != null) {
+      visitVariables(variables);
+    } else {
+      variables.accept(visitor);
+    }
   }
 
   @generated
@@ -24587,10 +29886,48 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     body.accept(visitor);
     catchClauses.accept(visitor);
     finallyBlock?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(BlockImpl)? visitBody,
+    void Function(NodeListImpl<CatchClauseImpl>)? visitCatchClauses,
+    void Function(BlockImpl)? visitFinallyBlock,
+  }) {
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
+    if (visitCatchClauses != null) {
+      visitCatchClauses(catchClauses);
+    } else {
+      catchClauses.accept(visitor);
+    }
+    if (finallyBlock case var finallyBlock?) {
+      if (visitFinallyBlock != null) {
+        visitFinallyBlock(finallyBlock);
+      } else {
+        finallyBlock.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -24768,8 +30105,32 @@ final class TypeArgumentListImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     arguments.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<TypeAnnotationImpl>)? visitArguments,
+  }) {
+    if (visitArguments != null) {
+      visitArguments(arguments);
+    } else {
+      arguments.accept(visitor);
+    }
   }
 
   @generated
@@ -24936,6 +30297,13 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitTypeLiteral(this, contextType: contextType);
   }
@@ -24944,6 +30312,23 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NamedTypeImpl)? visitType,
+  }) {
+    if (visitType != null) {
+      visitType(type);
+    } else {
+      type.accept(visitor);
+    }
   }
 
   @generated
@@ -25064,9 +30449,36 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     bound?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitBound,
+  }) {
+    super.visitChildren(visitor);
+    if (bound case var bound?) {
+      if (visitBound != null) {
+        visitBound(bound);
+      } else {
+        bound.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -25155,8 +30567,32 @@ final class TypeParameterListImpl extends AstNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     typeParameters.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<TypeParameterImpl>)? visitTypeParameters,
+  }) {
+    if (visitTypeParameters != null) {
+      visitTypeParameters(typeParameters);
+    } else {
+      typeParameters.accept(visitor);
+    }
   }
 
   @generated
@@ -25319,7 +30755,7 @@ abstract final class VariableDeclaration implements Declaration {
   childEntitiesOrder: [
     GenerateNodeProperty('name'),
     GenerateNodeProperty('equals'),
-    GenerateNodeProperty('initializer'),
+    GenerateNodeProperty('initializer', isInValueExpressionSlot: true),
   ],
 )
 final class VariableDeclarationImpl extends DeclarationImpl
@@ -25428,9 +30864,36 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     initializer?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitInitializer,
+  }) {
+    super.visitChildren(visitor);
+    if (initializer case var initializer?) {
+      if (visitInitializer != null) {
+        visitInitializer(initializer);
+      } else {
+        initializer.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -25599,10 +31062,43 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     type?.accept(visitor);
     variables.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+    void Function(NodeListImpl<VariableDeclarationImpl>)? visitVariables,
+  }) {
+    super.visitChildren(visitor);
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept(visitor);
+      }
+    }
+    if (visitVariables != null) {
+      visitVariables(variables);
+    } else {
+      variables.accept(visitor);
+    }
   }
 
   @generated
@@ -25695,8 +31191,32 @@ final class VariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(VariableDeclarationListImpl)? visitVariables,
+  }) {
+    if (visitVariables != null) {
+      visitVariables(variables);
+    } else {
+      variables.accept(visitor);
+    }
   }
 
   @generated
@@ -25750,7 +31270,7 @@ abstract final class WhenClause implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('whenKeyword'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
@@ -25802,8 +31322,32 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated
@@ -25842,7 +31386,7 @@ abstract final class WhileStatement implements Statement {
   childEntitiesOrder: [
     GenerateNodeProperty('whileKeyword'),
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('condition'),
+    GenerateNodeProperty('condition', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('body'),
   ],
@@ -25924,9 +31468,39 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return identical(condition, child);
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
     body.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitCondition,
+    void Function(StatementImpl)? visitBody,
+  }) {
+    if (visitCondition != null) {
+      visitCondition(condition);
+    } else {
+      condition.accept(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept(visitor);
+    }
   }
 
   @generated
@@ -26047,6 +31621,13 @@ final class WildcardPatternImpl extends DartPatternImpl
         .unwrapTypeSchemaView();
   }
 
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -26075,6 +31656,25 @@ final class WildcardPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+  }) {
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept(visitor);
+      }
+    }
   }
 
   @generated
@@ -26152,8 +31752,32 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     mixinTypes.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<NamedTypeImpl>)? visitMixinTypes,
+  }) {
+    if (visitMixinTypes != null) {
+      visitMixinTypes(mixinTypes);
+    } else {
+      mixinTypes.accept(visitor);
+    }
   }
 
   @generated
@@ -26190,7 +31814,7 @@ abstract final class YieldStatement implements Statement {
   childEntitiesOrder: [
     GenerateNodeProperty('yieldKeyword'),
     GenerateNodeProperty('star'),
-    GenerateNodeProperty('expression'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -26255,8 +31879,32 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
 
   @generated
   @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept(visitor);
+    }
   }
 
   @generated

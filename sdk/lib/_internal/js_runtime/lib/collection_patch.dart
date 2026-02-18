@@ -283,7 +283,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     return result;
   }
 
-  void _addHashTableEntry(var table, K key, V value) {
+  void _addHashTableEntry(table, K key, V value) {
     if (!_hasTableEntry(table, key)) {
       _length++;
       _keys = null;
@@ -291,7 +291,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     _setTableEntry(table, key, value);
   }
 
-  V? _removeHashTableEntry(var table, Object? key) {
+  V? _removeHashTableEntry(table, Object? key) {
     if (table != null && _hasTableEntry(table, key)) {
       V value = _getTableEntry(table, key);
       _deleteTableEntry(table, key);
@@ -303,25 +303,25 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     }
   }
 
-  static bool _isStringKey(var key) {
+  static bool _isStringKey(key) {
     return key is String && key != '__proto__';
   }
 
-  static bool _isNumericKey(var key) {
+  static bool _isNumericKey(key) {
     // Only treat unsigned 30-bit integers as numeric keys. This way,
     // we avoid converting them to strings when we use them as keys in
     // the JavaScript hash table object.
     return key is num && JS('bool', '(# & #) === #', key, _mask30, key);
   }
 
-  int _computeHashCode(var key) {
+  int _computeHashCode(key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
     return JS('int', '# & #', key.hashCode, _mask30);
   }
 
-  static bool _hasTableEntry(var table, var key) {
+  static bool _hasTableEntry(table, key) {
     var entry = JS('var', '#[#]', table, key);
     // We take care to only store non-null entries in the table, so we
     // can check if the table has an entry for the given key with a
@@ -329,14 +329,14 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     return entry != null;
   }
 
-  static _getTableEntry(var table, var key) {
+  static _getTableEntry(table, key) {
     var entry = JS('var', '#[#]', table, key);
     // We store the table itself as the entry to signal that it really
     // is a null value, so we have to map back to null here.
     return JS('bool', '# === #', entry, table) ? null : entry;
   }
 
-  static void _setTableEntry(var table, var key, var value) {
+  static void _setTableEntry(table, key, value) {
     // We only store non-null entries in the table, so we have to
     // change null values to refer to the table itself. Such values
     // will be recognized and mapped back to null on access.
@@ -350,16 +350,16 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     }
   }
 
-  static void _deleteTableEntry(var table, var key) {
+  static void _deleteTableEntry(table, key) {
     JS('void', 'delete #[#]', table, key);
   }
 
-  List? _getBucket(var table, var key) {
+  List? _getBucket(table, key) {
     var hash = _computeHashCode(key);
     return JS('var', '#[#]', table, hash);
   }
 
-  int _findBucketIndex(var bucket, var key) {
+  int _findBucketIndex(bucket, key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i += 2) {
@@ -383,14 +383,14 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
 }
 
 base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
-  int _computeHashCode(var key) {
+  int _computeHashCode(key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
     return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
-  int _findBucketIndex(var bucket, var key) {
+  int _findBucketIndex(bucket, key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i += 2) {
@@ -427,14 +427,14 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
     return super._remove(key);
   }
 
-  int _computeHashCode(var key) {
+  int _computeHashCode(key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
     return JS('int', '# & #', _hashCode(key), _mask30);
   }
 
-  int _findBucketIndex(var bucket, var key) {
+  int _findBucketIndex(bucket, key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i += 2) {
@@ -585,14 +585,14 @@ base class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
     return super.internalRemove(key);
   }
 
-  int internalComputeHashCode(var key) {
+  int internalComputeHashCode(key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
     return JS('int', '# & #', _hashCode(key), _mask30);
   }
 
-  int internalFindBucketIndex(var bucket, var key) {
+  int internalFindBucketIndex(bucket, key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -839,7 +839,7 @@ base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     return result;
   }
 
-  bool _addHashTableEntry(var table, E element) {
+  bool _addHashTableEntry(table, E element) {
     if (_hasTableEntry(table, element)) return false;
     _setTableEntry(table, element, 0);
     _length++;
@@ -847,7 +847,7 @@ base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     return true;
   }
 
-  bool _removeHashTableEntry(var table, Object? element) {
+  bool _removeHashTableEntry(table, Object? element) {
     if (table != null && _hasTableEntry(table, element)) {
       _deleteTableEntry(table, element);
       _length--;
@@ -858,11 +858,11 @@ base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     }
   }
 
-  static bool _isStringElement(var element) {
+  static bool _isStringElement(element) {
     return element is String && element != '__proto__';
   }
 
-  static bool _isNumericElement(var element) {
+  static bool _isNumericElement(element) {
     // Only treat unsigned 30-bit integers as numeric elements. This
     // way, we avoid converting them to strings when we use them as
     // keys in the JavaScript hash table object.
@@ -870,7 +870,7 @@ base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
         JS('bool', '(# & #) === #', element, _mask30, element);
   }
 
-  int _computeHashCode(var element) {
+  int _computeHashCode(element) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
@@ -878,7 +878,7 @@ base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     return JS('int', '# & #', element.hashCode, _mask30);
   }
 
-  static bool _hasTableEntry(var table, var key) {
+  static bool _hasTableEntry(table, key) {
     var entry = JS('var', '#[#]', table, key);
     // We take care to only store non-null entries in the table, so we
     // can check if the table has an entry for the given key with a
@@ -886,21 +886,21 @@ base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     return entry != null;
   }
 
-  static void _setTableEntry(var table, var key, var value) {
+  static void _setTableEntry(table, key, value) {
     assert(value != null);
     JS('void', '#[#] = #', table, key, value);
   }
 
-  static void _deleteTableEntry(var table, var key) {
+  static void _deleteTableEntry(table, key) {
     JS('void', 'delete #[#]', table, key);
   }
 
-  List? _getBucket(var table, var element) {
+  List? _getBucket(table, element) {
     var hash = _computeHashCode(element);
     return JS('var', '#[#]', table, hash);
   }
 
-  int _findBucketIndex(var bucket, var element) {
+  int _findBucketIndex(bucket, element) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -927,14 +927,14 @@ base class _IdentityHashSet<E> extends _HashSet<E> {
   Set<E> _newSet() => _IdentityHashSet<E>();
   Set<R> _newSimilarSet<R>() => _IdentityHashSet<R>();
 
-  int _computeHashCode(var key) {
+  int _computeHashCode(key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
     return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
-  int _findBucketIndex(var bucket, var element) {
+  int _findBucketIndex(bucket, element) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -954,7 +954,7 @@ base class _CustomHashSet<E> extends _HashSet<E> {
   Set<E> _newSet() => _CustomHashSet<E>(_equality, _hasher, _validKey);
   Set<R> _newSimilarSet<R>() => _HashSet<R>();
 
-  int _findBucketIndex(var bucket, var element) {
+  int _findBucketIndex(bucket, element) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -963,7 +963,7 @@ base class _CustomHashSet<E> extends _HashSet<E> {
     return -1;
   }
 
-  int _computeHashCode(var element) {
+  int _computeHashCode(element) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
@@ -1265,14 +1265,14 @@ base class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
     }
   }
 
-  bool _addHashTableEntry(var table, E element) {
+  bool _addHashTableEntry(table, E element) {
     _LinkedHashSetCell? cell = _getTableEntry(table, element);
     if (cell != null) return false;
     _setTableEntry(table, element, _newLinkedCell(element));
     return true;
   }
 
-  bool _removeHashTableEntry(var table, Object? element) {
+  bool _removeHashTableEntry(table, Object? element) {
     if (table == null) return false;
     _LinkedHashSetCell? cell = _getTableEntry(table, element);
     if (cell == null) return false;
@@ -1323,11 +1323,11 @@ base class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
     _modified();
   }
 
-  static bool _isStringElement(var element) {
+  static bool _isStringElement(element) {
     return element is String && element != '__proto__';
   }
 
-  static bool _isNumericElement(var element) {
+  static bool _isNumericElement(element) {
     // Only treat unsigned 30-bit integers as numeric elements. This
     // way, we avoid converting them to strings when we use them as
     // keys in the JavaScript hash table object.
@@ -1335,7 +1335,7 @@ base class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
         JS('bool', '(# & #) === #', element, _mask30, element);
   }
 
-  int _computeHashCode(var element) {
+  int _computeHashCode(element) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a
@@ -1343,25 +1343,25 @@ base class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
     return JS('int', '# & #', element.hashCode, _mask30);
   }
 
-  static _getTableEntry(var table, var key) {
+  static _getTableEntry(table, key) {
     return JS('var', '#[#]', table, key);
   }
 
-  static void _setTableEntry(var table, var key, var value) {
+  static void _setTableEntry(table, key, value) {
     assert(value != null);
     JS('void', '#[#] = #', table, key, value);
   }
 
-  static void _deleteTableEntry(var table, var key) {
+  static void _deleteTableEntry(table, key) {
     JS('void', 'delete #[#]', table, key);
   }
 
-  List? _getBucket(var table, var element) {
+  List? _getBucket(table, element) {
     var hash = _computeHashCode(element);
     return JS('var', '#[#]', table, hash);
   }
 
-  int _findBucketIndex(var bucket, var element) {
+  int _findBucketIndex(bucket, element) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -1389,14 +1389,14 @@ base class _LinkedIdentityHashSet<E> extends _LinkedHashSet<E> {
   Set<E> _newSet() => _LinkedIdentityHashSet<E>();
   Set<R> _newSimilarSet<R>() => _LinkedIdentityHashSet<R>();
 
-  int _computeHashCode(var key) {
+  int _computeHashCode(key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
     return JS('int', '# & #', identityHashCode(key), _mask30);
   }
 
-  int _findBucketIndex(var bucket, var element) {
+  int _findBucketIndex(bucket, element) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -1420,7 +1420,7 @@ base class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   Set<E> _newSet() => _LinkedCustomHashSet<E>(_equality, _hasher, _validKey);
   Set<R> _newSimilarSet<R>() => _LinkedHashSet<R>();
 
-  int _findBucketIndex(var bucket, var element) {
+  int _findBucketIndex(bucket, element) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -1430,7 +1430,7 @@ base class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
     return -1;
   }
 
-  int _computeHashCode(var element) {
+  int _computeHashCode(element) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic elements like '__proto__'. Another
     // option would be to throw an exception if the hash code isn't a

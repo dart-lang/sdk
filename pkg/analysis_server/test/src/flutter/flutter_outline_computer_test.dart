@@ -201,7 +201,7 @@ class MyWidget extends StatelessWidget {
 ''');
     expect(_toText(unitOutline), r'''
 (D) MyWidget
-  (D) build
+  (D) build → Widget
     Container
       Text
       Container
@@ -225,7 +225,7 @@ class MyWidget extends StatelessWidget {
 
     expect(_toText(unitOutline), r'''
 (D) MyWidget
-  (D) build
+  (D) build → Widget
     Column
       Text
       Text
@@ -268,7 +268,7 @@ class MyWidget extends StatelessWidget {
 ''');
     expect(_toText(unitOutline), r'''
 (D) MyWidget
-  (D) build
+  (D) build → Widget
     WidgetA
       Text
       Container
@@ -300,7 +300,7 @@ class MyWidget extends StatelessWidget {
 ''');
     expect(_toText(unitOutline), r'''
 (D) MyWidget
-  (D) build
+  (D) build → Widget
     WidgetA
       Text
 ''');
@@ -326,7 +326,7 @@ class MyWidget extends StatelessWidget {
 ''');
     expect(_toText(unitOutline), r'''
 (D) MyWidget
-  (D) build
+  (D) build → Widget
     Column
       Text
       Container
@@ -353,7 +353,7 @@ class MyWidget extends StatelessWidget {
 
     expect(_toText(unitOutline), r'''
 (D) MyWidget
-  (D) build
+  (D) build → Widget
     Column
       Text
       Text
@@ -378,7 +378,7 @@ class MyWidget extends StatelessWidget {
 
     expect(_toText(unitOutline), r'''
 (D) MyWidget
-  (D) build
+  (D) build → Widget
     Column
       Text
       Text
@@ -426,7 +426,7 @@ enum E {
     expect(_toText(unitOutline), r'''
 (D) E
   (D) v
-  (D) build
+  (D) build → Widget
     Text
 ''');
     var E = unitOutline.children![0];
@@ -521,7 +521,7 @@ class MyWidget extends StatelessWidget {
 ''');
     expect(_toText(unitOutline), r'''
 (D) MyWidget
-  (D) build
+  (D) build → Widget
     WidgetA
       Container
       left: Text
@@ -557,11 +557,121 @@ class MyWidget extends StatelessWidget {
 ''');
     expect(_toText(unitOutline), r'''
 (D) MyWidget
-  (D) build
+  (D) build → Widget
     WidgetA
       top: Text
       bottom: Text
 ''');
+  }
+
+  Future<void> test_primaryConstructor() async {
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class /*[0*/MyWidget/*0]*/(
+    final int /*[1*/a/*1]*/, {
+    required var int /*[2*/b/*2]*/,
+    int? c
+  }) extends StatelessWidget {
+  this {}
+
+  @override
+  Widget build(BuildContext context) {
+    return MyWidget(1, b: 2, c: 3);
+  }
+}
+''');
+
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) MyWidget
+  (D) a → int
+  (D) b → int
+  (D) build → Widget
+    MyWidget
+''');
+
+    var myWidget = unitOutline.children![0];
+    var constructor = myWidget.children!.singleWhere(
+      (child) => child.dartElement?.name == 'MyWidget',
+    );
+    var fieldA = myWidget.children!.singleWhere(
+      (child) => child.dartElement?.name == 'a',
+    );
+    var fieldB = myWidget.children!.singleWhere(
+      (child) => child.dartElement?.name == 'b',
+    );
+    var build = myWidget.children!.singleWhere(
+      (child) => child.dartElement?.name == 'build',
+    );
+    var buildMyWidget = build.children![0];
+
+    _assertLocation(myWidget.dartElement!.location!, testCode.ranges[0]);
+    _assertLocation(constructor.dartElement!.location!, testCode.ranges[0]);
+    _assertLocation(fieldA.dartElement!.location!, testCode.ranges[1]);
+    _assertLocation(fieldB.dartElement!.location!, testCode.ranges[2]);
+
+    expect(buildMyWidget.kind, FlutterOutlineKind.NEW_INSTANCE);
+    expect(buildMyWidget.className, 'MyWidget');
+    expect(buildMyWidget.attributes, hasLength(3));
+    expect(buildMyWidget.attributes![0].name, 'a');
+    expect(buildMyWidget.attributes![1].name, 'b');
+    expect(buildMyWidget.attributes![2].name, 'c');
+  }
+
+  Future<void> test_primaryConstructor_named() async {
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class /*[0*/MyWidget/*0]*//*[1*/.named/*1]*/(
+    final int /*[2*/a/*2]*/, {
+    required var int /*[3*/b/*3]*/,
+    int? c
+  }) extends StatelessWidget {
+  this {}
+
+  @override
+  Widget build(BuildContext context) {
+    return MyWidget.named(1, b: 2, c: 3);
+  }
+}
+''');
+
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) MyWidget.named
+  (D) a → int
+  (D) b → int
+  (D) build → Widget
+    MyWidget
+''');
+
+    var myWidget = unitOutline.children![0];
+    var constructor = myWidget.children!.singleWhere(
+      (child) => child.dartElement?.name == 'MyWidget.named',
+    );
+    var fieldA = myWidget.children!.singleWhere(
+      (child) => child.dartElement?.name == 'a',
+    );
+    var fieldB = myWidget.children!.singleWhere(
+      (child) => child.dartElement?.name == 'b',
+    );
+    var build = myWidget.children!.singleWhere(
+      (child) => child.dartElement?.name == 'build',
+    );
+    var buildMyWidget = build.children![0];
+
+    _assertLocation(myWidget.dartElement!.location!, testCode.ranges[0]);
+    _assertLocation(constructor.dartElement!.location!, testCode.ranges[1]);
+    _assertLocation(fieldA.dartElement!.location!, testCode.ranges[2]);
+    _assertLocation(fieldB.dartElement!.location!, testCode.ranges[3]);
+
+    expect(buildMyWidget.kind, FlutterOutlineKind.NEW_INSTANCE);
+    expect(buildMyWidget.className, 'MyWidget');
+    expect(buildMyWidget.attributes, hasLength(3));
+    expect(buildMyWidget.attributes![0].name, 'a');
+    expect(buildMyWidget.attributes![1].name, 'b');
+    expect(buildMyWidget.attributes![2].name, 'c');
   }
 
   Future<void> test_variableName() async {
@@ -648,8 +758,14 @@ class MyWidget extends StatelessWidget {
       buffer.write(indent);
 
       if (outline.kind == FlutterOutlineKind.DART_ELEMENT) {
+        var element = outline.dartElement!;
         buffer.write('(D) ');
-        buffer.writeln(outline.dartElement!.name);
+        buffer.write(element.name);
+        if (element.returnType != null) {
+          buffer.write(' → ');
+          buffer.write(element.returnType);
+        }
+        buffer.writeln();
       } else {
         if (outline.kind == FlutterOutlineKind.NEW_INSTANCE) {
           if (outline.parentAssociationLabel != null) {

@@ -72,7 +72,7 @@ class BlockBuilder;
 struct TableSelector;
 }  // namespace compiler
 
-class Value : public ZoneAllocated {
+class Value : public ZoneObject {
  public:
   // A forward iterator that allows removing the current value from the
   // underlying use list during iteration.
@@ -199,7 +199,7 @@ class Value : public ZoneAllocated {
 
 // Represents a range of class-ids for use in class checks and polymorphic
 // dispatches.  The range includes both ends, i.e. it is [cid_start, cid_end].
-struct CidRange : public ZoneAllocated {
+struct CidRange : public ZoneObject {
   CidRange(intptr_t cid_start_arg, intptr_t cid_end_arg)
       : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
   CidRange() : cid_start(kIllegalCid), cid_end(kIllegalCid) {}
@@ -739,7 +739,7 @@ struct TargetInfo : public CidRange {
 
 // A set of class-ids, arranged in ranges. Used for the CheckClass
 // and PolymorphicInstanceCall instructions.
-class Cids : public ZoneAllocated {
+class Cids : public ZoneObject {
  public:
   explicit Cids(Zone* zone) : cid_ranges_(zone, 6) {}
   // Creates the off-heap Cids object that reflects the contents
@@ -839,7 +839,7 @@ class CallTargets : public Cids {
 
 // Represents type feedback for the binary operators, and a few recognized
 // static functions (see MethodRecognizer::NumArgsCheckedForStaticCall).
-class BinaryFeedback : public ZoneAllocated {
+class BinaryFeedback : public ZoneObject {
  public:
   explicit BinaryFeedback(Zone* zone) : feedback_(zone, 2) {}
 
@@ -965,7 +965,7 @@ class ValueListIterable {
   Value* value_;
 };
 
-class Instruction : public ZoneAllocated {
+class Instruction : public ZoneObject {
  public:
 #define DECLARE_TAG(type, attrs) k##type,
   enum Tag { FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_TAG) kNumInstructions };
@@ -1526,11 +1526,11 @@ class TemplateInstruction
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class MoveOperands : public ZoneAllocated {
+class MoveOperands : public ZoneObject {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) {}
   MoveOperands(const MoveOperands& other)
-      : ZoneAllocated(), dest_(other.dest_), src_(other.src_) {}
+      : ZoneObject(), dest_(other.dest_), src_(other.src_) {}
 
   MoveOperands& operator=(const MoveOperands& other) {
     dest_ = other.dest_;
@@ -1643,7 +1643,7 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
 };
 
-class OsrEntryRelinkingInfo : public ZoneAllocated {
+class OsrEntryRelinkingInfo : public ZoneObject {
  public:
   OsrEntryRelinkingInfo(GraphEntryInstr* graph_entry,
                         Instruction* instr,
@@ -11523,7 +11523,7 @@ class SuspendInstr : public TemplateDefinition<2, Throws> {
 
 #undef DECLARE_INSTRUCTION
 
-class Environment : public ZoneAllocated {
+class Environment : public ZoneObject {
  public:
   // Iterate the non-null values in the innermost level of an environment.
   class ShallowIterator : public ValueObject {

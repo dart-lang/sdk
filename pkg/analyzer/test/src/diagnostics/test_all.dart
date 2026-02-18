@@ -34,6 +34,8 @@ import 'assignment_to_final_no_setter_test.dart'
 import 'assignment_to_final_test.dart' as assignment_to_final;
 import 'assignment_to_function_test.dart' as assignment_to_function;
 import 'assignment_to_method_test.dart' as assignment_to_method;
+import 'assignment_to_primary_constructor_parameter_test.dart'
+    as assignment_to_primary_constructor_parameter;
 import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_for_in_wrong_context_test.dart' as async_for_in_wrong_context;
 import 'async_keyword_used_as_identifier_test.dart'
@@ -833,6 +835,8 @@ import 'switch_case_completes_normally_test.dart'
     as switch_case_completes_normally;
 import 'tearoff_of_generative_constructor_of_abstract_class_test.dart'
     as tearoff_of_generative_constructor_of_abstract_class;
+import 'tearoff_with_must_be_const_parameter_test.dart'
+    as tearoff_with_must_be_const_parameter;
 import 'text_direction_code_point_test.dart' as text_direction_code_point;
 import 'throw_of_invalid_type_test.dart' as throw_of_invalid_type;
 import 'todo_test.dart' as todo_test;
@@ -969,6 +973,7 @@ main() {
     assignment_to_final.main();
     assignment_to_function.main();
     assignment_to_method.main();
+    assignment_to_primary_constructor_parameter.main();
     assignment_to_type.main();
     async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
@@ -1477,6 +1482,7 @@ main() {
     super_invocation_not_last.main();
     switch_case_completes_normally.main();
     tearoff_of_generative_constructor_of_abstract_class.main();
+    tearoff_with_must_be_const_parameter.main();
     text_direction_code_point.main();
     throw_of_invalid_type.main();
     todo_test.main();

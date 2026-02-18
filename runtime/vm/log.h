@@ -14,11 +14,7 @@ namespace dart {
 class IsolateGroup;
 class LogBlock;
 
-#if defined(_MSC_VER)
-#define THR_Print(format, ...) Log::Current()->Print(format, __VA_ARGS__)
-#else
 #define THR_Print(format, ...) Log::Current()->Print(format, ##__VA_ARGS__)
-#endif
 
 #define THR_VPrint(format, args) Log::Current()->VPrint(format, args)
 

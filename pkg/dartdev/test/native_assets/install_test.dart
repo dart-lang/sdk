@@ -90,21 +90,26 @@ executables.
 
 If the same package has been previously installed, it will be overwritten.
 
-You can specify three different values for the <package> argument:
-1. A package name. This will install the package from pub.dev. (hosted)
-   The [version-constraint] argument can only be passed to 'hosted'.
-2. A git url. This will install the package from a git repository. (git)
-3. A path on your machine. This will install the package from that path. (path)
+You can specify a package to install from pub.dev, a git repository, or a
+local path using the `<package>[@<descriptor>]` syntax.
 
-Usage: dart install <package> [version-constraint]
--h, --help          Print this usage information.
-    --git-path      Path of git package in repository. Only applies when using a git url for <package>.
-    --git-ref       Git branch or commit to be retrieved. Only applies when using a git url for <package>.
-    --overwrite     Overwrite executables from other packages with the same name.
--u, --hosted-url    A custom pub server URL for the package. Only applies when using a package name for <package>.
+The `@<descriptor>` can be a version constraint (for hosted packages) or a
+pub descriptor (consistent with pubspec.yaml).
 
-Run "dart help" to see global options.
-''',
+Examples:
+  dart install <pkg>
+  dart install <pkg>@^3.0.0
+  dart install '<pkg>@{hosted: https://pub.dev, version: ^3.0.0}'
+  dart install '<pkg>@{git: {url: https://github.com/<owner>/<repo>, path: <path>}}'
+  dart install '<pkg>@{path: /path/to/<pkg>}'
+
+See https://dart.dev/to/package-descriptors for more details.
+
+Usage: dart install <package>[@<descriptor>]
+-h, --help         Print this usage information.
+    --overwrite    Overwrite executables from other packages with the same name.
+
+Run "dart help" to see global options.''',
     ),
     (
       'installed',
@@ -152,6 +157,9 @@ Run "dart help" to see global options.
   final argumentss = [
     (null, [_packageForTest]),
     (null, [_packageForTest, _packageVersion]),
+    (null, ['$_packageForTest@$_packageVersion']),
+    (null, ['$_packageForTest@{"version": "$_packageVersion"}']),
+    (null, ['$_packageForTest@{version: $_packageVersion}']),
     (
       null,
       [_packageForTest, _packageVersion, '--hosted-url', 'https://pub.dev/'],
@@ -225,6 +233,7 @@ Run "dart help" to see global options.
   final argumentssGit = [
     ['git'],
     ['git', '--git-path', '--git-ref'],
+    ['git-descriptor'],
   ];
 
   for (final testArguments in argumentssGit) {
@@ -234,7 +243,11 @@ Run "dart help" to see global options.
       await inTempDir((tempUri) async {
         final gitUri = tempUri.resolve('app.git/');
         await Directory.fromUri(gitUri.resolve('bin/')).create(recursive: true);
-        for (final file in ['pubspec.yaml', 'bin/dart_app.dart']) {
+        for (final file in [
+          'pubspec.yaml',
+          'bin/dart_app.dart',
+          'bin/other_app.dart',
+        ]) {
           await File.fromUri(
             _package2Dir.uri.resolve(file),
           ).copy(gitUri.resolve(file).toFilePath());
@@ -261,11 +274,21 @@ Run "dart help" to see global options.
                     as String)
                 .trim();
         final gitPath = './';
-        final arguments = [
-          gitUri.toFilePath(),
-          if (testArguments.contains('--git-path')) ...['--git-path', gitPath],
-          if (testArguments.contains('--git-ref')) ...['--git-ref', gitRef],
-        ];
+        final List<String> arguments;
+        if (testArguments.contains('git-descriptor')) {
+          arguments = [
+            'dart_app@{git: {url: ${gitUri.toFilePath()}, ref: $gitRef}}',
+          ];
+        } else {
+          arguments = [
+            gitUri.toFilePath(),
+            if (testArguments.contains('--git-path')) ...[
+              '--git-path',
+              gitPath,
+            ],
+            if (testArguments.contains('--git-ref')) ...['--git-ref', gitRef],
+          ];
+        }
 
         final dartDataHome = tempUri.resolve('dart_home/');
         await Directory.fromUri(dartDataHome).create();

@@ -4,6 +4,9 @@
 
 import 'dart:collection';
 
+import 'package:compiler/src/deferred_load/program_split_constraints/builder.dart'
+    as psc;
+import 'package:compiler/src/deferred_load/program_split_constraints/nodes.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -16,7 +19,8 @@ import 'import_set.dart';
 export 'import_set.dart' show Part;
 
 Partitioning partitionAppplication(CoreTypes coreTypes, Component component,
-    DeferredModuleLoadingMap loadingMap, Set<Reference> roots) {
+    DeferredModuleLoadingMap loadingMap, Set<Reference> roots,
+    {ConstraintData? constraints}) {
   final allDeferredImports = <LibraryDependency>[];
   for (final lib in component.libraries) {
     for (final dep in lib.dependencies) {
@@ -30,7 +34,8 @@ Partitioning partitionAppplication(CoreTypes coreTypes, Component component,
   final devirtualizionOracle = DevirtualizionOracle(component);
   final depsCollector = DependenciesCollector(
       coreTypes, classHierarchy, devirtualizionOracle, loadingMap);
-  final algorithm = _Algorithm(component, depsCollector, allDeferredImports);
+  final algorithm =
+      _Algorithm(component, depsCollector, allDeferredImports, constraints);
   return algorithm.run(roots);
 }
 
@@ -43,12 +48,95 @@ class Partitioning {
 
   Partitioning(this.root, this.parts, this.referenceToPart, this.constantToPart,
       this.deferredImportToParts);
+
+  String toText(Uri baseUri, {bool includeRoot = false}) {
+    final output = StringBuffer();
+    int partId = 0;
+    final partContents = computePartContents();
+
+    final sortedParts = parts
+        .toList()
+        .where((p) =>
+            (!p.isRoot || includeRoot) &&
+            (partContents[p]!.references.isNotEmpty ||
+                partContents[p]!.constants.isNotEmpty))
+        .toList()
+      ..sort((a, b) {
+        final contentsA = partContents[a]!;
+        final contentsB = partContents[b]!;
+        return (contentsB.references.length + contentsA.constants.length) -
+            (contentsA.references.length + contentsB.constants.length);
+      });
+
+    for (int i = 0; i < sortedParts.length; ++i) {
+      final part = sortedParts[i];
+      final isLast = i == (sortedParts.length - 1);
+      final contents = partContents[part]!;
+
+      final sortedImports = part.imports
+          .map((dep) => _stringifyDeferredImport(baseUri, dep))
+          .toList()
+        ..sort();
+      final sortedRefs = contents.references
+          .map((ref) => _stringifyReference(baseUri, ref))
+          .toList()
+        ..sort();
+      final sortedConsts = contents.constants.map(_stringifyConstant).toList()
+        ..sort();
+
+      output.writeln('Part ${partId++}');
+      output.writeln('  ImportSet');
+      for (final i in sortedImports) {
+        output.writeln('     - $i');
+      }
+      output.writeln('  References');
+      for (final ref in sortedRefs) {
+        output.writeln('     - $ref');
+      }
+      output.writeln('  Constants');
+      for (final ref in sortedConsts) {
+        output.writeln('     - $ref');
+      }
+      if (!isLast) output.writeln('');
+    }
+    return '$output';
+  }
+
+  Map<Part, ({Set<Reference> references, Set<Constant> constants})>
+      computePartContents() {
+    final partRefs = <Part, Set<Reference>>{};
+    final partConstants = <Part, Set<Constant>>{};
+    referenceToPart.forEach((reference, part) {
+      (partRefs[part] ??= {}).add(reference);
+    });
+    constantToPart.forEach((reference, part) {
+      (partConstants[part] ??= {}).add(reference);
+    });
+    return {
+      for (final part in parts)
+        part: (
+          references: partRefs[part] ?? {},
+          constants: partConstants[part] ?? {}
+        ),
+    };
+  }
+
+  static String _stringifyDeferredImport(
+          Uri baseUri, LibraryDependency dependency) =>
+      '${(dependency.parent as Library).importUri} prefix: ${dependency.name!}'
+          .replaceAll('$baseUri', '');
+
+  static String _stringifyReference(Uri baseUri, Reference reference) =>
+      reference.canonicalName!.toStringInternal().replaceAll('$baseUri', '');
+
+  static String _stringifyConstant(Constant reference) => reference.toString();
 }
 
 class _Algorithm {
   final Component component;
   final DependenciesCollector depsCollector;
   final List<LibraryDependency> allDeferredImports;
+  final ConstraintData? constraints;
 
   final ImportSetLattice importSets = ImportSetLattice();
 
@@ -66,9 +154,12 @@ class _Algorithm {
   final Map<Reference, ImportSet> referenceToImportSet = {};
   final Map<Constant, ImportSet> constantToImportSet = {};
 
-  _Algorithm(this.component, this.depsCollector, this.allDeferredImports);
+  _Algorithm(this.component, this.depsCollector, this.allDeferredImports,
+      this.constraints);
 
   Partitioning run(Set<Reference> roots) {
+    collectDependencies(roots);
+
     // Sentinel used to represent the artificial import of all roots.
     final rootImport = LibraryDependency.import(Library(Uri(), fileUri: Uri()));
     final rootPart = Part(true, {});
@@ -78,28 +169,63 @@ class _Algorithm {
       allDeferredImports,
     );
 
-    // Main algorithm: Enqueue roots and propagate.
+    // If program split constraints are provided, then parse and interpret
+    // them now.
+    if (constraints != null) {
+      final builder = psc.KernelBuilder(constraints!);
+      final transitions = builder.build(allDeferredImports);
+      importSets.buildInitialSets(transitions.singletonTransitions);
+      importSets.buildSetTransitions(transitions.setTransitions);
+    }
+
+    enqueueRootsAndPropagate(roots);
+    applySetTransitions();
+
+    return createParitition(rootPart);
+  }
+
+  void collectDependencies(Set<Reference> roots) {
+    for (final reference in roots) {
+      ensureReferenceDependencies(reference);
+    }
+  }
+
+  void enqueueRootsAndPropagate(Set<Reference> roots) {
     for (final root in roots) {
       referenceQueue.enqueue(root, importSets.rootSet);
     }
+    directReferenceDependencies.forEach((reference, deps) {
+      deps.deferredReferences.forEach((reference, imports) {
+        for (final import in imports) {
+          referenceQueue.enqueue(reference, importSets.initialSetOf(import));
+        }
+      });
+      deps.deferredConstants.forEach((constant, imports) {
+        for (final import in imports) {
+          constantQueue.enqueue(constant, importSets.initialSetOf(import));
+        }
+      });
+    });
+
     while (referenceQueue.isNotEmpty || constantQueue.isNotEmpty) {
       while (referenceQueue.isNotEmpty) {
         final (reference, importsToAdd) = referenceQueue.dequeue();
-        ensureReferenceDependencies(reference);
         final oldSet = referenceToImportSet[reference] ?? importSets.emptySet;
         final newSet = importSets.union(oldSet, importsToAdd);
         updateReference(reference, oldSet, newSet);
       }
       while (constantQueue.isNotEmpty) {
         final (constant, importsToAdd) = constantQueue.dequeue();
-        ensureConstantDependencies(constant);
         final oldSet = constantToImportSet[constant] ?? importSets.emptySet;
         final newSet = importSets.union(oldSet, importsToAdd);
         updateConstant(constant, oldSet, newSet);
       }
     }
+  }
 
-    // Map [Reference]s/[Constant]s to the [Part] they were assigned to.
+  /// Creates a [Partitioning] that maps [Reference]s/[Constant]s to the [Part]
+  /// they were assigned to.
+  Partitioning createParitition(Part rootPart) {
     final referenceToPart = <Reference, Part>{};
     final constantToPart = <Constant, Part>{};
     final parts = <Part>[rootPart];
@@ -141,16 +267,10 @@ class _Algorithm {
     deps.references.forEach(ensureReferenceDependencies);
     deps.deferredReferences.forEach((reference, imports) {
       ensureReferenceDependencies(reference);
-      for (final import in imports) {
-        referenceQueue.enqueue(reference, importSets.initialSetOf(import));
-      }
     });
     deps.constants.forEach(ensureConstantDependencies);
     deps.deferredConstants.forEach((constant, imports) {
       ensureConstantDependencies(constant);
-      for (final import in imports) {
-        constantQueue.enqueue(constant, importSets.initialSetOf(import));
-      }
     });
   }
 
@@ -168,6 +288,20 @@ class _Algorithm {
     directConstantDependencies[constant] = deps;
 
     deps.constants.forEach(ensureConstantDependencies);
+  }
+
+  /// Processes each [ImportSet], applying [SetTransition]s if their
+  /// prerequisites are met.
+  void applySetTransitions() {
+    final imports = {
+      ...referenceToImportSet.values,
+      ...constantToImportSet.values,
+    };
+    final finalTransitions = importSets.computeFinalTransitions(imports);
+    referenceToImportSet
+        .updateAll((reference, importSet) => finalTransitions[importSet]!);
+    constantToImportSet
+        .updateAll((reference, importSet) => finalTransitions[importSet]!);
   }
 
   /// Given an [Reference], an [oldSet] and a [newSet], either ignore the

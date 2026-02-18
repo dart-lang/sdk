@@ -1,0 +1,37 @@
+library #lib;
+import self as self;
+import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
+
+import "package:meta/meta.dart" show RecordUse;
+
+@#C1
+class Recorded extends core::Object /*hasConstConstructor*/  {
+
+  [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "id")]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  final field core::String id;
+}
+class Wrapper extends core::Object /*hasConstConstructor*/  {
+
+  [@vm.inferred-type.metadata=#lib::Recorded (value: const #lib::Recorded{#lib::Recorded.id: "id"})]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
+  final field self::Recorded recorded;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::useRecorded();
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method useRecorded() → void {
+  core::print([@vm.direct-call.metadata=#lib::Wrapper.recorded] [@vm.inferred-type.metadata=#lib::Recorded (value: const #lib::Recorded{#lib::Recorded.id: "id"})] #C4.{self::Wrapper::recorded}{self::Recorded});
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = "id"
+  #C3 = self::Recorded {id:#C2}
+  #C4 = self::Wrapper {recorded:#C3}
+}

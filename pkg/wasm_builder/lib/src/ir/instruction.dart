@@ -6,7 +6,7 @@ import '../serialize/printer.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
-abstract class Instruction implements Serializable {
+abstract mixin class Instruction implements Serializable {
   /// The [ValueType] types referenced by this instruction. Used to determine
   /// which types need to be included in the module. Unused types will not be
   /// emitted in the wasm output.
@@ -545,14 +545,11 @@ abstract class Instruction implements Serializable {
         }
       case 0xFD:
         {
-          final opcode = d.readByte();
+          final opcode = d.readUnsigned();
+          final instruction = V128Instruction.fromOpcode(opcode);
+          if (instruction != null) return instruction;
           return switch (opcode) {
-            0x0F => I8x16Splat.deserialize(d),
-            0x10 => I16x8Splat.deserialize(d),
-            0x11 => I32x4Splat.deserialize(d),
-            0x12 => I64x2Splat.deserialize(d),
-            0x13 => F32x4Splat.deserialize(d),
-            0x14 => F64x2Splat.deserialize(d),
+            0x0D => I8x16Shuffle.deserialize(d),
             0x15 => I8x16ExtractLaneS.deserialize(d),
             0x16 => I8x16ExtractLaneU.deserialize(d),
             0x17 => I8x16ReplaceLane.deserialize(d),
@@ -567,22 +564,6 @@ abstract class Instruction implements Serializable {
             0x20 => F32x4ReplaceLane.deserialize(d),
             0x21 => F64x2ExtractLane.deserialize(d),
             0x22 => F64x2ReplaceLane.deserialize(d),
-            0x6E => I8x16Add.deserialize(d),
-            0x71 => I8x16Sub.deserialize(d),
-            0x61 => I8x16Neg.deserialize(d),
-            0x8E => I16x8Add.deserialize(d),
-            0x91 => I16x8Sub.deserialize(d),
-            0x95 => I16x8Mul.deserialize(d),
-            0x81 => I16x8Neg.deserialize(d),
-            0xBA => I32x4DotI16x8.deserialize(d),
-            0xAE => I32x4Add.deserialize(d),
-            0xB1 => I32x4Sub.deserialize(d),
-            0xB5 => I32x4Mul.deserialize(d),
-            0xA1 => I32x4Neg.deserialize(d),
-            0xCE => I64x2Add.deserialize(d),
-            0xD1 => I64x2Sub.deserialize(d),
-            0xD5 => I64x2Mul.deserialize(d),
-            0xC1 => I64x2Neg.deserialize(d),
             _ => throw "Invalid instruction byte: 0xFD $opcode"
           };
         }
@@ -4370,94 +4351,132 @@ class I64TruncSatF64U extends Instruction {
   String get name => 'i64.trunc_sat_f64_u';
 }
 
-class I8x16Splat extends Instruction {
-  const I8x16Splat();
+enum V128Instruction with Instruction {
+  i8x16Splat(0x0F, 'i8x16.splat'),
+  i16x8Splat(0x10, 'i16x8.splat'),
+  i32x4Splat(0x11, 'i32x4.splat'),
+  i64x2Splat(0x12, 'i64x2.splat'),
+  f32x4Splat(0x13, 'f32x4.splat'),
+  f64x2Splat(0x14, 'f64x2.splat'),
+  i8x16Eq(0x23, 'i8x16.eq'),
+  i16x8Eq(0x2D, 'i16x8.eq'),
+  i32x4Eq(0x37, 'i32x4.eq'),
+  f32x4Eq(0x41, 'f32x4.eq'),
+  f32x4Ne(0x42, 'f32x4.ne'),
+  f32x4Lt(0x43, 'f32x4.lt'),
+  f32x4Gt(0x44, 'f32x4.gt'),
+  f32x4Le(0x45, 'f32x4.le'),
+  f32x4Ge(0x46, 'f32x4.ge'),
+  f64x2Eq(0x47, 'f64x2.eq'),
+  f64x2Ne(0x48, 'f64x2.ne'),
+  f64x2Lt(0x49, 'f64x2.lt'),
+  f64x2Gt(0x4A, 'f64x2.gt'),
+  f64x2Le(0x4B, 'f64x2.le'),
+  f64x2Ge(0x4C, 'f64x2.ge'),
+  v128Not(0x4D, 'v128.not'),
+  v128And(0x4E, 'v128.and'),
+  v128AndNot(0x4F, 'v128.andnot'),
+  v128Or(0x50, 'v128.or'),
+  v128Xor(0x51, 'v128.xor'),
+  v128BitSelect(0x52, 'v128.bitselect'),
+  v128AnyTrue(0x53, 'v128.any_true'),
+  i8x16Neg(0x61, 'i8x16.neg'),
+  i8x16AllTrue(0x63, 'i8x16.all_true'),
+  f32x4Ceil(0x67, 'f32x4.ceil'),
+  f32x4Floor(0x68, 'f32x4.floor'),
+  f32x4Trunc(0x69, 'f32x4.trunc'),
+  f32x4Nearest(0x6A, 'f32x4.nearest'),
+  i8x16Add(0x6E, 'i8x16.add'),
+  i8x16Sub(0x71, 'i8x16.sub'),
+  f64x2Ceil(0x74, 'f64x2.ceil'),
+  f64x2Floor(0x75, 'f64x2.floor'),
+  f64x2Trunc(0x7A, 'f64x2.trunc'),
+  f64x2Nearest(0x94, 'f64x2.nearest'),
+  i16x8Neg(0x81, 'i16x8.neg'),
+  i16x8AllTrue(0x83, 'i16x8.all_true'),
+  i16x8Add(0x8E, 'i16x8.add'),
+  i16x8Sub(0x91, 'i16x8.sub'),
+  i16x8Mul(0x95, 'i16x8.mul'),
+  i32x4Neg(0xA1, 'i32x4.neg'),
+  i32x4AllTrue(0xA3, 'i32x4.all_true'),
+  i32x4Add(0xAE, 'i32x4.add'),
+  i32x4Sub(0xB1, 'i32x4.sub'),
+  i32x4Mul(0xB5, 'i32x4.mul'),
+  i32x4DotI16x8(0xBA, 'i32x4.dot_i16x8_s'),
+  i64x2Neg(0xC1, 'i64x2.neg'),
+  i64x2AllTrue(0xC3, 'i64x2.all_true'),
+  i64x2Add(0xCE, 'i64x2.add'),
+  i64x2Sub(0xD1, 'i64x2.sub'),
+  i64x2Mul(0xD5, 'i64x2.mul'),
+  i64x2Eq(0xD6, 'i64x2.eq'),
+  f32x4Abs(0xE0, 'f32x4.abs'),
+  f32x4Neg(0xE1, 'f32x4.neg'),
+  f32x4Sqrt(0xE3, 'f32x4.sqrt'),
+  f32x4Add(0xE4, 'f32x4.add'),
+  f32x4Sub(0xE5, 'f32x4.sub'),
+  f32x4Mul(0xE6, 'f32x4.mul'),
+  f32x4Div(0xE7, 'f32x4.div'),
+  f32x4Min(0xE8, 'f32x4.min'),
+  f32x4Max(0xE9, 'f32x4.max'),
+  f32x4PMin(0xEA, 'f32x4.pmin'),
+  f32x4PMax(0xEB, 'f32x4.pmax'),
+  f64x2Abs(0xEC, 'f64x2.abs'),
+  f64x2Neg(0xED, 'f64x2.neg'),
+  f64x2Sqrt(0xEF, 'f64x2.sqrt'),
+  f64x2Add(0xF0, 'f64x2.add'),
+  f64x2Sub(0xF1, 'f64x2.sub'),
+  f64x2Mul(0xF2, 'f64x2.mul'),
+  f64x2Div(0xF3, 'f64x2.div'),
+  f64x2Min(0xF4, 'f64x2.min'),
+  f64x2Max(0xF5, 'f64x2.max'),
+  f64x2PMin(0xF6, 'f64x2.pmin'),
+  f64x2PMax(0xF7, 'f64x2.pmax');
+
+  final int opcode;
+  @override
+  final String name;
+
+  const V128Instruction(this.opcode, this.name);
+
+  static List<V128Instruction?> _lookup = (() {
+    final lookup = List<V128Instruction?>.filled(256, null);
+    for (final v in values) {
+      lookup[v.opcode] = v;
+    }
+    return lookup;
+  })();
+
+  static V128Instruction? fromOpcode(int opcode) => _lookup[opcode];
 
   @override
   void serialize(Serializer s) {
     s.writeByte(0xFD);
-    s.writeUnsigned(0x0F);
+    s.writeUnsigned(opcode);
   }
-
-  static I8x16Splat deserialize(Deserializer d) => const I8x16Splat();
-
-  @override
-  String get name => 'i8x16.splat';
 }
 
-class I16x8Splat extends Instruction {
-  const I16x8Splat();
+class I8x16Shuffle extends Instruction {
+  const I8x16Shuffle(this.lanes);
+
+  final List<int> lanes;
 
   @override
   void serialize(Serializer s) {
     s.writeByte(0xFD);
-    s.writeUnsigned(0x10);
+    s.writeUnsigned(0x0D);
+    for (var lane in lanes) {
+      s.writeByte(lane);
+    }
   }
 
-  static I16x8Splat deserialize(Deserializer d) => const I16x8Splat();
+  static I8x16Shuffle deserialize(Deserializer d) =>
+      I8x16Shuffle(List.generate(16, (_) => d.readByte()));
 
   @override
-  String get name => 'i16x8.splat';
-}
-
-class I32x4Splat extends Instruction {
-  const I32x4Splat();
+  String get name => 'i8x16.shuffle';
 
   @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x11);
-  }
-
-  static I32x4Splat deserialize(Deserializer d) => const I32x4Splat();
-
-  @override
-  String get name => 'i32x4.splat';
-}
-
-class I64x2Splat extends Instruction {
-  const I64x2Splat();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x12);
-  }
-
-  static I64x2Splat deserialize(Deserializer d) => const I64x2Splat();
-
-  @override
-  String get name => 'i64x2.splat';
-}
-
-class F32x4Splat extends Instruction {
-  const F32x4Splat();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x13);
-  }
-
-  static F32x4Splat deserialize(Deserializer d) => const F32x4Splat();
-
-  @override
-  String get name => 'f32x4.splat';
-}
-
-class F64x2Splat extends Instruction {
-  const F64x2Splat();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x14);
-  }
-
-  static F64x2Splat deserialize(Deserializer d) => const F64x2Splat();
-
-  @override
-  String get name => 'f64x2.splat';
+  String toString() => '$name ${lanes.join(' ')}';
 }
 
 class I8x16ExtractLaneS extends Instruction {
@@ -4724,246 +4743,6 @@ class F64x2ReplaceLane extends Instruction {
 
   @override
   String get name => 'f64x2.replace_lane';
-}
-
-class I8x16Add extends Instruction {
-  const I8x16Add();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x6E);
-  }
-
-  static I8x16Add deserialize(Deserializer d) => const I8x16Add();
-
-  @override
-  String get name => 'i8x16.add';
-}
-
-class I8x16Sub extends Instruction {
-  const I8x16Sub();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x71);
-  }
-
-  static I8x16Sub deserialize(Deserializer d) => const I8x16Sub();
-
-  @override
-  String get name => 'i8x16.sub';
-}
-
-class I8x16Neg extends Instruction {
-  const I8x16Neg();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x61);
-  }
-
-  static I8x16Neg deserialize(Deserializer d) => const I8x16Neg();
-
-  @override
-  String get name => 'i8x16.neg';
-}
-
-class I16x8Add extends Instruction {
-  const I16x8Add();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x8E);
-  }
-
-  static I16x8Add deserialize(Deserializer d) => const I16x8Add();
-
-  @override
-  String get name => 'i16x8.add';
-}
-
-class I16x8Sub extends Instruction {
-  const I16x8Sub();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x91);
-  }
-
-  static I16x8Sub deserialize(Deserializer d) => const I16x8Sub();
-
-  @override
-  String get name => 'i16x8.sub';
-}
-
-class I16x8Mul extends Instruction {
-  const I16x8Mul();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x95);
-  }
-
-  static I16x8Mul deserialize(Deserializer d) => const I16x8Mul();
-
-  @override
-  String get name => 'i16x8.mul';
-}
-
-class I16x8Neg extends Instruction {
-  const I16x8Neg();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x81);
-  }
-
-  static I16x8Neg deserialize(Deserializer d) => const I16x8Neg();
-
-  @override
-  String get name => 'i16x8.neg';
-}
-
-class I32x4DotI16x8 extends Instruction {
-  const I32x4DotI16x8();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0xBA);
-  }
-
-  static I32x4DotI16x8 deserialize(Deserializer d) => const I32x4DotI16x8();
-
-  @override
-  String get name => 'i32x4.dot_i16x8_s';
-}
-
-class I32x4Add extends Instruction {
-  const I32x4Add();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0xAE);
-  }
-
-  static I32x4Add deserialize(Deserializer d) => const I32x4Add();
-
-  @override
-  String get name => 'i32x4.add';
-}
-
-class I32x4Sub extends Instruction {
-  const I32x4Sub();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0xB1);
-  }
-
-  static I32x4Sub deserialize(Deserializer d) => const I32x4Sub();
-
-  @override
-  String get name => 'i32x4.sub';
-}
-
-class I32x4Mul extends Instruction {
-  const I32x4Mul();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0xB5);
-  }
-
-  static I32x4Mul deserialize(Deserializer d) => const I32x4Mul();
-
-  @override
-  String get name => 'i32x4.mul';
-}
-
-class I32x4Neg extends Instruction {
-  const I32x4Neg();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0xA1);
-  }
-
-  static I32x4Neg deserialize(Deserializer d) => const I32x4Neg();
-
-  @override
-  String get name => 'i32x4.neg';
-}
-
-class I64x2Add extends Instruction {
-  const I64x2Add();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0xCE);
-  }
-
-  static I64x2Add deserialize(Deserializer d) => const I64x2Add();
-
-  @override
-  String get name => 'i64x2.add';
-}
-
-class I64x2Sub extends Instruction {
-  const I64x2Sub();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0xD1);
-  }
-
-  static I64x2Sub deserialize(Deserializer d) => const I64x2Sub();
-
-  @override
-  String get name => 'i64x2.sub';
-}
-
-class I64x2Mul extends Instruction {
-  const I64x2Mul();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0xD5);
-  }
-
-  static I64x2Mul deserialize(Deserializer d) => const I64x2Mul();
-
-  @override
-  String get name => 'i64x2.mul';
-}
-
-class I64x2Neg extends Instruction {
-  const I64x2Neg();
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0xC1);
-  }
-
-  static I64x2Neg deserialize(Deserializer d) => const I64x2Neg();
-
-  @override
-  String get name => 'i64x2.neg';
 }
 
 class BeginNoEffectTryTable extends Instruction {

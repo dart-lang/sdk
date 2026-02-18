@@ -1713,8 +1713,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
-    listener?.handleFunctionBodySkipped(token, isExpressionBody);
+  void handleFunctionBodySkipped(
+    Token beginToken,
+    Token endToken,
+    bool isExpressionBody,
+  ) {
+    listener?.handleFunctionBodySkipped(beginToken, endToken, isExpressionBody);
   }
 
   @override

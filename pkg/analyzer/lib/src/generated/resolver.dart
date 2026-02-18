@@ -231,6 +231,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final AssignmentExpressionResolver _assignmentExpressionResolver =
       AssignmentExpressionResolver(resolver: this);
+
   late final BinaryExpressionResolver _binaryExpressionResolver;
   late final ConstructorReferenceResolver _constructorReferenceResolver =
       ConstructorReferenceResolver(this);
@@ -243,7 +244,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final PrefixExpressionResolver _prefixExpressionResolver;
   late final VariableDeclarationResolver _variableDeclarationResolver;
   late final YieldStatementResolver _yieldStatementResolver;
-
   late final NullSafetyDeadCodeVerifier nullSafetyDeadCodeVerifier;
 
   late final InvocationInferenceHelper inferenceHelper;
@@ -788,7 +788,25 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
       staticType = operations.unknownType.unwrapTypeSchemaView();
     }
-    return ExpressionTypeAnalysisResult(type: SharedTypeView(staticType));
+    var flowAnalysisInfo = flowAnalysis.flow?.getExpressionInfo(expression);
+    assert(() {
+      // When the AST is rewritten, the analyzer's convention is to associate
+      // flow analysis expression info with the original expression, not the
+      // replacement. (Note, however, that it's ok to associate the same info
+      // with both expressions.)
+      var replacementFlowAnalysisInfo = flowAnalysis.flow?.getExpressionInfo(
+        replacementExpression,
+      );
+      assert(
+        replacementFlowAnalysisInfo == null ||
+            identical(flowAnalysisInfo, replacementFlowAnalysisInfo),
+      );
+      return true;
+    }());
+    return ExpressionTypeAnalysisResult(
+      type: SharedTypeView(staticType),
+      flowAnalysisInfo: flowAnalysisInfo,
+    );
   }
 
   @override
@@ -922,6 +940,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  shared.ExpressionTypeAnalysisResult finishNullShorting(
+    int targetDepth,
+    shared.ExpressionTypeAnalysisResult innerResult, {
+    required ExpressionImpl wholeExpression,
+  }) {
+    var analysisResult = super.finishNullShorting(
+      targetDepth,
+      innerResult,
+      wholeExpression: wholeExpression,
+    );
+    // If any expression info or expression reference was stored for the
+    // null-aware expression, it was only valid in the case where the target
+    // expression was not null. So it needs to be cleared now.
+    flow.storeExpressionInfo(wholeExpression, null);
+    return analysisResult;
+  }
+
+  @override
   shared.MapPatternEntry<ExpressionImpl, DartPatternImpl>? getMapPatternEntry(
     covariant MapPatternElementImpl element,
   ) {
@@ -994,7 +1030,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Stack: (Expression condition)
     var condition = popRewrite()!;
 
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
@@ -1022,7 +1060,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Stack: (Expression condition)
     var condition = popRewrite()!;
 
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
@@ -1434,7 +1474,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         SharedTypeSchemaView(result.indexContextType),
       );
       popRewrite();
-      var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
+      var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+        flowAnalysis.flow?.getExpressionInfo(node.index),
+      );
       checkIndexExpressionIndex(
         node.index,
         readElement: hasRead
@@ -1844,6 +1886,36 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  TypeImpl visitAnonymousBlockBody(
+    covariant AnonymousBlockBodyImpl node, {
+    TypeImpl? imposedType,
+  }) {
+    throw UnimplementedError(
+      'The anonymous-method feature is not fully implemented',
+    );
+  }
+
+  @override
+  TypeImpl visitAnonymousExpressionBody(
+    covariant AnonymousExpressionBodyImpl node, {
+    TypeImpl? imposedType,
+  }) {
+    throw UnimplementedError(
+      'The anonymous-method feature is not fully implemented',
+    );
+  }
+
+  @override
+  visitAnonymousMethodInvocation(
+    covariant AnonymousMethodInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    throw UnimplementedError(
+      'The anonymous-method feature is not fully implemented',
+    );
+  }
+
+  @override
   void visitAsExpression(
     covariant AsExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -1898,7 +1970,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       locatableDiagnostic: diag.nonBoolExpression,
-      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
+      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(
+        flowAnalysis.flow?.getExpressionInfo(node.condition),
+      ),
     );
     flowAnalysis.flow?.assert_afterCondition(
       flowAnalysis.flow?.getExpressionInfo(node.condition),
@@ -1923,7 +1997,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       locatableDiagnostic: diag.nonBoolExpression,
-      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
+      whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(
+        flowAnalysis.flow?.getExpressionInfo(node.condition),
+      ),
     );
     flowAnalysis.flow?.assert_afterCondition(
       flowAnalysis.flow?.getExpressionInfo(node.condition),
@@ -2063,7 +2139,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
 
     flowAnalysis.flow!.cascadeExpression_afterTarget(
-      node.target,
+      flowAnalysis.flow!.getExpressionInfo(node.target),
       SharedTypeView(targetType),
       isNullAware: node.isNullAware,
     );
@@ -2187,7 +2263,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       SharedTypeSchemaView(typeProvider.boolType),
     );
     condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
@@ -2293,7 +2371,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var expression = node.expression;
     analyzeExpression(expression, SharedTypeSchemaView(fieldType));
     expression = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(expression),
+    );
     if (fieldElement != null && enclosingFunction != null) {
       var enclosingConstructor = enclosingFunction as ConstructorElementImpl;
       checkForFieldInitializerNotAssignable(
@@ -2377,7 +2457,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.flow?.doStatement_conditionBegin();
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
     condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
       whyNotPromoted: whyNotPromoted,
@@ -3123,7 +3205,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       SharedTypeSchemaView(result.indexContextType),
     );
     popRewrite();
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(node.index),
+    );
     checkIndexExpressionIndex(
       node.index,
       readElement: result.readElement2 as InternalExecutableElement?,
@@ -3279,7 +3363,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
 
     flowAnalysis.flow?.nullAwareMapEntry_valueBegin(
-      node.key,
+      flowAnalysis.flow?.getExpressionInfo(node.key),
       keyType,
       isKeyNullAware: node.keyQuestion != null,
     );
@@ -3441,7 +3525,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Any "why not promoted" information that flow analysis had associated with
     // `node.expression` now needs to be forwarded to `node`, so that when
     // `visitArgumentList` iterates through the arguments, it will find it.
-    flowAnalysis.flow?.forwardExpression(node, node.expression);
+    flowAnalysis.flow?.storeExpressionInfo(
+      node,
+      flowAnalysis.flow?.getExpressionInfo(node.expression),
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3525,7 +3612,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(node.expression, SharedTypeSchemaView(contextType));
     popRewrite();
     typeAnalyzer.visitParenthesizedExpression(node);
-    flowAnalysis.flow?.parenthesizedExpression(node, node.expression);
+    flowAnalysis.flow?.storeExpressionInfo(
+      node,
+      flowAnalysis.flow?.parenthesizedExpression(
+        flowAnalysis.flow?.getExpressionInfo(node.expression),
+      ),
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3629,7 +3721,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: contextType,
     );
     if (rewrittenPropertyAccess != null) {
-      _resolvePropertyAccessRhs(rewrittenPropertyAccess, contextType);
+      _resolvePropertyAccessRhs(
+        rewrittenPropertyAccess,
+        contextType,
+        originalNode: node,
+      );
       // We did record that `node` was replaced with `rewrittenPropertyAccess`.
       // But if `rewrittenPropertyAccess` was itself rewritten, replace the
       // rewrite result of `node`.
@@ -4186,7 +4282,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis.flow?.initialize(
         node.declaredFragment?.element as PromotableElementImpl,
         SharedTypeView(initializerStaticType),
-        initializer,
+        flowAnalysis.flow?.getExpressionInfo(initializer),
         isFinal: parent.isFinal,
         isLate: parent.isLate,
         isImplicitlyTyped: declaredType == null,
@@ -4224,7 +4320,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.flow?.whileStatement_conditionBegin(node);
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
     condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
 
     boolExpressionVerifier.checkForNonBoolCondition(
       node.condition,
@@ -4443,8 +4541,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void _resolvePropertyAccessRhs(
     PropertyAccessImpl node,
-    TypeImpl contextType,
-  ) {
+    TypeImpl contextType, {
+    PrefixedIdentifierImpl? originalNode,
+  }) {
     if (node.isNullAware) {
       _startNullAwareAccess(node.target);
       nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
@@ -4454,6 +4553,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node: node,
       hasRead: true,
       hasWrite: false,
+      originalNode: originalNode,
     );
 
     _resolvePropertyAccessRhs_common(
@@ -4578,10 +4678,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           argumentList: ArgumentListImpl(arguments: [var expression]),
         ):
         case var expression:
-          startNullShorting(
-            null,
+          flow.storeExpressionInfo(
             expression,
-            SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
+            startNullShorting(
+              null,
+              flow.getExpressionInfo(expression),
+              SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
+            ),
           );
       }
     }
@@ -4821,6 +4924,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 // TODO(paulberry): migrate the responsibility for all scope resolution into
 // this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
+  /// The library fragment in which the AST nodes are being resolved.
+  final LibraryFragmentImpl _libraryFragment;
+
   /// The diagnostic reporter that will be informed of any diagnostics that are
   /// found during resolution.
   final DiagnosticReporter diagnosticReporter;
@@ -4854,9 +4960,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// first be visited.
   ScopeResolverVisitor(
     this.diagnosticReporter, {
+    required LibraryFragmentImpl libraryFragment,
     required this.nameScope,
     List<LibraryElement> docImportLibraries = const [],
-  }) : _docImportScope = DocumentationCommentScope(
+  }) : _libraryFragment = libraryFragment,
+       _docImportScope = DocumentationCommentScope(
          nameScope,
          docImportLibraries,
        );
@@ -4924,7 +5032,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.namePart.typeParameters?.accept(this);
       node.extendsClause?.accept(this);
@@ -4951,7 +5063,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       var element = node.declaredFragment!.element;
       nameScope = InstanceScope(
-        TypeParameterScope(nameScope, element.typeParameters),
+        TypeParameterScope(
+          nameScope,
+          element.typeParameters,
+          featureSet: _libraryFragment.library.featureSet,
+        ),
         element,
       );
       _visitDocumentationComment(node.documentationComment);
@@ -5037,7 +5153,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.namePart.typeParameters?.accept(this);
       node.withClause?.accept(this);
@@ -5068,7 +5188,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
@@ -5090,7 +5214,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.primaryConstructor.typeParameters?.accept(this);
       node.implementsClause?.accept(this);
@@ -5160,6 +5288,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       nameScope = LocalScope(nameScope);
       node.nameScope = nameScope;
+      _predeclareForPartsVariables(node.forLoopParts);
       node.forLoopParts.accept(this);
       node.body.accept(this);
     } finally {
@@ -5195,6 +5324,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       nameScope = LocalScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
       node.nameScope = nameScope;
+      _predeclareForPartsVariables(node.forLoopParts);
       node.forLoopParts.accept(this);
       _visitStatementInScope(node.body);
     } finally {
@@ -5212,7 +5342,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       _enclosingClosure = element.tryCast<LocalFunctionElement>();
       node.metadata.accept(this);
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.returnType?.accept(this);
       node.functionExpression.accept(this);
@@ -5240,7 +5374,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         return;
       }
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
 
@@ -5258,7 +5396,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
@@ -5278,7 +5420,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       _visitDocumentationComment(node.documentationComment);
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
@@ -5290,18 +5436,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var type = node.type;
-    if (type == null) {
-      // The function type hasn't been resolved yet, so we can't create a scope
-      // for its parameters.
-      super.visitGenericFunctionType(node);
-      return;
-    }
-
+    var element = node.declaredFragment!.element;
     Scope outerScope = nameScope;
     try {
-      var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       super.visitGenericFunctionType(node);
     } finally {
@@ -5315,7 +5457,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.type.accept(this);
@@ -5327,6 +5473,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
             typeParameterList.typeParameters
                 .map((n) => n.declaredFragment!.element)
                 .toList(),
+            featureSet: _libraryFragment.library.featureSet,
           );
         }
         var scope = nameScope = LocalScope(nameScope);
@@ -5405,7 +5552,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
@@ -5440,7 +5591,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
@@ -5738,6 +5893,20 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         diagnosticReporter.report(diag.continueLabelInvalid.at(parentNode));
       }
       return node;
+    }
+  }
+
+  /// Predeclare `for`-parts variables so lexical lookup during traversal of
+  /// `forLoopParts` (initializer, condition, updaters) binds to loop-local
+  /// elements.
+  ///
+  /// This is only about binding. Reads that occur before the declaration point
+  /// are still reported later by error verification.
+  void _predeclareForPartsVariables(ForLoopParts forLoopParts) {
+    if (forLoopParts is ForPartsWithDeclarations) {
+      for (var variable in forLoopParts.variables.variables) {
+        _define(variable.declaredFragment!.element);
+      }
     }
   }
 

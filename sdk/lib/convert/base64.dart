@@ -450,7 +450,7 @@ class _BufferCachingBase64Encoder extends _Base64Encoder {
   /// value (a string), the buffer can be reused between chunks.
   Uint8List? bufferCache;
 
-  _BufferCachingBase64Encoder(bool urlSafe) : super(urlSafe);
+  _BufferCachingBase64Encoder(super.urlSafe);
 
   Uint8List createBuffer(int bufferLength) {
     Uint8List? buffer = bufferCache;
@@ -472,7 +472,6 @@ abstract class _Base64EncoderSink extends ByteConversionSink {
   }
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
-    if (end == null) throw ArgumentError.notNull("end");
     RangeError.checkValidRange(start, end, source.length);
     _add(source, start, end, isLast);
   }
@@ -772,7 +771,7 @@ class _Base64Decoder {
     throw FormatException("Invalid character", input, i);
   }
 
-  static Uint8List _emptyBuffer = Uint8List(0);
+  static final Uint8List _emptyBuffer = Uint8List(0);
 
   /// Allocates a buffer with room for the decoding of a substring of [input].
   ///

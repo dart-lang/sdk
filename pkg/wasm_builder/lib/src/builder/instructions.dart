@@ -2566,37 +2566,321 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i8x16_splat() {
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.v128],
         trace: const ['i8x16.splat']));
-    _add(const ir.I8x16Splat());
+    _add(ir.V128Instruction.i8x16Splat);
   }
 
   void i16x8_splat() {
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.v128],
         trace: const ['i16x8.splat']));
-    _add(const ir.I16x8Splat());
+    _add(ir.V128Instruction.i16x8Splat);
   }
 
   void i32x4_splat() {
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.v128],
         trace: const ['i32x4.splat']));
-    _add(const ir.I32x4Splat());
+    _add(ir.V128Instruction.i32x4Splat);
   }
 
   void i64x2_splat() {
     assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.v128],
         trace: const ['i64x2.splat']));
-    _add(const ir.I64x2Splat());
+    _add(ir.V128Instruction.i64x2Splat);
   }
 
   void f32x4_splat() {
     assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.v128],
         trace: const ['f32x4.splat']));
-    _add(const ir.F32x4Splat());
+    _add(ir.V128Instruction.f32x4Splat);
   }
 
   void f64x2_splat() {
     assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.v128],
         trace: const ['f64x2.splat']));
-    _add(const ir.F64x2Splat());
+    _add(ir.V128Instruction.f64x2Splat);
+  }
+
+  void f32x4_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.eq']));
+    _add(ir.V128Instruction.f32x4Eq);
+  }
+
+  void f32x4_ne() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.ne']));
+    _add(ir.V128Instruction.f32x4Ne);
+  }
+
+  void f32x4_lt() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.lt']));
+    _add(ir.V128Instruction.f32x4Lt);
+  }
+
+  void f32x4_gt() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.gt']));
+    _add(ir.V128Instruction.f32x4Gt);
+  }
+
+  void f32x4_le() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.le']));
+    _add(ir.V128Instruction.f32x4Le);
+  }
+
+  void f32x4_ge() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.ge']));
+    _add(ir.V128Instruction.f32x4Ge);
+  }
+
+  void f32x4_abs() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.abs']));
+    _add(ir.V128Instruction.f32x4Abs);
+  }
+
+  void f32x4_neg() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.neg']));
+    _add(ir.V128Instruction.f32x4Neg);
+  }
+
+  void f32x4_sqrt() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.sqrt']));
+    _add(ir.V128Instruction.f32x4Sqrt);
+  }
+
+  void f32x4_add() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.add']));
+    _add(ir.V128Instruction.f32x4Add);
+  }
+
+  void f32x4_sub() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.sub']));
+    _add(ir.V128Instruction.f32x4Sub);
+  }
+
+  void f32x4_mul() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.mul']));
+    _add(ir.V128Instruction.f32x4Mul);
+  }
+
+  void f32x4_div() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.div']));
+    _add(ir.V128Instruction.f32x4Div);
+  }
+
+  void f32x4_min() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.min']));
+    _add(ir.V128Instruction.f32x4Min);
+  }
+
+  void f32x4_max() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.max']));
+    _add(ir.V128Instruction.f32x4Max);
+  }
+
+  void f32x4_pmin() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.pmin']));
+    _add(ir.V128Instruction.f32x4PMin);
+  }
+
+  void f32x4_pmax() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.pmax']));
+    _add(ir.V128Instruction.f32x4PMax);
+  }
+
+  void f64x2_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.eq']));
+    _add(ir.V128Instruction.f64x2Eq);
+  }
+
+  void f64x2_ne() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.ne']));
+    _add(ir.V128Instruction.f64x2Ne);
+  }
+
+  void f64x2_lt() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.lt']));
+    _add(ir.V128Instruction.f64x2Lt);
+  }
+
+  void f64x2_gt() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.gt']));
+    _add(ir.V128Instruction.f64x2Gt);
+  }
+
+  void f64x2_le() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.le']));
+    _add(ir.V128Instruction.f64x2Le);
+  }
+
+  void f64x2_ge() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.ge']));
+    _add(ir.V128Instruction.f64x2Ge);
+  }
+
+  void f64x2_abs() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.abs']));
+    _add(ir.V128Instruction.f64x2Abs);
+  }
+
+  /// Emit an `f32x4.ceil` instruction.
+  void f32x4_ceil() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.ceil']));
+    _add(ir.V128Instruction.f32x4Ceil);
+  }
+
+  /// Emit an `f32x4.floor` instruction.
+  void f32x4_floor() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.floor']));
+    _add(ir.V128Instruction.f32x4Floor);
+  }
+
+  /// Emit an `f32x4.trunc` instruction.
+  void f32x4_trunc() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.trunc']));
+    _add(ir.V128Instruction.f32x4Trunc);
+  }
+
+  /// Emit an `f32x4.nearest` instruction.
+  void f32x4_nearest() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.nearest']));
+    _add(ir.V128Instruction.f32x4Nearest);
+  }
+
+  void f64x2_neg() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.neg']));
+    _add(ir.V128Instruction.f64x2Neg);
+  }
+
+  void f64x2_sqrt() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.sqrt']));
+    _add(ir.V128Instruction.f64x2Sqrt);
+  }
+
+  void f64x2_add() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.add']));
+    _add(ir.V128Instruction.f64x2Add);
+  }
+
+  void f64x2_sub() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.sub']));
+    _add(ir.V128Instruction.f64x2Sub);
+  }
+
+  void f64x2_mul() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.mul']));
+    _add(ir.V128Instruction.f64x2Mul);
+  }
+
+  void f64x2_div() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.div']));
+    _add(ir.V128Instruction.f64x2Div);
+  }
+
+  void f64x2_min() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.min']));
+    _add(ir.V128Instruction.f64x2Min);
+  }
+
+  void f64x2_max() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.max']));
+    _add(ir.V128Instruction.f64x2Max);
+  }
+
+  void f64x2_pmin() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.pmin']));
+    _add(ir.V128Instruction.f64x2PMin);
+  }
+
+  void f64x2_pmax() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.pmax']));
+    _add(ir.V128Instruction.f64x2PMax);
+  }
+
+  void f64x2_ceil() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.ceil']));
+    _add(ir.V128Instruction.f64x2Ceil);
+  }
+
+  void f64x2_floor() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.floor']));
+    _add(ir.V128Instruction.f64x2Floor);
+  }
+
+  void f64x2_trunc() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.trunc']));
+    _add(ir.V128Instruction.f64x2Trunc);
+  }
+
+  void f64x2_nearest() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.nearest']));
+    _add(ir.V128Instruction.f64x2Nearest);
   }
 
   void i8x16_extract_lane_s(int lane) {
@@ -2693,108 +2977,216 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i8x16.add']));
-    _add(const ir.I8x16Add());
+    _add(ir.V128Instruction.i8x16Add);
   }
 
   void i8x16_sub() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i8x16.sub']));
-    _add(const ir.I8x16Sub());
+    _add(ir.V128Instruction.i8x16Sub);
   }
 
   void i8x16_neg() {
     assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i8x16.neg']));
-    _add(const ir.I8x16Neg());
+    _add(ir.V128Instruction.i8x16Neg);
+  }
+
+  void i8x16_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['i8x16.eq']));
+    _add(ir.V128Instruction.i8x16Eq);
+  }
+
+  void i16x8_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['i16x8.eq']));
+    _add(ir.V128Instruction.i16x8Eq);
+  }
+
+  void i32x4_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['i32x4.eq']));
+    _add(ir.V128Instruction.i32x4Eq);
+  }
+
+  void i64x2_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['i64x2.eq']));
+    _add(ir.V128Instruction.i64x2Eq);
   }
 
   void i16x8_add() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i16x8.add']));
-    _add(const ir.I16x8Add());
+    _add(ir.V128Instruction.i16x8Add);
   }
 
   void i16x8_sub() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i16x8.sub']));
-    _add(const ir.I16x8Sub());
+    _add(ir.V128Instruction.i16x8Sub);
   }
 
   void i16x8_mul() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i16x8.mul']));
-    _add(const ir.I16x8Mul());
+    _add(ir.V128Instruction.i16x8Mul);
   }
 
   void i16x8_neg() {
     assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i16x8.neg']));
-    _add(const ir.I16x8Neg());
+    _add(ir.V128Instruction.i16x8Neg);
   }
 
   void i32x4_add() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i32x4.add']));
-    _add(const ir.I32x4Add());
+    _add(ir.V128Instruction.i32x4Add);
   }
 
   void i32x4_sub() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i32x4.sub']));
-    _add(const ir.I32x4Sub());
+    _add(ir.V128Instruction.i32x4Sub);
   }
 
   void i32x4_mul() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i32x4.mul']));
-    _add(const ir.I32x4Mul());
+    _add(ir.V128Instruction.i32x4Mul);
   }
 
   void i32x4_dot_i16x8() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i32x4.dot_i16x8_s']));
-    _add(const ir.I32x4DotI16x8());
+    _add(ir.V128Instruction.i32x4DotI16x8);
   }
 
   void i32x4_neg() {
     assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i32x4.neg']));
-    _add(const ir.I32x4Neg());
+    _add(ir.V128Instruction.i32x4Neg);
   }
 
   void i64x2_add() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i64x2.add']));
-    _add(const ir.I64x2Add());
+    _add(ir.V128Instruction.i64x2Add);
   }
 
   void i64x2_sub() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i64x2.sub']));
-    _add(const ir.I64x2Sub());
+    _add(ir.V128Instruction.i64x2Sub);
   }
 
   void i64x2_mul() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i64x2.mul']));
-    _add(const ir.I64x2Mul());
+    _add(ir.V128Instruction.i64x2Mul);
   }
 
   void i64x2_neg() {
     assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
         trace: const ['i64x2.neg']));
-    _add(const ir.I64x2Neg());
+    _add(ir.V128Instruction.i64x2Neg);
+  }
+
+  void v128_not() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['v128.not']));
+    _add(ir.V128Instruction.v128Not);
+  }
+
+  void v128_and() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['v128.and']));
+    _add(ir.V128Instruction.v128And);
+  }
+
+  void v128_andnot() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['v128.andnot']));
+    _add(ir.V128Instruction.v128AndNot);
+  }
+
+  void v128_or() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['v128.or']));
+    _add(ir.V128Instruction.v128Or);
+  }
+
+  void v128_xor() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['v128.xor']));
+    _add(ir.V128Instruction.v128Xor);
+  }
+
+  void v128_bitselect() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['v128.bitselect']));
+    _add(ir.V128Instruction.v128BitSelect);
+  }
+
+  void v128_any_true() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.i32],
+        trace: const ['v128.any_true']));
+    _add(ir.V128Instruction.v128AnyTrue);
+  }
+
+  void i8x16_all_true() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.i32],
+        trace: const ['i8x16.all_true']));
+    _add(ir.V128Instruction.i8x16AllTrue);
+  }
+
+  void i16x8_all_true() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.i32],
+        trace: const ['i16x8.all_true']));
+    _add(ir.V128Instruction.i16x8AllTrue);
+  }
+
+  void i32x4_all_true() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.i32],
+        trace: const ['i32x4.all_true']));
+    _add(ir.V128Instruction.i32x4AllTrue);
+  }
+
+  void i64x2_all_true() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.i32],
+        trace: const ['i64x2.all_true']));
+    _add(ir.V128Instruction.i64x2AllTrue);
+  }
+
+  void i8x16_shuffle(List<int> lanes) {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['i8x16.shuffle']));
+    assert(lanes.length == 16);
+    _add(ir.I8x16Shuffle(lanes));
   }
 
   String _localTraceString(ir.Local local) {

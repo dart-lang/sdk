@@ -31,14 +31,13 @@ abstract class AbstractAnalysisOptionsTest
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     analysisOptionsFile.writeAsStringSync(code);
-    var diagnostics = analyzeAnalysisOptions(
-      TestSource(analysisOptionsPath),
-      code,
-      sourceFactory,
-      '/',
-      sdkVersionConstraint,
-      resourceProvider,
-    );
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: TestSource(analysisOptionsPath),
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: sdkVersionConstraint,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: code);
     var diagnosticListener = GatheringDiagnosticListener();
     diagnosticListener.addAll(diagnostics);
     diagnosticListener.assertErrors(expectedDiagnostics);

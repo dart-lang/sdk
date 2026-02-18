@@ -91,14 +91,6 @@ mixin _ConstructorFragmentImplMixin {
     setModifier(Modifier.CONST, value);
   }
 
-  bool get isDeclaring {
-    return hasModifier(Modifier.DECLARING);
-  }
-
-  set isDeclaring(bool value) {
-    setModifier(Modifier.DECLARING, value);
-  }
-
   bool get isFactory {
     return hasModifier(Modifier.FACTORY);
   }
@@ -323,6 +315,20 @@ mixin _FragmentImplMixin {
 
   set isSynthetic(bool value) {
     setModifier(Modifier.SYNTHETIC, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _LibraryFragmentImplMixin {
+  bool get isOriginNotExistingFile {
+    return hasModifier(Modifier.ORIGIN_NOT_EXISTING_FILE);
+  }
+
+  set isOriginNotExistingFile(bool value) {
+    setModifier(Modifier.ORIGIN_NOT_EXISTING_FILE, value);
   }
 
   bool hasModifier(Modifier modifier);

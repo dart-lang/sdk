@@ -53,8 +53,10 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
     return node.name;
   }
   if (node is ConstructorDeclaration) {
-    // TODO(scheglov): support primary constructors
-    return node.name ?? node.typeName!;
+    return node.name ??
+        node.typeName ??
+        node.newKeyword ??
+        node.factoryKeyword!;
   }
   if (node is EnumConstantDeclaration) {
     return node.name;
@@ -82,6 +84,9 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
   }
   if (node is MixinDeclaration) {
     return node.name;
+  }
+  if (node is PrimaryConstructorBody) {
+    return node.thisKeyword;
   }
   if (node is TopLevelVariableDeclaration) {
     return node.variables;

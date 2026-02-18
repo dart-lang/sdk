@@ -1,3 +1,5 @@
+// @dart = 3.10
+
 extension type E1(var foo) {}
 
 extension type E2(final foo) {}

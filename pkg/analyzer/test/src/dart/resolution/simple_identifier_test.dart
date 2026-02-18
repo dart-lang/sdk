@@ -170,24 +170,6 @@ SimpleIdentifier
 ''');
   }
 
-  test_dynamic_explicitCore() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:core';
-
-main() {
-  dynamic;
-}
-''');
-
-    var node = findNode.simple('dynamic;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: dynamic
-  element: dynamic
-  staticType: Type
-''');
-  }
-
   test_dynamic_explicitCore_withPrefix_referenceWithout() async {
     await assertErrorsInCode(
       r'''
@@ -206,41 +188,6 @@ SimpleIdentifier
   token: dynamic
   element: <null>
   staticType: InvalidType
-''');
-  }
-
-  test_dynamic_implicitCore() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  dynamic;
-}
-''');
-
-    var node = findNode.simple('dynamic;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: dynamic
-  element: dynamic
-  staticType: Type
-''');
-  }
-
-  test_enum_typeParameter_in_method() async {
-    await assertNoErrorsInCode('''
-enum E<T> {
-  v;
-  void foo() {
-    T;
-  }
-}
-''');
-
-    var node = findNode.simple('T;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: T
-  element: #E0 T
-  staticType: Type
 ''');
   }
 
@@ -728,22 +675,6 @@ SimpleIdentifier
   token: f
   element: f@50
   staticType: void Function<U>(S, U)
-''');
-  }
-
-  test_never_implicitCore() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  Never;
-}
-''');
-
-    var node = findNode.simple('Never;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: Never
-  element: Never
-  staticType: Type
 ''');
   }
 

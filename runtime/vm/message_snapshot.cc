@@ -75,7 +75,7 @@ class MessageDeserializer;
 class ApiMessageSerializer;
 class ApiMessageDeserializer;
 
-class MessageSerializationCluster : public ZoneAllocated {
+class MessageSerializationCluster : public ZoneObject {
  public:
   explicit MessageSerializationCluster(const char* name,
                                        MessagePhase phase,
@@ -106,7 +106,7 @@ class MessageSerializationCluster : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(MessageSerializationCluster);
 };
 
-class MessageDeserializationCluster : public ZoneAllocated {
+class MessageDeserializationCluster : public ZoneObject {
  public:
   explicit MessageDeserializationCluster(const char* name,
                                          bool is_canonical = false)
@@ -556,7 +556,7 @@ class ClassMessageDeserializationCluster
         uri = String::New(d->ReadAscii());   // Library URI.
         name = String::New(d->ReadAscii());  // Class name.
         lib = Library::LookupLibrary(d->thread(), uri);
-        if (UNLIKELY(lib.IsNull())) {
+        if (lib.IsNull()) [[unlikely]] {
           FATAL("Not found: %s %s\n", uri.ToCString(), name.ToCString());
         }
         if (name.Equals(Symbols::TopLevel())) {
@@ -564,7 +564,7 @@ class ClassMessageDeserializationCluster
         } else {
           cls = lib.LookupClass(name);
         }
-        if (UNLIKELY(cls.IsNull())) {
+        if (cls.IsNull()) [[unlikely]] {
           FATAL("Not found: %s %s\n", uri.ToCString(), name.ToCString());
         }
         cls.EnsureIsFinalized(d->thread());

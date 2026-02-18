@@ -1,10 +1,14 @@
-## 0.2.0-dev
+## 0.2.1-dev
+
+- Require version `10.2.0-dev` of the `analyzer` package.
+
+## 0.2.0
 
 - Remove deprecated mock APIs: `MockPackagesMixin.addAngularMeta`
   `MockPackagesMixin.addFlutterTest` `MockPackagesMixin.addJs`
   `MockPackagesMixin.addKernel` `MockPackagesMixin.pedantic` and
   `MockPackagesMixin.addUI`.
-- Require version `10.1.0-dev` of the `analyzer` package.
+- Require version `10.1.0` of the `analyzer` package.
 
 ## 0.1.10
 

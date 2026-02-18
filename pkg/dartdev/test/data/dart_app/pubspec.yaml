@@ -5,3 +5,4 @@ environment:
 
 executables:
   dart_app:
+  other_app:

@@ -38,8 +38,10 @@ class AstRewriter {
   /// [MethodInvocation] if `a` resolves to a function.
   AstNode instanceCreationExpression(
     Scope nameScope,
-    InstanceCreationExpressionImpl node,
-  ) {
+    InstanceCreationExpressionImpl node, {
+    required LibraryElementImpl libraryElement,
+    required InstanceElement? enclosingInstanceElement,
+  }) {
     if (node.keyword != null) {
       // Either `new` or `const` has been specified.
       return node;
@@ -47,7 +49,16 @@ class AstRewriter {
     var typeNode = node.constructorName.type;
     var importPrefix = typeNode.importPrefix;
     if (importPrefix == null) {
-      var element = nameScope.lookup(typeNode.name.lexeme).getter;
+      var name = typeNode.name.lexeme;
+      var element = nameScope.lookup(name).getter;
+      if (element == null && enclosingInstanceElement != null) {
+        if (enclosingInstanceElement is InterfaceElementImpl) {
+          element = enclosingInstanceElement.inheritanceManager.getMember(
+            enclosingInstanceElement,
+            Name(libraryElement.uri, name),
+          );
+        }
+      }
       if (element is ExecutableElement) {
         return _toMethodInvocationOfFunctionReference(
           node: node,
@@ -284,6 +295,20 @@ class AstRewriter {
           return _toPatternTypeLiteral(parent, node);
       }
     }
+
+    if (_isTypeLiteralContext(parent, node)) {
+      if (prefixElement is PrefixElement) {
+        var element = prefixElement.scope.lookup(node.identifier.name).getter;
+        switch (element) {
+          case DynamicElementImpl():
+          case InterfaceElementImpl():
+          case NeverElementImpl():
+          case TypeAliasElementImpl():
+            return _toTypeLiteral(node);
+        }
+      }
+    }
+
     if (prefixElement is InterfaceElement) {
       // Example:
       //     class C { C.named(); }
@@ -425,6 +450,18 @@ class AstRewriter {
       }
     }
 
+    if (_isTypeLiteralContext(parent, node)) {
+      var element = nameScope.lookup(node.name).getter;
+      switch (element) {
+        case DynamicElementImpl():
+        case InterfaceElementImpl():
+        case NeverElementImpl():
+        case TypeAliasElementImpl():
+        case TypeParameterElementImpl():
+          return _toTypeLiteral(node);
+      }
+    }
+
     return node;
   }
 
@@ -475,6 +512,13 @@ class AstRewriter {
     );
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
+  }
+
+  bool _isTypeLiteralContext(AstNode? parent, ExpressionImpl node) {
+    if (parent is AstNodeImpl) {
+      return parent.isInValueExpressionSlot(node);
+    }
+    return false;
   }
 
   AstNode _toConstructorReference_prefixed({
@@ -699,6 +743,14 @@ class AstRewriter {
       type: node.toNamedType(typeArguments: null, question: null),
     );
     NodeReplacer.replace(node, result, parent: parent);
+    return result;
+  }
+
+  TypeLiteralImpl _toTypeLiteral(IdentifierImpl node) {
+    var result = TypeLiteralImpl(
+      type: node.toNamedType(typeArguments: null, question: null),
+    );
+    NodeReplacer.replace(node, result);
     return result;
   }
 }

@@ -6,24 +6,21 @@
 ///
 /// See [documentation](../../../doc/record_uses.md) for examples.
 ///
-/// To appear in the output, arguments must be primitive constants i.e. int,
-/// double, String, bool, null. Other constants (e.g. enums, const objects) will
-/// simply be missing as though they were not constants.
+/// To appear in the output, arguments must be constants i.e. int, String, bool,
+/// null, List, Map, or constant objects.
 library;
 
-import 'dart:io';
-
-import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/io/source_information.dart';
-// ignore: implementation_imports
-import 'package:front_end/src/api_unstable/dart2js.dart' show relativizeUri;
-import 'package:compiler/src/deferred_load/output_unit.dart';
-import 'package:compiler/src/js_model/js_world.dart';
 import 'package:record_use/record_use_internal.dart';
 
+import '../elements/entities.dart';
 import '../js/js.dart' as js;
 import '../universe/recorded_use.dart'
-    show RecordedCallWithArguments, RecordedTearOff, RecordedUse;
+    show
+        findInstanceValue,
+        RecordedCallWithArguments,
+        RecordedConstInstance,
+        RecordedTearOff,
+        RecordedUse;
 
 class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
   final RecordUseCollector _collector;
@@ -41,82 +38,63 @@ class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
 }
 
 class RecordUseCollector {
-  RecordUseCollector(this._closedWorld);
-
-  final JClosedWorld _closedWorld;
+  RecordUseCollector();
 
   final Map<FunctionEntity, List<CallReference>> callMap = {};
+  final Map<ClassEntity, List<InstanceReference>> instanceMap = {};
 
   js.JavaScriptAnnotationMonitor monitorFor(String fileName) {
     return _AnnotationMonitor(this, fileName);
   }
 
-  Location _recordUseLocation(SourceInformation sourceInformation) {
-    SourceLocation? sourceLocation =
-        sourceInformation.startPosition ??
-        sourceInformation.innerPosition ??
-        sourceInformation.endPosition;
-    if (sourceLocation == null) {
-      throw UnsupportedError('Source location is null.');
-    }
-    final sourceUri = sourceLocation.sourceUri;
-    if (sourceUri == null) {
-      throw UnsupportedError('Source uri is null.');
-    }
-
-    // Is [sourceUri] normalized in some way or does that need to be done
-    // here?
-    return Location(
-      uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
-    );
-  }
-
   void _register(String loadingUnit, RecordedUse recordedUse) {
-    final location = _recordUseLocation(recordedUse.sourceInformation);
-    final callReference = switch (recordedUse) {
-      RecordedCallWithArguments() => CallWithArguments(
-        loadingUnit: loadingUnit,
-        namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
-        positionalArguments: recordedUse.positionalArgumentsInRecordUseFormat(),
-        location: location,
-      ),
-      RecordedTearOff() => CallTearOff(
-        loadingUnit: loadingUnit,
-        location: location,
-      ),
-    };
-    callMap.putIfAbsent(recordedUse.function, () => []).add(callReference);
+    switch (recordedUse) {
+      case RecordedCallWithArguments():
+        final reference = CallWithArguments(
+          loadingUnit: loadingUnit,
+          namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
+          positionalArguments: recordedUse
+              .positionalArgumentsInRecordUseFormat(),
+        );
+        callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
+        break;
+      case RecordedTearOff():
+        final reference = CallTearoff(loadingUnit: loadingUnit);
+        callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
+        break;
+      case RecordedConstInstance():
+        final instanceValue = findInstanceValue(recordedUse.constant);
+        final reference = InstanceConstantReference(
+          instanceConstant: instanceValue,
+          loadingUnit: loadingUnit,
+        );
+        instanceMap
+            .putIfAbsent(recordedUse.constantClass, () => [])
+            .add(reference);
+        break;
+    }
   }
 
-  Map<String, dynamic> finish(
-    Map<String, String> environment,
-    Map<OutputUnit, String> outputUnitToName,
-  ) => Recordings(
+  Map<String, dynamic> finish(Map<String, String> environment) => Recordings(
     metadata: Metadata(
       comment: 'Resources referenced by annotated resource identifiers',
       version: version,
       extension: {'AppTag': 'TBD', 'environment': environment},
     ),
-    callsForDefinition: callMap.map(
+    calls: callMap.map(
       (key, value) => MapEntry(
-        Definition(
-          identifier: Identifier(
-            name: key.name!,
-            scope: key.enclosingClass?.name,
-            importUri: relativizeUri(
-              Uri.base,
-              key.library.canonicalUri,
-              Platform.isWindows,
-            ),
-          ),
-          loadingUnit:
-              outputUnitToName[_closedWorld.outputUnitData.outputUnitForMember(
-                key,
-              )]!,
-        ),
+        Definition(key.library.canonicalUri.toString(), [
+          if (key.enclosingClass?.name != null) Name(key.enclosingClass!.name),
+          Name(key.name!),
+        ]),
         value,
       ),
     ),
-    instancesForDefinition: {},
+    instances: instanceMap.map((key, value) {
+      return MapEntry(
+        Definition(key.library.canonicalUri.toString(), [Name(key.name)]),
+        value,
+      );
+    }),
   ).toJson();
 }

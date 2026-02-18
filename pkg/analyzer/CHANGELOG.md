@@ -1,6 +1,16 @@
-## 10.1.0-dev
+## 10.2.0-dev
 
 * Internal changes only
+
+## 10.1.0
+
+* Add `TypeSystem.futureValueType`.
+* Remove experimental `ConstructorElement.isDeclaring`.
+* Stabilize `ConstructorElement.isPrimary`.
+* Stabilize `FieldElement.declaringFormalParameter`.
+* Stabilize `FieldFormalParameterElement.isDeclaring` and `privateName`.
+* Stabilize `FieldFormalParameterFragment.privateName`.
+* Deprecate `LibraryFragment.isSynthetic`, use `isOriginNotExistingFile` instead.
 
 ## 10.0.2
 

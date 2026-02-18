@@ -224,8 +224,8 @@ extension on DiagnosticCode {
       return registeredFixGenerators.lintProducers.containsKey(self) ||
           registeredFixGenerators.lintMultiProducers.containsKey(self);
     }
-    return registeredFixGenerators.nonLintProducers.containsKey(self) ||
-        registeredFixGenerators.nonLintMultiProducers.containsKey(self) ||
+    return registeredFixGenerators.warningProducers.containsKey(self) ||
+        registeredFixGenerators.warningMultiProducers.containsKey(self) ||
         AnalysisOptionsFixGenerator.codesWithFixes.contains(self) ||
         PubspecFixGenerator.codesWithFixes.contains(self);
   }

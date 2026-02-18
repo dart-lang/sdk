@@ -21,7 +21,7 @@ namespace bin {
 class Platform {
  public:
   // Perform platform specific initialization.
-  static bool Initialize();
+  static bool Initialize(bool install_crash_handler = true);
 
   // Returns the number of processors on the machine.
   static int NumberOfProcessors();

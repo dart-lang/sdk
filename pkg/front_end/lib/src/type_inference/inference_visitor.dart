@@ -60,6 +60,7 @@ import '../kernel/late_lowering.dart' as late_lowering;
 import '../source/check_helper.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
+import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'context_allocation_strategy.dart';
 import 'external_ast_helper.dart';
@@ -275,6 +276,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ClosureContext get closureContext => _closureContext!;
 
+  @override
+  ExpressionTypeAnalysisResult finishNullShorting(
+    int targetDepth,
+    ExpressionTypeAnalysisResult innerResult, {
+    required Expression wholeExpression,
+  }) {
+    ExpressionTypeAnalysisResult analysisResult = super.finishNullShorting(
+      targetDepth,
+      innerResult,
+      wholeExpression: wholeExpression,
+    );
+    // If any expression info or expression reference was stored for the
+    // null-aware expression, it was only valid in the case where the target
+    // expression was not null. So it needs to be cleared now.
+    flow.storeExpressionInfo(wholeExpression, null);
+    return analysisResult;
+  }
+
   /// Helper that creates a variable, a variable get, and a null aware guard
   /// for a null aware access on [receiver] with static type [receiverType] and
   /// non-null type [nonNullReceiverType].
@@ -300,16 +319,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       promotedType: nonNullReceiverType,
     );
 
-    flowAnalysis.forwardExpression(variableGet, receiver);
+    flowAnalysis.storeExpressionInfo(
+      variableGet,
+      flowAnalysis.getExpressionInfo(receiver),
+    );
     return variableGet;
   }
 
   void createNullAwareGuard(VariableDeclaration variable) {
-    startNullShorting(
-      new NullAwareGuard(variable, variable.fileOffset, this),
+    flowAnalysis.storeExpressionInfo(
       variable.initializer!,
-      new SharedTypeView(variable.type),
-      guardVariable: variable,
+      startNullShorting(
+        new NullAwareGuard(variable, variable.fileOffset, this),
+        flowAnalysis.getExpressionInfo(variable.initializer!),
+        new SharedTypeView(variable.type),
+        guardVariable: variable,
+      ),
     );
   }
 
@@ -389,7 +414,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           createVariable(result.expression, result.inferredType),
           createReachabilityError(expression.fileOffset, diag.neverValueError),
         );
-        flowAnalysis.forwardExpression(replacement, result.expression);
+        flowAnalysis.storeExpressionInfo(
+          replacement,
+          flowAnalysis.getExpressionInfo(result.expression),
+        );
         result = new ExpressionInferenceResult(
           result.inferredType,
           replacement,
@@ -418,10 +446,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (nullShortingTargetDepth != null &&
         nullShortingDepth > nullShortingTargetDepth) {
       pushRewrite(result.expression);
+      ExpressionInfo? flowAnalysisInfo = flowAnalysis.getExpressionInfo(
+        result.expression,
+      );
+      assert(() {
+        // When the AST is rewritten, the front end's convention is to associate
+        // flow analysis expression info with the replacement expression, not
+        // the original. (Note, however, that it's ok to associate the same info
+        // with both expressions.)
+        ExpressionInfo? originalFlowAnalysisInfo = flowAnalysis
+            .getExpressionInfo(expression);
+        assert(
+          originalFlowAnalysisInfo == null ||
+              identical(flowAnalysisInfo, originalFlowAnalysisInfo),
+        );
+        return true;
+      }());
       DartType inferredType = finishNullShorting(
         nullShortingTargetDepth,
         new ExpressionTypeAnalysisResult(
           type: new SharedTypeView(result.inferredType),
+          flowAnalysisInfo: flowAnalysisInfo,
         ),
         wholeExpression: expression,
       ).type.unwrapTypeView();
@@ -1061,7 +1106,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     node.operand = operandResult.expression..parent = node;
     flowAnalysis.asExpression_end(
-      node.operand,
+      flowAnalysis.getExpressionInfo(node.operand),
       subExpressionType: new SharedTypeView(operandResult.inferredType),
       castType: new SharedTypeView(node.type),
     );
@@ -1296,7 +1341,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
     }
     flowAnalysis.cascadeExpression_afterTarget(
-      result.expression,
+      flowAnalysis.getExpressionInfo(result.expression),
       new SharedTypeView(result.inferredType),
       isNullAware: node.isNullAware,
       guardVariable: node.variable,
@@ -1361,7 +1406,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return CascadePropertyTarget.singleton;
     } else {
       // `target` is an ordinary expression.
-      return new ExpressionPropertyTarget(target);
+      return new ExpressionPropertyTarget(flow.getExpressionInfo(target));
     }
   }
 
@@ -2248,7 +2293,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readResult.inferredType;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -3697,6 +3742,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitFunctionDeclaration(
     covariant FunctionDeclarationImpl node,
   ) {
+    if (isClosureContextLoweringEnabled) {
+      _contextAllocationStrategy.handleVariablesCapturedByNode(
+        node.function,
+        _capturedVariablesForNode(node),
+      );
+      _handleDeclarationsOfParameters([
+        ...node.function.positionalParameters,
+        ...node.function.namedParameters,
+      ]);
+    }
+
     bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
     _inTryOrLocalFunction = true;
     VariableDeclaration variable = node.variable;
@@ -3757,18 +3813,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   void _handleDeclarationsOfParameters(List<VariableDeclaration> parameters) {
     for (VariableDeclaration parameter in parameters) {
-      // TODO(62401): Ensure `parameter` is an InternalExpressionVariable.
-      if (parameter
-          case InternalExpressionVariable(
-                astVariable: ExpressionVariable parameter,
-              ) ||
-              // Coverage-ignore(suite): Not run.
-              ExpressionVariable parameter) {
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          parameter,
-          captureKind: _captureKindForVariable(parameter),
-        );
-      }
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      ExpressionVariable parameterAstVariable =
+          (parameter as InternalExpressionVariable).astVariable;
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        parameterAstVariable,
+        captureKind: _captureKindForVariable(parameterAstVariable),
+      );
     }
   }
 
@@ -3825,7 +3877,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // This ends any shorting in `node.left`.
     Expression left = lhsResult.expression;
 
-    flowAnalysis.ifNullExpression_rightBegin(left, new SharedTypeView(t1));
+    flowAnalysis.ifNullExpression_rightBegin(
+      flowAnalysis.getExpressionInfo(left),
+      new SharedTypeView(t1),
+    );
 
     // - Let `T2` be the type of `e2` inferred with context type `J`, where:
     //   - If `K` is `_` or `dynamic`, `J = T1`.
@@ -4094,7 +4149,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.isExpression_end(
-        node.operand,
+        flowAnalysis.getExpressionInfo(node.operand),
         /*isNot:*/ false,
         subExpressionType: new SharedTypeView(operandResult.inferredType),
         checkedType: new SharedTypeView(node.type),
@@ -4192,7 +4247,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: receiver.fileOffset,
             length: 1,
             context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(receiver)(),
+              flowAnalysis.whyNotPromoted(
+                flowAnalysis.getExpressionInfo(receiver),
+              )(),
               element,
               // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable,
@@ -4236,7 +4293,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fileOffset: receiver.fileOffset,
           length: 1,
           context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             element,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -7151,7 +7210,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: receiver.fileOffset,
             length: 1,
             context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(receiver)(),
+              flowAnalysis.whyNotPromoted(
+                flowAnalysis.getExpressionInfo(receiver),
+              )(),
               entry,
               // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable,
@@ -7176,7 +7237,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fileOffset: receiver.fileOffset,
           length: 1,
           context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             entry,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -7225,7 +7288,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fileOffset: receiver.fileOffset,
           length: 1,
           context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(receiver)(),
+            flowAnalysis.whyNotPromoted(
+              flowAnalysis.getExpressionInfo(receiver),
+            )(),
             entry,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -7304,7 +7369,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     entry.key = key..parent = entry;
 
     flowAnalysis.nullAwareMapEntry_valueBegin(
-      key,
+      flowAnalysis.getExpressionInfo(key),
       new SharedTypeView(keyInferenceResult.inferredType),
       isKeyNullAware: entry.isKeyNullAware,
     );
@@ -8717,7 +8782,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType operandType = operandResult.inferredType;
 
     node.operand = operand..parent = node;
-    flowAnalysis.nonNullAssert_end(node.operand);
+    flowAnalysis.nonNullAssert_end(
+      flowAnalysis.getExpressionInfo(node.operand),
+    );
     DartType nonNullableResultType = operations
         .promoteToNonNull(new SharedTypeView(operandType))
         .unwrapTypeView();
@@ -9202,7 +9269,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readResult.inferredType;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -9343,7 +9410,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readResult.inferredType;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
     ExpressionInferenceResult writeResult = inferExpression(
@@ -9406,7 +9473,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Forward the expression in cases where flow analysis needs to use the
     // expression information. For example, for keeping the promotion in the
     // following if statement in `if ((x ??= 2) == null) { ... }`.
-    flowAnalysis.forwardExpression(replacement, writeResult.expression);
+    flowAnalysis.storeExpressionInfo(
+      replacement,
+      flowAnalysis.getExpressionInfo(writeResult.expression),
+    );
 
     return new ExpressionInferenceResult(inferredType, replacement);
   }
@@ -9961,7 +10031,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     VariableDeclaration? indexVariable;
     Expression readIndex = indexResult.expression;
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedIndex =
-        flowAnalysis.whyNotPromoted(readIndex);
+        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(readIndex));
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
       writeIndex = clonePureExpression(readIndex);
@@ -9990,7 +10060,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -10179,7 +10249,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     )..fileOffset = node.readOffset;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
     ExpressionInferenceResult valueResult = inferExpression(
@@ -10404,7 +10474,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     flowAnalysis.ifNullExpression_rightBegin(
-      read,
+      flowAnalysis.getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -10543,7 +10613,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression right, {
     required bool isNot,
   }) {
-    ExpressionInfo? equalityInfo = flowAnalysis.equalityOperand_end(left);
+    ExpressionInfo? equalityInfo = flowAnalysis.getExpressionInfo(left);
 
     // When evaluating exactly a dot shorthand in the RHS, we use the LHS type
     // to provide the context type for the shorthand.
@@ -10571,7 +10641,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         flowAnalysis.equalityOperation_end(
           equalityInfo,
           new SharedTypeView(leftType),
-          flowAnalysis.equalityOperand_end(rightResult.expression),
+          flow.getExpressionInfo(rightResult.expression),
           new SharedTypeView(rightResult.inferredType),
           notEqual: isNot,
         ),
@@ -10628,7 +10698,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.equalityOperation_end(
         equalityInfo,
         new SharedTypeView(leftType),
-        flowAnalysis.equalityOperand_end(right),
+        flowAnalysis.getExpressionInfo(right),
         new SharedTypeView(rightResult.inferredType),
         notEqual: isNot,
       ),
@@ -11336,7 +11406,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression? propertyGetNode,
   }) {
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
-        flowAnalysis.whyNotPromoted(receiver);
+        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(receiver));
 
     readTarget ??= findInterfaceMember(
       receiverType,
@@ -11347,17 +11417,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     DartType readType = readTarget.getGetterType(this);
-    DartType? promotedReadType = flowAnalysis
-        .propertyGet(
-          propertyGetNode,
-          computePropertyTarget(receiver),
-          propertyName.text,
-          readTarget is ExtensionTypeRepresentationAccessTarget
-              ? readTarget.representationField
-              : readTarget.member,
-          new SharedTypeView(readType),
-        )
-        ?.unwrapTypeView();
+    var (
+      SharedTypeView? wrappedPromotedReadType,
+      ExpressionInfo? expressionInfo,
+    ) = flowAnalysis.propertyGet(
+      computePropertyTarget(receiver),
+      propertyName.text,
+      readTarget is ExtensionTypeRepresentationAccessTarget
+          ? readTarget.representationField
+          : readTarget.member,
+      new SharedTypeView(readType),
+    );
+    if (propertyGetNode != null) {
+      flowAnalysis.storeExpressionInfo(propertyGetNode, expressionInfo);
+    }
+    DartType? promotedReadType = wrappedPromotedReadType?.unwrapTypeView();
     return createPropertyGet(
       fileOffset: fileOffset,
       receiver: receiver,
@@ -11612,7 +11686,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     VariableDeclaration? indexVariable;
     Expression readIndex = indexResult.expression;
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedIndex =
-        flowAnalysis.whyNotPromoted(readIndex);
+        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(readIndex));
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
       writeIndex = clonePureExpression(readIndex);
@@ -12386,7 +12460,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           readResult.inferredType,
           readResult.expression,
         );
-    flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);
+    flowAnalysis.storeExpressionInfo(
+      expressionInferenceResult.expression,
+      flowAnalysis.getExpressionInfo(node),
+    );
     return expressionInferenceResult;
   }
 
@@ -12976,7 +13053,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ),
       fileOffset: node.fileOffset,
     );
-    flowAnalysis.forwardExpression(replacement, node);
+    flowAnalysis.storeExpressionInfo(
+      replacement,
+      flowAnalysis.getExpressionInfo(node),
+    );
     return new ExpressionInferenceResult(
       result.inferredType,
       result.applyResult(replacement),
@@ -13909,7 +13989,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       const UnknownType(),
     );
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
-        flowAnalysis.whyNotPromoted(leftResult.expression);
+        flowAnalysis.whyNotPromoted(
+          flowAnalysis.getExpressionInfo(leftResult.expression),
+        );
     return _computeBinaryExpression(
       node.fileOffset,
       typeContext,
@@ -14006,7 +14088,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       expressionResult = inferExpression(node.expression, const UnknownType());
     }
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
-        flowAnalysis.whyNotPromoted(expressionResult.expression);
+        flowAnalysis.whyNotPromoted(
+          flowAnalysis.getExpressionInfo(expressionResult.expression),
+        );
     return _computeUnaryExpression(
       node.fileOffset,
       expressionResult.expression,
@@ -14237,7 +14321,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       type = const InvalidType();
       result = new InvalidExpression(
         diag.experimentNotEnabledOffByDefault
-            .withArgumentsOld(ExperimentalFlag.records.name)
+            .withArguments(featureName: ExperimentalFlag.records.name)
             .withoutLocation()
             .problemMessage,
       );
@@ -14351,16 +14435,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // to flow analysis are the original (pre-lowered) expressions, whereas the
     // expressions passed to flow analysis by the CFE are the lowered
     // expressions. Since the caller of `dispatchExpression` is the shared
-    // analysis logic, we need to use `flow.forwardExpression` let flow analysis
-    // know that in future, we'll be referring to the expression using `node`
-    // (its pre-lowered form) rather than `expressionResult.expression` (its
-    // post-lowered form).
+    // analysis logic, we need to transfer the flow analysis information that's
+    // associated with `expressionResult.expression` (the post-lowered
+    // expression) so that it becomes associated with `node` (the pre-lowered
+    // expression).
     //
     // TODO(paulberry): eliminate the need for this--see
     // https://github.com/dart-lang/sdk/issues/52189.
-    flow.forwardExpression(node, expressionResult.expression);
+    ExpressionInfo? flowAnalysisInfo = flow.getExpressionInfo(
+      expressionResult.expression,
+    );
+    flow.storeExpressionInfo(node, flowAnalysisInfo);
     return new ExpressionTypeAnalysisResult(
       type: new SharedTypeView(expressionResult.inferredType),
+      flowAnalysisInfo: flowAnalysisInfo,
     );
   }
 
@@ -14862,7 +14950,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   SharedTypeView variableTypeFromInitializerType(SharedTypeView type) {
     // TODO(paulberry): make a test verifying that we don't need to pass
     // `forSyntheticVariable: true` (and possibly a language issue)
-    return new SharedTypeView(inferDeclarationType(type.unwrapTypeView()));
+    return new SharedTypeView(
+      inferDeclarationType(
+        type.unwrapTypeView(),
+        inferenceDefaultType: InferenceDefaultType.Dynamic,
+      ),
+    );
   }
 
   @override
@@ -16997,7 +17090,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
     }
 
-    flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);
+    flowAnalysis.storeExpressionInfo(
+      expressionInferenceResult.expression,
+      flowAnalysis.getExpressionInfo(node),
+    );
     return expressionInferenceResult;
   }
 
@@ -17013,7 +17109,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (assignedVariables.outsideAsserts.captured.contains(variableKey) ||
         assignedVariables.outsideAsserts.readCaptured.contains(variableKey)) {
-      return CaptureKind.captured;
+      return CaptureKind.directCaptured;
     } else if (assignedVariables.insideAsserts.captured.contains(variableKey) ||
         assignedVariables.insideAsserts.readCaptured.contains(variableKey)) {
       return CaptureKind.assertCaptured;
@@ -17022,7 +17118,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
-  List<Variable> _capturedVariablesForNode(LocalFunction node) {
+  List<Variable> _capturedVariablesForNode(TreeNode node) {
     List<Variable> capturedVariables = [];
     AssignedVariablesNodeInfo nodeInfo = assignedVariables.getInfoForNode(node);
     for (int variableKey in nodeInfo.read) {
@@ -17087,7 +17183,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (node.initializer != null) {
       if (node.isLate && node.hasDeclaredInitializer) {
-        flowAnalysis.lateInitializer_begin(node);
+        // TODO(62401): Remove the cast when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        ExpressionVariable variable =
+            (node.variable as InternalExpressionVariable).astVariable;
+        if (isClosureContextLoweringEnabled) {
+          _contextAllocationStrategy.handleVariablesCapturedByNode(
+            node,
+            _capturedVariablesForNode(variable),
+          );
+        }
+        flowAnalysis.lateInitializer_begin(variable);
       }
       initializerResult = inferExpression(
         node.initializer!,
@@ -17100,6 +17206,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType = inferDeclarationType(
         initializerResult.inferredType,
         forSyntheticVariable: node.name == null,
+        inferenceDefaultType: InferenceDefaultType.Dynamic,
       );
     } else {
       inferredType = const DynamicType();
@@ -17122,7 +17229,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.initialize(
         nodeVariable.astVariable,
         new SharedTypeView(initializerType),
-        initializerResult.expression,
+        flowAnalysis.getExpressionInfo(initializerResult.expression),
         isFinal: node.isFinal,
         isLate: node.isLate,
         isImplicitlyTyped: nodeVariable.isImplicitlyTyped,

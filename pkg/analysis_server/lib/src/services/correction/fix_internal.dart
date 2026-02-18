@@ -285,6 +285,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.avoidEmptyElse: [RemoveEmptyElse.new],
   diag.avoidEscapingInnerQuotes: [ConvertQuotes.new],
+  diag.avoidFinalParameters: [RemoveLexeme.modifier],
   diag.avoidFunctionLiteralsInForeachCalls: [ConvertForEachToForLoop.new],
   diag.avoidInitToNull: [RemoveInitializer.bulkFixable],
   diag.avoidMultipleDeclarationsPerLine: [SplitMultipleDeclarations.new],
@@ -1215,10 +1216,10 @@ void registerBuiltInFixGenerators() {
     _builtInLintMultiGenerators,
   );
   registeredFixGenerators.lintProducers.addAll(_builtInLintGenerators);
-  registeredFixGenerators.nonLintMultiProducers.addAll(
+  registeredFixGenerators.warningMultiProducers.addAll(
     _builtInNonLintMultiGenerators,
   );
-  registeredFixGenerators.nonLintProducers.addAll(_builtInNonLintGenerators);
+  registeredFixGenerators.warningProducers.addAll(_builtInNonLintGenerators);
   registeredFixGenerators.parseLintProducers.addAll(
     _builtInParseLintGenerators,
   );

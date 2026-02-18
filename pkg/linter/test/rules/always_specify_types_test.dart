@@ -414,6 +414,15 @@ void f() {
 ''');
   }
 
+  test_extensionType_primaryConstructor_omitted() async {
+    await assertDiagnostics(
+      r'''
+extension type E(i) {}
+''',
+      [lint(17, 1)],
+    );
+  }
+
   test_extensionType_typeArgs_annotation() async {
     await assertDiagnostics(
       r'''
@@ -1142,6 +1151,65 @@ f() {
 ''',
       [lint(79, 3)],
     );
+  }
+
+  test_primaryConstructor_declaringParameter_final() async {
+    await assertDiagnostics(
+      r'''
+class C(final x);
+''',
+      [lint(8, 5)],
+    );
+  }
+
+  test_primaryConstructor_declaringParameter_var() async {
+    await assertDiagnostics(
+      r'''
+class C(var x);
+''',
+      [lint(8, 3)],
+    );
+  }
+
+  test_primaryConstructor_named_primary() async {
+    await assertDiagnostics(
+      r'''
+class C.named(x);
+''',
+      [lint(14, 1)],
+    );
+  }
+
+  test_primaryConstructor_ok() async {
+    await assertNoDiagnostics(r'''
+class C(int x, final int y);
+''');
+  }
+
+  test_primaryConstructor_parameter_omitted() async {
+    await assertDiagnostics(
+      r'''
+class C(x);
+''',
+      [lint(8, 1)],
+    );
+  }
+
+  test_primaryConstructor_superParameter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int p1);
+}
+class B(super.p1) extends A;
+''');
+  }
+
+  test_primaryConstructor_this_ok() async {
+    await assertNoDiagnostics(r'''
+class C(this.x) {
+  int x;
+}
+''');
   }
 
   test_recordPattern_switch() async {

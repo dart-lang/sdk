@@ -362,6 +362,18 @@ class C {
 ''');
   }
 
+  test_sameTypeAndName_differentRequired() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  f(({String? txt}) => foo(txt: txt));
+}
+
+void f(Future<void> Function({String? txt}) p) {}
+
+Future<void> foo({required String? txt}) async {}
+''');
+  }
+
   test_targetIsFinalParameter() async {
     await assertDiagnostics(
       r'''

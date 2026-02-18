@@ -267,7 +267,7 @@ class DeoptContext : public MallocAllocated {
 // Represents one deopt instruction, e.g, setup return address, store object,
 // store register, etc. The target is defined by instruction's position in
 // the deopt-info array.
-class DeoptInstr : public ZoneAllocated {
+class DeoptInstr : public ZoneObject {
  public:
   enum Kind {
     kRetAddress,

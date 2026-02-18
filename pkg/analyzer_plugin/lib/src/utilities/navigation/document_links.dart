@@ -78,9 +78,10 @@ class AnalysisOptionLinkComputer {
     if (rule is! YamlScalar) return null;
     var name = rule.value;
     if (name is! String) return null;
+    name = name.toLowerCase();
 
     var lint = Registry.ruleRegistry.rules.firstWhereOrNull(
-      (rule) => rule.name == name,
+      (rule) => rule.name.toLowerCase() == name,
     );
     if (lint == null) {
       return null;

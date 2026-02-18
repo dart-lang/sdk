@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method foo1(positional-parameter a) → dynamic/* scope=[
-  #ctx1: captured VariableContext([
+  #ctx1: direct-captured VariableContext([
     positional-parameter a;
   ]),
 ] */ {
@@ -14,14 +14,14 @@ static method foo2(positional-parameter b) → dynamic/* scope=[
     positional-parameter b;
   ]),
 ] */ /* scope=[
-  #ctx3: captured VariableContext([
+  #ctx3: direct-captured VariableContext([
     positional-parameter a;
   ]),
 ] */ {
   return ((positional-parameter a) → () → core::int => () /* #ctx3 */ → core::int => a)(b){(core::int) → () → core::int};
 }
 static method foo3({named-parameter required a}) → dynamic/* scope=[
-  #ctx4: captured VariableContext([
+  #ctx4: direct-captured VariableContext([
     named-parameter required a;
   ]),
 ] */ {
@@ -32,7 +32,7 @@ static method foo4(positional-parameter b) → dynamic/* scope=[
     positional-parameter b;
   ]),
 ] */ /* scope=[
-  #ctx6: captured VariableContext([
+  #ctx6: direct-captured VariableContext([
     named-parameter required a;
   ]),
 ] */ {

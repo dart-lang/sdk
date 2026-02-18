@@ -20,6 +20,7 @@ import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/src/spelunker.dart';
+import 'package:analyzer_testing/utilities/extensions/diagnostic_code.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -424,7 +425,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       if (actual.diagnosticCode is LintCode) {
         buffer.write('  lint(');
       } else {
-        buffer.write('  error(${actual.diagnosticCode}, ');
+        buffer.write('  error(${actual.diagnosticCode.constantName}, ');
       }
       buffer.write('${actual.offset}, ${actual.length},');
       if (actual.contextMessages.isNotEmpty) {

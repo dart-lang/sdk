@@ -82,14 +82,13 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
         ? package.sdkVersionConstraint
         : null;
 
-    var errors = analyzeAnalysisOptions(
-      FileSource(optionsFile),
-      content,
-      sourceFactory,
-      contextRoot.root.path,
-      sdkVersionConstraint,
-      resourceProvider,
-    );
+    var errors = AnalysisOptionsAnalyzer(
+      initialSource: FileSource(optionsFile),
+      sourceFactory: sourceFactory,
+      contextRoot: contextRoot.root.path,
+      sdkVersionConstraint: sdkVersionConstraint,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: content);
 
     var codeActions = <CodeActionWithPriority>[];
     for (var error in errors) {

@@ -1,6 +1,6 @@
 class Class {
   static final int nonConstField = 1;
-  void test(final int nonConstParameter) {}
+  void test(int nonConstParameter) {}
 }
 
 final int nonConstTopLevel = 0;

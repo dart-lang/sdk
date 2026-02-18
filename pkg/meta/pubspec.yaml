@@ -1,7 +1,7 @@
 name: meta
 # Note, because version `2.0.0` was mistakenly released,
 # the next major version must be `3.x.y`.
-version: 1.18.1
+version: 1.18.2-wip
 description: >-
  Annotations used to express developer intentions that can't otherwise be
  deduced by statically analyzing source code.

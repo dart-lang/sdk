@@ -222,17 +222,10 @@ PRECOMPILER_WSR_FIELD_DEFINITION(Function, FunctionType, signature)
 
 #undef PRECOMPILER_WSR_FIELD_DEFINITION
 
-#if defined(_MSC_VER)
-#define TRACE_TYPE_CHECKS_VERBOSE(format, ...)                                 \
-  if (FLAG_trace_type_checks_verbose) {                                        \
-    OS::PrintErr(format, __VA_ARGS__);                                         \
-  }
-#else
 #define TRACE_TYPE_CHECKS_VERBOSE(format, ...)                                 \
   if (FLAG_trace_type_checks_verbose) {                                        \
     OS::PrintErr(format, ##__VA_ARGS__);                                       \
   }
-#endif
 
 // Takes a vm internal name and makes it suitable for external user.
 //
@@ -2998,7 +2991,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
   Heap* heap = thread->heap();
 
   uword address = heap->Allocate(thread, size, space);
-  if (UNLIKELY(address == 0)) {
+  if (address == 0) [[unlikely]] {
     // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
     // available, it is the innermost error handler, so check for a longjmp base
     // before checking for an exit frame.
@@ -3020,7 +3013,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
                    ptr_field_end_offset);
   raw_obj = static_cast<ObjectPtr>(address + kHeapObjectTag);
   ASSERT(cls_id == UntaggedObject::ClassIdTag::decode(raw_obj->untag()->tags_));
-  if (raw_obj->IsOldObject() && UNLIKELY(thread->is_marking())) {
+  if (raw_obj->IsOldObject() && thread->is_marking()) [[unlikely]] {
     // Black allocation. Prevents a data race between the mutator and
     // concurrent marker on ARM and ARM64 (the marker may observe a
     // publishing store of this object before the stores that initialize its

@@ -2,109 +2,109 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:5:23: Error: Expected a representation type.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:7:23: Error: Expected a representation type.
 // extension type E1(var foo) {} // Error.
 //                       ^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:6:25: Error: Expected a representation type.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:8:25: Error: Expected a representation type.
 // extension type E2(final foo) {} // Error.
 //                         ^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:6:25: Error: Representation fields can't have modifiers.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:8:25: Error: Representation fields can't have modifiers.
 // extension type E2(final foo) {} // Error.
 //                         ^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:7:32: Error: Representation fields can't have modifiers.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:9:32: Error: Representation fields can't have modifiers.
 // extension type E3(final String foo) {} // Error.
 //                                ^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:8:19: Error: Can't have modifier 'covariant' in a primary constructor.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:10:19: Error: Can't have modifier 'covariant' in a primary constructor.
 // Try removing 'covariant'.
 // extension type E4(covariant num foo) {} // Error.
 //                   ^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:9:19: Error: Can't have modifier 'const' here.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:11:19: Error: Can't have modifier 'const' here.
 // Try removing 'const'.
 // extension type E5(const bool foo) {} // Error.
 //                   ^^^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:9:30: Error: Representation fields can't have modifiers.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:11:30: Error: Representation fields can't have modifiers.
 // extension type E5(const bool foo) {} // Error.
 //                              ^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:10:19: Error: Can't have modifier 'covariant' in a primary constructor.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:12:19: Error: Can't have modifier 'covariant' in a primary constructor.
 // Try removing 'covariant'.
 // extension type E6(covariant final double foo) {} // Error.
 //                   ^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:10:42: Error: Representation fields can't have modifiers.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:12:42: Error: Representation fields can't have modifiers.
 // extension type E6(covariant final double foo) {} // Error.
 //                                          ^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:11:25: Error: Members can't be declared to be both 'var' and 'const'.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:13:25: Error: Members can't be declared to be both 'var' and 'const'.
 // Try removing one of the keywords.
 // extension type E7(const var foo) {} // Error.
 //                         ^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:11:19: Error: Can't have modifier 'const' here.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:13:19: Error: Can't have modifier 'const' here.
 // Try removing 'const'.
 // extension type E7(const var foo) {} // Error.
 //                   ^^^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:11:29: Error: Expected a representation type.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:13:29: Error: Expected a representation type.
 // extension type E7(const var foo) {} // Error.
 //                             ^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:11:29: Error: Representation fields can't have modifiers.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:13:29: Error: Representation fields can't have modifiers.
 // extension type E7(const var foo) {} // Error.
 //                             ^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:12:18: Error: Expected a representation field.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:14:18: Error: Expected a representation field.
 // extension type E8() {} // Error.
 //                  ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:13:18: Error: Each extension type should have exactly one representation field.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:15:18: Error: Each extension type should have exactly one representation field.
 // extension type E9(int foo, String bar) {} // Error.
 //                  ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:14:19: Error: Each extension type should have exactly one representation field.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:16:19: Error: Each extension type should have exactly one representation field.
 // extension type E10(num foo, bool bar, double baz) {} // Error.
 //                   ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:15:28: Error: The representation field can't have a trailing comma.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:17:28: Error: The representation field can't have a trailing comma.
 // extension type E11(bool foo,) {} // Error.
 //                            ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:16:29: Error: Non-optional parameters can't have a default value.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:18:29: Error: Non-optional parameters can't have a default value.
 // Try removing the default value or making the parameter optional.
 // extension type E12(bool foo = false,) {} // Error.
 //                             ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:16:36: Error: The representation field can't have a trailing comma.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:18:36: Error: The representation field can't have a trailing comma.
 // extension type E12(bool foo = false,) {} // Error.
 //                                    ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:17:26: Error: Extension type declarations can't have optional parameters.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:19:26: Error: Extension type declarations can't have optional parameters.
 // extension type E13([int? foo]) {} // Error.
 //                          ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:18:29: Error: Extension type declarations can't have named parameters.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:20:29: Error: Extension type declarations can't have named parameters.
 // extension type E14({String? foo}) {} // Error.
 //                             ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:19:37: Error: Extension type declarations can't have named parameters.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:21:37: Error: Extension type declarations can't have named parameters.
 // extension type E15({required double foo}) {} // Error.
 //                                     ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:20:39: Error: Extension type declarations can't have optional parameters.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:22:39: Error: Extension type declarations can't have optional parameters.
 // extension type E16(bool foo, [dynamic bar]) {} // Error.
 //                                       ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:21:51: Error: Extension type declarations can't have named parameters.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:23:51: Error: Extension type declarations can't have named parameters.
 // extension type E17(Object foo, {num? bar, String? baz}) {} // Error.
 //                                                   ^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:22:46: Error: Extension type declarations can't have named parameters.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:24:46: Error: Extension type declarations can't have named parameters.
 // extension type E18(double foo, {required int bar}) {} // Error.
 //                                              ^
 //

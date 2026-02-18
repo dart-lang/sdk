@@ -42,6 +42,7 @@ class ResolverForTesting extends Resolver {
     required VariableDeclaration? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
     required ConstantContext constantContext,
+    required ThisVariable? internalThisVariable,
   }) {
     return bodyBuilderCreator(
       libraryBuilder: context.libraryBuilder,

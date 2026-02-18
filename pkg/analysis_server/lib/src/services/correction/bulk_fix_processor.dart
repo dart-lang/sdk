@@ -751,7 +751,7 @@ class BulkFixProcessor {
         }
       } else {
         var generators =
-            registeredFixGenerators.nonLintProducers[diagnosticCode] ?? [];
+            registeredFixGenerators.warningProducers[diagnosticCode] ?? [];
         await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;
@@ -989,7 +989,7 @@ class BulkFixProcessor {
         );
       }
 
-      var producers = registeredFixGenerators.nonLintProducers[diagnosticCode];
+      var producers = registeredFixGenerators.warningProducers[diagnosticCode];
       if (hasBulkFixProducers(producers)) {
         return true;
       }
@@ -997,7 +997,7 @@ class BulkFixProcessor {
       // We can't do detailed checks on multi-producers because the set of
       // producers may vary depending on the resolved unit (we must configure
       // them before we can determine the producers).
-      return registeredFixGenerators.nonLintMultiProducers.containsKey(
+      return registeredFixGenerators.warningMultiProducers.containsKey(
             diagnosticCode,
           ) ||
           BulkFixProcessor.nonLintMultiProducerMap.containsKey(diagnosticCode);

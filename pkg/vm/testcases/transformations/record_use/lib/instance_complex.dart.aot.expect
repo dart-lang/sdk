@@ -1,0 +1,60 @@
+library #lib;
+import self as self;
+import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
+
+import "package:meta/meta.dart" show RecordUse;
+
+@#C1
+class MyClass extends core::Object /*hasConstConstructor*/  {
+
+  [@vm.inferred-type.metadata=dart.core::_Smi (value: 15)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  final field core::int i;
+
+  [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "s")]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  final field core::String s;
+
+  [@vm.inferred-type.metadata=dart._compact_hash::_ConstMap (value: const <dart.core::String, dart.core::bool>{"h": false})]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  final field core::Map<core::String, core::bool> m;
+
+  [@vm.inferred-type.metadata=dart.core::bool (value: true)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  final field core::bool b;
+
+  [@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::Map<dart.core::String, dart.core::int>>[const <dart.core::String, dart.core::int>{"l": 3}])]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  final field core::List<core::Map<core::String, core::int>> l;
+
+  [@vm.inferred-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:6]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  final field core::String? n;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print(#C13);
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = 15
+  #C3 = "s"
+  #C4 = "h"
+  #C5 = false
+  #C6 = <core::String, core::bool>{#C4:#C5}
+  #C7 = true
+  #C8 = "l"
+  #C9 = 3
+  #C10 = <core::String, core::int>{#C8:#C9}
+  #C11 = <core::Map<core::String, core::int>>[#C10]
+  #C12 = null
+  #C13 = self::MyClass {i:#C2, s:#C3, m:#C6, b:#C7, l:#C11, n:#C12}
+}

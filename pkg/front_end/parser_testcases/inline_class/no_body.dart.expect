@@ -1,9 +1,5 @@
 Problems reported:
 
-parser/inline_class/no_body:1:8: This requires the experimental 'primary-constructors' language feature to be enabled.
-class C;
-       ^
-
 parser/inline_class/no_body:2:7: A mixin declaration must have a body, even if it is empty.
 mixin M;
       ^
@@ -20,18 +16,6 @@ parser/inline_class/no_body:3:19: Unexpected token ';'.
 extension E on int;
                   ^
 
-parser/inline_class/no_body:4:26: This requires the experimental 'primary-constructors' language feature to be enabled.
-extension type ET1(int i);
-                         ^
-
-parser/inline_class/no_body:5:41: This requires the experimental 'primary-constructors' language feature to be enabled.
-extension type ET2(int i) implements Foo;
-                                        ^
-
-parser/inline_class/no_body:6:46: This requires the experimental 'primary-constructors' language feature to be enabled.
-extension type ET3(int i) implements Foo, Bar;
-                                             ^
-
 beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
@@ -45,7 +29,6 @@ beginCompilationUnit(class)
       handleClassNoWithClause()
       handleImplements(null, 0)
       handleClassHeader(class, class, null)
-      handleExperimentNotEnabled(ExperimentalFlag.primaryConstructors, ;, ;)
       handleNoClassBody(;)
     endClassDeclaration(class, ;)
   endTopLevelDeclaration(;)
@@ -110,7 +93,6 @@ beginCompilationUnit(class)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
       endPrimaryConstructor((, null, false, true)
       handleImplements(null, 0)
-      handleExperimentNotEnabled(ExperimentalFlag.primaryConstructors, ;, ;)
       handleNoExtensionTypeBody(;)
     endExtensionTypeDeclaration(extension, null, extension, type, ;)
   endTopLevelDeclaration(;)
@@ -136,7 +118,6 @@ beginCompilationUnit(class)
       handleNoTypeArguments(;)
       handleType(Foo, null)
       handleImplements(implements, 1)
-      handleExperimentNotEnabled(ExperimentalFlag.primaryConstructors, ;, ;)
       handleNoExtensionTypeBody(;)
     endExtensionTypeDeclaration(extension, null, extension, type, ;)
   endTopLevelDeclaration(;)
@@ -165,7 +146,6 @@ beginCompilationUnit(class)
       handleNoTypeArguments(;)
       handleType(Bar, null)
       handleImplements(implements, 2)
-      handleExperimentNotEnabled(ExperimentalFlag.primaryConstructors, ;, ;)
       handleNoExtensionTypeBody(;)
     endExtensionTypeDeclaration(extension, null, extension, type, ;)
   endTopLevelDeclaration(;)

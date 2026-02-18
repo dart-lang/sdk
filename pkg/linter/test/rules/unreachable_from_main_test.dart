@@ -354,6 +354,16 @@ class D {}
 ''');
   }
 
+  test_class_reachable_typeLiteral() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C;
+}
+
+class C {}
+''');
+  }
+
   test_class_reachableViaAnnotation() async {
     await assertNoDiagnostics(r'''
 void main() {

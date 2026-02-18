@@ -10,7 +10,7 @@ base class _NamespaceImpl extends NativeFieldWrapperClass1
   _NamespaceImpl._();
 
   @pragma("vm:external-name", "Namespace_Create")
-  external static _NamespaceImpl _create(_NamespaceImpl namespace, var n);
+  external static _NamespaceImpl _create(_NamespaceImpl namespace, n);
   @pragma("vm:external-name", "Namespace_GetPointer")
   external static int _getPointer(_NamespaceImpl namespace);
   @pragma("vm:external-name", "Namespace_GetDefault")
@@ -19,7 +19,7 @@ base class _NamespaceImpl extends NativeFieldWrapperClass1
   // If the platform supports "namespaces", this method is called by the
   // embedder with the platform-specific namespace information.
   static _NamespaceImpl? _cachedNamespace = null;
-  static void _setupNamespace(var namespace) {
+  static void _setupNamespace(namespace) {
     _cachedNamespace = _create(_NamespaceImpl._(), namespace);
   }
 
@@ -40,7 +40,7 @@ base class _NamespaceImpl extends NativeFieldWrapperClass1
 class _Namespace {
   @patch
   @pragma("vm:entry-point", "call")
-  static void _setupNamespace(var namespace) {
+  static void _setupNamespace(namespace) {
     _NamespaceImpl._setupNamespace(namespace);
   }
 

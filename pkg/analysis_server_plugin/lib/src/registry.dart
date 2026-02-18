@@ -61,7 +61,11 @@ final class PluginRegistryImpl extends PluginRegistry with RegistryMixin {
       );
     }
 
-    registeredFixGenerators.registerFixForLint(code, generator);
+    if (code is LintCode) {
+      registeredFixGenerators.registerFixForLint(code, generator);
+    } else {
+      registeredFixGenerators.registerFixForWarning(code, generator);
+    }
     fixKinds.putIfAbsent(fixKind, () => []).add(code.lowerCaseName);
   }
 

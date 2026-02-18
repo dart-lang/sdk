@@ -19,9 +19,6 @@ class String {
     int start = 0,
     int? end,
   ]) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (charCodes == null) throw ArgumentError.notNull("charCodes");
-    if (start == null) throw ArgumentError.notNull("start");
     return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
@@ -670,9 +667,6 @@ abstract final class _StringBase implements String {
   }
 
   String replaceAll(Pattern pattern, String replacement) {
-    if (pattern == null) throw ArgumentError.notNull("pattern");
-    if (replacement == null) throw ArgumentError.notNull("replacement");
-
     int startIndex = 0;
     // String fragments that replace the prefix [this] up to [startIndex].
     List matches = [];
@@ -769,8 +763,6 @@ abstract final class _StringBase implements String {
   );
 
   String replaceAllMapped(Pattern pattern, String replace(Match match)) {
-    if (pattern == null) throw ArgumentError.notNull("pattern");
-    if (replace == null) throw ArgumentError.notNull("replace");
     List matches = [];
     int length = 0;
     int startIndex = 0;
@@ -804,9 +796,6 @@ abstract final class _StringBase implements String {
     String replace(Match match), [
     int startIndex = 0,
   ]) {
-    if (pattern == null) throw ArgumentError.notNull("pattern");
-    if (replace == null) throw ArgumentError.notNull("replace");
-    if (startIndex == null) throw ArgumentError.notNull("startIndex");
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
 
     var matches = pattern.allMatches(this, startIndex).iterator;
@@ -855,9 +844,6 @@ abstract final class _StringBase implements String {
     String onMatch(Match match)?,
     String onNonMatch(String nonMatch)?,
   }) {
-    if (pattern == null) {
-      throw ArgumentError.notNull("pattern");
-    }
     onMatch ??= _matchString;
     onNonMatch ??= _stringIdentity;
     if (pattern is String) {
@@ -893,7 +879,7 @@ abstract final class _StringBase implements String {
   @pragma("vm:recognized", "other")
   @pragma("vm:entry-point", "call")
   @pragma("vm:never-inline")
-  static String _interpolate(final List values) {
+  static String _interpolate(List values) {
     final numValues = values.length;
     int totalLength = 0;
     int i = 0;

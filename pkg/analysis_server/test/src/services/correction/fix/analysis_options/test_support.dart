@@ -46,14 +46,13 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
   }) {
     var optionsFile = newFile('/analysis_options.yaml', content);
     var sourceFactory = SourceFactory([]);
-    var errors = analyzeAnalysisOptions(
-      FileSource(optionsFile),
-      content,
-      sourceFactory,
-      '/',
-      dart2_12,
-      resourceProvider,
-    );
+    var errors = AnalysisOptionsAnalyzer(
+      initialSource: FileSource(optionsFile),
+      sourceFactory: sourceFactory,
+      contextRoot: '/',
+      sdkVersionConstraint: dart2_12,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: content);
     if (diagnosticFilter != null) {
       if (errors.length == 1) {
         fail('Unnecessary error filter');

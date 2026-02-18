@@ -5,8 +5,6 @@
 // Testing erroneous ways of using shorthands with the `==` and `!=` operators
 // with selector chains.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 /// Every shorthand in [notSymmetrical] has the context type of `_` and won't

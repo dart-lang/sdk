@@ -325,8 +325,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         String nameText = typeName.name;
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
-        Message message = diag.typeArgumentsOnTypeVariable.withArgumentsOld(
-          nameText,
+        Message message = diag.typeArgumentsOnTypeVariable.withArguments(
+          typeVariableName: nameText,
         );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         // TODO(johnniwinther): Should we retain the declaration to support
@@ -435,7 +435,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
-    Template<Function, Message Function({required String typeName})> template =
+    Template<Message Function({required String typeName})> template =
         declaration.isTypeParameter
         ? diag.supertypeIsTypeParameter
         : diag.supertypeIsIllegal;

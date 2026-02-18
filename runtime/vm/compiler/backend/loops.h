@@ -28,7 +28,7 @@ namespace dart {
 // Periodic:
 //     alternate initial and next, for invariant initial and next
 //
-class InductionVar : public ZoneAllocated {
+class InductionVar : public ZoneObject {
  public:
   enum Kind {
     kInvariant,
@@ -207,7 +207,7 @@ class InductionVar : public ZoneAllocated {
 };
 
 // Information on a "natural loop" in the flow graph.
-class LoopInfo : public ZoneAllocated {
+class LoopInfo : public ZoneObject {
  public:
   LoopInfo(intptr_t id, BlockEntryInstr* header, BitVector* blocks);
 
@@ -271,7 +271,7 @@ class LoopInfo : public ZoneAllocated {
   typedef RawPointerKeyValueTrait<Definition, InductionVar*> InductionKV;
 
   // Mapping from induction to mapping from instruction to induction pair.
-  class MemoVal : public ZoneAllocated {
+  class MemoVal : public ZoneObject {
    public:
     typedef RawPointerKeyValueTrait<Instruction,
                                     std::pair<InductionVar*, InductionVar*>>
@@ -319,7 +319,7 @@ class LoopInfo : public ZoneAllocated {
 };
 
 // Information on the loop hierarchy in the flow graph.
-class LoopHierarchy : public ZoneAllocated {
+class LoopHierarchy : public ZoneObject {
  public:
   LoopHierarchy(ZoneGrowableArray<BlockEntryInstr*>* headers,
                 const GrowableArray<BlockEntryInstr*>& preorder,

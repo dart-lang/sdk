@@ -922,7 +922,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     logSummary(diag.sourceBodySummary);
   }
 
-  void logSummary(Template<Function, SummaryTemplate> template) {
+  void logSummary(Template<SummaryTemplate> template) {
     ticker.log(
       // Coverage-ignore(suite): Not run.
       (Duration elapsed, Duration sinceStart) {
@@ -1105,7 +1105,7 @@ severity: $severity
 
   ClassMembersBuilder get membersBuilder => _membersBuilder!;
 
-  Template<Function, SummaryTemplate> get outlineSummaryTemplate =>
+  Template<SummaryTemplate> get outlineSummaryTemplate =>
       diag.sourceOutlineSummary;
 
   /// The [SourceCompilationUnit]s for the `dart:` libraries that are not
@@ -2366,28 +2366,38 @@ severity: $severity
               return;
             }
           }
-          final Template<Message Function(String, String), Function> template =
-              cls.isMixinDeclaration
+          final Template<
+            Message Function({
+              required String typeName,
+              required String supertypeName,
+            })
+          >
+          template = cls.isMixinDeclaration
               ? diag.mixinSubtypeOfFinalIsNotBase
               : diag.subtypeOfFinalIsNotBaseFinalOrSealed;
           cls.libraryBuilder.addProblem(
-            template.withArgumentsOld(
-              cls.fullNameForErrors,
-              baseOrFinalSuperClass.fullNameForErrors,
+            template.withArguments(
+              typeName: cls.fullNameForErrors,
+              supertypeName: baseOrFinalSuperClass.fullNameForErrors,
             ),
             cls.fileOffset,
             noLength,
             cls.fileUri,
           );
         } else if (baseOrFinalSuperClass.isBase) {
-          final Template<Message Function(String, String), Function> template =
-              cls.isMixinDeclaration
+          final Template<
+            Message Function({
+              required String className,
+              required String superclassName,
+            })
+          >
+          template = cls.isMixinDeclaration
               ? diag.mixinSubtypeOfBaseIsNotBase
               : diag.subtypeOfBaseIsNotBaseFinalOrSealed;
           cls.libraryBuilder.addProblem(
-            template.withArgumentsOld(
-              cls.fullNameForErrors,
-              baseOrFinalSuperClass.fullNameForErrors,
+            template.withArguments(
+              className: cls.fullNameForErrors,
+              superclassName: baseOrFinalSuperClass.fullNameForErrors,
             ),
             cls.fileOffset,
             noLength,
@@ -2421,7 +2431,9 @@ severity: $severity
               if (cls.isMixinDeclaration) {
                 cls.libraryBuilder.addProblem(
                   diag.finalClassUsedAsMixinConstraintOutsideOfLibrary
-                      .withArgumentsOld(supertypeDeclaration.fullNameForErrors),
+                      .withArguments(
+                        className: supertypeDeclaration.fullNameForErrors,
+                      ),
                   supertypeBuilder.charOffset ?? TreeNode.noOffset,
                   noLength,
                   supertypeBuilder
@@ -2536,10 +2548,7 @@ severity: $severity
               if (checkedClass.isBase && !cls.cls.isAnonymousMixin) {
                 // Report an error for a class implementing a base class outside
                 // of its library.
-                final Template<
-                  Function,
-                  Message Function({required String typeName})
-                >
+                final Template<Message Function({required String typeName})>
                 template = checkedClass.isMixinDeclaration
                     ? diag.baseMixinImplementedOutsideOfLibrary
                     : diag.baseClassImplementedOutsideOfLibrary;
@@ -2559,13 +2568,16 @@ severity: $severity
               } else if (checkedClass.isFinal) {
                 // Report an error for a class implementing a final class
                 // outside of its library.
-                final Template<Message Function(String), Function> template =
+                final Template<Message Function({required String className})>
+                template =
                     cls.cls.isAnonymousMixin &&
                         checkedClass == interfaceDeclaration
                     ? diag.finalClassUsedAsMixinConstraintOutsideOfLibrary
                     : diag.finalClassImplementedOutsideOfLibrary;
                 cls.libraryBuilder.addProblem(
-                  template.withArgumentsOld(checkedClass.fullNameForErrors),
+                  template.withArguments(
+                    className: checkedClass.fullNameForErrors,
+                  ),
                   interfaceBuilder.charOffset ?? TreeNode.noOffset,
                   noLength,
                   interfaceBuilder
@@ -3620,8 +3632,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
 
   void _checkMember(
     Name name, {
-    required Template<Function, Message Function({required String memberName})>
-    template,
+    required Template<Message Function({required String memberName})> template,
     required bool isSetter,
     required int accessFileOffset,
   }) {

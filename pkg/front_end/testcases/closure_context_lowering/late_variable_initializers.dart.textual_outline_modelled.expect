@@ -1,0 +1,7 @@
+test1(int directCaptured) {}
+
+test2(int directCaptured) {}
+
+test3(int assertCaptured) {}
+
+test4(int directCaptured) {}

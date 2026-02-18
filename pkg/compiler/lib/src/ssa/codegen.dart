@@ -59,6 +59,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
   CodegenMetrics? _codegenMetrics;
   CodegenMetrics get codegenMetrics => _codegenMetrics ??= CodegenMetrics();
 
+  /// Set of constants that have already been recorded for uses. Shard-global to
+  /// avoid redundant traversal of recurring deep constants.
+  ///
+  /// Similar to the VM's `_ConstantCollector` in
+  /// `pkg/vm/lib/transformations/record_use/constant_collector.dart`.
+  final Set<ConstantValue> _recordedConstantUsesVisited = {};
+
   SsaCodeGeneratorTask(
     super.measurer,
     this._options,
@@ -166,6 +173,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         codegen.tracer,
         closedWorld,
         registry,
+        _recordedConstantUsesVisited,
       );
       codeGenerator.visitGraph(graph);
       codegen.tracer.traceGraph("codegen", graph);
@@ -200,6 +208,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         codegen.tracer,
         closedWorld,
         registry,
+        _recordedConstantUsesVisited,
       );
       codeGenerator.visitGraph(graph);
       codegen.tracer.traceGraph("codegen", graph);
@@ -290,6 +299,12 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   final CodegenRegistry _registry;
   final CodegenMetrics _metrics;
 
+  /// Set of constants that have already been recorded for uses. Shard-global.
+  ///
+  /// Similar to the VM's `_ConstantCollector` in
+  /// `pkg/vm/lib/transformations/record_use/constant_collector.dart`.
+  final Set<ConstantValue> _recordedConstantUsesVisited;
+
   final Set<HInstruction> generateAtUseSite = {};
   final Set<HIf> controlFlowOperators = {};
   final Set<JumpTarget> breakAction = {};
@@ -348,6 +363,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     this._tracer,
     this._closedWorld,
     this._registry,
+    this._recordedConstantUsesVisited,
   );
 
   JCommonElements get _commonElements => _closedWorld.commonElements;
@@ -2678,12 +2694,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         : target.name;
 
     Object? recordedMethodUses;
-    if (_closedWorld.annotationsData.shouldRecordMethodUses(target)) {
-      recordedMethodUses = _recordMethodUses(
-        target,
-        inputs,
-        node.sourceInformation!,
-      );
+    final sourceInformation = node.sourceInformation;
+    if (sourceInformation != null &&
+        _closedWorld.annotationsData.shouldRecordMethodUses(target)) {
+      recordedMethodUses = _recordMethodUses(target, inputs, sourceInformation);
     }
 
     void invokeWithJavaScriptReceiver(js.Expression receiverExpression) {
@@ -2909,14 +2923,43 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       // TODO(johnniwinther): Support source information on synthetic constants.
       expression = expression.withSourceInformation(sourceInformation);
     }
-    if (constant is FunctionConstantValue) {
-      final element = constant.element;
-      if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
-        final recordedMethodUses = _recordTearOff(element, sourceInformation!);
-        expression = expression.withAnnotation(recordedMethodUses);
-      }
+    for (final recordedUse in _recordConstantUses(
+      constant,
+      sourceInformation,
+    )) {
+      expression = expression.withAnnotation(recordedUse);
     }
     push(expression);
+  }
+
+  Iterable<RecordedUse> _recordConstantUses(
+    ConstantValue constant,
+    SourceInformation? sourceInformation,
+  ) sync* {
+    if (!_recordedConstantUsesVisited.add(constant)) return;
+
+    switch (constant) {
+      case FunctionConstantValue():
+        final element = constant.element;
+        if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
+          yield _recordTearOff(element, sourceInformation!);
+        }
+      case ConstructedConstantValue():
+        final element = constant.type.element;
+        if (_closedWorld.annotationsData.shouldRecordConstInstances(element)) {
+          yield RecordedConstInstance(
+            constant: constant,
+            sourceInformation: sourceInformation!,
+          );
+        }
+      default:
+        break;
+    }
+
+    // Cover nested constants.
+    for (final dependency in constant.getDependencies()) {
+      yield* _recordConstantUses(dependency, sourceInformation);
+    }
   }
 
   @override

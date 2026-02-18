@@ -5,7 +5,7 @@
 /// @docImport 'package:front_end/src/codes/type_labeler.dart';
 library;
 
-import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_testing/utilities/extensions/string.dart';
 import 'package:analyzer_utilities/located_error.dart';
 import 'package:analyzer_utilities/messages.dart';
 
@@ -237,9 +237,6 @@ class _TemplateCompiler {
     } else {
       List<String> templateArguments = <String>[];
       templateArguments.add('\"$pascalCaseName\"');
-      templateArguments.add(
-        "withArgumentsOld: _withArgumentsOld$pascalCaseName",
-      );
       templateArguments.add("withArguments: _withArguments$pascalCaseName");
       templateArguments.addAll(codeArguments);
 
@@ -248,20 +245,13 @@ class _TemplateCompiler {
         if (interpolatedCorrectionMessage case var m?) "correctionMessage: $m",
         "arguments: { ${arguments.join(', ')}, }",
       ];
-      List<String> positionalParameters = parameters.entries
-          .map((entry) => '${entry.value.type.cfeName!} ${entry.key}')
-          .toList();
       List<String> namedParameters = parameters.entries
           .map((entry) => 'required ${entry.value.type.cfeName!} ${entry.key}')
-          .toList();
-      List<String> oldToNewArguments = parameters.keys
-          .map((name) => '$name: $name')
           .toList();
 
       constantType =
           """
 Template<
-  Message Function(${positionalParameters.join(', ')}),
   Message Function({${namedParameters.join(', ')}})
 >""";
       constantInitializer = 'const Template(${templateArguments.join(', ')},)';
@@ -272,10 +262,6 @@ Message _withArguments$pascalCaseName({${namedParameters.join(', ')}}) {
      $camelCaseName,
      ${messageArguments.join(', ')},);
 }
-""");
-      withArgumentsFunctions.add("""
-Message _withArgumentsOld$pascalCaseName(${positionalParameters.join(', ')}) =>
-    _withArguments$pascalCaseName(${oldToNewArguments.join(', ')});
 """);
     }
     messageAccumulator.writeConstant(

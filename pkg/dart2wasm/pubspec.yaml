@@ -14,6 +14,7 @@ dependencies:
   args: any
   build_integration: any
   collection: any
+  compiler: any
   front_end: any
   kernel: any
   linter: any

@@ -50,10 +50,21 @@ class FfiCallbackMetadata {
     kSyncIsolateGroupBoundStackDelta4 = 4,  // Only used by TARGET_ARCH_IA32
   };
 
+  // There are 2 supported invocation flows for kSync callbacks. The normal flow
+  // is when the current thread is already entered into the target isolate. The
+  // other flow is when the current thread is not entered into any isolate, but
+  // it owns the target isolate. In the latter case, GetFfiCallbackMetadata
+  // enters the target isolate. It also ORs this flag onto out_trampoline_type
+  // so that the invocation stub knows to exit the isolate again after calling
+  // the target callback. So this flag must not collide with TrampolineType
+  // values, and on 32-bit arm it needs to fit in a uint8.
+  static constexpr uword kSyncCallbackIsolateOwnershipFlag = 1 << 7;
+
   enum RuntimeFunctions {
     kGetFfiCallbackMetadata,
     kExitTemporaryIsolate,
     kExitIsolateGroupBoundIsolate,
+    kExitSyncCallbackTargetIsolate,
     kNumRuntimeFunctions,
   };
 
@@ -317,27 +328,27 @@ class FfiCallbackMetadata {
 
 #if defined(TARGET_ARCH_X64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 376;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 393;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 193;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 241;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 328;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 400;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 428;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 480;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 302;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 358;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 302;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 358;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #else
 #error What architecture?

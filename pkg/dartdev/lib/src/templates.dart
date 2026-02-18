@@ -100,7 +100,7 @@ abstract class Generator implements Comparable<Generator> {
       'description': description,
       'year': DateTime.now().year.toString(),
       'author': '<your name>',
-      if (additionalVars != null) ...additionalVars,
+      ...?additionalVars,
     };
 
     for (TemplateFile file in files) {

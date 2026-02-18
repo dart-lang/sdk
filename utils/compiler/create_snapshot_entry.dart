@@ -9,7 +9,7 @@
 import 'dart:io';
 import 'dart:async';
 
-Future<String> getVersion(var rootPath, bool noGitHash) {
+Future<String> getVersion(rootPath, bool noGitHash) {
   var printVersionScript = rootPath.resolve("tools/make_version.py");
   var args = <String>[
     printVersionScript.toFilePath(),
@@ -25,7 +25,7 @@ Future<String> getVersion(var rootPath, bool noGitHash) {
   });
 }
 
-Future<String> getDart2jsSnapshotGenerationFile(var rootPath, bool noGitHash) {
+Future<String> getDart2jsSnapshotGenerationFile(rootPath, bool noGitHash) {
   return getVersion(rootPath, noGitHash).then((version) {
     var snapshotGenerationText =
         """

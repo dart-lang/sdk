@@ -26,7 +26,11 @@ class CompilationSet {
 
   CompilationSet(this.libraries, this.config)
     : _imageWriter = config.createImageWriter() {
-    _snapshot = SnapshotSerializer(config.targetCPU, functionRegistry);
+    _snapshot = SnapshotSerializer(
+      config.targetCPU,
+      functionRegistry,
+      config.objectLayout,
+    );
     _stubFactory = config.createStubFactory(_consumeGeneratedCode);
   }
 
@@ -115,12 +119,18 @@ class CompilationSet {
     }
 
     config
-        .createPipeline(functionRegistry, _stubFactory, _consumeGeneratedCode)
+        .createPipeline(
+          function,
+          functionRegistry,
+          _stubFactory,
+          _consumeGeneratedCode,
+        )
         .run(graph);
   }
 
   void _consumeGeneratedCode(Code code) {
     code.instructionsImageOffset = _imageWriter.addInstructions(
+      code.name,
       code.instructions,
     );
     _snapshot.addRoot(code);

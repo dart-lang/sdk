@@ -23,4 +23,3 @@ dependencies:
 dev_dependencies:
   analyzer_plugin: any
   lints: any
-  test_reflective_loader: any

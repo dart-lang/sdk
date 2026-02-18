@@ -1,0 +1,67 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  static const field core::int m = 42;
+  constructor •([core::int x = self::C1::m]) → self::C1
+    ;
+}
+class C2 extends core::Object {
+  static const field core::String int = "not a type";
+  constructor •(core::int x) → self::C2
+    ;
+}
+class E1 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E1 a = const self::E1::•(0, "a", 0);
+  static const field core::int m = 42;
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::a];
+  const constructor •(core::int #index, core::String #name, [core::int x = self::E1::m]) → self::E1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E2 a = const self::E2::•(0, "a", 0);
+  static const field core::String int = "not a type";
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::a];
+  const constructor •(core::int #index, core::String #name, core::int x) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+extension type ET1(core::int x) {
+  abstract extension-type-member representation-field get x() → core::int;
+  static field m = self::ET1|m;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int x) {
+  abstract extension-type-member representation-field get x() → core::int;
+  static field int = self::ET2|int;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static const field core::int ET1|m = 42;
+static const field core::String ET2|int = "not a type";
+static extension-type-member method ET1|constructor#([core::int x = self::ET1|m]) → self::ET1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff([has-declared-initializer core::int x]) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(x);
+static extension-type-member method ET2|constructor#(core::int x) → self::ET2% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int x) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(x);
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///parameter_scope.dart:5:22 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///parameter_scope.dart:13:21 -> IntConstant(42)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///parameter_scope.dart:14:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///parameter_scope.dart:13:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///parameter_scope.dart:19:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///parameter_scope.dart:18:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: StaticGet @ org-dartlang-testcase:///parameter_scope.dart:23:32 -> IntConstant(42)
+Extra constant evaluation: evaluated: 21, effectively constant: 7

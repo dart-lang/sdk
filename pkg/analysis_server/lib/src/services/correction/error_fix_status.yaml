@@ -185,6 +185,12 @@ ambiguous_set_or_map_literal_either:
   status: noFix
   notes: |-
     We don't have enough information to add type arguments for the user.
+anonymous_method_wrong_parameter_list:
+  status: noFix
+  notes: |-
+    We could remove the parameter list, or we could change it
+    to `(id)` where `id` is an identifier, but we don't know
+    which parameter name would be a good choice.
 argument_type_not_assignable:
   status: hasFix
 assert_in_redirecting_constructor:
@@ -194,6 +200,8 @@ assignment_to_const:
   notes: |-
     Making the field non-const doesn't seem to be a good choice, but it is a
     possibility.
+assignment_to_primary_constructor_parameter:
+  status: needsEvaluation
 assignment_to_final:
   status: hasFix
 assignment_to_final_local:
@@ -735,6 +743,12 @@ field_initialized_by_multiple_initializers:
     Remove all but one of the initializers.
     Replace the field name with the name of a different field (from the
     enclosing class).
+field_initialized_in_declaration_and_initializer_of_primary_constructor:
+  status: needsEvaluation
+  notes: |-
+    Remove all but one of the initializers.
+field_initialized_in_declaration_and_parameter_of_primary_constructor:
+  status: needsEvaluation
 field_initialized_in_initializer_and_declaration:
   status: needsFix
   notes: |-
@@ -1121,6 +1135,8 @@ multiple_super_initializers:
   status: needsFix
   notes: |-
     Remove all but one of the redirecting constructor invocations.
+new_constructor_dot_name:
+  status: needsEvaluation
 new_constructor_new_name:
   status: needsEvaluation
 new_constructor_qualified_name:
@@ -1897,9 +1913,7 @@ avoid_escaping_inner_quotes:
 avoid_field_initializers_in_const_classes:
   status: noFix
 avoid_final_parameters:
-  status: needsFix
-  notes: |-
-    The fix is to remove the `final` keyword.
+  status: hasFix
 avoid_function_literals_in_foreach_calls:
   status: hasFix
 avoid_futureor_void:
@@ -2386,6 +2400,8 @@ strict_top_level_inference_split_to_types:
     the LUB of those value(s)' type(s).
 switch_on_type:
   status: noFix
+tearoff_with_must_be_const_parameter:
+  status: needsEvaluation
 test_types_in_equals:
   status: noFix
 throw_in_finally:
@@ -3673,6 +3689,8 @@ mixin_on_sealed_class:
     in the next stable release.
 multiple_combinators:
   status: hasFix
+multiple_primary_constructor_body_declarations:
+  status: needsEvaluation
 must_be_immutable:
   status: noFix
 must_call_super:

@@ -9,6 +9,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -34,6 +36,7 @@ class DeprecatedConsistency extends MultiAnalysisRule {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFieldFormalParameter(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -44,32 +47,43 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var constructorElement = node.declaredFragment?.element;
-    if (constructorElement != null &&
-        constructorElement.enclosingElement.hasDeprecated &&
-        !constructorElement.hasDeprecated) {
-      // TODO(scheglov): support primary constructors
-      var nodeToAnnotate = node.name ?? node.typeName!;
+    _checkConstructor(node.declaredFragment!.element, node.errorRange);
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    _checkParameter(node);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    _checkConstructor(node.declaredFragment!.element, node.errorRange);
+  }
+
+  void _checkConstructor(ConstructorElement element, SourceRange sourceRange) {
+    if (element.enclosingElement.metadata.hasDeprecated &&
+        !element.metadata.hasDeprecated) {
       rule.reportAtOffset(
-        nodeToAnnotate.offset,
-        nodeToAnnotate.length,
+        sourceRange.offset,
+        sourceRange.length,
         diagnosticCode: diag.deprecatedConsistencyConstructor,
       );
     }
   }
 
-  @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
+  void _checkParameter(FormalParameter node) {
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement is! FieldFormalParameterElement) return;
 
     var field = declaredElement.field;
     if (field == null) return;
 
-    if (field.hasDeprecated && !declaredElement.hasDeprecated) {
+    if (field.metadata.hasDeprecated &&
+        !declaredElement.metadata.hasDeprecated) {
       rule.reportAtNode(node, diagnosticCode: diag.deprecatedConsistencyField);
     }
-    if (!field.hasDeprecated && declaredElement.hasDeprecated) {
+    if (!field.metadata.hasDeprecated &&
+        declaredElement.metadata.hasDeprecated) {
       var fieldFragment = field.firstFragment;
       var nameOffset = fieldFragment.nameOffset;
       if (nameOffset == null) return;
@@ -82,8 +96,4 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
     }
   }
-}
-
-extension on Element {
-  bool get hasDeprecated => metadata.hasDeprecated;
 }

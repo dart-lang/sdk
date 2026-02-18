@@ -22,38 +22,42 @@ import 'package:record_use/record_use_internal.dart' as record_use;
 
 import '../serialization/serialization.dart';
 
-enum RecordedUseKind { call, tearOff }
+enum RecordedUseKind {
+  constInstance,
+  staticCallTearOff,
+  staticCallWithArguments,
+}
 
-/// Dart2js version of [record_use.CallReference], but with the [identifier]
-/// nested for easy serialization.
+/// Dart2js version of `record_use.Reference`, with [sourceInformation].
+///
+/// Has no loading unit yet as these are assigned only all the way at the end of
+/// the compilation.
 sealed class RecordedUse {
   static const String tag = 'record-use';
-
-  final FunctionEntity function;
 
   final SourceInformation sourceInformation;
 
   RecordedUseKind get kind;
 
-  RecordedUse({required this.function, required this.sourceInformation});
+  RecordedUse({required this.sourceInformation});
 
   factory RecordedUse.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     RecordedUseKind kind = source.readEnum(RecordedUseKind.values);
-    final function = source.readMember() as FunctionEntity;
     final sourceInformation = SourceInformation.readFromDataSource(source);
     RecordedUse result;
     switch (kind) {
-      case RecordedUseKind.call:
+      case RecordedUseKind.staticCallWithArguments:
         result = RecordedCallWithArguments._readFromDataSource(
-          function,
           sourceInformation,
           source,
         );
         break;
-      case RecordedUseKind.tearOff:
-        result = RecordedTearOff._readFromDataSource(
-          function,
+      case RecordedUseKind.staticCallTearOff:
+        result = RecordedTearOff._readFromDataSource(sourceInformation, source);
+        break;
+      case RecordedUseKind.constInstance:
+        result = RecordedConstInstance._readFromDataSource(
           sourceInformation,
           source,
         );
@@ -66,17 +70,27 @@ sealed class RecordedUse {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(kind);
-    sink.writeMember(function);
     SourceInformation.writeToDataSink(sink, sourceInformation);
     _writeFieldsForKind(sink);
     sink.end(tag);
   }
 
   void _writeFieldsForKind(DataSinkWriter sink);
+}
+
+/// Dart2js version of [record_use.CallReference], with the [function]
+/// it belongs to.
+sealed class RecordedStaticCall extends RecordedUse {
+  final FunctionEntity function;
+
+  RecordedStaticCall({
+    required this.function,
+    required super.sourceInformation,
+  });
 
   @override
   bool operator ==(Object other) {
-    if (other is! RecordedUse) return false;
+    if (other is! RecordedStaticCall) return false;
     return function == other.function &&
         sourceInformation == other.sourceInformation;
   }
@@ -87,17 +101,17 @@ sealed class RecordedUse {
 
 /// Dart2js version of [record_use.CallWithArguments], with [ConstantValue]s
 /// instead of [record_use.Constant]s.
-class RecordedCallWithArguments extends RecordedUse {
+class RecordedCallWithArguments extends RecordedStaticCall {
   final List<ConstantValue?> positionalArguments;
   final Map<String, ConstantValue?> namedArguments;
 
   /// Constant positional argument values in `package:record_use` format.
-  List<record_use.Constant?> positionalArgumentsInRecordUseFormat() =>
-      positionalArguments.map(_findValue).toList();
+  List<record_use.MaybeConstant> positionalArgumentsInRecordUseFormat() =>
+      positionalArguments.map(_findValueOrNonConst).toList();
 
   /// Constant named argument values in `package:record_use` format.
-  Map<String, record_use.Constant?> namedArgumentsInRecordUseFormat() =>
-      namedArguments.map((k, v) => MapEntry(k, _findValue(v)));
+  Map<String, record_use.MaybeConstant> namedArgumentsInRecordUseFormat() =>
+      namedArguments.map((k, v) => MapEntry(k, _findValueOrNonConst(v)));
 
   RecordedCallWithArguments({
     required super.function,
@@ -107,13 +121,13 @@ class RecordedCallWithArguments extends RecordedUse {
   });
 
   @override
-  RecordedUseKind get kind => RecordedUseKind.call;
+  RecordedUseKind get kind => RecordedUseKind.staticCallWithArguments;
 
   static RecordedCallWithArguments _readFromDataSource(
-    FunctionEntity function,
     SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
+    final function = source.readMember() as FunctionEntity;
     final positionalArguments = source.readList(source.readConstantOrNull);
     final namedArguments = source.readStringMap(source.readConstantOrNull);
     return RecordedCallWithArguments(
@@ -126,6 +140,7 @@ class RecordedCallWithArguments extends RecordedUse {
 
   @override
   void _writeFieldsForKind(DataSinkWriter sink) {
+    sink.writeMember(function);
     sink.writeList(positionalArguments, sink.writeConstantOrNull);
     sink.writeStringMap(namedArguments, sink.writeConstantOrNull);
   }
@@ -147,19 +162,18 @@ class RecordedCallWithArguments extends RecordedUse {
       Object.hash(super.hashCode, Object.hashAll(positionalArguments));
 }
 
-/// Dart2js version of [record_use.CallTearOff].
-class RecordedTearOff extends RecordedUse {
+/// Dart2js version of [record_use.CallTearoff].
+class RecordedTearOff extends RecordedStaticCall {
   RecordedTearOff({required super.function, required super.sourceInformation});
 
   @override
-  RecordedUseKind get kind => RecordedUseKind.tearOff;
+  RecordedUseKind get kind => RecordedUseKind.staticCallTearOff;
 
   static RecordedTearOff _readFromDataSource(
-    FunctionEntity function,
     SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
-    // No specific fields to read.
+    final function = source.readMember() as FunctionEntity;
     return RecordedTearOff(
       function: function,
       sourceInformation: sourceInformation,
@@ -168,73 +182,118 @@ class RecordedTearOff extends RecordedUse {
 
   @override
   void _writeFieldsForKind(DataSinkWriter sink) {
-    // No specific fields to write.
+    sink.writeMember(function);
   }
 }
 
-record_use.Constant? _findValue(ConstantValue? constant) {
+/// Dart2js version of [record_use.InstanceReference], with a [ConstantValue]
+/// instead of [record_use.Constant].
+class RecordedConstInstance extends RecordedUse {
+  final ConstructedConstantValue constant;
+
+  RecordedConstInstance({
+    required this.constant,
+    required super.sourceInformation,
+  });
+
+  ClassEntity get constantClass => constant.type.element;
+
+  @override
+  RecordedUseKind get kind => RecordedUseKind.constInstance;
+
+  static RecordedConstInstance _readFromDataSource(
+    SourceInformation sourceInformation,
+    DataSourceReader source,
+  ) {
+    final constant = source.readConstant() as ConstructedConstantValue;
+    return RecordedConstInstance(
+      constant: constant,
+      sourceInformation: sourceInformation,
+    );
+  }
+
+  @override
+  void _writeFieldsForKind(DataSinkWriter sink) {
+    sink.writeConstant(constant);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! RecordedConstInstance) return false;
+    return constant == other.constant &&
+        sourceInformation == other.sourceInformation;
+  }
+
+  @override
+  int get hashCode => Object.hash(constant, sourceInformation);
+}
+
+record_use.MaybeConstant _findValueOrNonConst(ConstantValue? constant) {
+  if (constant == null) return const record_use.NonConstant();
+  return _findValue(constant);
+}
+
+record_use.Constant _findValue(ConstantValue constant) {
   return switch (constant) {
-    null => null, // not const.
     NullConstantValue() => record_use.NullConstant(),
     BoolConstantValue() => record_use.BoolConstant(constant.boolValue),
     IntConstantValue() => record_use.IntConstant(constant.intValue.toInt()),
     StringConstantValue() => record_use.StringConstant(constant.stringValue),
     MapConstantValue() => _findMapValue(constant),
     ListConstantValue() => _findListValue(constant),
-    ConstructedConstantValue() => _findInstanceValue(constant),
-    // TODO(https://github.com/dart-lang/native/issues/2899): Handle
-    // unsupported const types so that the values don't show up as non-const.
-    Object() => null,
+    ConstructedConstantValue() => findInstanceValue(constant),
+    DoubleConstantValue() => record_use.UnsupportedConstant(
+      'Double literals are not supported for recording.',
+    ),
+    SetConstantValue() => record_use.UnsupportedConstant(
+      'Set literals are not supported for recording.',
+    ),
+    RecordConstantValue() => record_use.UnsupportedConstant(
+      'Record literals are not supported for recording.',
+    ),
+    InstantiationConstantValue() => record_use.UnsupportedConstant(
+      'Generic instantiations are not supported for recording.',
+    ),
+    FunctionConstantValue() => record_use.UnsupportedConstant(
+      'Function/Method tear-offs are not supported for recording.',
+    ),
+    TypeConstantValue() => record_use.UnsupportedConstant(
+      'Type literals are not supported for recording.',
+    ),
+    Object() => record_use.UnsupportedConstant(
+      '${constant.runtimeType} is not supported for recording.',
+    ),
   };
 }
 
-record_use.MapConstant? _findMapValue(MapConstantValue constant) {
-  final result = <String, record_use.Constant>{};
+record_use.MapConstant _findMapValue(MapConstantValue constant) {
+  final List<MapEntry<record_use.Constant, record_use.Constant>> result = [];
   for (var index = 0; index < constant.keys.length; index++) {
-    var keyConstantValue = constant.keys[index];
-    if (keyConstantValue is! StringConstantValue) {
-      // TODO(https://github.com/dart-lang/native/issues/2715): Support non
-      // string keys in maps.
-      return null;
-    }
+    final keyConstantValue = constant.keys[index];
+    final keyValue = _findValue(keyConstantValue);
     final value = _findValue(constant.values[index]);
-    if (value == null) {
-      // TODO(https://github.com/dart-lang/native/issues/2899): Handle
-      // unsupported values.
-      return null;
-    }
-    result[keyConstantValue.stringValue] = value;
+
+    result.add(MapEntry(keyValue, value));
   }
   return record_use.MapConstant(result);
 }
 
-record_use.ListConstant? _findListValue(ListConstantValue constant) {
+record_use.ListConstant _findListValue(ListConstantValue constant) {
   final result = <record_use.Constant>[];
   for (final constantValue in constant.entries) {
-    final constant = _findValue(constantValue);
-    if (constant == null) {
-      // TODO(https://github.com/dart-lang/native/issues/2899): Handle
-      // unsupported values.
-      return null;
-    }
-    result.add(constant);
+    result.add(_findValue(constantValue));
   }
   return record_use.ListConstant(result);
 }
 
-record_use.InstanceConstant? _findInstanceValue(
+record_use.InstanceConstant findInstanceValue(
   ConstructedConstantValue constant,
 ) {
   final fieldValues = <String, record_use.Constant>{};
   for (final entry in constant.fields.entries) {
     final name = entry.key.name;
-    final value = _findValue(entry.value);
-    if (name == null || value == null) {
-      // TODO(https://github.com/dart-lang/native/issues/2899): Handle
-      // unsupported fields.
-      return null;
-    }
-    fieldValues[name] = value;
+    if (name == null) continue;
+    fieldValues[name] = _findValue(entry.value);
   }
   return record_use.InstanceConstant(fields: fieldValues);
 }

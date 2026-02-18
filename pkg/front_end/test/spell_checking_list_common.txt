@@ -619,6 +619,7 @@ conflicting
 conflicts
 conform
 conformed
+conforming
 confuse
 confused
 confusion

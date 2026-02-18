@@ -573,6 +573,15 @@ class D extends C<int> {}
 ''');
   }
 
+  test_typeLiteral_raw() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var t = List;
+  print(t);
+}
+''');
+  }
+
   test_typeParameterBound_missingTypeArg() async {
     await assertErrorsInCode(
       r'''

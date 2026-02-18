@@ -1353,7 +1353,12 @@ class MethodInvocationResolver with ScopeHelpers {
           period: node.period,
           propertyName: node.memberName,
         );
-        functionExpression.setPseudoExpressionStaticType(targetType);
+      } else if (isCascaded) {
+        functionExpression = PropertyAccessImpl(
+          target: null,
+          operator: operator!,
+          propertyName: methodName,
+        );
       } else {
         functionExpression = methodName;
       }
@@ -1362,19 +1367,18 @@ class MethodInvocationResolver with ScopeHelpers {
       if (element is ExecutableElement &&
           element.enclosingElement is InstanceElement &&
           !element.isStatic) {
-        targetType =
-            _resolver.flowAnalysis.flow
-                ?.propertyGet(
-                  functionExpression,
-                  isCascaded
-                      ? CascadePropertyTarget.singleton
-                      : ThisPropertyTarget.singleton,
-                  methodName.name,
-                  element,
-                  SharedTypeView(getterReturnType),
-                )
-                ?.unwrapTypeView() ??
-            targetType;
+        if (_resolver.flowAnalysis.flow case var flow?) {
+          var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
+            isCascaded
+                ? CascadePropertyTarget.singleton
+                : ThisPropertyTarget.singleton,
+            methodName.name,
+            element,
+            SharedTypeView(getterReturnType),
+          );
+          flow.storeExpressionInfo(functionExpression, expressionInfo);
+          targetType = wrappedPromotedType?.unwrapTypeView() ?? targetType;
+        }
       }
     } else {
       if (target is SimpleIdentifierImpl && target.element is PrefixElement) {
@@ -1390,36 +1394,26 @@ class MethodInvocationResolver with ScopeHelpers {
           propertyName: methodName,
         );
       }
-      if (target is SuperExpressionImpl) {
-        targetType =
-            _resolver.flowAnalysis.flow
-                ?.propertyGet(
-                  functionExpression,
-                  SuperPropertyTarget.singleton,
-                  methodName.name,
-                  methodName.element,
-                  SharedTypeView(getterReturnType),
-                )
-                ?.unwrapTypeView() ??
-            targetType;
-      } else {
-        targetType =
-            _resolver.flowAnalysis.flow
-                ?.propertyGet(
-                  functionExpression,
-                  ExpressionPropertyTarget(target),
-                  methodName.name,
-                  methodName.element,
-                  SharedTypeView(getterReturnType),
-                )
-                ?.unwrapTypeView() ??
-            targetType;
+      if (_resolver.flowAnalysis.flow case var flow?) {
+        var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
+          target is SuperExpressionImpl
+              ? SuperPropertyTarget.singleton
+              : ExpressionPropertyTarget(flow.getExpressionInfo(target)),
+          methodName.name,
+          methodName.element,
+          SharedTypeView(getterReturnType),
+        );
+        flow.storeExpressionInfo(functionExpression, expressionInfo);
+        targetType = wrappedPromotedType?.unwrapTypeView() ?? targetType;
       }
-      functionExpression.setPseudoExpressionStaticType(targetType);
     }
     inferenceLogWriter?.enterFunctionExpressionInvocationTarget(methodName);
     methodName.recordStaticType(targetType, resolver: _resolver);
     inferenceLogWriter?.exitExpression(methodName);
+
+    if (functionExpression != methodName) {
+      functionExpression.setPseudoExpressionStaticType(targetType);
+    }
 
     var invocation = FunctionExpressionInvocationImpl(
       function: functionExpression,

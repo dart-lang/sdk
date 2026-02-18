@@ -561,7 +561,7 @@ class AbstractCode {
 };
 
 // A Code object descriptor.
-class CodeDescriptor : public ZoneAllocated {
+class CodeDescriptor : public ZoneObject {
  public:
   explicit CodeDescriptor(const AbstractCode code);
 
@@ -603,7 +603,7 @@ class CodeDescriptor : public ZoneAllocated {
 };
 
 // Fast lookup of Dart code objects.
-class CodeLookupTable : public ZoneAllocated {
+class CodeLookupTable : public ZoneObject {
  public:
   explicit CodeLookupTable(Thread* thread);
 
@@ -858,7 +858,7 @@ intptr_t Profiler::Size() {
 // A |ProcessedSample| is a combination of 1 (or more) |Sample|(s) that have
 // been merged into a logical sample. The raw data may have been processed to
 // improve the quality of the stack trace.
-class ProcessedSample : public ZoneAllocated {
+class ProcessedSample : public ZoneObject {
  public:
   ProcessedSample();
 
@@ -943,7 +943,7 @@ class ProcessedSample : public ZoneAllocated {
 };
 
 // A collection of |ProcessedSample|s.
-class ProcessedSampleBuffer : public ZoneAllocated {
+class ProcessedSampleBuffer : public ZoneObject {
  public:
   ProcessedSampleBuffer();
 

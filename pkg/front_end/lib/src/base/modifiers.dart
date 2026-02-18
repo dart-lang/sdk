@@ -23,7 +23,9 @@ const int _covariantMask = _constMask << 1;
 
 const int _externalMask = _covariantMask << 1;
 
-const int _finalMask = _externalMask << 1;
+const int _varMask = _externalMask << 1;
+
+const int _finalMask = _varMask << 1;
 
 const int _staticMask = _finalMask << 1;
 
@@ -146,7 +148,7 @@ extension type const Modifiers(int _mask) implements Object {
   ///
   /// DartDocTest(Modifiers.from(
   ///     varFinalOrConst: new SimpleToken(Keyword.VAR, -1)),
-  ///     Modifiers.empty)
+  ///     Modifiers.Var)
   /// DartDocTest(Modifiers.from(
   ///     varFinalOrConst: new SimpleToken(Keyword.FINAL, -1)),
   ///     Modifiers.Final)
@@ -219,7 +221,7 @@ extension type const Modifiers(int _mask) implements Object {
       mask |= switch (varFinalOrConst.type) {
         Keyword.CONST => _constMask,
         Keyword.FINAL => _finalMask,
-        Keyword.VAR => 0,
+        Keyword.VAR => _varMask,
         _ => // Coverage-ignore(suite): Not run.
         throw new UnsupportedError(
           "Unexpected varFinalOrConst token $varFinalOrConst.",
@@ -288,6 +290,19 @@ extension type const Modifiers(int _mask) implements Object {
 
   /// Returns `true` if the set of modifiers contains `external'.
   bool get isExternal => (_mask & _externalMask) != 0;
+
+  /// The set of modifiers containing only `var`.
+  ///
+  /// ```
+  /// DartDocTest(Modifiers.Var.isVar, true)
+  /// DartDocTest(Modifiers.Var.isEmpty, false)
+  /// DartDocTest(Modifiers.Var.isStatic, false)
+  /// ```
+  static const Modifiers Var = const Modifiers(_varMask);
+
+  // Coverage-ignore(suite): Not run.
+  /// Returns `true` if the set of modifiers contains `var'.
+  bool get isVar => (_mask & _varMask) != 0;
 
   /// The set of modifiers containing only `final`.
   ///
@@ -519,15 +534,25 @@ extension type const Modifiers(int _mask) implements Object {
   ///     Modifiers.Covariant.containsSyntacticModifiers(ignoreCovariant: true),
   ///     false)
   ///
+  /// DartDocTest(Modifiers.Final.containsSyntacticModifiers(), true)
+  /// DartDocTest(
+  ///     Modifiers.Final.containsSyntacticModifiers(ignoreFinal: true), false)
+  ///
+  /// DartDocTest(Modifiers.Const.containsSyntacticModifiers(), true)
+  /// DartDocTest(
+  ///     Modifiers.Const.containsSyntacticModifiers(ignoreConst: true), false)
+  ///
+  /// DartDocTest(Modifiers.Var.containsSyntacticModifiers(), true)
+  /// DartDocTest(
+  ///     Modifiers.Var.containsSyntacticModifiers(ignoreVar: true), false)
+  ///
   /// DartDocTest(Modifiers.Abstract.containsSyntacticModifiers(), true)
   /// DartDocTest(Modifiers.Augment.containsSyntacticModifiers(), true)
   /// DartDocTest(Modifiers.Base.containsSyntacticModifiers(), true)
-  /// DartDocTest(Modifiers.Const.containsSyntacticModifiers(), true)
   /// DartDocTest(
   ///     Modifiers.DeclaresConstConstructor.containsSyntacticModifiers(),
   ///     false)
   /// DartDocTest(Modifiers.External.containsSyntacticModifiers(), true)
-  /// DartDocTest(Modifiers.Final.containsSyntacticModifiers(), true)
   /// DartDocTest(Modifiers.HasInitializer.containsSyntacticModifiers(), false)
   /// DartDocTest(
   ///     Modifiers.InitializingFormal.containsSyntacticModifiers(), false)
@@ -545,6 +570,9 @@ extension type const Modifiers(int _mask) implements Object {
   bool containsSyntacticModifiers({
     bool ignoreRequired = false,
     bool ignoreCovariant = false,
+    bool ignoreVar = false,
+    bool ignoreFinal = false,
+    bool ignoreConst = false,
   }) {
     int mask =
         _mask &
@@ -559,6 +587,15 @@ extension type const Modifiers(int _mask) implements Object {
     }
     if (ignoreCovariant) {
       mask &= ~_covariantMask;
+    }
+    if (ignoreVar) {
+      mask &= ~_varMask;
+    }
+    if (ignoreFinal) {
+      mask &= ~_finalMask;
+    }
+    if (ignoreConst) {
+      mask &= ~_constMask;
     }
     return mask != 0;
   }

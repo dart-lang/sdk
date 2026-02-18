@@ -393,7 +393,7 @@ testSingleController() {
       ..error("FAIL")
       ..close();
     Future<bool> contains = c.stream.contains("x");
-    contains.then((var c) {
+    contains.then((c) {
       Expect.isTrue(c);
     });
     sentEvents.replay(c);
@@ -408,7 +408,7 @@ testSingleController() {
       ..add("b")
       ..close();
     Future<bool> contains = c.stream.contains("y");
-    contains.then((var c) {
+    contains.then((c) {
       Expect.isFalse(c);
     });
     sentEvents.replay(c);
@@ -424,7 +424,7 @@ testSingleController() {
       ..close();
     Future<bool> contains = c.stream.contains("b");
     contains
-        .then((var c) {
+        .then((c) {
           Expect.fail("no value expected");
         })
         .catchError((error) {

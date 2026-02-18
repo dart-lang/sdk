@@ -1311,7 +1311,10 @@ enum A(bool x, bool y) {
   }
 }
 ''',
-      [error(diag.constConstructorWithBody, 61, 1)],
+      [
+        error(diag.constConstructorWithBody, 61, 1),
+        error(diag.multiplePrimaryConstructorBodyDeclarations, 76, 4),
+      ],
     );
 
     var node = findNode.singleEnumDeclaration;

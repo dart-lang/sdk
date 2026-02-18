@@ -115,6 +115,8 @@ final List<Option> options = [
       (o, value) => o.translatorOptions.enableDeferredLoading = value,
       defaultsTo: _d.translatorOptions.enableDeferredLoading),
   UriOption("load-ids", (o, value) => o.loadsIdsUri = value),
+  UriOption("read-program-split",
+      (o, value) => o.programSplitConstraintsUri = value),
   Flag("enable-multi-module-stress-test-mode",
       (o, value) => o.translatorOptions.enableMultiModuleStressTestMode = value,
       defaultsTo: _d.translatorOptions.enableMultiModuleStressTestMode),

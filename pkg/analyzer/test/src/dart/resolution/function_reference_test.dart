@@ -1466,7 +1466,7 @@ FunctionReference
 ''');
   }
 
-  test_instanceGetter_functionTyped() async {
+  test_instanceGetter_functionTyped_class_self() async {
     await assertNoErrorsInCode('''
 abstract class A {
   late void Function<T>(T) foo;
@@ -1498,20 +1498,21 @@ FunctionReference
 ''');
   }
 
-  test_instanceGetter_functionTyped_inherited() async {
+  test_instanceGetter_functionTyped_class_superClass() async {
     await assertNoErrorsInCode('''
 abstract class A {
   late void Function<T>(T) foo;
 }
+
 abstract class B extends A {
-  bar() {
+  void f() {
     foo<int>;
   }
 }
-
 ''');
 
-    assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
+    var node = findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -2673,7 +2674,7 @@ FunctionReference
 ''');
   }
 
-  test_instanceMethod_targetOfFunctionCall() async {
+  test_instanceMethod_targetOfFunctionCall_class_self() async {
     await assertNoErrorsInCode('''
 extension on Function {
   void m() {}
@@ -2693,6 +2694,263 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_instanceMethod_targetOfFunctionCall_class_superClass() async {
+    await assertNoErrorsInCode('''
+extension on Function {
+  void m() {}
+}
+class A {
+  void foo<T>(T a) {}
+}
+class B extends A {
+  bar() {
+    foo<int>.m();
+  }
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: FunctionReference
+    function: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: void Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    element: <testLibrary>::@extension::0::@method::m
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instanceMethod_targetOfFunctionCall_enum_mixin() async {
+    await assertNoErrorsInCode('''
+extension on Function {
+  void bar() {}
+}
+mixin A {
+  void foo<T>(T a) {}
+}
+enum B with A {
+  v;
+  void f() {
+    foo<int>.bar();
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>');
+    assertResolvedNodeText(reference, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@mixin::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_instanceMethod_targetOfFunctionCall_enum_self() async {
+    await assertNoErrorsInCode('''
+extension on Function {
+  void bar() {}
+}
+enum A {
+  v;
+  void foo<T>(T a) {}
+  void f() {
+    foo<int>.bar();
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>');
+    assertResolvedNodeText(reference, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@enum::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_instanceMethod_targetOfFunctionCall_extension() async {
+    await assertNoErrorsInCode('''
+extension on Function {
+  void m() {}
+}
+extension E on int {
+  void foo<T>(T a) {}
+  void bar() {
+    foo<int>.m();
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>');
+    assertResolvedNodeText(reference, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_instanceMethod_targetOfFunctionCall_extensionType() async {
+    await assertNoErrorsInCode('''
+extension on Function {
+  void bar() {}
+}
+extension type A(int it) {
+  void foo<T>(T a) {}
+  void f() {
+    foo<int>.bar();
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>');
+    assertResolvedNodeText(reference, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extensionType::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_instanceMethod_targetOfFunctionCall_mixin_constraint() async {
+    await assertNoErrorsInCode('''
+extension on Function {
+  void m() {}
+}
+class A {
+  void foo<T>(T a) {}
+}
+mixin M on A {
+  void bar() {
+    foo<int>.m();
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>');
+    assertResolvedNodeText(reference, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_instanceMethod_targetOfFunctionCall_mixin_self() async {
+    await assertNoErrorsInCode('''
+extension on Function {
+  void m() {}
+}
+mixin M {
+  void foo<T>(T a) {}
+  void bar() {
+    foo<int>.m();
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>');
+    assertResolvedNodeText(reference, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@mixin::M::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
