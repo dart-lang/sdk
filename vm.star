@@ -309,6 +309,11 @@ _nightly_builder(
     "vm-aot-dwarf-linux-product-x64",
     category = "vm|aot|dw",
 )
+_nightly_builder(
+    "vm-modaot-mac-debug-arm64",
+    category = "vm|aot|mod",
+    dimensions = [mac, arm64],
+)
 
 # vm|misc
 _nightly_builder(
