@@ -408,17 +408,23 @@ const main = async () => {
   const wasmFilename = args[wasmArg];
   const wasmDirectory = wasmFilename.slice(0, wasmFilename.lastIndexOf('/'));
 
-  globalThis.loadData = async (relativeToWasmFileUri) => {
-    return await readBytes(`${wasmDirectory}/${relativeToWasmFileUri}`);
+  globalThis.loadDeferredModules = async (modules, handleWasmBytes) => {
+    return Promise.all(modules.map((m) =>
+      Promise.resolve(readBytes(`${wasmDirectory}/${m}`))
+        .then((b) => handleWasmBytes(m, b))));
   };
 
   const compiledApp = await dart2wasm.compile(readBytes(wasmFilename));
   const appInstance = await compiledApp.instantiate(importObject, {
-    loadDeferredModule: globalThis.loadData,
+    loadDeferredModules: globalThis.loadDeferredModules,
     // A loadDeferredId reader function should be registered prior to accessing this.
-    loadDeferredId: (id) => globalThis.loadDeferredId(id, readBytes),
-    loadDynamicModule: async (wasmUri, mjsUri) => {
-      return [await readBytes(wasmUri), await import(`${wasmDirectory}/${mjsUri}`)];
+    loadDeferredId: (id, handleWasmBytes) =>
+      globalThis.loadDeferredId(id, readBytes, handleWasmBytes),
+    loadDynamicModule: async (wasmUri, mjsUri, handleWasmBytes) => {
+      return handleWasmBytes(
+        await readBytes(wasmUri),
+        await import(`${wasmDirectory}/${mjsUri}`)
+      );
     }
   });
 
