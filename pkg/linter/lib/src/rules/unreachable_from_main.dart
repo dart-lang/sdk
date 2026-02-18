@@ -300,6 +300,9 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
         // Any reference to an extension type marks it as reachable, since
         // casting can be used to instantiate the type.
         node.type?.element is ExtensionTypeElement ||
+        // A reference to a type literal marks it as reachable, since the type
+        // is being used as a value.
+        node.parent is TypeLiteral ||
         nodeIsInTypeArgument ||
         // A reference to any type in an external variable declaration marks
         // that type as reachable, since the external implementation can

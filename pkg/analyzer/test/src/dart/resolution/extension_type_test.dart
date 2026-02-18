@@ -677,15 +677,19 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
-            token: T
-            element: #E0 T
+          expression: TypeLiteral
+            type: NamedType
+              name: T
+              element: #E0 T
+              type: T
             staticType: Type
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
-            token: U
-            element: #E1 U
+          expression: TypeLiteral
+            type: NamedType
+              name: U
+              element: #E1 U
+              type: U
             staticType: Type
           semicolon: ;
       rightBracket: }

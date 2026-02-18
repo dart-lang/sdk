@@ -7004,7 +7004,7 @@ const a = const A<int>();
       [
         error(diag.invalidConstant, 62, 1),
         error(
-          diag.invalidConstant,
+          diag.constTypeParameter,
           77,
           14,
           contextMessages: [
@@ -7018,7 +7018,6 @@ const a = const A<int>();
             ),
           ],
         ),
-        error(diag.constInitializedWithNonConstantValue, 77, 14),
       ],
     );
     var result = _topLevelVar('a');

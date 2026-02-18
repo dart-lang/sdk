@@ -213,6 +213,12 @@ class _Collector {
     }
 
     if (node is TypeLiteral) {
+      var type = node.type;
+      var element = type.element;
+      if (element is TypeParameterElement &&
+          !featureSet.isEnabled(Feature.constructor_tearoffs)) {
+        nodes.add(node);
+      }
       _typeArgumentList(node.type.typeArguments);
       return;
     }

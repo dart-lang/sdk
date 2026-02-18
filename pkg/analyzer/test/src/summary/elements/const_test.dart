@@ -6953,51 +6953,66 @@ library
         #F17 hasInitializer isOriginDeclaration vDynamic (nameOffset:76) (firstTokenOffset:76) (offset:76)
           element: <testLibrary>::@topLevelVariable::vDynamic
           initializer: expression_4
-            SimpleIdentifier
-              token: dynamic @87
-              element: dynamic
+            TypeLiteral
+              type: NamedType
+                name: dynamic @87
+                element: dynamic
+                type: dynamic
               staticType: Type
         #F18 hasInitializer isOriginDeclaration vNull (nameOffset:102) (firstTokenOffset:102) (offset:102)
           element: <testLibrary>::@topLevelVariable::vNull
           initializer: expression_5
-            SimpleIdentifier
-              token: Null @110
-              element: dart:core::@class::Null
+            TypeLiteral
+              type: NamedType
+                name: Null @110
+                element: dart:core::@class::Null
+                type: Null
               staticType: Type
         #F19 hasInitializer isOriginDeclaration vObject (nameOffset:122) (firstTokenOffset:122) (offset:122)
           element: <testLibrary>::@topLevelVariable::vObject
           initializer: expression_6
-            SimpleIdentifier
-              token: Object @132
-              element: dart:core::@class::Object
+            TypeLiteral
+              type: NamedType
+                name: Object @132
+                element: dart:core::@class::Object
+                type: Object
               staticType: Type
         #F20 hasInitializer isOriginDeclaration vClass (nameOffset:146) (firstTokenOffset:146) (offset:146)
           element: <testLibrary>::@topLevelVariable::vClass
           initializer: expression_7
-            SimpleIdentifier
-              token: C @155
-              element: <testLibrary>::@class::C
+            TypeLiteral
+              type: NamedType
+                name: C @155
+                element: <testLibrary>::@class::C
+                type: C
               staticType: Type
         #F21 hasInitializer isOriginDeclaration vGenericClass (nameOffset:164) (firstTokenOffset:164) (offset:164)
           element: <testLibrary>::@topLevelVariable::vGenericClass
           initializer: expression_8
-            SimpleIdentifier
-              token: D @180
-              element: <testLibrary>::@class::D
+            TypeLiteral
+              type: NamedType
+                name: D @180
+                element: <testLibrary>::@class::D
+                type: D<dynamic>
               staticType: Type
         #F22 hasInitializer isOriginDeclaration vEnum (nameOffset:189) (firstTokenOffset:189) (offset:189)
           element: <testLibrary>::@topLevelVariable::vEnum
           initializer: expression_9
-            SimpleIdentifier
-              token: E @197
-              element: <testLibrary>::@enum::E
+            TypeLiteral
+              type: NamedType
+                name: E @197
+                element: <testLibrary>::@enum::E
+                type: E
               staticType: Type
         #F23 hasInitializer isOriginDeclaration vFunctionTypeAlias (nameOffset:206) (firstTokenOffset:206) (offset:206)
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
           initializer: expression_10
-            SimpleIdentifier
-              token: F @227
-              element: <testLibrary>::@typeAlias::F
+            TypeLiteral
+              type: NamedType
+                name: F @227
+                element: <testLibrary>::@typeAlias::F
+                type: dynamic Function(int, String)
+                  alias: <testLibrary>::@typeAlias::F
               staticType: Type
       getters
         #F24 synthetic isOriginVariable vDynamic (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
@@ -7278,23 +7293,30 @@ library
         #F1 hasInitializer isOriginDeclaration vClass (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::vClass
           initializer: expression_0
-            SimpleIdentifier
-              token: C @32
-              element: package:test/a.dart::@class::C
+            TypeLiteral
+              type: NamedType
+                name: C @32
+                element: package:test/a.dart::@class::C
+                type: C
               staticType: Type
         #F2 hasInitializer isOriginDeclaration vEnum (nameOffset:41) (firstTokenOffset:41) (offset:41)
           element: <testLibrary>::@topLevelVariable::vEnum
           initializer: expression_1
-            SimpleIdentifier
-              token: E @49
-              element: package:test/a.dart::@enum::E
+            TypeLiteral
+              type: NamedType
+                name: E @49
+                element: package:test/a.dart::@enum::E
+                type: E
               staticType: Type
         #F3 hasInitializer isOriginDeclaration vFunctionTypeAlias (nameOffset:58) (firstTokenOffset:58) (offset:58)
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
           initializer: expression_2
-            SimpleIdentifier
-              token: F @79
-              element: package:test/a.dart::@typeAlias::F
+            TypeLiteral
+              type: NamedType
+                name: F @79
+                element: package:test/a.dart::@typeAlias::F
+                type: dynamic Function(int, String)
+                  alias: package:test/a.dart::@typeAlias::F
               staticType: Type
       getters
         #F4 synthetic isOriginVariable vClass (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
@@ -7374,47 +7396,42 @@ library
         #F1 hasInitializer isOriginDeclaration vClass (nameOffset:28) (firstTokenOffset:28) (offset:28)
           element: <testLibrary>::@topLevelVariable::vClass
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: p @37
-                element: <testLibraryFragment>::@prefix2::p
-                staticType: null
-              period: . @38
-              identifier: SimpleIdentifier
-                token: C @39
+            TypeLiteral
+              type: NamedType
+                importPrefix: ImportPrefixReference
+                  name: p @37
+                  period: . @38
+                  element: <testLibraryFragment>::@prefix2::p
+                name: C @39
                 element: package:test/a.dart::@class::C
-                staticType: Type
-              element: package:test/a.dart::@class::C
+                type: C
               staticType: Type
         #F2 hasInitializer isOriginDeclaration vEnum (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::vEnum
           initializer: expression_1
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: p @56
-                element: <testLibraryFragment>::@prefix2::p
-                staticType: null
-              period: . @57
-              identifier: SimpleIdentifier
-                token: E @58
+            TypeLiteral
+              type: NamedType
+                importPrefix: ImportPrefixReference
+                  name: p @56
+                  period: . @57
+                  element: <testLibraryFragment>::@prefix2::p
+                name: E @58
                 element: package:test/a.dart::@enum::E
-                staticType: Type
-              element: package:test/a.dart::@enum::E
+                type: E
               staticType: Type
         #F3 hasInitializer isOriginDeclaration vFunctionTypeAlias (nameOffset:67) (firstTokenOffset:67) (offset:67)
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
           initializer: expression_2
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: p @88
-                element: <testLibraryFragment>::@prefix2::p
-                staticType: null
-              period: . @89
-              identifier: SimpleIdentifier
-                token: F @90
+            TypeLiteral
+              type: NamedType
+                importPrefix: ImportPrefixReference
+                  name: p @88
+                  period: . @89
+                  element: <testLibraryFragment>::@prefix2::p
+                name: F @90
                 element: package:test/a.dart::@typeAlias::F
-                staticType: Type
-              element: package:test/a.dart::@typeAlias::F
+                type: dynamic Function(int, String)
+                  alias: package:test/a.dart::@typeAlias::F
               staticType: Type
       getters
         #F4 synthetic isOriginVariable vClass (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)

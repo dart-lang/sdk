@@ -102,6 +102,9 @@ class AstNodeImplGenerator {
               .toBoolValue()!;
           var tokenGroupId = entity.getField('tokenGroupId')!.toIntValue();
           var type = entity.getField('type')!.toTypeValue();
+          var isInValueExpressionSlot = entity
+              .getField('isInValueExpressionSlot')!
+              .toBoolValue()!;
 
           if (type == null) {
             var member = inheritanceManager.getMember(
@@ -127,6 +130,7 @@ class AstNodeImplGenerator {
           return _Property(
             name: propertyName,
             isSuper: isSuper,
+            isInValueExpressionSlot: isInValueExpressionSlot,
             withOverride: withOverride,
             withOverrideSuperNotNull: superNullAssertOverride,
             type: type,
@@ -574,6 +578,93 @@ final ${property.typeCode} $propertyName;
     }
   }
 
+  void _generateIsInValueExpressionSlot(
+    _ImplClass implClass,
+    StringBuffer buffer,
+  ) {
+    if (implClass.doNotGenerateLookupNames.contains(
+      'isInValueExpressionSlot',
+    )) {
+      return;
+    }
+
+    var nodeOrListProperties = implClass.properties.where((property) {
+      return property.typeKind is _PropertyTypeKindNode ||
+          property.typeKind is _PropertyTypeKindNodeList;
+    }).toList();
+
+    var valueNodeOrListProperties = nodeOrListProperties.where((property) {
+      return property.isInValueExpressionSlot;
+    }).toList();
+
+    var nonValueNodeOrListProperties = nodeOrListProperties.where((property) {
+      return !property.isInValueExpressionSlot;
+    }).toList();
+
+    if (valueNodeOrListProperties.isEmpty) {
+      buffer.write('''
+\n@generated
+@override
+bool isInValueExpressionSlot(AstNode child) {
+  assert(identical(child.parent, this));
+  return false;
+}
+''');
+      return;
+    }
+
+    if (nonValueNodeOrListProperties.isEmpty) {
+      buffer.write('''
+\n@generated
+@override
+bool isInValueExpressionSlot(AstNode child) {
+  assert(identical(child.parent, this));
+  return true;
+}
+''');
+      return;
+    }
+
+    buffer.write('''
+\n@generated
+@override
+bool isInValueExpressionSlot(AstNode child) {
+  assert(identical(child.parent, this));
+''');
+
+    String returnValue;
+    if (valueNodeOrListProperties.any(
+      (property) => property.typeKind is _PropertyTypeKindNodeList,
+    )) {
+      returnValue = nonValueNodeOrListProperties
+          .map((property) {
+            var propertyName = property.name;
+            switch (property.typeKind) {
+              case _PropertyTypeKindNode():
+                return '!identical($propertyName, child)';
+              case _PropertyTypeKindNodeList():
+                throw StateError('Cannot have both value and non-value lists.');
+              default:
+                throw StateError('Unexpected: $propertyName');
+            }
+          })
+          .join(' && ');
+    } else {
+      returnValue = valueNodeOrListProperties
+          .map((property) {
+            var propertyName = property.name;
+            switch (property.typeKind) {
+              case _PropertyTypeKindNode():
+                return 'identical($propertyName, child)';
+              default:
+                throw StateError('Unexpected: $propertyName');
+            }
+          })
+          .join(' || ');
+    }
+    buffer.write('return $returnValue;\n}');
+  }
+
   void _generateNodeGettersSetters(StringBuffer buffer, _ImplClass implClass) {
     for (var property in implClass.properties) {
       var propertyName = property.name;
@@ -632,6 +723,7 @@ void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     _generateAccept(implClass, buffer);
     _generateChildContainingRange(implClass, buffer);
     _generateChildEntities(implClass, buffer);
+    _generateIsInValueExpressionSlot(implClass, buffer);
     _generateResolveExpression(implClass, buffer);
     _generateVisitChildren(implClass, buffer);
     _generateVisitChildrenWithHooks(implClass, buffer);
@@ -875,6 +967,7 @@ class _ImplClass {
       'endToken',
       'firstTokenAfterCommentAndMetadata',
       'new',
+      'isInValueExpressionSlot',
       'resolveExpression',
       'visitChildren',
       'visitChildrenWithHooks',
@@ -940,6 +1033,7 @@ class _Property {
   final InterfaceType type;
   final _PropertyTypeKind typeKind;
   final bool isSuper;
+  final bool isInValueExpressionSlot;
   final bool withOverride;
   final bool withOverrideSuperNotNull;
 
@@ -948,6 +1042,7 @@ class _Property {
     required this.type,
     required this.typeKind,
     required this.isSuper,
+    required this.isInValueExpressionSlot,
     required this.withOverride,
     required this.withOverrideSuperNotNull,
   });

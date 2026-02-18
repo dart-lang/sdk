@@ -2045,6 +2045,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           entity: errorNode2,
           locatableDiagnostic: diag.constTypeParameter,
         );
+      } else {
+        return InvalidConstant.forEntity(
+          entity: errorNode2,
+          locatableDiagnostic: diag.constTypeParameter,
+        );
       }
     }
 
