@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -133,6 +134,20 @@ sealed class AbstractAnalysisRule {
     return diagnostic;
   }
 
+  Diagnostic _reportAtSourceRange(
+    SourceRange sourceRange, {
+    required DiagnosticCode diagnosticCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) {
+    return _reporter.atSourceRange(
+      sourceRange,
+      diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
+  }
+
   Diagnostic? _reportAtToken(
     Token token, {
     required DiagnosticCode diagnosticCode,
@@ -212,6 +227,21 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
     List<DiagnosticMessage> contextMessages = const [],
   }) => _reportAtPubNode(
     node as PubspecNodeImpl,
+    diagnosticCode: diagnosticCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+
+  /// Reports a diagnostic at [sourceRange], with message [arguments] and
+  /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
+  Diagnostic reportAtSourceRange(
+    SourceRange sourceRange, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtSourceRange(
+    sourceRange,
     diagnosticCode: diagnosticCode,
     arguments: arguments,
     contextMessages: contextMessages,
@@ -301,6 +331,22 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
     _reporter.reportError(diagnostic);
     return diagnostic;
   }
+
+  /// Reports [diagnosticCode] at [sourceRange], with message [arguments] and
+  /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
+  Diagnostic reportAtSourceRange(
+    SourceRange sourceRange, {
+    required DiagnosticCode diagnosticCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtSourceRange(
+    sourceRange,
+    diagnosticCode: diagnosticCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
 
   /// Reports [diagnosticCode] at [token], with message [arguments] and
   /// [contextMessages].

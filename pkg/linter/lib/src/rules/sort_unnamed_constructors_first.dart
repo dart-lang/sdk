@@ -50,8 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (member is ConstructorDeclaration) {
         if (member.declaredFragment!.element.name == 'new') {
           if (seenNamedConstructor) {
-            var errorRange = member.errorRange;
-            rule.reportAtOffset(errorRange.offset, errorRange.length);
+            rule.reportAtSourceRange(member.errorRange);
           }
         } else {
           seenNamedConstructor = true;

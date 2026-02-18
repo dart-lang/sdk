@@ -72,16 +72,14 @@ class _DeprecatedElementUsageReporter extends ElementUsageReporter<String> {
     }
 
     if (normalizeDeprecationMessage(tagInfo) case var message?) {
-      _rule.reportAtOffset(
-        usageSite.offset,
-        usageSite.length,
+      _rule.reportAtSourceRange(
+        usageSite.sourceRange,
         arguments: [displayName, message],
         diagnosticCode: diag.deprecatedMemberUseFromSamePackageWithMessage,
       );
     } else {
-      _rule.reportAtOffset(
-        usageSite.offset,
-        usageSite.length,
+      _rule.reportAtSourceRange(
+        usageSite.sourceRange,
         arguments: [displayName],
         diagnosticCode: diag.deprecatedMemberUseFromSamePackageWithoutMessage,
       );

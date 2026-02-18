@@ -46,8 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var member in members) {
       if (member is ConstructorDeclaration) {
         if (other) {
-          var errorRange = member.errorRange;
-          rule.reportAtOffset(errorRange.offset, errorRange.length);
+          rule.reportAtSourceRange(member.errorRange);
         }
       } else if (member is PrimaryConstructorBody) {
         if (other) {

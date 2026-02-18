@@ -16,12 +16,14 @@ package:analyzer/analysis_rule/analysis_rule.dart:
     reportAtNode (method: Diagnostic? Function(AstNode?, {List<Object> arguments, List<DiagnosticMessage>? contextMessages}))
     reportAtOffset (method: Diagnostic Function(int, int, {List<Object> arguments, List<DiagnosticMessage>? contextMessages}))
     reportAtPubNode (method: Diagnostic Function(PubspecNode, {List<Object> arguments, List<DiagnosticMessage> contextMessages}))
+    reportAtSourceRange (method: Diagnostic Function(SourceRange, {List<Object> arguments, List<DiagnosticMessage>? contextMessages}))
     reportAtToken (method: Diagnostic? Function(Token, {List<Object> arguments, List<DiagnosticMessage>? contextMessages}))
   MultiAnalysisRule (class extends AbstractAnalysisRule):
     new (constructor: MultiAnalysisRule Function({required String description, required String name, RuleState state}))
     reportAtNode (method: Diagnostic? Function(AstNode?, {List<Object> arguments, List<DiagnosticMessage>? contextMessages, required DiagnosticCode diagnosticCode}))
     reportAtOffset (method: Diagnostic Function(int, int, {List<Object> arguments, List<DiagnosticMessage>? contextMessages, required DiagnosticCode diagnosticCode}))
     reportAtPubNode (method: Diagnostic Function(PubspecNode, {List<Object> arguments, List<DiagnosticMessage> contextMessages, required DiagnosticCode diagnosticCode}))
+    reportAtSourceRange (method: Diagnostic Function(SourceRange, {List<Object> arguments, List<DiagnosticMessage>? contextMessages, required DiagnosticCode diagnosticCode}))
     reportAtToken (method: Diagnostic? Function(Token, {List<Object> arguments, List<DiagnosticMessage>? contextMessages, required DiagnosticCode diagnosticCode}))
   RemovedAnalysisRule (class extends MultiAnalysisRule):
     new (constructor: RemovedAnalysisRule Function({required String description, required String name, String? replacedBy, Version? since}))
