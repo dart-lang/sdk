@@ -9,6 +9,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -45,14 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var errorNode = node.name ?? node.typeName;
-    if (errorNode != null) {
-      _checkConstructor(
-        node.declaredFragment!.element,
-        errorNode.offset,
-        errorNode.length,
-      );
-    }
+    _checkConstructor(node.declaredFragment!.element, node.errorRange);
   }
 
   @override
@@ -62,20 +57,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
-    var errorNode = node.constructorName?.name ?? node.typeName;
-    _checkConstructor(
-      node.declaredFragment!.element,
-      errorNode.offset,
-      errorNode.length,
-    );
+    _checkConstructor(node.declaredFragment!.element, node.errorRange);
   }
 
-  void _checkConstructor(ConstructorElement element, int offset, int length) {
+  void _checkConstructor(ConstructorElement element, SourceRange sourceRange) {
     if (element.enclosingElement.metadata.hasDeprecated &&
         !element.metadata.hasDeprecated) {
       rule.reportAtOffset(
-        offset,
-        length,
+        sourceRange.offset,
+        sourceRange.length,
         diagnosticCode: diag.deprecatedConsistencyConstructor,
       );
     }

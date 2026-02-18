@@ -69,7 +69,7 @@ class const B({int? x, int? y}) extends A {
   this : super(x: x, y: y);
 }
 ''',
-      [lint(53, 1)],
+      [lint(47, 5)],
     );
   }
 
@@ -135,6 +135,20 @@ class B extends A {
           messageContainsAll: ["Parameter 'y' could be a super parameter."],
         ),
       ],
+    );
+  }
+
+  test_newSyntax() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A(int x);
+}
+class B extends A {
+  new(int x) : super(x);
+}
+''',
+      [lint(46, 3)],
     );
   }
 

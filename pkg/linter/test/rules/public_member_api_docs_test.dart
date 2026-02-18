@@ -11,9 +11,9 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(PublicMemberApiDocsExtensionTypesTest);
     defineReflectiveTests(PublicMemberApiDocsTest);
     defineReflectiveTests(PublicMemberApiDocsTestDirTest);
-    defineReflectiveTests(PublicMemberApiDocsExtensionTypesTest);
     defineReflectiveTests(PublicMemberApiDocsTestPackageTest);
   });
 }
@@ -150,6 +150,17 @@ class C {
 }
 ''',
       [lint(6, 1), lint(14, 1)],
+    );
+  }
+
+  test_constructor_newSyntax() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  new();
+}
+''',
+      [lint(6, 1), lint(12, 3)],
     );
   }
 

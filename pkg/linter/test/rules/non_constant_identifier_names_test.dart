@@ -509,6 +509,25 @@ class C {
 ''');
   }
 
+  test_constructor_newSyntax_lower() async {
+    await assertNoDiagnostics(r'''
+class C {
+  new named();
+}
+''');
+  }
+
+  test_constructor_newSyntax_upper() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  new Named();
+}
+''',
+      [lint(16, 5)],
+    );
+  }
+
   test_constructor_private_lower() async {
     await assertNoDiagnostics(r'''
 class C {
