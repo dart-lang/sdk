@@ -63,8 +63,8 @@ class BufferedSimulatorMemory {
  public:
   template <typename T>
   T Load(uword addr) {
-    if (UNLIKELY((sizeof(T) > sizeof(uword)) ||
-                 ((addr & (sizeof(T) - 1)) != 0))) {
+    if ((sizeof(T) > sizeof(uword)) || ((addr & (sizeof(T) - 1)) != 0))
+        [[unlikely]] {
       FlushAll();
       return LoadUnaligned(reinterpret_cast<T*>(addr));
     }
@@ -82,8 +82,8 @@ class BufferedSimulatorMemory {
 
   template <typename T>
   void Store(uword addr, T value) {
-    if (UNLIKELY((sizeof(T) > sizeof(uword)) ||
-                 ((addr & (sizeof(T) - 1)) != 0))) {
+    if ((sizeof(T) > sizeof(uword)) || ((addr & (sizeof(T) - 1)) != 0))
+        [[unlikely]] {
       FlushAll();
       StoreUnaligned(reinterpret_cast<T*>(addr), value);
       return;
@@ -188,7 +188,7 @@ class SimulatorMemory {
 
   template <typename T>
   T Load(uword addr) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.Load<T>(addr);
     } else {
       return direct_.Load<T>(addr);
@@ -197,7 +197,7 @@ class SimulatorMemory {
 
   template <typename T>
   void Store(uword addr, T value) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.Store<T>(addr, value);
     } else {
       return direct_.Store<T>(addr, value);
@@ -206,7 +206,7 @@ class SimulatorMemory {
 
   template <typename T>
   T Load(uword addr, std::memory_order order) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.Load<T>(addr, order);
     } else {
       return direct_.Load<T>(addr, order);
@@ -215,7 +215,7 @@ class SimulatorMemory {
 
   template <typename T>
   void Store(uword addr, T value, std::memory_order order) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.Store<T>(addr, value, order);
     } else {
       return direct_.Store<T>(addr, value, order);
@@ -227,7 +227,7 @@ class SimulatorMemory {
                        T& old_value,
                        T value,
                        std::memory_order order) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.CompareExchange<T>(addr, old_value, value, order);
     } else {
       return direct_.CompareExchange<T>(addr, old_value, value, order);
@@ -235,7 +235,7 @@ class SimulatorMemory {
   }
 
   void FlushAddress(uword addr) {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.FlushAddress(addr);
     } else {
       return direct_.FlushAddress(addr);
@@ -243,7 +243,7 @@ class SimulatorMemory {
   }
 
   void FlushAll() {
-    if (UNLIKELY(use_buffered_)) {
+    if (use_buffered_) [[unlikely]] {
       return buffered_.FlushAll();
     } else {
       return direct_.FlushAll();

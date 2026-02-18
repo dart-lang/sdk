@@ -9,7 +9,7 @@ var topLevelClosure;
 /*
 get topLevel => topLevelClosure;
 */
-set topLevel(var value) {}
+set topLevel(value) {}
 
 initialize() {
   print("initializing");

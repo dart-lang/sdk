@@ -121,7 +121,7 @@ void verifyTestData(List<int> data, [int start = 0, int? end]) {
 // synchronous read/write operations by echoing any data received back to the
 // sender. The server should shutdown automatically after a specified number of
 // socket disconnections (default: 1).
-Future echoServer(var sendPort) async {
+Future echoServer(sendPort) async {
   RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) async {
     ReceivePort receivePort = new ReceivePort();
     Map response = {

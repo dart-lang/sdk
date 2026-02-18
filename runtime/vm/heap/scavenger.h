@@ -136,7 +136,7 @@ class Scavenger {
 
   uword TryAllocate(Thread* thread, intptr_t size) {
     uword addr = TryAllocateFromTLAB(thread, size);
-    if (LIKELY(addr != 0)) {
+    if (addr != 0) [[likely]] {
       return addr;
     }
     TryAllocateNewTLAB(thread, size, true);
@@ -144,7 +144,7 @@ class Scavenger {
   }
   uword TryAllocateNoSafepoint(Thread* thread, intptr_t size) {
     uword addr = TryAllocateFromTLAB(thread, size);
-    if (LIKELY(addr != 0)) {
+    if (addr != 0) [[likely]] {
       return addr;
     }
     TryAllocateNewTLAB(thread, size, false);
@@ -266,7 +266,7 @@ class Scavenger {
     const uword result = thread->top();
     const intptr_t remaining = static_cast<intptr_t>(thread->end()) - result;
     ASSERT(remaining >= 0);
-    if (UNLIKELY(remaining < size)) {
+    if (remaining < size) [[unlikely]] {
       return 0;
     }
     ASSERT(to_->Contains(result));

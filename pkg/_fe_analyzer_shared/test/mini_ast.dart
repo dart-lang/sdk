@@ -6941,7 +6941,10 @@ class _MiniAstTypeAnalyzer
     SharedTypeView targetType,
   ) {
     var tmp = _harness.irBuilder.allocateTmp(location: target.location);
-    startNullShorting(tmp, target, targetType);
+    flow.storeExpressionInfo(
+      target,
+      startNullShorting(tmp, flow.getExpressionInfo(target), targetType),
+    );
     _harness.irBuilder.readTmp(tmp, location: target.location);
     return operations.promoteToNonNull(targetType);
   }
@@ -7061,6 +7064,24 @@ class _MiniAstTypeAnalyzer
     variable.isFinal = isFinal;
     variable.type = type.unwrapTypeView();
     variable.inconsistency = variable.inconsistency.maxWith(inconsistency);
+  }
+
+  @override
+  shared.ExpressionTypeAnalysisResult finishNullShorting(
+    int targetDepth,
+    shared.ExpressionTypeAnalysisResult innerResult, {
+    required Expression wholeExpression,
+  }) {
+    var analysisResult = super.finishNullShorting(
+      targetDepth,
+      innerResult,
+      wholeExpression: wholeExpression,
+    );
+    // If any expression info or expression reference was stored for the
+    // null-aware expression, it was only valid in the case where the target
+    // expression was not null. So it needs to be cleared now.
+    flow.storeExpressionInfo(wholeExpression, null);
+    return analysisResult;
   }
 
   @override

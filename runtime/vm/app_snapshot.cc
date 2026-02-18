@@ -6611,7 +6611,7 @@ class ArrayDeserializationCluster
       const intptr_t length = d.ReadUnsigned();
       Deserializer::InitializeHeader(array, cid, Array::InstanceSize(length),
                                      stamp_canonical, is_deeply_immutable());
-      if (UNLIKELY(Array::UseCardMarkingForAllocation(length))) {
+      if (Array::UseCardMarkingForAllocation(length)) [[unlikely]] {
         array->untag()->SetCardRememberedBitUnsynchronized();
         Page::Of(array)->AllocateCardTable();
       }

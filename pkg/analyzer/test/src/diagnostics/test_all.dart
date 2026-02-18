@@ -835,6 +835,8 @@ import 'switch_case_completes_normally_test.dart'
     as switch_case_completes_normally;
 import 'tearoff_of_generative_constructor_of_abstract_class_test.dart'
     as tearoff_of_generative_constructor_of_abstract_class;
+import 'tearoff_with_must_be_const_parameter_test.dart'
+    as tearoff_with_must_be_const_parameter;
 import 'text_direction_code_point_test.dart' as text_direction_code_point;
 import 'throw_of_invalid_type_test.dart' as throw_of_invalid_type;
 import 'todo_test.dart' as todo_test;
@@ -1480,6 +1482,7 @@ main() {
     super_invocation_not_last.main();
     switch_case_completes_normally.main();
     tearoff_of_generative_constructor_of_abstract_class.main();
+    tearoff_with_must_be_const_parameter.main();
     text_direction_code_point.main();
     throw_of_invalid_type.main();
     todo_test.main();

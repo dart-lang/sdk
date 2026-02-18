@@ -124,6 +124,8 @@ To start a new minor version for the analyzer and related packages, follow these
     * Update the `analyzer_plugin` dependency to be the **exact** version from step 2.
     * Update `pkg/analysis_server_plugin/CHANGELOG.md` to add a new section for the new version.
 
+5. **Prepare the commit message**: see git `98c4f54c0f56b0f08d3fa7d5ddf4bcaf905764ff` as example.
+
 ## Workflow: Prepare a release
 
 To prepare the packages for publishing, follow these steps.
@@ -156,6 +158,8 @@ To prepare the packages for publishing, follow these steps.
     * Update the `analyzer` dependency to be the **exact** version from step 2.
     * Update the `analyzer_plugin` dependency to be the **exact** version from step 3.
     * Update `pkg/analysis_server_plugin/CHANGELOG.md` to set the version for the release entry.
+
+6. **Prepare the commit message**: see git `ef20543995d1a1052993881c62d6525e426336e7` as example.
 
 [_fe_analyzer_shared source]: https://github.com/dart-lang/sdk/tree/main/pkg/_fe_analyzer_shared
 [_fe_analyzer_shared pub package]: https://pub.dev/packages/_fe_analyzer_shared

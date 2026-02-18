@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Limit language version to a pre-primary-constructors version
+// to not allow `final` declarations.
+// @dart = 3.11
+
 // Regression check for https://dartbug.com/53625
 //
 // Extension type declarations must have a "representation declaration"

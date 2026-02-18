@@ -447,15 +447,6 @@ struct simd128_value_t {
 #define Pp "016" PRIxPTR
 #endif
 
-// Suffixes for 64-bit integer literals.
-#ifdef _MSC_VER
-#define DART_INT64_C(x) x##I64
-#define DART_UINT64_C(x) x##UI64
-#else
-#define DART_INT64_C(x) x##LL
-#define DART_UINT64_C(x) x##ULL
-#endif
-
 // Replace calls to strtoll with _strtoi64 on Windows.
 #ifdef _MSC_VER
 #define strtoll _strtoi64
@@ -488,12 +479,6 @@ constexpr intptr_t kBitsPerInt16 = kInt16Size * kBitsPerByte;
 constexpr intptr_t kBitsPerInt32 = kInt32Size * kBitsPerByte;
 constexpr intptr_t kBitsPerInt64 = kInt64Size * kBitsPerByte;
 
-// The following macro works on both 32 and 64-bit platforms.
-// Usage: instead of writing 0x1234567890123456ULL
-//      write DART_2PART_UINT64_C(0x12345678,90123456);
-#define DART_2PART_UINT64_C(a, b)                                              \
-  (((static_cast<uint64_t>(a) << kBitsPerInt32) + 0x##b##u))
-
 // Integer constants.
 constexpr int8_t kMinInt8 = 0x80;
 constexpr int8_t kMaxInt8 = 0x7F;
@@ -504,18 +489,17 @@ constexpr uint16_t kMaxUint16 = 0xFFFF;
 constexpr int32_t kMinInt32 = 0x80000000;
 constexpr int32_t kMaxInt32 = 0x7FFFFFFF;
 constexpr uint32_t kMaxUint32 = 0xFFFFFFFF;
-constexpr int64_t kMinInt64 = DART_INT64_C(0x8000000000000000);
-constexpr int64_t kMaxInt64 = DART_INT64_C(0x7FFFFFFFFFFFFFFF);
-constexpr uint64_t kMaxUint64 = DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF);
+constexpr int64_t kMinInt64 = 0x8000000000000000;
+constexpr int64_t kMaxInt64 = 0x7FFFFFFFFFFFFFFF;
+constexpr uint64_t kMaxUint64 = 0xFFFFFFFFFFFFFFFF;
 
 constexpr int kMinInt = INT_MIN;
 constexpr int kMaxInt = INT_MAX;
 constexpr int kMaxUint = UINT_MAX;
 
 constexpr int64_t kMinInt64RepresentableAsDouble = kMinInt64;
-constexpr int64_t kMaxInt64RepresentableAsDouble =
-    DART_INT64_C(0x7FFFFFFFFFFFFC00);
-constexpr int64_t kSignBitDouble = DART_INT64_C(0x8000000000000000);
+constexpr int64_t kMaxInt64RepresentableAsDouble = 0x7FFFFFFFFFFFFC00;
+constexpr int64_t kSignBitDouble = 0x8000000000000000;
 
 // Types for native machine words. Guaranteed to be able to hold pointers and
 // integers.

@@ -231,6 +231,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final AssignmentExpressionResolver _assignmentExpressionResolver =
       AssignmentExpressionResolver(resolver: this);
+
   late final BinaryExpressionResolver _binaryExpressionResolver;
   late final ConstructorReferenceResolver _constructorReferenceResolver =
       ConstructorReferenceResolver(this);
@@ -243,7 +244,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final PrefixExpressionResolver _prefixExpressionResolver;
   late final VariableDeclarationResolver _variableDeclarationResolver;
   late final YieldStatementResolver _yieldStatementResolver;
-
   late final NullSafetyDeadCodeVerifier nullSafetyDeadCodeVerifier;
 
   late final InvocationInferenceHelper inferenceHelper;
@@ -937,6 +937,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
     }
+  }
+
+  @override
+  shared.ExpressionTypeAnalysisResult finishNullShorting(
+    int targetDepth,
+    shared.ExpressionTypeAnalysisResult innerResult, {
+    required ExpressionImpl wholeExpression,
+  }) {
+    var analysisResult = super.finishNullShorting(
+      targetDepth,
+      innerResult,
+      wholeExpression: wholeExpression,
+    );
+    // If any expression info or expression reference was stored for the
+    // null-aware expression, it was only valid in the case where the target
+    // expression was not null. So it needs to be cleared now.
+    flow.storeExpressionInfo(wholeExpression, null);
+    return analysisResult;
   }
 
   @override
@@ -4660,10 +4678,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           argumentList: ArgumentListImpl(arguments: [var expression]),
         ):
         case var expression:
-          startNullShorting(
-            null,
+          flow.storeExpressionInfo(
             expression,
-            SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
+            startNullShorting(
+              null,
+              flow.getExpressionInfo(expression),
+              SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
+            ),
           );
       }
     }
@@ -5415,14 +5436,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var type = node.type;
-    if (type == null) {
-      // The function type hasn't been resolved yet, so we can't create a scope
-      // for its parameters.
-      super.visitGenericFunctionType(node);
-      return;
-    }
-
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;

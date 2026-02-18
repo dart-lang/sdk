@@ -654,7 +654,7 @@ class ListDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(array, kImmutableArrayCid,
                                      Array::InstanceSize(length),
                                      is_deeply_immutable());
-      if (UNLIKELY(Array::UseCardMarkingForAllocation(length))) {
+      if (Array::UseCardMarkingForAllocation(length)) [[unlikely]] {
         array->untag()->SetCardRememberedBitUnsynchronized();
         Page::Of(array)->AllocateCardTable();
       }

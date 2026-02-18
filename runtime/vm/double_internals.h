@@ -62,14 +62,10 @@ class DoubleInternals {
   }
 
  private:
-  static constexpr uint64_t kSignMask =
-      DART_2PART_UINT64_C(0x80000000, 00000000);
-  static constexpr uint64_t kExponentMask =
-      DART_2PART_UINT64_C(0x7FF00000, 00000000);
-  static constexpr uint64_t kSignificandMask =
-      DART_2PART_UINT64_C(0x000FFFFF, FFFFFFFF);
-  static constexpr uint64_t kHiddenBit =
-      DART_2PART_UINT64_C(0x00100000, 00000000);
+  static constexpr uint64_t kSignMask = 0x8000000000000000;
+  static constexpr uint64_t kExponentMask = 0x7FF0000000000000;
+  static constexpr uint64_t kSignificandMask = 0x000FFFFFFFFFFFFF;
+  static constexpr uint64_t kHiddenBit = 0x0010000000000000;
   static constexpr int kPhysicalSignificandSize =
       52;  // Excludes the hidden bit.
   static constexpr int kExponentBias = 0x3FF + kPhysicalSignificandSize;

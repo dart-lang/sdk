@@ -309,6 +309,10 @@ extension WasmV128Extension on WasmV128 {
   /// Returns `(v1 & mask) | (v2 & ~mask)` where `mask` is this vector.
   @pragma("wasm:intrinsic")
   external WasmV128 bitSelect(WasmV128 v1, WasmV128 v2);
+
+  /// Wasm `v128.any_true` instruction.
+  @pragma("wasm:intrinsic")
+  external bool get anyTrue;
 }
 
 extension type WasmI8x16(WasmV128 value) implements WasmV128 {
@@ -404,9 +408,18 @@ extension type WasmI64x2(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI64x2 eq(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external bool get allTrue;
 }
 
 extension type WasmF32x4(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmF32x4.fromLaneValues(
+    WasmF32 lane0,
+    WasmF32 lane1,
+    WasmF32 lane2,
+    WasmF32 lane3,
+  );
   @pragma("wasm:intrinsic")
   external factory WasmF32x4.splat(WasmF32 value);
   @pragma("wasm:intrinsic")
@@ -460,6 +473,8 @@ extension type WasmF32x4(WasmV128 value) implements WasmV128 {
 
 extension type WasmF64x2(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
+  external factory WasmF64x2.fromLaneValues(WasmF64 lane0, WasmF64 lane1);
+  @pragma("wasm:intrinsic")
   external factory WasmF64x2.splat(WasmF64 value);
   @pragma("wasm:intrinsic")
   external WasmF64 extractLane(int index);
@@ -498,6 +513,11 @@ extension type WasmF64x2(WasmV128 value) implements WasmV128 {
   external WasmF64x2 max(WasmF64x2 other);
 
   @pragma("wasm:intrinsic")
+  external WasmF64x2 pmin(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 pmax(WasmF64x2 other);
+
+  @pragma("wasm:intrinsic")
   external WasmF64x2 ceil();
   @pragma("wasm:intrinsic")
   external WasmF64x2 floor();
@@ -508,6 +528,9 @@ extension type WasmF64x2(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI64x2 eq(WasmF64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 shuffle(WasmF64x2 other, List<int> lanes);
 }
 
 /// A Wasm array.

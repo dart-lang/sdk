@@ -37,7 +37,7 @@ class MandelbrotState {
   void startClient(int id) {
     assert(_sent < N);
     int line = _sent++;
-    LineProcessorClient.create(this, id).then((final client) {
+    LineProcessorClient.create(this, id).then((client) {
       client.processLine(line);
     });
   }

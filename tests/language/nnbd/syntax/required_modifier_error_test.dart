@@ -2,40 +2,55 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
+// Invalid uses of "required" modifier.
 
-// Invalid uses of "required" modifier
+// Use a language version pre-primary constructors to allow `final` parameter.
+// @dart = 3.11
 
-required //# 01: syntax error
-int f1(
-  required //# 02: syntax error
-  int x
+required int f1(
+  // [error column 1, length 8]
+  // [cfe] Can't have modifier 'required' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  required int x,
+  // [error column 3, length 8]
+  // [cfe] Can't have modifier 'required' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 ) => throw 0;
 
-required //# 03: syntax error
-class C1 {
-  required //# 04: syntax error
-  int f2 = 0;
+required class C1 {
+  // [error column 1, length 8]
+  // [cfe] Can't have modifier 'required' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  required int f2 = 0;
+  // [error column 3, length 8]
+  // [cfe] Can't have modifier 'required' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 }
 
 // Duplicate modifier
 void f2({
-  required
-  required //# 05: syntax error
-  int i,
-}){
-}
+  required required int i,
+  // [error column 3, length 8]
+  // [cfe] Can't have modifier 'required' here.
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  //       ^^^^^^^^
+  // [cfe] The modifier 'required' was already specified.
+  // [analyzer] SYNTACTIC_ERROR.DUPLICATED_MODIFIER
+}) {}
 
 // Out of order modifiers
 class C2 {
   void m({
     required int i1,
-    covariant required int i2, //# 07: syntax error
-    final required int i3, //# 08: syntax error
-  }) {
-  }
+    covariant required int? i2,
+    //        ^^^^^^^^
+    // [cfe] The modifier 'required' should be before the modifier 'covariant'.
+    // [analyzer] SYNTACTIC_ERROR.MODIFIER_OUT_OF_ORDER
+    final required int? i3,
+    //    ^^^^^^^^
+    // [cfe] The modifier 'required' should be before the modifier 'final'.
+    // [analyzer] SYNTACTIC_ERROR.MODIFIER_OUT_OF_ORDER
+  }) {}
 }
 
-main() {
-}
+main() {}

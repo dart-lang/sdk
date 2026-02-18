@@ -462,13 +462,13 @@ class ScavengerVisitor : public ObjectPointerVisitor,
         // This object is a survivor of a previous scavenge. Attempt to promote
         // the object. (Or, unlikely, to-space was exhausted by fragmentation.)
         new_addr = page_space_->TryAllocatePromoLocked(freelist_, size);
-        if (UNLIKELY(new_addr == 0)) {
+        if (new_addr == 0) [[unlikely]] {
           // Promotion did not succeed. Copy into the to space instead.
           scavenger_->failed_to_promote_ = true;
           new_addr = TryAllocateCopy(size);
           // To-space was exhausted by fragmentation and old-space could not
           // grow.
-          if (UNLIKELY(new_addr == 0)) {
+          if (new_addr == 0) [[unlikely]] {
             AbortScavenge();
           }
         }
@@ -532,11 +532,11 @@ class ScavengerVisitor : public ObjectPointerVisitor,
   uword TryAllocateCopy(intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
     // TODO(rmacnak): Allocate one to start?
-    if (tail_ != nullptr) {
+    if (tail_ != nullptr) [[likely]] {
       uword result = tail_->top_;
       ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
       uword new_top = result + size;
-      if (LIKELY(new_top <= tail_->end_)) {
+      if (new_top <= tail_->end_) [[likely]] {
         tail_->top_ = new_top;
         return result;
       }
@@ -1363,13 +1363,13 @@ intptr_t ScavengerVisitor::ProcessObject(ObjectPtr obj) {
 #endif
 
   intptr_t cid = obj->GetClassIdOfHeapObject();
-  if (UNLIKELY(cid == kWeakPropertyCid)) {
+  if (cid == kWeakPropertyCid) [[unlikely]] {
     WeakPropertyPtr weak_property = static_cast<WeakPropertyPtr>(obj);
     if (!IsScavengeSurvivor(weak_property->untag()->key())) {
       weak_property_list_.Push(weak_property);
       return WeakProperty::InstanceSize();
     }
-  } else if (UNLIKELY(cid == kWeakReferenceCid)) {
+  } else if (cid == kWeakReferenceCid) [[unlikely]] {
     WeakReferencePtr weak_reference = static_cast<WeakReferencePtr>(obj);
     if (!IsScavengeSurvivor(weak_reference->untag()->target())) {
 #if !defined(DART_COMPRESSED_POINTERS)
@@ -1381,11 +1381,11 @@ intptr_t ScavengerVisitor::ProcessObject(ObjectPtr obj) {
       weak_reference_list_.Push(weak_reference);
       return WeakReference::InstanceSize();
     }
-  } else if (UNLIKELY(cid == kWeakArrayCid)) {
+  } else if (cid == kWeakArrayCid) [[unlikely]] {
     WeakArrayPtr weak_array = static_cast<WeakArrayPtr>(obj);
     weak_array_list_.Push(weak_array);
     return WeakArray::InstanceSize(Smi::Value(weak_array->untag()->length()));
-  } else if (UNLIKELY(cid == kFinalizerEntryCid)) {
+  } else if (cid == kFinalizerEntryCid) [[unlikely]] {
     FinalizerEntryPtr finalizer_entry = static_cast<FinalizerEntryPtr>(obj);
 #if !defined(DART_COMPRESSED_POINTERS)
     ScavengePointer(&finalizer_entry->untag()->token_);

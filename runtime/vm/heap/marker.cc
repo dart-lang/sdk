@@ -138,7 +138,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
             // New-space objects still in a TLAB are deferred. This allows the
             // compiler to remove write barriers for freshly allocated objects.
             tlab_deferred_work_list_.Push(obj);
-            if (UNLIKELY(page_space_->pause_concurrent_marking())) {
+            if (page_space_->pause_concurrent_marking()) [[unlikely]] {
               YieldConcurrentMarking();
             }
             continue;
@@ -181,7 +181,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
           marked_bytes_ += size;
         }
 
-        if (UNLIKELY(page_space_->pause_concurrent_marking())) {
+        if (page_space_->pause_concurrent_marking()) [[unlikely]] {
           YieldConcurrentMarking();
         }
       }
@@ -229,7 +229,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       }
 
       if (((i + 1) % kCardsPerInterruptCheck) == 0) {
-        if (UNLIKELY(page_space_->pause_concurrent_marking())) {
+        if (page_space_->pause_concurrent_marking()) [[unlikely]] {
           YieldConcurrentMarking();
         }
       }
@@ -675,7 +675,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
     intptr_t class_id = UntaggedObject::ClassIdTag::decode(tags);
     ASSERT(class_id != kFreeListElement);
 
-    if (UNLIKELY(class_id == kInstructionsCid)) {
+    if (class_id == kInstructionsCid) [[unlikely]] {
       // If this is the concurrent marker, this object may be non-writable due
       // to W^X (--write-protect-code).
       deferred_work_list_.Push(obj);

@@ -10,7 +10,7 @@ main() {
   testImmutable(const [1, 2]);
 }
 
-testImmutable(var list) {
+testImmutable(list) {
   Expect.throwsUnsupportedError(() => list.removeRange(0, 0));
   Expect.throwsUnsupportedError(() => list.removeRange(0, 1));
   Expect.throwsUnsupportedError(() => list.removeRange(-1, 1));

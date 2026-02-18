@@ -210,10 +210,11 @@ class TransformSetParser {
       }
       var endIndex = template.indexOf(_closeComponent, variableStart + 2);
       if (endIndex < 0) {
-        _diagnosticReporter.atOffset(
-          offset: templateOffset + variableStart,
-          length: 2,
-          diagnosticCode: diag.missingTemplateEnd,
+        _diagnosticReporter.report(
+          diag.missingTemplateEnd.atOffset(
+            offset: templateOffset + variableStart,
+            length: 2,
+          ),
         );
         // Ignore the invalid component, treating it as if it extended to the
         // end of the template.
@@ -222,11 +223,14 @@ class TransformSetParser {
         var name = template.substring(variableStart + 2, endIndex).trim();
         var generator = variableScope.lookup(name);
         if (generator == null) {
-          _diagnosticReporter.atOffset(
-            offset: templateOffset + template.indexOf(name, variableStart),
-            length: name.length,
-            diagnosticCode: diag.undefinedVariable,
-            arguments: [name],
+          _diagnosticReporter.report(
+            diag.undefinedVariable
+                .withArguments(key: name)
+                .atOffset(
+                  offset:
+                      templateOffset + template.indexOf(name, variableStart),
+                  length: name.length,
+                ),
           );
           // Ignore the invalid component.
         } else {
@@ -276,11 +280,10 @@ class TransformSetParser {
       var span = e.span;
       var offset = span?.start.offset ?? 0;
       var length = span?.length ?? 0;
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: diag.yamlSyntaxError,
-        arguments: [e.message],
+      _diagnosticReporter.report(
+        diag.yamlSyntaxError
+            .withArguments(message: e.message)
+            .atOffset(offset: offset, length: length),
       );
     }
     return null;

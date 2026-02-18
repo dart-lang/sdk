@@ -159,6 +159,18 @@ class _A {}
 ''');
   }
 
+  test_class_isUsed_native() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+final class _A extends Struct {
+  @Int32() external int x;
+}
+
+final List<_A> x = [];
+''');
+  }
+
   test_class_isUsed_staticFieldAccess() async {
     await assertNoErrorsInCode(r'''
 class _A {
@@ -187,6 +199,26 @@ class _A {}
 main() {
   var v = new List<_A>.empty();
   print(v);
+}
+''');
+  }
+
+  test_class_isUsed_variableDeclaration() async {
+    await assertNoErrorsInCode('''
+class _A {}
+void f() {
+  // ignore: unused_local_variable
+  _A? v;
+}
+''');
+  }
+
+  test_class_isUsed_variableDeclaration_typeArgument() async {
+    await assertNoErrorsInCode('''
+class _A {}
+void f() {
+  // ignore: unused_local_variable
+  List<_A>? v;
 }
 ''');
   }
@@ -284,34 +316,6 @@ void f(Object p) {
 class _A {}
 main() {
 }
-''',
-      [error(diag.unusedElement, 6, 2)],
-    );
-  }
-
-  test_class_notUsed_variableDeclaration() async {
-    await assertErrorsInCode(
-      '''
-class _A {}
-void f() {
-  _A? v;
-  print(v);
-}
-print(x) {}
-''',
-      [error(diag.unusedElement, 6, 2)],
-    );
-  }
-
-  test_class_notUsed_variableDeclaration_typeArgument() async {
-    await assertErrorsInCode(
-      '''
-class _A {}
-main() {
-  List<_A>? v;
-  print(v);
-}
-print(x) {}
 ''',
       [error(diag.unusedElement, 6, 2)],
     );
@@ -999,6 +1003,28 @@ void f() {
 ''');
   }
 
+  test_extensionType_isUsed_variableDeclaration() async {
+    await assertNoErrorsInCode('''
+extension type _E(int i) {}
+
+void f() {
+  _E? v;
+  print(v);
+}
+''');
+  }
+
+  test_extensionType_isUsed_variableDeclaration_typeArgument() async {
+    await assertNoErrorsInCode('''
+extension type _E(int i) {}
+
+void f() {
+  // ignore: unused_local_variable
+  List<_E>? v;
+}
+''');
+  }
+
   test_extensionType_member_notUsed() async {
     await assertErrorsInCode(
       '''
@@ -1014,34 +1040,6 @@ extension type E(int i) {
     await assertErrorsInCode(
       r'''
 extension type _E(int i) {}
-''',
-      [error(diag.unusedElement, 15, 2)],
-    );
-  }
-
-  test_extensionType_notUsed_variableDeclaration() async {
-    await assertErrorsInCode(
-      '''
-extension type _E(int i) {}
-
-void f() {
-  _E? v;
-  print(v);
-}
-''',
-      [error(diag.unusedElement, 15, 2)],
-    );
-  }
-
-  test_extensionType_notUsed_variableDeclaration_typeArgument() async {
-    await assertErrorsInCode(
-      '''
-extension type _E(int i) {}
-
-void f() {
-  List<_E>? v;
-  print(v);
-}
 ''',
       [error(diag.unusedElement, 15, 2)],
     );

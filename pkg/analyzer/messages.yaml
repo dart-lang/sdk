@@ -28345,6 +28345,13 @@ WarningCode:
 
       int g(@mustBeConst int value) => value + 1;
       ```
+  tearoffWithMustBeConstParameter:
+    type: staticWarning
+    parameters:
+      String name: the name of the function
+    problemMessage: "The function '#name' has a parameter marked as '@mustBeConst' and can't be torn off."
+    correctionMessage: Try calling the function directly with a constant argument.
+    hasPublishedDocs: false
   nonConstCallToLiteralConstructorUsingNew:
     type: staticWarning
     parameters:

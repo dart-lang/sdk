@@ -15150,6 +15150,24 @@ const DiagnosticWithoutArguments tearoffOfGenerativeConstructorOfAbstractClass =
     );
 
 /// Parameters:
+/// String name: the name of the function
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+tearoffWithMustBeConstParameter = DiagnosticWithArguments(
+  name: 'tearoff_with_must_be_const_parameter',
+  problemMessage:
+      "The function '{0}' has a parameter marked as '@mustBeConst' and can't be "
+      "torn off.",
+  correctionMessage:
+      "Try calling the function directly with a constant argument.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'tearoff_with_must_be_const_parameter',
+  withArguments: _withArgumentsTearoffWithMustBeConstParameter,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
 /// String codePoint: the unicode sequence of the code point.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String codePoint})
@@ -20937,6 +20955,12 @@ _withArgumentsSuperFormalParameterTypeIsNotSubtypeOfAssociated({
     diag.superFormalParameterTypeIsNotSubtypeOfAssociated,
     [parameterType, superParameterType],
   );
+}
+
+LocatableDiagnostic _withArgumentsTearoffWithMustBeConstParameter({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.tearoffWithMustBeConstParameter, [name]);
 }
 
 LocatableDiagnostic _withArgumentsTextDirectionCodePointInComment({

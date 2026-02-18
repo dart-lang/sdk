@@ -66,7 +66,7 @@ class DartEntryScope : public TransitionToGenerated {
     // Propagating an Error that is not an UnhandledException, such as an
     // UnwindError, will bypass the DLRT_ExitHandleScope in an FFI callout
     // trampoline.
-    while (UNLIKELY(thread()->api_top_scope() != saved_api_scope_)) {
+    while (thread()->api_top_scope() != saved_api_scope_) [[unlikely]] {
       thread()->ExitApiScope();
     }
 

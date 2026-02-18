@@ -1,0 +1,66 @@
+Part 0
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D1
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart::@methods::d1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart::@methods::usedByD1
+  Constants
+     - StringConstant("d1")
+     - StringConstant("usedByD1")
+
+Part 1
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D2
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart::@methods::usedByD1D2
+  Constants
+     - StringConstant("usedByD1D2")
+
+Part 2
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart::@methods::usedByD1D2D3
+  Constants
+     - StringConstant("usedByD1D2D3")
+
+Part 3
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart::@methods::usedByD1D3
+  Constants
+     - StringConstant("usedByD1D3")
+
+Part 4
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D2
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart::@methods::d2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart::@methods::usedByD2
+  Constants
+     - StringConstant("d2")
+     - StringConstant("usedByD2")
+
+Part 5
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart::@methods::usedByD2D3
+  Constants
+     - StringConstant("usedByD2D3")
+
+Part 6
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart prefix: D3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart::@methods::d3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/sequence.dart::@methods::usedByD3
+  Constants
+     - StringConstant("d3")
+     - StringConstant("usedByD3")

@@ -53,21 +53,31 @@ class Scenario {
     });
 
     print('Reading logs');
-    var logs = Log.fromFile(logFile, {
-      for (var i = 0; i < workspace.workspaceDirectories.length; i++)
-        '{{workspaceFolder-$i}}': workspace.workspaceDirectories
-            .elementAt(i)
-            .path
-            .replaceAll(r'\', r'\\'),
-      '{{dartSdkRoot}}': sdkPath.replaceAll(r'\', r'\\'),
-      // TODO(somebody): replace {{flutterSdkRoot}} with the flutter SDK path
-      for (var i = 0; i < workspace.contextRoots.length; i++)
-        for (var package in workspace.contextRoots[i].packageConfig.packages)
-          '{{context-$i:package-root:${package.name}}}': package.root
-              .toString()
+    Log? logs;
+    try {
+      logs = Log.fromFile(logFile, {
+        for (var i = 0; i < workspace.workspaceDirectories.length; i++)
+          '{{workspaceFolder-$i}}': workspace.workspaceDirectories
+              .elementAt(i)
+              .path
               .replaceAll(r'\', r'\\'),
-    });
+        '{{dartSdkRoot}}': sdkPath.replaceAll(r'\', r'\\'),
+        // TODO(somebody): replace {{flutterSdkRoot}} with the flutter SDK path
+        for (var i = 0; i < workspace.contextRoots.length; i++)
+          for (var package in workspace.contextRoots[i].packageConfig.packages)
+            '{{context-$i:package-root:${package.name}}}': package.root
+                .toString()
+                .replaceAll(r'\', r'\\'),
+      });
+    } catch (e, s) {
+      print('''
+Scenario failed with Error: $e
 
+StackTrace:
+$s
+''');
+      exit(1);
+    }
     print('Creating log player');
     var logPlayer = LogPlayer(log: logs, timeout: timeout);
 

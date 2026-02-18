@@ -4,7 +4,7 @@
 
 part of malformed_test;
 
-void testValue(var o) {
+void testValue(o) {
   o is Unresolved1;
   o is List<Unresolved2>;
   o is! Unresolved3;

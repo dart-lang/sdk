@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show JsonEncoder;
-import 'dart:io' show File;
+import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show relativizeUri;
+import 'package:compiler/src/deferred_load/program_split_constraints/nodes.dart';
+import 'package:compiler/src/deferred_load/program_split_constraints/parser.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -14,6 +16,7 @@ import 'package:kernel/core_types.dart';
 import 'await_transformer.dart' as await_transformer;
 import 'compiler_options.dart';
 import 'deferred_load/partition.dart';
+import 'io_util.dart';
 import 'modules.dart';
 import 'target.dart';
 import 'util.dart' show addPragma, getPragma;
@@ -23,10 +26,11 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
   final WasmCompilerOptions options;
   final WasmTarget kernelTarget;
   final CoreTypes coreTypes;
+  final CompilerPhaseInputOutputManager ioManager;
   late final ModuleOutputData moduleOutputData;
 
-  DeferredLoadingModuleStrategy(
-      this.component, this.options, this.kernelTarget, this.coreTypes);
+  DeferredLoadingModuleStrategy(this.component, this.options, this.kernelTarget,
+      this.coreTypes, this.ioManager);
 
   @override
   void addEntryPoints() {}
@@ -37,8 +41,16 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
   @override
   Future<void> processComponentAfterTfa(
       DeferredModuleLoadingMap loadingMap) async {
+    ConstraintData? constraints;
+    if (options.programSplitConstraintsUri != null) {
+      final json =
+          await ioManager.readString(options.programSplitConstraintsUri!);
+      constraints = Parser().read(json);
+    }
+
     final partition = partitionAppplication(
-        coreTypes, component, loadingMap, _findWasmRoots());
+        coreTypes, component, loadingMap, findWasmRoots(coreTypes, component),
+        constraints: constraints);
 
     final builder = ModuleMetadataBuilder(options);
     final moduleMetadata = <Part, ModuleMetadata>{};
@@ -78,34 +90,6 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
       ...moduleMetadata.values,
       dummyModule,
     ], referenceToModuleMetadata, constantToModuleMetadata, dummyModule);
-  }
-
-  Set<Reference> _findWasmRoots() {
-    final exports = <Reference>{};
-    final trueConstant = BoolConstant(true);
-
-    bool check(Annotatable node) {
-      if (getPragma<StringConstant>(coreTypes, node, 'wasm:export') != null ||
-          getPragma<Constant>(coreTypes, node, 'wasm:entry-point',
-                  defaultValue: trueConstant) !=
-              null) {
-        return true;
-      }
-      return false;
-    }
-
-    for (final library in component.libraries) {
-      for (final member in library.members) {
-        if (check(member)) exports.add(member.reference);
-      }
-      for (final klass in library.classes) {
-        if (check(klass)) exports.add(klass.reference);
-        for (final member in klass.members) {
-          if (check(member)) exports.add(member.reference);
-        }
-      }
-    }
-    return exports;
   }
 
   @override
@@ -302,4 +286,32 @@ class DeferredLoadingLowering extends Transformer {
   static void addEntryPointPragma(CoreTypes coreTypes, Annotatable node) {
     addPragma(node, 'wasm:entry-point', coreTypes, value: BoolConstant(true));
   }
+}
+
+Set<Reference> findWasmRoots(CoreTypes coreTypes, Component component) {
+  final exports = <Reference>{};
+  final trueConstant = BoolConstant(true);
+
+  bool check(Annotatable node) {
+    if (getPragma<StringConstant>(coreTypes, node, 'wasm:export') != null ||
+        getPragma<Constant>(coreTypes, node, 'wasm:entry-point',
+                defaultValue: trueConstant) !=
+            null) {
+      return true;
+    }
+    return false;
+  }
+
+  for (final library in component.libraries) {
+    for (final member in library.members) {
+      if (check(member)) exports.add(member.reference);
+    }
+    for (final klass in library.classes) {
+      if (check(klass)) exports.add(klass.reference);
+      for (final member in klass.members) {
+        if (check(member)) exports.add(member.reference);
+      }
+    }
+  }
+  return exports;
 }

@@ -149,7 +149,7 @@ class PageSpace {
   }
   DART_FORCE_INLINE
   uword TryAllocatePromoLocked(FreeList* freelist, intptr_t size) {
-    if (LIKELY(IsAllocatableViaFreeLists(size))) {
+    if (IsAllocatableViaFreeLists(size)) [[likely]] {
       uword result;
       if (freelist->TryAllocateBumpLocked(size, &result)) {
         return result;
@@ -159,7 +159,7 @@ class PageSpace {
   }
   DART_FORCE_INLINE
   uword AllocateSnapshotLocked(FreeList* freelist, intptr_t size) {
-    if (LIKELY(IsAllocatableViaFreeLists(size))) {
+    if (IsAllocatableViaFreeLists(size)) [[likely]] {
       uword result;
       if (freelist->TryAllocateBumpLocked(size, &result)) {
         return result;
