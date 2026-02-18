@@ -3501,6 +3501,24 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_typeParameter_bound_undefined() async {
+    await assertErrorsInCode(
+      r'''
+extension type E<T extends Unresolved>(int it) {}
+''',
+      [error(diag.undefinedClass, 27, 10)],
+    );
+  }
+
+  test_typeParameter_metadata_undefined() async {
+    await assertErrorsInCode(
+      r'''
+extension type E<@Unresolved T>(int it) {}
+''',
+      [error(diag.undefinedAnnotation, 17, 11)],
+    );
+  }
+
   test_typeParameters() async {
     await assertNoErrorsInCode(r'''
 extension type A<T, U>(Map<T, U> it) {}

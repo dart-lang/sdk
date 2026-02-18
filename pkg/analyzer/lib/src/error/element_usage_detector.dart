@@ -363,8 +363,7 @@ class ElementUsageDetector<TagInfo extends Object> {
   /// [node].
   static bool _isLocalParameter(Element? element, AstNode? node) {
     if (element is FormalParameterElement) {
-      var definingFunction =
-          element.firstFragment.enclosingFragment?.element as ExecutableElement;
+      var definingFunction = element.enclosingElement;
 
       for (; node != null; node = node.parent) {
         if (node is ConstructorDeclaration) {

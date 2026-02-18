@@ -5436,9 +5436,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
+    var element = node.declaredFragment!.element;
     Scope outerScope = nameScope;
     try {
-      var element = node.declaredFragment!.element;
       nameScope = TypeParameterScope(
         nameScope,
         element.typeParameters,

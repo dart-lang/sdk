@@ -5,6 +5,7 @@
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -49,6 +50,24 @@ class ConstructorInitializerResolver {
           );
 
           var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+
+          var localElementsVisitor = ElementBindingVisitor(
+            fragment.libraryFragment,
+            null,
+          );
+          for (var initializer in node.initializers) {
+            localElementsVisitor.bindSubtree(
+              fragment as FragmentImpl,
+              initializer,
+            );
+          }
+          if (node.redirectedConstructor case var redirectedConstructor?) {
+            localElementsVisitor.bindSubtree(
+              fragment as FragmentImpl,
+              redirectedConstructor,
+            );
+          }
+
           var astResolver = AstResolver(
             _linker,
             fragment.libraryFragment,

@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
@@ -74,6 +75,10 @@ class AstResolver {
   }) : _featureSet = _libraryFragment.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
+    ElementBindingVisitor(
+      _libraryFragment,
+      null,
+    ).bindSubtree(_libraryFragment, node);
     node.accept(_resolutionVisitor);
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
@@ -116,6 +121,10 @@ class AstResolver {
     List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters,
   }) {
     ExpressionImpl node = getNode();
+    ElementBindingVisitor(
+      _libraryFragment,
+      null,
+    ).bindSubtree(_libraryFragment, node);
     node.accept(_resolutionVisitor);
     // Node may have been rewritten so get it again.
     node = getNode();
@@ -139,6 +148,11 @@ class AstResolver {
 
     void accept(AstVisitor<Object?> visitor) {
       body.initializers.accept(visitor);
+    }
+
+    var bindingVisitor = ElementBindingVisitor(_libraryFragment, null);
+    for (var initializer in body.initializers) {
+      bindingVisitor.bindSubtree(node.declaredFragment!, initializer);
     }
 
     _prepareEnclosingDeclarations();

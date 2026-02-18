@@ -1897,6 +1897,13 @@ class B extends A {
     );
   }
 
+  test_parameterOfGenericFunctionType_inCommentReference() async {
+    await assertNoErrorsInCode(r'''
+/// [x]
+typedef F = void Function(@deprecated int x);
+''');
+  }
+
   test_postfixExpression_deprecatedGetter() async {
     await assertErrorsInCode2(
       externalCode: r'''
