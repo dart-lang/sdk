@@ -302,6 +302,8 @@ extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
   ///
   /// [`return()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#returnvalue
   JSIteratorResult<T> Function([JSAny? value])? get returnValue =>
+      // Make sure to pass along whether an argument was passed or not, because
+      // that's observable from JavaScript.
       _nullableReturnValue == null
       ? null
       : ([value]) => value == null ? _returnValue() : _returnValue(value);
@@ -316,6 +318,8 @@ extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
   /// [`throw()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#throwexception
   @JS('throw')
   JSIteratorResult<T> Function([JSAny? error])? get throwError =>
+      // Make sure to pass along whether an argument was passed or not, because
+      // that's observable from JavaScript.
       _nullableThrowError == null
       ? null
       : ([error]) => error == null ? _throwError() : _throwError(error);
@@ -369,7 +373,7 @@ extension type JSIterator<T extends JSAny?>._(JSObject _)
     JSIteratorResult<T> Function() next, {
     JSIteratorResult<T> Function()? returnValue,
   }) {
-    var iterator = _CustomIteratorProtocol<T>(next: next.toJS);
+    final iterator = _CustomIteratorProtocol<T>(next: next.toJS);
     if (returnValue != null) iterator.returnValue = returnValue.toJS;
     return from<T>(iterator);
   }
@@ -547,10 +551,8 @@ extension type JSIterator<T extends JSAny?>._(JSObject _)
 /// [Iterator protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol
 extension type _CustomIteratorProtocol<T extends JSAny?>._(JSObject _)
     implements JSIteratorProtocol<T> {
-  external JSFunction next;
-
   @JS('return')
-  external JSFunction? returnValue;
+  set _returnValue(JSFunction? function);
 
   external _CustomIteratorProtocol({required JSFunction next});
 }
@@ -1970,7 +1972,7 @@ extension Float64ListToJSFloat64Array on Float64List {
 extension IterableToJSIterable<T extends JSAny?> on Iterable<T> {
   /// Returns a [JSIterable] wrapper that proxies to the Dart iterable API.
   JSIterable<T> get toJSIterable {
-    var object = JSObject();
+    final object = JSObject();
     object.setProperty(
       JSSymbol.iterator,
       (() => this.iterator.toJSIterator).toJS,
@@ -2025,7 +2027,7 @@ class _JSIteratorToIterator<T extends JSAny?> implements Iterator<T> {
 
   @override
   T get current {
-    if (_lastResult case var result?) {
+    if (_lastResult case final result?) {
       if (result.isDone) {
         throw StateError(
           "current can't be called after the end of an iterator.",
@@ -2042,7 +2044,7 @@ class _JSIteratorToIterator<T extends JSAny?> implements Iterator<T> {
 
   @override
   bool moveNext() {
-    var result = _js.next();
+    final result = _js.next();
     _lastResult = result;
     return !result.isDone;
   }
