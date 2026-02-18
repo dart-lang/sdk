@@ -2625,16 +2625,7 @@ class B extends A {
 }
 const a = B();
 ''',
-      [
-        error(diag.missingRequiredArgument, 106, 1),
-        error(diag.constInitializedWithNonConstantValue, 106, 3),
-        error(
-          diag.invalidConstant,
-          106,
-          3,
-          contextMessages: [message(testFile, 88, 1)],
-        ),
-      ],
+      [error(diag.missingRequiredArgument, 106, 1)],
     );
   }
 
@@ -2661,16 +2652,7 @@ class B extends A {
 }
 const a = B();
 ''',
-      [
-        error(diag.notEnoughPositionalArgumentsNameSingular, 84, 1),
-        error(diag.constInitializedWithNonConstantValue, 82, 3),
-        error(
-          diag.invalidConstant,
-          82,
-          3,
-          contextMessages: [message(testFile, 66, 1)],
-        ),
-      ],
+      [error(diag.notEnoughPositionalArgumentsNameSingular, 84, 1)],
     );
   }
 
@@ -5300,33 +5282,6 @@ const a = dynamic;
     expect(result.toTypeValue(), typeProvider.dynamicType);
   }
 
-  test_visitSimpleIdentifier_inEnvironment() async {
-    await assertNoErrorsInCode(r'''
-const a = b;
-const b = 3;''');
-    var environment = <String, DartObjectImpl>{
-      'b': DartObjectImpl(typeSystem, typeProvider.intType, IntState(6)),
-    };
-    var result = _evaluateConstant('a', lexicalEnvironment: environment);
-    assertDartObjectText(result, r'''
-int 6
-''');
-  }
-
-  test_visitSimpleIdentifier_notInEnvironment() async {
-    await assertNoErrorsInCode(r'''
-const a = b;
-const b = 3;''');
-    var environment = <String, DartObjectImpl>{
-      'c': DartObjectImpl(typeSystem, typeProvider.intType, IntState(6)),
-    };
-    var result = _evaluateConstant('a', lexicalEnvironment: environment);
-    assertDartObjectText(result, r'''
-int 3
-  variable: <testLibrary>::@topLevelVariable::b
-''');
-  }
-
   test_visitSimpleIdentifier_variable() async {
     await assertNoErrorsInCode('''
 const a = 42;
@@ -5417,14 +5372,12 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     String name, {
     List<DiagnosticCode>? diagnosticCodes,
     Map<String, String> declaredVariables = const {},
-    Map<String, DartObjectImpl>? lexicalEnvironment,
   }) {
     var expression = findNode.topVariableDeclarationByName(name).initializer!;
     return _evaluateExpression(
       expression,
       diagnosticCodes: diagnosticCodes,
       declaredVariables: declaredVariables,
-      lexicalEnvironment: lexicalEnvironment,
     )!;
   }
 
@@ -5432,7 +5385,6 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     Expression expression, {
     List<DiagnosticCode>? diagnosticCodes,
     Map<String, String> declaredVariables = const {},
-    Map<String, DartObjectImpl>? lexicalEnvironment,
   }) {
     var unit = this.result.unit;
     var source = unit.declaredFragment!.source;
@@ -5445,7 +5397,6 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
       ),
       this.result.libraryElement,
       diagnosticReporter,
-      lexicalEnvironment: lexicalEnvironment,
     );
 
     var expressionConstant = constantVisitor.evaluateAndReportInvalidConstant(
@@ -5553,23 +5504,18 @@ const a = const A<int?>();
   }
 
   test_assertInitializer_assertIsNot_true() async {
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 class A {
   const A() : assert(0 is! String);
 }
 
-const a = const A(null);
-''',
-      [error(diag.extraPositionalArguments, 67, 4)],
-    );
+const a = const A();
+''');
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
   constructorInvocation
     constructor: <testLibrary>::@class::A::@constructor::new
-    positionalArguments
-      0: Null null
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -5596,6 +5542,32 @@ const a = A(x: 0);
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 <null>
+''');
+  }
+
+  test_assertInitializer_class_privateNamedParameters_multiple() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  final int _x;
+  final int _y;
+  const A({required this._x, required this._y}) : assert(_x < _y);
+}
+const a = A(x: 1, y: 2);
+''',
+      [error(diag.unusedField, 22, 2), error(diag.unusedField, 38, 2)],
+    );
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+A
+  _x: int 1
+  _y: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    namedArguments
+      x: int 1
+      y: int 2
+  variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -6016,17 +5988,7 @@ bool true
 ''',
     );
 
-    var bResult = _evaluateConstant(
-      'b',
-      declaredVariables: {'b': 'bbb'},
-      lexicalEnvironment: {
-        'defaultValue': DartObjectImpl(
-          typeSystem,
-          typeProvider.boolType,
-          BoolState(true),
-        ),
-      },
-    );
+    var bResult = _evaluateConstant('b', declaredVariables: {'b': 'bbb'});
     assertDartObjectText(bResult, '''
 bool true
 ''');
@@ -6623,17 +6585,7 @@ bool true
 ''',
     );
 
-    var bResult = _evaluateConstant(
-      'b',
-      declaredVariables: {'b': 'bbb'},
-      lexicalEnvironment: {
-        'defaultValue': DartObjectImpl(
-          typeSystem,
-          typeProvider.boolType,
-          BoolState(true),
-        ),
-      },
-    );
+    var bResult = _evaluateConstant('b', declaredVariables: {'b': 'bbb'});
     assertDartObjectText(bResult, '''
 bool true
 ''');
@@ -7105,17 +7057,7 @@ int 5
 ''',
     );
 
-    var bResult = _evaluateConstant(
-      'b',
-      declaredVariables: {'b': 'bbb'},
-      lexicalEnvironment: {
-        'defaultValue': DartObjectImpl(
-          typeSystem,
-          typeProvider.intType,
-          IntState(42),
-        ),
-      },
-    );
+    var bResult = _evaluateConstant('b', declaredVariables: {'b': 'bbb'});
     assertDartObjectText(bResult, '''
 int 42
 ''');
@@ -7209,6 +7151,37 @@ A<int>
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_redirectingFactoryConstructor_chain() async {
+    await assertNoErrorsInCode('''
+class A {
+  const factory A.foo(int a) = B<int>.bar;
+}
+
+class B<T> implements A {
+  final T f;
+  const B(this.f);
+  const factory B.bar(T f) = C<T>;
+}
+
+class C<U> implements B<U> {
+  final U f;
+  const C(this.f);
+}
+
+const x = A.foo(0);
+''');
+    var result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+C<int>
+  f: int 0
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::foo
+    positionalArguments
+      0: int 0
+  variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -7764,7 +7737,41 @@ B
 ''');
   }
 
-  test_wildcard_superInitializer_multiple() async {
+  test_wildcard_superInitializer_multiple_optionalPositional() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  final int _;
+  final int y;
+  const A([this._ = 1, this.y = 2]);
+}
+class B extends A {
+  const B([super._ = 3, super._ = 4]);
+}
+const a = const B(10);
+''',
+      [error(diag.unusedField, 22, 1)],
+    );
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+B
+  (super): A
+    _: int 10
+    y: int 4
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 10
+        1: int 4
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 10
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_wildcard_superInitializer_multiple_requiredPositional() async {
     await assertNoErrorsInCode('''
 class A {
   final int _;
