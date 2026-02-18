@@ -1299,6 +1299,36 @@
     },
     {
       "builders": [
+        "vm-modaot-mac-debug-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the modular AOT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--dart-dynamic-modules",
+            "--codesigning-identity=-",
+            "runtime",
+            "utils/dart2bytecode",
+            "utils/modular_aot_compiler"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-modaot-${system}-${mode}-${arch}",
+            "language"
+          ],
+          "fileset": "vm",
+          "shards": 5
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-aot-dyn-linux-debug-x64"
       ],
       "meta": {
