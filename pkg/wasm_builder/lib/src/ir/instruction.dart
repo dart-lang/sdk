@@ -549,6 +549,7 @@ abstract mixin class Instruction implements Serializable {
           final instruction = V128Instruction.fromOpcode(opcode);
           if (instruction != null) return instruction;
           return switch (opcode) {
+            0x0D => I8x16Shuffle.deserialize(d),
             0x15 => I8x16ExtractLaneS.deserialize(d),
             0x16 => I8x16ExtractLaneU.deserialize(d),
             0x17 => I8x16ReplaceLane.deserialize(d),
@@ -4378,7 +4379,9 @@ enum V128Instruction with Instruction {
   v128Or(0x50, 'v128.or'),
   v128Xor(0x51, 'v128.xor'),
   v128BitSelect(0x52, 'v128.bitselect'),
+  v128AnyTrue(0x53, 'v128.any_true'),
   i8x16Neg(0x61, 'i8x16.neg'),
+  i8x16AllTrue(0x63, 'i8x16.all_true'),
   f32x4Ceil(0x67, 'f32x4.ceil'),
   f32x4Floor(0x68, 'f32x4.floor'),
   f32x4Trunc(0x69, 'f32x4.trunc'),
@@ -4390,15 +4393,18 @@ enum V128Instruction with Instruction {
   f64x2Trunc(0x7A, 'f64x2.trunc'),
   f64x2Nearest(0x94, 'f64x2.nearest'),
   i16x8Neg(0x81, 'i16x8.neg'),
+  i16x8AllTrue(0x83, 'i16x8.all_true'),
   i16x8Add(0x8E, 'i16x8.add'),
   i16x8Sub(0x91, 'i16x8.sub'),
   i16x8Mul(0x95, 'i16x8.mul'),
   i32x4Neg(0xA1, 'i32x4.neg'),
+  i32x4AllTrue(0xA3, 'i32x4.all_true'),
   i32x4Add(0xAE, 'i32x4.add'),
   i32x4Sub(0xB1, 'i32x4.sub'),
   i32x4Mul(0xB5, 'i32x4.mul'),
   i32x4DotI16x8(0xBA, 'i32x4.dot_i16x8_s'),
   i64x2Neg(0xC1, 'i64x2.neg'),
+  i64x2AllTrue(0xC3, 'i64x2.all_true'),
   i64x2Add(0xCE, 'i64x2.add'),
   i64x2Sub(0xD1, 'i64x2.sub'),
   i64x2Mul(0xD5, 'i64x2.mul'),
@@ -4447,6 +4453,30 @@ enum V128Instruction with Instruction {
     s.writeByte(0xFD);
     s.writeUnsigned(opcode);
   }
+}
+
+class I8x16Shuffle extends Instruction {
+  const I8x16Shuffle(this.lanes);
+
+  final List<int> lanes;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x0D);
+    for (var lane in lanes) {
+      s.writeByte(lane);
+    }
+  }
+
+  static I8x16Shuffle deserialize(Deserializer d) =>
+      I8x16Shuffle(List.generate(16, (_) => d.readByte()));
+
+  @override
+  String get name => 'i8x16.shuffle';
+
+  @override
+  String toString() => '$name ${lanes.join(' ')}';
 }
 
 class I8x16ExtractLaneS extends Instruction {

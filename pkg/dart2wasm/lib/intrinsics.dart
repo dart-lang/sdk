@@ -161,6 +161,10 @@ enum StaticIntrinsic {
   wasmF64x2Splat('dart:_wasm', null, 'WasmF64x2|constructor#splat'),
   wasmF64x2ExtractLane('dart:_wasm', null, 'WasmF64x2|extractLane'),
   wasmF64x2ReplaceLane('dart:_wasm', null, 'WasmF64x2|replaceLane'),
+  wasmF64x2ConstructorFromLaneValues(
+      'dart:_wasm', null, 'WasmF64x2|constructor#fromLaneValues'),
+  wasmF32x4ConstructorFromLaneValues(
+      'dart:_wasm', null, 'WasmF32x4|constructor#fromLaneValues'),
   wasmF32x4Add('dart:_wasm', null, 'WasmF32x4|+'),
   wasmF32x4Sub('dart:_wasm', null, 'WasmF32x4|-'),
   wasmF32x4Mul('dart:_wasm', null, 'WasmF32x4|*'),
@@ -223,6 +227,11 @@ enum StaticIntrinsic {
   wasmV128Xor('dart:_wasm', null, 'WasmV128Extension|^'),
   wasmV128AndNot('dart:_wasm', null, 'WasmV128Extension|andNot'),
   wasmV128BitSelect('dart:_wasm', null, 'WasmV128Extension|bitSelect'),
+  wasmV128AnyTrue('dart:_wasm', null, 'WasmV128Extension|get#anyTrue'),
+  wasmI64x2AllTrue('dart:_wasm', null, 'WasmI64x2|get#allTrue'),
+  wasmF64x2PMin('dart:_wasm', null, 'WasmF64x2|pmin'),
+  wasmF64x2PMax('dart:_wasm', null, 'WasmF64x2|pmax'),
+  wasmF64x2Shuffle('dart:_wasm', null, 'WasmF64x2|shuffle'),
   wasmAnyRefFromObject('dart:_wasm', 'WasmAnyRef', 'fromObject'),
   wasmFuncRefFromWasmFunction('dart:_wasm', 'WasmFuncRef', 'fromWasmFunction'),
   wasmEqRefFromObject('dart:_wasm', 'WasmEqRef', 'fromObject'),
@@ -1475,6 +1484,78 @@ class Intrinsifier {
             throw StateError('Unhandled ffi intrinsic: $intrinsic');
         }
 
+      case StaticIntrinsic.wasmV128AnyTrue:
+        codeGen.translateExpression(
+            node.arguments.positional[0], w.NumType.v128);
+        b.v128_any_true();
+        return w.NumType.i32;
+      case StaticIntrinsic.wasmI64x2AllTrue:
+        codeGen.translateExpression(
+            node.arguments.positional[0], w.NumType.v128);
+        b.i64x2_all_true();
+        return w.NumType.i32;
+      case StaticIntrinsic.wasmF64x2PMin:
+        codeGen.translateExpression(
+            node.arguments.positional[0], w.NumType.v128);
+        codeGen.translateExpression(
+            node.arguments.positional[1], w.NumType.v128);
+        b.f64x2_pmin();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmF64x2PMax:
+        codeGen.translateExpression(
+            node.arguments.positional[0], w.NumType.v128);
+        codeGen.translateExpression(
+            node.arguments.positional[1], w.NumType.v128);
+        b.f64x2_pmax();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmF64x2ConstructorFromLaneValues:
+        codeGen.translateExpression(
+            node.arguments.positional[0], w.NumType.f64);
+        b.f64x2_splat();
+        codeGen.translateExpression(
+            node.arguments.positional[1], w.NumType.f64);
+        b.f64x2_replace_lane(1);
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmF32x4ConstructorFromLaneValues:
+        codeGen.translateExpression(
+            node.arguments.positional[0], w.NumType.f32);
+        b.f32x4_splat();
+        codeGen.translateExpression(
+            node.arguments.positional[1], w.NumType.f32);
+        b.f32x4_replace_lane(1);
+        codeGen.translateExpression(
+            node.arguments.positional[2], w.NumType.f32);
+        b.f32x4_replace_lane(2);
+        codeGen.translateExpression(
+            node.arguments.positional[3], w.NumType.f32);
+        b.f32x4_replace_lane(3);
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmF64x2Shuffle:
+        codeGen.translateExpression(
+            node.arguments.positional[0], w.NumType.v128);
+        codeGen.translateExpression(
+            node.arguments.positional[1], w.NumType.v128);
+        Expression lanesExp = node.arguments.positional[2];
+        final lanes = _extractLaneIndices(lanesExp);
+        if (lanes == null || lanes.length != 2) {
+          throw "Shuffle lanes must be a constant list of length 2";
+        }
+        List<int> bytes = [];
+        for (int lane in lanes) {
+          if (lane == 0) {
+            bytes.addAll([0, 1, 2, 3, 4, 5, 6, 7]);
+          } else if (lane == 1) {
+            bytes.addAll([8, 9, 10, 11, 12, 13, 14, 15]);
+          } else if (lane == 2) {
+            bytes.addAll([16, 17, 18, 19, 20, 21, 22, 23]);
+          } else if (lane == 3) {
+            bytes.addAll([24, 25, 26, 27, 28, 29, 30, 31]);
+          } else {
+            throw "Lane index out of range";
+          }
+        }
+        b.i8x16_shuffle(bytes);
+        return w.NumType.v128;
       // WasmArray constructors
       case StaticIntrinsic.wasmArrayNew:
       case StaticIntrinsic.wasmArrayFilled:
@@ -2969,6 +3050,24 @@ int? extractIntValue(Expression expr) {
     }
   }
 
+  return null;
+}
+
+List<int>? _extractLaneIndices(Expression expr) {
+  if (expr is ConstantExpression) {
+    final constant = expr.constant;
+    if (constant is ListConstant) {
+      final bytes = <int>[];
+      for (final entry in constant.entries) {
+        if (entry is IntConstant) {
+          bytes.add(entry.value);
+        } else {
+          return null;
+        }
+      }
+      return bytes;
+    }
+  }
   return null;
 }
 

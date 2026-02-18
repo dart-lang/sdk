@@ -3151,6 +3151,44 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.v128BitSelect);
   }
 
+  void v128_any_true() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.i32],
+        trace: const ['v128.any_true']));
+    _add(ir.V128Instruction.v128AnyTrue);
+  }
+
+  void i8x16_all_true() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.i32],
+        trace: const ['i8x16.all_true']));
+    _add(ir.V128Instruction.i8x16AllTrue);
+  }
+
+  void i16x8_all_true() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.i32],
+        trace: const ['i16x8.all_true']));
+    _add(ir.V128Instruction.i16x8AllTrue);
+  }
+
+  void i32x4_all_true() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.i32],
+        trace: const ['i32x4.all_true']));
+    _add(ir.V128Instruction.i32x4AllTrue);
+  }
+
+  void i64x2_all_true() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.i32],
+        trace: const ['i64x2.all_true']));
+    _add(ir.V128Instruction.i64x2AllTrue);
+  }
+
+  void i8x16_shuffle(List<int> lanes) {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['i8x16.shuffle']));
+    assert(lanes.length == 16);
+    _add(ir.I8x16Shuffle(lanes));
+  }
+
   String _localTraceString(ir.Local local) {
     final localName = localNames[local.index];
     if (localName == null) {

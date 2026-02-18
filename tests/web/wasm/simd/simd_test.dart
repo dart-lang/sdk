@@ -206,6 +206,16 @@ void _testI64x2() {
   _expectCmpTrue(vEq.extractLane(0).toInt());
   vEq = v1.eq(WasmI64x2.splat(WasmI64.fromInt(11)));
   _expectCmpFalse(vEq.extractLane(0).toInt());
+
+  // allTrue
+  var vAllTrue = WasmI64x2.splat(WasmI64.fromInt(1)); // All non-zero
+  Expect.isTrue(vAllTrue.allTrue);
+  var vNotAllTrue = vAllTrue.replaceLane(0, WasmI64.fromInt(0));
+  Expect.isFalse(vNotAllTrue.allTrue);
+  vNotAllTrue = vAllTrue.replaceLane(1, WasmI64.fromInt(0));
+  Expect.isFalse(vNotAllTrue.allTrue);
+  var vZero = WasmI64x2.splat(WasmI64.fromInt(0));
+  Expect.isFalse(vZero.allTrue);
 }
 
 void _testF32x4() {
@@ -386,6 +396,14 @@ void _testF64x2() {
   var v1 = WasmF64x2.splat(WasmF64.fromDouble(10.5));
   var v2 = WasmF64x2.splat(WasmF64.fromDouble(2.0));
 
+  // constructor
+  var vFromDoubles = WasmF64x2.fromLaneValues(
+    10.5.toWasmF64(),
+    2.0.toWasmF64(),
+  );
+  Expect.equals(vFromDoubles.extractLane(0).toDouble(), 10.5);
+  Expect.equals(vFromDoubles.extractLane(1).toDouble(), 2.0);
+
   Expect.equals(v1.extractLane(0).toDouble(), 10.5);
   Expect.equals(v2.extractLane(0).toDouble(), 2.0);
   Expect.equals(v1.extractLane(1).toDouble(), 10.5);
@@ -489,6 +507,50 @@ void _testF64x2() {
   var vGe = v1.ge(v2);
   _expectCmpTrue(vGe.extractLane(0).toInt());
   _expectCmpTrue(vGe.extractLane(1).toInt());
+  vGe = v1.ge(v1); // 10.5 >= 10.5 -> true
+  _expectCmpTrue(vGe.extractLane(0).toInt());
+  _expectCmpTrue(vGe.extractLane(1).toInt());
+
+  // pmin
+  var vPmin = v1.pmin(v2); // pmin(10.5, 2.0) -> 2.0
+  Expect.equals(vPmin.extractLane(0).toDouble(), 2.0);
+  Expect.equals(vPmin.extractLane(1).toDouble(), 2.0);
+  // NaN handling
+  var vNaN = WasmF64x2.splat(WasmF64.fromDouble(double.nan));
+  vPmin = v1.pmin(vNaN);
+  Expect.equals(
+    vPmin.extractLane(0).toDouble(),
+    10.5,
+  ); // pmin(10.5, NaN) -> 10.5
+  vPmin = vNaN.pmin(v1);
+  Expect.isTrue(
+    vPmin.extractLane(0).toDouble().isNaN,
+  ); // pmin(NaN, 10.5) -> NaN
+
+  // pmax
+  var vPmax = v1.pmax(v2); // pmax(10.5, 2.0) -> 10.5
+  Expect.equals(vPmax.extractLane(0).toDouble(), 10.5);
+  Expect.equals(vPmax.extractLane(1).toDouble(), 10.5);
+
+  // NaN handling
+  vPmax = v1.pmax(vNaN);
+  Expect.equals(
+    vPmax.extractLane(0).toDouble(),
+    10.5,
+  ); // pmax(10.5, NaN) -> 10.5
+  vPmax = vNaN.pmax(v1);
+  Expect.isTrue(
+    vPmax.extractLane(0).toDouble().isNaN,
+  ); // pmax(NaN, 10.5) -> NaN
+
+  // shuffle
+  var vMixed = WasmF64x2.fromLaneValues(1.0.toWasmF64(), 2.0.toWasmF64());
+  var vSwapped = vMixed.shuffle(vMixed, const [1, 0]);
+  Expect.equals(vSwapped.extractLane(0).toDouble(), 2.0);
+  Expect.equals(vSwapped.extractLane(1).toDouble(), 1.0);
+  var vDup = vMixed.shuffle(vMixed, const [0, 0]);
+  Expect.equals(vDup.extractLane(0).toDouble(), 1.0);
+  Expect.equals(vDup.extractLane(1).toDouble(), 1.0);
 }
 
 void _testV128() {
@@ -598,6 +660,16 @@ void _testV128() {
     vSel2.extractLane(3).toIntUnsigned(),
     bitSelect(0x05555555, 0x87654321, 0x12345678),
   );
+
+  // anyTrue
+  var vZero = WasmI32x4.splat(WasmI32.fromInt(0));
+  Expect.isFalse(vZero.anyTrue);
+  var vNonZero = WasmI32x4.splat(WasmI32.fromInt(1));
+  Expect.isTrue(vNonZero.anyTrue);
+  var vOneBit = WasmI32x4.splat(
+    WasmI32.fromInt(0),
+  ).replaceLane(0, WasmI32.fromInt(1));
+  Expect.isTrue(vOneBit.anyTrue);
 }
 
 void _expectCmpTrue(int v) => Expect.equals(v, -1);
