@@ -64,6 +64,7 @@ class _DeprecatedElementUsageReporter extends ElementUsageReporter<String> {
     String displayName,
     String tagInfo, {
     required bool isInSamePackage,
+    required bool isInTestDirectory,
   }) {
     if (!isInSamePackage) {
       // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.

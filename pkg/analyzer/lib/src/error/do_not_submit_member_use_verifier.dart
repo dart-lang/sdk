@@ -23,6 +23,7 @@ class DoNotSubmitElementUsageReporter implements ElementUsageReporter<()> {
     String displayName,
     () tagInfo, {
     required bool isInSamePackage,
+    required bool isInTestDirectory,
   }) {
     _diagnosticReporter.report(
       diag.invalidUseOfDoNotSubmitMember
