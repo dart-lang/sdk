@@ -154,6 +154,44 @@ var a = A(5);
     );
   }
 
+  test_canBeConst_literal() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+
+class K {
+  @literal
+  const K();
+}
+
+K k = K();
+''',
+      [
+        // No lint
+        error(diag.nonConstCallToLiteralConstructor, 77, 3),
+      ],
+    );
+  }
+
+  test_canBeConst_literal_dotShorthands() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+
+class K {
+  @literal
+  const K();
+}
+
+K k = .new();
+''',
+      [
+        // No lint
+        error(diag.nonConstCallToLiteralConstructor, 77, 6),
+      ],
+    );
+  }
+
   test_canBeConst_optionalNamedParameter() async {
     await assertDiagnostics(
       r'''
@@ -396,50 +434,6 @@ extension type E(int i) {}
 
 var e = E(1);
 ''');
-  }
-
-  test_extraPositionalArgument() async {
-    await assertDiagnostics(
-      r'''
-import 'package:meta/meta.dart';
-
-class K {
-  @literal
-  const K();
-}
-
-K k() {
-  var kk = K();
-  return kk;
-}
-''',
-      [
-        // No lint
-        error(diag.nonConstCallToLiteralConstructor, 90, 3),
-      ],
-    );
-  }
-
-  test_extraPositionalArgument_dotShorthands() async {
-    await assertDiagnostics(
-      r'''
-import 'package:meta/meta.dart';
-
-class K {
-  @literal
-  const K();
-}
-
-K k() {
-  K kk = .new();
-  return kk;
-}
-''',
-      [
-        // No lint
-        error(diag.nonConstCallToLiteralConstructor, 88, 6),
-      ],
-    );
   }
 
   test_isConst_intLiteralArgument() async {
