@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
@@ -77,9 +76,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     method?.body.accept(_IdentifierVisitor(properties));
   }
 
-  bool skipForDiagnostic({Element? element, DartType? type, Token? name}) =>
-      name.isPrivate || _isOverridingMember(element) || type.isWidgetProperty;
-
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // We only care about Diagnosticables.
@@ -92,26 +88,42 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     var properties = <Token>[];
+
+    // Check primary constructor for declaring parameters.
+    if (node.namePart case PrimaryConstructorDeclaration namePart) {
+      for (var parameter in namePart.formalParameters.parameters) {
+        var declaredElement = parameter.declaredFragment?.element;
+        if (declaredElement is FieldFormalParameterElement &&
+            declaredElement.isDeclaring) {
+          var field = declaredElement.field;
+          if (field == null) continue;
+          if (field.type.isWidgetProperty) continue;
+          if (field.shouldBeDescribed) {
+            var name = parameter.name;
+            if (name != null) {
+              properties.add(name);
+            }
+          }
+        }
+      }
+    }
+
     for (var member in body.members) {
       if (member is MethodDeclaration && member.isGetter) {
-        if (!member.isStatic &&
-            !skipForDiagnostic(
-              element: member.declaredFragment?.element,
-              name: member.name,
-              type: member.returnType?.type,
-            )) {
+        if (member.isStatic) continue;
+        var declaredElement = member.declaredFragment?.element;
+        if (declaredElement == null) continue;
+        if (declaredElement.type.returnType.isWidgetProperty) continue;
+        if (declaredElement.shouldBeDescribed) {
           properties.add(member.name);
         }
       } else if (member is FieldDeclaration) {
         for (var v in member.fields.variables) {
+          if (member.isStatic) continue;
           var declaredElement = v.declaredFragment?.element;
-          if (declaredElement != null &&
-              !declaredElement.isStatic &&
-              !skipForDiagnostic(
-                element: declaredElement,
-                name: v.name,
-                type: declaredElement.type,
-              )) {
+          if (declaredElement == null) continue;
+          if (declaredElement.type.isWidgetProperty) continue;
+          if (declaredElement.shouldBeDescribed) {
             properties.add(v.name);
           }
         }
@@ -123,27 +135,19 @@ class _Visitor extends SimpleAstVisitor<void> {
     var debugFillProperties = body.members.getMethod('debugFillProperties');
     var debugDescribeChildren = body.members.getMethod('debugDescribeChildren');
 
-    // Remove any defined in debugFillProperties.
+    // Remove any defined in `debugFillProperties`.
     removeReferences(debugFillProperties, properties);
 
-    // Remove any defined in debugDescribeChildren.
+    // Remove any defined in `debugDescribeChildren`.
     removeReferences(debugDescribeChildren, properties);
 
     // Flag the rest.
     properties.forEach(rule.reportAtToken);
   }
+}
 
-  bool _isOverridingMember(Element? member) {
-    if (member == null) return false;
-
-    var classElement = member.thisOrAncestorOfType<InterfaceElement>();
-    if (classElement == null) return false;
-
-    var name = member.name;
-    if (name == null) return false;
-
-    return classElement.getInheritedMember(Name(null, name)) != null;
-  }
+extension on Element {
+  bool get shouldBeDescribed => isPublic && overriddenMember == null;
 }
 
 extension on List<ClassMember> {
