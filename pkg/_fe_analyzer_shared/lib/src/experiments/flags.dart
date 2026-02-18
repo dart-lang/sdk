@@ -244,10 +244,10 @@ enum ExperimentalFlag {
 
   privateNamedParameters(
     name: 'private-named-parameters',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 12),
+    experimentReleasedVersion: const Version(3, 12),
   ),
 
   recordUse(

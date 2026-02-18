@@ -87,7 +87,7 @@ main() {
 ''',
       [
         error(diag.unusedField, 17, 2),
-        error(diag.experimentNotEnabledOffByDefault, 31, 2),
+        error(diag.experimentNotEnabled, 31, 2),
         error(diag.undefinedNamedParameter, 53, 1),
       ],
     );
