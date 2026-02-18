@@ -126,6 +126,37 @@ To start a new minor version for the analyzer and related packages, follow these
 
 5. **Prepare the commit message**: see git `98c4f54c0f56b0f08d3fa7d5ddf4bcaf905764ff` as example.
 
+## Workflow: Start a new major version
+
+To start a new major version for the analyzer and related packages, follow these steps.
+
+1. **Update `analyzer`**:
+    * Edit `pkg/analyzer/pubspec.yaml`.
+    * Increment the major version (e.g., `9.0.0` -> `10.0.0-dev`).
+    * Update `pkg/analyzer/CHANGELOG.md` to add a new section for the new version.
+    * Add "Internal changes only" as a placeholder.
+
+2. **Update `analyzer_plugin`**:
+    * Edit `pkg/analyzer_plugin/pubspec.yaml`.
+    * Set the version to the next patch `dev` version.
+    * Update the `analyzer` dependency to allow the new major version (e.g., `^10.0.0-0`).
+    * Update `pkg/analyzer_plugin/CHANGELOG.md` to add a new section for the new version.
+
+3. **Update `analyzer_testing`**:
+    * Edit `pkg/analyzer_testing/pubspec.yaml`.
+    * Set the version to the next patch `dev` version.
+    * Update the `analyzer` dependency to allow the new major version (e.g., `^10.0.0-0`).
+    * Update `pkg/analyzer_testing/CHANGELOG.md` to add a new section for the new version.
+
+4. **Update `analysis_server_plugin`**:
+    * Edit `pkg/analysis_server_plugin/pubspec.yaml`.
+    * Set the version to the next patch `dev` version.
+    * Update the `analyzer` dependency to allow the new major version (e.g., `^10.0.0-0`).
+    * Update the `analyzer_plugin` dependency to be the **exact** version from step 2.
+    * Update `pkg/analysis_server_plugin/CHANGELOG.md` to add a new section for the new version.
+
+5. **Prepare the commit message**: see https://dart-review.googlesource.com/c/sdk/+/444924 as example.
+
 ## Workflow: Prepare a release
 
 To prepare the packages for publishing, follow these steps.
