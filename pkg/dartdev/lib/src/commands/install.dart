@@ -42,7 +42,7 @@ Examples:
   dart install '<pkg>@{git: {url: https://github.com/<owner>/<repo>, path: <path>}}'
   dart install '<pkg>@{path: /path/to/<pkg>}'
 
-See https://dart.dev/go/pub-descriptors for more details.''';
+See https://dart.dev/to/package-descriptors for more details.''';
   static const int genericErrorExitCode = 255;
 
   static const gitRefOption = 'git-ref';
