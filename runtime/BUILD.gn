@@ -284,6 +284,12 @@ config("dart_config") {
         "/Gw",
       ]
     }
+    if (!is_clang) {
+      cflags += [
+        # Fixes __VA_OPT__ when using MSVC.
+        "/Zc:preprocessor",
+      ]
+    }
   } else {
     cflags = [
       "-Wno-unused-parameter",

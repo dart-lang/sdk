@@ -222,17 +222,10 @@ PRECOMPILER_WSR_FIELD_DEFINITION(Function, FunctionType, signature)
 
 #undef PRECOMPILER_WSR_FIELD_DEFINITION
 
-#if defined(_MSC_VER)
-#define TRACE_TYPE_CHECKS_VERBOSE(format, ...)                                 \
-  if (FLAG_trace_type_checks_verbose) {                                        \
-    OS::PrintErr(format, __VA_ARGS__);                                         \
-  }
-#else
 #define TRACE_TYPE_CHECKS_VERBOSE(format, ...)                                 \
   if (FLAG_trace_type_checks_verbose) {                                        \
     OS::PrintErr(format, ##__VA_ARGS__);                                       \
   }
-#endif
 
 // Takes a vm internal name and makes it suitable for external user.
 //

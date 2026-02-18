@@ -92,7 +92,7 @@ Running a remote package executable:
   To run from a git package:
     dart run 'pubviz@{git: https://github.com/kevmoo/pubviz}'
 
-See https://dart.dev/go/pub-descriptors for more details.''', verbose) {
+See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     argParser
       ..addFlag(
         residentOption,

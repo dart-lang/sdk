@@ -1,3 +1,10 @@
+## 1.18.2-wip
+
+- Change private types in the public API signatures to `Object`.
+- Update documentation to follow the "single line first paragraph" style.
+- Make `visibleForTesting` documentation match actual behavior:
+  The annotated member *can* be used in the `test/` directory of other packages.
+
 ## 1.18.1
 
 - Allow `@awaitNotRequired` to annotate a typedef.
@@ -7,7 +14,7 @@
 - The `@redeclare` annotation is no longer considered experimental.
 - Two new TargetKinds are introduced: `TargetKind.exportDirective`, which
   indicates an annotation is valid on an export directive, and
-  `TargetKind.partOfDirective`, which indicates an annnotation is valid on a
+  `TargetKind.partOfDirective`, which indicates an annotation is valid on a
   "part of" directive.
 - The `TargetKind.directive` value is deprecated in favor of the above new
   TargetKinds and the existing `TargetKind.library`.

@@ -36,6 +36,25 @@ class A {
     );
   }
 
+  test_assertInitializer_primaryConstructorBody_message() async {
+    await assertNoDiagnostics(r'''
+class C(int x) {
+  this : assert(x > 0, 'x must be positive');
+}
+''');
+  }
+
+  test_assertInitializer_primaryConstructorBody_noMessage() async {
+    await assertDiagnostics(
+      r'''
+class C(int x) {
+  this : assert(x > 0);
+}
+''',
+      [lint(26, 13)],
+    );
+  }
+
   test_assertStatement_message() async {
     await assertNoDiagnostics(r'''
 void f() {
@@ -52,6 +71,42 @@ void f() {
 }
 ''',
       [lint(13, 13)],
+    );
+  }
+
+  test_assertStatement_primaryConstructorBody_noMessage() async {
+    await assertDiagnostics(
+      r'''
+class C(int x) {
+  this {
+    assert(x > 0);
+  }
+}
+''',
+      [lint(30, 14)],
+    );
+  }
+
+  test_enum_assertInitializer_primaryConstructorBody_noMessage() async {
+    await assertDiagnostics(
+      r'''
+enum E(int x) {
+  e1(1);
+  this : assert(x > 0);
+}
+''',
+      [lint(34, 13)],
+    );
+  }
+
+  test_extensionType_assertInitializer_primaryConstructorBody_noMessage() async {
+    await assertDiagnostics(
+      r'''
+extension type E(int x) {
+  this : assert(x > 0);
+}
+''',
+      [lint(35, 13)],
     );
   }
 }

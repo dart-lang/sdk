@@ -10,6 +10,16 @@
   by the current projects pubspec.lock. For the old behavior of repairing all
   packages use the `--all` flag.
 
+#### dart2wasm
+
+- Updated deferred loading module loader API to allow batched fetching of
+  deferred modules. The embedder now takes `loadDeferredModules` instead of
+  `loadDeferredModule` where the new function should now expect an array of
+  module names rather than individual module names. All the module loading
+  functions must now also accept an `instantiator` callback to which they
+  should pass the loaded results.
+
+
 ## 3.11.0
 
 **Released on:** Unreleased
