@@ -25,7 +25,7 @@ enum Opcode {
   kCheckFunctionTypeArgs,
   kCheckFunctionTypeArgs_Wide,
   kCheckStack,
-  kDebugCheck,
+  kNop,
   kJumpIfUnchecked,
   kJumpIfUnchecked_Wide,
 
@@ -294,7 +294,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kAE, const [Operand.imm, Operand.reg, Operand.none]),
   Opcode.kCheckStack: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
-  Opcode.kDebugCheck: const Format(
+  Opcode.kNop: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAllocate: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),

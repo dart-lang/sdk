@@ -48,7 +48,7 @@ namespace dart {
   V(CheckFunctionTypeArgs,               A_E, ORDN, num, reg, ___)             \
   V(CheckFunctionTypeArgs_Wide,          A_E, WIDE, num, reg, ___)             \
   V(CheckStack,                            A, ORDN, num, ___, ___)             \
-  V(DebugCheck,                            0, ORDN, ___, ___, ___)             \
+  V(Nop,                                   0, ORDN, ___, ___, ___)             \
   V(JumpIfUnchecked,                       T, ORDN, tgt, ___, ___)             \
   V(JumpIfUnchecked_Wide,                  T, WIDE, tgt, ___, ___)             \
   V(Allocate,                              D, ORDN, lit, ___, ___)             \
