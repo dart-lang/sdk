@@ -23,7 +23,15 @@
       "definition": {
         "path": [
           {
-            "name": "_extension#0|callWithArgs"
+            "kind": "extension",
+            "name": "<unnamed>"
+          },
+          {
+            "disambiguators": [
+              "instance"
+            ],
+            "kind": "method",
+            "name": "callWithArgs"
           }
         ],
         "uri": "package:record_use_test/extension.dart"

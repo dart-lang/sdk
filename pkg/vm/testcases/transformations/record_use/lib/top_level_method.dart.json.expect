@@ -23,6 +23,10 @@
       "definition": {
         "path": [
           {
+            "disambiguators": [
+              "static"
+            ],
+            "kind": "method",
             "name": "someTopLevelMethod"
           }
         ],

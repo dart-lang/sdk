@@ -120,9 +120,14 @@
       "definition": {
         "path": [
           {
+            "kind": "class",
             "name": "SomeClass"
           },
           {
+            "disambiguators": [
+              "static"
+            ],
+            "kind": "method",
             "name": "someStaticMethod"
           }
         ],

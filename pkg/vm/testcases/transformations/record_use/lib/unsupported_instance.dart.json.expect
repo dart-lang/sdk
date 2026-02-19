@@ -29,6 +29,10 @@
       "definition": {
         "path": [
           {
+            "disambiguators": [
+              "static"
+            ],
+            "kind": "method",
             "name": "recorded"
           }
         ],
@@ -39,6 +43,7 @@
       "definition": {
         "path": [
           {
+            "kind": "class",
             "name": "MyClass"
           }
         ],

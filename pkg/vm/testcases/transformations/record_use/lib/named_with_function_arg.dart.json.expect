@@ -26,7 +26,15 @@
       "definition": {
         "path": [
           {
-            "name": "Ext|foo"
+            "kind": "extension",
+            "name": "Ext"
+          },
+          {
+            "disambiguators": [
+              "instance"
+            ],
+            "kind": "method",
+            "name": "foo"
           }
         ],
         "uri": "package:record_use_test/named_with_function_arg.dart"

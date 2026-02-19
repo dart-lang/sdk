@@ -13,6 +13,7 @@
       "definition": {
         "path": [
           {
+            "kind": "class",
             "name": "MyClass"
           }
         ],

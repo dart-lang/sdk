@@ -55,7 +55,9 @@ class InstanceRecorder {
     final enclosingLibrary = cls.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
 
-    return Definition(importUri, [Name(cls.name)]);
+    return Definition(importUri, [
+      Name(cls.name, kind: DefinitionKind.classKind),
+    ]);
   }
 
   InstanceReference _createInstanceReference(
