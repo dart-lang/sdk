@@ -51,6 +51,14 @@ class InstanceRecorder {
     );
   }
 
+  InstanceReference _createInstanceReference(
+    ast.ConstantExpression expression,
+    ast.InstanceConstant constant,
+  ) => InstanceConstantReference(
+    instanceConstant: evaluateInstanceConstant(constant),
+    loadingUnits: [_loadingUnitLookup(expression)],
+  );
+
   Definition _definitionFromClass(ast.Class cls) {
     final enclosingLibrary = cls.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
@@ -59,12 +67,4 @@ class InstanceRecorder {
       Name(cls.name, kind: DefinitionKind.classKind),
     ]);
   }
-
-  InstanceReference _createInstanceReference(
-    ast.ConstantExpression expression,
-    ast.InstanceConstant constant,
-  ) => InstanceConstantReference(
-    instanceConstant: evaluateInstanceConstant(constant),
-    loadingUnit: _loadingUnitLookup(expression),
-  );
 }

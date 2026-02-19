@@ -22,10 +22,10 @@ dependencies:
   wasm_builder: any
   path: any
   pool: any
+  record_use: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   expect: any
   js: any
   lints: any
-  record_use: any

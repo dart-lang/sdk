@@ -5,6 +5,29 @@
       "value": "hello-world"
     }
   ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "extension",
+          "name": "Ext"
+        },
+        {
+          "disambiguators": [
+            "instance"
+          ],
+          "kind": "method",
+          "name": "foo"
+        }
+      ],
+      "uri": "package:record_use_test/named_with_function_arg.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
@@ -13,7 +36,9 @@
     {
       "calls": [
         {
-          "loading_unit": "1",
+          "loading_unit_indices": [
+            0
+          ],
           "named": {
             "s": 0
           },
@@ -23,22 +48,7 @@
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "path": [
-          {
-            "kind": "extension",
-            "name": "Ext"
-          },
-          {
-            "disambiguators": [
-              "instance"
-            ],
-            "kind": "method",
-            "name": "foo"
-          }
-        ],
-        "uri": "package:record_use_test/named_with_function_arg.dart"
-      }
+      "definition_index": 0
     }
   ]
 }

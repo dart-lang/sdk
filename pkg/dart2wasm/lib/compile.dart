@@ -22,6 +22,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
 import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart' as pool;
+import 'package:record_use/record_use_internal.dart' as record_use;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformLibraries;
@@ -710,7 +711,7 @@ Future<CompilationResult> _runCodegenPhase(
   await ioManager.writeSupportJs(supportJs);
 
   if (options.recordedUsesFile != null) {
-    String loadingUnitForNode(TreeNode node) {
+    record_use.LoadingUnit loadingUnitForNode(TreeNode node) {
       while (node is! NamedNode) {
         node = node.parent!;
       }
@@ -720,9 +721,10 @@ Future<CompilationResult> _runCodegenPhase(
           moduleOutputData.modules.length > 1) {
         // This is an unassigned reference such as a constant class only
         // used for annotations. Assign it to the main module as a placeholder.
-        return moduleOutputData.mainModule.moduleImportName;
+        return record_use.LoadingUnit(
+            moduleOutputData.mainModule.moduleImportName);
       }
-      return moduleOutput.moduleImportName;
+      return record_use.LoadingUnit(moduleOutput.moduleImportName);
     }
 
     record_use.transformComponent(component, options.recordedUsesFile!,

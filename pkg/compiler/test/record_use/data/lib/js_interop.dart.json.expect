@@ -5,6 +5,25 @@
       "value": 6
     }
   ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "someExternalFunction"
+        }
+      ],
+      "uri": "package:record_use_js_test/js_interop.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "out"
+    }
+  ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0",
@@ -22,25 +41,16 @@
     {
       "calls": [
         {
-          "loading_unit": "out",
+          "loading_unit_indices": [
+            0
+          ],
           "positional": [
             0
           ],
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "path": [
-          {
-            "disambiguators": [
-              "static"
-            ],
-            "kind": "method",
-            "name": "someExternalFunction"
-          }
-        ],
-        "uri": "package:record_use_js_test/js_interop.dart"
-      }
+      "definition_index": 0
     }
   ]
 }

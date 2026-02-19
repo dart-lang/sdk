@@ -57,7 +57,7 @@ class RecordUseCollector {
     switch (recordedUse) {
       case RecordedCallWithArguments():
         final reference = CallWithArguments(
-          loadingUnit: loadingUnit,
+          loadingUnits: [LoadingUnit(loadingUnit)],
           namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
           positionalArguments: recordedUse
               .positionalArgumentsInRecordUseFormat(),
@@ -65,14 +65,14 @@ class RecordUseCollector {
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
         break;
       case RecordedTearOff():
-        final reference = CallTearoff(loadingUnit: loadingUnit);
+        final reference = CallTearoff(loadingUnits: [LoadingUnit(loadingUnit)]);
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
         break;
       case RecordedConstInstance():
         final instanceValue = findInstanceValue(recordedUse.constant);
         final reference = InstanceConstantReference(
           instanceConstant: instanceValue,
-          loadingUnit: loadingUnit,
+          loadingUnits: [LoadingUnit(loadingUnit)],
         );
         instanceMap
             .putIfAbsent(recordedUse.constantClass, () => [])

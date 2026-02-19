@@ -43,7 +43,7 @@ class CallRecorder {
       if (isBeingRecorded(constant.target)) {
         _addToUsage(
           constant.target,
-          CallTearoff(loadingUnit: _loadingUnitLookup(node)),
+          CallTearoff(loadingUnits: [_loadingUnitLookup(node)]),
         );
       }
     }
@@ -105,7 +105,7 @@ class CallRecorder {
     return CallWithArguments(
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
-      loadingUnit: _loadingUnitLookup(node),
+      loadingUnits: [_loadingUnitLookup(node)],
     );
   }
 
