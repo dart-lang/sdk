@@ -331,14 +331,17 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     // itself rather than linking to the class.
     var nameToken = node.name;
     if (nameToken == null) {
+      var constructorElement = node.declaredFragment?.element;
       computer._addRegionForElement(
-        // TODO(scheglov): support primary constructors
-        node.typeName!,
-        node.declaredFragment?.element,
+        node.newKeyword ?? node.typeName,
+        constructorElement,
       );
     } else {
-      // TODO(scheglov): support primary constructors
-      node.typeName!.accept(this);
+      node.typeName?.accept(this);
+      computer._addRegionForElement(
+        node.newKeyword,
+        node.declaredFragment?.element,
+      );
       computer._addRegionForFragment(nameToken, node.declaredFragment);
     }
 
@@ -790,10 +793,16 @@ extension on Fragment {
     var nameLength = name?.length;
 
     if (nameOffset == null) {
-      // For unnamed constructors, use the type name as the target location.
+      // For default constructors, use the type name or new keyword as the
+      // target location.
       if (this case ConstructorFragment self) {
-        nameOffset = self.typeNameOffset;
-        nameLength = self.typeName?.length;
+        if (self.typeName != null) {
+          nameOffset = self.typeNameOffset;
+          nameLength = self.typeName?.length;
+        } else if (self.newKeywordOffset != null) {
+          nameOffset = self.newKeywordOffset;
+          nameLength = 'new'.length;
+        }
       }
     }
 

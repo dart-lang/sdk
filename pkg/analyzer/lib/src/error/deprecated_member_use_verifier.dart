@@ -43,7 +43,6 @@ class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
     String displayName,
     String tagInfo, {
     required bool isInSamePackage,
-    required bool isInTestDirectory,
   }) {
     if (isInSamePackage) return;
     if (normalizeDeprecationMessage(tagInfo) case var message?) {

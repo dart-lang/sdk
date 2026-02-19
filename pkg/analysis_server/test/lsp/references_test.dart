@@ -203,6 +203,66 @@ void f() {
     await _checkRanges(content);
   }
 
+  Future<void> test_constructor_secondary_new_constructorName() async {
+    var content = '''
+class Aaa {
+  ne^w();
+}
+
+void f() {
+  Aaa value = Aaa/*[0*/.new/*0]*/();
+  Aaa/*[1*/.new/*1]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_secondary_new_typeName() async {
+    var content = '''
+class A^aa {
+  new();
+}
+
+void f() {
+  /*[0*/Aaa/*0]*/? value = /*[1*/Aaa/*1]*/.new();
+  /*[2*/Aaa/*2]*/.new();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_secondary_newNamed_constructorName() async {
+    var content = '''
+class Aaa {
+  new na^med();
+}
+
+void f() {
+  Aaa value = Aaa/*[0*/.named/*0]*/();
+  Aaa/*[1*/.named/*1]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_secondary_newNamed_typeName() async {
+    var content = '''
+class A^aa {
+  new named();
+}
+
+void f() {
+  /*[0*/Aaa/*0]*/? value = /*[1*/Aaa/*1]*/.named();
+  /*[2*/Aaa/*2]*/.named();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
   Future<void> test_field_decalaration_getterSetter() async {
     var content = '''
 class MyClass {
