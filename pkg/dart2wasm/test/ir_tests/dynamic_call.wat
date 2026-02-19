@@ -1,4 +1,5 @@
 (module $module0
+  (type $"dummy struct" (struct))
   (type $#Closure-0-0 (sub $#ClosureBase (struct
     (field $field0 i32)
     (field $field1 (mut i32))
@@ -11,7 +12,6 @@
     (field $context (ref struct))
     (field $vtable (ref $#VtableBase))
     (field $functionType (ref $_FunctionType)))))
-  (type $#DummyStruct (struct))
   (type $#NonGenericVtableBase (sub $#VtableBase (struct)))
   (type $#Top (struct
     (field $field0 i32)))
@@ -144,7 +144,7 @@
     (global.get $_FunctionType)
     (struct.new $#Closure-0-0))
   (global $1 (ref $BoxedInt)
-    (i32.const 67)
+    (i32.const 68)
     (i64.const 1)
     (struct.new $BoxedInt))
   (global $_FunctionType (ref $_FunctionType)
@@ -166,7 +166,7 @@
     (i64.const 2)
     (struct.new $_TopType))
   (global $global0 (ref struct)
-    (struct.new $#DummyStruct))
+    (struct.new $"dummy struct"))
   (global $global2 (ref $#Vtable-0-0)
     (ref.func $"main tear-off trampoline")
     (struct.new $#Vtable-0-0))

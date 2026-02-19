@@ -1,6 +1,6 @@
 (module $module2
+  (type $"dummy struct" <...>)
   (type $#Closure-0-1 <...>)
-  (type $#DummyStruct <...>)
   (type $#Top <...>)
   (type $#Vtable-0-1 <...>)
   (type $Array<_NamedParameter> <...>)
@@ -30,7 +30,7 @@
     (ref.null none))
   (global $H0 (mut (ref null $H0))
     (ref.null none))
-  (global $global0 (ref $#DummyStruct) <...>)
+  (global $global0 (ref $"dummy struct") <...>)
   (global $global2 (ref $#Vtable-0-1) <...>)
   (elem $module0.cross-module-funcs-0
     (set 6 (ref.func $globalH0Foo))

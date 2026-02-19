@@ -1,4 +1,5 @@
 (module $module0
+  (type $"dummy struct" <...>)
   (type $#Closure-0-0 <...>)
   (type $#Closure-0-2 (sub final $#Closure-0-0 (struct
     (field $field0 i32)
@@ -6,9 +7,8 @@
     (field $context (ref struct))
     (field $vtable (ref $#Vtable-0-2))
     (field $functionType (ref $_FunctionType)))))
-  (type $#DummyStruct <...>)
   (type $#Top <...>)
-  (type $#Vtable-0-2 (sub final $#DummyStruct (struct
+  (type $#Vtable-0-2 (sub final $"dummy struct" (struct
     (field $closureCallEntry-0-1 (ref $type0))
     (field $closureCallEntry-0-2 (ref $type2)))))
   (type $Array<_NamedParameter> <...>)
@@ -32,7 +32,7 @@
     (i32.const 0)
     (global.get $"WasmArray<_Type>[0]")
     (global.get $"WasmArray<_Type>[0]")
-    (global.get $_TopType_354)
+    (global.get $_TopType_355)
     (global.get $_InterfaceType_30)
     (i32.const 10)
     (i32.const 0)
@@ -57,7 +57,7 @@
     (i32.const 0)
     (global.get $"WasmArray<_Type>[0]")
     (global.get $"WasmArray<_Type>[0]")
-    (global.get $_TopType_354)
+    (global.get $_TopType_355)
     (global.get $_InterfaceType_30)
     (i32.const 10)
     (i32.const 0)
@@ -71,8 +71,8 @@
     (struct.new $_FunctionType)
     (struct.new $#Closure-0-2))
   (global $_InterfaceType_30 (ref $_InterfaceType) <...>)
-  (global $_TopType_354 (ref $_TopType) <...>)
-  (global $global0 (ref $#DummyStruct) <...>)
+  (global $_TopType_355 (ref $_TopType) <...>)
+  (global $global0 (ref $"dummy struct") <...>)
   (func $bar tear-off trampoline (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $bar tear-off trampoline_325 (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (param $var2 (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $foo tear-off trampoline (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
