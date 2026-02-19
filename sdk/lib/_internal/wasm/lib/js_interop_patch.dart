@@ -62,12 +62,6 @@ extension JSAnyUtilityExtension on JSAny? {
       .toBool();
 
   @patch
-  bool isA<T>() => throw UnimplementedError(
-    "This should never be called. Calls to 'isA' should have been "
-    'transformed by the interop transformer.',
-  );
-
-  @patch
   Object? dartify() {
     final convertedObjects = HashMap<Object?, Object?>.identity();
     Object? convert(Object? o) {
@@ -192,6 +186,12 @@ extension NullableObjectUtilExtension on Object? {
 
     return convert(this) as JSAny?;
   }
+
+  @patch
+  bool isA<T>() => throw UnimplementedError(
+    "This should never be called. Calls to 'isA' should have been "
+    'transformed by the interop transformer.',
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -242,9 +242,29 @@ WasmExternRef? _getJSBoxedDartObjectPropertyValue(JSAny any) =>
       _jsBoxedDartObjectPropertyExternRef,
     );
 
-// Used in the `isA` transform.
-bool _isJSBoxedDartObject(JSAny any) =>
-    !isDartNull(_getJSBoxedDartObjectPropertyValue(any));
+// Following are used in the `isA` transform.
+bool _isJSAny(Object? any) => any is JSValue && !any.isExternalizedDartValue;
+
+bool _isNullableJSAny(Object? any) => any == null || _isJSAny(any);
+
+bool _isJSBoxedDartObject(Object? any) =>
+    _isJSAny(any) &&
+    !isDartNull(_getJSBoxedDartObjectPropertyValue(unsafeCast<JSAny>(any)));
+
+bool _isNullableJSBoxedDartObject(Object? any) =>
+    any == null || _isJSBoxedDartObject(any);
+
+bool _isJSObject(Object? any) =>
+    _isJSAny(any) &&
+    // No need to check for null when doing typeof check since that's handled
+    // already by _isJSAny.
+    js_helper.JS<WasmI32>("""(o) => {
+          const typeofValue = typeof o;
+          return (typeofValue === 'object') ||
+              typeofValue === 'function';
+        }""", unsafeCast<JSAny>(any).toExternRef).toBool();
+
+bool _isNullableJSObject(Object? any) => any == null || _isJSObject(any);
 
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
@@ -294,7 +314,9 @@ extension ExternalDartReferenceToObject<T extends Object?>
     // ExternalDartReference<int>` since `JSValue<Object>` is not a subtype of
     // `JSValue<int>`, even though it may be valid to do such a cast.
     final t = this._externalDartReference;
-    return (t == null ? null : jsObjectToDartObject(t.toExternRef)) as T;
+    if (t == null) return null as T;
+    assert(t.isExternalizedDartValue);
+    return jsObjectToDartObject(t.toExternRef) as T;
   }
 }
 
@@ -932,11 +954,6 @@ class _Array {
 class _Symbol {
   external static JSSymbol get isConcatSpreadable;
 }
-
-// Used only so we can use `createStaticInteropMock`'s prototype-setting.
-@JS()
-@staticInterop
-class __ListBackedJSArray {}
 
 // Implementation of indexing, `length`, and core handler methods.
 //

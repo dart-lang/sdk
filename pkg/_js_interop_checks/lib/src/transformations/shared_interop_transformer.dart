@@ -34,13 +34,19 @@ class SharedInteropTransformer extends Transformer {
   late StaticInvocation? _invocation;
   final Procedure _isA;
   final Procedure _isATearoff;
+  final Procedure _isJSAny;
   final Procedure _isJSBoxedDartObject;
+  final Procedure _isJSObject;
+  final Procedure _isNullableJSAny;
+  final Procedure _isNullableJSBoxedDartObject;
+  final Procedure _isNullableJSObject;
   final ExtensionTypeDeclaration _jsAny;
   final ExtensionTypeDeclaration _jsFunction;
   final ExtensionTypeDeclaration _jsObject;
   final Procedure _setProperty;
   final Procedure _stringToJS;
   final StaticInteropMockValidator _staticInteropMockValidator;
+  final StatefulStaticTypeContext _staticTypeContext;
   final TypeEnvironment _typeEnvironment;
   final Procedure _typeofEquals;
 
@@ -85,14 +91,33 @@ class SharedInteropTransformer extends Transformer {
       ),
       _isA = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
-        'JSAnyUtilityExtension|isA',
+        'NullableObjectUtilExtension|isA',
       ),
       _isATearoff = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
-        'JSAnyUtilityExtension|${LibraryIndex.tearoffPrefix}isA',
+        'NullableObjectUtilExtension|${LibraryIndex.tearoffPrefix}isA',
+      ),
+      _isJSAny = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        '_isJSAny',
       ),
       _isJSBoxedDartObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isJSBoxedDartObject'),
+      _isJSObject = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        '_isJSObject',
+      ),
+      _isNullableJSAny = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        '_isNullableJSAny',
+      ),
+      _isNullableJSBoxedDartObject = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure(
+            'dart:js_interop',
+            '_isNullableJSBoxedDartObject',
+          ),
+      _isNullableJSObject = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isNullableJSObject'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
         'dart:js_interop',
         'JSAny',
@@ -118,6 +143,7 @@ class SharedInteropTransformer extends Transformer {
         _exportChecker,
         _typeEnvironment,
       ),
+      _staticTypeContext = StatefulStaticTypeContext.stacked(_typeEnvironment),
       _typeofEquals = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         'JSAnyUtilityExtension|typeofEquals',
@@ -129,6 +155,14 @@ class SharedInteropTransformer extends Transformer {
       .coreTypes
       .index
       .getTopLevelProcedure('dart:js_util', 'createStaticInteropMock');
+
+  @override
+  TreeNode visitLibrary(Library node) {
+    _staticTypeContext.enterLibrary(node);
+    node.transformChildren(this);
+    _staticTypeContext.leaveLibrary(node);
+    return node;
+  }
 
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
@@ -227,9 +261,11 @@ class SharedInteropTransformer extends Transformer {
 
   @override
   TreeNode visitProcedure(Procedure node) {
+    _staticTypeContext.enterMember(node);
     _inIsATearoff = node == _isATearoff;
     node.transformChildren(this);
     _inIsATearoff = false;
+    _staticTypeContext.leaveMember(node);
     return node;
   }
 
@@ -298,7 +334,7 @@ class SharedInteropTransformer extends Transformer {
   /// interface in [dartType].
   ///
   /// [dartType] is assumed to be a valid exportable class. [returnType] is the
-  /// type that the object literal will be casted to. [proto] is an optional
+  /// type that the object literal will be cast to. [proto] is an optional
   /// prototype object that users can pass to instantiate the object literal.
   ///
   /// The export map is already validated, so this method simply iterates over
@@ -525,24 +561,62 @@ class SharedInteropTransformer extends Transformer {
     ExtensionType interopType,
     ExtensionTypeDeclaration jsType,
   ) {
-    // In the case where the receiver wasn't a variable to begin with,
-    // synthesize a var so that we don't evaluate the receiver multiple times.
-    final any = receiver is VariableGet
+    final receiverStaticType = receiver.getStaticType(_staticTypeContext);
+    final receiverInteropTypeDeclaration = _extensionIndex
+        .getCoreInteropType(receiverStaticType)
+        ?.node;
+    final receiverIsJSType =
+        receiverInteropTypeDeclaration is ExtensionTypeDeclaration
+        ? _extensionIndex.isJSType(receiverInteropTypeDeclaration)
+        : false;
+    final receiverVar = receiver is VariableGet
         ? receiver.variable
+        // Synthesize declaration to avoid re-evaluating expressions.
         : (VariableDeclaration.forValue(
             receiver,
-            type: ExtensionType(_jsAny, Nullability.nullable),
+            type: receiverIsJSType
+                ? ExtensionType(_jsAny, Nullability.nullable)
+                : receiverStaticType,
           )..fileOffset = invocation.fileOffset);
+    final receiverVarAsJSAny =
+        receiverIsJSType
+              ? VariableGet(receiverVar)
+              : AsExpression(
+                  VariableGet(receiverVar),
+                  ExtensionType(_jsAny, Nullability.nullable),
+                )
+          ..fileOffset = invocation.fileOffset
+          ..parent = invocation.parent;
 
-    Expression? check;
     final interopTypeDecl = interopType.extensionTypeDeclaration;
+    final interopTypeNullable = interopType.nullability == Nullability.nullable;
     final jsTypeName = jsType.name;
+    // If not a subtype of `JSAny`, check that it's a valid `JSAny` first.
+    Expression? isJSAnyCheck = !receiverIsJSType
+        ? StaticInvocation(_isJSAny, Arguments([VariableGet(receiverVar)]))
+        : null;
+    // In the cases where we only call helper methods, they should do the
+    // null-related checks instead of the transformation to reduce code size.
+    var nullChecksNeeded = true;
+    Expression? check;
     String? typeofString;
     String? instanceOfString;
+    // TODO(srujzs): Add specific check for `JSExportedDartFunction`.
+    // https://github.com/dart-lang/sdk/issues/62573
+    // TODO(srujzs): Maybe use `Array.isArray` for `JSArray`.
+    // https://github.com/dart-lang/sdk/issues/62699
     switch (jsTypeName) {
       case 'JSAny' when interopTypeDecl == jsType:
-        // Only avoids any non null-related checks when users are referring
-        // directly to the `dart:js_interop` type and not some wrapper.
+        // In the case where it is == `JSAny`, it is possible the user may have
+        // cast an incorrect value to `JSAny` due to the type-system. While an
+        // incorrect cast could occur in some way for other JS interop types as
+        // well, their checks would avoid erroneously returning true for
+        // unrelated Dart values and `ExternalDartReference`s.
+        isJSAnyCheck = StaticInvocation(
+          interopTypeNullable ? _isNullableJSAny : _isJSAny,
+          Arguments([VariableGet(receiverVar)]),
+        );
+        nullChecksNeeded = false;
         break;
       case 'JSNumber':
         typeofString = 'number';
@@ -559,6 +633,16 @@ class SharedInteropTransformer extends Transformer {
       case 'JSSymbol':
         typeofString = 'symbol';
         break;
+      case 'JSObject' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
+        check = StaticInvocation(
+          interopTypeNullable ? _isNullableJSObject : _isJSObject,
+          Arguments([VariableGet(receiverVar)]),
+        );
+        break;
       case 'JSTypedArray' when interopTypeDecl == jsType:
         // Only do this special case when users are referring directly to the
         // `dart:js_interop` type and not some wrapper.
@@ -571,7 +655,7 @@ class SharedInteropTransformer extends Transformer {
         // for more details.
         check = StaticInvocation(
           _instanceof,
-          Arguments([VariableGet(any), getInt8ArrayPrototype()]),
+          Arguments([receiverVarAsJSAny, getInt8ArrayPrototype()]),
         );
         break;
       case 'JSBoxedDartObject' when interopTypeDecl == jsType:
@@ -580,10 +664,15 @@ class SharedInteropTransformer extends Transformer {
 
         // Check whether the given value is the result of a previous call to
         // `toJSBox`.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
         check = StaticInvocation(
-          _isJSBoxedDartObject,
-          Arguments([VariableGet(any)]),
+          interopTypeNullable
+              ? _isNullableJSBoxedDartObject
+              : _isJSBoxedDartObject,
+          Arguments([VariableGet(receiverVar)]),
         );
+        break;
       default:
         for (final descriptor in interopTypeDecl.memberDescriptors) {
           final descriptorNode = descriptor.memberReference!.node;
@@ -630,36 +719,58 @@ class SharedInteropTransformer extends Transformer {
           invocation.location?.file,
         );
       } else {
+        assert(check == null);
         check = StaticInvocation(
           _typeofEquals,
-          Arguments([VariableGet(any), StringLiteral(typeofString)]),
+          Arguments([receiverVarAsJSAny, StringLiteral(typeofString)]),
         );
       }
     } else if (instanceOfString != null) {
+      assert(check == null);
       check = StaticInvocation(
         _instanceOfString,
-        Arguments([VariableGet(any), StringLiteral(instanceOfString)]),
+        Arguments([receiverVarAsJSAny, StringLiteral(instanceOfString)]),
       );
     }
-    final nullable = interopType.nullability == Nullability.nullable;
-    Expression nullCheck = EqualsNull(VariableGet(any));
-    Expression notNullCheck = Not(EqualsNull(VariableGet(any)));
+    if (isJSAnyCheck != null) {
+      if (check != null) {
+        check = LogicalExpression(
+          isJSAnyCheck,
+          LogicalExpressionOperator.AND,
+          check,
+        );
+      } else {
+        check = isJSAnyCheck;
+      }
+    }
+
     if (check != null) {
-      check = nullable
-          ? LogicalExpression(nullCheck, LogicalExpressionOperator.OR, check)
-          : LogicalExpression(
-              notNullCheck,
-              LogicalExpressionOperator.AND,
-              check,
-            );
-    } else if (!nullable) {
-      // `JSAny`
-      check = notNullCheck;
+      if (nullChecksNeeded) {
+        if (interopTypeNullable) {
+          // == null || check
+          check = LogicalExpression(
+            EqualsNull(VariableGet(receiverVar)),
+            LogicalExpressionOperator.OR,
+            check,
+          );
+        } else {
+          assert(interopType.nullability == Nullability.nonNullable);
+          // != null && check
+          check = LogicalExpression(
+            Not(EqualsNull(VariableGet(receiverVar))),
+            LogicalExpressionOperator.AND,
+            check,
+          );
+        }
+      }
     } else {
-      // `JSAny?`
+      // Error condition. Return true as the simplest option since this code
+      // won't run anyways.
+      assert(_diagnosticReporter.hasJsInteropErrors);
       check = BoolLiteral(true);
     }
-    return receiver is VariableGet ? check : Let(any, check)
+
+    return receiver is VariableGet ? check : Let(receiverVar, check)
       ..fileOffset = invocation.fileOffset
       ..parent = invocation.parent;
   }

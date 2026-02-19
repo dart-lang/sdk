@@ -444,6 +444,7 @@ class JsInteropChecks extends RecursiveVisitor {
 
   @override
   void visitField(Field node) {
+    _staticTypeContext.enterMember(node);
     if (_classHasStaticInteropAnnotation && node.isInstanceMember) {
       _reporter.report(
         diag.jsInteropStaticInteropWithInstanceMembers.withArguments(
@@ -454,11 +455,14 @@ class JsInteropChecks extends RecursiveVisitor {
         node.fileUri,
       );
     }
+
     super.visitField(node);
+    _staticTypeContext.leaveMember(node);
   }
 
   @override
   void visitConstructor(Constructor node) {
+    _staticTypeContext.enterMember(node);
     void report(Message message) => _reporter.report(
       message,
       node.fileOffset,
@@ -485,6 +489,7 @@ class JsInteropChecks extends RecursiveVisitor {
     }
 
     super.visitConstructor(node);
+    _staticTypeContext.leaveMember(node);
   }
 
   @override

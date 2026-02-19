@@ -2,11 +2,12 @@
 library;
 import self as self;
 import "dart:js_interop" as js_;
+import "dart:core" as core;
 
 import "dart:js_interop";
 
-extension type CustomJSAny(js_::JSAny /* erasure=dart.core::Object */ _) implements js_::JSAny /* erasure=dart.core::Object */ {
-  abstract extension-type-member representation-field get _() → js_::JSAny /* erasure=dart.core::Object */;
+extension type CustomJSAny(js_::JSAny /* erasure=core::Object */ _) implements js_::JSAny /* erasure=core::Object */ {
+  abstract extension-type-member representation-field get _() → js_::JSAny /* erasure=core::Object */;
   constructor • = self::CustomJSAny|constructor#;
   constructor tearoff • = self::CustomJSAny|constructor#_#new#tearOff;
 }
@@ -21,14 +22,14 @@ extension type CustomTypedArray(js_::JSTypedArray /* erasure=dart.typed_data.imp
   constructor tearoff • = self::CustomTypedArray|constructor#_#new#tearOff;
 }
 @js_::JS::•("RenamedJSArray")
-extension type CustomJSArray(js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=_interceptors::JSArray<dart.core::Object?> */ _) implements js_::JSObject /* erasure=_interceptors::JSObject */ {
-  abstract extension-type-member representation-field get _() → js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=_interceptors::JSArray<dart.core::Object?> */;
+extension type CustomJSArray(js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ _) implements js_::JSObject /* erasure=_interceptors::JSObject */ {
+  abstract extension-type-member representation-field get _() → js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */;
   constructor • = self::CustomJSArray|constructor#;
   constructor tearoff • = self::CustomJSArray|constructor#_#new#tearOff;
 }
-static extension-type-member method CustomJSAny|constructor#(js_::JSAny /* erasure=dart.core::Object */ _) → self::CustomJSAny /* erasure=dart.core::Object */
+static extension-type-member method CustomJSAny|constructor#(js_::JSAny /* erasure=core::Object */ _) → self::CustomJSAny /* erasure=core::Object */
   ;
-static extension-type-member synthetic method CustomJSAny|constructor#_#new#tearOff(js_::JSAny /* erasure=dart.core::Object */ _) → self::CustomJSAny /* erasure=dart.core::Object */
+static extension-type-member synthetic method CustomJSAny|constructor#_#new#tearOff(js_::JSAny /* erasure=core::Object */ _) → self::CustomJSAny /* erasure=core::Object */
   return self::CustomJSAny|constructor#(_);
 static extension-type-member method CustomJSObject|constructor#(js_::JSObject /* erasure=_interceptors::JSObject */ _) → self::CustomJSObject /* erasure=_interceptors::JSObject */
   ;
@@ -38,11 +39,11 @@ static extension-type-member method CustomTypedArray|constructor#(js_::JSTypedAr
   ;
 static extension-type-member synthetic method CustomTypedArray|constructor#_#new#tearOff(js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _) → self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */
   return self::CustomTypedArray|constructor#(_);
-static extension-type-member method CustomJSArray|constructor#(js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=_interceptors::JSArray<dart.core::Object?> */ _) → self::CustomJSArray /* erasure=_interceptors::JSArray<dart.core::Object?> */
+static extension-type-member method CustomJSArray|constructor#(js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ _) → self::CustomJSArray /* erasure=_interceptors::JSArray<core::Object?> */
   ;
-static extension-type-member synthetic method CustomJSArray|constructor#_#new#tearOff(js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=_interceptors::JSArray<dart.core::Object?> */ _) → self::CustomJSArray /* erasure=_interceptors::JSArray<dart.core::Object?> */
+static extension-type-member synthetic method CustomJSArray|constructor#_#new#tearOff(js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ _) → self::CustomJSArray /* erasure=_interceptors::JSArray<core::Object?> */
   return self::CustomJSArray|constructor#(_);
-static method test(js_::JSAny /* erasure=dart.core::Object */ any) → void
+static method test(js_::JSAny /* erasure=core::Object */ any, js_::JSAny? /* erasure=core::Object? */ nullableAny, core::Object obj, core::Object? nullableObj) → void
   ;
 static method main() → void
   ;

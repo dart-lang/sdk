@@ -67,6 +67,17 @@ main() {
   functions must now also accept an `instantiator` callback to which they
   should pass the loaded results.
 
+### Libraries
+
+#### `dart:js_interop`
+
+- **Breaking Change**: `isA` is moved from `JSAnyUtilityExtension` to
+  `NullableObjectUtilExtension` to support type-checking any `Object?`.
+  `isA<JSObject>()` also now handles JS objects with no prototypes correctly and
+  `isA<JSAny>()` does a non-trivial check to make sure the value is a JS value.
+  See [#56905][] for more details.
+
+[#56905]: https://github.com/dart-lang/sdk/issues/56905
 
 ## 3.11.0
 
