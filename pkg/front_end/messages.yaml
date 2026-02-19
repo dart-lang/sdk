@@ -1582,6 +1582,7 @@ privateNamedParameter:
   parameters: none
   problemMessage: "A named parameter can't start with an underscore ('_')."
   script: |
+    // @dart=3.10
     void foo({int? _hello}) {}
 
 privateNamedNonFieldParameter:

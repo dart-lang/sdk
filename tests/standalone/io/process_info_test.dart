@@ -15,5 +15,6 @@ main() {
   print('maxRss = $maxRss');
   Expect.isTrue(maxRss > 0);
 
-  Expect.isTrue(currentRss <= maxRss);
+  // Not guaranteed by the underlying system calls.
+  // Expect.isTrue(currentRss <= maxRss);
 }

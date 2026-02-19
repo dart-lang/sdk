@@ -2,6 +2,54 @@
 
 **Released on:** Unreleased
 
+### Language
+
+#### Private named parameters
+
+Dart now supports [private named parameters][]. Before 3.12, it was an error to
+have a named parameter that starts with an underscore:
+
+[private named parameters]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/2509-private-named-parameters/feature-specification.md
+
+```dart
+class Point {
+  final int _x, _y;
+  // Compile error in Dart 3.11.
+  Point({required this._x, required this._y});
+}
+```
+
+That means that when you wanted to initialize a *private* field from a named
+parameter, you had to write an explicit initializer list:
+
+```dart
+class Point {
+  final int _x, _y;
+  Point({required int x, required int y})
+    : x = _x,
+      y = _y;
+}
+```
+
+All the initializer list is doing is scraping off the `_`. In Dart 3.12, the
+language will do that for you. Now you can write:
+
+```dart
+class Point {
+  final int _x, _y; // Private fields.
+  Point({required this._x, required this._y});
+}
+```
+
+It behaves exactly like the previous example. The initialized fields are
+private, but the argument names written at the call site are public:
+
+```dart
+main() {
+  print(Point(x: 1, y: 2));
+}
+```
+
 ### Libraries
 
 #### `dart:js_interop`

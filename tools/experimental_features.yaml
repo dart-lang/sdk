@@ -164,18 +164,6 @@ features:
   static-extensions:
     help: "Extensions with static capabilities."
 
-  private-named-parameters:
-    help: "Allow named parameters with private names that refer to fields."
-    # TODO(rnystrom): Enable this when the feature is implemented.
-    # validation: |
-    #   class C {
-    #     String _message;
-    #     C({this._message});
-    #   }
-    #   main() {
-    #     print(C(message: 'feature enabled')._message);
-    #   }
-
   primary-constructors:
     help: "Less verbose constructors."
 
@@ -199,6 +187,17 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+  private-named-parameters:
+    enabledIn: '3.12.0'
+    help: "Allow named parameters with private names that refer to fields."
+    validation: |
+      class C {
+        String? _message;
+        C({this._message});
+      }
+      main() {
+        print(C(message: 'feature enabled')._message);
+      }
 
   dot-shorthands:
     enabledIn: '3.10.0'
