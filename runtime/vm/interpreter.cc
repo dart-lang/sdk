@@ -858,15 +858,6 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     goto* dispatch[ADJUST_FOR_SINGLE_STEPPING(op)];                            \
   } while (0)
 #if !defined(PRODUCT)
-// The breakpoint should dispatch to the single step handler, if any, in case
-// the breakpoint was set on a call that should then be stepped into or over
-// appropriately. Note that op has already been set to the original opcode
-// that had been replaced with the breakpoint opcode during patching.
-#define BREAKPOINT_DISPATCH                                                    \
-  do {                                                                         \
-    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
-    goto* dispatch[ADJUST_FOR_SINGLE_STEPPING(op)];                            \
-  } while (0)
 // The dispatch from a single step check back to the original instruction
 // implementation should ignore single_stepping_offset.
 #define DISPATCH_ORIGINAL_OPCODE goto* dispatch[op]
@@ -879,15 +870,6 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     goto SwitchDispatch;                                                       \
   } while (0)
 #if !defined(PRODUCT)
-// The breakpoint should dispatch to the single step handler, if any, in case
-// the breakpoint was set on a call that should then be stepped into or over
-// appropriately. Note that op has already been set to the original opcode
-// that had been replaced with the breakpoint opcode during patching.
-#define BREAKPOINT_DISPATCH                                                    \
-  do {                                                                         \
-    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
-    goto SwitchDispatch;                                                       \
-  } while (0)
 // The dispatch from a single step check back to the original instruction
 // implementation should ignore single_stepping_offset.
 #define DISPATCH_ORIGINAL_OPCODE goto SwitchDispatchNoSingleStep
@@ -4407,9 +4389,9 @@ SwitchDispatchNoSingleStep:
   }
 
 #if !defined(PRODUCT)
-#define DEFINE_BREAKPOINT(Format)                                              \
-  {                                                                            \
-    BYTECODE(VMInternal_Breakpoint_##Format, Format)                           \
+#define DEFINE_BREAKPOINT_BODY                                                 \
+  do {                                                                         \
+    pc += KernelBytecode::kInstructionSize[op];                                \
     SP[1] = 0; /* Smi containing the original opcode. */                       \
     Exit(thread, FP, SP + 2, pc);                                              \
     INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler,                               \
@@ -4423,35 +4405,60 @@ SwitchDispatchNoSingleStep:
     /* the original instruction's implementation, so re-adjust it to   */      \
     /* before the breakpoint/original instruction prior to dispatch.   */      \
     pc -= KernelBytecode::kInstructionSize[op];                                \
-    BREAKPOINT_DISPATCH;                                                       \
+  } while (0)
+
+#define DEFINE_BREAKPOINT(Name, __, ___, ____, _____, ______)                  \
+  {                                                                            \
+    BYTECODE_ENTRY_LABEL(Name) DEFINE_BREAKPOINT_BODY;                         \
+    DISPATCH_ORIGINAL_OPCODE;                                                  \
   }
-  DEFINE_BREAKPOINT(0)      // size 1
-  DEFINE_BREAKPOINT(D)      // size 2 and 5
-  DEFINE_BREAKPOINT(A_E)    // size 3 and 6
-  DEFINE_BREAKPOINT(A_B_C)  // size 4
+  INTERNAL_KERNEL_BREAKPOINT_BYTECODES(DEFINE_BREAKPOINT)
 #undef DEFINE_BREAKPOINT
 
-  {
-#define SINGLE_STEP_HANDLER_ENTRY(Name, __, ___, ____, _____, ______)          \
-  bc##Name##_SingleStep:
-    KERNEL_BYTECODES_LIST(SINGLE_STEP_HANDLER_ENTRY)
-#undef SINGLE_STEP_HANDLER_ENTRY
+#define SINGLE_STEP_HANDLER_BODY_NO_TRACE                                      \
+  do {                                                                         \
+    /* The debugger expects return addresses in the frames when retrieving */  \
+    /* source positions, so use the next instruction's address. */             \
+    Exit(thread, FP, SP + 1, KernelBytecode::Next(pc));                        \
+    INVOKE_RUNTIME(DRT_SingleStepHandler,                                      \
+                   NativeArguments(thread, 0, nullptr, nullptr));              \
+  } while (0)
 
 #if defined(DEBUG)
-    if (IsTracingExecution()) {
-      // Use the original instruction count, as it was incremented before
-      // the dispatch jump.
-      THR_Print("%" Pu64 " calling single step handler\n", icount_ - 1);
-    }
-#endif
+#define SINGLE_STEP_HANDLER_BODY                                               \
+  do {                                                                         \
+    if (IsTracingExecution()) {                                                \
+      /* Use the original instruction count, as it was incremented before */   \
+      /* the dispatch jump. */                                                 \
+      THR_Print("%" Pu64 " calling single step handler\n", icount_ - 1);       \
+    }                                                                          \
+    SINGLE_STEP_HANDLER_BODY_NO_TRACE;                                         \
+  } while (0)
+#else
+#define SINGLE_STEP_HANDLER_BODY SINGLE_STEP_HANDLER_BODY_NO_TRACE
+#endif  // defined(DEBUG)
 
-    // The debugger expects return addresses in the frames when retrieving
-    // source positions, so use the next instruction's address.
-    Exit(thread, FP, SP + 1, KernelBytecode::Next(pc));
-    INVOKE_RUNTIME(DRT_SingleStepHandler,
-                   NativeArguments(thread, 0, nullptr, nullptr));
+#define SINGLE_STEP_HANDLER_ENTRY(Name, __, ___, ____, _____, ______)          \
+  bc##Name##_SingleStep:
+
+  {
+    KERNEL_BYTECODES_LIST_WITH_NO_BREAKPOINTS(SINGLE_STEP_HANDLER_ENTRY)
+    SINGLE_STEP_HANDLER_BODY;
     DISPATCH_ORIGINAL_OPCODE;
   }
+
+  {
+    INTERNAL_KERNEL_BREAKPOINT_BYTECODES(SINGLE_STEP_HANDLER_ENTRY)
+    // First check the breakpoint, then single step so that the debugger does
+    // not pause immediately at the same location before hitting the breakpoint.
+    DEFINE_BREAKPOINT_BODY;
+    SINGLE_STEP_HANDLER_BODY;
+    DISPATCH_ORIGINAL_OPCODE;
+  }
+#undef SINGLE_STEP_HANDLER_ENTRY
+#undef SINGLE_STEP_HANDLER_BODY
+#undef SINGLE_STEP_HANDLER_BODY_NO_TRACE
+#undef DEFINE_BREAKPOINT_BODY
 #endif  // !defined(PRODUCT)
 
   UNREACHABLE();
