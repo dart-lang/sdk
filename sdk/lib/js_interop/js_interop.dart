@@ -374,7 +374,7 @@ extension type JSIterator<T extends JSAny?>._(JSObject _)
     JSIteratorResult<T> Function()? returnValue,
   }) {
     final iterator = _CustomIteratorProtocol<T>(next: next.toJS);
-    if (returnValue != null) iterator.returnValue = returnValue.toJS;
+    if (returnValue != null) iterator._returnValue = returnValue.toJS;
     return from<T>(iterator);
   }
 
@@ -552,7 +552,7 @@ extension type JSIterator<T extends JSAny?>._(JSObject _)
 extension type _CustomIteratorProtocol<T extends JSAny?>._(JSObject _)
     implements JSIteratorProtocol<T> {
   @JS('return')
-  set _returnValue(JSFunction? function);
+  external set _returnValue(JSFunction? function);
 
   external _CustomIteratorProtocol({required JSFunction next});
 }
