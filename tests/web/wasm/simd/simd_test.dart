@@ -5,6 +5,7 @@
 // dart2wasmOptions=--extra-compiler-option=--enable-experimental-wasm-interop
 
 import 'package:expect/expect.dart';
+// ignore: import_internal_library
 import 'dart:_wasm';
 
 void main() {

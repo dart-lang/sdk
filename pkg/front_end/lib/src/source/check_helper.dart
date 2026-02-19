@@ -1112,6 +1112,7 @@ extension CheckHelper on ProblemReporting {
             nameToken.length,
           );
         } else {
+          // Coverage-ignore-block(suite): Not run.
           addProblem(
             diag.privateNamedParameter,
             nameToken.charOffset,

@@ -69,8 +69,8 @@ class A {
 ''',
       [
         error(diag.unusedField, 60, 1),
-        error(diag.experimentNotEnabledOffByDefault, 73, 1),
-        error(diag.experimentNotEnabledOffByDefault, 85, 1),
+        error(diag.experimentNotEnabled, 73, 1),
+        error(diag.experimentNotEnabled, 85, 1),
         error(
           diag.duplicateFieldFormalParameter,
           85,
@@ -259,8 +259,8 @@ class A {
 ''',
       [
         error(diag.unusedField, 60, 1),
-        error(diag.experimentNotEnabledOffByDefault, 82, 1),
-        error(diag.experimentNotEnabledOffByDefault, 99, 1),
+        error(diag.experimentNotEnabled, 82, 1),
+        error(diag.experimentNotEnabled, 99, 1),
         error(
           diag.duplicateFieldFormalParameter,
           99,
