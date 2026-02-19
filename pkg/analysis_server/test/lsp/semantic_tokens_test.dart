@@ -550,6 +550,39 @@ const e = const MyClass();
     await _initializeAndVerifyTokens(content, expected);
   }
 
+  Future<void> test_class_constructors_factoryKeyword() async {
+    var content = r'''
+class A {
+  A._();
+[!
+  factory() => A._();
+  factory named() => A._();
+!]
+}
+''';
+
+    var expected = [
+      _Token('factory', .keyword, [
+        CustomSemanticTokenModifiers.constructor,
+        .declaration,
+      ]),
+      _Token('A', .class_, [CustomSemanticTokenModifiers.constructor]),
+      _Token('_', .method, [CustomSemanticTokenModifiers.constructor]),
+      _Token('factory', .keyword, [
+        CustomSemanticTokenModifiers.constructor,
+        .declaration,
+      ]),
+      _Token('named', .method, [
+        CustomSemanticTokenModifiers.constructor,
+        .declaration,
+      ]),
+      _Token('A', .class_, [CustomSemanticTokenModifiers.constructor]),
+      _Token('_', .method, [CustomSemanticTokenModifiers.constructor]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
   Future<void> test_class_constructors_newKeyword() async {
     var content = r'''
 class A {

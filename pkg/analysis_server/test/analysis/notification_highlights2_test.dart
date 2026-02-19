@@ -689,6 +689,25 @@ Never nnn() => throw '';
     assertHasRegion(HighlightRegionType.CLASS, 'Never nnn');
   }
 
+  Future<void> test_class_constructor_factoryKeyword() async {
+    var testCode = TestCode.parseNormalized(r'''
+class A {
+  A._();
+[!
+  factory () {}
+  factory named() {}
+!]
+}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, 0, r'''
+4:3 |factory| BUILT_IN
+5:3 |factory| BUILT_IN
+5:11 |named| CONSTRUCTOR
+''');
+  }
+
   Future<void> test_class_constructor_fieldFormalParameter() async {
     var testCode = TestCode.parseNormalized(r'''
 class A {
@@ -710,7 +729,7 @@ class A {
 ''');
   }
 
-  Future<void> test_class_constructor_new() async {
+  Future<void> test_class_constructor_newKeyword() async {
     var testCode = TestCode.parseNormalized(r'''
 class A {
 [!
