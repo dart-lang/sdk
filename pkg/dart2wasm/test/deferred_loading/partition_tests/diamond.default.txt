@@ -1,6 +1,7 @@
 Part 0
   ImportSet
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D1_3
   References
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart::@methods::d1
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart::@methods::usedByD1
@@ -11,24 +12,17 @@ Part 0
 Part 1
   ImportSet
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D1
-     - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D2
-  References
-     - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart::@methods::usedByD1D2
-  Constants
-     - StringConstant("usedByD1D2")
-
-Part 2
-  ImportSet
-     - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D1
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D1_3
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D2
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D2_3
   References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart::@methods::usedByD1D2
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart::@methods::usedByD1D2D3
   Constants
+     - StringConstant("usedByD1D2")
      - StringConstant("usedByD1D2D3")
 
-Part 3
+Part 2
   ImportSet
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D1
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D1_3
@@ -38,9 +32,10 @@ Part 3
   Constants
      - StringConstant("usedByD1D3")
 
-Part 4
+Part 3
   ImportSet
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D2_3
   References
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart::@methods::d2
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart::@methods::usedByD2
@@ -48,7 +43,7 @@ Part 4
      - StringConstant("d2")
      - StringConstant("usedByD2")
 
-Part 5
+Part 4
   ImportSet
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D1_3
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D2
@@ -58,7 +53,7 @@ Part 5
   Constants
      - StringConstant("usedByD2D3")
 
-Part 6
+Part 5
   ImportSet
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D1_3
      - pkg/dart2wasm/test/deferred_loading/partition_tests/diamond.dart prefix: D2_3
