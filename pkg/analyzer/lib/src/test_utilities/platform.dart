@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import 'package:analyzer/src/util/platform_info.dart';
 
 /// The EOL being used for file content in the current test run.
 ///
@@ -14,7 +14,7 @@ String get testEol =>
     //  code just assuming the platform EOL (instead of the files EOL).
     //  [normalizeNewlinesForPlatform] may need updating to not assume it only
     //  needs to run for Windows.
-    Platform.lineTerminator;
+    platform.lineTerminator;
 
 /// Normalizes content to use platform-specific newlines.
 ///
@@ -26,7 +26,7 @@ String normalizeNewlinesForPlatform(String input) {
 
   // Skip normalising for other platforms, as the 'gitattributes' for the Dart
   // SDK ensures all files are '\n'.
-  if (!Platform.isWindows) {
+  if (!platform.isWindows) {
     return input;
   }
 

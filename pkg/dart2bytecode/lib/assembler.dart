@@ -708,9 +708,14 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
-  void emitDebugCheck() {
+  void emitNop() {
+    // Currently, the only reason the bytecode generator emits a no-op
+    // instruction is when the next instruction to emit is unknown (e.g.,
+    // at the end of a visit<X> method), but a source position must be
+    // emitted after the last known instruction and not overwritten by
+    // the next emitted instruction.
     emitSourcePosition();
-    _emitInstruction0(Opcode.kDebugCheck);
+    _emitInstruction0(Opcode.kNop);
   }
 
   @pragma('vm:prefer-inline')

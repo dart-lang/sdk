@@ -1422,8 +1422,7 @@ SP[0] = SP[-1] <op> SP[0] ? true : false
 
 Allocate closure object for closure function ConstantPool[D].
 
-#### DebugCheck
+#### Nop
 
-No-op. Provides a point where debugger can stop executing code when single stepping
-or when it hits a breakpoint.
-
+No-op. Provides a unique PC offset to ensure an emitted source position is not
+overwritten by a different source position emitted by the next instruction.

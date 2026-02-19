@@ -1992,7 +1992,7 @@ SwitchDispatchNoSingleStep:
   }
 
   {
-    BYTECODE(DebugCheck, 0);
+    BYTECODE(Nop, 0);
     DISPATCH();
   }
 

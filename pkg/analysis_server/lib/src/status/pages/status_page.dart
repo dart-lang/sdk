@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 
 class StatusPage extends DiagnosticPageWithNav {
   StatusPage(DiagnosticsSite site)
@@ -40,7 +41,7 @@ class StatusPage extends DiagnosticPageWithNav {
     buf.writeln('<div class="column one-half">');
     h3('Versions');
     buf.writeln(writeOption('Analysis server version', PROTOCOL_VERSION));
-    buf.writeln(writeOption('Dart SDK', Platform.version));
+    buf.writeln(writeOption('Dart SDK', platform.version));
     buf.writeln('</div>');
 
     buf.writeln('</div>');

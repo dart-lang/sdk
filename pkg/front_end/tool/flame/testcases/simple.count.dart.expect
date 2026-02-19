@@ -1,0 +1,52 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "../instrumenter_lib_counter.dart" as ins;
+
+import "org-dartlang-testcase:///instrumenter_lib_counter.dart";
+
+extension IterableExtension<T extends core::Object? = dynamic> on core::Iterable<T%> {
+  method firstWhereOrNull = self::IterableExtension|firstWhereOrNull;
+  method tearoff firstWhereOrNull = self::IterableExtension|get#firstWhereOrNull;
+}
+static method foo(core::List<core::String> args) → void {
+  core::print("hello");
+}
+static method bar(core::List<core::String> args) → void
+  try {
+    ins::enter(0);
+    {
+      core::print("hello: ${args.{core::Iterable::any}((core::String s) → core::bool => s.{core::String::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 42){((core::String) → core::bool) → core::bool}}");
+      core::print("hello: ${self::IterableExtension|firstWhereOrNull<core::String>(args, (core::String s) → core::bool => s.{core::String::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 42)}");
+    }
+  }
+  finally
+    ins::exit(0);
+static method baz(core::List<core::String> args) → void
+  try {
+    ins::enter(1);
+    {
+      if(args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 42) {
+        core::print("hello: ${args.{core::Iterable::any}((core::String s) → core::bool => s.{core::String::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 42){((core::String) → core::bool) → core::bool}}");
+      }
+    }
+  }
+  finally
+    ins::exit(1);
+static method main(core::List<core::String> args) → void {
+  ins::initialize(3, true);
+  try {
+  }
+  finally
+    ins::report(<dynamic>["simple.count.dart|bar", "simple.count.dart|baz", "simple.count.dart|IterableExtension|get#firstWhereOrNull"]);
+}
+static extension-member method IterableExtension|firstWhereOrNull<T extends core::Object? = dynamic>(lowered final core::Iterable<self::IterableExtension|firstWhereOrNull::T%> #this, (self::IterableExtension|firstWhereOrNull::T%) → core::bool test) → self::IterableExtension|firstWhereOrNull::T? {
+  return null;
+}
+static extension-member method IterableExtension|get#firstWhereOrNull<T extends core::Object? = dynamic>(lowered final core::Iterable<self::IterableExtension|get#firstWhereOrNull::T%> #this) → ((self::IterableExtension|get#firstWhereOrNull::T%) → core::bool) → self::IterableExtension|get#firstWhereOrNull::T?
+  try {
+    ins::enter(2);
+    return ((self::IterableExtension|get#firstWhereOrNull::T%) → core::bool test) → self::IterableExtension|get#firstWhereOrNull::T? => self::IterableExtension|firstWhereOrNull<self::IterableExtension|get#firstWhereOrNull::T%>(#this, test);
+  }
+  finally
+    ins::exit(2);
