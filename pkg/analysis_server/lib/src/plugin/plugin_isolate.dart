@@ -7,7 +7,6 @@ library;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io' show Platform;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -16,6 +15,7 @@ import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart';
@@ -209,8 +209,8 @@ class PluginIsolate {
   /// Creates and returns the channel used to communicate with the server.
   ServerCommunicationChannel _createChannel() {
     return ServerIsolateChannel(
-      Uri.file(executionPath!, windows: Platform.isWindows),
-      Uri.file(packageConfigPath!, windows: Platform.isWindows),
+      Uri.file(executionPath!, windows: platform.isWindows),
+      Uri.file(packageConfigPath!, windows: platform.isWindows),
       _instrumentationService,
       sessionLogger,
     );

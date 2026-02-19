@@ -21,6 +21,7 @@ import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:collection/collection.dart';
 import 'package:vm_service/vm_service_io.dart' as vm_service;
 
@@ -188,8 +189,8 @@ void _collectGeneralData(
   AnalysisServer server,
 ) {
   collectedData['currentTime'] = DateTime.now().millisecondsSinceEpoch;
-  collectedData['operatingSystem'] = Platform.operatingSystem;
-  collectedData['version'] = Platform.version;
+  collectedData['operatingSystem'] = platform.operatingSystem;
+  collectedData['version'] = platform.version;
   collectedData['clientId'] = server.options.clientId;
   collectedData['clientVersion'] = server.options.clientVersion;
   collectedData['protocolVersion'] = PROTOCOL_VERSION;

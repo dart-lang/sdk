@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:io' as io;
-import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
@@ -83,6 +82,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
@@ -316,7 +316,7 @@ abstract class AnalysisServer {
        pubApi = PubApi(
          instrumentationService,
          httpClient,
-         Platform.environment['PUB_HOSTED_URL'],
+         platform.environment['PUB_HOSTED_URL'],
        ),
        messageScheduler = MessageScheduler(
          listener:
@@ -336,7 +336,7 @@ abstract class AnalysisServer {
       processRunner ??= ProcessRunner();
     }
     var disablePubCommandVariable =
-        Platform.environment[PubCommand.disablePubCommandEnvironmentKey];
+        platform.environment[PubCommand.disablePubCommandEnvironmentKey];
     var pubCommand = processRunner != null && disablePubCommandVariable == null
         ? PubCommand(
             instrumentationService,
@@ -440,7 +440,7 @@ abstract class AnalysisServer {
 
   /// The default line terminator that should be used by the server when there
   /// is no existing EOL to copy.
-  String get defaultEol => io.Platform.lineTerminator;
+  String get defaultEol => platform.lineTerminator;
 
   /// A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
   Map<Folder, analysis.AnalysisDriver> get driverMap =>
