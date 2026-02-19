@@ -7,6 +7,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:collection/collection.dart';
@@ -131,7 +132,9 @@ analyzer:
 
     group('processing', () {
       test('yaml map', () {
-        var options = AnalysisOptionsProvider().getOptionsFromString(config);
+        var options = AnalysisOptionsProvider(
+          SourceFactoryImpl([]),
+        ).getOptionsFromString(config);
         var errorConfig = ErrorConfig(
           (options['analyzer'] as YamlMap)['errors'] as YamlNode?,
         );
@@ -184,9 +187,10 @@ analyzer:
     });
 
     test('configure lints', () {
-      var options = AnalysisOptionsProvider().getOptionsFromString(
-        'analyzer:\n  errors:\n    annotate_overrides: warning\n',
-      );
+      var options = AnalysisOptionsProvider(SourceFactoryImpl([]))
+          .getOptionsFromString(
+            'analyzer:\n  errors:\n    annotate_overrides: warning\n',
+          );
       var errorConfig = ErrorConfig(
         (options['analyzer'] as YamlMap)['errors'] as YamlNode?,
       );
@@ -204,7 +208,9 @@ class _TestContext {
 
   void configureOptions(String options) {
     analysisOptions = AnalysisOptionsImpl.fromYaml(
-      optionsMap: AnalysisOptionsProvider().getOptionsFromString(options),
+      optionsMap: AnalysisOptionsProvider(
+        SourceFactoryImpl([]),
+      ).getOptionsFromString(options),
     );
   }
 

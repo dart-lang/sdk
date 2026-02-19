@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -85,7 +86,8 @@ class Scanner {
   }) {
     return Scanner._(
       source,
-      contents ?? source.contents.data,
+
+      contents ?? source.stringContents,
       offset,
       diagnosticListener,
     );

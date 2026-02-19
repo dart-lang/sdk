@@ -20,6 +20,7 @@ import 'package:analyzer/src/pubspec/validators/name_validator.dart';
 import 'package:analyzer/src/pubspec/validators/platforms_validator.dart';
 import 'package:analyzer/src/pubspec/validators/screenshot_validator.dart';
 import 'package:analyzer/src/pubspec/validators/workspace_validator.dart';
+import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:yaml/yaml.dart';
 
 /// List of [PubspecValidator] implementations.
@@ -73,8 +74,9 @@ List<Diagnostic> validatePubspec({
       }
     }
   }
-  var lineInfo = LineInfo.fromContent(source.contents.data);
-  var ignoreInfo = IgnoreInfo.forYaml(source.contents.data, lineInfo);
+  var content = source.stringContents;
+  var lineInfo = LineInfo.fromContent(content);
+  var ignoreInfo = IgnoreInfo.forYaml(content, lineInfo);
 
   return recorder.diagnostics
       .where((error) => !ignoreInfo.ignored(error))

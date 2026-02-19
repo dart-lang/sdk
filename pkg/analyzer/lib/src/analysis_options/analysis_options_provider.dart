@@ -9,17 +9,18 @@ import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 /// Provide the options found in the analysis options file.
 class AnalysisOptionsProvider {
-  /// The source factory used to resolve include declarations
-  /// in analysis options files or `null` if include is not supported.
-  final SourceFactory? _sourceFactory;
+  /// The source factory used to resolve include declarations in analysis
+  /// options files.
+  final SourceFactory _sourceFactory;
 
-  AnalysisOptionsProvider([this._sourceFactory]);
+  AnalysisOptionsProvider(this._sourceFactory);
 
   /// Provides the analysis options that apply to [root].
   ///
@@ -74,45 +75,45 @@ class AnalysisOptionsProvider {
     Set<Source>? handled,
   }) {
     handled ??= {};
+
+    YamlMap options;
     try {
-      var options = getOptionsFromString(_readAnalysisOptions(source));
-      if (_sourceFactory == null) {
-        return options;
-      }
-      var includeValue = options.valueAt(AnalysisOptionsFile.include);
-      var includes = switch (includeValue) {
-        YamlScalar(:String value) => [value],
-        YamlList() =>
-          includeValue.nodes
-              .whereType<YamlScalar>()
-              .map((e) => e.value)
-              .whereType<String>()
-              .toList(),
-        _ => <String>[],
-      };
-      var includeOptions = includes.fold(YamlMap(), (currentOptions, path) {
-        var includeSource = _sourceFactory.resolveUri(source, path);
-        if (includeSource == null || !handled!.add(includeSource)) {
-          // Return the existing options, unchanged.
-          return currentOptions;
-        }
-        var includedOptions = getOptionsFromSource(
-          includeSource,
-          pathContext,
-          handled: handled,
-        );
-        includedOptions = _rewriteRelativePaths(
-          includedOptions,
-          pathContext.dirname(includeSource.fullName),
-          pathContext,
-        );
-        return merge(currentOptions, includedOptions);
-      });
-      options = merge(includeOptions, options);
-      return options;
-    } on OptionsFormatException {
+      options = getOptionsFromString(source.stringContents);
+    } on Exception {
       return YamlMap();
     }
+
+    var includeValue = options.valueAt(AnalysisOptionsFile.include);
+    var includes = switch (includeValue) {
+      YamlScalar(:String value) => [value],
+      YamlList() =>
+        includeValue.nodes
+            .whereType<YamlScalar>()
+            .map((e) => e.value)
+            .whereType<String>()
+            .toList(),
+      _ => <String>[],
+    };
+    var includeOptions = includes.fold(YamlMap(), (currentOptions, path) {
+      var includeSource = _sourceFactory.resolveUri(source, path);
+      if (includeSource == null || !handled!.add(includeSource)) {
+        // Return the existing options, unchanged.
+        return currentOptions;
+      }
+      var includedOptions = getOptionsFromSource(
+        includeSource,
+        pathContext,
+        handled: handled,
+      );
+      includedOptions = _rewriteRelativePaths(
+        includedOptions,
+        pathContext.dirname(includeSource.fullName),
+        pathContext,
+      );
+      return merge(currentOptions, includedOptions);
+    });
+    options = merge(includeOptions, options);
+    return options;
   }
 
   /// Provide the options found in [content].
@@ -120,17 +121,12 @@ class AnalysisOptionsProvider {
   /// An 'include' directive, if present, will be left as-is, and the referenced
   /// options will NOT be merged into the result. Returns an empty options map
   /// if the content is null, or not a YAML map.
-  YamlMap getOptionsFromString(String? content, {Uri? sourceUrl}) {
-    if (content == null) {
-      return YamlMap();
-    }
+  YamlMap getOptionsFromString(String content, {Uri? sourceUrl}) {
     try {
       var doc = loadYamlNode(content, sourceUrl: sourceUrl);
       return doc is YamlMap ? doc : YamlMap();
     } on YamlException catch (e) {
       throw OptionsFormatException(e.message, e.span);
-    } catch (e) {
-      throw OptionsFormatException('Unable to parse YAML document.');
     }
   }
 
@@ -148,17 +144,6 @@ class AnalysisOptionsProvider {
   ///
   YamlMap merge(YamlMap defaults, YamlMap overrides) =>
       Merger().mergeMap(defaults, overrides);
-
-  /// Read the contents of [source] as a string.
-  /// Returns null if source is null or does not exist.
-  String? _readAnalysisOptions(Source source) {
-    try {
-      return source.contents.data;
-    } catch (e) {
-      // Source can't be read.
-      return null;
-    }
-  }
 
   /// Walks [options] with semantic knowledge about where paths may appear in an
   /// analysis options file, rewriting relative paths (relative to [directory])

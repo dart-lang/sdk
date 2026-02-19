@@ -9,6 +9,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -84,7 +85,7 @@ class OptionsFileValidatorTest
     resourceProvider: resourceProvider,
     sourceFactory: SourceFactory([ResourceUriResolver(resourceProvider)]),
   );
-  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
+  final optionsProvider = AnalysisOptionsProvider(SourceFactoryImpl([]));
 
   void tearDown() {
     unregisterLintRules();

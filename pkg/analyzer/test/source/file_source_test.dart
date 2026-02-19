@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,6 +19,14 @@ main() {
 
 @reflectiveTest
 class FileSourceTest with ResourceProviderMixin {
+  void test_contents() {
+    File file1 = getFile("/foo.txt");
+    file1.writeAsStringSync('test');
+    FileSource source1 = FileSource(file1);
+    expect(source1.contents.data, 'test');
+    expect(source1.stringContents, 'test');
+  }
+
   void test_equals_false_differentFiles() {
     File file1 = getFile("/does/not/exist1.dart");
     File file2 = getFile("/does/not/exist2.dart");

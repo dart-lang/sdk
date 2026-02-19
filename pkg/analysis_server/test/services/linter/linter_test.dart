@@ -7,6 +7,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -31,7 +32,7 @@ class LinterRuleOptionsValidatorTest with ResourceProviderMixin {
   List<Diagnostic> get diagnostics => recorder.diagnostics;
 
   LinterRuleOptionsValidator get validator => LinterRuleOptionsValidator(
-    optionsProvider: AnalysisOptionsProvider(),
+    optionsProvider: AnalysisOptionsProvider(SourceFactoryImpl([])),
     resourceProvider: resourceProvider,
     sourceFactory: sourceFactory,
   );
@@ -79,7 +80,9 @@ linter:
   }
 
   void validate(String source, List<DiagnosticCode> expected) {
-    var options = AnalysisOptionsProvider().getOptionsFromString(source);
+    var options = AnalysisOptionsProvider(
+      SourceFactoryImpl([]),
+    ).getOptionsFromString(source);
     validator.validate(reporter, options);
     expect(diagnostics.map((e) => e.diagnosticCode), unorderedEquals(expected));
   }

@@ -1,3 +1,11 @@
+## 3.11.1
+
+This is a patch release that:
+
+- Fixes a performance issue in the Dart Analysis Server when analyzing a workspace with many files (issue [#62456])
+
+[#62456]: https://github.com/dart-lang/sdk/issues/62456
+
 ## 3.11.0
 
 **Released on:** 2026-02-11

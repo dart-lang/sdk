@@ -16,6 +16,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path show posix, Context;
@@ -339,7 +340,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   /// Extracts the existing URI string from a [LibraryFragmentSearchMatch].
   String _extractUriString(LibraryFragmentSearchMatch reference) {
     var source = reference.libraryFragment.source;
-    return source.contents.data.substring(
+    return source.stringContents.substring(
       reference.range.offset,
       reference.range.end,
     );

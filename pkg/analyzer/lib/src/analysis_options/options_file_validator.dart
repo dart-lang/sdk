@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -168,7 +169,7 @@ List<Diagnostic> analyzeAnalysisOptions(
 
       try {
         var includedOptions = optionsProvider.getOptionsFromString(
-          includedSource.contents.data,
+          includedSource.stringContents,
         );
         validate(includedSource, includedOptions, contextRoot: contextRoot);
         firstPluginName ??= _firstPluginName(includedOptions);

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -19,7 +20,7 @@ main() {
 
   group('AnalysisOptionsProvider', () {
     void expectMergesTo(String defaults, String overrides, String expected) {
-      var optionsProvider = AnalysisOptionsProvider();
+      var optionsProvider = AnalysisOptionsProvider(SourceFactoryImpl([]));
       var defaultOptions = optionsProvider.getOptionsFromString(defaults);
       var overrideOptions = optionsProvider.getOptionsFromString(overrides);
       var merged = optionsProvider.merge(defaultOptions, overrideOptions);
@@ -78,7 +79,7 @@ linter:
 strong-mode: true
 ''';
 
-      var optionsProvider = AnalysisOptionsProvider();
+      var optionsProvider = AnalysisOptionsProvider(SourceFactoryImpl([]));
       expect(
         () => optionsProvider.getOptionsFromString(src),
         throwsA(TypeMatcher<OptionsFormatException>()),
@@ -91,7 +92,7 @@ analyzer:
   strong-mode:true # missing space (sdk/issues/24885)
 ''';
 
-      var optionsProvider = AnalysisOptionsProvider();
+      var optionsProvider = AnalysisOptionsProvider(SourceFactoryImpl([]));
       // Should not throw an exception.
       var options = optionsProvider.getOptionsFromString(src);
       // Should return a non-null options list.
