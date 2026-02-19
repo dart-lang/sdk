@@ -183,9 +183,9 @@ class Driver implements ServerStarter {
     List<String> arguments, {
     SendPort? sendPort,
     bool defaultToLsp = false,
-  }) {
+  }) async {
     OperationPerformanceImpl.runAsyncHook = perf_witness.AsyncSpan.runUnary;
-    perf_witness.PerfWitnessServer.start(tag: 'das').ignore();
+    await perf_witness.PerfWitnessServer.start(tag: 'das', inBackground: true);
 
     var sessionStartTime = DateTime.now();
     var parser = createArgParser(defaultToLsp: defaultToLsp);

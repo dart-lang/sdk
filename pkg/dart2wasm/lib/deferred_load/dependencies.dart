@@ -347,10 +347,18 @@ class DirectReferenceDependencies {
 
   DirectReferenceDependencies(this.references, this.deferredReferences,
       this.constants, this.deferredConstants);
+
+  bool get isEmpty =>
+      references.isEmpty &&
+      deferredConstants.isEmpty &&
+      constants.isEmpty &&
+      deferredConstants.isEmpty;
 }
 
 class DirectConstantDependencies {
   final Set<Constant> constants;
 
   DirectConstantDependencies(this.constants);
+
+  bool get isEmpty => constants.isEmpty;
 }

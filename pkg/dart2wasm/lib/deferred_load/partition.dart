@@ -9,11 +9,12 @@ import 'package:compiler/src/deferred_load/program_split_constraints/builder.dar
 import 'package:compiler/src/deferred_load/program_split_constraints/nodes.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart';
+import 'package:kernel/kernel.dart' hide Node, NamedNode;
 
 import '../modules.dart' show DeferredModuleLoadingMap;
 import 'dependencies.dart';
 import 'devirtualization_oracle.dart';
+import 'dominators.dart';
 import 'import_set.dart';
 
 export 'import_set.dart' show Part;
@@ -44,7 +45,7 @@ class Partitioning {
   final List<Part> parts;
   final Map<Reference, Part> referenceToPart;
   final Map<Constant, Part> constantToPart;
-  final Map<LibraryDependency, List<Part>> deferredImportToParts;
+  final Map<LibraryDependency, Set<Part>> deferredImportToParts;
 
   Partitioning(this.root, this.parts, this.referenceToPart, this.constantToPart,
       this.deferredImportToParts);
@@ -136,7 +137,7 @@ class _Algorithm {
   final Component component;
   final DependenciesCollector depsCollector;
   final List<LibraryDependency> allDeferredImports;
-  final ConstraintData? constraints;
+  final ConstraintData? userConstraints;
 
   final ImportSetLattice importSets = ImportSetLattice();
 
@@ -155,13 +156,16 @@ class _Algorithm {
   final Map<Constant, ImportSet> constantToImportSet = {};
 
   _Algorithm(this.component, this.depsCollector, this.allDeferredImports,
-      this.constraints);
+      this.userConstraints);
 
   Partitioning run(Set<Reference> roots) {
     collectDependencies(roots);
 
     // Sentinel used to represent the artificial import of all roots.
-    final rootImport = LibraryDependency.import(Library(Uri(), fileUri: Uri()));
+    final rootLibrary = Library(Uri.parse(r'root'), fileUri: Uri());
+    final rootImport =
+        LibraryDependency.import(Library(Uri(), fileUri: Uri()), name: r'$root')
+          ..parent = rootLibrary;
     final rootPart = Part(true, {});
     importSets.buildRootSet(
       rootImport,
@@ -169,19 +173,58 @@ class _Algorithm {
       allDeferredImports,
     );
 
-    // If program split constraints are provided, then parse and interpret
-    // them now.
-    if (constraints != null) {
-      final builder = psc.KernelBuilder(constraints!);
-      final transitions = builder.build(allDeferredImports);
-      importSets.buildInitialSets(transitions.singletonTransitions);
-      importSets.buildSetTransitions(transitions.setTransitions);
-    }
+    final dominators = computeDominators(rootImport, roots,
+        directReferenceDependencies, directConstantDependencies);
+
+    final transitions = computeConstraints(rootImport, dominators);
+    importSets.buildInitialSets(transitions.singletonTransitions);
+    importSets.buildSetTransitions(transitions.setTransitions);
 
     enqueueRootsAndPropagate(roots);
     applySetTransitions();
 
-    return createParitition(rootPart);
+    return createParitition(rootPart, dominators);
+  }
+
+  psc.ProgramSplitConstraints<LibraryDependency> computeConstraints(
+      LibraryDependency root, Dominators dominators) {
+    final namedNodes = ProgramSplitBuilder();
+    final orderNodes = <OrderNode>[];
+
+    // If user provided constraints, initialize from them.
+    final existingNames = <String, NamedNode>{};
+    if (userConstraints != null) {
+      for (final named in userConstraints!.named) {
+        if (named is ReferenceNode) {
+          final import = UriAndPrefix(named.uri, named.prefix).toString();
+          existingNames[import] = named;
+        }
+        namedNodes.namedNodes[named.name] = named;
+      }
+      for (final ordered in userConstraints!.ordered) {
+        orderNodes.add(ordered);
+      }
+    }
+
+    // Ensure we have named nodes for all deferred imports.
+    final allDeferredImportsIncludingRoot = [root, ...allDeferredImports];
+    for (final deferredImport in allDeferredImportsIncludingRoot) {
+      final name = deferredImport.uriPrefix;
+      if (!existingNames.containsKey(name)) {
+        namedNodes.referenceNode(name);
+      }
+    }
+
+    // Then add ordering constraints based on dominator tree.
+    dominators.dominators.forEach((child, parent) {
+      orderNodes.add(namedNodes.orderNode(parent.uriPrefix, child.uriPrefix));
+    });
+
+    // Now we can build the transitions.
+    final allConstraints =
+        ConstraintData(namedNodes.namedNodes.values.toList(), orderNodes);
+    return psc.KernelBuilder(allConstraints)
+        .build(allDeferredImportsIncludingRoot);
   }
 
   void collectDependencies(Set<Reference> roots) {
@@ -225,7 +268,8 @@ class _Algorithm {
 
   /// Creates a [Partitioning] that maps [Reference]s/[Constant]s to the [Part]
   /// they were assigned to.
-  Partitioning createParitition(Part rootPart) {
+  Partitioning createParitition(Part rootPart, Dominators dominators) {
+    // Map [Reference]s/[Constant]s to the [Part] they were assigned to.
     final referenceToPart = <Reference, Part>{};
     final constantToPart = <Constant, Part>{};
     final parts = <Part>[rootPart];
@@ -246,12 +290,23 @@ class _Algorithm {
       constantToPart[constant] = part;
     });
 
-    final deferredInputLoadingList = <LibraryDependency, List<Part>>{};
+    final deferredInputLoadingList = <LibraryDependency, Set<Part>>{};
     for (final part in parts) {
       for (final deferredImport in part.imports) {
-        (deferredInputLoadingList[deferredImport] ??= []).add(part);
+        (deferredInputLoadingList[deferredImport] ??= {}).add(part);
       }
     }
+
+    // Now we can prune the load lists: If a parent is guaranteed to have loaded
+    // a part, then there's no need to include that part in a child's load list.
+    final alreadyLoaded = <LibraryDependency, Set<Part>>{};
+    dominators.visitDFSPreorder((dominator, dependency) {
+      final parentAlreadyLoaded = alreadyLoaded[dominator] ?? {};
+      final loadList = deferredInputLoadingList[dependency] ?? {};
+      loadList.removeAll(parentAlreadyLoaded);
+      alreadyLoaded[dependency] = {...parentAlreadyLoaded, ...loadList};
+    });
+
     return Partitioning(rootPart, parts, referenceToPart, constantToPart,
         deferredInputLoadingList);
   }
@@ -428,4 +483,9 @@ class _WorkQueue<T extends Object> {
     final importSet = _pendingWork.remove(object)!;
     return (object, importSet);
   }
+}
+
+extension on LibraryDependency {
+  String get uriPrefix =>
+      UriAndPrefix((parent as Library).importUri, name!).toString();
 }
