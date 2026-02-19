@@ -62,6 +62,7 @@ import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/scope_context.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
@@ -4931,8 +4932,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// found during resolution.
   final DiagnosticReporter diagnosticReporter;
 
-  /// The scope used to resolve identifiers.
-  Scope nameScope;
+  final ScopeContext _scopeContext;
 
   /// The scope of libraries imported by `@docImport`s.
   final DocumentationCommentScope _docImportScope;
@@ -4961,17 +4961,29 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ScopeResolverVisitor(
     this.diagnosticReporter, {
     required LibraryFragmentImpl libraryFragment,
-    required this.nameScope,
+    required Scope nameScope,
     List<LibraryElement> docImportLibraries = const [],
   }) : _libraryFragment = libraryFragment,
        _docImportScope = DocumentationCommentScope(
          nameScope,
          docImportLibraries,
+       ),
+       _scopeContext = ScopeContext(
+         libraryFragment: libraryFragment,
+         nameScope: nameScope,
        );
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
   ImplicitLabelScope get implicitLabelScope => _implicitLabelScope;
+
+  // TODO(scheglov): Remove this temporary routing getter.
+  Scope get nameScope => _scopeContext.nameScope;
+
+  // TODO(scheglov): Remove this temporary routing setter.
+  set nameScope(Scope value) {
+    _scopeContext.nameScope = value;
+  }
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
@@ -5586,27 +5598,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    Scope outerScope = nameScope;
-    try {
-      var element = node.declaredFragment!.element;
-      node.metadata.accept(this);
-
-      nameScope = TypeParameterScope(
-        nameScope,
-        element.typeParameters,
-        featureSet: _libraryFragment.library.featureSet,
-      );
-      node.nameScope = nameScope;
-      node.typeParameters?.accept(this);
-      node.onClause?.accept(this);
-      node.implementsClause?.accept(this);
-
-      nameScope = InstanceScope(nameScope, element);
-      _visitDocumentationComment(node.documentationComment);
-      node.body.accept(this);
-    } finally {
-      nameScope = outerScope;
-    }
+    _scopeContext.walkMixinDeclarationScopes(
+      node,
+      visitor: this,
+      visitDocumentationComment: _visitDocumentationComment,
+    );
   }
 
   @override

@@ -3888,7 +3888,8 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   FunctionType get type => _firstFragment.type;
 
   @override
-  List<TypeParameterElement> get typeParameters => _firstFragment.typeParameters
+  List<TypeParameterElementImpl> get typeParameters => _firstFragment
+      .typeParameters
       .map((fragment) => fragment.element)
       .toList();
 
