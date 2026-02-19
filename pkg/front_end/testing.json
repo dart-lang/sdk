@@ -33,6 +33,17 @@
       ]
     },
     {
+      "name": "instrumenter",
+      "kind": "Chain",
+      "source": "tool/flame/instrumenter_suite.dart",
+      "root": "tool/flame/testcases/",
+      "status": "tool/flame/instrumenter.status",
+      "includeEndsWith": [
+        ".count.dart",
+        ".countCalls.dart"
+      ]
+    },
+    {
       "name": "outline",
       "kind": "Chain",
       "source": "test/outline_suite.dart",
