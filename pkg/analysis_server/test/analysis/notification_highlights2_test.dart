@@ -710,6 +710,24 @@ class A {
 ''');
   }
 
+  Future<void> test_class_constructor_new() async {
+    var testCode = TestCode.parseNormalized(r'''
+class A {
+[!
+  new () {}
+  new named() {}
+!]
+}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, 0, r'''
+3:3 |new| KEYWORD
+4:3 |new| KEYWORD
+4:7 |named| CONSTRUCTOR
+''');
+  }
+
   Future<void> test_class_constructor_primary_declaration() async {
     var testCode = TestCode.parseNormalized(r'''
 class A {}

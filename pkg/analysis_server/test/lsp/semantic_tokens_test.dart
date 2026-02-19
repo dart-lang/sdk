@@ -550,6 +550,50 @@ const e = const MyClass();
     await _initializeAndVerifyTokens(content, expected);
   }
 
+  Future<void> test_class_constructors_newKeyword() async {
+    var content = r'''
+class A {
+  new();
+  new named();
+}
+void f() {
+  A.new();
+  A.named();
+  A.new;
+  A.named;
+}
+''';
+
+    var expected = [
+      _Token('class', .keyword),
+      _Token('A', .class_, [.declaration]),
+      _Token('new', .keyword, [
+        CustomSemanticTokenModifiers.constructor,
+        .declaration,
+      ]),
+      _Token('new', .keyword, [
+        CustomSemanticTokenModifiers.constructor,
+        .declaration,
+      ]),
+      _Token('named', .method, [
+        CustomSemanticTokenModifiers.constructor,
+        .declaration,
+      ]),
+      _Token('void', .keyword, [CustomSemanticTokenModifiers.void_]),
+      _Token('f', .function, [.declaration, .static]),
+      _Token('A', .class_, [CustomSemanticTokenModifiers.constructor]),
+      _Token('new', .method, [CustomSemanticTokenModifiers.constructor]),
+      _Token('A', .class_, [CustomSemanticTokenModifiers.constructor]),
+      _Token('named', .method, [CustomSemanticTokenModifiers.constructor]),
+      _Token('A', .class_),
+      _Token('new', .method, [CustomSemanticTokenModifiers.constructor]),
+      _Token('A', .class_),
+      _Token('named', .method, [CustomSemanticTokenModifiers.constructor]),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
   Future<void> test_class_fields() async {
     var content = '''
 class MyClass {
