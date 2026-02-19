@@ -61,6 +61,37 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
+  Future<void> test_getter_declaring_implementedByDeclaring() =>
+      _testMarkedContent('''
+      abstract class A(final int val^ue);
+
+      class B(final int /*[0*/value/*0]*/) implements A;
+    ''');
+
+  Future<void> test_getter_declaring_implementedByExplicit() =>
+      _testMarkedContent('''
+      abstract class A(final int va^lue);
+
+      class B implements A {
+        final int /*[0*/value/*0]*/;
+        B(this.value);
+      }
+
+      class C implements A {
+        int get /*[1*/value/*1]*/ => 0;
+      }
+    ''');
+
+  Future<void> test_getter_explicit_implementedByDeclaring() =>
+      _testMarkedContent('''
+      abstract class A {
+        int get c^ount;
+      }
+
+      class B(final int /*[0*/count/*0]*/) implements A;
+      class C({required final int /*[1*/count/*1]*/}) implements A;
+    ''');
+
   Future<void> test_getter_overriddenByField() => _testMarkedContent('''
       class B extends A {
         final String? [!a!] = null;
@@ -249,8 +280,18 @@ abstract class MyInterface {
     expect(res, isEmpty);
   }
 
+  Future<void> test_setter_explicit_implementedByDeclaring() =>
+      _testMarkedContent('''
+      abstract class A {
+        set c^ount(int _);
+      }
+
+      class B(var int /*[0*/count/*0]*/) implements A;
+      class C({required var int /*[1*/count/*1]*/}) implements A;
+    ''');
+
   /// Parses [content] using as [TestCode] and invokes the
-  /// `textDocument/implementations` command at the marked location to verify
+  /// `textDocument/implementations` command at the marked position to verify
   /// the marked regions are returned as implementations.
   ///
   /// If [otherContent] is provided, will be written as `other.dart` alongside
