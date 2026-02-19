@@ -24820,7 +24820,7 @@ WarningCode:
       @doNotStore
       int f() => 1;
 
-      var x = [!f!]();
+      var x = [!f()!];
       ```
 
       #### Common fixes
@@ -28837,7 +28837,7 @@ WarningCode:
       @doNotStore
       int f() => 0;
 
-      int g() => [!f!]();
+      int g() => [!f()!];
       ```
 
       #### Common fixes
