@@ -67,6 +67,18 @@ class A {
 ''');
   }
 
+  test_classDeprecated_newSyntax() async {
+    await assertDiagnostics(
+      r'''
+@deprecated
+class A {
+  new();
+}
+''',
+      [lint(24, 3)],
+    );
+  }
+
   test_classDeprecated_primaryConstructor() async {
     await assertDiagnostics(
       r'''
@@ -93,7 +105,7 @@ class A() {
 @deprecated
 class A.named();
 ''',
-      [lint(20, 5)],
+      [lint(18, 7)],
     );
   }
 

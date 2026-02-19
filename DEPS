@@ -80,7 +80,7 @@ vars = {
   "jsc_tag": "version:307078",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:b153f17b8aeb23ae45b05d8f5e6b4dfd76442dc4",
+  "clang_version": "git_revision:80743bd43fd5b38fedc503308e7a652e23d3ec93",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:18d8e6dca7d74c240aabf9f44eea540ae565efb2",
@@ -152,7 +152,7 @@ vars = {
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "5a2b40d8a5310ee37d5064e36b9b428f1596cc0f",
-  "tools_rev": "3e1d1c46b8a6df65c132275cab255635c1226999",
+  "tools_rev": "119a499068a903222fbbefdea18ea59efdd417b9",
   "vector_math_rev": "70a9a2cb610d040b247f3ca2cd70a94c1c6f6f23",
   "web_rev": "35fc98dd8f9da175ed0a2dcf246299e922e1e1e2",
   "webdev_rev": "234e44c2ba0aa6cee5a36026538ca89457bf0d55",

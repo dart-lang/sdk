@@ -147,9 +147,11 @@ library
         #F1 hasInitializer isOriginDeclaration x (nameOffset:27) (firstTokenOffset:27) (offset:27)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
-            SimpleIdentifier
-              token: FutureOr @31
-              element: dart:async::@class::FutureOr
+            TypeLiteral
+              type: NamedType
+                name: FutureOr @31
+                element: dart:async::@class::FutureOr
+                type: FutureOr<dynamic>
               staticType: Type
       getters
         #F2 synthetic isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)

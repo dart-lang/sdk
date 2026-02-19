@@ -72,6 +72,137 @@ void f() {
     await _checkRanges(mainContent, otherContent: otherContent);
   }
 
+  Future<void> test_constructor_primary_default() async {
+    var content = '''
+class A^aa(int value);
+
+void f() {
+  /*[0*/Aaa/*0]*/? value = /*[1*/Aaa/*1]*/(1);
+  /*[2*/Aaa/*2]*/(2);
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_primary_named_constructorName() async {
+    var content = '''
+class Aaa.na^med(int value);
+
+void f() {
+  Aaa value = Aaa/*[0*/.named/*0]*/(1);
+  Aaa/*[1*/.named/*1]*/(2);
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_primary_named_typeName() async {
+    var content = '''
+class A^aa.named(int value);
+
+void f() {
+  /*[0*/Aaa/*0]*/? value = /*[1*/Aaa/*1]*/.named(1);
+  /*[2*/Aaa/*2]*/.named(2);
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_primary_parameter_declaring_final() async {
+    var content = '''
+class A({required final int a}) {
+  this {
+    print(/*[0*/a^/*0]*/);
+  }
+}
+
+void f() {
+  var value = A(/*[1*/a/*1]*/: 1);
+  print(value./*[2*/a/*2]*/);
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_primary_parameter_declaring_var() async {
+    var content = '''
+class A({required var int a});
+
+void f() {
+  var value = A(/*[0*/a/*0]*/: 1);
+  value./*[1*/a^/*1]*/ = 2;
+  print(value./*[2*/a/*2]*/);
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_primary_parameter_nonDeclaring() async {
+    var content = '''
+class A({required int b}) {
+  final int c;
+
+  this : c = /*[0*/b^/*0]*/ {
+    print(/*[1*/b/*1]*/);
+  }
+}
+
+void f() {
+  A(/*[2*/b/*2]*/: 1);
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_secondary_default() async {
+    var content = '''
+class A^aa {
+  /*[0*/Aaa/*0]*/();
+}
+
+void f() {
+  /*[1*/Aaa/*1]*/? value = /*[2*/Aaa/*2]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_secondary_named_constructorName() async {
+    var content = '''
+class Aaa {
+  Aaa.na^med();
+}
+
+void f() {
+  Aaa value = Aaa/*[0*/.named/*0]*/();
+  Aaa/*[1*/.named/*1]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_secondary_named_typeName() async {
+    var content = '''
+class A^aa {
+  /*[0*/Aaa/*0]*/.named();
+}
+
+void f() {
+  /*[1*/Aaa/*1]*/? value = /*[2*/Aaa/*2]*/.named();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
   Future<void> test_field_decalaration_getterSetter() async {
     var content = '''
 class MyClass {

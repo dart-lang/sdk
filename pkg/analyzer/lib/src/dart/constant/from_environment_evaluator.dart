@@ -19,12 +19,12 @@ class FromEnvironmentEvaluator {
 
   /// Return the value of the variable with the given [name] interpreted as a
   /// 'boolean' value. If the variable is not defined, or the value cannot be
-  /// parsed as a boolean, return the default value from [namedValues]. If no
-  /// default value, return the default value of the default value from
-  /// the [constructor], possibly a [DartObject] representing 'null'.
+  /// parsed as a boolean, return [defaultValue]. If [defaultValue] is null,
+  /// return the default value of the default value from the [constructor],
+  /// possibly a [DartObject] representing 'null'.
   DartObjectImpl getBool2(
     String? name,
-    Map<String, DartObjectImpl> namedValues,
+    DartObjectImpl? defaultValue,
     ConstructorElement constructor,
   ) {
     var str = name != null ? _declaredVariables.get(name) : null;
@@ -43,18 +43,17 @@ class FromEnvironmentEvaluator {
       );
     }
 
-    var defaultValue = namedValues[_defaultValue];
     return defaultValue ?? _defaultValueDefaultValue(constructor);
   }
 
   /// Return the value of the variable with the given [name] interpreted as an
   /// integer value. If the variable is not defined, or the value cannot be
-  /// parsed as an integer, return the default value from [namedValues]. If no
-  /// default value, return the default value of the default value from
-  /// the [constructor], possibly a [DartObject] representing 'null'.
+  /// parsed as an integer, return [defaultValue]. If [defaultValue] is null,
+  /// return the default value of the default value from the [constructor],
+  /// possibly a [DartObject] representing 'null'.
   DartObjectImpl getInt2(
     String? name,
-    Map<String, DartObjectImpl> namedValues,
+    DartObjectImpl? defaultValue,
     ConstructorElement constructor,
   ) {
     var str = name != null ? _declaredVariables.get(name) : null;
@@ -71,7 +70,6 @@ class FromEnvironmentEvaluator {
       }
     }
 
-    var defaultValue = namedValues[_defaultValue];
     if (defaultValue != null) {
       return defaultValue;
     }
@@ -92,12 +90,12 @@ class FromEnvironmentEvaluator {
 
   /// Return the value of the variable with the given [name] interpreted as a
   /// string value. If the variable is not defined, or the value cannot be
-  /// parsed as a boolean, return the default value from [namedValues]. If no
-  /// default value, return the default value of the default value from
-  /// the [constructor], possibly a [DartObject] representing 'null'.
+  /// parsed as a boolean, return [defaultValue]. If [defaultValue] is null,
+  /// return the default value of the default value from the [constructor],
+  /// possibly a [DartObject] representing 'null'.
   DartObjectImpl getString2(
     String? name,
-    Map<String, DartObjectImpl> namedValues,
+    DartObjectImpl? defaultValue,
     ConstructorElement constructor,
   ) {
     var str = name != null ? _declaredVariables.get(name) : null;
@@ -109,7 +107,6 @@ class FromEnvironmentEvaluator {
       );
     }
 
-    var defaultValue = namedValues[_defaultValue];
     if (defaultValue != null) {
       return defaultValue;
     }

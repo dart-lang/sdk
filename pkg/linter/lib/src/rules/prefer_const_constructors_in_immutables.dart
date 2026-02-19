@@ -85,8 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!interfaceElement.hasImmutableAnnotation) return;
 
     if (interfaceElement is ExtensionTypeElement) {
-      var errorRange = node.errorRange;
-      rule.reportAtOffset(errorRange.offset, errorRange.length);
+      rule.reportAtSourceRange(node.errorRange);
       return;
     }
 
@@ -95,16 +94,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       redirectedConstructor: ConstructorElement redirectedConstructor,
     )) {
       if (redirectedConstructor.isConst) {
-        var errorRange = node.errorRange;
-        rule.reportAtOffset(errorRange.offset, errorRange.length);
+        rule.reportAtSourceRange(node.errorRange);
       }
     } else if (_hasConstConstructorInvocation(
           element: node.declaredFragment?.element,
           initializers: node.body?.initializers,
         ) &&
         node.canBeConst) {
-      var errorRange = node.errorRange;
-      rule.reportAtOffset(errorRange.offset, errorRange.length);
+      rule.reportAtSourceRange(node.errorRange);
     }
   }
 

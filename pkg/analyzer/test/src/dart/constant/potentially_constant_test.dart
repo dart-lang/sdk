@@ -1447,29 +1447,6 @@ var x = A;
 ''', () => _xInitializer());
   }
 
-  test_simpleIdentifier_typeParameter_class() async {
-    await _assertConst(r'''
-class A<T> {
-  final Object f;
-  A() : f = T;
-}
-''', () => findNode.simple('T;'));
-  }
-
-  test_simpleIdentifier_typeParameter_class_214() async {
-    await _assertNotConst(
-      r'''
-// @dart = 2.14
-class A<T> {
-  final Object f;
-  A() : f = T;
-}
-''',
-      () => findNode.simple('T;'),
-      () => [findNode.simple('T;')],
-    );
-  }
-
   test_spreadElement() async {
     await _assertConst(r'''
 const a = [0, 1, 2];
@@ -1532,6 +1509,29 @@ class A {
 ''',
       () => findNode.typeLiteral('List<self.A>'),
       () => [findNode.typeAnnotation('self.A')],
+    );
+  }
+
+  test_typeLiteral_typeParameter_class() async {
+    await _assertConst(r'''
+class A<T> {
+  final Object f;
+  A() : f = T;
+}
+''', () => findNode.typeLiteral('T;'));
+  }
+
+  test_typeLiteral_typeParameter_class_214() async {
+    await _assertNotConst(
+      r'''
+// @dart = 2.14
+class A<T> {
+  final Object f;
+  A() : f = T;
+}
+''',
+      () => findNode.typeLiteral('T;'),
+      () => [findNode.typeLiteral('T;')],
     );
   }
 

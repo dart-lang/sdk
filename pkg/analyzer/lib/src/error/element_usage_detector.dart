@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 
@@ -124,6 +125,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       displayName,
       tagInfo,
       isInSamePackage: _isLibraryInWorkspacePackage(element.library),
+      isInTestDirectory:
+          node.thisOrAncestorOfType<CompilationUnit>()?.inTestDir ?? false,
     );
   }
 
@@ -363,8 +366,7 @@ class ElementUsageDetector<TagInfo extends Object> {
   /// [node].
   static bool _isLocalParameter(Element? element, AstNode? node) {
     if (element is FormalParameterElement) {
-      var definingFunction =
-          element.firstFragment.enclosingFragment?.element as ExecutableElement;
+      var definingFunction = element.enclosingElement;
 
       for (; node != null; node = node.parent) {
         if (node is ConstructorDeclaration) {
@@ -407,11 +409,14 @@ abstract class ElementUsageReporter<TagInfo extends Object> {
   /// tag information returned by [ElementUsageSet.getTagInfo].
   /// [isInSamePackage] indicates whether the element and its usage are in
   /// the same package.
+  /// [isInTestDirectory] indicates whether the usage of the element is in a
+  /// "test" directory, according to [CompilationUnitExtension.inTestDir].
   void report(
     SyntacticEntity usageSite,
     String displayName,
     TagInfo tagInfo, {
     required bool isInSamePackage,
+    required bool isInTestDirectory,
   });
 }
 

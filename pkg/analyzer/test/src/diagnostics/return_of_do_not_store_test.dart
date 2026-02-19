@@ -219,6 +219,22 @@ class A {
     );
   }
 
+  test_topLevelVariable_assignment_functionExpression() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+
+@doNotStore
+String get _v => '';
+
+var c = () => _v;
+
+String v = c();
+''',
+      [error(diag.returnOfDoNotStore, 82, 2)],
+    );
+  }
+
   test_topLevelVariable_awaitExpression() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';

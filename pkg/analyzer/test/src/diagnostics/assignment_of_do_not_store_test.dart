@@ -79,7 +79,7 @@ class A {
 
 String f = A().v;
 ''',
-      [error(diag.assignmentOfDoNotStore, 91, 5)],
+      [error(diag.assignmentOfDoNotStore, 95, 1)],
     );
   }
 
@@ -94,7 +94,7 @@ class A {
 
 String f = A().v();
 ''',
-      [error(diag.assignmentOfDoNotStore, 89, 7)],
+      [error(diag.assignmentOfDoNotStore, 93, 1)],
     );
   }
 
@@ -109,7 +109,7 @@ class A {
 
 String f = A.v;
 ''',
-      [error(diag.assignmentOfDoNotStore, 98, 3)],
+      [error(diag.assignmentOfDoNotStore, 100, 1)],
     );
   }
 
@@ -124,7 +124,7 @@ class A {
 
 String f = A.v();
 ''',
-      [error(diag.assignmentOfDoNotStore, 96, 5)],
+      [error(diag.assignmentOfDoNotStore, 98, 1)],
     );
   }
 
@@ -143,7 +143,7 @@ class B {
 }
 ''',
       [
-        error(diag.assignmentOfDoNotStore, 106, 5, messageContains: ["'v'"]),
+        error(diag.assignmentOfDoNotStore, 110, 1, messageContains: ["'v'"]),
       ],
     );
   }
@@ -162,7 +162,7 @@ class B {
   String f = A.v;
 }
 ''',
-      [error(diag.assignmentOfDoNotStore, 113, 3)],
+      [error(diag.assignmentOfDoNotStore, 115, 1)],
     );
   }
 
@@ -191,7 +191,7 @@ class A {
   final f = getV();
 }
 ''',
-      [error(diag.assignmentOfDoNotStore, 90, 6)],
+      [error(diag.assignmentOfDoNotStore, 90, 4)],
     );
   }
 
@@ -238,7 +238,7 @@ class B {
   final f = A().getV();
 }
 ''',
-      [error(diag.assignmentOfDoNotStore, 106, 10)],
+      [error(diag.assignmentOfDoNotStore, 110, 4)],
     );
   }
 
@@ -256,7 +256,7 @@ abstract class A {
   late String f = m.v();
 }
 ''',
-      [error(diag.assignmentOfDoNotStore, 126, 5)],
+      [error(diag.assignmentOfDoNotStore, 128, 1)],
     );
   }
 
@@ -289,7 +289,7 @@ class A {
     );
   }
 
-  test_topLevelGetter_binaryExpression() async {
+  test_topLevelGetter_binaryExpression_ifNull() async {
     await assertErrorsInCode(
       '''
 import 'package:meta/meta.dart';
@@ -308,7 +308,6 @@ class A {
     );
   }
 
-  @FailingTest(reason: 'Not yet implemented')
   test_topLevelVariable_asExpression() async {
     await assertErrorsInCode(
       '''
@@ -336,24 +335,8 @@ class A{
 }
 ''',
       [
-        error(diag.assignmentOfDoNotStore, 47, 5, messageContains: ["'f'"]),
+        error(diag.assignmentOfDoNotStore, 51, 1, messageContains: ["'f'"]),
       ],
-    );
-  }
-
-  test_topLevelVariable_assignment_functionExpression() async {
-    await assertErrorsInCode(
-      '''
-import 'package:meta/meta.dart';
-
-@doNotStore
-String get _v => '';
-
-var c = () => _v;
-
-String v = c();
-''',
-      [error(diag.assignmentOfDoNotStore, 82, 2)],
     );
   }
 
@@ -386,7 +369,7 @@ class A{
 }
 ''',
       [
-        error(diag.assignmentOfDoNotStore, 47, 7, messageContains: ["'v'"]),
+        error(diag.assignmentOfDoNotStore, 51, 1, messageContains: ["'v'"]),
       ],
     );
   }
@@ -404,7 +387,6 @@ class A {
 ''');
   }
 
-  @FailingTest(reason: 'Not yet implemented')
   test_topLevelVariable_cascadeExpression_target() async {
     await assertErrorsInCode(
       '''
@@ -438,7 +420,6 @@ String get v => '';
     );
   }
 
-  @FailingTest(reason: 'Not yet implemented')
   test_topLevelVariable_dotShorthandPropertyAccess() async {
     await assertErrorsInCode(
       '''
@@ -569,7 +550,6 @@ String get v => '';
 ''');
   }
 
-  @FailingTest(reason: 'Not yet implemented')
   test_topLevelVariable_nullAssert() async {
     await assertErrorsInCode(
       '''
@@ -650,7 +630,6 @@ List<String> get v => [];
 ''');
   }
 
-  @FailingTest(reason: 'Not yet implemented')
   test_topLevelVariable_switchExpression_caseBody() async {
     await assertErrorsInCode(
       '''

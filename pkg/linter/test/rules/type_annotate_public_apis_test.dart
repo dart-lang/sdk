@@ -528,6 +528,17 @@ void f() {
 ''');
   }
 
+  test_newSyntax_parameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  new(p);
+}
+''',
+      [lint(16, 1)],
+    );
+  }
+
   test_staticConstField_hasInitializer() async {
     await assertNoDiagnostics(r'''
 class A {
