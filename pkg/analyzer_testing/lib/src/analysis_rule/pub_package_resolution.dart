@@ -202,6 +202,25 @@ final class ExpectedLint extends ExpectedDiagnostic {
   String get lintName => _lintName;
 }
 
+/// A builder for package files (for example, mocks); generally accessed via
+/// [PubPackageResolutionTest.newPackage].
+class PackageBuilder {
+  final String _packagePath;
+  final PubPackageResolutionTest _test;
+
+  PackageBuilder._(String packagePath, PubPackageResolutionTest test)
+    : _packagePath = packagePath,
+      _test = test;
+
+  /// Adds a file to [PubPackageResolutionTest.resourceProvider].
+  ///
+  /// The file is added at [localPath] relative to the package path of this
+  /// [PackageBuilder], with [content].
+  void addFile(String localPath, String content) {
+    _test.newFile('$_packagePath/$localPath', content);
+  }
+}
+
 class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// The byte store that is reused between tests.
   ///
@@ -219,6 +238,10 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   /// The analysis result that is used in various `assertDiagnostics` methods.
   late ResolvedUnitResult result;
+
+  /// The names of packages which should be added to the
+  /// [PackageConfigFileBuilder].
+  final Set<String> _packagesToAdd = {};
 
   /// Adds the 'fixnum' package as a dependency to the package-under-test.
   ///
@@ -517,6 +540,16 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     return super.newFile(path, content);
   }
 
+  /// Registers a package named [name].
+  ///
+  /// The returned [PackageBuilder] can be used to add Dart source files in the
+  /// package sources, via [PackageBuilder.addFile].
+  PackageBuilder newPackage(String name) {
+    var packagePath = convertPath('/package/$name');
+    _packagesToAdd.add(name);
+    return PackageBuilder._(packagePath, this);
+  }
+
   /// Resolves a Dart source file at [path].
   ///
   /// [path] must be converted for this file system.
@@ -691,38 +724,5 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   void _writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
-  }
-
-  /// The names of packages which should be added to the
-  /// [PackageConfigFileBuilder].
-  final Set<String> _packagesToAdd = {};
-
-  /// Registers a package named [name].
-  ///
-  /// The returned [PackageBuilder] can be used to add Dart source files in the
-  /// package sources, via [PackageBuilder.addFile].
-  PackageBuilder newPackage(String name) {
-    var packagePath = convertPath('/package/$name');
-    _packagesToAdd.add(name);
-    return PackageBuilder._(packagePath, this);
-  }
-}
-
-/// A builder for package files (for example, mocks); generally accessed via
-/// [PubPackageResolutionTest.newPackage].
-class PackageBuilder {
-  final String _packagePath;
-  final PubPackageResolutionTest _test;
-
-  PackageBuilder._(String packagePath, PubPackageResolutionTest test)
-    : _packagePath = packagePath,
-      _test = test;
-
-  /// Adds a file to [PubPackageResolutionTest.resourceProvider].
-  ///
-  /// The file is added at [localPath] relative to the package path of this
-  /// [PackageBuilder], with [content].
-  void addFile(String localPath, String content) {
-    _test.newFile('$_packagePath/$localPath', content);
   }
 }
