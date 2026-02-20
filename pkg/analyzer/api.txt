@@ -374,8 +374,8 @@ package:analyzer/dart/analysis/context_root.dart:
     isAnalyzed (method: bool Function(String))
 package:analyzer/dart/analysis/declared_variables.dart:
   DeclaredVariables (class extends Object):
-    fromMap (constructor: DeclaredVariables Function(Map<String, String>))
     new (constructor: DeclaredVariables Function())
+    fromMap (constructor: DeclaredVariables Function(Map<String, String>))
     variableNames (getter: Iterable<String>)
     get (method: String? Function(String))
 package:analyzer/dart/analysis/features.dart:
@@ -2044,8 +2044,8 @@ package:analyzer/dart/ast/token.dart:
     minor (getter: int)
   Token (class extends Object implements SyntacticEntity):
     lexicallyFirst (static method: Token? Function([Token?, Token?, Token?, Token?, Token?]))
-    eof (constructor: Token Function(int, [CommentToken?]))
     new (constructor: Token Function(TokenType, int, [CommentToken?]))
+    eof (constructor: Token Function(int, [CommentToken?]))
     beforeSynthetic (getter: Token?)
     beforeSynthetic= (setter: Token?)
     charCount (getter: int)
@@ -4042,8 +4042,8 @@ package:analyzer/dart/element/element.dart:
     previousFragment (getter: Null)
   Name (class extends Object):
     forElement (static method: Name? Function(Element))
-    forLibrary (constructor: Name Function(LibraryElement?, String))
     new (constructor: Name Function(Uri?, String))
+    forLibrary (constructor: Name Function(LibraryElement?, String))
     forGetter (getter: Name)
     forSetter (getter: Name)
     hashCode (getter: int)
@@ -4943,8 +4943,8 @@ package:analyzer/source/error_processor.dart:
     processors (getter: List<ErrorProcessor>)
   ErrorProcessor (class extends Object):
     getProcessor (static method: ErrorProcessor? Function(AnalysisOptions?, Diagnostic))
-    ignore (constructor: ErrorProcessor Function(String))
     new (constructor: ErrorProcessor Function(String, [DiagnosticSeverity?]))
+    ignore (constructor: ErrorProcessor Function(String))
     code (getter: String)
     description (getter: String)
     severity (getter: DiagnosticSeverity?)
@@ -4973,8 +4973,8 @@ package:analyzer/source/line_info.dart:
     toString (method: String Function())
   LineInfo (class extends Object):
     getOffsetForLine (static method: int? Function(int, String))
-    fromContent (constructor: LineInfo Function(String))
     new (constructor: LineInfo Function(List<int>))
+    fromContent (constructor: LineInfo Function(String))
     lineCount (getter: int)
     lineStarts (getter: List<int>)
     getLocation (method: CharacterLocation Function(int))

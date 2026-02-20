@@ -19,11 +19,13 @@ class MemberSortKey implements Comparable<MemberSortKey> {
   final bool _isInstanceMember;
   final MemberCategory _category;
   final String _name;
+  final bool _isSetter;
 
   MemberSortKey(Element element)
     : _isInstanceMember = _computeIsInstanceMember(element),
       _category = _computeCategory(element),
-      _name = element.name!;
+      _name = element.displayName,
+      _isSetter = element is SetterElement;
 
   @override
   int compareTo(MemberSortKey other) {
@@ -35,7 +37,10 @@ class MemberSortKey implements Comparable<MemberSortKey> {
         when value != 0) {
       return value;
     }
-    return _name.compareTo(other._name);
+    if (_name.compareTo(other._name) case var value when value != 0) {
+      return value;
+    }
+    return (_isSetter ? 1 : 0).compareTo(other._isSetter ? 1 : 0);
   }
 
   static MemberCategory _computeCategory(Element element) => switch (element) {

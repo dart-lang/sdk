@@ -37,6 +37,25 @@ class C {
     );
   }
 
+  Future<void> test_sortOrder_member_gettersAndSettersTogether() async {
+    // Note that it's not good enough for the implementation to sort by apiName,
+    // because `9` is ASCII 0x39 and `=` is ASCII 0x3d, so sorting by apiName
+    // would put `a9` and `a9=` between `a` and `a=`.
+    _checkSorting(
+      elements: (await analyzeLibrary('''
+class C {
+  get a => 0;
+  get a9 => 0;
+  get aA => 0;
+  set a(value) {}
+  set a9(value) {}
+  set aA(value) {}
+}
+''')).getClass('C')!.childrenExcludingPropertyInducingElements,
+      expectedOrder: ['new', 'a', 'a=', 'a9', 'a9=', 'aA', 'aA='],
+    );
+  }
+
   Future<void> test_sortOrder_member_staticBeforeInstance() async {
     _checkSorting(
       elements: (await analyzeLibrary('''
@@ -68,6 +87,21 @@ class C {
     );
   }
 
+  Future<void> test_sortOrder_member_unnamedConstructorBeforeOthers() async {
+    // Note that it's not good enough for the implementation to sort by apiName,
+    // because that would put `new` after `A`.
+    _checkSorting(
+      elements: (await analyzeLibrary('''
+class C {
+  C();
+  C.A();
+  C.z();
+}
+''')).getClass('C')!.childrenExcludingPropertyInducingElements,
+      expectedOrder: ['new', 'A', 'z'],
+    );
+  }
+
   Future<void> test_sortOrder_topLevel_categoryBeforeName() async {
     _checkSorting(
       elements: (await analyzeLibrary('''
@@ -94,6 +128,23 @@ typedef z5 = int;
         'a5',
         'z5',
       ],
+    );
+  }
+
+  Future<void> test_sortOrder_topLevel_gettersAndSettersTogether() async {
+    // Note that it's not good enough for the implementation to sort by apiName,
+    // because `9` is ASCII 0x39 and `=` is ASCII 0x3d, so sorting by apiName
+    // would put `a9` and `a9=` between `a` and `a=`.
+    _checkSorting(
+      elements: (await analyzeLibrary('''
+get a => 0;
+get a9 => 0;
+get aA => 0;
+set a(value) {}
+set a9(value) {}
+set aA(value) {}
+''')).childrenExcludingPropertyInducingElements,
+      expectedOrder: ['a', 'a=', 'a9', 'a9=', 'aA', 'aA='],
     );
   }
 

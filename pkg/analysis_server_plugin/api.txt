@@ -16,8 +16,8 @@ package:analysis_server_plugin/edit/assist/dart_assist_context.dart:
     workspace (getter: ChangeWorkspace)
 package:analysis_server_plugin/edit/correction_utils.dart:
   CorrectionUtils (class extends Object):
-    fromUnitAndContent (constructor: CorrectionUtils Function(CompilationUnit, String))
     new (constructor: CorrectionUtils Function(ParsedUnitResult))
+    fromUnitAndContent (constructor: CorrectionUtils Function(CompilationUnit, String))
     endOfLine (getter: String)
     oneIndent (getter: String)
     twoIndents (getter: String)
