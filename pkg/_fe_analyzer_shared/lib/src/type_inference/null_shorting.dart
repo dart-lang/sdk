@@ -82,6 +82,9 @@ mixin NullShortingMixin<
   /// Starts null shorting for a null-aware expression that participates in
   /// null-shorting.
   ///
+  /// Note: there is no corresponding "stop" method. Null shorting will be
+  /// automatically stopped by [TypeAnalyzer.analyzeExpression].
+  ///
   /// [targetInfo] should be the flow analysis expression info for the target of
   /// the null-aware operation (the expression to the left of the `?.`), and
   /// [targetType] should be its static type.

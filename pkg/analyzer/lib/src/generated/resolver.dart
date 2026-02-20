@@ -4662,6 +4662,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return false;
   }
 
+  /// Starts null aware access on a given [target] expression.
+  ///
+  /// Note: there is no corresponding "stop" method. Null shorting will be
+  /// automatically stopped by [TypeAnalyzer.analyzeExpression].
   void _startNullAwareAccess(ExpressionImpl? target) {
     var flow = flowAnalysis.flow;
     if (flow != null) {
