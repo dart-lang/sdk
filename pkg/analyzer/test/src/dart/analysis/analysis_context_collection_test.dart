@@ -344,11 +344,10 @@ contexts
     analyzedFiles
       /home/test/lib/nested/lib/c.dart
         uri: package:nested/c.dart
-        analysisOptions_1
+        analysisOptions_0
         workspacePackage_1_0
 analysisOptions
   analysisOptions_0: /home/test/lib/analysis_options.yaml
-  analysisOptions_1: /home/test/lib/analysis_options.yaml
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test

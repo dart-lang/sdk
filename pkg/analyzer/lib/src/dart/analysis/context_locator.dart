@@ -8,8 +8,8 @@ import 'package:analyzer/file_system/physical_file_system.dart'
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
@@ -470,18 +470,17 @@ class ContextLocatorImpl {
       usedThisRoot = false;
     }
 
-    if (optionsFileToUse != null) {
+    if (optionsFileToUse != null &&
+        optionsFileToUse != optionsFileFromParentInSameRoot) {
       containingRoot.optionsFileMap
           .putIfAbsent(optionsFileToUse, () => {})
           .add(folder);
-      if (optionsFileToUse != optionsFileFromParentInSameRoot) {
-        // Add excluded globs only if we found a new options file.
-        var excludes = _getExcludedGlobs(
-          optionsFileToUse,
-          containingRoot.workspace,
-        );
-        containingRoot.excludedGlobs.addAll(excludes);
-      }
+      // Add excluded globs only if we found a new options file.
+      var excludes = _getExcludedGlobs(
+        optionsFileToUse,
+        containingRoot.workspace,
+      );
+      containingRoot.excludedGlobs.addAll(excludes);
     }
     _createContextRootsIn(
       roots,
