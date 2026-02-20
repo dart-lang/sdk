@@ -120,7 +120,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         nameScope: nameScope,
       );
 
-  Scope get nameScope => _scopeContext.nameScope;
+  // TODO(scheglov): Remove this temporary routing getter.
+  Scope get _nameScope => _scopeContext.nameScope;
 
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
@@ -139,7 +140,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     covariant AssignedVariablePatternImpl node,
   ) {
     var name = node.name.lexeme;
-    var element = nameScope.lookup(name).getter;
+    var element = _nameScope.lookup(name).getter;
     node.element = element;
 
     if (element == null) {
@@ -172,7 +173,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    _scopeContext.withLocalScope(() {
+    withLocalScope(() {
       var statements = node.statements;
       _buildLocalElements(statements);
       statements.accept(this);
@@ -184,7 +185,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var exceptionTypeNode = node.exceptionType;
     exceptionTypeNode?.accept(this);
 
-    _scopeContext.withLocalScope(() {
+    withLocalScope(() {
       var exceptionNode = node.exceptionParameter;
       if (exceptionNode != null) {
         var fragment = exceptionNode.declaredFragment!;
@@ -217,7 +218,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _namedTypeResolver.enclosingClass = element;
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.namePart.typeParameters, () {
+    _withTypeParameterScope(node.namePart.typeParameters, () {
       node.namePart.accept(this);
 
       var extendsClause = node.extendsClause;
@@ -238,7 +239,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       );
 
       _withEnclosingInstanceElement(element, () {
-        _scopeContext.withInstanceScope(element, () {
+        withInstanceScope(element, () {
           node.body.accept(this);
         });
       });
@@ -254,7 +255,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
+    _withTypeParameterScope(node.typeParameters, () {
       node.typeParameters?.accept(this);
 
       _resolveType(declaration: node, clause: null, namedType: node.superclass);
@@ -279,18 +280,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.parameters.accept(this);
 
-    _scopeContext.withConstructorInitializerScope(fragment.element, () {
+    withScope(ConstructorInitializerScope(_nameScope, fragment.element), () {
       node.initializers.accept(this);
     });
 
     node.redirectedConstructor?.accept(this);
 
-    _scopeContext.withFormalParameterScope(
-      fragment.element.formalParameters,
-      () {
-        node.body.accept(this);
-      },
-    );
+    _withFormalParameterScope(fragment.element.formalParameters, () {
+      node.body.accept(this);
+    });
   }
 
   @override
@@ -363,7 +361,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _namedTypeResolver.enclosingClass = element;
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.namePart.typeParameters, () {
+    _withTypeParameterScope(node.namePart.typeParameters, () {
       node.namePart.accept(this);
 
       _resolveWithClause(declaration: node, clause: node.withClause);
@@ -373,7 +371,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       );
 
       _withEnclosingInstanceElement(element, () {
-        _scopeContext.withInstanceScope(element, () {
+        withInstanceScope(element, () {
           node.body.accept(this);
         });
       });
@@ -394,12 +392,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
+    _withTypeParameterScope(node.typeParameters, () {
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
 
       _withEnclosingInstanceElement(element, () {
-        _scopeContext.withExtensionScope(element, () {
+        withScope(ExtensionScope(_nameScope, element), () {
           node.body.accept(this);
         });
       });
@@ -416,23 +414,20 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _namedTypeResolver.enclosingClass = element;
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(
-      node.primaryConstructor.typeParameters,
-      () {
-        node.primaryConstructor.accept(this);
+    _withTypeParameterScope(node.primaryConstructor.typeParameters, () {
+      node.primaryConstructor.accept(this);
 
-        _resolveImplementsClause(
-          declaration: node,
-          clause: node.implementsClause,
-        );
+      _resolveImplementsClause(
+        declaration: node,
+        clause: node.implementsClause,
+      );
 
-        _withEnclosingInstanceElement(element, () {
-          _scopeContext.withInstanceScope(element, () {
-            node.body.accept(this);
-          });
+      _withEnclosingInstanceElement(element, () {
+        withInstanceScope(element, () {
+          node.body.accept(this);
         });
-      },
-    );
+      });
+    });
 
     _namedTypeResolver.enclosingClass = null;
   }
@@ -441,7 +436,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
+    _withTypeParameterScope(node.typeParameters, () {
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
       node.type?.accept(this);
@@ -473,14 +468,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitForElement(covariant ForElementImpl node) {
-    _scopeContext.withLocalScope(() {
+    withLocalScope(() {
       super.visitForElement(node);
     });
   }
 
   @override
   void visitForStatement(covariant ForStatementImpl node) {
-    _scopeContext.withLocalScope(() {
+    withLocalScope(() {
       super.visitForStatement(node);
     });
   }
@@ -488,12 +483,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    _scopeContext.withTypeParameterList(
-      node.functionExpression.typeParameters,
-      () {
-        super.visitFunctionDeclaration(node);
-      },
-    );
+    _withTypeParameterScope(node.functionExpression.typeParameters, () {
+      super.visitFunctionDeclaration(node);
+    });
 
     if (node.parent is FunctionDeclarationStatement) {
       fragment.element.returnType =
@@ -519,16 +511,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       fragment.element.returnType = _typeProvider.dynamicType;
     }
 
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
+    _withTypeParameterScope(node.typeParameters, () {
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
       if (fragment != null) {
-        _scopeContext.withFormalParameterScope(
-          fragment.element.formalParameters,
-          () {
-            node.body.accept(this);
-          },
-        );
+        _withFormalParameterScope(fragment.element.formalParameters, () {
+          node.body.accept(this);
+        });
       } else {
         node.body.accept(this);
       }
@@ -539,7 +528,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
+    _withTypeParameterScope(node.typeParameters, () {
       node.typeParameters?.accept(this);
 
       node.returnType?.accept(this);
@@ -554,7 +543,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var fragment = node.declaredFragment;
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
+    _withTypeParameterScope(node.typeParameters, () {
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
       node.returnType?.accept(this);
@@ -578,7 +567,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitGenericFunctionType(GenericFunctionType node) {
     node as GenericFunctionTypeImpl;
     var fragment = node.declaredFragment!;
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
+    _withTypeParameterScope(node.typeParameters, () {
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
       node.returnType?.accept(this);
@@ -609,7 +598,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
+    _withTypeParameterScope(node.typeParameters, () {
       node.typeParameters?.accept(this);
       node.type.accept(this);
     });
@@ -647,7 +636,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     covariant InstanceCreationExpressionImpl node,
   ) {
     var newNode = _astRewriter.instanceCreationExpression(
-      nameScope,
+      _nameScope,
       node,
       libraryElement: _libraryElement,
       enclosingInstanceElement: _enclosingInstanceElement,
@@ -723,23 +712,20 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
+    _withTypeParameterScope(node.typeParameters, () {
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
       node.returnType?.accept(this);
 
-      _scopeContext.withFormalParameterScope(
-        fragment.element.formalParameters,
-        () {
-          node.body.accept(this);
-        },
-      );
+      _withFormalParameterScope(fragment.element.formalParameters, () {
+        node.body.accept(this);
+      });
     });
   }
 
   @override
   void visitMethodInvocation(covariant MethodInvocationImpl node) {
-    var newNode = _astRewriter.methodInvocation(nameScope, node);
+    var newNode = _astRewriter.methodInvocation(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
     }
@@ -752,7 +738,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    _scopeContext.visitMixinDeclaration(
+    _scopeContext.walkMixinDeclarationScopes(
       node,
       visitor: this,
       visitBody: (body) {
@@ -775,7 +761,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(covariant NamedTypeImpl node) {
     node.typeArguments?.accept(this);
 
-    _namedTypeResolver.nameScope = nameScope;
+    _namedTypeResolver.nameScope = _nameScope;
     _namedTypeResolver.resolve(node, dataForTesting: dataForTesting);
 
     if (_namedTypeResolver.rewriteResult != null) {
@@ -817,7 +803,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
-    var newNode = _astRewriter.prefixedIdentifier(nameScope, node);
+    var newNode = _astRewriter.prefixedIdentifier(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
     }
@@ -833,12 +819,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       node.visitChildrenWithHooks(
         this,
         visitInitializers: (initializers) {
-          _scopeContext.withConstructorInitializerScope(element, () {
+          withScope(ConstructorInitializerScope(_nameScope, element), () {
             initializers.accept(this);
           });
         },
         visitBody: (body) {
-          _scopeContext.withPrimaryParameterScope(element, () {
+          withScope(PrimaryParameterScope(_nameScope, element), () {
             body.accept(this);
           });
         },
@@ -858,7 +844,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(covariant PropertyAccessImpl node) {
-    var newNode = _astRewriter.propertyAccess(nameScope, node);
+    var newNode = _astRewriter.propertyAccess(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
     }
@@ -889,7 +875,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    var newNode = _astRewriter.simpleIdentifier(nameScope, node);
+    var newNode = _astRewriter.simpleIdentifier(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
     }
@@ -901,7 +887,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
+    _withTypeParameterScope(node.typeParameters, () {
       node.typeParameters?.accept(this);
       node.type?.accept(this);
       node.parameters?.accept(this);
@@ -968,7 +954,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       group.variables = _patternVariables.switchStatementSharedCaseScopeFinish(
         group,
       );
-      _scopeContext.withLocalScope(() {
+      withLocalScope(() {
         var statements = group.statements;
         _buildLocalElements(statements);
         statements.accept(this);
@@ -1028,6 +1014,50 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  // TODO(scheglov): Remove this temporary routing method.
+  void withInstanceScope(InstanceElementImpl element, void Function() f) {
+    _scopeContext.withInstanceScope(element, f);
+  }
+
+  // TODO(scheglov): Remove this temporary routing method.
+  void withLocalScope(void Function() f) {
+    _scopeContext.withLocalScope(f);
+  }
+
+  // TODO(scheglov): Remove this temporary routing method.
+  void withScope(Scope scope, void Function() f) {
+    _scopeContext.withScope(scope, f);
+  }
+
+  // TODO(scheglov): Remove this temporary routing method.
+  void withTypeParameterScope(
+    List<TypeParameterElementImpl> elements,
+    void Function() f,
+  ) {
+    _scopeContext.withTypeParameterScope(elements, f);
+  }
+
+  /// Ensure that each type parameter from the [typeParameterList] has its
+  /// fragment set.
+  ///
+  /// Returns the corresponding elements in declaration order.
+  List<TypeParameterElement> _bindTypeParameterElements(
+    TypeParameterListImpl? typeParameterList,
+  ) {
+    if (typeParameterList == null) return const [];
+
+    var elements = <TypeParameterElement>[];
+
+    for (var typeParameter in typeParameterList.typeParameters) {
+      var fragment = typeParameter.declaredFragment;
+      if (fragment != null) {
+        elements.add(fragment.element);
+      }
+    }
+
+    return elements;
+  }
+
   void _buildLocalElements(List<Statement> statements) {
     for (var statement in statements) {
       if (statement is FunctionDeclarationStatementImpl) {
@@ -1039,7 +1069,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _define(Element element) {
-    if (nameScope case LocalScope nameScope) {
+    if (_nameScope case LocalScope nameScope) {
       nameScope.add(element);
     }
   }
@@ -1083,7 +1113,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       sharedCaseScopeKey: sharedCaseScopeKey,
     );
     // Matched variables are available in `whenClause`.
-    _scopeContext.withLocalScope(() {
+    withLocalScope(() {
       for (var variable in variables.values) {
         _define(variable);
       }
@@ -1310,6 +1340,28 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     } finally {
       _enclosingInstanceElement = previous;
     }
+  }
+
+  void _withFormalParameterScope(
+    List<FormalParameterElement> parameters,
+    void Function() f,
+  ) {
+    withScope(FormalParameterScope(_nameScope, parameters), f);
+  }
+
+  void _withTypeParameterScope(
+    TypeParameterListImpl? typeParameterList,
+    void Function() f,
+  ) {
+    var elements = _bindTypeParameterElements(typeParameterList);
+    withScope(
+      TypeParameterScope(
+        _nameScope,
+        elements,
+        featureSet: _libraryElement.featureSet,
+      ),
+      f,
+    );
   }
 
   /// We always build local elements for [VariableDeclarationStatement]s and

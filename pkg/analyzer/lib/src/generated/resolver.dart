@@ -5020,11 +5020,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 // TODO(paulberry): migrate the responsibility for all scope resolution into
 // this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
+  /// The library fragment in which the AST nodes are being resolved.
+  final LibraryFragmentImpl _libraryFragment;
+
   /// The diagnostic reporter that will be informed of any diagnostics that are
   /// found during resolution.
   final DiagnosticReporter diagnosticReporter;
 
   final ScopeContext _scopeContext;
+
+  /// The scope of libraries imported by `@docImport`s.
+  final DocumentationCommentScope _docImportScope;
 
   /// The scope used to resolve unlabeled `break` and `continue` statements.
   ImplicitLabelScope _implicitLabelScope = ImplicitLabelScope.ROOT;
@@ -5052,17 +5058,27 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     required LibraryFragmentImpl libraryFragment,
     required Scope nameScope,
     List<LibraryElement> docImportLibraries = const [],
-  }) : _scopeContext = ScopeContext(
+  }) : _libraryFragment = libraryFragment,
+       _docImportScope = DocumentationCommentScope(
+         nameScope,
+         docImportLibraries,
+       ),
+       _scopeContext = ScopeContext(
          libraryFragment: libraryFragment,
          nameScope: nameScope,
-         docImportLibraries: docImportLibraries,
        );
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
   ImplicitLabelScope get implicitLabelScope => _implicitLabelScope;
 
+  // TODO(scheglov): Remove this temporary routing getter.
   Scope get nameScope => _scopeContext.nameScope;
+
+  // TODO(scheglov): Remove this temporary routing setter.
+  set nameScope(Scope value) {
+    _scopeContext.nameScope = value;
+  }
 
   @override
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
@@ -5119,14 +5135,18 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitCatchClause(CatchClause node) {
     var exception = node.exceptionParameter;
     if (exception != null) {
-      _scopeContext.withLocalScope(() {
+      Scope outerScope = nameScope;
+      try {
+        nameScope = LocalScope(nameScope);
         _define(exception.declaredFragment!.element);
         var stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
           _define(stackTrace.declaredFragment!.element);
         }
         super.visitCatchClause(node);
-      });
+      } finally {
+        nameScope = outerScope;
+      }
     } else {
       super.visitCatchClause(node);
     }
@@ -5134,10 +5154,16 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-    node.metadata.accept(this);
+    Scope outerScope = nameScope;
+    try {
+      var element = node.declaredFragment!.element;
+      node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.namePart.typeParameters?.accept(this);
       node.extendsClause?.accept(this);
@@ -5145,30 +5171,40 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.implementsClause?.accept(this);
       node.nativeClause?.accept(this);
 
-      _scopeContext.withInstanceScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.namePart
-            .tryCast<PrimaryConstructorDeclarationImpl>()
-            ?.formalParameters
-            .accept(this);
-        node.body.accept(this);
-      });
-    });
+      nameScope = InstanceScope(nameScope, element);
+      _visitDocumentationComment(node.documentationComment);
+      node.namePart
+          .tryCast<PrimaryConstructorDeclarationImpl>()
+          ?.formalParameters
+          .accept(this);
+      node.body.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      _scopeContext.withInstanceScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.typeParameters?.accept(this);
-        node.superclass.accept(this);
-        node.withClause.accept(this);
-        node.implementsClause?.accept(this);
-      });
-    });
+    Scope outerScope = nameScope;
+    try {
+      var element = node.declaredFragment!.element;
+      nameScope = InstanceScope(
+        TypeParameterScope(
+          nameScope,
+          element.typeParameters,
+          featureSet: _libraryFragment.library.featureSet,
+        ),
+        element,
+      );
+      _visitDocumentationComment(node.documentationComment);
+      node.typeParameters?.accept(this);
+      node.superclass.accept(this);
+      node.withClause.accept(this);
+      node.implementsClause?.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
@@ -5180,22 +5216,29 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     node.body.localVariableInfo = _localVariableInfo;
-    var element = node.declaredFragment!.element;
+    Scope outerScope = nameScope;
+    try {
+      var element = node.declaredFragment!.element;
 
-    node.metadata.accept(this);
-    node.typeName?.accept(this);
-    node.parameters.accept(this);
+      node.metadata.accept(this);
+      node.typeName?.accept(this);
+      node.parameters.accept(this);
 
-    _scopeContext.withConstructorInitializerScope(element, () {
-      node.initializers.accept(this);
-      _visitDocumentationComment(node.documentationComment);
-    });
+      try {
+        nameScope = ConstructorInitializerScope(nameScope, element);
+        node.initializers.accept(this);
+        _visitDocumentationComment(node.documentationComment);
+      } finally {
+        nameScope = outerScope;
+      }
 
-    node.redirectedConstructor?.accept(this);
+      node.redirectedConstructor?.accept(this);
 
-    _scopeContext.withFormalParameterScope(element.formalParameters, () {
+      nameScope = FormalParameterScope(nameScope, element.formalParameters);
       node.body.accept(this);
-    });
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
@@ -5232,24 +5275,31 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-    node.metadata.accept(this);
+    Scope outerScope = nameScope;
+    try {
+      var element = node.declaredFragment!.element;
+      node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.namePart.typeParameters?.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
 
-      _scopeContext.withInstanceScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.namePart
-            .tryCast<PrimaryConstructorDeclarationImpl>()
-            ?.formalParameters
-            .accept(this);
-        node.body.accept(this);
-      });
-    });
+      nameScope = InstanceScope(nameScope, element);
+      _visitDocumentationComment(node.documentationComment);
+      node.namePart
+          .tryCast<PrimaryConstructorDeclarationImpl>()
+          ?.formalParameters
+          .accept(this);
+      node.body.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
@@ -5260,39 +5310,53 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-    node.metadata.accept(this);
+    var outerScope = nameScope;
+    try {
+      var element = node.declaredFragment!.element;
+      node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
 
-      _scopeContext.withExtensionScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.body.accept(this);
-      });
-    });
+      nameScope = ExtensionScope(nameScope, element);
+      _visitDocumentationComment(node.documentationComment);
+      node.body.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    var element = node.declaredFragment!.element;
-    node.metadata.accept(this);
+    Scope outerScope = nameScope;
+    try {
+      var element = node.declaredFragment!.element;
+      node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.primaryConstructor.typeParameters?.accept(this);
       node.implementsClause?.accept(this);
 
-      _scopeContext.withInstanceScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.primaryConstructor.formalParameters.accept(this);
-        node.body.accept(this);
-      });
-    });
+      nameScope = InstanceScope(nameScope, element);
+      _visitDocumentationComment(node.documentationComment);
+      node.primaryConstructor.formalParameters.accept(this);
+      node.body.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
@@ -5300,21 +5364,26 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.metadata.accept(this);
     _visitDocumentationComment(node.documentationComment);
 
-    if (!node.isStatic && node.fields.lateKeyword == null) {
-      var primaryConstructor = node.parent?.parent
-          .tryCast<Declaration>()
-          ?.declaredFragment!
-          .element
-          .tryCast<InterfaceElementImpl>()
-          ?.primaryConstructor;
-      if (primaryConstructor != null) {
-        _scopeContext.withConstructorInitializerScope(primaryConstructor, () {
-          node.fields.accept(this);
-        });
-        return;
+    var outerScope = nameScope;
+    try {
+      if (!node.isStatic && node.fields.lateKeyword == null) {
+        var primaryConstructor = node.parent?.parent
+            .tryCast<Declaration>()
+            ?.declaredFragment!
+            .element
+            .tryCast<InterfaceElementImpl>()
+            ?.primaryConstructor;
+        if (primaryConstructor != null) {
+          nameScope = ConstructorInitializerScope(
+            nameScope,
+            primaryConstructor,
+          );
+        }
       }
+      node.fields.accept(this);
+    } finally {
+      nameScope = outerScope;
     }
-    node.fields.accept(this);
   }
 
   @override
@@ -5342,78 +5411,108 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitForElement(covariant ForElementImpl node) {
-    _scopeContext.withLocalScope(() {
+    Scope outerNameScope = nameScope;
+    try {
+      nameScope = LocalScope(nameScope);
       node.nameScope = nameScope;
       _predeclareForPartsVariables(node.forLoopParts);
       node.forLoopParts.accept(this);
       node.body.accept(this);
-    });
+    } finally {
+      nameScope = outerNameScope;
+    }
+  }
+
+  @override
+  void visitFormalParameterList(FormalParameterList node) {
+    super.visitFormalParameterList(node);
+    // We finished resolving function signature, now include formal parameters
+    // scope.  Note: we must not do this if the parent is a
+    // FunctionTypedFormalParameter, because in that case we aren't finished
+    // resolving the full function signature, just a part of it.
+    var parent = node.parent;
+    if (parent is FunctionExpression) {
+      var element = parent.declaredFragment!.element;
+      nameScope = FormalParameterScope(nameScope, element.formalParameters);
+    } else if (parent is FunctionTypeAlias) {
+      var scope = nameScope = LocalScope(nameScope);
+      scope.addFormalParameters(parent.parameters);
+    } else if (parent is MethodDeclaration) {
+      var element = parent.declaredFragment!.element;
+      nameScope = FormalParameterScope(nameScope, element.formalParameters);
+    }
   }
 
   @override
   void visitForStatement(covariant ForStatementImpl node) {
-    _scopeContext.withLocalScope(() {
-      var outerImplicitScope = _implicitLabelScope;
+    Scope outerNameScope = nameScope;
+    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
+    try {
+      nameScope = LocalScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
-      try {
-        node.nameScope = nameScope;
-        _predeclareForPartsVariables(node.forLoopParts);
-        node.forLoopParts.accept(this);
-        _visitStatementInScope(node.body);
-      } finally {
-        _implicitLabelScope = outerImplicitScope;
-      }
-    });
+      node.nameScope = nameScope;
+      _predeclareForPartsVariables(node.forLoopParts);
+      node.forLoopParts.accept(this);
+      _visitStatementInScope(node.body);
+    } finally {
+      nameScope = outerNameScope;
+      _implicitLabelScope = outerImplicitScope;
+    }
   }
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     node.functionExpression.body.localVariableInfo = _localVariableInfo;
     var outerClosure = _enclosingClosure;
+    Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      _enclosingClosure = element.tryCast<LocalFunctionElementImpl>();
+      _enclosingClosure = element.tryCast<LocalFunctionElement>();
       node.metadata.accept(this);
-      _scopeContext.withTypeParameterScope(element.typeParameters.cast(), () {
-        node.nameScope = nameScope;
-        node.returnType?.accept(this);
-        node.functionExpression.accept(this);
-      });
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
+      node.nameScope = nameScope;
+      node.returnType?.accept(this);
+      node.functionExpression.accept(this);
     } finally {
+      nameScope = outerScope;
       _enclosingClosure = outerClosure;
     }
   }
 
   @override
-  void visitFunctionExpression(covariant FunctionExpressionImpl node) {
+  void visitFunctionExpression(FunctionExpression node) {
     var outerClosure = _enclosingClosure;
+    Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
       if (node.parent is! FunctionDeclaration) {
-        node.body.localVariableInfo = _localVariableInfo;
-        _enclosingClosure = element as LocalFunctionElementImpl;
+        (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+        _enclosingClosure = element as LocalFunctionElement;
       }
       var parent = node.parent;
       if (parent is FunctionDeclarationImpl) {
-        node.typeParameters?.accept(this);
-        node.parameters?.accept(this);
-
-        _scopeContext.withFormalParameterScope(element.formalParameters, () {
-          _visitDocumentationComment(parent.documentationComment);
-          node.body.accept(this);
-        });
+        // We have already created a function scope and don't need to do so again.
+        super.visitFunctionExpression(node);
+        _visitDocumentationComment(parent.documentationComment);
         return;
       }
 
-      _scopeContext.withTypeParameterScope(element.typeParameters.cast(), () {
-        node.typeParameters?.accept(this);
-        node.parameters?.accept(this);
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
+      node.typeParameters?.accept(this);
+      node.parameters?.accept(this);
 
-        _scopeContext.withFormalParameterScope(element.formalParameters, () {
-          node.body.accept(this);
-        });
-      });
+      nameScope = FormalParameterScope(nameScope, element.formalParameters);
+      node.body.accept(this);
     } finally {
+      nameScope = outerScope;
       _enclosingClosure = outerClosure;
     }
   }
@@ -5421,18 +5520,23 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters.cast(), () {
+    Scope outerScope = nameScope;
+    try {
+      var element = node.declaredFragment!.element;
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
       // Visiting the parameters added them to the scope as a side effect. So it
       // is safe to visit the documentation comment now.
-      _scopeContext.withLocalScope(() {
-        (nameScope as LocalScope).addFormalParameters(node.parameters);
-        _visitDocumentationComment(node.documentationComment);
-      });
-    });
+      _visitDocumentationComment(node.documentationComment);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
@@ -5440,51 +5544,72 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     covariant FunctionTypedFormalParameterImpl node,
   ) {
     node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
+    Scope outerScope = nameScope;
+    try {
+      var element = node.declaredFragment!.element;
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
+      _visitDocumentationComment(node.documentationComment);
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
-      _scopeContext.withFormalParameterScope(element.formalParameters, () {
-        _visitDocumentationComment(node.documentationComment);
-      });
-    });
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
+    Scope outerScope = nameScope;
+    try {
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       super.visitGenericFunctionType(node);
-    });
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters.cast(), () {
+    Scope outerScope = nameScope;
+    try {
+      var element = node.declaredFragment!.element;
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.type.accept(this);
 
-      if (node.type case GenericFunctionTypeImpl functionTypeNode) {
-        _scopeContext.withTypeParameterList(
-          functionTypeNode.typeParameters,
-          () {
-            _scopeContext.withLocalScope(() {
-              (nameScope as LocalScope).addFormalParameters(
-                functionTypeNode.parameters,
-              );
-              _visitDocumentationComment(node.documentationComment);
-            });
-          },
-        );
-      } else {
-        _visitDocumentationComment(node.documentationComment);
+      if (node.type case GenericFunctionType functionTypeNode) {
+        if (functionTypeNode.typeParameters case var typeParameterList?) {
+          nameScope = TypeParameterScope(
+            nameScope,
+            typeParameterList.typeParameters
+                .map((n) => n.declaredFragment!.element)
+                .toList(),
+            featureSet: _libraryFragment.library.featureSet,
+          );
+        }
+        var scope = nameScope = LocalScope(nameScope);
+        scope.addFormalParameters(functionTypeNode.parameters);
       }
-    });
+      _visitDocumentationComment(node.documentationComment);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
@@ -5551,19 +5676,25 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     node.body.localVariableInfo = _localVariableInfo;
     node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters.cast(), () {
+    Scope outerScope = nameScope;
+    try {
+      var element = node.declaredFragment!.element;
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+        featureSet: _libraryFragment.library.featureSet,
+      );
       node.nameScope = nameScope;
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
       // Visiting the parameters added them to the scope as a side effect. So it
       // is safe to visit the documentation comment now.
-      _scopeContext.withFormalParameterScope(element.formalParameters, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.body.accept(this);
-      });
-    });
+      _visitDocumentationComment(node.documentationComment);
+      node.body.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
@@ -5582,7 +5713,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    _scopeContext.visitMixinDeclaration(
+    _scopeContext.walkMixinDeclarationScopes(
       node,
       visitor: this,
       visitDocumentationComment: _visitDocumentationComment,
@@ -5617,27 +5748,25 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
-    var fragment = node.declaration?.declaredFragment;
-    var element = fragment?.element;
+    var outerScope = nameScope;
+    try {
+      var fragment = node.declaration?.declaredFragment;
+      var element = fragment?.element;
 
-    node.metadata.accept(this);
+      node.metadata.accept(this);
 
-    if (element != null) {
-      _scopeContext.withConstructorInitializerScope(element, () {
-        node.initializers.accept(this);
-      });
-    } else {
+      if (element != null) {
+        nameScope = ConstructorInitializerScope(outerScope, element);
+      }
       node.initializers.accept(this);
-    }
 
-    if (element != null) {
-      _scopeContext.withPrimaryParameterScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.body.accept(this);
-      });
-    } else {
+      if (element != null) {
+        nameScope = PrimaryParameterScope(outerScope, element);
+      }
       _visitDocumentationComment(node.documentationComment);
       node.body.accept(this);
+    } finally {
+      nameScope = outerScope;
     }
   }
 
@@ -5892,14 +6021,23 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  /// Visits a documentation comment with a [DocumentationCommentScope] that
-  /// encloses the current [nameScope].
+  /// Visits a documentation comment with a [DocumentationCommentScope] that encloses the
+  /// current [nameScope].
   void _visitDocumentationComment(CommentImpl? node) {
     if (node == null) return;
 
-    _scopeContext.withDocImportScope(node, () {
+    Scope outerScope = nameScope;
+    Scope docImportInnerScope = _docImportScope.innerScope;
+    try {
+      _docImportScope.innerScope = nameScope;
+      nameScope = _docImportScope;
+
+      node.nameScope = nameScope;
       node.accept(this);
-    });
+    } finally {
+      nameScope = outerScope;
+      _docImportScope.innerScope = docImportInnerScope;
+    }
   }
 
   void _visitIf(IfElementOrStatementImpl node) {
@@ -5934,9 +6072,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       // own scope.
       visitBlock(node);
     } else if (node != null) {
-      _scopeContext.withLocalScope(() {
+      var outerNameScope = nameScope;
+      try {
+        nameScope = LocalScope(nameScope);
         node.accept(this);
-      });
+      } finally {
+        nameScope = outerNameScope;
+      }
     }
   }
 
@@ -5945,23 +6087,33 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     List<Statement> statements,
     void Function() f,
   ) {
-    _scopeContext.withLocalScope(() {
-      var enclosedScope = nameScope as LocalScope;
+    var outerScope = nameScope;
+    try {
+      var enclosedScope = LocalScope(nameScope);
       for (var statement in BlockScope.elementsInStatements(statements)) {
         if (!statement.isWildcardFunction) {
           enclosedScope.add(statement);
         }
       }
 
-      node.nameScope = enclosedScope;
+      nameScope = enclosedScope;
+      node.nameScope = nameScope;
 
       f();
-    });
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   /// Run [f] with the new name scope.
   void _withNameScope(void Function() f) {
-    _scopeContext.withLocalScope(f);
+    var current = nameScope;
+    try {
+      nameScope = LocalScope(current);
+      f();
+    } finally {
+      nameScope = current;
+    }
   }
 
   /// Return the [Scope] to use while resolving inside the [node].
