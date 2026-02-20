@@ -1,6 +1,7 @@
 ## 10.2.0-dev
 
-* Internal changes only
+* Deprecate `RuleVisitorRegistry.addRepresentationConstructorName`.
+* Deprecate `RuleVisitorRegistry.addRepresentationDeclaration`.
 
 ## 10.1.0
 
