@@ -12,7 +12,8 @@ package:analyzer_testing/analysis_rule/analysis_rule.dart:
     lint (method: ExpectedDiagnostic Function(int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, deprecated Pattern? messageContains, List<Pattern> messageContainsAll, String? name}))
     setUp (method: void Function())
     unexpectedMessage (method: String Function(List<Diagnostic>))
-  PackageBuilder (non-public)
+  PackageBuilder (class extends Object):
+    addFile (method: void Function(String, String))
 package:analyzer_testing/experiments/experiments.dart:
   experimentsForTests (static getter: List<String>)
   experimentsForTests= (static setter: List<String>)

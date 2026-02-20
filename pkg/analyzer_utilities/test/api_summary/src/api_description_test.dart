@@ -402,8 +402,17 @@ dart:core:
   }
 
   Future<void> test_topLevel_filesInSrc() async {
-    var summary = await _build({'$testPackageLibPath/src/file.dart': 'f() {}'});
-    expect(summary, '');
+    var summary = await _build({
+      '$testPackageLibPath/public.dart': 'export "src/private1.dart";',
+      '$testPackageLibPath/src/private1.dart': 'f() {}',
+      '$testPackageLibPath/src/private2.dart': 'g() {}',
+    });
+    // `f` is considered part of the public API because it is exported by
+    // `public.dart`.
+    expect(summary, '''
+package:test/public.dart:
+  f (function: dynamic Function())
+''');
   }
 
   Future<void> test_topLevel_getterSetterPair() async {

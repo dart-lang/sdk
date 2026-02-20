@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 
 extension ElementExtension on Element {
   /// Returns the appropriate name for describing the element in `api.txt`.
@@ -16,35 +14,6 @@ extension ElementExtension on Element {
       apiName += '=';
     }
     return apiName;
-  }
-
-  bool isInPublicApiOf(String packageName) {
-    if (this case PropertyAccessorElement(
-      isOriginVariable: true,
-      :var variable,
-    ) when variable.isInPublicApiOf(packageName)) {
-      return true;
-    }
-    if (packageName == 'analyzer') {
-      // Any element annotated with `@analyzerPublicApi` is considered to be
-      // part of the public API of the analyzer package.
-      if (metadata.annotations.any(_isPublicApiAnnotation)) {
-        return true;
-      }
-    }
-    if (name case var name? when !name.isPublic) return false;
-    if (library!.uri.isInPublicLibOf(packageName)) return true;
-    return false;
-  }
-
-  bool _isPublicApiAnnotation(ElementAnnotation annotation) {
-    if (annotation.computeConstantValue() case DartObject(
-      type: InterfaceType(element: InterfaceElement(name: 'AnalyzerPublicApi')),
-    )) {
-      return true;
-    } else {
-      return false;
-    }
   }
 }
 
