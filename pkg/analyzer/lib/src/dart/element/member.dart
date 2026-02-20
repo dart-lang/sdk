@@ -1032,7 +1032,7 @@ class SubstitutedSetterElementImpl
 
 class SubstitutedSuperFormalParameterElementImpl
     extends SubstitutedFormalParameterElementImpl
-    implements SuperFormalParameterElement {
+    with InternalSuperFormalParameterElement {
   factory SubstitutedSuperFormalParameterElementImpl({
     required SuperFormalParameterElementImpl baseElement,
     required MapSubstitution substitution,

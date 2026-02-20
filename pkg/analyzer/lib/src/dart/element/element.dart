@@ -5451,6 +5451,21 @@ mixin InternalSetterElement on InternalPropertyAccessorElement
   List<SetterFragmentImpl> get fragments;
 }
 
+mixin InternalSuperFormalParameterElement on InternalFormalParameterElement
+    implements SuperFormalParameterElement {
+  @override
+  SuperFormalParameterElementImpl get baseElement;
+
+  @override
+  SuperFormalParameterFragmentImpl get firstFragment;
+
+  @override
+  List<SuperFormalParameterFragmentImpl> get fragments;
+
+  @override
+  InternalFormalParameterElement? get superConstructorParameter;
+}
+
 mixin InternalVariableElement implements VariableElement {
   @override
   VariableFragmentImpl get firstFragment;
@@ -9401,8 +9416,11 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 }
 
 class SuperFormalParameterElementImpl extends FormalParameterElementImpl
-    implements SuperFormalParameterElement {
+    with InternalSuperFormalParameterElement {
   SuperFormalParameterElementImpl(super.firstFragment);
+
+  @override
+  SuperFormalParameterElementImpl get baseElement => this;
 
   @override
   String? get defaultValueCode {
