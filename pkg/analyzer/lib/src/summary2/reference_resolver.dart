@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope_context.dart';
@@ -86,14 +85,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       node.metadata.accept(this);
       node.namePart.typeParameters?.accept(this);
       node.extendsClause?.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
 
-      withInstanceScope(element, () {
+      _scopeContext.withInstanceScope(element, () {
         LinkingNodeContext(node, nameScope);
 
         node.namePart
@@ -111,7 +110,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       LinkingNodeContext(node, nameScope);
 
       node.metadata.accept(this);
@@ -137,7 +136,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       LinkingNodeContext(node, nameScope);
 
       node.metadata.accept(this);
@@ -159,13 +158,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       node.metadata.accept(this);
       node.namePart.typeParameters?.accept(this);
       node.implementsClause?.accept(this);
       node.withClause?.accept(this);
 
-      withInstanceScope(element, () {
+      _scopeContext.withInstanceScope(element, () {
         LinkingNodeContext(node, nameScope);
 
         node.namePart
@@ -202,12 +201,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       node.metadata.accept(this);
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
 
-      withScope(ExtensionScope(nameScope, element), () {
+      _scopeContext.withExtensionScope(element, () {
         LinkingNodeContext(node, nameScope);
 
         node.body.members.accept(this);
@@ -228,12 +227,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       node.metadata.accept(this);
       node.primaryConstructor.typeParameters?.accept(this);
       node.implementsClause?.accept(this);
 
-      withInstanceScope(element, () {
+      _scopeContext.withInstanceScope(element, () {
         LinkingNodeContext(node, nameScope);
 
         node.primaryConstructor.formalParameters.accept(this);
@@ -251,7 +250,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     fields.type?.accept(this);
     nodesToBuildType.addDeclaration(fields);
 
-    Scope variableScope = nameScope;
+    void bindVariables() {
+      for (var variable in fields.variables) {
+        var fragment = variable.declaredFragment!;
+        var variableNode = linker.elementNodes[fragment]!;
+        LinkingNodeContext(variableNode, nameScope);
+      }
+    }
+
     if (!node.isStatic && fields.lateKeyword == null) {
       var primaryConstructor = node.parent?.parent
           .tryCast<Declaration>()
@@ -260,18 +266,15 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
           .tryCast<InterfaceElementImpl>()
           ?.primaryConstructor;
       if (primaryConstructor != null) {
-        variableScope = ConstructorInitializerScope(
-          nameScope,
+        _scopeContext.withConstructorInitializerScope(
           primaryConstructor,
+          bindVariables,
         );
+        return;
       }
     }
 
-    for (var variable in fields.variables) {
-      var fragment = variable.declaredFragment!;
-      var variableNode = linker.elementNodes[fragment]!;
-      LinkingNodeContext(variableNode, variableScope);
-    }
+    bindVariables();
   }
 
   @override
@@ -279,7 +282,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       node.type?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
@@ -297,7 +300,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       LinkingNodeContext(node, nameScope);
 
       node.metadata.accept(this);
@@ -318,7 +321,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
@@ -334,7 +337,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
@@ -347,7 +350,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
@@ -365,7 +368,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       node.metadata.accept(this);
       node.typeParameters?.accept(this);
       node.type.accept(this);
@@ -390,7 +393,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       LinkingNodeContext(node, nameScope);
 
       node.metadata.accept(this);
@@ -404,7 +407,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     nodesToBuildType.addDeclaration(node);
-    _scopeContext.walkMixinDeclarationScopes(
+    _scopeContext.visitMixinDeclaration(
       node,
       visitor: this,
       enterBodyScope: () {
@@ -528,7 +531,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    withTypeParameterScope(element.typeParameters, () {
+    _scopeContext.withTypeParameterScope(element.typeParameters, () {
       node.type?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
@@ -582,24 +585,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     node.mixinTypes.accept(this);
-  }
-
-  // TODO(scheglov): Remove this temporary routing method.
-  void withInstanceScope(InstanceElementImpl element, void Function() f) {
-    _scopeContext.withInstanceScope(element, f);
-  }
-
-  // TODO(scheglov): Remove this temporary routing method.
-  void withScope(Scope scope, void Function() f) {
-    _scopeContext.withScope(scope, f);
-  }
-
-  // TODO(scheglov): Remove this temporary routing method.
-  void withTypeParameterScope(
-    List<TypeParameterElementImpl> elements,
-    void Function() f,
-  ) {
-    _scopeContext.withTypeParameterScope(elements, f);
   }
 
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
