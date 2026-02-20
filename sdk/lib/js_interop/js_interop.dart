@@ -298,9 +298,12 @@ extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
 
   /// See [`return()`].
   ///
+  /// [`return()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#returnvalue
+  ///
   /// This is a nullable getter because not all iterators support this method.
   ///
-  /// [`return()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#returnvalue
+  /// This doesn't allow passing nulls, as it determines whether an argument is
+  /// passed based on whether it was null or not.
   JSIteratorResult<T> Function([JSAny? value])? get returnValue =>
       // Make sure to pass along whether an argument was passed or not, because
       // that's observable from JavaScript.
@@ -313,9 +316,12 @@ extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
 
   /// See [`throw()`].
   ///
+  /// [`throw()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#throwexception
+  ///
   /// This is a nullable getter because not all iterators support this method.
   ///
-  /// [`throw()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#throwexception
+  /// This doesn't allow passing nulls, as it determines whether an argument is
+  /// passed based on whether it was null or not.
   @JS('throw')
   JSIteratorResult<T> Function([JSAny? error])? get throwError =>
       // Make sure to pass along whether an argument was passed or not, because
