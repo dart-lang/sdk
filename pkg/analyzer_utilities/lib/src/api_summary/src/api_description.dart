@@ -6,10 +6,10 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer_utilities/src/api_summary/src/api_summary_customizer.dart';
 import 'package:analyzer_utilities/src/api_summary/src/extensions.dart';
 import 'package:analyzer_utilities/src/api_summary/src/member_sorting.dart';
 import 'package:analyzer_utilities/src/api_summary/src/node.dart';
@@ -20,10 +20,9 @@ import 'package:collection/collection.dart';
 /// Data structure keeping track of a package's API while walking it to produce
 /// `api.txt`.
 class ApiDescription {
-  final String _pkgName;
+  final ApiSummaryCustomizer _customizer;
 
-  /// Top level elements that are in the package's public API.
-  final _topLevelPublicElements = <Element>{};
+  final String _pkgName;
 
   /// Top level elements that have already had their child elements dumped.
   ///
@@ -46,7 +45,7 @@ class ApiDescription {
   final _immediateSubinterfaceCache =
       <LibraryElement, Map<ClassElement, Set<InterfaceElement>>>{};
 
-  ApiDescription(String pkgName) : _pkgName = pkgName;
+  ApiDescription(this._pkgName, this._customizer);
 
   /// Builds a list of [Node] objects representing all the libraries that are
   /// relevant to the package's public API.
@@ -59,9 +58,14 @@ class ApiDescription {
   /// Each library node is pared with a [UriSortKey] indicating the order in
   /// which the nodes should be output.
   Future<List<(UriSortKey, Node)>> build(AnalysisContext context) async {
+    _customizer.packageName = _pkgName;
+    _customizer.analysisContext = context;
+    await _customizer.setupComplete();
+
     // First, find all the libraries comprising the package's public API, and
     // all the top level elements they export.
     var publicApiLibraries = <LibraryElement>[];
+    var topLevelPublicElements = <Element>{};
     for (var file in context.contextRoot.analyzedFiles().sorted()) {
       if (!file.endsWith('.dart')) continue;
       var fileResult = context.currentSession.getFile(file) as FileResult;
@@ -71,12 +75,15 @@ class ApiDescription {
             (await context.currentSession.getResolvedLibrary(file))
                 as ResolvedLibraryResult;
         var library = resolvedLibraryResult.element;
-        _topLevelPublicElements.addAll(
+        topLevelPublicElements.addAll(
           library.exportNamespace.definedNames2.values,
         );
         publicApiLibraries.add(library);
       }
     }
+    _customizer.publicApiLibraries = publicApiLibraries;
+    _customizer.topLevelPublicElements = topLevelPublicElements;
+    await _customizer.initialScanComplete();
 
     // Then, dump all the libraries in the package's public API.
     var nodes = <Uri, Node<MemberSortKey>>{};
@@ -225,7 +232,8 @@ class ApiDescription {
   /// Appends information to [node] describing [element].
   void _dumpElement(Element element, Node<MemberSortKey> node) {
     var enclosingElement = element.enclosingElement;
-    if (enclosingElement is LibraryElement && !_isInPublicApi(element)) {
+    if (enclosingElement is LibraryElement &&
+        !_customizer.shouldShowDetails(element)) {
       if (!enclosingElement.uri.isIn(_pkgName)) {
         node.text.add(' (referenced)');
       } else {
@@ -475,26 +483,5 @@ class ApiDescription {
     }
     _immediateSubinterfaceCache[library] = result;
     return result;
-  }
-
-  bool _isInPublicApi(Element element) {
-    if (_topLevelPublicElements.contains(element)) return true;
-    if (_pkgName == 'analyzer') {
-      // TODO(paulberry): make the API summary tool extensible so that the
-      // analyzer can inject this special case logic, rather than having it
-      // hard-coded here.
-      if (element.metadata.annotations.any(_isPublicApiAnnotation)) return true;
-    }
-    return false;
-  }
-
-  bool _isPublicApiAnnotation(ElementAnnotation annotation) {
-    if (annotation.computeConstantValue() case DartObject(
-      type: InterfaceType(element: InterfaceElement(name: 'AnalyzerPublicApi')),
-    )) {
-      return true;
-    } else {
-      return false;
-    }
   }
 }

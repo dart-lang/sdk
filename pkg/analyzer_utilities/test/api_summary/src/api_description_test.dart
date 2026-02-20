@@ -6,7 +6,10 @@
 
 import 'dart:core';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_utilities/src/api_summary/src/api_description.dart';
+import 'package:analyzer_utilities/src/api_summary/src/api_summary_customizer.dart';
 import 'package:analyzer_utilities/src/api_summary/src/node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -74,6 +77,41 @@ package:test/file.dart:
     new (constructor: I Function())
   M (class extends Object, mixin):
     new (constructor: M Function())
+dart:core:
+  Object (referenced)
+''');
+  }
+
+  Future<void> test_customize_shouldShowDetails() async {
+    var summary = await _build(
+      {
+        '$testPackageLibPath/public.dart': '''
+import 'src/private.dart';
+
+void shown1(Shown2 x, Hidden2 y) {}
+void hidden1(Shown3 x, Hidden3 y) {}
+''',
+        '$testPackageLibPath/src/private.dart': '''
+class Shown2 {}
+class Hidden2 {}
+class Shown3 {}
+class Hidden3 {}
+''',
+      },
+      createCustomizer: () => _ShouldShowDetailsCustomizer(
+        (e) => e.name!.toLowerCase().contains('shown'),
+      ),
+    );
+    // Note: Shown2 and Hidden2 are included in the summary because they are
+    // referenced by shown1. Details are only shown for shown1 and Shown2.
+    expect(summary, '''
+package:test/public.dart:
+  hidden1 (non-public)
+  shown1 (function: void Function(Shown2, Hidden2))
+package:test/src/private.dart:
+  Hidden2 (non-public)
+  Shown2 (class extends Object):
+    new (constructor: Shown2 Function())
 dart:core:
   Object (referenced)
 ''');
@@ -635,7 +673,10 @@ dart:core:
 ''');
   }
 
-  Future<String> _build(Map<String, String> files) async {
+  Future<String> _build(
+    Map<String, String> files, {
+    _ValidatingCustomizer Function()? createCustomizer,
+  }) async {
     // Create all the files.
     files.forEach(newFile);
 
@@ -646,9 +687,85 @@ dart:core:
 
     // Generate the API description.
     var context = contextCollection.contextFor(convertPath(testPackageLibPath));
-    var apiDescription = ApiDescription('test');
+    var customizer = createCustomizer?.call() ?? _ValidatingCustomizer();
+    var apiDescription = ApiDescription('test', customizer);
     var stringBuffer = StringBuffer();
-    printNodes(stringBuffer, await apiDescription.build(context));
+    var nodes = await apiDescription.build(context);
+    expect(customizer.initialScanCompleteCalled, isTrue);
+    printNodes(stringBuffer, nodes);
     return stringBuffer.toString();
+  }
+}
+
+final class _ShouldShowDetailsCustomizer extends _ValidatingCustomizer {
+  final bool Function(Element) _shouldShowDetails;
+
+  _ShouldShowDetailsCustomizer(this._shouldShowDetails);
+
+  @override
+  bool shouldShowDetails(Element element) {
+    expect(initialScanCompleteCalled, isTrue);
+    return _shouldShowDetails(element);
+  }
+}
+
+base class _ValidatingCustomizer extends ApiSummaryCustomizer {
+  bool topLevelPublicElementsCalled = false;
+  bool analysisContextCalled = false;
+  bool packageNameCalled = false;
+  bool publicApiLibrariesCalled = false;
+  bool initialScanCompleteCalled = false;
+  bool setupCompleteCalled = false;
+
+  @override
+  set analysisContext(AnalysisContext value) {
+    expect(analysisContextCalled, isFalse);
+    analysisContextCalled = true;
+    super.analysisContext = value;
+  }
+
+  @override
+  set packageName(String value) {
+    expect(packageNameCalled, isFalse);
+    packageNameCalled = true;
+    super.packageName = value;
+  }
+
+  @override
+  set publicApiLibraries(Iterable<LibraryElement> value) {
+    expect(setupCompleteCalled, isTrue);
+    expect(publicApiLibrariesCalled, isFalse);
+    publicApiLibrariesCalled = true;
+    super.publicApiLibraries = value;
+  }
+
+  @override
+  set topLevelPublicElements(Set<Element> value) {
+    expect(setupCompleteCalled, isTrue);
+    expect(topLevelPublicElementsCalled, isFalse);
+    topLevelPublicElementsCalled = true;
+    super.topLevelPublicElements = value;
+  }
+
+  @override
+  Future<void> initialScanComplete() async {
+    expect(topLevelPublicElementsCalled, isTrue);
+    expect(publicApiLibrariesCalled, isTrue);
+    initialScanCompleteCalled = true;
+    await super.initialScanComplete();
+  }
+
+  @override
+  Future<void> setupComplete() async {
+    expect(packageNameCalled, isTrue);
+    expect(analysisContextCalled, isTrue);
+    setupCompleteCalled = true;
+    await super.setupComplete();
+  }
+
+  @override
+  bool shouldShowDetails(Element element) {
+    expect(initialScanCompleteCalled, isTrue);
+    return super.shouldShowDetails(element);
   }
 }
