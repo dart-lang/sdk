@@ -2,19 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
-import 'package:meta/meta.dart';
 
 class ScopeContext {
-  final LibraryFragmentImpl libraryFragment;
-  Scope nameScope;
+  final LibraryFragmentImpl _libraryFragment;
+  final DocumentationCommentScope _docImportScope;
+  Scope _nameScope;
 
-  ScopeContext({required this.libraryFragment, required this.nameScope});
+  ScopeContext({
+    required LibraryFragmentImpl libraryFragment,
+    required Scope nameScope,
+    List<LibraryElement> docImportLibraries = const [],
+  }) : _libraryFragment = libraryFragment,
+       _docImportScope = DocumentationCommentScope(
+         nameScope,
+         docImportLibraries,
+       ),
+       _nameScope = nameScope;
 
-  void walkMixinDeclarationScopes(
+  Scope get nameScope => _nameScope;
+
+  void visitMixinDeclaration(
     MixinDeclarationImpl node, {
     required AstVisitor visitor,
     void Function(CommentImpl)? visitDocumentationComment,
@@ -43,37 +55,94 @@ class ScopeContext {
     });
   }
 
-  void withInstanceScope(InstanceElementImpl element, void Function() f) {
-    withScope(InstanceScope(nameScope, element), f);
+  void withConstructorInitializerScope(
+    ConstructorElementImpl element,
+    void Function() operation,
+  ) {
+    withScope(ConstructorInitializerScope(nameScope, element), operation);
   }
 
-  /// Run [f] with a new [LocalScope].
-  void withLocalScope(void Function() f) {
-    withScope(LocalScope(nameScope), f);
-  }
-
-  @nonVirtual
-  void withScope(Scope scope, void Function() f) {
-    var outerScope = nameScope;
+  void withDocImportScope(CommentImpl node, void Function() operation) {
+    var docImportInnerScope = _docImportScope.innerScope;
+    _docImportScope.innerScope = nameScope;
     try {
-      nameScope = scope;
-      f();
+      withScope(_docImportScope, () {
+        node.nameScope = nameScope;
+        operation();
+      });
     } finally {
-      nameScope = outerScope;
+      _docImportScope.innerScope = docImportInnerScope;
+    }
+  }
+
+  void withExtensionScope(
+    ExtensionElementImpl element,
+    void Function() operation,
+  ) {
+    withScope(ExtensionScope(nameScope, element), operation);
+  }
+
+  void withFormalParameterScope(
+    List<FormalParameterElementImpl> elements,
+    void Function() operation,
+  ) {
+    withScope(FormalParameterScope(nameScope, elements), operation);
+  }
+
+  void withInstanceScope(
+    InstanceElementImpl element,
+    void Function() operation,
+  ) {
+    withScope(InstanceScope(nameScope, element), operation);
+  }
+
+  /// Run [operation] with a new [LocalScope].
+  void withLocalScope(void Function() operation) {
+    withScope(LocalScope(nameScope), operation);
+  }
+
+  void withPrimaryParameterScope(
+    ConstructorElementImpl element,
+    void Function() operation,
+  ) {
+    withScope(PrimaryParameterScope(nameScope, element), operation);
+  }
+
+  void withScope(Scope scope, void Function() operation) {
+    var outerScope = _nameScope;
+    try {
+      _nameScope = scope;
+      operation();
+    } finally {
+      _nameScope = outerScope;
+    }
+  }
+
+  void withTypeParameterList(
+    TypeParameterListImpl? typeParameterList,
+    void Function() operation,
+  ) {
+    if (typeParameterList != null) {
+      var elements = typeParameterList.typeParameters
+          .map((node) => node.declaredFragment!.element)
+          .toList();
+      withTypeParameterScope(elements, operation);
+    } else {
+      operation();
     }
   }
 
   void withTypeParameterScope(
     List<TypeParameterElementImpl> elements,
-    void Function() f,
+    void Function() operation,
   ) {
     withScope(
       TypeParameterScope(
         nameScope,
         elements,
-        featureSet: libraryFragment.library.featureSet,
+        featureSet: _libraryFragment.library.featureSet,
       ),
-      f,
+      operation,
     );
   }
 }
