@@ -208,15 +208,23 @@ class ContextsPage extends DiagnosticPageWithNav {
         cycles.add(kind.libraryCycle);
       }
     }
-    var sortedCycles = cycles.toList()
-      ..sort((first, second) => second.size - first.size);
-    var cyclesToDisplay = math.min(sortedCycles.length, 10);
+    var sortedMultiLibraryCycles =
+        cycles.where((cycle) => cycle.size > 1).toList()
+          ..sort((first, second) => second.size - first.size);
+    var cyclesToDisplay = math.min(sortedMultiLibraryCycles.length, 10);
     var initialPathLength = contextRoot.root.path.length + 1;
-    buf.write('<p>There are ${sortedCycles.length} library cycles. ');
-    buf.write('The $cyclesToDisplay largest contain</p>');
+    buf.write('<p>There are ${cycles.length} library cycles. ');
+    if (cyclesToDisplay < 10) {
+      buf.write(
+        '$cyclesToDisplay of these have more than one library. '
+        'They contain</p>',
+      );
+    } else {
+      buf.write('The $cyclesToDisplay largest contain</p>');
+    }
     buf.write('<ul>');
     for (var i = 0; i < cyclesToDisplay; i++) {
-      var cycle = sortedCycles[i];
+      var cycle = sortedMultiLibraryCycles[i];
       var libraries = cycle.libraries;
       var cycleSize = cycle.size;
       var libraryCount = math.min(cycleSize, 8);
@@ -227,6 +235,9 @@ class ContextsPage extends DiagnosticPageWithNav {
         buf.write('<li>');
         buf.write(library.file.path.substring(initialPathLength));
         buf.write('</li>');
+      }
+      if (cycleSize > libraryCount) {
+        buf.write('<li>${cycleSize - libraryCount} more...</li>');
       }
       buf.write('</ul>');
       buf.write('</li>');
