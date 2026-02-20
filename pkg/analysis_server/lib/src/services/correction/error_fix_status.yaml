@@ -3873,5 +3873,9 @@ uri_does_not_exist_in_doc_import:
   status: needsFix
   notes: |-
     The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST
+var_with_no_type_annotation:
+  status: needsFix
+  notes: |-
+    The fix is to remove the `var` keyword.
 deprecated_factory_method:
   status: hasFix
