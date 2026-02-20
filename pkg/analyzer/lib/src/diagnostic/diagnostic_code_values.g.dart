@@ -45,6 +45,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.annotationWithTypeArguments,
   diag.annotationWithTypeArgumentsUninstantiated,
   diag.anonymousMethodWrongParameterList,
+  diag.anonymousMethodWrongParameterType,
   diag.argumentMustBeAConstant,
   diag.argumentMustBeNative,
   diag.argumentTypeNotAssignable,

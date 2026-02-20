@@ -213,6 +213,43 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool visitAnonymousBlockBody(covariant AnonymousBlockBodyImpl node) {
+    if (identical(node.block, _oldNode)) {
+      node.block = _newNode as BlockImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitAnonymousExpressionBody(
+    covariant AnonymousExpressionBodyImpl node,
+  ) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitAnonymousMethodInvocation(
+    covariant AnonymousMethodInvocationImpl node,
+  ) {
+    if (identical(node.target, _oldNode)) {
+      node.target = _newNode as ExpressionImpl;
+      return true;
+    } else if (identical(node.parameters, _oldNode)) {
+      node.parameters = _newNode as FormalParameterListImpl;
+      return true;
+    } else if (identical(node.body, _oldNode)) {
+      node.body = _newNode as AnonymousMethodBodyImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitArgumentList(covariant ArgumentListImpl node) {
     if (_replaceInList(node.arguments)) {
       return true;

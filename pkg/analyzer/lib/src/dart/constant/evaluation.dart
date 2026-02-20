@@ -3478,11 +3478,11 @@ class _InstanceCreationEvaluator {
     }
   }
 
-  Map<FormalParameterElement, DartObjectImpl>
+  Map<FormalParameterElementImpl, DartObjectImpl>
   _collectImplicitSuperFormalArguments() {
     return {
       for (var parameter in _constructor.formalParameters)
-        if (parameter case SuperFormalParameterElement parameter)
+        if (parameter is InternalSuperFormalParameterElement)
           ?parameter.superConstructorParameter?.baseElement:
               ?_parameterMap[parameter.baseElement],
     };

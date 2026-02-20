@@ -16419,6 +16419,45 @@ LinterLintCode:
       ```dart
       print(RegExp(r'\(').hasMatch('foo()'));
       ```
+  varWithNoTypeAnnotation:
+    type: lint
+    parameters: none
+    problemMessage: "Avoid declaring parameters with `var` and no type annotation."
+    correctionMessage: "Try removing the keyword 'var' or replacing `var` with a type annotation."
+    state:
+      experimental: "3.12"
+    categories: [languageFeatureUsage]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      **AVOID** declaring parameters with `var` and no type annotation.
+
+      Declaring formal parameters using `var` and no type annotation will be a
+      compile-time error when primary constructors are enabled. This lint flags
+      those parameters to ease migration.
+
+      **BAD:**
+      ```dart
+      void func(var x) { // LINT
+        print(x);
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      void func(String x) { // OK
+        print(x);
+      }
+      ```
+
+      **BAD:**
+      ```dart
+      [1, 4, 6, 8].forEach((var value) => print(value + 2)); // LINT
+      ```
+
+      **GOOD:**
+      ```dart
+      [1, 4, 6, 8].forEach((value) => print(value + 2)); // OK
+      ```
   visitRegisteredNodes:
     type: lint
     parameters: none

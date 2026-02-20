@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:package_config/package_config.dart';
+import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 final _pubspecGlob = Glob('**/pubspec.yaml');
@@ -49,36 +50,56 @@ Future<void> runPubGet(Directory projectDir, YamlMap pubspec) async {
   }
 }
 
+Future<ContextRoot?> _createContextRoot(
+  File pubspecFile, {
+  bool isSdk = false,
+}) async {
+  // Skip hidden dirs.
+  if (pubspecFile.uri.pathSegments.any((path) => path.startsWith('.'))) {
+    return null;
+  }
+  try {
+    var pubspec = loadYaml(await pubspecFile.readAsString()) as YamlMap;
+    if (pubspec['resolution'] == 'workspace') return null;
+    var contextRootDir = pubspecFile.parent;
+    if (!isSdk) {
+      await runPubGet(contextRootDir, pubspec);
+    }
+    var packageConfig = await findPackageConfig(contextRootDir);
+    if (packageConfig == null) {
+      throw StateError(
+        'Unable to find package config file in ${contextRootDir.path}',
+      );
+    }
+    return ContextRoot(contextRootDir, packageConfig);
+  } catch (e) {
+    stderr.writeln(
+      'Error initializing context root for pubspec at ${pubspecFile.path}:\n'
+      '$e',
+    );
+    return null;
+  }
+}
+
 Stream<ContextRoot> _initializeContextRoots(
   String rootDir, {
   bool isSdk = false,
 }) async* {
+  // Explicitly check the root for a pubspec, as the glob sometimes misses it.
+  var rootPubspec = File(path.join(rootDir, 'pubspec.yaml'));
+  if (await rootPubspec.exists()) {
+    var root = await _createContextRoot(rootPubspec, isSdk: isSdk);
+    if (root != null) yield root;
+  }
+
   await for (var pubspecFile in _pubspecGlob.list(root: rootDir)) {
-    // Skip hidden dirs.
-    if (pubspecFile.uri.pathSegments.any((path) => path.startsWith('.'))) {
-      continue;
-    }
-    try {
-      var pubspec =
-          loadYaml(await File(pubspecFile.path).readAsString()) as YamlMap;
-      if (pubspec['resolution'] == 'workspace') continue;
-      var contextRootDir = pubspecFile.parent;
-      if (!isSdk) {
-        await runPubGet(contextRootDir, pubspec);
-      }
-      var packageConfig = await findPackageConfig(contextRootDir);
-      if (packageConfig == null) {
-        throw StateError(
-          'Unable to find package config file in ${contextRootDir.path}',
-        );
-      }
-      yield ContextRoot(contextRootDir, packageConfig);
-    } catch (e) {
-      stderr.writeln(
-        'Error initializing context root for pubspec at ${pubspecFile.path}:\n'
-        '$e',
-      );
-    }
+    if (pubspecFile is! File) continue;
+    // We already processed the root pubspec if it exists, so skip it here if the
+    // glob found it too.
+    if (pubspecFile.path == rootPubspec.path) continue;
+
+    var root = await _createContextRoot(pubspecFile as File, isSdk: isSdk);
+    if (root != null) yield root;
   }
 }
 

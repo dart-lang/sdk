@@ -257,6 +257,7 @@ import 'rules/use_test_throws_matchers.dart';
 import 'rules/use_to_and_as_if_applicable.dart';
 import 'rules/use_truncating_division.dart';
 import 'rules/valid_regexps.dart';
+import 'rules/var_with_no_type_annotation.dart';
 import 'rules/void_checks.dart';
 
 void registerLintRules() {
@@ -513,5 +514,6 @@ void registerLintRules() {
     ..registerLintRule(UseToAndAsIfApplicable())
     ..registerLintRule(UseTruncatingDivision())
     ..registerLintRule(ValidRegexps())
+    ..registerLintRule(VarWithNoTypeAnnotation())
     ..registerLintRule(VoidChecks());
 }

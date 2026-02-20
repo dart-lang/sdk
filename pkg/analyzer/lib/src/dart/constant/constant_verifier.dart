@@ -131,6 +131,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAnonymousMethodInvocation(
+    covariant AnonymousMethodInvocationImpl node,
+  ) {
+    super.visitAnonymousMethodInvocation(node);
+    _validateDefaultValues(node.parameters);
+  }
+
+  @override
   void visitConstantPattern(covariant ConstantPatternImpl node) {
     var expression = node.expression.unParenthesized;
     if (expression.typeOrThrow is InvalidType) {

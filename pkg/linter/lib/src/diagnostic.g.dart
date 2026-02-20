@@ -3811,6 +3811,19 @@ const LinterLintWithoutArguments validRegexps = LinterLintWithoutArguments(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments varWithNoTypeAnnotation =
+    LinterLintWithoutArguments(
+      name: 'var_with_no_type_annotation',
+      problemMessage:
+          "Avoid declaring parameters with `var` and no type annotation.",
+      correctionMessage:
+          "Try removing the keyword 'var' or replacing `var` with a type "
+          "annotation.",
+      uniqueName: 'var_with_no_type_annotation',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments visitRegisteredNodes =
     LinterLintWithoutArguments(
       name: 'visit_registered_nodes',

@@ -1,11 +1,11 @@
 package:analyzer_plugin/channel/channel.dart:
-  PluginCommunicationChannel (class extends Object):
+  PluginCommunicationChannel (class extends Object, abstract):
     new (constructor: PluginCommunicationChannel Function())
     close (method: void Function())
     listen (method: void Function(void Function(Request), {void Function()? onDone, Function? onError}))
     sendNotification (method: void Function(Notification))
     sendResponse (method: void Function(Response))
-  ServerCommunicationChannel (class extends Object):
+  ServerCommunicationChannel (class extends Object, abstract):
     new (constructor: ServerCommunicationChannel Function())
     close (method: void Function())
     kill (method: void Function())
@@ -16,7 +16,7 @@ package:analyzer_plugin/plugin/assist_mixin.dart:
     getAssistContributors (method: List<AssistContributor> Function(String))
     getAssistRequest (method: Future<AssistRequest> Function(EditGetAssistsParams))
     handleEditGetAssists (method: Future<EditGetAssistsResult> Function(EditGetAssistsParams))
-  DartAssistsMixin (class extends Object implements AssistsMixin):
+  DartAssistsMixin (class extends Object implements AssistsMixin, abstract):
     new (constructor: DartAssistsMixin Function())
     getAssistRequest (method: Future<AssistRequest> Function(EditGetAssistsParams))
 package:analyzer_plugin/plugin/completion_mixin.dart:
@@ -24,7 +24,7 @@ package:analyzer_plugin/plugin/completion_mixin.dart:
     getCompletionContributors (method: List<CompletionContributor> Function(String))
     getCompletionRequest (method: Future<CompletionRequest> Function(CompletionGetSuggestionsParams))
     handleCompletionGetSuggestions (method: Future<CompletionGetSuggestionsResult> Function(CompletionGetSuggestionsParams))
-  DartCompletionMixin (class extends Object implements CompletionMixin):
+  DartCompletionMixin (class extends Object implements CompletionMixin, abstract):
     new (constructor: DartCompletionMixin Function())
     getCompletionRequest (method: Future<CompletionRequest> Function(CompletionGetSuggestionsParams))
 package:analyzer_plugin/plugin/fix_mixin.dart:
@@ -71,7 +71,7 @@ package:analyzer_plugin/plugin/outline_mixin.dart:
     getOutlineRequest (method: Future<OutlineRequest> Function(String))
     sendOutlineNotification (method: Future<void> Function(String))
 package:analyzer_plugin/plugin/plugin.dart:
-  ServerPlugin (class extends Object):
+  ServerPlugin (class extends Object, abstract):
     new (constructor: ServerPlugin Function({required ResourceProvider resourceProvider}))
     channel (getter: PluginCommunicationChannel)
     contactInfo (getter: String?)
@@ -116,14 +116,14 @@ package:analyzer_plugin/plugin/plugin.dart:
     sendOutlineNotification (method: Future<void> Function(String))
     start (method: void Function(PluginCommunicationChannel))
 package:analyzer_plugin/protocol/protocol.dart:
-  Enum (class extends Object):
+  Enum (class extends Object, abstract):
     new (constructor: Enum Function())
     name (getter: String)
   Notification (class extends Object):
     EVENT (static getter: String)
     PARAMS (static getter: String)
-    fromJson (constructor: Notification Function(Map<dynamic, dynamic>))
     new (constructor: Notification Function(String, [Map<String, Object>?]))
+    fromJson (constructor: Notification Function(Map<dynamic, dynamic>))
     event (getter: String)
     params (getter: Map<String, Object>?)
     toJson (method: Map<String, Object> Function())
@@ -132,8 +132,8 @@ package:analyzer_plugin/protocol/protocol.dart:
     METHOD (static getter: String)
     PARAMS (static getter: String)
     SERVER_REQUEST_TIME (static getter: String)
-    fromJson (constructor: Request Function(Map<String, Object?>))
     new (constructor: Request Function(String, String, [Map<String, Object?>?, int?]))
+    fromJson (constructor: Request Function(Map<String, Object?>))
     hashCode (getter: int)
     id (getter: String)
     method (getter: String)
@@ -156,8 +156,8 @@ package:analyzer_plugin/protocol/protocol.dart:
     ID (static getter: String)
     REQUEST_TIME (static getter: String)
     RESULT (static getter: String)
-    fromJson (constructor: Response Function(Map<String, Object?>))
     new (constructor: Response Function(String, int, {RequestError? error, Map<String, Object?>? result}))
+    fromJson (constructor: Response Function(Map<String, Object?>))
     error (getter: RequestError?)
     id (getter: String)
     requestTime (getter: int)
@@ -166,8 +166,8 @@ package:analyzer_plugin/protocol/protocol.dart:
     toJson (method: Map<String, Object> Function())
 package:analyzer_plugin/protocol/protocol_common.dart:
   AddContentOverlay (class extends Object implements HasToJson):
-    fromJson (constructor: AddContentOverlay Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: AddContentOverlay Function(String, {int? version}))
+    fromJson (constructor: AddContentOverlay Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     content (getter: String)
     content= (setter: String)
     hashCode (getter: int)
@@ -177,8 +177,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisError (class extends Object implements HasToJson):
-    fromJson (constructor: AnalysisError Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: AnalysisError Function(AnalysisErrorSeverity, AnalysisErrorType, Location, String, String, {List<DiagnosticMessage@1>? contextMessages, String? correction, bool? hasFix, String? url}))
+    fromJson (constructor: AnalysisError Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     code (getter: String)
     code= (setter: String)
     contextMessages (getter: List<DiagnosticMessage@1>?)
@@ -221,8 +221,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AssistDescription (class extends Object implements HasToJson):
-    fromJson (constructor: AssistDescription Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: AssistDescription Function(String, String))
+    fromJson (constructor: AssistDescription Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     id (getter: String)
     id= (setter: String)
@@ -232,8 +232,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   ChangeContentOverlay (class extends Object implements HasToJson):
-    fromJson (constructor: ChangeContentOverlay Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: ChangeContentOverlay Function(List<SourceEdit>, {int? version}))
+    fromJson (constructor: ChangeContentOverlay Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     edits (getter: List<SourceEdit>)
     edits= (setter: List<SourceEdit>)
     hashCode (getter: int)
@@ -243,8 +243,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   CompletionSuggestion (class extends Object implements HasToJson):
-    fromJson (constructor: CompletionSuggestion Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: CompletionSuggestion Function(CompletionSuggestionKind, int, String, int, int, bool, bool, {String? declaringType, String? defaultArgumentListString, List<int>? defaultArgumentListTextRanges, String? displayText, String? docComplete, String? docSummary, Element@1? element, bool? hasNamedParameters, bool? isNotImported, String? libraryUri, String? parameterName, List<String>? parameterNames, String? parameterType, List<String>? parameterTypes, int? replacementLength, int? replacementOffset, int? requiredParameterCount, String? returnType}))
+    fromJson (constructor: CompletionSuggestion Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     completion (getter: String)
     completion= (setter: String)
     declaringType (getter: String?)
@@ -314,8 +314,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   DiagnosticMessage@1 (class extends Object implements HasToJson):
-    fromJson (constructor: DiagnosticMessage@1 Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: DiagnosticMessage@1 Function(String, Location))
+    fromJson (constructor: DiagnosticMessage@1 Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     location (getter: Location)
     location= (setter: Location)
@@ -332,8 +332,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     FLAG_PRIVATE (static getter: int)
     FLAG_STATIC (static getter: int)
     makeFlags (static method: int Function({bool isAbstract, bool isConst, bool isDeprecated, bool isFinal, bool isPrivate, bool isStatic}))
-    fromJson (constructor: Element@1 Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: Element@1 Function(ElementKind@1, String, int, {String? aliasedType, String? extendedType, Location? location, String? parameters, String? returnType, String? typeParameters}))
+    fromJson (constructor: Element@1 Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     aliasedType (getter: String?)
     aliasedType= (setter: String?)
     extendedType (getter: String?)
@@ -396,8 +396,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   FixDescription (class extends Object implements HasToJson):
-    fromJson (constructor: FixDescription Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: FixDescription Function(String, String, List<String>))
+    fromJson (constructor: FixDescription Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     codes (getter: List<String>)
     codes= (setter: List<String>)
     hashCode (getter: int)
@@ -424,8 +424,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   FoldingRegion (class extends Object implements HasToJson):
-    fromJson (constructor: FoldingRegion Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: FoldingRegion Function(FoldingKind, int, int))
+    fromJson (constructor: FoldingRegion Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     kind (getter: FoldingKind)
     kind= (setter: FoldingKind)
@@ -437,8 +437,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   HighlightRegion (class extends Object implements HasToJson):
-    fromJson (constructor: HighlightRegion Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: HighlightRegion Function(HighlightRegionType, int, int))
+    fromJson (constructor: HighlightRegion Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     length (getter: int)
     length= (setter: int)
@@ -537,9 +537,9 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   LinkedEditGroup (class extends Object implements HasToJson):
+    new (constructor: LinkedEditGroup Function(List<Position>, int, List<LinkedEditSuggestion>))
     empty (constructor: LinkedEditGroup Function())
     fromJson (constructor: LinkedEditGroup Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
-    new (constructor: LinkedEditGroup Function(List<Position>, int, List<LinkedEditSuggestion>))
     hashCode (getter: int)
     length (getter: int)
     length= (setter: int)
@@ -553,8 +553,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   LinkedEditSuggestion (class extends Object implements HasToJson):
-    fromJson (constructor: LinkedEditSuggestion Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: LinkedEditSuggestion Function(String, LinkedEditSuggestionKind))
+    fromJson (constructor: LinkedEditSuggestion Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     kind (getter: LinkedEditSuggestionKind)
     kind= (setter: LinkedEditSuggestionKind)
@@ -572,8 +572,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   Location (class extends Object implements HasToJson):
-    fromJson (constructor: Location Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: Location Function(String, int, int, int, int, {int? endColumn, int? endLine}))
+    fromJson (constructor: Location Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     endColumn (getter: int?)
     endColumn= (setter: int?)
     endLine (getter: int?)
@@ -593,8 +593,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   NavigationRegion (class extends Object implements HasToJson):
-    fromJson (constructor: NavigationRegion Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: NavigationRegion Function(int, int, List<int>))
+    fromJson (constructor: NavigationRegion Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     length (getter: int)
     length= (setter: int)
@@ -606,8 +606,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   NavigationTarget (class extends Object implements HasToJson):
-    fromJson (constructor: NavigationTarget Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: NavigationTarget Function(ElementKind@1, int, int, int, int, int, {int? codeLength, int? codeOffset}))
+    fromJson (constructor: NavigationTarget Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     codeLength (getter: int?)
     codeLength= (setter: int?)
     codeOffset (getter: int?)
@@ -629,8 +629,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   Occurrences (class extends Object implements HasToJson):
-    fromJson (constructor: Occurrences Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: Occurrences Function(Element@1, List<int>, int))
+    fromJson (constructor: Occurrences Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     element (getter: Element@1)
     element= (setter: Element@1)
     hashCode (getter: int)
@@ -642,8 +642,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   Outline (class extends Object implements HasToJson):
-    fromJson (constructor: Outline Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: Outline Function(Element@1, int, int, int, int, {List<Outline>? children}))
+    fromJson (constructor: Outline Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     children (getter: List<Outline>?)
     children= (setter: List<Outline>?)
     codeLength (getter: int)
@@ -661,8 +661,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   ParameterInfo (class extends Object implements HasToJson):
-    fromJson (constructor: ParameterInfo Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: ParameterInfo Function(ParameterKind, String, String, {String? defaultValue}))
+    fromJson (constructor: ParameterInfo Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     defaultValue (getter: String?)
     defaultValue= (setter: String?)
     hashCode (getter: int)
@@ -684,8 +684,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   PluginDetails (class extends Object implements HasToJson):
-    fromJson (constructor: PluginDetails Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: PluginDetails Function(String, List<String>, List<String>, List<AssistDescription>, List<FixDescription>))
+    fromJson (constructor: PluginDetails Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     assists (getter: List<AssistDescription>)
     assists= (setter: List<AssistDescription>)
     fixes (getter: List<FixDescription>)
@@ -701,8 +701,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   Position (class extends Object implements HasToJson):
-    fromJson (constructor: Position Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: Position Function(String, int))
+    fromJson (constructor: Position Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -725,8 +725,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RefactoringMethodParameter (class extends Object implements HasToJson):
-    fromJson (constructor: RefactoringMethodParameter Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: RefactoringMethodParameter Function(RefactoringMethodParameterKind, String, String, {String? id, String? parameters}))
+    fromJson (constructor: RefactoringMethodParameter Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     id (getter: String?)
     id= (setter: String?)
@@ -749,8 +749,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RefactoringProblem (class extends Object implements HasToJson):
-    fromJson (constructor: RefactoringProblem Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: RefactoringProblem Function(RefactoringProblemSeverity, String, {Location? location}))
+    fromJson (constructor: RefactoringProblem Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     location (getter: Location?)
     location= (setter: Location?)
@@ -771,15 +771,15 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RemoveContentOverlay (class extends Object implements HasToJson):
-    fromJson (constructor: RemoveContentOverlay Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: RemoveContentOverlay Function())
+    fromJson (constructor: RemoveContentOverlay Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     == (method: bool Function(Object))
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   SourceChange (class extends Object implements HasToJson):
-    fromJson (constructor: SourceChange Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: SourceChange Function(String, {List<SourceFileEdit>? edits, String? id, List<LinkedEditGroup>? linkedEditGroups, Position? selection, int? selectionLength}))
+    fromJson (constructor: SourceChange Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     edits (getter: List<SourceFileEdit>)
     edits= (setter: List<SourceFileEdit>)
     hashCode (getter: int)
@@ -802,8 +802,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toString (method: String Function())
   SourceEdit (class extends Object implements HasToJson):
     applySequence (static method: String Function(String, List<SourceEdit>))
-    fromJson (constructor: SourceEdit Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: SourceEdit Function(int, int, String, {String? description, String? id}))
+    fromJson (constructor: SourceEdit Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     description (getter: String?)
     description= (setter: String?)
     end (getter: int)
@@ -821,8 +821,8 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   SourceFileEdit (class extends Object implements HasToJson):
-    fromJson (constructor: SourceFileEdit Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: SourceFileEdit Function(String, int, {List<SourceEdit>? edits}))
+    fromJson (constructor: SourceFileEdit Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     edits (getter: List<SourceEdit>)
     edits= (setter: List<SourceEdit>)
     file (getter: String)
@@ -926,8 +926,8 @@ package:analyzer_plugin/protocol/protocol_constants.dart:
   PLUGIN_RESPONSE_VERSION_CHECK_VERSION (static getter: String)
 package:analyzer_plugin/protocol/protocol_generated.dart:
   AnalysisErrorFixes (class extends Object implements HasToJson):
-    fromJson (constructor: AnalysisErrorFixes Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: AnalysisErrorFixes Function(AnalysisError, {List<PrioritizedSourceChange>? fixes}))
+    fromJson (constructor: AnalysisErrorFixes Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     error (getter: AnalysisError)
     error= (setter: AnalysisError)
     fixes (getter: List<PrioritizedSourceChange>)
@@ -937,9 +937,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisErrorsParams (class extends Object implements HasToJson):
+    new (constructor: AnalysisErrorsParams Function(String, List<AnalysisError>))
     fromJson (constructor: AnalysisErrorsParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromNotification (constructor: AnalysisErrorsParams Function(Notification, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisErrorsParams Function(String, List<AnalysisError>))
     errors (getter: List<AnalysisError>)
     errors= (setter: List<AnalysisError>)
     file (getter: String)
@@ -950,9 +950,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toNotification (method: Notification Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisFoldingParams (class extends Object implements HasToJson):
+    new (constructor: AnalysisFoldingParams Function(String, List<FoldingRegion>))
     fromJson (constructor: AnalysisFoldingParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromNotification (constructor: AnalysisFoldingParams Function(Notification, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisFoldingParams Function(String, List<FoldingRegion>))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -963,9 +963,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toNotification (method: Notification Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisGetNavigationParams (class extends Object implements RequestParams):
+    new (constructor: AnalysisGetNavigationParams Function(String, int, int))
     fromJson (constructor: AnalysisGetNavigationParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: AnalysisGetNavigationParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisGetNavigationParams Function(String, int, int))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -978,9 +978,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toRequest (method: Request Function(String, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisGetNavigationResult (class extends Object implements ResponseResult):
+    new (constructor: AnalysisGetNavigationResult Function(List<String>, List<NavigationTarget>, List<NavigationRegion>))
     fromJson (constructor: AnalysisGetNavigationResult Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromResponse (constructor: AnalysisGetNavigationResult Function(Response, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisGetNavigationResult Function(List<String>, List<NavigationTarget>, List<NavigationRegion>))
     files (getter: List<String>)
     files= (setter: List<String>)
     hashCode (getter: int)
@@ -993,9 +993,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisHandleWatchEventsParams (class extends Object implements RequestParams):
+    new (constructor: AnalysisHandleWatchEventsParams Function(List<WatchEvent>))
     fromJson (constructor: AnalysisHandleWatchEventsParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: AnalysisHandleWatchEventsParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisHandleWatchEventsParams Function(List<WatchEvent>))
     events (getter: List<WatchEvent>)
     events= (setter: List<WatchEvent>)
     hashCode (getter: int)
@@ -1010,9 +1010,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
   AnalysisHighlightsParams (class extends Object implements HasToJson):
+    new (constructor: AnalysisHighlightsParams Function(String, List<HighlightRegion>))
     fromJson (constructor: AnalysisHighlightsParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromNotification (constructor: AnalysisHighlightsParams Function(Notification, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisHighlightsParams Function(String, List<HighlightRegion>))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -1023,9 +1023,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toNotification (method: Notification Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisNavigationParams (class extends Object implements HasToJson):
+    new (constructor: AnalysisNavigationParams Function(String, List<NavigationRegion>, List<NavigationTarget>, List<String>))
     fromJson (constructor: AnalysisNavigationParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromNotification (constructor: AnalysisNavigationParams Function(Notification, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisNavigationParams Function(String, List<NavigationRegion>, List<NavigationTarget>, List<String>))
     file (getter: String)
     file= (setter: String)
     files (getter: List<String>)
@@ -1040,9 +1040,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toNotification (method: Notification Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisOccurrencesParams (class extends Object implements HasToJson):
+    new (constructor: AnalysisOccurrencesParams Function(String, List<Occurrences>))
     fromJson (constructor: AnalysisOccurrencesParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromNotification (constructor: AnalysisOccurrencesParams Function(Notification, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisOccurrencesParams Function(String, List<Occurrences>))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -1053,9 +1053,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toNotification (method: Notification Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisOutlineParams (class extends Object implements HasToJson):
+    new (constructor: AnalysisOutlineParams Function(String, List<Outline>))
     fromJson (constructor: AnalysisOutlineParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromNotification (constructor: AnalysisOutlineParams Function(Notification, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisOutlineParams Function(String, List<Outline>))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -1075,9 +1075,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisSetContextRootsParams (class extends Object implements RequestParams):
+    new (constructor: AnalysisSetContextRootsParams Function(List<ContextRoot>))
     fromJson (constructor: AnalysisSetContextRootsParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: AnalysisSetContextRootsParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisSetContextRootsParams Function(List<ContextRoot>))
     hashCode (getter: int)
     roots (getter: List<ContextRoot>)
     roots= (setter: List<ContextRoot>)
@@ -1092,9 +1092,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
   AnalysisSetPriorityFilesParams (class extends Object implements RequestParams):
+    new (constructor: AnalysisSetPriorityFilesParams Function(List<String>))
     fromJson (constructor: AnalysisSetPriorityFilesParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: AnalysisSetPriorityFilesParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisSetPriorityFilesParams Function(List<String>))
     files (getter: List<String>)
     files= (setter: List<String>)
     hashCode (getter: int)
@@ -1109,9 +1109,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
   AnalysisSetSubscriptionsParams (class extends Object implements RequestParams):
+    new (constructor: AnalysisSetSubscriptionsParams Function(Map<AnalysisService, List<String>>))
     fromJson (constructor: AnalysisSetSubscriptionsParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: AnalysisSetSubscriptionsParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisSetSubscriptionsParams Function(Map<AnalysisService, List<String>>))
     hashCode (getter: int)
     subscriptions (getter: Map<AnalysisService, List<String>>)
     subscriptions= (setter: Map<AnalysisService, List<String>>)
@@ -1126,8 +1126,8 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
   AnalysisStatus (class extends Object implements HasToJson):
-    fromJson (constructor: AnalysisStatus Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: AnalysisStatus Function(bool))
+    fromJson (constructor: AnalysisStatus Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     isAnalyzing (getter: bool)
     isAnalyzing= (setter: bool)
@@ -1135,9 +1135,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisUpdateContentParams (class extends Object implements RequestParams):
+    new (constructor: AnalysisUpdateContentParams Function(Map<String, Object>))
     fromJson (constructor: AnalysisUpdateContentParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: AnalysisUpdateContentParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: AnalysisUpdateContentParams Function(Map<String, Object>))
     files (getter: Map<String, Object>)
     files= (setter: Map<String, Object>)
     hashCode (getter: int)
@@ -1152,9 +1152,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
   CompletionGetSuggestionsParams (class extends Object implements RequestParams):
+    new (constructor: CompletionGetSuggestionsParams Function(String, int))
     fromJson (constructor: CompletionGetSuggestionsParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: CompletionGetSuggestionsParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: CompletionGetSuggestionsParams Function(String, int))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -1165,9 +1165,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toRequest (method: Request Function(String, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   CompletionGetSuggestionsResult (class extends Object implements ResponseResult):
+    new (constructor: CompletionGetSuggestionsResult Function(int, int, List<CompletionSuggestion>))
     fromJson (constructor: CompletionGetSuggestionsResult Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromResponse (constructor: CompletionGetSuggestionsResult Function(Response, {ClientUriConverter? clientUriConverter}))
-    new (constructor: CompletionGetSuggestionsResult Function(int, int, List<CompletionSuggestion>))
     hashCode (getter: int)
     replacementLength (getter: int)
     replacementLength= (setter: int)
@@ -1180,8 +1180,8 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   ContextRoot (class extends Object implements HasToJson):
-    fromJson (constructor: ContextRoot Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: ContextRoot Function(String, List<String>, {String? optionsFile}))
+    fromJson (constructor: ContextRoot Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     exclude (getter: List<String>)
     exclude= (setter: List<String>)
     hashCode (getter: int)
@@ -1209,9 +1209,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     hashCode (getter: int)
     == (method: bool Function(Object))
   EditGetAssistsParams (class extends Object implements RequestParams):
+    new (constructor: EditGetAssistsParams Function(String, int, int))
     fromJson (constructor: EditGetAssistsParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: EditGetAssistsParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: EditGetAssistsParams Function(String, int, int))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -1224,9 +1224,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toRequest (method: Request Function(String, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   EditGetAssistsResult (class extends Object implements ResponseResult):
+    new (constructor: EditGetAssistsResult Function(List<PrioritizedSourceChange>))
     fromJson (constructor: EditGetAssistsResult Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromResponse (constructor: EditGetAssistsResult Function(Response, {ClientUriConverter? clientUriConverter}))
-    new (constructor: EditGetAssistsResult Function(List<PrioritizedSourceChange>))
     assists (getter: List<PrioritizedSourceChange>)
     assists= (setter: List<PrioritizedSourceChange>)
     hashCode (getter: int)
@@ -1235,9 +1235,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   EditGetAvailableRefactoringsParams (class extends Object implements RequestParams):
+    new (constructor: EditGetAvailableRefactoringsParams Function(String, int, int))
     fromJson (constructor: EditGetAvailableRefactoringsParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: EditGetAvailableRefactoringsParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: EditGetAvailableRefactoringsParams Function(String, int, int))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -1250,9 +1250,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toRequest (method: Request Function(String, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   EditGetAvailableRefactoringsResult (class extends Object implements ResponseResult):
+    new (constructor: EditGetAvailableRefactoringsResult Function(List<RefactoringKind>))
     fromJson (constructor: EditGetAvailableRefactoringsResult Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromResponse (constructor: EditGetAvailableRefactoringsResult Function(Response, {ClientUriConverter? clientUriConverter}))
-    new (constructor: EditGetAvailableRefactoringsResult Function(List<RefactoringKind>))
     hashCode (getter: int)
     kinds (getter: List<RefactoringKind>)
     kinds= (setter: List<RefactoringKind>)
@@ -1261,9 +1261,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   EditGetFixesParams (class extends Object implements RequestParams):
+    new (constructor: EditGetFixesParams Function(String, int))
     fromJson (constructor: EditGetFixesParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: EditGetFixesParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: EditGetFixesParams Function(String, int))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -1274,9 +1274,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toRequest (method: Request Function(String, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   EditGetFixesResult (class extends Object implements ResponseResult):
+    new (constructor: EditGetFixesResult Function(List<AnalysisErrorFixes>))
     fromJson (constructor: EditGetFixesResult Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromResponse (constructor: EditGetFixesResult Function(Response, {ClientUriConverter? clientUriConverter}))
-    new (constructor: EditGetFixesResult Function(List<AnalysisErrorFixes>))
     fixes (getter: List<AnalysisErrorFixes>)
     fixes= (setter: List<AnalysisErrorFixes>)
     hashCode (getter: int)
@@ -1285,9 +1285,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   EditGetRefactoringParams (class extends Object implements RequestParams):
+    new (constructor: EditGetRefactoringParams Function(RefactoringKind, String, int, int, bool, {RefactoringOptions? options}))
     fromJson (constructor: EditGetRefactoringParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: EditGetRefactoringParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: EditGetRefactoringParams Function(RefactoringKind, String, int, int, bool, {RefactoringOptions? options}))
     file (getter: String)
     file= (setter: String)
     hashCode (getter: int)
@@ -1306,9 +1306,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toRequest (method: Request Function(String, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   EditGetRefactoringResult (class extends Object implements ResponseResult):
+    new (constructor: EditGetRefactoringResult Function(List<RefactoringProblem>, List<RefactoringProblem>, List<RefactoringProblem>, {SourceChange? change, RefactoringFeedback? feedback, List<String>? potentialEdits}))
     fromJson (constructor: EditGetRefactoringResult Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromResponse (constructor: EditGetRefactoringResult Function(Response, {ClientUriConverter? clientUriConverter}))
-    new (constructor: EditGetRefactoringResult Function(List<RefactoringProblem>, List<RefactoringProblem>, List<RefactoringProblem>, {SourceChange? change, RefactoringFeedback? feedback, List<String>? potentialEdits}))
     change (getter: SourceChange?)
     change= (setter: SourceChange?)
     feedback (getter: RefactoringFeedback?)
@@ -1327,8 +1327,8 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   ExtractLocalVariableFeedback (class extends RefactoringFeedback):
-    fromJson (constructor: ExtractLocalVariableFeedback Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: ExtractLocalVariableFeedback Function(List<String>, List<int>, List<int>, {List<int>? coveringExpressionLengths, List<int>? coveringExpressionOffsets}))
+    fromJson (constructor: ExtractLocalVariableFeedback Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     coveringExpressionLengths (getter: List<int>?)
     coveringExpressionLengths= (setter: List<int>?)
     coveringExpressionOffsets (getter: List<int>?)
@@ -1344,9 +1344,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   ExtractLocalVariableOptions (class extends RefactoringOptions):
+    new (constructor: ExtractLocalVariableOptions Function(String, bool))
     fromJson (constructor: ExtractLocalVariableOptions Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRefactoringParams (constructor: ExtractLocalVariableOptions Function(EditGetRefactoringParams, Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: ExtractLocalVariableOptions Function(String, bool))
     extractAll (getter: bool)
     extractAll= (setter: bool)
     hashCode (getter: int)
@@ -1356,8 +1356,8 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   ExtractMethodFeedback (class extends RefactoringFeedback):
-    fromJson (constructor: ExtractMethodFeedback Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: ExtractMethodFeedback Function(int, int, String, List<String>, bool, List<RefactoringMethodParameter>, List<int>, List<int>))
+    fromJson (constructor: ExtractMethodFeedback Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     canCreateGetter (getter: bool)
     canCreateGetter= (setter: bool)
     hashCode (getter: int)
@@ -1379,9 +1379,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   ExtractMethodOptions (class extends RefactoringOptions):
+    new (constructor: ExtractMethodOptions Function(String, bool, String, List<RefactoringMethodParameter>, bool))
     fromJson (constructor: ExtractMethodOptions Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRefactoringParams (constructor: ExtractMethodOptions Function(EditGetRefactoringParams, Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: ExtractMethodOptions Function(String, bool, String, List<RefactoringMethodParameter>, bool))
     createGetter (getter: bool)
     createGetter= (setter: bool)
     extractAll (getter: bool)
@@ -1397,8 +1397,8 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   InlineLocalVariableFeedback (class extends RefactoringFeedback):
-    fromJson (constructor: InlineLocalVariableFeedback Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: InlineLocalVariableFeedback Function(String, int))
+    fromJson (constructor: InlineLocalVariableFeedback Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     name (getter: String)
     name= (setter: String)
@@ -1412,8 +1412,8 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     hashCode (getter: int)
     == (method: bool Function(Object))
   InlineMethodFeedback (class extends RefactoringFeedback):
-    fromJson (constructor: InlineMethodFeedback Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: InlineMethodFeedback Function(String, bool, {String? className}))
+    fromJson (constructor: InlineMethodFeedback Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     className (getter: String?)
     className= (setter: String?)
     hashCode (getter: int)
@@ -1425,9 +1425,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   InlineMethodOptions (class extends RefactoringOptions):
+    new (constructor: InlineMethodOptions Function(bool, bool))
     fromJson (constructor: InlineMethodOptions Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRefactoringParams (constructor: InlineMethodOptions Function(EditGetRefactoringParams, Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: InlineMethodOptions Function(bool, bool))
     deleteSource (getter: bool)
     deleteSource= (setter: bool)
     hashCode (getter: int)
@@ -1441,9 +1441,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     hashCode (getter: int)
     == (method: bool Function(Object))
   MoveFileOptions (class extends RefactoringOptions):
+    new (constructor: MoveFileOptions Function(String))
     fromJson (constructor: MoveFileOptions Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRefactoringParams (constructor: MoveFileOptions Function(EditGetRefactoringParams, Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: MoveFileOptions Function(String))
     hashCode (getter: int)
     newFile (getter: String)
     newFile= (setter: String)
@@ -1457,9 +1457,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toRequest (method: Request Function(String, {ClientUriConverter? clientUriConverter}))
   PluginDetailsResult (class extends Object implements ResponseResult):
+    new (constructor: PluginDetailsResult Function(List<PluginDetails>))
     fromJson (constructor: PluginDetailsResult Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromResponse (constructor: PluginDetailsResult Function(Response, {ClientUriConverter? clientUriConverter}))
-    new (constructor: PluginDetailsResult Function(List<PluginDetails>))
     hashCode (getter: int)
     plugins (getter: List<PluginDetails>)
     plugins= (setter: List<PluginDetails>)
@@ -1468,9 +1468,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   PluginErrorParams (class extends Object implements HasToJson):
+    new (constructor: PluginErrorParams Function(bool, String, String))
     fromJson (constructor: PluginErrorParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromNotification (constructor: PluginErrorParams Function(Notification, {ClientUriConverter? clientUriConverter}))
-    new (constructor: PluginErrorParams Function(bool, String, String))
     hashCode (getter: int)
     isFatal (getter: bool)
     isFatal= (setter: bool)
@@ -1495,9 +1495,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
   PluginStatusParams (class extends Object implements HasToJson):
+    new (constructor: PluginStatusParams Function({AnalysisStatus? analysis}))
     fromJson (constructor: PluginStatusParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromNotification (constructor: PluginStatusParams Function(Notification, {ClientUriConverter? clientUriConverter}))
-    new (constructor: PluginStatusParams Function({AnalysisStatus? analysis}))
     analysis (getter: AnalysisStatus?)
     analysis= (setter: AnalysisStatus?)
     hashCode (getter: int)
@@ -1506,9 +1506,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toNotification (method: Notification Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   PluginVersionCheckParams (class extends Object implements RequestParams):
+    new (constructor: PluginVersionCheckParams Function(String, String, String))
     fromJson (constructor: PluginVersionCheckParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRequest (constructor: PluginVersionCheckParams Function(Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: PluginVersionCheckParams Function(String, String, String))
     byteStorePath (getter: String)
     byteStorePath= (setter: String)
     hashCode (getter: int)
@@ -1521,9 +1521,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toRequest (method: Request Function(String, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   PluginVersionCheckResult (class extends Object implements ResponseResult):
+    new (constructor: PluginVersionCheckResult Function(bool, String, String, List<String>, {String? contactInfo}))
     fromJson (constructor: PluginVersionCheckResult Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromResponse (constructor: PluginVersionCheckResult Function(Response, {ClientUriConverter? clientUriConverter}))
-    new (constructor: PluginVersionCheckResult Function(bool, String, String, List<String>, {String? contactInfo}))
     contactInfo (getter: String?)
     contactInfo= (setter: String?)
     hashCode (getter: int)
@@ -1540,8 +1540,8 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   PrioritizedSourceChange (class extends Object implements HasToJson):
-    fromJson (constructor: PrioritizedSourceChange Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: PrioritizedSourceChange Function(int, SourceChange))
+    fromJson (constructor: PrioritizedSourceChange Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     change (getter: SourceChange)
     change= (setter: SourceChange)
     hashCode (getter: int)
@@ -1551,22 +1551,22 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RefactoringFeedback (class extends Object implements HasToJson):
-    fromJson (constructor: RefactoringFeedback Function(JsonDecoder, String, Object?, Map<Object?, Object?>, {ClientUriConverter? clientUriConverter}))
     new (constructor: RefactoringFeedback Function())
+    fromJson (constructor: RefactoringFeedback Function(JsonDecoder, String, Object?, Map<Object?, Object?>, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     == (method: bool Function(Object))
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RefactoringOptions (class extends Object implements HasToJson):
-    fromJson (constructor: RefactoringOptions Function(JsonDecoder, String, Object?, RefactoringKind, {ClientUriConverter? clientUriConverter}))
     new (constructor: RefactoringOptions Function())
+    fromJson (constructor: RefactoringOptions Function(JsonDecoder, String, Object?, RefactoringKind, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     == (method: bool Function(Object))
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RenameFeedback (class extends RefactoringFeedback):
-    fromJson (constructor: RenameFeedback Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: RenameFeedback Function(int, int, String, String))
+    fromJson (constructor: RenameFeedback Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     elementKindName (getter: String)
     elementKindName= (setter: String)
     hashCode (getter: int)
@@ -1580,9 +1580,9 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RenameOptions (class extends RefactoringOptions):
+    new (constructor: RenameOptions Function(String))
     fromJson (constructor: RenameOptions Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     fromRefactoringParams (constructor: RenameOptions Function(EditGetRefactoringParams, Request, {ClientUriConverter? clientUriConverter}))
-    new (constructor: RenameOptions Function(String))
     hashCode (getter: int)
     newName (getter: String)
     newName= (setter: String)
@@ -1590,8 +1590,8 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RequestError (class extends Object implements HasToJson):
-    fromJson (constructor: RequestError Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: RequestError Function(RequestErrorCode, String, {String? stackTrace}))
+    fromJson (constructor: RequestError Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     code (getter: RequestErrorCode)
     code= (setter: RequestErrorCode)
     hashCode (getter: int)
@@ -1611,8 +1611,8 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   WatchEvent (class extends Object implements HasToJson):
-    fromJson (constructor: WatchEvent Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     new (constructor: WatchEvent Function(WatchEventType, String))
+    fromJson (constructor: WatchEvent Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     hashCode (getter: int)
     path (getter: String)
     path= (setter: String)
@@ -1640,7 +1640,7 @@ package:analyzer_plugin/src/utilities/completion/completion_target.dart:
 package:analyzer_plugin/src/utilities/completion/optype.dart:
   OpType (non-public)
 package:analyzer_plugin/starter.dart:
-  ServerPluginStarter (class extends Object):
+  ServerPluginStarter (class extends Object, abstract):
     new (constructor: ServerPluginStarter Function(ServerPlugin))
     start (method: void Function(SendPort))
 package:analyzer_plugin/utilities/analyzer_converter.dart:
@@ -1659,10 +1659,10 @@ package:analyzer_plugin/utilities/analyzer_converter.dart:
   ElementKindExtensions (extension on ElementKind@2):
     toPluginElementKind (getter: ElementKind@1)
 package:analyzer_plugin/utilities/assist/assist.dart:
-  AssistCollector (class extends Object):
+  AssistCollector (class extends Object, abstract):
     new (constructor: AssistCollector Function())
     addAssist (method: void Function(PrioritizedSourceChange))
-  AssistContributor (class extends Object):
+  AssistContributor (class extends Object, abstract):
     new (constructor: AssistContributor Function())
     computeAssists (method: Future<void> Function(AssistRequest, AssistCollector))
   AssistGenerator (class extends Object):
@@ -1675,12 +1675,12 @@ package:analyzer_plugin/utilities/assist/assist.dart:
     message (getter: String)
     priority (getter: int)
     toString (method: String Function())
-  AssistRequest (class extends Object):
+  AssistRequest (class extends Object, abstract):
     new (constructor: AssistRequest Function())
     length (getter: int)
     offset (getter: int)
     resourceProvider (getter: ResourceProvider)
-  DartAssistRequest (class extends Object implements AssistRequest):
+  DartAssistRequest (class extends Object implements AssistRequest, abstract):
     new (constructor: DartAssistRequest Function())
     result (getter: ResolvedUnitResult)
 package:analyzer_plugin/utilities/assist/assist_contributor_mixin.dart:
@@ -1688,7 +1688,7 @@ package:analyzer_plugin/utilities/assist/assist_contributor_mixin.dart:
     collector (getter: AssistCollector)
     addAssist (method: void Function(AssistKind, ChangeBuilder, {List<Object>? args}))
 package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
-  ChangeBuilder (class extends Object):
+  ChangeBuilder (class extends Object, abstract):
     new (constructor: ChangeBuilder Function({String? defaultEol, AnalysisSession session, ChangeWorkspace workspace}))
     defaultEol (getter: String)
     selectionRange (getter: SourceRange?)
@@ -1698,7 +1698,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
     addYamlFileEdit (method: Future<void> Function(String, void Function(YamlFileEditBuilder)))
     hasEditsFor (method: bool Function(String))
     setSelection (method: void Function(Position))
-  EditBuilder (class extends Object):
+  EditBuilder (class extends Object, abstract):
     new (constructor: EditBuilder Function())
     addLinkedEdit (method: void Function(String, void Function(LinkedEditBuilder)))
     addSimpleLinkedEdit (method: void Function(String, String, {LinkedEditSuggestionKind kind, List<String> suggestions}))
@@ -1706,7 +1706,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
     selectHere (method: void Function())
     write (method: void Function(String))
     writeln (method: void Function([String]))
-  FileEditBuilder (class extends Object):
+  FileEditBuilder (class extends Object, abstract):
     new (constructor: FileEditBuilder Function())
     eol (getter: String)
     addDeletion (method: void Function(SourceRange))
@@ -1715,14 +1715,14 @@ package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
     addReplacement (method: void Function(SourceRange, void Function(EditBuilder)))
     addSimpleInsertion (method: void Function(int, String))
     addSimpleReplacement (method: void Function(SourceRange, String))
-  LinkedEditBuilder (class extends Object):
+  LinkedEditBuilder (class extends Object, abstract):
     new (constructor: LinkedEditBuilder Function())
     addSuggestion (method: void Function(LinkedEditSuggestionKind, String))
     addSuggestions (method: void Function(LinkedEditSuggestionKind, Iterable<String>))
     write (method: void Function(String))
     writeln (method: void Function([String]))
 package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
-  DartEditBuilder (class extends Object implements EditBuilder):
+  DartEditBuilder (class extends Object implements EditBuilder, abstract):
     new (constructor: DartEditBuilder Function())
     addLinkedEdit (method: void Function(String, void Function(DartLinkedEditBuilder)))
     canWriteType (method: bool Function(DartType?, {List<TypeParameterElement>? typeParametersInScope}))
@@ -1748,7 +1748,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     writeTypeParameter (method: void Function(TypeParameterElement, {List<TypeParameterElement>? typeParametersInScope}))
     writeTypeParameters (method: void Function(List<TypeParameterElement>, {List<TypeParameterElement>? typeParametersInScope}))
     writeTypes (method: void Function(Iterable<DartType>?, {String? prefix, bool shouldWriteDynamic}))
-  DartFileEditBuilder (class extends Object implements FileEditBuilder):
+  DartFileEditBuilder (class extends Object implements FileEditBuilder, abstract):
     new (constructor: DartFileEditBuilder Function())
     fileHeader= (setter: String)
     requiredImports (getter: List<Uri>)
@@ -1769,25 +1769,25 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     insertMethod (method: void Function(CompilationUnitMember, void Function(DartEditBuilder)))
     replaceTypeWithFuture (method: void Function({required TypeAnnotation typeAnnotation, required TypeProvider typeProvider, required TypeSystem typeSystem}))
     replaceTypeWithFutureArgument (method: void Function({required TypeAnnotation typeAnnotation, required TypeProvider typeProvider, required TypeSystem typeSystem}))
-  DartLinkedEditBuilder (class extends Object implements LinkedEditBuilder):
+  DartLinkedEditBuilder (class extends Object implements LinkedEditBuilder, abstract):
     new (constructor: DartLinkedEditBuilder Function())
     addSuperTypesAsSuggestions (method: void Function(DartType?))
-  ImportLibraryElementResult (class extends Object):
+  ImportLibraryElementResult (class extends Object, abstract):
     new (constructor: ImportLibraryElementResult Function())
     prefix (getter: String?)
   ImportPrefixGenerator (type alias for String Function(Uri), deprecated)
 package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart:
-  YamlEditBuilder (class extends Object implements EditBuilder):
+  YamlEditBuilder (class extends Object implements EditBuilder, abstract):
     new (constructor: YamlEditBuilder Function())
     addLinkedEdit (method: void Function(String, void Function(YamlLinkedEditBuilder)))
-  YamlFileEditBuilder (class extends Object implements FileEditBuilder):
+  YamlFileEditBuilder (class extends Object implements FileEditBuilder, abstract):
     new (constructor: YamlFileEditBuilder Function())
     addInsertion (method: void Function(int, void Function(YamlEditBuilder)))
     addReplacement (method: void Function(SourceRange, void Function(YamlEditBuilder)))
-  YamlLinkedEditBuilder (class extends Object implements LinkedEditBuilder):
+  YamlLinkedEditBuilder (class extends Object implements LinkedEditBuilder, abstract):
     new (constructor: YamlLinkedEditBuilder Function())
 package:analyzer_plugin/utilities/change_builder/change_workspace.dart:
-  ChangeWorkspace (class extends Object):
+  ChangeWorkspace (class extends Object, abstract):
     new (constructor: ChangeWorkspace Function())
     resourceProvider (getter: ResourceProvider)
     containsFile (method: bool Function(String))
@@ -1801,26 +1801,26 @@ package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart
 package:analyzer_plugin/utilities/completion/completion_core.dart:
   AbortCompletion (class extends Object):
     new (constructor: AbortCompletion Function())
-  CompletionCollector (class extends Object):
+  CompletionCollector (class extends Object, abstract):
     new (constructor: CompletionCollector Function())
     length= (setter: int)
     offset= (setter: int)
     offsetIsSet (getter: bool)
     suggestionsLength (getter: int)
     addSuggestion (method: void Function(CompletionSuggestion))
-  CompletionContributor (class extends Object):
+  CompletionContributor (class extends Object, abstract):
     new (constructor: CompletionContributor Function())
     computeSuggestions (method: Future<void> Function(CompletionRequest, CompletionCollector))
   CompletionGenerator (class extends Object):
     new (constructor: CompletionGenerator Function(List<CompletionContributor>))
     contributors (getter: List<CompletionContributor>)
     generateCompletionResponse (method: Future<GeneratorResult<CompletionGetSuggestionsResult?>> Function(CompletionRequest))
-  CompletionRequest (class extends Object):
+  CompletionRequest (class extends Object, abstract):
     new (constructor: CompletionRequest Function())
     offset (getter: int)
     resourceProvider (getter: ResourceProvider)
     checkAborted (method: void Function())
-  DartCompletionRequest (class extends Object implements CompletionRequest):
+  DartCompletionRequest (class extends Object implements CompletionRequest, abstract):
     new (constructor: DartCompletionRequest Function())
     result (getter: ResolvedUnitResult)
 package:analyzer_plugin/utilities/completion/inherited_reference_contributor.dart:
@@ -1838,7 +1838,7 @@ package:analyzer_plugin/utilities/completion/relevance.dart:
   DART_RELEVANCE_DEFAULT (static getter: int)
   DART_RELEVANCE_HIGH (static getter: int)
   DART_RELEVANCE_LOW (static getter: int)
-  Relevance (class extends Object):
+  Relevance (class extends Object, abstract):
     callFunction (static getter: int)
     closure (static getter: int)
     constructor (static getter: int)
@@ -1853,12 +1853,12 @@ package:analyzer_plugin/utilities/completion/relevance.dart:
     requiredNamedArgument (static getter: int)
     superFormalParameter (static getter: int)
     new (constructor: Relevance Function())
-  RelevanceBoost (class extends Object):
+  RelevanceBoost (class extends Object, abstract):
     availableDeclaration (static getter: int)
     availableEnumConstant (static getter: int)
     new (constructor: RelevanceBoost Function())
 package:analyzer_plugin/utilities/completion/suggestion_builder.dart:
-  SuggestionBuilder (class extends Object):
+  SuggestionBuilder (class extends Object, abstract):
     new (constructor: SuggestionBuilder Function())
     forElement (method: CompletionSuggestion? Function(Element@2, {String? completion, CompletionSuggestionKind kind, int relevance}))
 package:analyzer_plugin/utilities/completion/type_member_contributor.dart:
@@ -1867,7 +1867,7 @@ package:analyzer_plugin/utilities/completion/type_member_contributor.dart:
     computeSuggestions (method: Future<void> Function(DartCompletionRequest, CompletionCollector))
     computeSuggestionsWithEntryPoint (method: Future<void> Function(DartCompletionRequest, CompletionCollector, AstNode))
 package:analyzer_plugin/utilities/fixes/fix_contributor_mixin.dart:
-  FixContributorMixin (class extends Object implements FixContributor):
+  FixContributorMixin (class extends Object implements FixContributor, abstract):
     new (constructor: FixContributorMixin Function())
     collector (getter: FixCollector?)
     collector= (setter: FixCollector?)
@@ -1877,13 +1877,13 @@ package:analyzer_plugin/utilities/fixes/fix_contributor_mixin.dart:
     computeFixes (method: Future<void> Function(DartFixesRequest, FixCollector))
     computeFixesForError (method: Future<void> Function(Diagnostic))
 package:analyzer_plugin/utilities/fixes/fixes.dart:
-  DartFixesRequest (class extends Object implements FixesRequest):
+  DartFixesRequest (class extends Object implements FixesRequest, abstract):
     new (constructor: DartFixesRequest Function())
     result (getter: ResolvedUnitResult)
-  FixCollector (class extends Object):
+  FixCollector (class extends Object, abstract):
     new (constructor: FixCollector Function())
     addFix (method: void Function(Diagnostic, PrioritizedSourceChange))
-  FixContributor (class extends Object):
+  FixContributor (class extends Object, abstract):
     new (constructor: FixContributor Function())
     computeFixes (method: Future<void> Function(FixesRequest, FixCollector))
   FixGenerator (class extends Object):
@@ -1898,27 +1898,27 @@ package:analyzer_plugin/utilities/fixes/fixes.dart:
     priority (getter: int)
     == (method: bool Function(Object))
     toString (method: String Function())
-  FixesRequest (class extends Object):
+  FixesRequest (class extends Object, abstract):
     new (constructor: FixesRequest Function())
     errorsToFix (getter: List<Diagnostic>)
     offset (getter: int)
     resourceProvider (getter: ResourceProvider)
 package:analyzer_plugin/utilities/folding/folding.dart:
-  DartFoldingRequest (class extends Object implements FoldingRequest):
+  DartFoldingRequest (class extends Object implements FoldingRequest, abstract):
     new (constructor: DartFoldingRequest Function())
     result (getter: ResolvedUnitResult)
-  FoldingCollector (class extends Object):
+  FoldingCollector (class extends Object, abstract):
     new (constructor: FoldingCollector Function())
     addRange (method: void Function(SourceRange, FoldingKind))
     addRegion (method: void Function(int, int, FoldingKind))
-  FoldingContributor (class extends Object):
+  FoldingContributor (class extends Object, abstract):
     new (constructor: FoldingContributor Function())
     computeFolding (method: void Function(FoldingRequest, FoldingCollector))
   FoldingGenerator (class extends Object):
     new (constructor: FoldingGenerator Function(List<FoldingContributor>))
     contributors (getter: List<FoldingContributor>)
     generateFoldingNotification (method: GeneratorResult<ResponseResult?> Function(FoldingRequest))
-  FoldingRequest (class extends Object):
+  FoldingRequest (class extends Object, abstract):
     new (constructor: FoldingRequest Function())
     path (getter: String)
     resourceProvider (getter: ResourceProvider)
@@ -1929,21 +1929,21 @@ package:analyzer_plugin/utilities/generator.dart:
     result (getter: T)
     sendNotifications (method: void Function(PluginCommunicationChannel))
 package:analyzer_plugin/utilities/highlights/highlights.dart:
-  DartHighlightsRequest (class extends Object implements HighlightsRequest):
+  DartHighlightsRequest (class extends Object implements HighlightsRequest, abstract):
     new (constructor: DartHighlightsRequest Function())
     result (getter: ResolvedUnitResult)
-  HighlightsCollector (class extends Object):
+  HighlightsCollector (class extends Object, abstract):
     new (constructor: HighlightsCollector Function())
     addRange (method: void Function(SourceRange, HighlightRegionType))
     addRegion (method: void Function(int, int, HighlightRegionType))
-  HighlightsContributor (class extends Object):
+  HighlightsContributor (class extends Object, abstract):
     new (constructor: HighlightsContributor Function())
     computeHighlights (method: void Function(HighlightsRequest, HighlightsCollector))
   HighlightsGenerator (class extends Object):
     new (constructor: HighlightsGenerator Function(List<HighlightsContributor>))
     contributors (getter: List<HighlightsContributor>)
     generateHighlightsNotification (method: GeneratorResult<ResponseResult?> Function(HighlightsRequest))
-  HighlightsRequest (class extends Object):
+  HighlightsRequest (class extends Object, abstract):
     new (constructor: HighlightsRequest Function())
     path (getter: String)
     resourceProvider (getter: ResourceProvider)
@@ -1952,14 +1952,14 @@ package:analyzer_plugin/utilities/navigation/document_links.dart:
   DocumentLink (non-public)
   DartdocumentLink (type alias for DocumentLink)
 package:analyzer_plugin/utilities/navigation/navigation.dart:
-  DartNavigationRequest (class extends Object implements NavigationRequest):
+  DartNavigationRequest (class extends Object implements NavigationRequest, abstract):
     new (constructor: DartNavigationRequest Function())
     result (getter: ResolvedUnitResult)
-  NavigationCollector (class extends Object):
+  NavigationCollector (class extends Object, abstract):
     new (constructor: NavigationCollector Function())
     addRange (method: void Function(SourceRange, ElementKind@1, Location, {Fragment? targetFragment}))
     addRegion (method: void Function(int, int, ElementKind@1, Location, {Fragment? targetFragment}))
-  NavigationContributor (class extends Object):
+  NavigationContributor (class extends Object, abstract):
     new (constructor: NavigationContributor Function())
     computeNavigation (method: void Function(NavigationRequest, NavigationCollector))
   NavigationGenerator (class extends Object):
@@ -1967,46 +1967,46 @@ package:analyzer_plugin/utilities/navigation/navigation.dart:
     contributors (getter: List<NavigationContributor>)
     generateNavigationNotification (method: GeneratorResult<ResponseResult?> Function(NavigationRequest))
     generateNavigationResponse (method: GeneratorResult<AnalysisGetNavigationResult> Function(NavigationRequest))
-  NavigationRequest (class extends Object):
+  NavigationRequest (class extends Object, abstract):
     new (constructor: NavigationRequest Function())
     length (getter: int?)
     offset (getter: int)
     path (getter: String)
     resourceProvider (getter: ResourceProvider)
 package:analyzer_plugin/utilities/occurrences/occurrences.dart:
-  DartOccurrencesRequest (class extends Object implements OccurrencesRequest):
+  DartOccurrencesRequest (class extends Object implements OccurrencesRequest, abstract):
     new (constructor: DartOccurrencesRequest Function())
     result (getter: ResolvedUnitResult)
-  OccurrencesCollector (class extends Object):
+  OccurrencesCollector (class extends Object, abstract):
     new (constructor: OccurrencesCollector Function())
     addOccurrence (method: void Function(Element@1, int))
-  OccurrencesContributor (class extends Object):
+  OccurrencesContributor (class extends Object, abstract):
     new (constructor: OccurrencesContributor Function())
     computeOccurrences (method: void Function(OccurrencesRequest, OccurrencesCollector))
   OccurrencesGenerator (class extends Object):
     new (constructor: OccurrencesGenerator Function(List<OccurrencesContributor>))
     contributors (getter: List<OccurrencesContributor>)
     generateOccurrencesNotification (method: GeneratorResult<ResponseResult?> Function(OccurrencesRequest))
-  OccurrencesRequest (class extends Object):
+  OccurrencesRequest (class extends Object, abstract):
     new (constructor: OccurrencesRequest Function())
     path (getter: String)
     resourceProvider (getter: ResourceProvider)
 package:analyzer_plugin/utilities/outline/outline.dart:
-  DartOutlineRequest (class extends Object implements OutlineRequest):
+  DartOutlineRequest (class extends Object implements OutlineRequest, abstract):
     new (constructor: DartOutlineRequest Function())
     result (getter: ResolvedUnitResult)
-  OutlineCollector (class extends Object):
+  OutlineCollector (class extends Object, abstract):
     new (constructor: OutlineCollector Function())
     endElement (method: void Function())
     startElement (method: void Function(Element@1, int, int))
-  OutlineContributor (class extends Object):
+  OutlineContributor (class extends Object, abstract):
     new (constructor: OutlineContributor Function())
     computeOutline (method: void Function(OutlineRequest, OutlineCollector))
   OutlineGenerator (class extends Object):
     new (constructor: OutlineGenerator Function(List<OutlineContributor>))
     contributors (getter: List<OutlineContributor>)
     generateOutlineNotification (method: GeneratorResult<ResponseResult?> Function(OutlineRequest))
-  OutlineRequest (class extends Object):
+  OutlineRequest (class extends Object, abstract):
     new (constructor: OutlineRequest Function())
     path (getter: String)
     resourceProvider (getter: ResourceProvider)

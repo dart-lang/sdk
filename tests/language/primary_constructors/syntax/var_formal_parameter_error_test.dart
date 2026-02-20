@@ -7,6 +7,11 @@
 
 // SharedOptions=--enable-experiment=primary-constructors
 
+typedef void Logger(var message);
+//                  ^^^
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+// [cfe] Can't have modifier 'var' here.
+
 void fn(var x, var y) {}
 //      ^^^
 // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
@@ -56,6 +61,29 @@ extension type ET(final int x) {
   // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
   // [cfe] Can't have modifier 'var' here.
 }
+
+class FieldFunctionType {
+  final void Function(int) f;
+  FieldFunctionType(void this.f(var p));
+  //                            ^^^
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'var' here.
+}
+
+class A {
+  A(void f(int p));
+}
+class SuperFunctionType extends A {
+  SuperFunctionType(void super.f(var p));
+  //                             ^^^
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'var' here.
+}
+
+void f(void g(var p)) {}
+//            ^^^
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+// [cfe] Can't have modifier 'var' here.
 
 void main() {
   [1, 4, 6, 8].forEach((var value) => print(value + 2));

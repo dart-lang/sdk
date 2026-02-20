@@ -19,6 +19,31 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   ConstArgumentsVerifier(this._diagnosticReporter);
 
   @override
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    var parameters = node.parameters?.parameters;
+    if (parameters == null || parameters.isEmpty) {
+      return;
+    }
+
+    var parameter = parameters.first;
+    var element = parameter.declaredFragment?.element;
+    if (element == null) {
+      return;
+    }
+
+    if (element.metadata.hasMustBeConst) {
+      var target = node.realTarget;
+      if (!_isConst(target)) {
+        _diagnosticReporter.report(
+          diag.nonConstArgumentForConstParameter
+              .withArguments(name: element.name!)
+              .at(target),
+        );
+      }
+    }
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _check(arguments: [node.rightHandSide], errorNode: node.operator);
   }

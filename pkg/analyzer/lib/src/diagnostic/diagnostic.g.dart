@@ -497,6 +497,29 @@ anonymousMethodWrongParameterList = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
+/// Type receiverType: the name of the type of the receiver
+/// Type parameterType: the name of the declared parameter type
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required DartType receiverType,
+    required DartType parameterType,
+  })
+>
+anonymousMethodWrongParameterType = DiagnosticWithArguments(
+  name: 'anonymous_method_wrong_parameter_type',
+  problemMessage:
+      "The receiver type '{0}' must be assignable to the formal parameter type "
+      "'{1}' of an anonymous method.",
+  correctionMessage:
+      "Try removing the parameter type, or make it a supertype of the "
+      "receiver type.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'anonymous_method_wrong_parameter_type',
+  withArguments: _withArgumentsAnonymousMethodWrongParameterType,
+  expectedTypes: [ExpectedType.type, ExpectedType.type],
+);
+
+/// Parameters:
 /// String argumentName: the name of the argument
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String argumentName})
@@ -17926,6 +17949,16 @@ LocatableDiagnostic _withArgumentsAnalysisOptionDeprecatedWithReplacement({
   return LocatableDiagnosticImpl(diag.analysisOptionDeprecatedWithReplacement, [
     optionName,
     replacementOptionName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAnonymousMethodWrongParameterType({
+  required DartType receiverType,
+  required DartType parameterType,
+}) {
+  return LocatableDiagnosticImpl(diag.anonymousMethodWrongParameterType, [
+    receiverType,
+    parameterType,
   ]);
 }
 

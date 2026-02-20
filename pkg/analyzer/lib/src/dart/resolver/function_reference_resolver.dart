@@ -615,24 +615,16 @@ class FunctionReferenceResolver {
     var element = function.scopeLookupResult!.getter;
 
     if (element == null) {
-      TypeImpl receiverType;
-      var enclosingClass = _resolver.enclosingClass;
-      if (enclosingClass != null) {
-        receiverType = enclosingClass.thisType;
-      } else {
-        var enclosingExtension = _resolver.enclosingExtension;
-        if (enclosingExtension != null) {
-          receiverType = enclosingExtension.extendedType;
-        } else {
-          _diagnosticReporter.report(
-            diag.undefinedIdentifier
-                .withArguments(name: function.name)
-                .at(function),
-          );
-          function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-          node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-          return;
-        }
+      var receiverType = _resolver.thisType;
+      if (receiverType == null) {
+        _diagnosticReporter.report(
+          diag.undefinedIdentifier
+              .withArguments(name: function.name)
+              .at(function),
+        );
+        function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
+        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        return;
       }
 
       var result = _resolver.typePropertyResolver.resolve(

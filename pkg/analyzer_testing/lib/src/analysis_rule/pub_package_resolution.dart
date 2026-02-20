@@ -4,6 +4,7 @@
 
 import 'dart:convert' show json;
 
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -263,6 +264,11 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   ///
   /// This allows various `package:test_reflective_loader/` imports to resolve.
   bool get addTestReflectiveLoaderPackageDep => false;
+
+  AnalysisContextCollection get contextCollection {
+    _createAnalysisContexts();
+    return _analysisContextCollection!;
+  }
 
   /// Whether to print out the syntax tree being tested, on a test failure.
   bool get dumpAstOnFailures => true;
