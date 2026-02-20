@@ -44,32 +44,36 @@
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
   },
-  "recordings": [
-    {
-      "calls": [
-        {
-          "loading_unit_indices": [
-            0
-          ],
-          "positional": [
-            1
-          ],
-          "type": "with_arguments"
-        }
-      ],
-      "definition_index": 0
-    },
-    {
-      "definition_index": 1,
-      "instances": [
-        {
-          "constant_index": 1,
-          "loading_unit_indices": [
-            0
-          ],
-          "type": "constant"
-        }
-      ]
-    }
-  ]
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 1,
+        "uses": [
+          {
+            "constant_index": 1,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
+          }
+        ]
+      }
+    ],
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              1
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
 }
