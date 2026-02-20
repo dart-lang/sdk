@@ -242,6 +242,7 @@ class ApiDescription {
                 ClassElement() => 'class',
                 EnumElement() => 'enum',
                 MixinElement() => 'mixin',
+                ExtensionTypeElement() => 'extension type',
                 dynamic(:var runtimeType) => 'TODO: $runtimeType',
               },
             ];
