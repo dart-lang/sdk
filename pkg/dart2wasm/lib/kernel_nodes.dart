@@ -411,6 +411,8 @@ mixin KernelNodes {
       'dart:_internal', 'WasmConstCache', 'canonicalizeValue');
   late final Procedure constCacheArrayCanonicalize = index.getProcedure(
       'dart:_internal', 'WasmArrayConstCache', 'canonicalizeArrayValue');
+  late final Procedure dummyValueConstCanonicalize = index.getProcedure(
+      'dart:_internal', 'DummyValueConstCache', 'canonicalizeDummyValue');
   late final Procedure registerUpdateableFuncRefs = index.getTopLevelProcedure(
       'dart:_internal', 'registerUpdateableFuncRefs');
   late final Procedure getUpdateableFuncRef =

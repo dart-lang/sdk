@@ -917,8 +917,26 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
       node.factoryKeyword,
       HighlightRegionType.BUILT_IN,
+      // We mark the factory keyword as the declaration when there is no
+      // type name (otherwise the type name is the declaration). This will allow
+      // the client/user to customise these differently if they wish, like they
+      // can with methods / constructors.
+      semanticTokenModifiers: node.typeName != null
+          ? null
+          : {
+              CustomSemanticTokenModifiers.constructor,
+              SemanticTokenModifiers.declaration,
+            },
     );
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(
+      node.newKeyword,
+      HighlightRegionType.KEYWORD,
+      semanticTokenModifiers: {
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      },
+    );
     computer._addRegion_token(
       node.name,
       HighlightRegionType.CONSTRUCTOR,

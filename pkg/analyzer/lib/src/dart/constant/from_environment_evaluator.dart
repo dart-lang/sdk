@@ -3,30 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
 class FromEnvironmentEvaluator {
-  /// Parameter to "fromEnvironment" methods that denotes the default value.
-  static const String _defaultValue = 'defaultValue';
-
   final TypeSystemImpl _typeSystem;
   final DeclaredVariables _declaredVariables;
 
   FromEnvironmentEvaluator(this._typeSystem, this._declaredVariables);
 
   /// Return the value of the variable with the given [name] interpreted as a
-  /// 'boolean' value. If the variable is not defined, or the value cannot be
-  /// parsed as a boolean, return [defaultValue]. If [defaultValue] is null,
-  /// return the default value of the default value from the [constructor],
-  /// possibly a [DartObject] representing 'null'.
-  DartObjectImpl getBool2(
-    String? name,
-    DartObjectImpl? defaultValue,
-    ConstructorElement constructor,
-  ) {
+  /// 'boolean' value.
+  ///
+  /// If the variable is not defined, or the value cannot be parsed as a
+  /// boolean, return [defaultValue].
+  ///
+  /// If [defaultValue] is `null`, return a `false` object.
+  DartObjectImpl getBool(String? name, DartObjectImpl? defaultValue) {
     var str = name != null ? _declaredVariables.get(name) : null;
     if (str == 'true') {
       return DartObjectImpl(
@@ -43,19 +36,25 @@ class FromEnvironmentEvaluator {
       );
     }
 
-    return defaultValue ?? _defaultValueDefaultValue(constructor);
+    if (defaultValue != null) {
+      return defaultValue;
+    }
+
+    return DartObjectImpl(
+      _typeSystem,
+      _typeSystem.typeProvider.boolType,
+      BoolState.FALSE_STATE,
+    );
   }
 
   /// Return the value of the variable with the given [name] interpreted as an
-  /// integer value. If the variable is not defined, or the value cannot be
-  /// parsed as an integer, return [defaultValue]. If [defaultValue] is null,
-  /// return the default value of the default value from the [constructor],
-  /// possibly a [DartObject] representing 'null'.
-  DartObjectImpl getInt2(
-    String? name,
-    DartObjectImpl? defaultValue,
-    ConstructorElement constructor,
-  ) {
+  /// integer value.
+  ///
+  /// If the variable is not defined, or the value cannot be parsed as an
+  /// integer, return [defaultValue].
+  ///
+  /// If [defaultValue] is `null`, return a `0` object.
+  DartObjectImpl getInt(String? name, DartObjectImpl? defaultValue) {
     var str = name != null ? _declaredVariables.get(name) : null;
     if (str != null) {
       try {
@@ -74,30 +73,21 @@ class FromEnvironmentEvaluator {
       return defaultValue;
     }
 
-    var defaultDefault = _defaultValueDefaultValue(constructor);
-
-    // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/40678
-    if (defaultDefault.isNull) {
-      return DartObjectImpl(
-        _typeSystem,
-        _typeSystem.typeProvider.intType,
-        IntState.UNKNOWN_VALUE,
-      );
-    }
-
-    return defaultDefault;
+    return DartObjectImpl(
+      _typeSystem,
+      _typeSystem.typeProvider.intType,
+      IntState(0),
+    );
   }
 
   /// Return the value of the variable with the given [name] interpreted as a
-  /// string value. If the variable is not defined, or the value cannot be
-  /// parsed as a boolean, return [defaultValue]. If [defaultValue] is null,
-  /// return the default value of the default value from the [constructor],
-  /// possibly a [DartObject] representing 'null'.
-  DartObjectImpl getString2(
-    String? name,
-    DartObjectImpl? defaultValue,
-    ConstructorElement constructor,
-  ) {
+  /// string value.
+  ///
+  /// If the variable is not defined, or the value cannot be parsed as a
+  /// boolean, return [defaultValue].
+  ///
+  /// If [defaultValue] is `null`, return an empty string object.
+  DartObjectImpl getString(String? name, DartObjectImpl? defaultValue) {
     var str = name != null ? _declaredVariables.get(name) : null;
     if (str != null) {
       return DartObjectImpl(
@@ -111,18 +101,11 @@ class FromEnvironmentEvaluator {
       return defaultValue;
     }
 
-    var defaultDefault = _defaultValueDefaultValue(constructor);
-
-    // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/40678
-    if (defaultDefault.isNull) {
-      return DartObjectImpl(
-        _typeSystem,
-        _typeSystem.typeProvider.stringType,
-        StringState.UNKNOWN_VALUE,
-      );
-    }
-
-    return defaultDefault;
+    return DartObjectImpl(
+      _typeSystem,
+      _typeSystem.typeProvider.stringType,
+      StringState(''),
+    );
   }
 
   DartObjectImpl hasEnvironment(String? name) {
@@ -132,14 +115,5 @@ class FromEnvironmentEvaluator {
       _typeSystem.typeProvider.boolType,
       BoolState(value),
     );
-  }
-
-  static DartObjectImpl _defaultValueDefaultValue(
-    ConstructorElement constructor,
-  ) {
-    return constructor.formalParameters
-            .singleWhere((parameter) => parameter.name == _defaultValue)
-            .computeConstantValue()
-        as DartObjectImpl;
   }
 }

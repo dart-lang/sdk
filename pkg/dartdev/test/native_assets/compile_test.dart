@@ -131,9 +131,22 @@ void main() async {
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
       final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
+      printOnFailure(actualRecordedUsages);
       final constArguments = u.constArgumentsFor(Definition(
         'package:drop_data_asset/src/drop_data_asset.dart',
-        [Name('MyMath'), Name('add')],
+        [
+          Name(
+            kind: DefinitionKind.classKind,
+            'MyMath',
+          ),
+          Name(
+            kind: DefinitionKind.methodKind,
+            'add',
+            disambiguators: {
+              DefinitionDisambiguator.staticDisambiguator,
+            },
+          )
+        ],
       ));
       expect(constArguments.length, 1);
       expect(constArguments.first.named.isEmpty, true);

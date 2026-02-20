@@ -101,7 +101,7 @@ vars = {
   ### /third_party/ dependencies
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "cf2ab2c8b36ded5e3ba5fff03e41c25c20c582f2",
+  "binaryen_rev" : "204c3f88bb2e2c92b103b0cfbf4e0a4863c12c87",
   "boringssl_rev": "9a74210911fd45b13274f4b9784c4c6a9c6de0f0",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
@@ -145,7 +145,7 @@ vars = {
   "i18n_rev": "dd8a792a8492370a594706c8304d2eb8db844d7a",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "14169ab6e648cc06c4086facbb8e23b46b9fb35e", # rolled manually while record_use is experimental
+  "native_rev": "e10223f7669a6fbe9e4cf7bfee284cd41dd42087", # rolled manually while record_use is experimental
   "protobuf_rev": "9e30258e0aa6a6430ee36c84b75308a9702fde42",
   "pub_rev": "26c6985c742593d081f8b58450f463a584a4203a", # rolled manually
   "shelf_rev": "dd830a0338b31bee92fe7ebc20b9bb963403b6b0",

@@ -5,6 +5,32 @@
       "value": 42
     }
   ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "someStaticMethod"
+        }
+      ],
+      "uri": "package:record_use_test/loading_units_multiple_helper_shared.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    },
+    {
+      "name": "2"
+    }
+  ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
@@ -13,31 +39,25 @@
     {
       "calls": [
         {
-          "loading_unit": "1",
+          "loading_unit_indices": [
+            0
+          ],
           "positional": [
             0
           ],
           "type": "with_arguments"
         },
         {
-          "loading_unit": "2",
+          "loading_unit_indices": [
+            1
+          ],
           "positional": [
             0
           ],
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "path": [
-          {
-            "name": "SomeClass"
-          },
-          {
-            "name": "someStaticMethod"
-          }
-        ],
-        "uri": "package:record_use_test/loading_units_multiple_helper_shared.dart"
-      }
+      "definition_index": 0
     }
   ]
 }

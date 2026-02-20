@@ -9,11 +9,40 @@
       "value": "b"
     },
     {
+      "definition_index": 1,
       "type": "instance",
       "value": {
         "index": 0,
         "_name": 1
       }
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "doSomething"
+        }
+      ],
+      "uri": "package:record_use_test/enum_const_arg.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "A"
+        }
+      ],
+      "uri": "package:record_use_test/enum_const_arg.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
     }
   ],
   "metadata": {
@@ -24,21 +53,19 @@
     {
       "calls": [
         {
-          "loading_unit": "1",
+          "loading_unit_indices": [
+            0
+          ],
           "positional": [
             2
           ],
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "path": [
-          {
-            "name": "doSomething"
-          }
-        ],
-        "uri": "package:record_use_test/enum_const_arg.dart"
-      }
+      "definition_index": 0
+    },
+    {
+      "definition_index": 1
     }
   ]
 }

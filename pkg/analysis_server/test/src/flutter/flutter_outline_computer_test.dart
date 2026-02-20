@@ -587,6 +587,7 @@ class /*[0*/MyWidget/*0]*/(
   (D) MyWidget
   (D) a → int
   (D) b → int
+  (D) this
   (D) build → Widget
     MyWidget
 ''');
@@ -642,6 +643,7 @@ class /*[0*/MyWidget/*0]*//*[1*/.named/*1]*/(
   (D) MyWidget.named
   (D) a → int
   (D) b → int
+  (D) this
   (D) build → Widget
     MyWidget
 ''');

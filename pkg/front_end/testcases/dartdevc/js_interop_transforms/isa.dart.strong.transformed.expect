@@ -2,12 +2,13 @@
 library;
 import self as self;
 import "dart:js_interop" as js_;
+import "dart:core" as core;
 import "dart:js_interop_unsafe" as js_2;
 
 import "dart:js_interop";
 
-extension type CustomJSAny(js_::JSAny /* erasure=dart.core::Object */ _) implements js_::JSAny /* erasure=dart.core::Object */ {
-  abstract extension-type-member representation-field get _() → js_::JSAny /* erasure=dart.core::Object */;
+extension type CustomJSAny(js_::JSAny /* erasure=core::Object */ _) implements js_::JSAny /* erasure=core::Object */ {
+  abstract extension-type-member representation-field get _() → js_::JSAny /* erasure=core::Object */;
   constructor • = self::CustomJSAny|constructor#;
   constructor tearoff • = self::CustomJSAny|constructor#_#new#tearOff;
 }
@@ -22,16 +23,16 @@ extension type CustomTypedArray(js_::JSTypedArray /* erasure=dart.typed_data.imp
   constructor tearoff • = self::CustomTypedArray|constructor#_#new#tearOff;
 }
 @#C4
-extension type CustomJSArray(js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=dart._interceptors::JSArray<dart.core::Object?> */ _) implements js_::JSObject /* erasure=dart._interceptors::JSObject */ {
-  abstract extension-type-member representation-field get _() → js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=dart._interceptors::JSArray<dart.core::Object?> */;
+extension type CustomJSArray(js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=dart._interceptors::JSArray<core::Object?> */ _) implements js_::JSObject /* erasure=dart._interceptors::JSObject */ {
+  abstract extension-type-member representation-field get _() → js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=dart._interceptors::JSArray<core::Object?> */;
   constructor • = self::CustomJSArray|constructor#;
   constructor tearoff • = self::CustomJSArray|constructor#_#new#tearOff;
 }
-static extension-type-member method CustomJSAny|constructor#(js_::JSAny /* erasure=dart.core::Object */ _) → self::CustomJSAny /* erasure=dart.core::Object */ {
-  lowered final self::CustomJSAny /* erasure=dart.core::Object */ #this = _;
+static extension-type-member method CustomJSAny|constructor#(js_::JSAny /* erasure=core::Object */ _) → self::CustomJSAny /* erasure=core::Object */ {
+  lowered final self::CustomJSAny /* erasure=core::Object */ #this = _;
   return #this;
 }
-static extension-type-member synthetic method CustomJSAny|constructor#_#new#tearOff(js_::JSAny /* erasure=dart.core::Object */ _) → self::CustomJSAny /* erasure=dart.core::Object */
+static extension-type-member synthetic method CustomJSAny|constructor#_#new#tearOff(js_::JSAny /* erasure=core::Object */ _) → self::CustomJSAny /* erasure=core::Object */
   return self::CustomJSAny|constructor#(_);
 static extension-type-member method CustomJSObject|constructor#(js_::JSObject /* erasure=dart._interceptors::JSObject */ _) → self::CustomJSObject /* erasure=dart._interceptors::JSObject */ {
   lowered final self::CustomJSObject /* erasure=dart._interceptors::JSObject */ #this = _;
@@ -45,32 +46,50 @@ static extension-type-member method CustomTypedArray|constructor#(js_::JSTypedAr
 }
 static extension-type-member synthetic method CustomTypedArray|constructor#_#new#tearOff(js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _) → self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */
   return self::CustomTypedArray|constructor#(_);
-static extension-type-member method CustomJSArray|constructor#(js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=dart._interceptors::JSArray<dart.core::Object?> */ _) → self::CustomJSArray /* erasure=dart._interceptors::JSArray<dart.core::Object?> */ {
-  lowered final self::CustomJSArray /* erasure=dart._interceptors::JSArray<dart.core::Object?> */ #this = _;
+static extension-type-member method CustomJSArray|constructor#(js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=dart._interceptors::JSArray<core::Object?> */ _) → self::CustomJSArray /* erasure=dart._interceptors::JSArray<core::Object?> */ {
+  lowered final self::CustomJSArray /* erasure=dart._interceptors::JSArray<core::Object?> */ #this = _;
   return #this;
 }
-static extension-type-member synthetic method CustomJSArray|constructor#_#new#tearOff(js_::JSArray<js_::JSAny? /* erasure=dart.core::Object? */> /* erasure=dart._interceptors::JSArray<dart.core::Object?> */ _) → self::CustomJSArray /* erasure=dart._interceptors::JSArray<dart.core::Object?> */
+static extension-type-member synthetic method CustomJSArray|constructor#_#new#tearOff(js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=dart._interceptors::JSArray<core::Object?> */ _) → self::CustomJSArray /* erasure=dart._interceptors::JSArray<core::Object?> */
   return self::CustomJSArray|constructor#(_);
-static method test(js_::JSAny /* erasure=dart.core::Object */ any) → void {
-  !(any == null);
-  true;
+static method test(js_::JSAny /* erasure=core::Object */ any, js_::JSAny? /* erasure=core::Object? */ nullableAny, core::Object obj, core::Object? nullableObj) → void {
+  js_::_isJSAny(any);
+  js_::_isNullableJSAny(any);
+  js_::_isJSAny(nullableAny);
+  js_::_isNullableJSAny(nullableAny);
+  js_::_isJSAny(obj);
+  js_::_isNullableJSAny(obj);
+  js_::_isJSAny(nullableObj);
+  js_::_isNullableJSAny(nullableObj);
   !(any == null) && js_::JSAnyUtilityExtension|typeofEquals(any, "string");
   any == null || js_::JSAnyUtilityExtension|typeofEquals(any, "string");
   !(any == null) && js_::JSAnyUtilityExtension|typeofEquals(any, "number");
   !(any == null) && js_::JSAnyUtilityExtension|typeofEquals(any, "boolean");
   !(any == null) && js_::JSAnyUtilityExtension|typeofEquals(any, "symbol");
   !(any == null) && js_::JSAnyUtilityExtension|typeofEquals(any, "bigint");
-  !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "Object");
-  any == null || js_::JSAnyUtilityExtension|instanceOfString(any, "Object");
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|typeofEquals(obj as js_::JSAny? /* erasure=core::Object? */, "string"));
+  obj == null || js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|typeofEquals(obj as js_::JSAny? /* erasure=core::Object? */, "string");
+  js_::_isJSObject(any);
+  js_::_isNullableJSObject(any);
+  js_::_isJSObject(obj);
+  js_::_isNullableJSObject(obj);
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "Array");
-  !(any == null) && js_::JSAnyUtilityExtension|instanceof(any, js_2::JSObjectUnsafeUtilExtension|callMethodVarArgs<js_::JSFunction /* erasure=dart._interceptors::JavaScriptFunction */>(js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Object") as js_::JSObject /* erasure=dart._interceptors::JSObject */, js_::StringToJSString|get#toJS("getPrototypeOf"), <js_::JSAny? /* erasure=dart.core::Object? */>[js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Int8Array") as js_::JSObject /* erasure=dart._interceptors::JSObject */]));
+  obj == null || js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "Array");
+  !(any == null) && js_::JSAnyUtilityExtension|instanceof(any, js_2::JSObjectUnsafeUtilExtension|callMethodVarArgs<js_::JSFunction /* erasure=dart._interceptors::JavaScriptFunction */>(js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Object") as js_::JSObject /* erasure=dart._interceptors::JSObject */, js_::StringToJSString|get#toJS("getPrototypeOf"), <js_::JSAny? /* erasure=core::Object? */>[js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Int8Array") as js_::JSObject /* erasure=dart._interceptors::JSObject */]));
+  js_::_isJSBoxedDartObject(any);
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceof(obj as js_::JSAny? /* erasure=core::Object? */, js_2::JSObjectUnsafeUtilExtension|callMethodVarArgs<js_::JSFunction /* erasure=dart._interceptors::JavaScriptFunction */>(js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Object") as js_::JSObject /* erasure=dart._interceptors::JSObject */, js_::StringToJSString|get#toJS("getPrototypeOf"), <js_::JSAny? /* erasure=core::Object? */>[js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Int8Array") as js_::JSObject /* erasure=dart._interceptors::JSObject */])));
+  js_::_isJSBoxedDartObject(obj);
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomJSAny");
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomJSObject");
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomTypedArray");
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.RenamedJSArray");
-  let final js_::JSAny? /* erasure=dart.core::Object? */ #t1 = (() → js_::JSAny /* erasure=dart.core::Object */ {
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "library1.CustomJSAny"));
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "library1.CustomJSObject"));
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "library1.CustomTypedArray"));
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "library1.RenamedJSArray"));
+  let final js_::JSAny? /* erasure=core::Object? */ #t1 = (() → js_::JSAny /* erasure=core::Object */ {
     return any;
-  })(){() → js_::JSAny /* erasure=dart.core::Object */} in !(#t1 == null);
+  })(){() → js_::JSAny /* erasure=core::Object */} in js_::_isJSAny(#t1);
 }
 static method main() → void {}
 

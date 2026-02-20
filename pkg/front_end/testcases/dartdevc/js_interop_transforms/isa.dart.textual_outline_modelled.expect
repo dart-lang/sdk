@@ -14,4 +14,4 @@ extension type CustomTypedArray(JSTypedArray _) implements JSObject {}
 
 void main() {}
 
-void test(JSAny any) {}
+void test(JSAny any, JSAny? nullableAny, Object obj, Object? nullableObj) {}

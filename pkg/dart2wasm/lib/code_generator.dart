@@ -832,7 +832,7 @@ abstract class AstCodeGenerator
       // variable is captured as the context is already initialized.
       translator
           .getDummyValuesCollectorForModule(b.moduleBuilder)
-          .instantiateDummyValue(b, local.type);
+          .instantiateLocalDummyValue(b, local.type);
       b.local_set(local);
     }
   }
@@ -2393,11 +2393,10 @@ abstract class AstCodeGenerator
         b.ref_as_non_null();
       }
     } else {
-      translator.globals.readGlobal(
-          b,
-          translator
-              .getDummyValuesCollectorForModule(b.moduleBuilder)
-              .dummyStructGlobal); // Dummy context
+      translator
+          .getDummyValuesCollectorForModule(b.moduleBuilder)
+          .instantiateLocalDummyValue(
+              b, const w.RefType.struct(nullable: false)); // Dummy context
     }
   }
 

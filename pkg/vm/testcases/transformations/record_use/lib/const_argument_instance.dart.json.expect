@@ -5,10 +5,39 @@
       "value": 14
     },
     {
+      "definition_index": 1,
       "type": "instance",
       "value": {
         "i": 0
       }
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "someStaticMethod2"
+        }
+      ],
+      "uri": "package:record_use_test/const_argument_instance.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        }
+      ],
+      "uri": "package:record_use_test/const_argument_instance.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
     }
   ],
   "metadata": {
@@ -19,21 +48,19 @@
     {
       "calls": [
         {
-          "loading_unit": "1",
+          "loading_unit_indices": [
+            0
+          ],
           "positional": [
             1
           ],
           "type": "with_arguments"
         }
       ],
-      "definition": {
-        "path": [
-          {
-            "name": "someStaticMethod2"
-          }
-        ],
-        "uri": "package:record_use_test/const_argument_instance.dart"
-      }
+      "definition_index": 0
+    },
+    {
+      "definition_index": 1
     }
   ]
 }

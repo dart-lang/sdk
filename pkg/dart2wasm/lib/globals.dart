@@ -241,9 +241,9 @@ class DartGlobals {
       translator.constants
           .instantiateConstant(global.initializer, init, fieldType);
     } else {
-      final dummyCollector =
-          translator.getDummyValuesCollectorForModule(module);
-      dummyCollector.instantiateDummyValue(global.initializer, fieldType);
+      translator
+          .getDummyValuesCollectorForModule(module)
+          .instantiateLocalDummyValue(global.initializer, fieldType);
     }
     global.initializer.end();
     return WasmGlobalDartGlobal(global, initializedFlag: initializerFlag);
