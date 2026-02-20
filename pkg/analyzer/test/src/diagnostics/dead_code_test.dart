@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
     defineReflectiveTests(DeadCodeTest_Language219);
+    defineReflectiveTests(DeadCodeTest_AnonymousMethodsExperiment);
   });
 }
 
@@ -371,6 +372,108 @@ Never doNotReturn() => throw 0;
 test() => doNotReturn().hashCode;
 ''',
       [error(diag.deadCode, 57, 9)],
+    );
+  }
+}
+
+@reflectiveTest
+class DeadCodeTest_AnonymousMethodsExperiment extends PubPackageResolutionTest {
+  @override
+  List<String> get experiments => ['anonymous-methods'];
+
+  test_cascaded_deadCode() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  never..=> 1;
+}
+
+Never get never => throw 0;
+''',
+      [error(diag.deadCode, 18, 7)],
+    );
+  }
+
+  test_nullaware_deadCode() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  null?.=> 1;
+}
+''',
+      [error(diag.deadCode, 17, 6)],
+    );
+  }
+
+  test_nullawareCascaded_deadCode() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  null?..=> 1;
+}
+''',
+      [error(diag.deadCode, 17, 8)],
+    );
+  }
+
+  test_parameterized_cascaded_deadCode() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  never..(_) => 1;
+}
+
+Never get never => throw 0;
+''',
+      [error(diag.deadCode, 18, 11)],
+    );
+  }
+
+  test_parameterized_nullaware_deadCode() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  null?.(_) => 1;
+}
+''',
+      [error(diag.deadCode, 17, 10)],
+    );
+  }
+
+  test_parameterized_nullawareCascaded_deadCode() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  null?..(_) => 1;
+}
+''',
+      [error(diag.deadCode, 17, 12)],
+    );
+  }
+
+  test_parameterized_plain_deadCode() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  never.(_) => 1;
+}
+
+Never get never => throw 0;
+''',
+      [error(diag.deadCode, 18, 10)],
+    );
+  }
+
+  test_plain_deadCode() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  never.=> 1;
+}
+
+Never get never => throw 0;
+''',
+      [error(diag.deadCode, 18, 6)],
     );
   }
 }

@@ -191,6 +191,13 @@ anonymous_method_wrong_parameter_list:
     We could remove the parameter list, or we could change it
     to `(id)` where `id` is an identifier, but we don't know
     which parameter name would be a good choice.
+anonymous_method_wrong_parameter_type:
+  status: noFix
+  notes: |-
+    We could remove the type annotation, or we could replace the
+    specified type by the static type of the receiver, but having a
+    type annotation is probably only relevant when the developer has
+    a specific reason to _not_ use the precise type of the receiver.
 argument_type_not_assignable:
   status: hasFix
 assert_in_redirecting_constructor:

@@ -1901,19 +1901,110 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant AnonymousExpressionBodyImpl node, {
     TypeImpl? imposedType,
   }) {
-    throw UnimplementedError(
-      'The anonymous-method feature is not fully implemented',
+    checkUnreachableNode(node);
+    analyzeExpression(
+      node.expression,
+      SharedTypeSchemaView(imposedType ?? UnknownInferredType.instance),
     );
+    popRewrite();
+    return node.expression.staticType ?? typeProvider.dynamicType;
   }
 
   @override
-  visitAnonymousMethodInvocation(
+  void visitAnonymousMethodInvocation(
     covariant AnonymousMethodInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
-    throw UnimplementedError(
-      'The anonymous-method feature is not fully implemented',
-    );
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+
+    var target = node.target;
+    if (target != null) {
+      analyzeExpression(
+        target,
+        SharedTypeSchemaView(UnknownInferredType.instance),
+        continueNullShorting: true,
+      );
+      popRewrite();
+    }
+
+    checkUnreachableNode(node.body);
+
+    var targetType =
+        node.realTarget.staticType ?? typeProvider.objectQuestionType;
+    var isNullAware = node.isNullAware;
+    var parameterType = isNullAware
+        ? typeSystem.promoteToNonNull(targetType)
+        : targetType;
+    var parameters = node.parameters;
+    if (isNullAware) {
+      _startNullAwareAccess(node.target);
+      nullSafetyDeadCodeVerifier.visitNode(parameters ?? node.body);
+    }
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        if (parameter is SimpleFormalParameterImpl && parameter.type == null) {
+          if (parameter == parameters.parameters.first) {
+            parameter.declaredFragment?.element.type = parameterType;
+          }
+        }
+      }
+      parameters.accept(this);
+      for (var parameter in parameters.parameters) {
+        var element = parameter.declaredFragment?.element;
+        if (element != null) {
+          flow.declare(
+            element,
+            SharedTypeView(element.type),
+            initialized: true,
+          );
+        }
+      }
+    }
+
+    TypeImpl returnedType;
+    if (parameters == null) {
+      var oldThisType = _thisType;
+      _thisType = parameterType;
+      try {
+        returnedType = node.body.resolve(this, contextType);
+      } finally {
+        _thisType = oldThisType;
+      }
+    } else {
+      returnedType = node.body.resolve(this, contextType);
+    }
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
+    node.recordStaticType(returnedType, resolver: this);
+
+    if (parameters != null) {
+      var parameter = parameters.parameters.firstOrNull;
+      if (parameter is SimpleFormalParameterImpl) {
+        var declaredParameterType = parameter.type;
+        if (declaredParameterType != null) {
+          var declaredType = declaredParameterType.typeOrThrow;
+          if (!typeSystem.isAssignableTo(parameterType, declaredType)) {
+            diagnosticReporter.atNode(
+              declaredParameterType,
+              diag.anonymousMethodWrongParameterType,
+              arguments: [parameterType, declaredType],
+            );
+          }
+        }
+      }
+    }
+
+    inferenceLogWriter?.exitExpression(node);
   }
 
   @override
@@ -4987,6 +5078,26 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   // TODO(scheglov): Remove this temporary routing setter.
   set nameScope(Scope value) {
     _scopeContext.nameScope = value;
+  }
+
+  @override
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    node.target?.accept(this);
+
+    var outerScope = nameScope;
+    try {
+      var parameters = node.parameters;
+      if (parameters != null) {
+        nameScope = LocalScope(nameScope);
+        for (var parameter in parameters.parameters) {
+          _define(parameter.declaredFragment!.element);
+        }
+      }
+      node.parameters?.accept(this);
+      node.body.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
