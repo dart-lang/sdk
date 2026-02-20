@@ -37,20 +37,22 @@
       "dart.tool.dart2js.types:trust": "false"
     }
   },
-  "recordings": [
-    {
-      "calls": [
-        {
-          "loading_unit_indices": [
-            0
-          ],
-          "positional": [
-            0
-          ],
-          "type": "with_arguments"
-        }
-      ],
-      "definition_index": 0
-    }
-  ]
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              0
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
 }

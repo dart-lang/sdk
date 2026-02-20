@@ -51,63 +51,65 @@
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
   },
-  "recordings": [
-    {
-      "calls": [
-        {
-          "loading_unit_indices": [
-            0
-          ],
-          "named": {
-            "l": 1,
-            "k": 0
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "named": {
+              "l": 1,
+              "k": 0
+            },
+            "positional": [
+              0
+            ],
+            "type": "with_arguments"
           },
-          "positional": [
-            0
-          ],
-          "type": "with_arguments"
-        },
-        {
-          "loading_unit_indices": [
-            0
-          ],
-          "named": {
-            "k": 3,
-            "l": 1
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "named": {
+              "k": 3,
+              "l": 1
+            },
+            "positional": [
+              2
+            ],
+            "type": "with_arguments"
           },
-          "positional": [
-            2
-          ],
-          "type": "with_arguments"
-        },
-        {
-          "loading_unit_indices": [
-            0
-          ],
-          "named": {
-            "l": 4,
-            "k": 0
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "named": {
+              "l": 4,
+              "k": 0
+            },
+            "positional": [
+              2
+            ],
+            "type": "with_arguments"
           },
-          "positional": [
-            2
-          ],
-          "type": "with_arguments"
-        },
-        {
-          "loading_unit_indices": [
-            0
-          ],
-          "named": {
-            "l": 4,
-            "k": 5
-          },
-          "positional": [
-            2
-          ],
-          "type": "with_arguments"
-        }
-      ],
-      "definition_index": 0
-    }
-  ]
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "named": {
+              "l": 4,
+              "k": 5
+            },
+            "positional": [
+              2
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
 }

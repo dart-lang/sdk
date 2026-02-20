@@ -127,3 +127,4 @@ runtime/tools/heapsnapshot/.dart_tool
 # Gemini CLI
 .gemini
 .geminiignore
+gemini.md

@@ -49,23 +49,22 @@
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
   },
-  "recordings": [
-    {
-      "calls": [
-        {
-          "loading_unit_indices": [
-            0
-          ],
-          "positional": [
-            2
-          ],
-          "type": "with_arguments"
-        }
-      ],
-      "definition_index": 0
-    },
-    {
-      "definition_index": 1
-    }
-  ]
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              2
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
 }
