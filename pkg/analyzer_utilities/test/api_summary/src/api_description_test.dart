@@ -33,6 +33,52 @@ class Foo {}
     super.setUp();
   }
 
+  Future<void> test_class_modifiers() async {
+    var summary = await _build({
+      '$testPackageLibPath/file.dart': '''
+class C {}
+abstract class A {}
+base class B {}
+base mixin class BM {}
+mixin class M {}
+interface class I {}
+final class F {}
+abstract base class AB {}
+abstract base mixin class ABM {}
+abstract interface class AI {}
+abstract final class AF {}
+abstract mixin class AM {}
+''',
+    });
+    expect(summary, '''
+package:test/file.dart:
+  A (class extends Object, abstract):
+    new (constructor: A Function())
+  AB (class extends Object, abstract, base):
+    new (constructor: AB Function())
+  ABM (class extends Object, abstract, base, mixin):
+    new (constructor: ABM Function())
+  AF (class extends Object, abstract, final)
+  AI (class extends Object, abstract, interface)
+  AM (class extends Object, abstract, mixin):
+    new (constructor: AM Function())
+  B (class extends Object, base):
+    new (constructor: B Function())
+  BM (class extends Object, base, mixin):
+    new (constructor: BM Function())
+  C (class extends Object):
+    new (constructor: C Function())
+  F (class extends Object, final):
+    new (constructor: F Function())
+  I (class extends Object, interface):
+    new (constructor: I Function())
+  M (class extends Object, mixin):
+    new (constructor: M Function())
+dart:core:
+  Object (referenced)
+''');
+  }
+
   Future<void> test_field_deprecated() async {
     // Marking a field as deprecated causes its corresponding getter and setter
     // to be marked as deprecated in the summary.
@@ -198,9 +244,23 @@ package:test/src/private.dart:
 ''');
   }
 
+  Future<void> test_mixin_modifiers() async {
+    var summary = await _build({
+      '$testPackageLibPath/file.dart': '''
+mixin M {}
+base mixin BM {}
+''',
+    });
+    expect(summary, '''
+package:test/file.dart:
+  BM (mixin on Object, base)
+  M (mixin on Object)
+dart:core:
+  Object (referenced)
+''');
+  }
+
   Future<void> test_nonConstructibleClass() async {
-    // TODO(paulberry): annotate abstract, final, and interface properties of
-    // classes
     var summary = await _build({
       '$testPackageLibPath/file.dart': '''
 abstract final class C1 {}
@@ -212,8 +272,8 @@ sealed class C3 {}
     // constructors aren't included in the summary output.
     expect(summary, '''
 package:test/file.dart:
-  C1 (class extends Object)
-  C2 (class extends Object)
+  C1 (class extends Object, abstract, final)
+  C2 (class extends Object, abstract, interface)
   C3 (class extends Object, sealed)
 dart:core:
   Object (referenced)

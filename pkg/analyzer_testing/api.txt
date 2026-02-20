@@ -1,7 +1,7 @@
 package:analyzer_testing/analysis_rule/analysis_rule.dart:
   contextMessage (function: ExpectedContextMessage Function(File, int, int, {deprecated String? text, List<Pattern> textContains}))
   error (function: ExpectedDiagnostic Function(DiagnosticCode, int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, deprecated Pattern? messageContains, List<Pattern> messageContainsAll}))
-  AnalysisRuleTest (class extends PubPackageResolutionTest):
+  AnalysisRuleTest (class extends PubPackageResolutionTest, abstract):
     new (constructor: AnalysisRuleTest Function())
     analysisRule (getter: String, deprecated)
     rule (getter: AbstractAnalysisRule)

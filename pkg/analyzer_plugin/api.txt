@@ -1,11 +1,11 @@
 package:analyzer_plugin/channel/channel.dart:
-  PluginCommunicationChannel (class extends Object):
+  PluginCommunicationChannel (class extends Object, abstract):
     new (constructor: PluginCommunicationChannel Function())
     close (method: void Function())
     listen (method: void Function(void Function(Request), {void Function()? onDone, Function? onError}))
     sendNotification (method: void Function(Notification))
     sendResponse (method: void Function(Response))
-  ServerCommunicationChannel (class extends Object):
+  ServerCommunicationChannel (class extends Object, abstract):
     new (constructor: ServerCommunicationChannel Function())
     close (method: void Function())
     kill (method: void Function())
@@ -16,7 +16,7 @@ package:analyzer_plugin/plugin/assist_mixin.dart:
     getAssistContributors (method: List<AssistContributor> Function(String))
     getAssistRequest (method: Future<AssistRequest> Function(EditGetAssistsParams))
     handleEditGetAssists (method: Future<EditGetAssistsResult> Function(EditGetAssistsParams))
-  DartAssistsMixin (class extends Object implements AssistsMixin):
+  DartAssistsMixin (class extends Object implements AssistsMixin, abstract):
     new (constructor: DartAssistsMixin Function())
     getAssistRequest (method: Future<AssistRequest> Function(EditGetAssistsParams))
 package:analyzer_plugin/plugin/completion_mixin.dart:
@@ -24,7 +24,7 @@ package:analyzer_plugin/plugin/completion_mixin.dart:
     getCompletionContributors (method: List<CompletionContributor> Function(String))
     getCompletionRequest (method: Future<CompletionRequest> Function(CompletionGetSuggestionsParams))
     handleCompletionGetSuggestions (method: Future<CompletionGetSuggestionsResult> Function(CompletionGetSuggestionsParams))
-  DartCompletionMixin (class extends Object implements CompletionMixin):
+  DartCompletionMixin (class extends Object implements CompletionMixin, abstract):
     new (constructor: DartCompletionMixin Function())
     getCompletionRequest (method: Future<CompletionRequest> Function(CompletionGetSuggestionsParams))
 package:analyzer_plugin/plugin/fix_mixin.dart:
@@ -71,7 +71,7 @@ package:analyzer_plugin/plugin/outline_mixin.dart:
     getOutlineRequest (method: Future<OutlineRequest> Function(String))
     sendOutlineNotification (method: Future<void> Function(String))
 package:analyzer_plugin/plugin/plugin.dart:
-  ServerPlugin (class extends Object):
+  ServerPlugin (class extends Object, abstract):
     new (constructor: ServerPlugin Function({required ResourceProvider resourceProvider}))
     channel (getter: PluginCommunicationChannel)
     contactInfo (getter: String?)
@@ -116,7 +116,7 @@ package:analyzer_plugin/plugin/plugin.dart:
     sendOutlineNotification (method: Future<void> Function(String))
     start (method: void Function(PluginCommunicationChannel))
 package:analyzer_plugin/protocol/protocol.dart:
-  Enum (class extends Object):
+  Enum (class extends Object, abstract):
     new (constructor: Enum Function())
     name (getter: String)
   Notification (class extends Object):
@@ -1640,7 +1640,7 @@ package:analyzer_plugin/src/utilities/completion/completion_target.dart:
 package:analyzer_plugin/src/utilities/completion/optype.dart:
   OpType (non-public)
 package:analyzer_plugin/starter.dart:
-  ServerPluginStarter (class extends Object):
+  ServerPluginStarter (class extends Object, abstract):
     new (constructor: ServerPluginStarter Function(ServerPlugin))
     start (method: void Function(SendPort))
 package:analyzer_plugin/utilities/analyzer_converter.dart:
@@ -1659,10 +1659,10 @@ package:analyzer_plugin/utilities/analyzer_converter.dart:
   ElementKindExtensions (extension on ElementKind@2):
     toPluginElementKind (getter: ElementKind@1)
 package:analyzer_plugin/utilities/assist/assist.dart:
-  AssistCollector (class extends Object):
+  AssistCollector (class extends Object, abstract):
     new (constructor: AssistCollector Function())
     addAssist (method: void Function(PrioritizedSourceChange))
-  AssistContributor (class extends Object):
+  AssistContributor (class extends Object, abstract):
     new (constructor: AssistContributor Function())
     computeAssists (method: Future<void> Function(AssistRequest, AssistCollector))
   AssistGenerator (class extends Object):
@@ -1675,12 +1675,12 @@ package:analyzer_plugin/utilities/assist/assist.dart:
     message (getter: String)
     priority (getter: int)
     toString (method: String Function())
-  AssistRequest (class extends Object):
+  AssistRequest (class extends Object, abstract):
     new (constructor: AssistRequest Function())
     length (getter: int)
     offset (getter: int)
     resourceProvider (getter: ResourceProvider)
-  DartAssistRequest (class extends Object implements AssistRequest):
+  DartAssistRequest (class extends Object implements AssistRequest, abstract):
     new (constructor: DartAssistRequest Function())
     result (getter: ResolvedUnitResult)
 package:analyzer_plugin/utilities/assist/assist_contributor_mixin.dart:
@@ -1688,7 +1688,7 @@ package:analyzer_plugin/utilities/assist/assist_contributor_mixin.dart:
     collector (getter: AssistCollector)
     addAssist (method: void Function(AssistKind, ChangeBuilder, {List<Object>? args}))
 package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
-  ChangeBuilder (class extends Object):
+  ChangeBuilder (class extends Object, abstract):
     new (constructor: ChangeBuilder Function({String? defaultEol, AnalysisSession session, ChangeWorkspace workspace}))
     defaultEol (getter: String)
     selectionRange (getter: SourceRange?)
@@ -1698,7 +1698,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
     addYamlFileEdit (method: Future<void> Function(String, void Function(YamlFileEditBuilder)))
     hasEditsFor (method: bool Function(String))
     setSelection (method: void Function(Position))
-  EditBuilder (class extends Object):
+  EditBuilder (class extends Object, abstract):
     new (constructor: EditBuilder Function())
     addLinkedEdit (method: void Function(String, void Function(LinkedEditBuilder)))
     addSimpleLinkedEdit (method: void Function(String, String, {LinkedEditSuggestionKind kind, List<String> suggestions}))
@@ -1706,7 +1706,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
     selectHere (method: void Function())
     write (method: void Function(String))
     writeln (method: void Function([String]))
-  FileEditBuilder (class extends Object):
+  FileEditBuilder (class extends Object, abstract):
     new (constructor: FileEditBuilder Function())
     eol (getter: String)
     addDeletion (method: void Function(SourceRange))
@@ -1715,14 +1715,14 @@ package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
     addReplacement (method: void Function(SourceRange, void Function(EditBuilder)))
     addSimpleInsertion (method: void Function(int, String))
     addSimpleReplacement (method: void Function(SourceRange, String))
-  LinkedEditBuilder (class extends Object):
+  LinkedEditBuilder (class extends Object, abstract):
     new (constructor: LinkedEditBuilder Function())
     addSuggestion (method: void Function(LinkedEditSuggestionKind, String))
     addSuggestions (method: void Function(LinkedEditSuggestionKind, Iterable<String>))
     write (method: void Function(String))
     writeln (method: void Function([String]))
 package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
-  DartEditBuilder (class extends Object implements EditBuilder):
+  DartEditBuilder (class extends Object implements EditBuilder, abstract):
     new (constructor: DartEditBuilder Function())
     addLinkedEdit (method: void Function(String, void Function(DartLinkedEditBuilder)))
     canWriteType (method: bool Function(DartType?, {List<TypeParameterElement>? typeParametersInScope}))
@@ -1748,7 +1748,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     writeTypeParameter (method: void Function(TypeParameterElement, {List<TypeParameterElement>? typeParametersInScope}))
     writeTypeParameters (method: void Function(List<TypeParameterElement>, {List<TypeParameterElement>? typeParametersInScope}))
     writeTypes (method: void Function(Iterable<DartType>?, {String? prefix, bool shouldWriteDynamic}))
-  DartFileEditBuilder (class extends Object implements FileEditBuilder):
+  DartFileEditBuilder (class extends Object implements FileEditBuilder, abstract):
     new (constructor: DartFileEditBuilder Function())
     fileHeader= (setter: String)
     requiredImports (getter: List<Uri>)
@@ -1769,25 +1769,25 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     insertMethod (method: void Function(CompilationUnitMember, void Function(DartEditBuilder)))
     replaceTypeWithFuture (method: void Function({required TypeAnnotation typeAnnotation, required TypeProvider typeProvider, required TypeSystem typeSystem}))
     replaceTypeWithFutureArgument (method: void Function({required TypeAnnotation typeAnnotation, required TypeProvider typeProvider, required TypeSystem typeSystem}))
-  DartLinkedEditBuilder (class extends Object implements LinkedEditBuilder):
+  DartLinkedEditBuilder (class extends Object implements LinkedEditBuilder, abstract):
     new (constructor: DartLinkedEditBuilder Function())
     addSuperTypesAsSuggestions (method: void Function(DartType?))
-  ImportLibraryElementResult (class extends Object):
+  ImportLibraryElementResult (class extends Object, abstract):
     new (constructor: ImportLibraryElementResult Function())
     prefix (getter: String?)
   ImportPrefixGenerator (type alias for String Function(Uri), deprecated)
 package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart:
-  YamlEditBuilder (class extends Object implements EditBuilder):
+  YamlEditBuilder (class extends Object implements EditBuilder, abstract):
     new (constructor: YamlEditBuilder Function())
     addLinkedEdit (method: void Function(String, void Function(YamlLinkedEditBuilder)))
-  YamlFileEditBuilder (class extends Object implements FileEditBuilder):
+  YamlFileEditBuilder (class extends Object implements FileEditBuilder, abstract):
     new (constructor: YamlFileEditBuilder Function())
     addInsertion (method: void Function(int, void Function(YamlEditBuilder)))
     addReplacement (method: void Function(SourceRange, void Function(YamlEditBuilder)))
-  YamlLinkedEditBuilder (class extends Object implements LinkedEditBuilder):
+  YamlLinkedEditBuilder (class extends Object implements LinkedEditBuilder, abstract):
     new (constructor: YamlLinkedEditBuilder Function())
 package:analyzer_plugin/utilities/change_builder/change_workspace.dart:
-  ChangeWorkspace (class extends Object):
+  ChangeWorkspace (class extends Object, abstract):
     new (constructor: ChangeWorkspace Function())
     resourceProvider (getter: ResourceProvider)
     containsFile (method: bool Function(String))
@@ -1801,26 +1801,26 @@ package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart
 package:analyzer_plugin/utilities/completion/completion_core.dart:
   AbortCompletion (class extends Object):
     new (constructor: AbortCompletion Function())
-  CompletionCollector (class extends Object):
+  CompletionCollector (class extends Object, abstract):
     new (constructor: CompletionCollector Function())
     length= (setter: int)
     offset= (setter: int)
     offsetIsSet (getter: bool)
     suggestionsLength (getter: int)
     addSuggestion (method: void Function(CompletionSuggestion))
-  CompletionContributor (class extends Object):
+  CompletionContributor (class extends Object, abstract):
     new (constructor: CompletionContributor Function())
     computeSuggestions (method: Future<void> Function(CompletionRequest, CompletionCollector))
   CompletionGenerator (class extends Object):
     new (constructor: CompletionGenerator Function(List<CompletionContributor>))
     contributors (getter: List<CompletionContributor>)
     generateCompletionResponse (method: Future<GeneratorResult<CompletionGetSuggestionsResult?>> Function(CompletionRequest))
-  CompletionRequest (class extends Object):
+  CompletionRequest (class extends Object, abstract):
     new (constructor: CompletionRequest Function())
     offset (getter: int)
     resourceProvider (getter: ResourceProvider)
     checkAborted (method: void Function())
-  DartCompletionRequest (class extends Object implements CompletionRequest):
+  DartCompletionRequest (class extends Object implements CompletionRequest, abstract):
     new (constructor: DartCompletionRequest Function())
     result (getter: ResolvedUnitResult)
 package:analyzer_plugin/utilities/completion/inherited_reference_contributor.dart:
@@ -1838,7 +1838,7 @@ package:analyzer_plugin/utilities/completion/relevance.dart:
   DART_RELEVANCE_DEFAULT (static getter: int)
   DART_RELEVANCE_HIGH (static getter: int)
   DART_RELEVANCE_LOW (static getter: int)
-  Relevance (class extends Object):
+  Relevance (class extends Object, abstract):
     callFunction (static getter: int)
     closure (static getter: int)
     constructor (static getter: int)
@@ -1853,12 +1853,12 @@ package:analyzer_plugin/utilities/completion/relevance.dart:
     requiredNamedArgument (static getter: int)
     superFormalParameter (static getter: int)
     new (constructor: Relevance Function())
-  RelevanceBoost (class extends Object):
+  RelevanceBoost (class extends Object, abstract):
     availableDeclaration (static getter: int)
     availableEnumConstant (static getter: int)
     new (constructor: RelevanceBoost Function())
 package:analyzer_plugin/utilities/completion/suggestion_builder.dart:
-  SuggestionBuilder (class extends Object):
+  SuggestionBuilder (class extends Object, abstract):
     new (constructor: SuggestionBuilder Function())
     forElement (method: CompletionSuggestion? Function(Element@2, {String? completion, CompletionSuggestionKind kind, int relevance}))
 package:analyzer_plugin/utilities/completion/type_member_contributor.dart:
@@ -1867,7 +1867,7 @@ package:analyzer_plugin/utilities/completion/type_member_contributor.dart:
     computeSuggestions (method: Future<void> Function(DartCompletionRequest, CompletionCollector))
     computeSuggestionsWithEntryPoint (method: Future<void> Function(DartCompletionRequest, CompletionCollector, AstNode))
 package:analyzer_plugin/utilities/fixes/fix_contributor_mixin.dart:
-  FixContributorMixin (class extends Object implements FixContributor):
+  FixContributorMixin (class extends Object implements FixContributor, abstract):
     new (constructor: FixContributorMixin Function())
     collector (getter: FixCollector?)
     collector= (setter: FixCollector?)
@@ -1877,13 +1877,13 @@ package:analyzer_plugin/utilities/fixes/fix_contributor_mixin.dart:
     computeFixes (method: Future<void> Function(DartFixesRequest, FixCollector))
     computeFixesForError (method: Future<void> Function(Diagnostic))
 package:analyzer_plugin/utilities/fixes/fixes.dart:
-  DartFixesRequest (class extends Object implements FixesRequest):
+  DartFixesRequest (class extends Object implements FixesRequest, abstract):
     new (constructor: DartFixesRequest Function())
     result (getter: ResolvedUnitResult)
-  FixCollector (class extends Object):
+  FixCollector (class extends Object, abstract):
     new (constructor: FixCollector Function())
     addFix (method: void Function(Diagnostic, PrioritizedSourceChange))
-  FixContributor (class extends Object):
+  FixContributor (class extends Object, abstract):
     new (constructor: FixContributor Function())
     computeFixes (method: Future<void> Function(FixesRequest, FixCollector))
   FixGenerator (class extends Object):
@@ -1898,27 +1898,27 @@ package:analyzer_plugin/utilities/fixes/fixes.dart:
     priority (getter: int)
     == (method: bool Function(Object))
     toString (method: String Function())
-  FixesRequest (class extends Object):
+  FixesRequest (class extends Object, abstract):
     new (constructor: FixesRequest Function())
     errorsToFix (getter: List<Diagnostic>)
     offset (getter: int)
     resourceProvider (getter: ResourceProvider)
 package:analyzer_plugin/utilities/folding/folding.dart:
-  DartFoldingRequest (class extends Object implements FoldingRequest):
+  DartFoldingRequest (class extends Object implements FoldingRequest, abstract):
     new (constructor: DartFoldingRequest Function())
     result (getter: ResolvedUnitResult)
-  FoldingCollector (class extends Object):
+  FoldingCollector (class extends Object, abstract):
     new (constructor: FoldingCollector Function())
     addRange (method: void Function(SourceRange, FoldingKind))
     addRegion (method: void Function(int, int, FoldingKind))
-  FoldingContributor (class extends Object):
+  FoldingContributor (class extends Object, abstract):
     new (constructor: FoldingContributor Function())
     computeFolding (method: void Function(FoldingRequest, FoldingCollector))
   FoldingGenerator (class extends Object):
     new (constructor: FoldingGenerator Function(List<FoldingContributor>))
     contributors (getter: List<FoldingContributor>)
     generateFoldingNotification (method: GeneratorResult<ResponseResult?> Function(FoldingRequest))
-  FoldingRequest (class extends Object):
+  FoldingRequest (class extends Object, abstract):
     new (constructor: FoldingRequest Function())
     path (getter: String)
     resourceProvider (getter: ResourceProvider)
@@ -1929,21 +1929,21 @@ package:analyzer_plugin/utilities/generator.dart:
     result (getter: T)
     sendNotifications (method: void Function(PluginCommunicationChannel))
 package:analyzer_plugin/utilities/highlights/highlights.dart:
-  DartHighlightsRequest (class extends Object implements HighlightsRequest):
+  DartHighlightsRequest (class extends Object implements HighlightsRequest, abstract):
     new (constructor: DartHighlightsRequest Function())
     result (getter: ResolvedUnitResult)
-  HighlightsCollector (class extends Object):
+  HighlightsCollector (class extends Object, abstract):
     new (constructor: HighlightsCollector Function())
     addRange (method: void Function(SourceRange, HighlightRegionType))
     addRegion (method: void Function(int, int, HighlightRegionType))
-  HighlightsContributor (class extends Object):
+  HighlightsContributor (class extends Object, abstract):
     new (constructor: HighlightsContributor Function())
     computeHighlights (method: void Function(HighlightsRequest, HighlightsCollector))
   HighlightsGenerator (class extends Object):
     new (constructor: HighlightsGenerator Function(List<HighlightsContributor>))
     contributors (getter: List<HighlightsContributor>)
     generateHighlightsNotification (method: GeneratorResult<ResponseResult?> Function(HighlightsRequest))
-  HighlightsRequest (class extends Object):
+  HighlightsRequest (class extends Object, abstract):
     new (constructor: HighlightsRequest Function())
     path (getter: String)
     resourceProvider (getter: ResourceProvider)
@@ -1952,14 +1952,14 @@ package:analyzer_plugin/utilities/navigation/document_links.dart:
   DocumentLink (non-public)
   DartdocumentLink (type alias for DocumentLink)
 package:analyzer_plugin/utilities/navigation/navigation.dart:
-  DartNavigationRequest (class extends Object implements NavigationRequest):
+  DartNavigationRequest (class extends Object implements NavigationRequest, abstract):
     new (constructor: DartNavigationRequest Function())
     result (getter: ResolvedUnitResult)
-  NavigationCollector (class extends Object):
+  NavigationCollector (class extends Object, abstract):
     new (constructor: NavigationCollector Function())
     addRange (method: void Function(SourceRange, ElementKind@1, Location, {Fragment? targetFragment}))
     addRegion (method: void Function(int, int, ElementKind@1, Location, {Fragment? targetFragment}))
-  NavigationContributor (class extends Object):
+  NavigationContributor (class extends Object, abstract):
     new (constructor: NavigationContributor Function())
     computeNavigation (method: void Function(NavigationRequest, NavigationCollector))
   NavigationGenerator (class extends Object):
@@ -1967,46 +1967,46 @@ package:analyzer_plugin/utilities/navigation/navigation.dart:
     contributors (getter: List<NavigationContributor>)
     generateNavigationNotification (method: GeneratorResult<ResponseResult?> Function(NavigationRequest))
     generateNavigationResponse (method: GeneratorResult<AnalysisGetNavigationResult> Function(NavigationRequest))
-  NavigationRequest (class extends Object):
+  NavigationRequest (class extends Object, abstract):
     new (constructor: NavigationRequest Function())
     length (getter: int?)
     offset (getter: int)
     path (getter: String)
     resourceProvider (getter: ResourceProvider)
 package:analyzer_plugin/utilities/occurrences/occurrences.dart:
-  DartOccurrencesRequest (class extends Object implements OccurrencesRequest):
+  DartOccurrencesRequest (class extends Object implements OccurrencesRequest, abstract):
     new (constructor: DartOccurrencesRequest Function())
     result (getter: ResolvedUnitResult)
-  OccurrencesCollector (class extends Object):
+  OccurrencesCollector (class extends Object, abstract):
     new (constructor: OccurrencesCollector Function())
     addOccurrence (method: void Function(Element@1, int))
-  OccurrencesContributor (class extends Object):
+  OccurrencesContributor (class extends Object, abstract):
     new (constructor: OccurrencesContributor Function())
     computeOccurrences (method: void Function(OccurrencesRequest, OccurrencesCollector))
   OccurrencesGenerator (class extends Object):
     new (constructor: OccurrencesGenerator Function(List<OccurrencesContributor>))
     contributors (getter: List<OccurrencesContributor>)
     generateOccurrencesNotification (method: GeneratorResult<ResponseResult?> Function(OccurrencesRequest))
-  OccurrencesRequest (class extends Object):
+  OccurrencesRequest (class extends Object, abstract):
     new (constructor: OccurrencesRequest Function())
     path (getter: String)
     resourceProvider (getter: ResourceProvider)
 package:analyzer_plugin/utilities/outline/outline.dart:
-  DartOutlineRequest (class extends Object implements OutlineRequest):
+  DartOutlineRequest (class extends Object implements OutlineRequest, abstract):
     new (constructor: DartOutlineRequest Function())
     result (getter: ResolvedUnitResult)
-  OutlineCollector (class extends Object):
+  OutlineCollector (class extends Object, abstract):
     new (constructor: OutlineCollector Function())
     endElement (method: void Function())
     startElement (method: void Function(Element@1, int, int))
-  OutlineContributor (class extends Object):
+  OutlineContributor (class extends Object, abstract):
     new (constructor: OutlineContributor Function())
     computeOutline (method: void Function(OutlineRequest, OutlineCollector))
   OutlineGenerator (class extends Object):
     new (constructor: OutlineGenerator Function(List<OutlineContributor>))
     contributors (getter: List<OutlineContributor>)
     generateOutlineNotification (method: GeneratorResult<ResponseResult?> Function(OutlineRequest))
-  OutlineRequest (class extends Object):
+  OutlineRequest (class extends Object, abstract):
     new (constructor: OutlineRequest Function())
     path (getter: String)
     resourceProvider (getter: ResourceProvider)

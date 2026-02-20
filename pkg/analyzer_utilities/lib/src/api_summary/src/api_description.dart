@@ -275,33 +275,55 @@ class ApiDescription {
               );
             }
             parentheticals.add(instanceDescription);
-            if (element is ClassElement && element.isSealed) {
-              var parenthetical = <Object>['sealed'];
-              parentheticals.add(parenthetical);
-              if (_getOrComputeImmediateSubinterfaceMap(
-                    element.library,
-                  )[element]
-                  case var subinterfaces?) {
-                parenthetical.add(' (immediate subtypes: ');
-                // Note: it's tempting to just do
-                // `subinterfaces.map(_uniqueNamer.name).join(', ')`, but that
-                // won't work, because the names returned by
-                // `UniqueName.toString()` aren't finalized until we've visited
-                // the entire API and seen if there are class names that need to
-                // be disambiguated. So we accumulate the `UniqueName` objects
-                // into the `parenthetical` list and rely on `printNodes`
-                // converting everything to a string when the final API
-                // description is being output.
-                var commaNeeded = false;
-                for (var subinterface in subinterfaces) {
-                  if (commaNeeded) {
-                    parenthetical.add(', ');
-                  } else {
-                    commaNeeded = true;
+            if (element is ClassElement) {
+              if (element.isSealed) {
+                var parenthetical = <Object>['sealed'];
+                parentheticals.add(parenthetical);
+                if (_getOrComputeImmediateSubinterfaceMap(
+                      element.library,
+                    )[element]
+                    case var subinterfaces?) {
+                  parenthetical.add(' (immediate subtypes: ');
+                  // Note: it's tempting to just do
+                  // `subinterfaces.map(_uniqueNamer.name).join(', ')`, but that
+                  // won't work, because the names returned by
+                  // `UniqueName.toString()` aren't finalized until we've
+                  // visited the entire API and seen if there are class names
+                  // that need to be disambiguated. So we accumulate the
+                  // `UniqueName` objects into the `parenthetical` list and rely
+                  // on `printNodes` converting everything to a string when the
+                  // final API description is being output.
+                  var commaNeeded = false;
+                  for (var subinterface in subinterfaces) {
+                    if (commaNeeded) {
+                      parenthetical.add(', ');
+                    } else {
+                      commaNeeded = true;
+                    }
+                    parenthetical.add(_uniqueNamer.name(subinterface));
                   }
-                  parenthetical.add(_uniqueNamer.name(subinterface));
+                  parenthetical.add(')');
                 }
-                parenthetical.add(')');
+              } else {
+                if (element.isAbstract) {
+                  parentheticals.add(['abstract']);
+                }
+                if (element.isBase) {
+                  parentheticals.add(['base']);
+                }
+                if (element.isMixinClass) {
+                  parentheticals.add(['mixin']);
+                }
+                if (element.isInterface) {
+                  parentheticals.add(['interface']);
+                }
+                if (element.isFinal) {
+                  parentheticals.add(['final']);
+                }
+              }
+            } else if (element is MixinElement) {
+              if (element.isBase) {
+                parentheticals.add(['base']);
               }
             }
           case ExtensionElement(:var extendedType):
