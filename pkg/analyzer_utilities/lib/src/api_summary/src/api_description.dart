@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer_utilities/src/api_summary/src/api_summary_customizer.dart';
 import 'package:analyzer_utilities/src/api_summary/src/extensions.dart';
 import 'package:analyzer_utilities/src/api_summary/src/member_sorting.dart';
 import 'package:analyzer_utilities/src/api_summary/src/node.dart';
@@ -19,6 +20,8 @@ import 'package:collection/collection.dart';
 /// Data structure keeping track of a package's API while walking it to produce
 /// `api.txt`.
 class ApiDescription {
+  final ApiSummaryCustomizer _customizer;
+
   final String _pkgName;
 
   /// Top level elements that have already had their child elements dumped.
@@ -42,7 +45,7 @@ class ApiDescription {
   final _immediateSubinterfaceCache =
       <LibraryElement, Map<ClassElement, Set<InterfaceElement>>>{};
 
-  ApiDescription(String pkgName) : _pkgName = pkgName;
+  ApiDescription(this._pkgName, this._customizer);
 
   /// Builds a list of [Node] objects representing all the libraries that are
   /// relevant to the package's public API.
@@ -55,7 +58,14 @@ class ApiDescription {
   /// Each library node is pared with a [UriSortKey] indicating the order in
   /// which the nodes should be output.
   Future<List<(UriSortKey, Node)>> build(AnalysisContext context) async {
-    var nodes = <Uri, Node<MemberSortKey>>{};
+    _customizer.packageName = _pkgName;
+    _customizer.analysisContext = context;
+    await _customizer.setupComplete();
+
+    // First, find all the libraries comprising the package's public API, and
+    // all the top level elements they export.
+    var publicApiLibraries = <LibraryElement>[];
+    var topLevelPublicElements = <Element>{};
     for (var file in context.contextRoot.analyzedFiles().sorted()) {
       if (!file.endsWith('.dart')) continue;
       var fileResult = context.currentSession.getFile(file) as FileResult;
@@ -64,11 +74,25 @@ class ApiDescription {
         var resolvedLibraryResult =
             (await context.currentSession.getResolvedLibrary(file))
                 as ResolvedLibraryResult;
-        var node = nodes[uri] = Node<MemberSortKey>();
-        _dumpLibrary(resolvedLibraryResult.element, node);
+        var library = resolvedLibraryResult.element;
+        topLevelPublicElements.addAll(
+          library.exportNamespace.definedNames2.values,
+        );
+        publicApiLibraries.add(library);
       }
     }
-    // Then dump anything referenced by public libraries.
+    _customizer.publicApiLibraries = publicApiLibraries;
+    _customizer.topLevelPublicElements = topLevelPublicElements;
+    await _customizer.initialScanComplete();
+
+    // Then, dump all the libraries in the package's public API.
+    var nodes = <Uri, Node<MemberSortKey>>{};
+    for (var library in publicApiLibraries) {
+      var node = nodes[library.uri] = Node<MemberSortKey>();
+      _dumpLibrary(library, node);
+    }
+
+    // Finally, dump anything referenced by those public libraries.
     while (_potentiallyDanglingReferences.isNotEmpty) {
       var element = _potentiallyDanglingReferences.removeFirst();
       if (!_dumpedTopLevelElements.add(element)) continue;
@@ -209,7 +233,7 @@ class ApiDescription {
   void _dumpElement(Element element, Node<MemberSortKey> node) {
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is LibraryElement &&
-        !element.isInPublicApiOf(_pkgName)) {
+        !_customizer.shouldShowDetails(element)) {
       if (!enclosingElement.uri.isIn(_pkgName)) {
         node.text.add(' (referenced)');
       } else {

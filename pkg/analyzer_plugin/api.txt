@@ -1948,8 +1948,19 @@ package:analyzer_plugin/utilities/highlights/highlights.dart:
     path (getter: String)
     resourceProvider (getter: ResourceProvider)
 package:analyzer_plugin/utilities/navigation/document_links.dart:
-  DartDocumentLinkVisitor (non-public)
-  DocumentLink (non-public)
+  DartDocumentLinkVisitor (class extends RecursiveAstVisitor<void>):
+    new (constructor: DartDocumentLinkVisitor Function(ResourceProvider, ParsedUnitResult))
+    filePath (getter: String)
+    folderWithExamplesApi (getter: Folder?)
+    resourceProvider (getter: ResourceProvider)
+    unit (getter: ParsedUnitResult)
+    findLinks (method: List<DocumentLink> Function(AstNode))
+    visitComment (method: void Function(Comment))
+  DocumentLink (class extends Object):
+    new (constructor: DocumentLink Function(int, int, Uri))
+    length (getter: int)
+    offset (getter: int)
+    targetUri (getter: Uri)
   DartdocumentLink (type alias for DocumentLink)
 package:analyzer_plugin/utilities/navigation/navigation.dart:
   DartNavigationRequest (class extends Object implements NavigationRequest, abstract):
@@ -2085,9 +2096,12 @@ package:analyzer/dart/analysis/analysis_context_collection.dart:
 package:analyzer/dart/analysis/analysis_options.dart:
   AnalysisOptions (referenced)
 package:analyzer/dart/analysis/results.dart:
+  ParsedUnitResult (referenced)
   ResolvedUnitResult (referenced)
 package:analyzer/dart/analysis/session.dart:
   AnalysisSession (referenced)
+package:analyzer/dart/ast/visitor.dart:
+  RecursiveAstVisitor (referenced)
 package:analyzer/dart/element/element.dart:
   ClassElement (referenced)
   Element@2 (referenced)
@@ -2104,6 +2118,7 @@ package:analyzer/dart/element/type_provider.dart:
 package:analyzer/dart/element/type_system.dart:
   TypeSystem (referenced)
 package:analyzer/file_system/file_system.dart:
+  Folder (referenced)
   ResourceProvider (referenced)
 package:analyzer/file_system/overlay_file_system.dart:
   OverlayResourceProvider (referenced)
@@ -2115,6 +2130,7 @@ package:analyzer/src/dart/ast/ast.dart:
   ArgumentList (referenced)
   AstNode (referenced)
   ClassMember (referenced)
+  Comment (referenced)
   CompilationUnitMember (referenced)
   Expression (referenced)
   FunctionBody (referenced)

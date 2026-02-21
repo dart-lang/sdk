@@ -5,7 +5,11 @@
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/src/api_summary/src/api_description.dart';
+import 'package:analyzer_utilities/src/api_summary/src/api_summary_customizer.dart';
 import 'package:analyzer_utilities/src/api_summary/src/node.dart';
+
+export 'package:analyzer_utilities/src/api_summary/src/api_summary_customizer.dart'
+    show ApiSummaryCustomizer;
 
 /// Creates a human-readable text summary of the public API of a package, in a
 /// format suitable for auditing with a `diff` tool.
@@ -14,7 +18,15 @@ import 'package:analyzer_utilities/src/api_summary/src/node.dart';
 /// `pubspec.yaml` file.
 ///
 /// [packageName] is the name of the package.
-Future<String> summarizePackage(String packagePath, String packageName) async {
+///
+/// If [createCustomizer] is provided, it will be called to create an instance
+/// of [ApiSummaryCustomizer] which will be used to customize the behavior of
+/// the tool.
+Future<String> summarizePackage(
+  String packagePath,
+  String packageName, {
+  ApiSummaryCustomizer Function()? createCustomizer,
+}) async {
   var provider = PhysicalResourceProvider.INSTANCE;
   var collection = AnalysisContextCollection(
     includedPaths: [packagePath],
@@ -24,7 +36,10 @@ Future<String> summarizePackage(String packagePath, String packageName) async {
   // context. This ensures that `publicApi.build` will see all the files in
   // the package.
   var context = collection.contexts.single;
-  var publicApi = ApiDescription(packageName);
+  var publicApi = ApiDescription(
+    packageName,
+    createCustomizer?.call() ?? ApiSummaryCustomizer(),
+  );
   var stringBuffer = StringBuffer();
   printNodes(stringBuffer, await publicApi.build(context));
   return stringBuffer.toString();

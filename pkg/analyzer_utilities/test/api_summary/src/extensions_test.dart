@@ -60,49 +60,6 @@ extension type ExtensionType(int i) {}
     expect(lib.getExtensionType('ExtensionType')!.apiName, 'ExtensionType');
   }
 
-  Future<void> test_element_isInPublicApiOf() async {
-    var publicLib = await analyzeLibrary(pathWithinLib: 'file.dart', '''
-void public() {}
-void _private() {}
-''');
-    var privateLib = await analyzeLibrary(pathWithinLib: 'src/file.dart', '''
-void public() {}
-void _private() {}
-''');
-    expect(
-      publicLib.getTopLevelFunction('public')!.isInPublicApiOf('test'),
-      isTrue,
-    );
-    expect(
-      publicLib.getTopLevelFunction('public')!.isInPublicApiOf('other'),
-      isFalse,
-    );
-    expect(
-      publicLib.getTopLevelFunction('_private')!.isInPublicApiOf('test'),
-      isFalse,
-    );
-    expect(
-      publicLib.getTopLevelFunction('_private')!.isInPublicApiOf('other'),
-      isFalse,
-    );
-    expect(
-      privateLib.getTopLevelFunction('public')!.isInPublicApiOf('test'),
-      isFalse,
-    );
-    expect(
-      privateLib.getTopLevelFunction('public')!.isInPublicApiOf('other'),
-      isFalse,
-    );
-    expect(
-      privateLib.getTopLevelFunction('_private')!.isInPublicApiOf('test'),
-      isFalse,
-    );
-    expect(
-      privateLib.getTopLevelFunction('_private')!.isInPublicApiOf('other'),
-      isFalse,
-    );
-  }
-
   Future<void> test_formalParameterElement_isDeprecated() async {
     var f = (await analyzeLibrary(
       'f({int? i, @deprecated int? j}) {}',
