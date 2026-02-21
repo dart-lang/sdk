@@ -31,6 +31,8 @@ import 'convert_into_getter_test.dart' as convert_into_getter;
 import 'convert_into_is_not_empty_test.dart' as convert_into_is_not_empty;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_part_of_to_uri_test.dart' as convert_part_of_to_uri;
+import 'convert_to_declaring_parameter_test.dart'
+    as convert_to_declaring_parameter;
 import 'convert_to_dot_shorthand_test.dart' as convert_to_dot_shorthand;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
@@ -143,6 +145,7 @@ void main() {
     convert_into_is_not.main();
     convert_into_is_not_empty.main();
     convert_part_of_to_uri.main();
+    convert_to_declaring_parameter.main();
     convert_to_dot_shorthand.main();
     convert_to_double_quoted_string.main();
     convert_to_for_element.main();

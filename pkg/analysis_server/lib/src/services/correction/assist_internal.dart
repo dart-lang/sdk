@@ -27,6 +27,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_into_is_not
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_part_of_to_uri.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_declaring_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_dot_shorthand.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
@@ -101,6 +102,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   ConvertDocumentationIntoBlock.new,
   ConvertDocumentationIntoLine.new,
   ConvertFieldFormalToNormal.new,
+  ConvertToDeclaringParameter.new,
   ConvertIfStatementToSwitchStatement.new,
   ConvertIntoAsyncBody.new,
   ConvertIntoBlockBody.missingBody,

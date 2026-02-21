@@ -121,8 +121,13 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Convert to use a URI',
   );
+  static const convertToDeclaringParameter = AssistKind(
+    'dart.assist.convert.toDeclaringParameter',
+    DartAssistKindPriority.default_,
+    'Convert to a declaring parameter',
+  );
   static const convertToDotShorthand = AssistKind(
-    'dart.assist.convert.ToDotShorthand',
+    'dart.assist.convert.toDotShorthand',
     DartAssistKindPriority.default_,
     'Convert to dot shorthand',
   );
