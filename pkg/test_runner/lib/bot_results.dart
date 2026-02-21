@@ -77,7 +77,7 @@ final gsutilPool = Pool(math.max(1, Platform.numberOfProcessors ~/ 2));
 /// Returns null if the requested URL didn't exist.
 Future<String> runGsutil(List<String> arguments) async {
   return gsutilPool.withResource(() async {
-    var processResult = await Process.run("python3", [gsutilPy, ...arguments],
+    var processResult = await Process.run("gcloud", ["storage", ...arguments],
         runInShell: Platform.isWindows);
     if (processResult.exitCode != 0) {
       var stderr = processResult.stderr as String;
@@ -85,14 +85,15 @@ Future<String> runGsutil(List<String> arguments) async {
           stderr.contains("One or more URLs matched no objects")) {
         return "";
       }
-      var error = "Failed to run: python3 $gsutilPy $arguments\n"
+      var error = "Failed to run: gcloud storage $arguments\n"
           "exitCode: ${processResult.exitCode}\n"
           "stdout:\n${processResult.stdout}\n"
           "stderr:\n${processResult.stderr}";
       if (processResult.exitCode == 1 &&
           stderr.contains("401 Anonymous caller")) {
+        // The gsutil config command has no direct equivalent. `gcloud auth login` is a suggested replacement for authentication.
         error =
-            "\n\nYou need to authenticate by running:\npython3 $gsutilPy config\n";
+            "\n\nYou need to authenticate by running:\ngcloud auth login\n";
       }
       throw Exception(error);
     }
@@ -127,7 +128,7 @@ Future cpGsutil(String source, String destination) =>
 
 /// Copies a directory recursively to or from cloud storage.
 Future cpRecursiveGsutil(String source, String destination) =>
-    runGsutil(["-m", "cp", "-r", "-Z", source, destination]);
+    runGsutil(["cp", "--recursive", "--gzip-local-all", source, destination]);
 
 /// Lists the bots in cloud storage.
 Future<Iterable<String>> listBots() => lsGsutil(testResultsStoragePath);
