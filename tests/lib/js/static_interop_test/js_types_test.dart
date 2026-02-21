@@ -13,6 +13,11 @@ import 'package:expect/expect.dart';
 
 const isJSBackend = const bool.fromEnvironment('dart.library.html');
 
+@JS('Set')
+extension type JSSet._(JSObject _) implements JSObject, JSIterable<JSNumber> {
+  external JSSet(JSArray<JSNumber> contents);
+}
+
 @JS()
 external void eval(String code);
 
@@ -214,6 +219,127 @@ void syncTests() {
   );
   Expect.identical(edf.toDart, dartFunctionThis);
   Expect.notEquals(edf, dartFunctionThis.toJSCaptureThis);
+
+  // [JSIterable]
+  final iterable = JSSet([1.toJS, 2.toJS].toJS);
+  final iterator = iterable.iterator;
+  Expect.isNull(iterator.returnValue);
+  Expect.isNull(iterator.throwError);
+  final result1 = iterator.next();
+  Expect.equals(false, result1.isDone);
+  Expect.equals(1.toJS, result1.value);
+  final result2 = iterator.next();
+  Expect.equals(false, result2.isDone);
+  Expect.equals(2.toJS, result2.value);
+  final result3 = iterator.next();
+  Expect.equals(true, result3.isDone);
+  Expect.isNull(result3.value);
+
+  Expect.equals(2.toJS, iterable.iterator.drop(1).next().value);
+  Expect.isTrue(iterable.iterator.every((e) => e.toDartInt < 3));
+  Expect.isTrue(iterable.iterator.everyWithIndex((_, i) => i < 2));
+  Expect.equals(
+    2.toJS,
+    iterable.iterator.filter((e) => e.toDartInt > 1).next().value,
+  );
+  Expect.equals(
+    2.toJS,
+    iterable.iterator.filterWithIndex((_, i) => i > 0).next().value,
+  );
+  Expect.equals(2.toJS, iterable.iterator.find((e) => e.toDartInt > 1));
+  Expect.equals(2.toJS, iterable.iterator.findWithIndex((_, i) => i > 0));
+  Expect.equals(
+    "1".toJS,
+    iterable.iterator.flatMap((e) => ["$e".toJS].toJSIterable).next().value,
+  );
+  Expect.equals(
+    "0".toJS,
+    iterable.iterator
+        .flatMapWithIndex((_, i) => ["$i".toJS].toJSIterable)
+        .next()
+        .value,
+  );
+  Expect.equals(
+    1.toJS,
+    iterable.iterator
+        .flatMapHeterogeneous((e) => [e, "$e".toJS].toJSIterable)
+        .next()
+        .value,
+  );
+  Expect.equals(
+    0.toJS,
+    iterable.iterator
+        .flatMapHeterogeneousWithIndex(
+          (_, i) => [i.toJS, "$i".toJS].toJSIterable,
+        )
+        .next()
+        .value,
+  );
+  var total = 0;
+  iterable.iterator.forEach((e) => total += e.toDartInt);
+  Expect.equals(3, total);
+  total = 0;
+  iterable.iterator.forEachWithIndex((_, i) => total += i);
+  Expect.equals(1, total);
+  Expect.equals("1".toJS, iterable.iterator.map((e) => "$e".toJS).next().value);
+  Expect.equals(
+    "0".toJS,
+    iterable.iterator.mapWithIndex((_, i) => "$i".toJS).next().value,
+  );
+  Expect.equals(
+    3.toJS,
+    iterable.iterator.reduce((a, e) => (a.toDartInt + e.toDartInt).toJS),
+  );
+  Expect.equals(
+    2.toJS,
+    iterable.iterator.reduceWithIndex((a, _, i) => (a.toDartInt + i).toJS),
+  );
+  Expect.equals(
+    13.toJS,
+    iterable.iterator.reduceWithInitial(
+      ((a, e) => (a.toDartInt + e.toDartInt).toJS),
+      10.toJS,
+    ),
+  );
+  Expect.equals(
+    11.toJS,
+    iterable.iterator.reduceWithInitialAndIndex(
+      ((a, _, i) => (a.toDartInt + i).toJS),
+      10.toJS,
+    ),
+  );
+  Expect.isTrue(iterable.iterator.some((e) => e.toDartInt < 2));
+  Expect.isTrue(iterable.iterator.someWithIndex((_, i) => i < 1));
+  Expect.isTrue(iterable.iterator.take(0).next().isDone);
+  Expect.equals(
+    2.toJS,
+    JSIterator.from(iterable.iterator).find((e) => e.toDartInt > 1),
+  );
+  Expect.equals(
+    2.toJS,
+    JSIterator.fromIterable(iterable).find((e) => e.toDartInt > 1),
+  );
+
+  Expect.equals(
+    1.toJS,
+    JSIterator.fromFunctions(() => JSIteratorResult.value(1.toJS)).next().value,
+  );
+  Expect.equals(
+    1.toJS,
+    JSIterator.fromFunctions(
+      () => JSIteratorResult.done(0.toJS),
+      returnValue: () => JSIteratorResult.done(1.toJS),
+    ).returnValue!().value,
+  );
+
+  // [JSIterable] <-> [Iterable]
+  final listFromIter = [...iterable.toDartIterable];
+  Expect.equals(2, listFromIter.length);
+  Expect.equals(1.toJS, listFromIter[0]);
+  Expect.equals(2.toJS, listFromIter[1]);
+  final iteratorFromDart = [1.toJS].toJSIterable.iterator;
+  Expect.equals(1.toJS, iteratorFromDart.next().value);
+  Expect.equals(true, iteratorFromDart.next().isDone);
 
   // [JSBoxedDartObject] <-> [Object]
   edo = DartObject().toJSBox;
