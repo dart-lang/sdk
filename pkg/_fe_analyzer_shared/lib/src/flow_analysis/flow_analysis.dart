@@ -920,13 +920,9 @@ abstract class FlowAnalysis<
   /// Call this method when writing to the [variable] with type [writtenType] in
   /// a postfix increment or decrement operation.
   ///
-  /// Returns the expression info for the full post increment or decrement
-  /// expression.
-  ExpressionInfo? postIncDec(
-    Node node,
-    Variable variable,
-    SharedTypeView writtenType,
-  );
+  /// There is no return value; it is not necessary for the caller to track any
+  /// expression info for the post increment or decrement expression.
+  void postIncDec(Node node, Variable variable, SharedTypeView writtenType);
 
   /// The type that a property named [propertyName] is promoted to, if
   /// the property is currently promoted.
@@ -2247,16 +2243,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  ExpressionInfo? postIncDec(
-    Node node,
-    Variable variable,
-    SharedTypeView writtenType,
-  ) {
-    return _wrap(
+  void postIncDec(Node node, Variable variable, SharedTypeView writtenType) {
+    _wrap(
       'postIncDec()',
       () => _wrapped.postIncDec(node, variable, writtenType),
-      isQuery: true,
-      isPure: false,
     );
   }
 
@@ -6162,12 +6152,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  ExpressionInfo? postIncDec(
-    Node node,
-    Variable variable,
-    SharedTypeView writtenType,
-  ) {
-    return _write(node, variable, writtenType, null, isPostfixIncDec: true);
+  void postIncDec(Node node, Variable variable, SharedTypeView writtenType) {
+    _write(node, variable, writtenType, null, isPostfixIncDec: true);
   }
 
   @override

@@ -5906,13 +5906,10 @@ class VariableReference extends LValue {
     Expression postIncDecExpression,
     Type writtenType,
   ) {
-    h.flow.storeExpressionInfo(
+    h.flow.postIncDec(
       postIncDecExpression,
-      h.flow.postIncDec(
-        postIncDecExpression,
-        variable,
-        SharedTypeView(writtenType),
-      ),
+      variable,
+      SharedTypeView(writtenType),
     );
   }
 
