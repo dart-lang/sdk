@@ -4,6 +4,13 @@
 
 // CHANGES:
 //
+// v0.60 Disambiguate metadata arguments from record types by speculatively
+// parsing constructorDesignation and only taking the arguments alternative
+// when '(' follows immediately with no skipped tokens.
+// Without this, "@Foo () f() {}" would parse "()" as metadata arguments.
+// With this, whitespace between the identifier and "(" causes the parser to
+// treat "@Foo" as metadata without arguments, and "()" as a record return type.
+//
 // v0.59 Gather some occurrences of `AUGMENT` in a single location. Rename
 // `topLevelDefinition` to `topLevelDeclaration` (as in the specification).
 //
@@ -290,6 +297,297 @@ bool _asyncEtcPredicate() {
     return !_asyncEtcAreKeywords.last;
   }
   return false;
+}
+
+// Returns true if there is no skipped token (whitespace, comments) between
+// the token at position (index-1) and the token at position (index).
+//
+// This works by comparing character positions in the source text:
+// If stopIndex + 1 == startIndex, the tokens are adjacent with no gap.
+// If there's a gap, whitespace or comments were skipped between them.
+bool _isNoSkipAt(int index) {
+  final prev = tokenStream.LT(index - 1);
+  final next = tokenStream.LT(index);
+  if (prev == null || next == null) return false;
+  return prev.stopIndex + 1 == next.startIndex;
+}
+
+// Ad-hoc parsers for constructorDesignation and its components.
+// Each returns the index of the token AFTER the parsed construct, or -1.
+
+// Ad-hoc parser for typeIdentifier.
+//
+// typeIdentifier: typeIdentifierNotType | TYPE ;
+// typeIdentifierNotType: IDENTIFIER | DYNAMIC | otherIdentifierNotType | {_asyncEtcPredicate()}? (AWAIT|YIELD) ;
+// otherIdentifierNotType: ASYNC | BASE | HIDE | OF | ON | SEALED | SHOW | SYNC | WHEN ;
+int _parseTypeIdentifier(int index) {
+  final token = tokenStream.LT(index);
+  if (token == null) return -1;
+  final type = token.type;
+
+  // IDENTIFIER
+  if (type == TOKEN_IDENTIFIER) return index + 1;
+  // DYNAMIC (built-in that can be used as type)
+  if (type == TOKEN_DYNAMIC) return index + 1;
+  // TYPE
+  if (type == TOKEN_TYPE) return index + 1;
+  // otherIdentifierNotType
+  if (type == TOKEN_ASYNC) return index + 1;
+  if (type == TOKEN_BASE) return index + 1;
+  if (type == TOKEN_HIDE) return index + 1;
+  if (type == TOKEN_OF) return index + 1;
+  if (type == TOKEN_ON) return index + 1;
+  if (type == TOKEN_SEALED) return index + 1;
+  if (type == TOKEN_SHOW) return index + 1;
+  if (type == TOKEN_SYNC) return index + 1;
+  if (type == TOKEN_WHEN) return index + 1;
+  // AWAIT | YIELD (contextual, only valid as identifier when NOT in async/sync* function)
+  if (type == TOKEN_AWAIT || type == TOKEN_YIELD) {
+    if (!_asyncEtcAreKeywords.last) return index + 1;
+  }
+
+  return -1;
+}
+
+// Ad-hoc parser for identifier.
+//
+// identifier: IDENTIFIER | builtInIdentifier | otherIdentifier | {_asyncEtcPredicate()}? (AWAIT|YIELD) ;
+// builtInIdentifier: ABSTRACT | AS | AUGMENT | COVARIANT | DEFERRED | DYNAMIC | EXPORT | EXTENSION
+//                  | EXTERNAL | FACTORY | FUNCTION | GET | IMPLEMENTS | IMPORT | INTERFACE | LATE
+//                  | LIBRARY | OPERATOR | MIXIN | PART | REQUIRED | SET | STATIC | TYPEDEF ;
+// otherIdentifier: otherIdentifierNotType | TYPE ;
+int _parseIdentifier(int index) {
+  final token = tokenStream.LT(index);
+  if (token == null) return -1;
+  final type = token.type;
+
+  // IDENTIFIER
+  if (type == TOKEN_IDENTIFIER) return index + 1;
+  // builtInIdentifier
+  if (type == TOKEN_ABSTRACT) return index + 1;
+  if (type == TOKEN_AS) return index + 1;
+  if (type == TOKEN_AUGMENT) return index + 1;
+  if (type == TOKEN_COVARIANT) return index + 1;
+  if (type == TOKEN_DEFERRED) return index + 1;
+  if (type == TOKEN_DYNAMIC) return index + 1;
+  if (type == TOKEN_EXPORT) return index + 1;
+  if (type == TOKEN_EXTENSION) return index + 1;
+  if (type == TOKEN_EXTERNAL) return index + 1;
+  if (type == TOKEN_FACTORY) return index + 1;
+  if (type == TOKEN_FUNCTION) return index + 1;
+  if (type == TOKEN_GET) return index + 1;
+  if (type == TOKEN_IMPLEMENTS) return index + 1;
+  if (type == TOKEN_IMPORT) return index + 1;
+  if (type == TOKEN_INTERFACE) return index + 1;
+  if (type == TOKEN_LATE) return index + 1;
+  if (type == TOKEN_LIBRARY) return index + 1;
+  if (type == TOKEN_OPERATOR) return index + 1;
+  if (type == TOKEN_MIXIN) return index + 1;
+  if (type == TOKEN_PART) return index + 1;
+  if (type == TOKEN_REQUIRED) return index + 1;
+  if (type == TOKEN_SET) return index + 1;
+  if (type == TOKEN_STATIC) return index + 1;
+  if (type == TOKEN_TYPEDEF) return index + 1;
+  // otherIdentifier (otherIdentifierNotType | TYPE)
+  if (type == TOKEN_ASYNC) return index + 1;
+  if (type == TOKEN_BASE) return index + 1;
+  if (type == TOKEN_HIDE) return index + 1;
+  if (type == TOKEN_OF) return index + 1;
+  if (type == TOKEN_ON) return index + 1;
+  if (type == TOKEN_SEALED) return index + 1;
+  if (type == TOKEN_SHOW) return index + 1;
+  if (type == TOKEN_SYNC) return index + 1;
+  if (type == TOKEN_TYPE) return index + 1;
+  if (type == TOKEN_WHEN) return index + 1;
+  // AWAIT | YIELD (contextual - only valid as identifier when NOT in async/sync* function)
+  if (type == TOKEN_AWAIT || type == TOKEN_YIELD) {
+    if (!_asyncEtcAreKeywords.last) return index + 1;
+  }
+
+  return -1;
+}
+
+// Ad-hoc parser for identifierOrNew.
+//
+// identifierOrNew: identifier | NEW ;
+int _parseIdentifierOrNew(int index) {
+  final token = tokenStream.LT(index);
+  if (token == null) return -1;
+
+  // NEW
+  if (token.type == TOKEN_NEW) return index + 1;
+
+  // identifier
+  return _parseIdentifier(index);
+}
+
+// Ad-hoc parser for typeArguments.
+//
+// typeArguments: '<' typeList '>' ;
+int _parseTypeArguments(int index) {
+  var current = tokenStream.LT(index);
+  if (current == null || current.type != TOKEN_LT) return -1;
+
+  int depth = 1;
+  int i = index + 1;
+  while (depth > 0) {
+    current = tokenStream.LT(i);
+    if (current == null || current.type == TOKEN_EOF) return -1;
+    if (current.type == TOKEN_LT) depth++;
+    if (current.type == TOKEN_GT) depth--;
+    i++;
+  }
+  return i;
+}
+
+// Ad-hoc parser for constructorDesignation production 1: typeIdentifier
+int _parseConstructorDesignation_typeIdentifier(int startIndex) {
+  return _parseTypeIdentifier(startIndex);
+}
+
+// Ad-hoc parser for qualifiedName production 1: typeIdentifier '.' identifierOrNew
+int _parseQualifiedName_short(int startIndex) {
+  // typeIdentifier
+  int i = _parseTypeIdentifier(startIndex);
+  if (i == -1) return -1;
+
+  // '.'
+  var current = tokenStream.LT(i);
+  if (current == null || current.type != TOKEN_DOT) return -1;
+  i++;
+
+  // identifierOrNew
+  int afterIdOrNew = _parseIdentifierOrNew(i);
+  if (afterIdOrNew == -1) return -1;
+  return afterIdOrNew;
+}
+
+// Ad-hoc parser for qualifiedName production 2: typeIdentifier '.' typeIdentifier '.' identifierOrNew
+int _parseQualifiedName_long(int startIndex) {
+  // typeIdentifier
+  int i = _parseTypeIdentifier(startIndex);
+  if (i == -1) return -1;
+
+  // '.'
+  var current = tokenStream.LT(i);
+  if (current == null || current.type != TOKEN_DOT) return -1;
+  i++;
+
+  // typeIdentifier
+  i = _parseTypeIdentifier(i);
+  if (i == -1) return -1;
+
+  // '.'
+  current = tokenStream.LT(i);
+  if (current == null || current.type != TOKEN_DOT) return -1;
+  i++;
+
+  // identifierOrNew
+  int afterIdOrNew = _parseIdentifierOrNew(i);
+  if (afterIdOrNew == -1) return -1;
+  return afterIdOrNew;
+}
+
+// Ad-hoc parser for constructorDesignation production 2: qualifiedName
+//
+// qualifiedName:
+//     typeIdentifier '.' identifierOrNew
+//   | typeIdentifier '.' typeIdentifier '.' identifierOrNew
+//   ;
+int _parseConstructorDesignation_qualifiedName(int startIndex) {
+  final result1 = _parseQualifiedName_short(startIndex);
+  final result2 = _parseQualifiedName_long(startIndex);
+
+  // Take the longest match
+  if (result1 == -1 && result2 == -1) return -1;
+  if (result1 > result2) return result1;
+  return result2;
+}
+
+// Ad-hoc parser for constructorDesignation production 3:
+// typeName typeArguments ('.' identifierOrNew)?
+//
+// typeName: typeIdentifier ('.' typeIdentifier)? ;
+int _parseConstructorDesignation_typeNameTypeArguments(int startIndex) {
+  // typeName: typeIdentifier ('.' typeIdentifier)?
+  int i = _parseTypeIdentifier(startIndex);
+  if (i == -1) return -1;
+
+  var current = tokenStream.LT(i);
+  if (current == null) return -1;
+
+  // Optional: '.' typeIdentifier
+  if (current.type == TOKEN_DOT) {
+    int afterSecondTypeId = _parseTypeIdentifier(i + 1);
+    if (afterSecondTypeId != -1) {
+      i = afterSecondTypeId;
+      current = tokenStream.LT(i);
+      if (current == null) return -1;
+    }
+  }
+
+  // Required: typeArguments
+  if (current.type != TOKEN_LT) return -1;
+  i = _parseTypeArguments(i);
+  if (i == -1) return -1;
+
+  // Optional: '.' identifierOrNew
+  current = tokenStream.LT(i);
+  if (current != null && current.type == TOKEN_DOT) {
+    int afterIdOrNew = _parseIdentifierOrNew(i + 1);
+    if (afterIdOrNew != -1) {
+      i = afterIdOrNew;
+    }
+  }
+
+  return i;
+}
+
+// Ad-hoc parser for constructorDesignation.
+// Tries all three productions and checks for ambiguity.
+//
+// constructorDesignation:
+//     typeIdentifier
+//   | qualifiedName
+//   | typeName typeArguments ('.' identifierOrNew)?
+//   ;
+int _parseConstructorDesignation(int startIndex) {
+  // Try all three productions separately
+  final result1 = _parseConstructorDesignation_typeIdentifier(startIndex);
+  final result2 = _parseConstructorDesignation_qualifiedName(startIndex);
+  final result3 = _parseConstructorDesignation_typeNameTypeArguments(startIndex);
+
+  // Count failures
+  final bool failed1 = result1 == -1;
+  final bool failed2 = result2 == -1;
+  final bool failed3 = result3 == -1;
+
+  // All three failed: no valid parse
+  if (failed1 && failed2 && failed3) {
+    return -1;
+  }
+
+  // Take the longest match (highest end position)
+  int longest = -1;
+  if (result1 > longest) longest = result1;
+  if (result2 > longest) longest = result2;
+  if (result3 > longest) longest = result3;
+  return longest;
+}
+
+// Parses a constructorDesignation, then checks if '(' follows immediately
+// (no whitespace).
+bool _looksLikeMetadataWithArgs() {
+  // Parse constructorDesignation starting at lookahead position 1
+  final afterDesignation = _parseConstructorDesignation(1);
+  if (afterDesignation == -1) return false;
+
+  // Check if next token is '('
+  final next = tokenStream.LT(afterDesignation);
+  if (next == null || next.type != TOKEN_LPAREN) return false;
+
+// Check for no whitespace between constructorDesignation and '('
+  return _isNoSkipAt(afterDesignation);
 }
 }
 
@@ -746,7 +1044,7 @@ metadata
     ;
 
 metadatum
-    :    constructorDesignation arguments
+    :    { _looksLikeMetadataWithArgs() }? constructorDesignation arguments
     |    identifier
     |    qualifiedName
     ;
@@ -2394,6 +2692,27 @@ NEWLINE
 
 FEFF
     :    '\uFEFF'
+    ;
+
+// Named tokens for use in semantic predicates
+LPAREN
+    :    '('
+    ;
+
+RPAREN
+    :    ')'
+    ;
+
+LT
+    :    '<'
+    ;
+
+GT
+    :    '>'
+    ;
+
+DOT
+    :    '.'
     ;
 
 WS
