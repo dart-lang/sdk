@@ -2090,6 +2090,24 @@ main() {
       ]);
     });
 
+    test('postIncDec() demotes to the written type', () {
+      // If `x` has type B, but is promoted to subtype C and then D, and D
+      // has a `+` operator that returns C, then after `x++`, `x` should be
+      // demoted to C.
+      var x = Var('x');
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('D', (_) => [Type('C'), Type('B'), Type('Object')]);
+      h.addMember('D', '+', 'C Function(int)');
+      h.run([
+        declare(x, initializer: expr('B')),
+        x.as_('C'),
+        x.as_('D'),
+        x.postIncDec(),
+        checkPromoted(x, 'C'),
+      ]);
+    });
+
     test('switchExpression throw in scrutinee makes all cases unreachable', () {
       h.run([
         switchExpr(throw_(expr('C')), [

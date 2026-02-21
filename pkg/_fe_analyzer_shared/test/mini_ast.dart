@@ -1790,6 +1790,7 @@ class Harness {
     'int.>=': Type('bool Function(num)'),
     'int.abs': Type('int Function()'),
     'int.isEven': Type('bool'),
+    'num.+': Type('num Function(num)'),
     'num.sign': Type('num'),
     'Object.toString': Type('String Function()'),
   };
@@ -4368,12 +4369,21 @@ class PostIncDec extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    Type type = h.typeAnalyzer
+    Type operandType = h.typeAnalyzer
         .analyzeExpression(lhs, h.operations.unknownType)
         .type
         .unwrapTypeView();
-    lhs._visitPostIncDec(h, this, type);
-    return new ExpressionTypeAnalysisResult(type: SharedTypeView(type));
+    var member = h.getMember(operandType, '+');
+    if (member == null) {
+      fail('No + operator found for $operandType');
+    }
+    var memberType = member._type;
+    if (memberType is! FunctionType) {
+      fail('Expected function type for + operator, got $memberType');
+    }
+    var writtenType = memberType.returnType;
+    lhs._visitPostIncDec(h, this, writtenType);
+    return new ExpressionTypeAnalysisResult(type: SharedTypeView(operandType));
   }
 }
 
