@@ -62,7 +62,7 @@ class PluginsPage extends DiagnosticPageWithNav {
         continue;
       }
 
-      p('Associated contexts:');
+      h3('Associated contexts:');
       var contexts = isolate.contextRoots;
       if (contexts.isEmpty) {
         blankslate('none');
@@ -110,7 +110,14 @@ class PluginsPage extends DiagnosticPageWithNav {
         }
       }
 
-      p('Performance:');
+      h3('Performance:');
+      p('''
+The server communicates with the plugins by sending requests. Each line
+below provides aggregated information about one of the requests and begins with
+the name of the request. The 'count' is the number of times the request was
+sent. The percentiles are the 50th, 75th, 90th, 95th, and 100th percentiles of
+the number of milliseconds it took to receiver a response.
+''');
       var responseTimes = PluginManager.pluginResponseTimes[isolate] ?? {};
       var entries = responseTimes.entries.toList();
       entries.sort((first, second) => first.key.compareTo(second.key));

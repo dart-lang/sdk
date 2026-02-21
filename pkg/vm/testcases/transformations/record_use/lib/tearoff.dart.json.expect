@@ -1,27 +1,44 @@
 {
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "someStaticMethod"
+        }
+      ],
+      "uri": "package:record_use_test/tearoff.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
   },
-  "recordings": [
-    {
-      "calls": [
-        {
-          "loading_unit": "1",
-          "type": "tearoff"
-        }
-      ],
-      "definition": {
-        "path": [
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
           {
-            "name": "SomeClass"
-          },
-          {
-            "name": "someStaticMethod"
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "tearoff"
           }
-        ],
-        "uri": "package:record_use_test/tearoff.dart"
+        ]
       }
-    }
-  ]
+    ]
+  }
 }

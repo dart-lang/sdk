@@ -109,7 +109,8 @@ class BytecodeGenerator extends RecursiveVisitor {
   final Map<Uri, Source> astUriToSource;
   final List<Library> libraries;
   final Set<Library> extraLoadedLibraries;
-  final LibraryIndex ffiLibraryIndex;
+  late LibraryIndex ffiLibraryIndex;
+  late LibraryIndex developerLibraryIndex;
   late StringTable stringTable;
   late ObjectTable objectTable;
   late Component bytecodeComponent;
@@ -147,6 +148,16 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   bool isInDeeplyImmutableClass = false;
 
+  late final Set<Library> allLibraries = {
+    ...libraries,
+    ...extraLoadedLibraries
+  };
+
+  LibraryIndex getLibraryIndexFor(String library) =>
+      coreTypes.index.containsLibrary(library)
+          ? coreTypes.index
+          : LibraryIndex.fromLibraries(allLibraries, [library]);
+
   BytecodeGenerator(
       ast.Component component,
       CoreTypes coreTypes,
@@ -178,14 +189,12 @@ class BytecodeGenerator extends RecursiveVisitor {
       {required this.libraries,
       required this.extraLoadedLibraries})
       : recognizedMethods = new RecognizedMethods(staticTypeContext),
-        astUriToSource = component.uriToSource,
-        ffiLibraryIndex = coreTypes.index.containsLibrary('dart:ffi')
-            ? coreTypes.index
-            : LibraryIndex.fromLibraries(
-                {...libraries, ...extraLoadedLibraries}, const ['dart:ffi']) {
+        astUriToSource = component.uriToSource {
     bytecodeComponent = new Component(coreTypes);
     stringTable = bytecodeComponent.stringTable;
     objectTable = bytecodeComponent.objectTable;
+    ffiLibraryIndex = getLibraryIndexFor('dart:ffi');
+    developerLibraryIndex = getLibraryIndexFor('dart:developer');
   }
 
   @override
@@ -1067,6 +1076,13 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   late Procedure? ffiCall = (dartFfiLibrary != null)
       ? ffiLibraryIndex.getTopLevelProcedure('dart:ffi', '_ffiCall')
+      : null;
+
+  late Library? dartDeveloperLibrary =
+      developerLibraryIndex.tryGetLibrary('dart:developer');
+
+  late Procedure? debugger = (dartDeveloperLibrary != null)
+      ? developerLibraryIndex.getTopLevelProcedure('dart:developer', 'debugger')
       : null;
 
   late Procedure ensureDeeplyImmutable = libraryIndex.getTopLevelProcedure(
@@ -3574,6 +3590,13 @@ class BytecodeGenerator extends RecursiveVisitor {
     _genArguments(null, args);
     _genDirectCallWithArgs(target, args,
         isFactory: target.isFactory, node: node);
+    if (target == debugger) {
+      // The debugger needs a pause right after stepping out from the debugger
+      // function. Just using asm.emitSourcePosition() won't work here, because
+      // the next emitted instruction may have its own source position
+      // and thus would overwrite that one.
+      asm.emitNop();
+    }
   }
 
   @override

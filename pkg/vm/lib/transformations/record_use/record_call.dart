@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
@@ -42,7 +43,7 @@ class CallRecorder {
       if (isBeingRecorded(constant.target)) {
         _addToUsage(
           constant.target,
-          CallTearoff(loadingUnit: _loadingUnitLookup(node)),
+          CallTearoff(loadingUnits: [_loadingUnitLookup(node)]),
         );
       }
     }
@@ -104,7 +105,7 @@ class CallRecorder {
     return CallWithArguments(
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
-      loadingUnit: _loadingUnitLookup(node),
+      loadingUnits: [_loadingUnitLookup(node)],
     );
   }
 
@@ -121,13 +122,61 @@ class CallRecorder {
     }
   }
 
-  Definition _definitionFromMember(ast.Member target) {
+  Definition _definitionFromMember(ast.Procedure target) {
     final enclosingLibrary = target.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
+    final name = target.name.text;
+
+    DefinitionKind memberKind = switch (target.kind) {
+      ast.ProcedureKind.Method => DefinitionKind.methodKind,
+      ast.ProcedureKind.Getter => DefinitionKind.getterKind,
+      ast.ProcedureKind.Setter => DefinitionKind.setterKind,
+      ast.ProcedureKind.Operator => DefinitionKind.operatorKind,
+      ast.ProcedureKind.Factory => DefinitionKind.constructorKind,
+    };
+
+    if (target.isExtensionMember || target.isExtensionTypeMember) {
+      final String qualifiedExtensionName =
+          extractQualifiedNameFromExtensionMethodName(name)!;
+      final List<String> parts = qualifiedExtensionName.split('.');
+      final bool originallyInstance =
+          target.function.positionalParameters.isNotEmpty &&
+          isExtensionThisName(target.function.positionalParameters[0].name);
+
+      return Definition(importUri, [
+        Name(
+          hasUnnamedExtensionNamePrefix(name) ? '<unnamed>' : parts[0],
+          kind:
+              target.isExtensionMember
+                  ? DefinitionKind.extensionKind
+                  : DefinitionKind.extensionTypeKind,
+        ),
+        Name(
+          parts[1],
+          kind: memberKind,
+          disambiguators: {
+            originallyInstance
+                ? DefinitionDisambiguator.instanceDisambiguator
+                : DefinitionDisambiguator.staticDisambiguator,
+          },
+        ),
+      ]);
+    }
+
+    final parent = target.parent;
 
     return Definition(importUri, [
-      if (target.enclosingClass?.name != null) Name(target.enclosingClass!.name),
-      Name(target.name.text),
+      if (parent is ast.Class)
+        Name(parent.name, kind: DefinitionKind.classKind),
+      Name(
+        target.name.text,
+        kind: memberKind,
+        disambiguators: {
+          target.isStatic
+              ? DefinitionDisambiguator.staticDisambiguator
+              : DefinitionDisambiguator.instanceDisambiguator,
+        },
+      ),
     ]);
   }
 }

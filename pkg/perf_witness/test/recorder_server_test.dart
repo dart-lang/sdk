@@ -28,6 +28,7 @@ Future<io.Process> runProcess(
   String tag = '',
   Pattern? waitFor,
   Map<String, String>? environment,
+  bool includeParentEnvironment = true,
   List<String>? stdout,
 }) async {
   final ready = Completer();
@@ -36,6 +37,7 @@ Future<io.Process> runProcess(
     executable,
     arguments,
     environment: environment,
+    includeParentEnvironment: includeParentEnvironment,
   );
   process.exitCode.whenComplete(() {
     if (!ready.isCompleted) {
@@ -88,6 +90,8 @@ class BusyLoopProcess {
     bool startIsolate = false,
     bool aot = false,
     bool startInBackground = false,
+    bool overrideDartDataHome = true,
+    Map<String, String>? environment,
   }) async {
     final busyLoopArgs = [
       '--tag',
@@ -123,7 +127,11 @@ class BusyLoopProcess {
       busyLoopArgs,
       tag: 'busy-loop($tag)',
       waitFor: 'BUSY LOOP READY',
-      environment: {'DART_DATA_HOME': tempDir.path},
+      environment: {
+        ...?environment,
+        if (overrideDartDataHome) 'DART_DATA_HOME': tempDir.path,
+      },
+      includeParentEnvironment: environment == null,
       stdout: stdout,
     );
 
@@ -739,6 +747,29 @@ void main() {
       expect(seenEvents, containsAll(['ImportantStartupEvent']));
 
       await newProcess.process.askToExit();
+    });
+  });
+
+  group('Failure cases', () {
+    late io.Directory tempDir;
+
+    setUp(() async {
+      tempDir = io.Directory.systemTemp.createTempSync();
+    });
+
+    tearDown(() {
+      tempDir.deleteSync(recursive: true);
+    });
+
+    test('error to start server due no HOME is ignored gracefully', () async {
+      final busyLoopProcess = await BusyLoopProcess.start(
+        'busy-loop-tag',
+        tempDir,
+        overrideDartDataHome: false,
+        environment: {},
+      );
+      await busyLoopProcess.process.askToExit();
+      expect(await busyLoopProcess.process.exitCode, 0);
     });
   });
 }

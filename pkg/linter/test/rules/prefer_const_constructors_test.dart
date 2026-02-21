@@ -192,6 +192,18 @@ K k = .new();
     );
   }
 
+  test_canBeConst_newSyntax() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  const new();
+}
+A a = A();
+''',
+      [lint(33, 3)],
+    );
+  }
+
   test_canBeConst_optionalNamedParameter() async {
     await assertDiagnostics(
       r'''
@@ -364,6 +376,36 @@ class A {
   static A m1(int i) => A('$i');
 }
 ''');
+  }
+
+  test_class_primaryConstructor_const() async {
+    await assertDiagnostics(
+      r'''
+class const C(final int x);
+var c = C(1);
+''',
+      [lint(36, 4)],
+    );
+  }
+
+  test_class_primaryConstructor_dotShorthand_const() async {
+    await assertDiagnostics(
+      r'''
+class const C(final int x);
+C get f => .new(1);
+''',
+      [lint(39, 7)],
+    );
+  }
+
+  test_class_primaryConstructor_named_const() async {
+    await assertDiagnostics(
+      r'''
+class const C.named(final int x);
+var c = C.named(1);
+''',
+      [lint(42, 10)],
+    );
   }
 
   test_constructorArgument_rhsOfLogicalOperation() async {

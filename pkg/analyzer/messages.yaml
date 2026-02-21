@@ -1328,6 +1328,15 @@ CompileTimeErrorCode:
         return x;
       }
       ```
+  anonymousMethodWrongParameterType:
+    type: compileTimeError
+    parameters:
+      Type receiverType: the name of the type of the receiver
+      Type parameterType: the name of the declared parameter type
+    experiment: anonymous-methods
+    problemMessage: The receiver type '#receiverType' must be assignable to the formal parameter type '#parameterType' of an anonymous method.
+    correctionMessage: Try removing the parameter type, or make it a supertype of the receiver type.
+    hasPublishedDocs: false
   argumentTypeNotAssignable:
     type: compileTimeError
     parameters:
@@ -24820,7 +24829,7 @@ WarningCode:
       @doNotStore
       int f() => 1;
 
-      var x = [!f!]();
+      var x = [!f()!];
       ```
 
       #### Common fixes
@@ -28837,7 +28846,7 @@ WarningCode:
       @doNotStore
       int f() => 0;
 
-      int g() => [!f!]();
+      int g() => [!f()!];
       ```
 
       #### Common fixes

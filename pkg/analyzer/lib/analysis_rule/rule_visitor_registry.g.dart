@@ -385,11 +385,13 @@ abstract class RuleVisitorRegistry {
 
   void addRelationalPattern(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  @Deprecated('See RepresentationConstructorName for details')
   void addRepresentationConstructorName(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
   );
 
+  @Deprecated('See RepresentationDeclaration for details')
   void addRepresentationDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,

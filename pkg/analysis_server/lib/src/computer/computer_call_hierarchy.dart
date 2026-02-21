@@ -142,12 +142,15 @@ class CallHierarchyItem {
       return SourceRange(nameOffset, nameEnd - nameOffset);
     }
 
-    // For unnamed constructors, use the type name.
+    // For default constructors, use the type name or new keyword.
     if (fragment is ConstructorFragmentImpl) {
       var typeNameOffset = fragment.typeNameOffset;
       var typeName = fragment.typeName;
+      var newKeywordOffset = fragment.newKeywordOffset;
       if (typeName != null && typeNameOffset != null) {
         return SourceRange(typeNameOffset, typeName.length);
+      } else if (newKeywordOffset != null) {
+        return SourceRange(newKeywordOffset, 'new'.length);
       }
     }
 
@@ -343,7 +346,7 @@ class DartCallHierarchyComputer {
     var node = _result.unit.nodeCovering(offset: offset);
 
     // For consistency with other places, we only treat the type name as the
-    // constructor for unnamed constructor (since we use the constructors name
+    // constructor for default constructor (since we use the constructors name
     // as the target otherwise).
     return switch (node) {
       // Type name in a named constructor reference; not considered a call.
@@ -354,7 +357,7 @@ class DartCallHierarchyComputer {
       Identifier(parent: ConstructorDeclaration(:var name?))
           when offset < name.offset =>
         null,
-      // Type name in an unnamed constructor declaration, or constructor name in
+      // Type name in an default constructor declaration, or constructor name in
       // a named constructor; use the constructor.
       Identifier(parent: ConstructorDeclaration(name: null)) => node.parent,
       // Type name in a named primary constructor declaration; not considered a
@@ -436,7 +439,7 @@ class DartCallHierarchyComputer {
   ///
   /// Usually this is the range returned from the search index, but sometimes it
   /// will be adjusted to reflect the source range that should be highlighted
-  /// for this call. For example, an unnamed constructor may be given a range
+  /// for this call. For example, an default constructor may be given a range
   /// covering the type name (whereas the index has a zero-width range after the
   /// type name).
   SourceRange _rangeForSearchMatch(

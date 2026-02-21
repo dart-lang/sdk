@@ -2411,8 +2411,6 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     List<HInstruction> arguments,
     SourceInformation sourceInformation,
   ) {
-    // TODO(https://github.com/dart-lang/native/issues/2948): Record the name of
-    // the extension instead of the desugared name.
     final isExtensionMethod = hasUnnamedExtensionNamePrefix(element.name!);
 
     final originalParameterStructure = element.parameterStructure;

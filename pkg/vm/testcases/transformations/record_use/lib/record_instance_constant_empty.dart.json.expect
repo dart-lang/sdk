@@ -1,36 +1,60 @@
 {
   "constants": [
     {
+      "definition_index": 1,
       "type": "instance"
     },
     {
+      "definition_index": 0,
       "type": "instance",
       "value": {
         "a": 0
       }
     }
   ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "MyClass"
+        }
+      ],
+      "uri": "package:record_use_test/record_instance_constant_empty.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "A"
+        }
+      ],
+      "uri": "package:record_use_test/record_instance_constant_empty.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
   },
-  "recordings": [
-    {
-      "definition": {
-        "path": [
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
           {
-            "name": "MyClass"
+            "constant_index": 1,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
           }
-        ],
-        "uri": "package:record_use_test/record_instance_constant_empty.dart"
-      },
-      "instances": [
-        {
-          "constant_index": 1,
-          "loading_unit": "1",
-          "type": "constant"
-        }
-      ]
-    }
-  ]
+        ]
+      }
+    ]
+  }
 }

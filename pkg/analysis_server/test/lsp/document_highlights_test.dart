@@ -63,6 +63,45 @@ class C {
 ''');
   }
 
+  Future<void> test_constructor_secondary_className() async {
+    await _testMarkedContent('''
+class Aaa {
+  /*[0*/Aaa/*0]*/();
+}
+
+void f() {
+  Aaa a = Aaa./*[1*/new/*1]*/();
+  var b = /*[2*/Aaa/*2]*/();
+}
+''');
+  }
+
+  Future<void> test_constructor_secondary_new() async {
+    await _testMarkedContent('''
+class Aaa {
+  /*[0*/new/*0]*/();
+}
+
+void f() {
+  Aaa a = Aaa./*[1*/new/*1]*/();
+  var b = /*[2*/Aaa/*2]*/();
+}
+''');
+  }
+
+  Future<void> test_constructor_secondary_newNamed() async {
+    await _testMarkedContent('''
+class Aaa {
+  new /*[0*/named/*0]*/();
+}
+
+void f() {
+  Aaa value = Aaa./*[1*/named/*1]*/();
+  Aaa./*[2*/named/*2]*/();
+}
+''');
+  }
+
   Future<void> test_dartCode_issue5369_field() async {
     await _testMarkedContent('''
 class A {
@@ -1082,19 +1121,32 @@ void f() {
   Future<void> test_type_class_constructors() async {
     await _testMarkedContent('''
 class /*[0*/A/*0]*/ {
-  A(); // Unnamed constructor is own entity
+  A(); // Default constructor is own entity
   /*[1*/A/*1]*/.named();
 }
 
-/*[2*/A/*2]*/ a = A(); // Unnamed constructor is own entity
+/*[2*/A/*2]*/ a = A(); // Default constructor is own entity
 var b = /*[3*/A/*3]*/.new();
 var c = /*[4*/A/*4]*/.new;
 ''');
   }
 
-  /// The type name in unnamed constructors are their own entity and not
+  Future<void> test_type_class_constructors2() async {
+    await _testMarkedContent('''
+class /*[0*/A/*0]*/ {
+  new(); // Default constructor is own entity
+  /*[1*/A/*1]*/.named();
+}
+
+/*[2*/A/*2]*/ a = A(); // Default constructor is own entity
+var b = /*[3*/A/*3]*/.new();
+var c = /*[4*/A/*4]*/.new;
+''');
+  }
+
+  /// The type name in default constructors are their own entity and not
   /// part of the type name.
-  Future<void> test_type_class_constructors_unnamed() async {
+  Future<void> test_type_class_constructors_default() async {
     await _testMarkedContent('''
 class A {
   /*[0*/A/*0]*/();

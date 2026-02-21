@@ -295,5 +295,13 @@ record_use.InstanceConstant findInstanceValue(
     if (name == null) continue;
     fieldValues[name] = _findValue(entry.value);
   }
-  return record_use.InstanceConstant(fields: fieldValues);
+  final cls = constant.type.element;
+  final libraryUri = cls.library.canonicalUri.toString();
+  final definition = record_use.Definition(libraryUri, [
+    record_use.Name(cls.name, kind: record_use.DefinitionKind.classKind),
+  ]);
+  return record_use.InstanceConstant(
+    definition: definition,
+    fields: fieldValues,
+  );
 }

@@ -20,12 +20,24 @@ class DartDocumentHighlightsComputer {
     var coveringNode = _unit.nodeCovering(offset: requestedOffset);
     if (coveringNode == null) return [];
 
-    var targets = _computeTargets(coveringNode);
+    var targets = _computeTargets(_adjustNode(requestedOffset, coveringNode));
     if (targets == null) return [];
 
     var visitor = _DartDocumentHighlightsVisitor(targets);
     _unit.accept(visitor);
     return visitor.tokens.toList();
+  }
+
+  /// Adjusts the result of `nodeCovering` for cases where a position falls
+  /// between two nodes and the wrong one is selected.
+  AstNode _adjustNode(int offset, AstNode coveringNode) {
+    return switch (coveringNode) {
+      // In `ClassName.new^()` nodeCovering selects the parameter list but
+      // we want the constructor.
+      FormalParameterList(:var parent?) when offset == coveringNode.offset =>
+        parent,
+      _ => coveringNode,
+    };
   }
 
   /// Computes the highlight target (elements and/or nodes) from the covering
@@ -164,7 +176,7 @@ class _DartDocumentHighlightsVisitor extends GeneralizingAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _addOccurrence(
       node.declaredFragment?.element,
-      node.name ?? node.typeName?.beginToken,
+      node.name ?? node.newKeyword ?? node.typeName?.beginToken,
     );
 
     super.visitConstructorDeclaration(node);

@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
@@ -44,7 +45,7 @@ class PubApi {
     'Accept': 'application/vnd.pub.v2+json',
     'Accept-Encoding': 'gzip',
     'User-Agent':
-        'Dart Analysis Server/${Platform.version.split(' ').first}'
+        'Dart Analysis Server/${platform.version.split(' ').first}'
         ' (+https://github.com/dart-lang/sdk)',
   };
 

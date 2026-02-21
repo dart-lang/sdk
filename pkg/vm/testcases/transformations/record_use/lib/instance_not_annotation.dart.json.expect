@@ -1,30 +1,44 @@
 {
   "constants": [
     {
+      "definition_index": 0,
       "type": "instance"
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "MyClass"
+        }
+      ],
+      "uri": "package:record_use_test/instance_not_annotation.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
     }
   ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
   },
-  "recordings": [
-    {
-      "definition": {
-        "path": [
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
           {
-            "name": "MyClass"
+            "constant_index": 0,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
           }
-        ],
-        "uri": "package:record_use_test/instance_not_annotation.dart"
-      },
-      "instances": [
-        {
-          "constant_index": 0,
-          "loading_unit": "1",
-          "type": "constant"
-        }
-      ]
-    }
-  ]
+        ]
+      }
+    ]
+  }
 }

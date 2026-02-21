@@ -19,7 +19,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'code_generator.dart';
 import 'compiler_options.dart';
-import 'constants.dart' show maxArrayNewFixedLength;
+import 'constants.dart' show maxArrayNewFixedLength, DummyValueConstant;
 import 'dispatch_table.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'intrinsics.dart' show MemberIntrinsic;
@@ -1043,7 +1043,11 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
   /// A local containing the value to be canonicalized.
   final w.Local valueLocal;
 
-  ConstantCanonicalizer(this.translator, this.b, this.valueLocal);
+  final Map<w.HeapType, w.Global> _dummyValueCheckers;
+  final w.FunctionType _dummyValueCheckerType;
+
+  ConstantCanonicalizer(this.translator, this.b, this.valueLocal,
+      this._dummyValueCheckers, this._dummyValueCheckerType);
 
   late final _checkerType = translator.typesBuilder.defineFunction([
     translator.topTypeNonNullable,
@@ -1364,9 +1368,38 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     }
   }
 
+  w.Global _initDummyValueChecker(w.HeapType heapType) {
+    final moduleBuilder = b.moduleBuilder;
+    final function = moduleBuilder.functions.define(_dummyValueCheckerType);
+    final global = moduleBuilder.globals.define(
+        w.GlobalType(w.RefType(_dummyValueCheckerType, nullable: false)));
+    global.initializer
+      ..ref_func(function)
+      ..end();
+    final ib = function.body;
+    ib.local_get(ib.locals[0]);
+    // Any value which satisfies the wasm type system will do. We just need a
+    // consistent value across modules for a given heap type. So as long as we
+    // always use the first matching one, it doesn't matter if multiple types
+    // use the same dummy value.
+    ib.ref_test(w.RefType(heapType, nullable: false));
+    ib.end();
+    return global;
+  }
+
   @override
-  Never visitAuxiliaryConstant(AuxiliaryConstant node) {
-    throw UnsupportedError('Cannot canonicalize auxiliary constants.');
+  void visitAuxiliaryConstant(AuxiliaryConstant node) {
+    if (node is DummyValueConstant) {
+      final heapType = node.type;
+      // The value is already on the stack.
+      b.global_get(
+          _dummyValueCheckers[heapType] ??= _initDummyValueChecker(heapType));
+      translator.callReference(
+          translator.dummyValueConstCanonicalize.reference, b);
+      b.ref_cast(w.RefType(heapType, nullable: false));
+      return;
+    }
+    throw UnsupportedError('Cannot canonicalize auxiliary constant: $node');
   }
 
   @override

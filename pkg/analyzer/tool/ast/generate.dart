@@ -695,6 +695,9 @@ abstract class RuleVisitorRegistry {
         if (node.isExperimental) {
           out.writeln('@experimental');
         }
+        if (node.isDeprecated) {
+          out.writeln("@Deprecated('See ${node.apiElementName} for details')");
+        }
         out.writeln('''
 void add$name(AbstractAnalysisRule rule, AstVisitor visitor);
 ''');

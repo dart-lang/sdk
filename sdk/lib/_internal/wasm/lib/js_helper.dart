@@ -58,6 +58,8 @@ class JSValue {
 
   @override
   String toString() => stringify(_ref);
+
+  bool get isExternalizedDartValue => isWasmGCStruct(_ref);
 }
 
 // Extension helpers to convert to an externref.

@@ -48,6 +48,7 @@ class DependenciesCollector {
         _devirtualizionOracle,
         reference,
         deps);
+
     // We collect dependencies of [node] and therefore only have to visit
     // AST elements that represent code (such as `FunctionNode`, `Initializer`).
     if (node is Procedure) {
@@ -58,6 +59,11 @@ class DependenciesCollector {
       node.function.accept(collector);
       for (final init in node.initializers) {
         init.accept(collector);
+      }
+      for (final field in node.enclosingClass.fields) {
+        if (field.isInstanceMember) {
+          field.initializer?.accept(collector);
+        }
       }
       collector.addReference(node.enclosingClass.reference);
       return deps;
@@ -177,16 +183,19 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
 
   @override
   void visitSuperPropertyGet(SuperPropertyGet node) {
+    super.visitSuperPropertyGet(node);
     _addSuperTargetReference(node.interfaceTarget, setter: false);
   }
 
   @override
   void visitSuperPropertySet(SuperPropertySet node) {
+    super.visitSuperPropertySet(node);
     _addSuperTargetReference(node.interfaceTarget, setter: true);
   }
 
   @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
+    super.visitSuperMethodInvocation(node);
     _addSuperTargetReference(node.interfaceTarget, setter: false);
   }
 
@@ -347,10 +356,18 @@ class DirectReferenceDependencies {
 
   DirectReferenceDependencies(this.references, this.deferredReferences,
       this.constants, this.deferredConstants);
+
+  bool get isEmpty =>
+      references.isEmpty &&
+      deferredConstants.isEmpty &&
+      constants.isEmpty &&
+      deferredConstants.isEmpty;
 }
 
 class DirectConstantDependencies {
   final Set<Constant> constants;
 
   DirectConstantDependencies(this.constants);
+
+  bool get isEmpty => constants.isEmpty;
 }

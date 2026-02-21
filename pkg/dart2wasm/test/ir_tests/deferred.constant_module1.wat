@@ -1,7 +1,7 @@
 (module $module1
+  (type $"dummy struct" <...>)
   (type $#Closure-0-1 <...>)
   (type $#Closure-1-1 <...>)
-  (type $#DummyStruct <...>)
   (type $#InstantiationContext-1-1 <...>)
   (type $#Top <...>)
   (type $#Vtable-0-1 <...>)
@@ -43,7 +43,7 @@
   (global $H1 (mut (ref null $H1))
     (ref.null none))
   (global $_FunctionType (ref $_FunctionType) <...>)
-  (global $global0 (ref $#DummyStruct) <...>)
+  (global $global0 (ref $"dummy struct") <...>)
   (global $global2 (ref $#Vtable-1-1) <...>)
   (elem $module0.cross-module-funcs-0
     (set 0 (ref.func $"modH1UseH1 <noInline>")))
@@ -139,7 +139,7 @@
     struct.get $H1 $fun
     local.tee $var0
     struct.get $#Closure-0-1 $context
-    i32.const 68
+    i32.const 69
     i64.const 1
     struct.new $BoxedInt
     local.get $var0

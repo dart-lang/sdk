@@ -48,7 +48,7 @@ namespace dart {
   V(CheckFunctionTypeArgs,               A_E, ORDN, num, reg, ___)             \
   V(CheckFunctionTypeArgs_Wide,          A_E, WIDE, num, reg, ___)             \
   V(CheckStack,                            A, ORDN, num, ___, ___)             \
-  V(DebugCheck,                            0, ORDN, ___, ___, ___)             \
+  V(Nop,                                   0, ORDN, ___, ___, ___)             \
   V(JumpIfUnchecked,                       T, ORDN, tgt, ___, ___)             \
   V(JumpIfUnchecked_Wide,                  T, WIDE, tgt, ___, ___)             \
   V(Allocate,                              D, ORDN, lit, ___, ___)             \
@@ -206,7 +206,7 @@ namespace dart {
 
   // These bytecodes are only generated within the VM. Reassigning their
   // opcodes is not a breaking change.
-#define INTERNAL_KERNEL_BYTECODES_WITH_CUSTOM_CODE(V) \
+#define INTERNAL_KERNEL_BYTECODES_WITH_CUSTOM_CODE(V)                          \
   /* ImplicitConstructorClosure and ImplicitInstanceClosure instructions  */   \
   /* use D_F encoding as they may call target constructor or method and   */   \
   /* should be compatible with other ***Call instructions                 */   \
@@ -229,7 +229,9 @@ namespace dart {
   V(VMInternal_ForwardDynamicInvocation,          0, ORDN, ___, ___, ___)      \
   V(VMInternal_ImplicitStaticClosure,             0, ORDN, ___, ___, ___)      \
   V(VMInternal_NoSuchMethodDispatcher,            0, ORDN, ___, ___, ___)      \
-  /* One breakpoint opcode for each instruction size. */                       \
+
+// One breakpoint opcode for each instruction size.
+#define INTERNAL_KERNEL_BREAKPOINT_BYTECODES(V)                                \
   V(VMInternal_Breakpoint_0,                      0, ORDN, ___, ___, ___)      \
   V(VMInternal_Breakpoint_A_B_C,              A_B_C, ORDN, num, num, num)      \
   V(VMInternal_Breakpoint_D,                      D, ORDN, num, ___, ___)      \
@@ -237,9 +239,17 @@ namespace dart {
   V(VMInternal_Breakpoint_A_E,                  A_E, ORDN, num, num, ___)      \
   V(VMInternal_Breakpoint_A_E_Wide,             A_E, WIDE, num, num, ___)      \
 
-#define INTERNAL_KERNEL_BYTECODES_LIST(V)                                      \
+#define INTERNAL_KERNEL_BYTECODES_LIST_WITH_NO_BREAKPOINTS(V)                  \
   INTERNAL_KERNEL_BYTECODES_WITH_CUSTOM_CODE(V)                                \
   INTERNAL_KERNEL_BYTECODES_WITH_DEFAULT_CODE(V)
+
+#define INTERNAL_KERNEL_BYTECODES_LIST(V)                                      \
+  INTERNAL_KERNEL_BYTECODES_LIST_WITH_NO_BREAKPOINTS(V)                        \
+  INTERNAL_KERNEL_BREAKPOINT_BYTECODES(V)
+
+#define KERNEL_BYTECODES_LIST_WITH_NO_BREAKPOINTS(V)                           \
+  PUBLIC_KERNEL_BYTECODES_LIST(V)                                              \
+  INTERNAL_KERNEL_BYTECODES_LIST_WITH_NO_BREAKPOINTS(V)
 
 #define KERNEL_BYTECODES_LIST(V)                                               \
   PUBLIC_KERNEL_BYTECODES_LIST(V)                                              \

@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 
 /// Helper for tracking request handling statistics.
 ///
 /// All [DateTime] are local, not UTC.
 class RequestStatisticsHelper {
-  final String _sdkVersion = Platform.version.split(' ').first;
+  final String _sdkVersion = platform.version.split(' ').first;
 
   final Map<String, _RequestStatistics> _statisticsMap = {};
 

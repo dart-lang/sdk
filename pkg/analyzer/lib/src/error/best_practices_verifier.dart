@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart'
     show SubstitutedExecutableElementImpl;
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -23,7 +24,6 @@ import 'package:analyzer/src/error/annotation_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_functionality_verifier.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
-import 'package:analyzer/src/error/do_not_store_member_use_verifier.dart';
 import 'package:analyzer/src/error/do_not_submit_member_use_verifier.dart';
 import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/element_usage_frontier_detector.dart';
@@ -45,6 +45,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
   InterfaceElement? _enclosingClass;
+
+  /// A flag indicating whether a surrounding member is annotated as
+  /// `@doNotStore`.
+  bool _inDoNotStoreMember = false;
 
   /// The diagnostic reporter by which diagnostics will be reported.
   final DiagnosticReporter _diagnosticReporter;
@@ -130,13 +134,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
          ),
          ElementUsageFrontierDetector(
            workspacePackage: workspacePackage,
-           elementUsageSet: const DoNotStoreElementUsageSet(),
-           elementUsageReporter: DoNotStoreElementUsageReporter(
-             diagnosticReporter: _diagnosticReporter,
-           ),
-         ),
-         ElementUsageFrontierDetector(
-           workspacePackage: workspacePackage,
            elementUsageSet: const DoNotSubmitElementUsageSet(),
            elementUsageReporter: DoNotSubmitElementUsageReporter(
              diagnosticReporter: _diagnosticReporter,
@@ -165,6 +162,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(_currentLibrary);
     }
+    _inDoNotStoreMember = _currentLibrary.metadata.hasDoNotStore;
   }
 
   @override
@@ -233,9 +231,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = element;
 
+    bool wasInDoNotStoreMember = _inDoNotStoreMember;
     _deprecatedFunctionalityVerifier.classDeclaration(node);
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(element);
+    }
+    if (element.metadata.hasDoNotStore) {
+      _inDoNotStoreMember = true;
     }
 
     try {
@@ -251,6 +253,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       for (var v in _elementUsageFrontierDetectors) {
         v.popElement();
       }
+      _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
 
@@ -428,6 +431,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      _checkForReturnOfDoNotStore(node.expression);
+    }
+    super.visitExpressionFunctionBody(node);
+  }
+
+  @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(node.declaredFragment!.element);
@@ -474,6 +485,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     try {
       super.visitFieldDeclaration(node);
       for (var field in node.fields.variables) {
+        if (!_invalidAccessVerifier._inTestDirectory) {
+          _checkForAssignmentOfDoNotStore(field.initializer);
+        }
+
         var element = field.declaredFragment!.element;
         var enclosingElement = element.enclosingElement!;
         if (enclosingElement is! InterfaceElement) {
@@ -521,9 +536,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
+    bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredFragment!.element;
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(element);
+    }
+    if (element.metadata.hasDoNotStore) {
+      _inDoNotStoreMember = true;
     }
     try {
       // Return types are inferred only on non-recursive local functions.
@@ -543,6 +562,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       for (var v in _elementUsageFrontierDetectors) {
         v.popElement();
       }
+      _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
 
@@ -669,12 +689,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var nameToken = node.name;
     var element = node.declaredFragment!.element;
     var enclosingElement = element.enclosingElement;
 
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(element);
+    }
+    if (element.metadata.hasDoNotStore) {
+      _inDoNotStoreMember = true;
     }
     try {
       _mustCallSuperVerifier.checkMethodDeclaration(node);
@@ -755,6 +779,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       for (var v in _elementUsageFrontierDetectors) {
         v.popElement();
       }
+      _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
 
@@ -878,6 +903,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitReturnStatement(ReturnStatement node) {
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      _checkForReturnOfDoNotStore(node.expression);
+    }
+    super.visitReturnStatement(node);
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _checkForDuplications(node);
     super.visitSetOrMapLiteral(node);
@@ -933,6 +966,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(node.firstVariableElement);
+    }
+
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      for (var decl in node.variables.variables) {
+        _checkForAssignmentOfDoNotStore(decl.initializer);
+      }
     }
 
     try {
@@ -1011,6 +1050,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void _checkFinalParameter(FormalParameter node, Token? keyword) {
     if (node.isFinal) {
       _diagnosticReporter.report(diag.unnecessaryFinal.at(keyword!));
+    }
+  }
+
+  void _checkForAssignmentOfDoNotStore(Expression? expression) {
+    var expressionMap = _getSubExpressionsMarkedDoNotStore(expression);
+    for (var entry in expressionMap.entries) {
+      // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
+      // named elements, so we can safely assume `entry.value.name` is
+      // non-`null`.
+      _diagnosticReporter.report(
+        diag.assignmentOfDoNotStore
+            .withArguments(name: entry.value.name!)
+            .at(entry.key),
+      );
     }
   }
 
@@ -1319,6 +1372,36 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForReturnOfDoNotStore(Expression? expression) {
+    if (_inDoNotStoreMember) {
+      return;
+    }
+    var expressionMap = _getSubExpressionsMarkedDoNotStore(expression);
+    if (expressionMap.isNotEmpty) {
+      var parent =
+          expression!.thisOrAncestorMatching(
+                (e) => e is FunctionDeclaration || e is MethodDeclaration,
+              )
+              as Declaration?;
+      if (parent == null) {
+        return;
+      }
+      for (var entry in expressionMap.entries) {
+        // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
+        // named elements, so we can safely assume `entry.value.name` is
+        // non-`null`.
+        _diagnosticReporter.report(
+          diag.returnOfDoNotStore
+              .withArguments(
+                invokedFunction: entry.value.name!,
+                returningFunction: parent.declaredFragment!.element.displayName,
+              )
+              .at(entry.key),
+        );
+      }
+    }
+  }
+
   /// Generates a warning for `noSuchMethod` methods that do nothing except of
   /// calling another `noSuchMethod` which is not defined by `Object`.
   ///
@@ -1486,6 +1569,68 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               .at(reportNode),
         );
     }
+  }
+
+  /// Return subexpressions that are marked `@doNotStore`, as a map so that
+  /// corresponding elements can be used in the diagnostic message.
+  Map<Expression, Element> _getSubExpressionsMarkedDoNotStore(
+    Expression? expression, {
+    Map<Expression, Element>? addTo,
+  }) {
+    var expressions = addTo ?? <Expression, Element>{};
+
+    Element? element;
+    if (expression is PropertyAccess) {
+      element = expression.propertyName.element;
+      // Tear-off.
+      if (element is LocalFunctionElement ||
+          element is TopLevelFunctionElement ||
+          element is MethodElement) {
+        element = null;
+      }
+    } else if (expression is MethodInvocation) {
+      element = expression.methodName.element;
+    } else if (expression is Identifier) {
+      element = expression.element;
+      // Tear-off.
+      if (element is LocalFunctionElement ||
+          element is TopLevelFunctionElement ||
+          element is MethodElement) {
+        element = null;
+      }
+    } else if (expression is ConditionalExpression) {
+      _getSubExpressionsMarkedDoNotStore(
+        expression.elseExpression,
+        addTo: expressions,
+      );
+      _getSubExpressionsMarkedDoNotStore(
+        expression.thenExpression,
+        addTo: expressions,
+      );
+    } else if (expression is BinaryExpression) {
+      _getSubExpressionsMarkedDoNotStore(
+        expression.leftOperand,
+        addTo: expressions,
+      );
+      _getSubExpressionsMarkedDoNotStore(
+        expression.rightOperand,
+        addTo: expressions,
+      );
+    } else if (expression is FunctionExpression) {
+      var body = expression.body;
+      if (body is ExpressionFunctionBody) {
+        _getSubExpressionsMarkedDoNotStore(body.expression, addTo: expressions);
+      }
+    }
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
+      element = element.variable;
+    }
+
+    if (element != null && element.hasOrInheritsDoNotStore) {
+      expressions[expression!] = element;
+    }
+
+    return expressions;
   }
 
   bool _isLibraryInWorkspacePackage(LibraryElement? library) {

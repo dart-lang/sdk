@@ -5,52 +5,75 @@
       "type": "unsupported"
     },
     {
+      "definition_index": 1,
       "type": "instance",
       "value": {
         "field": 0
       }
     }
   ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "recorded"
+        }
+      ],
+      "uri": "package:record_use_test/unsupported_instance.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "MyClass"
+        }
+      ],
+      "uri": "package:record_use_test/unsupported_instance.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
   },
-  "recordings": [
-    {
-      "calls": [
-        {
-          "loading_unit": "1",
-          "positional": [
-            1
-          ],
-          "type": "with_arguments"
-        }
-      ],
-      "definition": {
-        "path": [
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 1,
+        "uses": [
           {
-            "name": "recorded"
+            "constant_index": 1,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
           }
-        ],
-        "uri": "package:record_use_test/unsupported_instance.dart"
+        ]
       }
-    },
-    {
-      "definition": {
-        "path": [
+    ],
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
           {
-            "name": "MyClass"
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              1
+            ],
+            "type": "with_arguments"
           }
-        ],
-        "uri": "package:record_use_test/unsupported_instance.dart"
-      },
-      "instances": [
-        {
-          "constant_index": 1,
-          "loading_unit": "1",
-          "type": "constant"
-        }
-      ]
-    }
-  ]
+        ]
+      }
+    ]
+  }
 }

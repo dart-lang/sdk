@@ -1434,7 +1434,7 @@ class Translator with KernelNodes {
         // but TFA didn't remove the dead code. In that case we synthesize a
         // dummy value.
         getDummyValuesCollectorForModule(b.moduleBuilder)
-            .instantiateDummyValue(b, to);
+            .instantiateLocalDummyValue(b, to);
         return;
       }
     }
@@ -2247,6 +2247,34 @@ class Translator with KernelNodes {
           util.getWasmWeakExportPragma(coreTypes, member);
     }
     return null;
+  }
+
+  void instantiateDummyValueHeapType(
+      w.InstructionsBuilder b,
+      w.HeapType type,
+      String name,
+      void Function(w.InstructionsBuilder b, w.HeapType heapType)
+          instantiateHeapType) {
+    if (type == w.HeapType.struct) {
+      final structType = typesBuilder.defineStruct(name);
+      b.struct_new(structType);
+      return;
+    } else if (type is w.DefType) {
+      if (type is w.StructType) {
+        for (w.FieldType field in type.fields) {
+          instantiateDummyValue(b, field.type.unpacked, instantiateHeapType);
+        }
+        b.struct_new(type);
+        return;
+      } else if (type is w.ArrayType) {
+        b.array_new_fixed(type, 0);
+        return;
+      } else if (type is w.FunctionType) {
+        b.ref_func(getDummyValuesCollectorForModule(b.moduleBuilder)
+            .getDummyFunction(type));
+        return;
+      }
+    }
   }
 }
 
@@ -3223,99 +3251,24 @@ class DummyValuesCollector {
   /// This can be used as the dummy value for contexts.
   late final w.Global dummyStructGlobal;
 
-  DummyValuesCollector(this.translator, this.module) {
-    _init();
-  }
+  DummyValuesCollector(this.translator, this.module);
 
-  void _init() {
-    w.StructType structType =
-        translator.typesBuilder.defineStruct("#DummyStruct");
-    final dummyStructGlobalInit = module.globals.define(
-        w.GlobalType(w.RefType.struct(nullable: false), mutable: false));
-    final ib = dummyStructGlobalInit.initializer;
-    ib.struct_new(structType);
-    ib.end();
-    _dummyValues[w.HeapType.any] = dummyStructGlobalInit;
-    _dummyValues[w.HeapType.eq] = dummyStructGlobalInit;
-    _dummyValues[w.HeapType.struct] = dummyStructGlobalInit;
-    dummyStructGlobal = dummyStructGlobalInit;
-  }
-
-  /// When [type] is a non-nullable reference type, create a global in [module]
-  /// for its dummy value.
-  ///
-  /// Nullable references and non-reference types don't need dummy values. This
-  /// function returns [null] for nullable references and non-reference types.
-  w.Global? _prepareDummyValueGlobal(w.ModuleBuilder module, w.ValueType type) {
-    if (type is! w.RefType || type.nullable) return null;
-
-    final w.HeapType heapType = type.heapType;
-    return _dummyValues.putIfAbsent(heapType, () {
-      if (heapType is w.DefType) {
-        if (heapType is w.StructType) {
-          for (w.FieldType field in heapType.fields) {
-            _prepareDummyValueGlobal(module, field.type.unpacked);
-          }
-          final global =
-              module.globals.define(w.GlobalType(type, mutable: false));
-          final ib = global.initializer;
-          for (w.FieldType field in heapType.fields) {
-            instantiateDummyValue(ib, field.type.unpacked);
-          }
-          ib.struct_new(heapType);
-          ib.end();
-          return global;
-        } else if (heapType is w.ArrayType) {
-          final global =
-              module.globals.define(w.GlobalType(type, mutable: false));
-          final ib = global.initializer;
-          ib.array_new_fixed(heapType, 0);
-          ib.end();
-          return global;
-        } else if (heapType is w.FunctionType) {
-          final global =
-              module.globals.define(w.GlobalType(type, mutable: false));
-          final ib = global.initializer;
-          ib.ref_func(getDummyFunction(heapType));
-          ib.end();
-          return global;
-        }
-      }
-      throw 'Unexpected heapType: $heapType';
-    });
-  }
-
-  /// Produce a dummy value of any Wasm type. For non-nullable reference types,
-  /// the value is constructed in a global initializer, and the instantiation of
-  /// the value merely reads the global.
-  void instantiateDummyValue(w.InstructionsBuilder b, w.ValueType type) {
-    switch (type) {
-      case w.NumType.i32:
-        b.i32_const(0);
-        break;
-      case w.NumType.i64:
-        b.i64_const(0);
-        break;
-      case w.NumType.f32:
-        b.f32_const(0);
-        break;
-      case w.NumType.f64:
-        b.f64_const(0);
-        break;
-      default:
-        if (type is w.RefType) {
-          w.HeapType heapType = type.heapType;
-          if (type.nullable) {
-            b.ref_null(heapType.bottomType);
-          } else {
-            translator.globals.readGlobal(
-                b, _prepareDummyValueGlobal(b.moduleBuilder, type)!);
-          }
-        } else {
-          throw "Unsupported global type $type ($type)";
-        }
-        break;
+  void instantiateLocalDummyValue(w.InstructionsBuilder b, w.ValueType type) {
+    void initializeHeapType(ib, heapType) {
+      final moduleBuilder = b.moduleBuilder;
+      final global = _dummyValues.putIfAbsent(heapType, () {
+        final global = moduleBuilder.globals.define(
+            w.GlobalType(w.RefType(heapType, nullable: false), mutable: false));
+        final init = global.initializer;
+        translator.instantiateDummyValueHeapType(
+            init, heapType, "dummy $heapType", initializeHeapType);
+        init.end();
+        return global;
+      });
+      ib.global_get(global);
     }
+
+    instantiateDummyValue(b, type, initializeHeapType);
   }
 
   /// Provide a dummy function with the given signature. Used for empty entries
@@ -3333,6 +3286,38 @@ class DummyValuesCollector {
   /// Returns whether the given function was provided by [getDummyFunction].
   bool isDummyFunction(w.BaseFunction function) {
     return _dummyFunctions[function.type] == function;
+  }
+}
+
+void instantiateDummyValue(
+    w.InstructionsBuilder b,
+    w.ValueType type,
+    void Function(w.InstructionsBuilder b, w.HeapType type)
+        instantiateHeapType) {
+  switch (type) {
+    case w.NumType.i32:
+      b.i32_const(0);
+      break;
+    case w.NumType.i64:
+      b.i64_const(0);
+      break;
+    case w.NumType.f32:
+      b.f32_const(0);
+      break;
+    case w.NumType.f64:
+      b.f64_const(0);
+      break;
+    default:
+      if (type is w.RefType) {
+        w.HeapType heapType = type.heapType;
+        if (type.nullable) {
+          b.ref_null(heapType.bottomType);
+        } else {
+          instantiateHeapType(b, heapType);
+        }
+      } else {
+        throw "Unsupported global type $type ($type)";
+      }
   }
 }
 

@@ -6,8 +6,10 @@ import 'dart:typed_data';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_algebra.dart'
     show FunctionTypeInstantiator, substitute;
+import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
@@ -169,6 +171,7 @@ class Constants {
 
   late final _constantAccessor = _ConstantAccessor(translator);
 
+  final Map<w.HeapType, DummyValueConstant> _dummyValueConstants = {};
   final Map<DartType, InstanceConstant> _loweredTypeConstants = {};
   late final BoolConstant _cachedTrueConstant = BoolConstant(true);
   late final BoolConstant _cachedFalseConstant = BoolConstant(false);
@@ -257,6 +260,26 @@ class Constants {
                     : translator.immutableWasmArrayValueField.fieldReference:
                 ListConstant(elementType, entries),
           });
+
+  Constant get dummyStructConstant =>
+      _getDummyValueConstant(w.HeapType.struct, name: '#DummyStruct');
+
+  Constant _getDummyValueConstant(w.HeapType heapType, {String? name}) {
+    if (heapType == w.HeapType.eq || heapType == w.HeapType.any) {
+      heapType = w.HeapType.struct;
+    }
+    return _dummyValueConstants[heapType] ??=
+        DummyValueConstant(heapType, name ?? '$heapType');
+  }
+
+  void instantiateDummyValueConstant(
+      w.InstructionsBuilder b, w.ValueType type) {
+    instantiateDummyValue(
+        b,
+        type,
+        (ib, heapType) =>
+            instantiateConstant(b, _getDummyValueConstant(heapType), type));
+  }
 
   /// Ensure that the constant has a Wasm global assigned.
   ///
@@ -564,14 +587,8 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
   @override
   w.ValueType visitUnevaluatedConstant(UnevaluatedConstant constant) {
     if (constant == ParameterInfo.defaultValueSentinel) {
-      // Instantiate a sentinel value specific to the parameter type.
-      w.ValueType sentinelType = expectedType.withNullability(false);
-      assert(sentinelType is w.RefType,
-          "Default value sentinel for unboxed parameter");
-      translator
-          .getDummyValuesCollectorForModule(b.moduleBuilder)
-          .instantiateDummyValue(b, sentinelType);
-      return sentinelType;
+      constants.instantiateDummyValueConstant(b, expectedType);
+      return expectedType;
     }
     return super.visitUnevaluatedConstant(constant);
   }
@@ -682,13 +699,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     assert(!type.nullable);
 
     bool exportByMainApp = false;
-    bool needsRuntimeCanonicalization = false;
+    // Dummy values always use runtime canonicalization.
+    bool needsRuntimeCanonicalization = constant is DummyValueConstant;
     if (translator.dynamicModuleSupportEnabled) {
       if (!translator.isDynamicSubmodule) {
         // This is main app compilation which allows loading dynamic modules at
         // runtime. We may have to export the constant.
         exportByMainApp =
-            constant.accept(_ConstantDynamicModuleSharedChecker(translator));
+            constant.accept(_ConstantDynamicModuleSharedChecker(translator)) &&
+                constant is! DummyValueConstant;
       } else {
         // This is a dynamic module compilation.
         //
@@ -697,7 +716,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         assert(!(translator.dynamicModuleConstants?.constantNames
                 .containsKey(constant) ??
             false));
-        needsRuntimeCanonicalization =
+        needsRuntimeCanonicalization |=
             constant.accept(_ConstantDynamicModuleSharedChecker(translator));
       }
     }
@@ -1115,6 +1134,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     final closureType =
         w.RefType.def(closure.representation.closureStruct, nullable: false);
+
     return createConstant(constant, childConstants, closureType,
         canBeEager: canBeEager, forceLazyConstant: (cinfo, m) {
       final constantModule = m.module;
@@ -1122,14 +1142,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       return constantModule != vtableModule &&
           vtableModule != translator.mainModule.module;
     }, (cinfo, b, __) {
-      // The dummy struct must be declared before the constant global so that
-      // the constant's initializer can reference it.
-      final dummyStructGlobal = translator
-          .getDummyValuesCollectorForModule(b.moduleBuilder)
-          .dummyStructGlobal;
-
       b.pushObjectHeaderFields(translator, closureClassInfo);
-      translator.globals.readGlobal(b, dummyStructGlobal); // Dummy context
+      translator
+          .getDummyValuesCollectorForModule(b.moduleBuilder)
+          .instantiateLocalDummyValue(
+              b, const w.RefType.struct(nullable: false));
       translator.globals.readGlobal(b, closure.vtable);
       constants.instantiateConstant(
           b, functionTypeInfo.constant, types.nonNullableTypeType);
@@ -1384,6 +1401,67 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       b.struct_new(recordClassInfo.struct);
     });
   }
+
+  @override
+  ConstantInfo? visitAuxiliaryConstant(AuxiliaryConstant constant) {
+    if (constant is DummyValueConstant) {
+      final type = constant.type;
+
+      final childConstants = <ConstantInfo>[];
+      if (type is w.DefType) {
+        if (type is w.StructType) {
+          for (w.FieldType field in type.fields) {
+            final unpackedType = field.type.unpacked;
+            if (unpackedType is w.RefType && !unpackedType.nullable) {
+              childConstants.add(ensureConstant(
+                  constants._getDummyValueConstant(unpackedType.heapType))!);
+            }
+          }
+        }
+      }
+
+      return createConstant(
+          constant, childConstants, w.RefType(type, nullable: false),
+          canBeEager: true, (_, b, __) {
+        translator.instantiateDummyValueHeapType(b, type, constant.name,
+            (ib, heapType) {
+          constants.instantiateConstant(
+              ib,
+              constants._getDummyValueConstant(heapType),
+              w.RefType(heapType, nullable: false));
+        });
+      });
+    }
+
+    throw UnsupportedError("Unsupported auxiliary constant: $constant");
+  }
+}
+
+class DummyValueConstant extends AuxiliaryConstant {
+  final w.HeapType type;
+  final String name;
+
+  DummyValueConstant(this.type, this.name) : super();
+
+  @override
+  DartType getType(StaticTypeContext context) {
+    throw UnsupportedError('DummyValueConstant does not have a type.');
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('Dummy value constant: $name');
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {}
+
+  @override
+  int get hashCode => type.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is DummyValueConstant && other.type == type;
 }
 
 class TypeOfConstantVisitor extends ConstantVisitor<w.RefType>
@@ -1445,6 +1523,14 @@ class TypeOfConstantVisitor extends ConstantVisitor<w.RefType>
   @override
   w.RefType visitRecordConstant(RecordConstant constant) {
     return translator.getRecordClassInfo(constant.recordType).nonNullableType;
+  }
+
+  @override
+  w.RefType visitAuxiliaryConstant(AuxiliaryConstant constant) {
+    if (constant is DummyValueConstant) {
+      return w.RefType(constant.type, nullable: false);
+    }
+    throw StateError('Unexpected auxiliary constant: $constant');
   }
 
   @override
@@ -1542,6 +1628,14 @@ class _ConstantAccessor {
   /// null initializer.
   final Map<w.RefType, w.TableBuilder> lazySlotTables = {};
   late final tableImporter = WasmTableImporter(translator, 'constant-table');
+
+  final Map<w.HeapType, w.Global> _dummyValueCanonicalizationCheckers = {};
+  late final w.FunctionType _dummyValueCheckerType =
+      translator.typesBuilder.defineFunction([
+    const w.RefType.any(nullable: false),
+  ], [
+    w.NumType.i32
+  ]);
 
   _ConstantAccessor(this.translator);
 
@@ -1868,7 +1962,8 @@ class _ConstantAccessor {
     info._codeGen(info, b, true);
     if (info.needsRuntimeCanonicalization) {
       final valueLocal = b.addLocal(type);
-      info.constant.accept(ConstantCanonicalizer(translator, b, valueLocal));
+      info.constant.accept(ConstantCanonicalizer(translator, b, valueLocal,
+          _dummyValueCanonicalizationCheckers, _dummyValueCheckerType));
     }
     w.Local temp = b.addLocal(type);
     b.local_tee(temp);
@@ -1891,7 +1986,8 @@ class _ConstantAccessor {
     info._codeGen(info, b, true);
     if (info.needsRuntimeCanonicalization) {
       final valueLocal = b.addLocal(type);
-      info.constant.accept(ConstantCanonicalizer(translator, b, valueLocal));
+      info.constant.accept(ConstantCanonicalizer(translator, b, valueLocal,
+          _dummyValueCanonicalizationCheckers, _dummyValueCheckerType));
     }
     w.Local temp = b.addLocal(type);
     b.local_tee(temp);
@@ -1980,6 +2076,11 @@ class _ConstantAccessor {
     }
     if (constant is TearOffConstant) {
       return '$prefix${constant.target.name} tear-off';
+    }
+    if (constant is AuxiliaryConstant) {
+      if (constant is DummyValueConstant) {
+        return '$prefix #Dummy(${constant.type})';
+      }
     }
     return '$prefix$constant';
   }

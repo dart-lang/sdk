@@ -2905,17 +2905,17 @@ class _InstanceCreationEvaluator {
         return FromEnvironmentEvaluator(
           typeSystem,
           _declaredVariables,
-        ).getBool2(name, defaultValue, _constructor);
+        ).getBool(name, defaultValue);
       } else if (definingClass == typeProvider.intElement) {
         return FromEnvironmentEvaluator(
           typeSystem,
           _declaredVariables,
-        ).getInt2(name, defaultValue, _constructor);
+        ).getInt(name, defaultValue);
       } else if (definingClass == typeProvider.stringElement) {
         return FromEnvironmentEvaluator(
           typeSystem,
           _declaredVariables,
-        ).getString2(name, defaultValue, _constructor);
+        ).getString(name, defaultValue);
       }
     } else if (_constructor.name == 'hasEnvironment' &&
         definingClass == typeProvider.boolElement) {
@@ -3478,11 +3478,11 @@ class _InstanceCreationEvaluator {
     }
   }
 
-  Map<FormalParameterElement, DartObjectImpl>
+  Map<FormalParameterElementImpl, DartObjectImpl>
   _collectImplicitSuperFormalArguments() {
     return {
       for (var parameter in _constructor.formalParameters)
-        if (parameter case SuperFormalParameterElement parameter)
+        if (parameter is InternalSuperFormalParameterElement)
           ?parameter.superConstructorParameter?.baseElement:
               ?_parameterMap[parameter.baseElement],
     };

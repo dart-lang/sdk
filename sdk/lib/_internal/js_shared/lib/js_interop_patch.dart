@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_foreign_helper' as foreign_helper;
-import 'dart:_interceptors' show JavaScriptObject;
+import 'dart:_interceptors' show Interceptor, JavaScriptObject;
 import 'dart:_internal' show patch;
 import 'dart:_js_helper' show createObjectLiteral, staticInteropGlobalContext;
 import 'dart:_js_types';
@@ -43,12 +43,6 @@ extension JSAnyUtilityExtension on JSAny? {
       foreign_helper.JS('bool', '# instanceof #', this, constructor);
 
   @patch
-  bool isA<T>() => throw UnimplementedError(
-    "This should never be called. Calls to 'isA' should have been "
-    'transformed by the interop transformer.',
-  );
-
-  @patch
   @pragma('dart2js:prefer-inline')
   Object? dartify() => js_util.dartify(this);
 }
@@ -59,6 +53,12 @@ extension NullableObjectUtilExtension on Object? {
   @patch
   @pragma('dart2js:prefer-inline')
   JSAny? jsify() => js_util.jsify(this);
+
+  @patch
+  bool isA<T>() => throw UnimplementedError(
+    "This should never be called. Calls to 'isA' should have been "
+    'transformed by the interop transformer.',
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -100,12 +100,35 @@ final Object _jsBoxedDartObjectProperty = foreign_helper.JS(
 
 // Returns the value of the property we embed in every `JSBoxedDartObject` in
 // `any`.
+@pragma('dart2js:prefer-inline')
 Object? _getJSBoxedDartObjectPropertyValue(JSAny any) =>
     js_util.getProperty<Object?>(any, _jsBoxedDartObjectProperty);
 
-// Used in the `isA` transform.
-bool _isJSBoxedDartObject(JSAny any) =>
-    _getJSBoxedDartObjectPropertyValue(any) != null;
+// Following are used in the `isA` transform.
+@pragma('dart2js:prefer-inline')
+bool _isJSAny(Object? any) =>
+    // Primitives are interceptors under-the-hood, so this is sufficient.
+    any is Interceptor;
+
+@pragma('dart2js:prefer-inline')
+bool _isNullableJSAny(Object? any) => any == null || _isJSAny(any);
+
+@pragma('dart2js:prefer-inline')
+bool _isJSBoxedDartObject(Object? any) =>
+    _isJSAny(any) && _getJSBoxedDartObjectPropertyValue(any as JSAny) != null;
+
+@pragma('dart2js:prefer-inline')
+bool _isNullableJSBoxedDartObject(Object? any) =>
+    any == null || _isJSBoxedDartObject(any);
+
+@pragma('dart2js:prefer-inline')
+bool _isJSObject(Object? any) =>
+    // Backend will optimize this check. See rti.dart:_isJSObject for more
+    // details.
+    any is JSObject;
+
+@pragma('dart2js:prefer-inline')
+bool _isNullableJSObject(Object? any) => any == null || _isJSObject(any);
 
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object

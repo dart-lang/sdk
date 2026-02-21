@@ -196,7 +196,7 @@ TypeLiteral
 
   test_class_asExpression_expression_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 Object f() {
   return C as Object;
 }
@@ -208,14 +208,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_asExpression_expression_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -234,7 +234,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -242,12 +242,12 @@ TypeLiteral
   test_class_assertInitializer_condition_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 class A {
   A() : assert(C);
 }
 ''',
-      [error(diag.nonBoolExpression, 39, 1)],
+      [error(diag.nonBoolExpression, 36, 1)],
     );
 
     var node = findNode.typeLiteral('C);');
@@ -256,14 +256,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_assertInitializer_condition_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -285,14 +285,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_assertInitializer_message_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 class A {
   A() : assert(true, C);
 }
@@ -304,14 +304,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_assertInitializer_message_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -330,7 +330,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -338,12 +338,12 @@ TypeLiteral
   test_class_assertStatement_condition_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 void f() {
   assert(C);
 }
 ''',
-      [error(diag.nonBoolExpression, 34, 1)],
+      [error(diag.nonBoolExpression, 31, 1)],
     );
 
     var node = findNode.typeLiteral('C);');
@@ -352,14 +352,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_assertStatement_condition_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -381,14 +381,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_assertStatement_message_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f() {
   assert(true, C);
 }
@@ -400,14 +400,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_assertStatement_message_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -426,7 +426,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -547,7 +547,7 @@ TypeLiteral
 
   test_class_awaitExpression_expression_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 Future<Type> f() async {
   return await C;
 }
@@ -559,14 +559,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_awaitExpression_expression_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -585,7 +585,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -698,7 +698,7 @@ TypeLiteral
 
   test_class_binaryExpression_rightOperand_ifNull_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 Type? x;
 void f() {
   x ?? C;
@@ -711,7 +711,7 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   correspondingParameter: <null>
   staticType: Type
 ''');
@@ -719,7 +719,7 @@ TypeLiteral
 
   test_class_binaryExpression_rightOperand_ifNull_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -739,7 +739,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   correspondingParameter: <null>
   staticType: Type
 ''');
@@ -857,7 +857,7 @@ TypeLiteral
 
   test_class_cascadeExpression_target_methodInvocation_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f() {
   C..toString();
 }
@@ -869,14 +869,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_cascadeExpression_target_methodInvocation_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -895,14 +895,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_cascadeExpression_target_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f() {
   C..hashCode;
 }
@@ -914,7 +914,7 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -982,7 +982,7 @@ TypeLiteral
 
   test_class_cascadeExpression_target_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -1001,7 +1001,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -1009,10 +1009,10 @@ TypeLiteral
   test_class_conditionalExpression_condition_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 var x = C ? 0 : 1;
 ''',
-      [error(diag.nonBoolCondition, 22, 1)],
+      [error(diag.nonBoolCondition, 19, 1)],
     );
 
     var node = findNode.typeLiteral('C ?');
@@ -1021,14 +1021,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_conditionalExpression_condition_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -1048,7 +1048,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -1173,7 +1173,7 @@ TypeLiteral
 
   test_class_constructorFieldInitializer_expression_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 class A {
   Object o;
   A() : o = C;
@@ -1186,14 +1186,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_constructorFieldInitializer_expression_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -1213,14 +1213,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_defaultValue_optionalPositional_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f([Object o = C]) {}
 ''');
 
@@ -1230,14 +1230,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_defaultValue_optionalPositional_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -1254,7 +1254,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -1262,12 +1262,12 @@ TypeLiteral
   test_class_doStatement_condition_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 void f() {
   do {} while (C);
 }
 ''',
-      [error(diag.nonBoolCondition, 40, 1)],
+      [error(diag.nonBoolCondition, 37, 1)],
     );
 
     var node = findNode.typeLiteral('C);');
@@ -1276,14 +1276,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_doStatement_condition_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -1305,7 +1305,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -1410,7 +1410,7 @@ TypeLiteral
 
   test_class_expressionStatement_expression_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f() {
   C;
 }
@@ -1422,7 +1422,7 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -1456,7 +1456,7 @@ TypeLiteral
 
   test_class_expressionStatement_expression_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
-class C<T> {}
+class C {}
 ''');
 
     await assertNoErrorsInCode('''
@@ -1477,7 +1477,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -1519,14 +1519,14 @@ TypeLiteral
   test_class_forEachParts_iterable_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 void f() {
   for (var e in C) {
     e;
   }
 }
 ''',
-      [error(diag.forInOfInvalidType, 41, 1)],
+      [error(diag.forInOfInvalidType, 38, 1)],
     );
 
     var node = findNode.typeLiteral('C)');
@@ -1535,14 +1535,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_forEachParts_iterable_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -1566,7 +1566,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -1574,10 +1574,10 @@ TypeLiteral
   test_class_forElement_forEachParts_iterable_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 var v = [for (var e in C) e];
 ''',
-      [error(diag.forInOfInvalidType, 37, 1)],
+      [error(diag.forInOfInvalidType, 34, 1)],
     );
 
     var node = findNode.typeLiteral('C) e');
@@ -1586,14 +1586,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_forElement_forEachParts_iterable_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -1613,14 +1613,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_forParts_initialization_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(bool b) {
   for (C; b; ) {
     break;
@@ -1634,14 +1634,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_forParts_initialization_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -1662,14 +1662,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_forParts_updaters_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(bool b) {
   for (; b; C) {}
 }
@@ -1681,14 +1681,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_forParts_updaters_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -1707,7 +1707,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -1715,12 +1715,12 @@ TypeLiteral
   test_class_forStatement_condition_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 void f() {
   for (; C; ) {}
 }
 ''',
-      [error(diag.nonBoolCondition, 34, 1)],
+      [error(diag.nonBoolCondition, 31, 1)],
     );
 
     var node = findNode.typeLiteral('C; )');
@@ -1729,14 +1729,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_forStatement_condition_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -1758,7 +1758,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -1766,7 +1766,7 @@ TypeLiteral
   test_class_guardedPattern_whenClause_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 void f(Object x) {
   switch (x) {
     case _ when C:
@@ -1774,7 +1774,7 @@ void f(Object x) {
   }
 }
 ''',
-      [error(diag.nonBoolCondition, 64, 1)],
+      [error(diag.nonBoolCondition, 61, 1)],
     );
 
     var node = findNode.typeLiteral('C:');
@@ -1783,14 +1783,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_guardedPattern_whenClause_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -1815,14 +1815,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseElement_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 List<int> f(Object x) {
   return [if (x case C) 0];
 }
@@ -1834,14 +1834,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseElement_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -1860,14 +1860,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseElement_mapPatternEntry_key_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 List<int> f(Object x) {
   return [if (x case {C: 0}) 0];
 }
@@ -1879,14 +1879,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseElement_mapPatternEntry_key_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -1905,14 +1905,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseElement_relationalPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 List<int> f(Object x) {
   return [if (x case == C) 0];
 }
@@ -1924,14 +1924,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseElement_relationalPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -1950,14 +1950,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseStatement_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   if (x case C) {}
 }
@@ -1969,14 +1969,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseStatement_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -1995,14 +1995,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseStatement_logicalOrPattern_leftOperand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   if (x case C || int) {}
 }
@@ -2014,14 +2014,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseStatement_logicalOrPattern_leftOperand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2040,14 +2040,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseStatement_logicalOrPattern_rightOperand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   if (x case int || C) {}
 }
@@ -2059,14 +2059,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseStatement_logicalOrPattern_rightOperand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2085,14 +2085,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseStatement_mapPatternEntry_key_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   if (x case {C: 0}) {}
 }
@@ -2104,14 +2104,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseStatement_mapPatternEntry_key_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2130,14 +2130,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseStatement_relationalPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   if (x case == C) {}
 }
@@ -2149,14 +2149,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifCaseStatement_relationalPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2175,7 +2175,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -2183,10 +2183,10 @@ TypeLiteral
   test_class_ifElement_condition_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 var v = [if (C) 1];
 ''',
-      [error(diag.nonBoolCondition, 27, 1)],
+      [error(diag.nonBoolCondition, 24, 1)],
     );
 
     var node = findNode.typeLiteral('C) 1');
@@ -2195,14 +2195,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifElement_condition_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -2222,7 +2222,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -2230,12 +2230,12 @@ TypeLiteral
   test_class_ifStatement_condition_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 void f() {
   if (C) {}
 }
 ''',
-      [error(diag.nonBoolCondition, 31, 1)],
+      [error(diag.nonBoolCondition, 28, 1)],
     );
 
     var node = findNode.typeLiteral('C) {');
@@ -2244,14 +2244,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_ifStatement_condition_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -2273,14 +2273,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_indexExpression_index_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(dynamic d) {
   d[C];
 }
@@ -2292,7 +2292,7 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   correspondingParameter: <null>
   staticType: Type
 ''');
@@ -2300,7 +2300,7 @@ TypeLiteral
 
   test_class_indexExpression_index_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2319,7 +2319,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   correspondingParameter: <null>
   staticType: Type
 ''');
@@ -2328,12 +2328,12 @@ TypeLiteral
   test_class_indexExpression_target_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 void f(int i) {
   C[i];
 }
 ''',
-      [error(diag.undefinedOperator, 33, 3)],
+      [error(diag.undefinedOperator, 30, 3)],
     );
 
     var node = findNode.typeLiteral('C[i]');
@@ -2342,14 +2342,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_indexExpression_target_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -2371,14 +2371,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_interpolationExpression_expression_noPrefix() async {
     await assertNoErrorsInCode(r'''
-class C<T> {}
+class C {}
 var s = '${C}';
 ''');
 
@@ -2388,14 +2388,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_interpolationExpression_expression_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode(r'''
 import 'a.dart' as a;
@@ -2412,7 +2412,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -2420,12 +2420,12 @@ TypeLiteral
   test_class_isExpression_expression_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 bool f() {
   return C is Type;
 }
 ''',
-      [error(diag.unnecessaryTypeCheckTrue, 34, 9)],
+      [error(diag.unnecessaryTypeCheckTrue, 31, 9)],
     );
 
     var node = findNode.typeLiteral('C is');
@@ -2434,14 +2434,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_isExpression_expression_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -2463,7 +2463,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -2568,7 +2568,7 @@ TypeLiteral
 
   test_class_listLiteral_forElement_body_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 List<Object> f() {
   return [for (var _ in [0]) C];
 }
@@ -2580,14 +2580,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_listLiteral_forElement_body_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2606,14 +2606,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_listLiteral_ifElement_else_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 List<Object> f(bool b) {
   return [if (b) int else C];
 }
@@ -2625,14 +2625,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_listLiteral_ifElement_else_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2651,14 +2651,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_listLiteral_ifElement_then_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 List<Object> f(bool b) {
   return [if (b) C];
 }
@@ -2670,14 +2670,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_listLiteral_ifElement_then_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2696,7 +2696,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -2835,7 +2835,7 @@ TypeLiteral
 
   test_class_listPattern_element_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   switch (x) {
     case [C]:
@@ -2852,14 +2852,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_listPattern_element_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2883,14 +2883,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_listPattern_element_relationalPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   switch (x) {
     case [== C]:
@@ -2907,14 +2907,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_listPattern_element_relationalPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2938,14 +2938,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_mapLiteral_ifElement_key_else_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 Map<Object, int> f(bool b) {
   return {if (b) C: 1 else int: 2};
 }
@@ -2957,14 +2957,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_mapLiteral_ifElement_key_else_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -2983,14 +2983,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_mapLiteral_ifElement_value_else_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 Map<int, Object> f(bool b) {
   return {if (b) 1: C else 2: int};
 }
@@ -3002,14 +3002,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_mapLiteral_ifElement_value_else_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -3028,7 +3028,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -3363,7 +3363,7 @@ TypeLiteral
 
   test_class_mapPatternEntry_key_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   switch (x) {
     case {C: 0}:
@@ -3380,14 +3380,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_mapPatternEntry_key_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -3411,14 +3411,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_mapPatternEntry_value_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   switch (x) {
     case {'k': C}:
@@ -3435,14 +3435,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_mapPatternEntry_value_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -3466,14 +3466,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_mapPatternEntry_value_relationalPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   switch (x) {
     case {'k': == C}:
@@ -3490,14 +3490,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_mapPatternEntry_value_relationalPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -3521,7 +3521,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -3599,7 +3599,7 @@ TypeLiteral
 
   test_class_namedExpression_expression_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f({required Type t}) {}
 void g() {
   f(t: C);
@@ -3612,14 +3612,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_namedExpression_expression_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -3639,14 +3639,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_objectPattern_patternField_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 class A {
   final Object f;
   const A(this.f);
@@ -3667,14 +3667,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_objectPattern_patternField_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -3702,14 +3702,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_objectPattern_patternField_relationalPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 class A {
   final Object f;
   const A(this.f);
@@ -3730,14 +3730,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_objectPattern_patternField_relationalPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -3765,7 +3765,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -3882,7 +3882,7 @@ TypeLiteral
     // Speculation: it should be `assignmentToType`.
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 void f() {
   C++;
 }
@@ -3896,7 +3896,7 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -3906,7 +3906,7 @@ TypeLiteral
     // TODO(scheglov): Decide the exact diagnostic for `prefix.TypeLiteral++`.
     // Speculation: it should be `assignmentToType` on `C`.
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -3928,7 +3928,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -3936,10 +3936,10 @@ TypeLiteral
   test_class_prefixExpression_operand_bang_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 var x = !C;
 ''',
-      [error(diag.nonBoolNegationExpression, 23, 1)],
+      [error(diag.nonBoolNegationExpression, 20, 1)],
     );
 
     var node = findNode.typeLiteral('C;');
@@ -3948,14 +3948,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_prefixExpression_operand_bang_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -3975,7 +3975,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -3986,7 +3986,7 @@ TypeLiteral
     // Speculation: it should be `assignmentToType`.
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 void f() {
   ++C;
 }
@@ -4000,7 +4000,7 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -4010,7 +4010,7 @@ TypeLiteral
     // TODO(scheglov): Decide the exact diagnostic for `++prefix.TypeLiteral`.
     // Speculation: it should be `assignmentToType` on `C`.
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -4032,7 +4032,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -4040,10 +4040,10 @@ TypeLiteral
   test_class_prefixExpression_operand_minus_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 var x = -C;
 ''',
-      [error(diag.undefinedOperator, 22, 1)],
+      [error(diag.undefinedOperator, 19, 1)],
     );
 
     var node = findNode.typeLiteral('C;');
@@ -4052,14 +4052,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_prefixExpression_operand_minus_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -4079,7 +4079,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -4228,7 +4228,7 @@ TypeLiteral
 
   test_class_recordLiteral_fields_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 (Object,) f() {
   return (C,);
 }
@@ -4240,14 +4240,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_recordLiteral_fields_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -4266,14 +4266,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_recordPattern_patternField_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   switch (x) {
     case (C,):
@@ -4290,14 +4290,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_recordPattern_patternField_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -4321,14 +4321,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_recordPattern_patternField_relationalPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   switch (x) {
     case (== C,):
@@ -4345,14 +4345,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_recordPattern_patternField_relationalPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -4376,7 +4376,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -4587,7 +4587,7 @@ TypeLiteral
 
   test_class_setLiteral_forElement_body_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 Set<Object> f() {
   return {for (var _ in [0]) C};
 }
@@ -4599,14 +4599,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_setLiteral_forElement_body_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -4625,14 +4625,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_setLiteral_ifElement_else_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 Set<Object> f(bool b) {
   return {if (b) int else C};
 }
@@ -4644,14 +4644,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_setLiteral_ifElement_else_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -4670,14 +4670,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_setLiteral_ifElement_then_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 Set<Object> f(bool b) {
   return {if (b) C};
 }
@@ -4689,14 +4689,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_setLiteral_ifElement_then_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -4715,7 +4715,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -4919,7 +4919,7 @@ TypeLiteral
 
   test_class_switchExpressionCase_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 int f(Object x) {
   return switch (x) {
     C => 0,
@@ -4934,14 +4934,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchExpressionCase_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -4963,14 +4963,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchExpressionCase_mapPatternEntry_key_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 int f(Object x) {
   return switch (x) {
     {C: 0} => 0,
@@ -4985,14 +4985,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchExpressionCase_mapPatternEntry_key_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -5014,14 +5014,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchExpressionCase_relationalPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 int f(Object x) {
   return switch (x) {
     == C => 0,
@@ -5036,14 +5036,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchExpressionCase_relationalPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -5065,14 +5065,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchPatternCase_constantPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   switch (x) {
     case C:
@@ -5087,14 +5087,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchPatternCase_constantPattern_operand_noPrefix_matchedValueTypeType() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Type t) {
   switch (t) {
     case C:
@@ -5111,14 +5111,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchPatternCase_constantPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -5140,14 +5140,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchPatternCase_constantPattern_operand_withPrefix_matchedValueTypeType() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -5171,14 +5171,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchPatternCase_relationalPattern_operand_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f(Object x) {
   switch (x) {
     case == C:
@@ -5193,14 +5193,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchPatternCase_relationalPattern_operand_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -5222,14 +5222,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchStatement_expression_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 void f() {
   switch (C) {
     default:
@@ -5243,14 +5243,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_switchStatement_expression_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -5271,14 +5271,14 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_throwExpression_expression_noPrefix() async {
     await assertNoErrorsInCode('''
-class C<T> {}
+class C {}
 Never f() => throw C;
 ''');
 
@@ -5288,14 +5288,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_throwExpression_expression_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertNoErrorsInCode('''
 import 'a.dart' as a;
@@ -5312,7 +5312,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -5513,12 +5513,12 @@ TypeLiteral
   test_class_whileStatement_condition_noPrefix() async {
     await assertErrorsInCode(
       '''
-class C<T> {}
+class C {}
 void f() {
   while (C) {}
 }
 ''',
-      [error(diag.nonBoolCondition, 34, 1)],
+      [error(diag.nonBoolCondition, 31, 1)],
     );
 
     var node = findNode.typeLiteral('C) {');
@@ -5527,14 +5527,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_whileStatement_condition_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -5556,7 +5556,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -5564,7 +5564,7 @@ TypeLiteral
   test_class_yieldStatement_expression_noPrefix() async {
     await assertNoErrorsInCode('''
 import 'dart:async';
-class C<T> {}
+class C {}
 Stream<Type> f() async* {
   yield C;
 }
@@ -5576,7 +5576,7 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -5585,12 +5585,12 @@ TypeLiteral
     await assertErrorsInCode(
       '''
 import 'dart:async';
-class C<T> {}
+class C {}
 Stream<Type> f() async* {
   yield* C;
 }
 ''',
-      [error(diag.yieldEachOfInvalidType, 70, 1)],
+      [error(diag.yieldEachOfInvalidType, 67, 1)],
     );
 
     var node = findNode.typeLiteral('C;');
@@ -5599,14 +5599,14 @@ TypeLiteral
   type: NamedType
     name: C
     element: <testLibrary>::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
 
   test_class_yieldStatement_expression_star_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-class C<T> {}
+class C {}
 ''');
     await assertErrorsInCode(
       '''
@@ -5629,7 +5629,7 @@ TypeLiteral
       element: <testLibraryFragment>::@prefix2::a
     name: C
     element: package:test/a.dart::@class::C
-    type: C<dynamic>
+    type: C
   staticType: Type
 ''');
   }
@@ -5897,7 +5897,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_argumentList_argument_noPrefix_notInstantiated() async {
+  test_dynamic_argumentList_argument_noPrefix() async {
     await assertNoErrorsInCode('''
 void f(Type t) {}
 void g() {
@@ -5917,7 +5917,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_argumentList_argument_noPrefix_notInstantiated_parenthesized() async {
+  test_dynamic_argumentList_argument_noPrefix_parenthesized() async {
     await assertNoErrorsInCode('''
 void f(Type t) {}
 void g() {
@@ -5936,7 +5936,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_argumentList_argument_withPrefix_notInstantiated() async {
+  test_dynamic_argumentList_argument_withPrefix() async {
     await assertNoErrorsInCode('''
 import 'dart:core' as core;
 void f(core.Type t) {}
@@ -5961,7 +5961,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_binaryExpression_rightOperand_ifNull_noPrefix_notInstantiated() async {
+  test_dynamic_binaryExpression_rightOperand_ifNull_noPrefix() async {
     await assertNoErrorsInCode('''
 Object? x;
 var y = x ?? dynamic;
@@ -5979,7 +5979,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_binaryExpression_rightOperand_noPrefix_notInstantiated() async {
+  test_dynamic_binaryExpression_rightOperand_noPrefix() async {
     await assertNoErrorsInCode('''
 void f() {
   int == dynamic;
@@ -5998,7 +5998,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_binaryExpression_rightOperand_withPrefix_notInstantiated() async {
+  test_dynamic_binaryExpression_rightOperand_withPrefix() async {
     await assertNoErrorsInCode('''
 import 'dart:core' as core;
 void f() {
@@ -6022,7 +6022,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_conditionalExpression_elseExpression_noPrefix_notInstantiated() async {
+  test_dynamic_conditionalExpression_elseExpression_noPrefix() async {
     await assertNoErrorsInCode('''
 bool b = true;
 var y = b ? int : dynamic;
@@ -6039,7 +6039,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_conditionalExpression_thenExpression_noPrefix_notInstantiated() async {
+  test_dynamic_conditionalExpression_thenExpression_noPrefix() async {
     await assertNoErrorsInCode('''
 bool b = true;
 var y = b ? dynamic : int;
@@ -6118,7 +6118,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_listLiteral_elements_noPrefix_notInstantiated() async {
+  test_dynamic_listLiteral_elements_noPrefix() async {
     await assertNoErrorsInCode('''
 var l = [dynamic];
 ''');
@@ -6134,7 +6134,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_listLiteral_elements_withPrefix_notInstantiated() async {
+  test_dynamic_listLiteral_elements_withPrefix() async {
     await assertNoErrorsInCode('''
 import 'dart:core' as core;
 var l = [core.dynamic];
@@ -6155,7 +6155,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_listLiteral_ifElement_noPrefix_notInstantiated() async {
+  test_dynamic_listLiteral_ifElement_noPrefix() async {
     await assertNoErrorsInCode('''
 bool b = true;
 var l = [if (b) dynamic];
@@ -6172,7 +6172,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_listLiteral_nullAwareSpread_noPrefix_notInstantiated() async {
+  test_dynamic_listLiteral_nullAwareSpread_noPrefix() async {
     await assertErrorsInCode(
       '''
 var l = [...?dynamic];
@@ -6194,7 +6194,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_listLiteral_spread_noPrefix_notInstantiated() async {
+  test_dynamic_listLiteral_spread_noPrefix() async {
     await assertErrorsInCode(
       '''
 var l = [...dynamic];
@@ -6213,7 +6213,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_returnStatement_expression_noPrefix_notInstantiated() async {
+  test_dynamic_returnStatement_expression_noPrefix() async {
     await assertNoErrorsInCode('''
 Type f() {
   return dynamic;
@@ -6231,7 +6231,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_returnStatement_expression_withPrefix_notInstantiated() async {
+  test_dynamic_returnStatement_expression_withPrefix() async {
     await assertNoErrorsInCode('''
 import 'dart:core' as core;
 core.Type f() {
@@ -6254,7 +6254,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_variableDeclaration_initializer_noPrefix_notInstantiated() async {
+  test_dynamic_variableDeclaration_initializer_noPrefix() async {
     await assertNoErrorsInCode('''
 var t = dynamic;
 ''');
@@ -6270,7 +6270,7 @@ TypeLiteral
 ''');
   }
 
-  test_dynamic_variableDeclaration_initializer_noPrefix_notInstantiated_hasTypeArguments() async {
+  test_dynamic_variableDeclaration_initializer_noPrefix_hasTypeArguments() async {
     await assertErrorsInCode(
       '''
 var t = dynamic<int>;
@@ -6298,7 +6298,7 @@ FunctionReference
 ''');
   }
 
-  test_dynamic_variableDeclaration_initializer_withPrefix_notInstantiated() async {
+  test_dynamic_variableDeclaration_initializer_withPrefix() async {
     await assertNoErrorsInCode('''
 import 'dart:core' as core;
 var t = core.dynamic;
@@ -7624,7 +7624,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_argumentList_argument_noPrefix_notInstantiated() async {
+  test_typeParameter_argumentList_argument() async {
     await assertNoErrorsInCode('''
 class C<T> {
   void f(Type t) {}
@@ -7646,7 +7646,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_argumentList_argument_noPrefix_notInstantiated_hasTypeArguments() async {
+  test_typeParameter_argumentList_argument_hasTypeArguments() async {
     await assertErrorsInCode(
       '''
 class C<T> {
@@ -7680,7 +7680,7 @@ FunctionReference
 ''');
   }
 
-  test_typeParameter_assignmentExpression_rightHandSide_noPrefix_notInstantiated() async {
+  test_typeParameter_assignmentExpression_rightHandSide() async {
     await assertNoErrorsInCode('''
 class C<T> {
   Type t = int;
@@ -7702,7 +7702,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_binaryExpression_leftOperand_noPrefix_notInstantiated() async {
+  test_typeParameter_binaryExpression_leftOperand() async {
     await assertNoErrorsInCode('''
 class C<T> {
   void f() {
@@ -7722,7 +7722,28 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_binaryExpression_rightOperand_ifNull_noPrefix_notInstantiated() async {
+  test_typeParameter_binaryExpression_rightOperand() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  void f() {
+    int == T;
+  }
+}
+''');
+
+    var node = findNode.typeLiteral('T;');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: Type
+''');
+  }
+
+  test_typeParameter_binaryExpression_rightOperand_ifNull() async {
     await assertNoErrorsInCode('''
 class C<T> {
   Object? x;
@@ -7744,28 +7765,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_binaryExpression_rightOperand_noPrefix_notInstantiated() async {
-    await assertNoErrorsInCode('''
-class C<T> {
-  void f() {
-    int == T;
-  }
-}
-''');
-
-    var node = findNode.typeLiteral('T;');
-    assertResolvedNodeText(node, r'''
-TypeLiteral
-  type: NamedType
-    name: T
-    element: #E0 T
-    type: T
-  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
-  staticType: Type
-''');
-  }
-
-  test_typeParameter_expressionFunctionBody_expression_noPrefix_notInstantiated() async {
+  test_typeParameter_expressionFunctionBody_expression() async {
     await assertNoErrorsInCode('''
 class C<T> {
   Type f() => T;
@@ -7783,7 +7783,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_expressionFunctionBody_expression_noPrefix_notInstantiated_parenthesized() async {
+  test_typeParameter_expressionFunctionBody_expression_parenthesized() async {
     await assertNoErrorsInCode('''
 class C<T> {
   Type f() => (T);
@@ -7801,7 +7801,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_expressionStatement_expression_noPrefix_enum() async {
+  test_typeParameter_expressionStatement_expression_enum() async {
     await assertNoErrorsInCode('''
 enum E<T> {
   v;
@@ -7822,7 +7822,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_listLiteral_elements_noPrefix_notInstantiated() async {
+  test_typeParameter_listLiteral_elements() async {
     await assertNoErrorsInCode('''
 class C<T> {
   var l = [T];
@@ -7840,7 +7840,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_listLiteral_ifElement_else_noPrefix_notInstantiated() async {
+  test_typeParameter_listLiteral_ifElement_else() async {
     await assertNoErrorsInCode('''
 class C<T> {
   List<Object> f(bool b) {
@@ -7860,7 +7860,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_listLiteral_nullAwareSpread_noPrefix_notInstantiated() async {
+  test_typeParameter_listLiteral_nullAwareSpread() async {
     await assertErrorsInCode(
       '''
 class C<T> {
@@ -7884,7 +7884,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_localFunctionTypeParameter_variableDeclaration_initializer_noPrefix_notInstantiated() async {
+  test_typeParameter_localFunctionTypeParameter_variableDeclaration_initializer() async {
     await assertErrorsInCode(
       '''
 void f() {
@@ -7910,7 +7910,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_mapLiteral_ifElement_key_else_noPrefix_notInstantiated() async {
+  test_typeParameter_mapLiteral_ifElement_key_else() async {
     await assertErrorsInCode(
       '''
 class C<T> {
@@ -7943,7 +7943,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_mapLiteral_key_noPrefix_notInstantiated() async {
+  test_typeParameter_mapLiteral_key() async {
     await assertNoErrorsInCode('''
 class C<T> {
   var m = {T: 1};
@@ -7961,7 +7961,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_mapLiteral_value_noPrefix_notInstantiated() async {
+  test_typeParameter_mapLiteral_value() async {
     await assertNoErrorsInCode('''
 class C<T> {
   var m = {1: T};
@@ -7979,7 +7979,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_returnStatement_expression_noPrefix_notInstantiated() async {
+  test_typeParameter_returnStatement_expression() async {
     await assertNoErrorsInCode('''
 class C<T> {
   Type f() {
@@ -7999,7 +7999,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_setLiteral_elements_noPrefix_notInstantiated() async {
+  test_typeParameter_setLiteral_elements() async {
     await assertNoErrorsInCode('''
 class C<T> {
   var s = {T};
@@ -8017,7 +8017,7 @@ TypeLiteral
 ''');
   }
 
-  test_typeParameter_variableDeclaration_initializer_noPrefix_notInstantiated_hasTypeArguments() async {
+  test_typeParameter_variableDeclaration_initializer_hasTypeArguments() async {
     await assertErrorsInCode(
       '''
 class C<T> {

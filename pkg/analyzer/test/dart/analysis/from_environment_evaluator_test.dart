@@ -156,11 +156,7 @@ class FromEnvironmentEvaluatorTest {
     String name,
     DartObjectImpl? defaultValue,
   ) {
-    return variables.getBool2(
-      name,
-      defaultValue,
-      typeProvider.boolElement.getNamedConstructor('fromEnvironment')!,
-    );
+    return variables.getBool(name, defaultValue);
   }
 
   DartObjectImpl _getInt(
@@ -168,11 +164,7 @@ class FromEnvironmentEvaluatorTest {
     String name,
     DartObjectImpl? defaultValue,
   ) {
-    return variables.getInt2(
-      name,
-      defaultValue,
-      typeProvider.intElement.getNamedConstructor('fromEnvironment')!,
-    );
+    return variables.getInt(name, defaultValue);
   }
 
   DartObjectImpl _getString(
@@ -180,11 +172,7 @@ class FromEnvironmentEvaluatorTest {
     String name,
     DartObjectImpl? defaultValue,
   ) {
-    return variables.getString2(
-      name,
-      defaultValue,
-      typeProvider.stringElement.getNamedConstructor('fromEnvironment')!,
-    );
+    return variables.getString(name, defaultValue);
   }
 
   DartObjectImpl _intValue(int value) {

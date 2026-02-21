@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:io' as io;
-import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
@@ -35,6 +34,7 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
+import 'package:analysis_server/src/services/perf_witness/perf_witness.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
@@ -83,6 +83,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
@@ -96,7 +97,6 @@ import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-import 'package:perf_witness/server.dart' as perf_witness;
 import 'package:watcher/watcher.dart';
 
 /// The function for sending `openUri` request to the client.
@@ -316,7 +316,7 @@ abstract class AnalysisServer {
        pubApi = PubApi(
          instrumentationService,
          httpClient,
-         Platform.environment['PUB_HOSTED_URL'],
+         platform.environment['PUB_HOSTED_URL'],
        ),
        messageScheduler = MessageScheduler(
          listener:
@@ -336,7 +336,7 @@ abstract class AnalysisServer {
       processRunner ??= ProcessRunner();
     }
     var disablePubCommandVariable =
-        Platform.environment[PubCommand.disablePubCommandEnvironmentKey];
+        platform.environment[PubCommand.disablePubCommandEnvironmentKey];
     var pubCommand = processRunner != null && disablePubCommandVariable == null
         ? PubCommand(
             instrumentationService,
@@ -440,7 +440,7 @@ abstract class AnalysisServer {
 
   /// The default line terminator that should be used by the server when there
   /// is no existing EOL to copy.
-  String get defaultEol => io.Platform.lineTerminator;
+  String get defaultEol => platform.lineTerminator;
 
   /// A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
   Map<Folder, analysis.AnalysisDriver> get driverMap =>
@@ -1167,7 +1167,7 @@ abstract class AnalysisServer {
     surveyManager?.shutdown();
     await contextManager.dispose();
     await analyticsManager.shutdown();
-    await perf_witness.PerfWitnessServer.shutdown();
+    await shutdownPerfWitness();
   }
 
   ResolvedForCompletionResultImpl?

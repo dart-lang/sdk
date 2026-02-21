@@ -97,7 +97,7 @@ js/static_interop_test/extension_type/external_static_member_test: SkipByDesign 
 js/static_interop_test/external_extension_members_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
-js/static_interop_test/isa/functional_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/isa/isa_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/isa/library_renaming_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_array_proxy_or_ref_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_array_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code

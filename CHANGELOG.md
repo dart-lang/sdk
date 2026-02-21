@@ -54,6 +54,14 @@ main() {
 
 #### `dart:js_interop`
 
+- **Breaking Change**: `isA` is moved from `JSAnyUtilityExtension` to
+  `NullableObjectUtilExtension` to support type-checking any `Object?`.
+  `isA<JSObject>()` also now handles JS objects with no prototypes correctly and
+  `isA<JSAny>()` does a non-trivial check to make sure the value is a JS value.
+  See [#56905][] for more details.
+
+[#56905]: https://github.com/dart-lang/sdk/issues/56905
+
 - Added `JSIterableProtocol`, `JSIterable`, `JSIteratorProtocol`, `JSIterator`,
   and `JSIteratorResult` types to model JavaScript's [iteration protocols].
   `JSArray` and `JSString` now implement `JSIterable`.

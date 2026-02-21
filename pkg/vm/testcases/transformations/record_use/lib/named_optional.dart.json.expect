@@ -9,39 +9,58 @@
       "value": 4
     }
   ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "someStaticMethod"
+        }
+      ],
+      "uri": "package:record_use_test/named_optional.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
   },
-  "recordings": [
-    {
-      "calls": [
-        {
-          "loading_unit": "1",
-          "named": {
-            "i": 0
-          },
-          "type": "with_arguments"
-        },
-        {
-          "loading_unit": "1",
-          "named": {
-            "i": 1
-          },
-          "type": "with_arguments"
-        }
-      ],
-      "definition": {
-        "path": [
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
           {
-            "name": "SomeClass"
+            "loading_unit_indices": [
+              0
+            ],
+            "named": {
+              "i": 0
+            },
+            "type": "with_arguments"
           },
           {
-            "name": "someStaticMethod"
+            "loading_unit_indices": [
+              0
+            ],
+            "named": {
+              "i": 1
+            },
+            "type": "with_arguments"
           }
-        ],
-        "uri": "package:record_use_test/named_optional.dart"
+        ]
       }
-    }
-  ]
+    ]
+  }
 }

@@ -178,9 +178,11 @@ class TypeHierarchyComputerHelper {
     // try to find enclosing ClassElement
     Element? element = pivotElement;
     bool pivotFieldFinal = false;
-    if (pivotElement is FieldElement) {
-      pivotFieldFinal = pivotElement.isFinal;
-      element = pivotElement.enclosingElement;
+    if (pivotElement
+        case FieldFormalParameterElement(:var field?) || FieldElement field) {
+      pivotElement = field;
+      pivotFieldFinal = field.isFinal;
+      element = field.enclosingElement;
     }
     if (pivotElement is ExecutableElement) {
       element = pivotElement.enclosingElement;

@@ -8,21 +8,24 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
-import 'package:vm/metadata/loading_units.dart';
+import 'package:vm/metadata/loading_units.dart' as vm_metadata;
 import 'package:vm/transformations/record_use/record_call.dart';
 import 'package:vm/transformations/record_use/record_instance.dart';
 
 /// Maps a kernel node to the a string representing the loading unit it belongs
 /// to. Different backends may represent loading units differently.
-typedef LoadingUnitLookup = String Function(ast.TreeNode node);
+typedef LoadingUnitLookup = LoadingUnit Function(ast.TreeNode node);
 
 LoadingUnitLookup _getDefaultLoadingUnitLookup(ast.Component component) {
   final loadingMetadata =
-      component.metadata[LoadingUnitsMetadataRepository.repositoryTag]
-          as LoadingUnitsMetadataRepository;
+      component.metadata[vm_metadata
+              .LoadingUnitsMetadataRepository
+              .repositoryTag]
+          as vm_metadata.LoadingUnitsMetadataRepository;
   final loadingUnits = loadingMetadata.mapping[component]?.loadingUnits ?? [];
-  return (ast.TreeNode node) =>
-      _loadingUnitForLibrary(enclosingLibrary(node)!, loadingUnits).toString();
+  return (ast.TreeNode node) => LoadingUnit(
+    _loadingUnitForLibrary(enclosingLibrary(node)!, loadingUnits).toString(),
+  );
 }
 
 /// Collect calls and constant instances annotated with `@RecordUse`.
@@ -182,6 +185,7 @@ Constant evaluateLiteral(ast.BasicLiteral expression) => switch (expression) {
 
 InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) =>
     InstanceConstant(
+      definition: _definitionFromClass(constant.classNode),
       fields: constant.fieldValues.map(
         (key, value) =>
             MapEntry(key.asField.name.text, evaluateConstant(value)),
@@ -190,6 +194,15 @@ InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) =>
 
 UnsupportedConstant _unsupported(String constantType) =>
     UnsupportedConstant('$constantType is not supported for recording.');
+
+Definition _definitionFromClass(ast.Class cls) {
+  final enclosingLibrary = cls.enclosingLibrary;
+  final importUri = enclosingLibrary.importUri.toString();
+
+  return Definition(importUri, [
+    Name(cls.name, kind: DefinitionKind.classKind),
+  ]);
+}
 
 ast.Library? enclosingLibrary(ast.TreeNode node) {
   while (node is! ast.Library) {
@@ -202,7 +215,7 @@ ast.Library? enclosingLibrary(ast.TreeNode node) {
 
 int _loadingUnitForLibrary(
   ast.Library library,
-  List<LoadingUnit> loadingUnits,
+  List<vm_metadata.LoadingUnit> loadingUnits,
 ) {
   final importUri = library.importUri.toString();
   return loadingUnits

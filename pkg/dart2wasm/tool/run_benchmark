@@ -17,38 +17,15 @@ function follow_links() {
   echo "$file"
 }
 
-function get_realpath() {
-  file="$1"
-  if [ -f "$file" ]; then
-    file="$(cd $(dirname "$file"); pwd -P)/$(basename "$file")"
-  fi
-  echo $(follow_links "$file")
-}
-
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
 PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
 # Handle the case where dart-sdk/bin has been symlinked to.
 PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
-SDK_DIR="$(cd "${PROG_DIR}/../../.." ; pwd -P)"
+source "$PROG_DIR/utils.sh"
 
 RUN_WASM="$SDK_DIR/pkg/dart2wasm/bin/run_wasm.js"
 
-function host_arch() {
-  # Use uname to determine the host architecture.
-  case `uname -m` in
-    x86_64)
-    echo "x64"
-    ;;
-    aarch64 | arm64 | armv8*)
-    echo "arm64"
-    ;;
-    *)
-    echo "Unsupported host architecture" `uname -m` >&2
-    exit 1
-    ;;
-  esac
-}
 
 function host_os() {
   if [[ `uname` == 'Darwin' ]]; then
@@ -58,7 +35,7 @@ function host_os() {
   fi
 }
 
-D8_BIN="$SDK_DIR/third_party/d8/$(host_os)/$(host_arch)/d8"
+D8_BIN="$SDK_DIR/third_party/d8/$(host_os)/$(get_host_arch)/d8"
 JSSHELL_BIN="$SDK_DIR/third_party/firefox_jsshell/js"
 JSC_BIN="$SDK_DIR/third_party/jsc/jsc"
 

@@ -5,29 +5,49 @@
       "value": "42"
     }
   ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "extension",
+          "name": "<unnamed>"
+        },
+        {
+          "disambiguators": [
+            "instance"
+          ],
+          "kind": "method",
+          "name": "callWithArgs"
+        }
+      ],
+      "uri": "package:record_use_test/extension.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.4.0"
   },
-  "recordings": [
-    {
-      "calls": [
-        {
-          "loading_unit": "1",
-          "positional": [
-            0
-          ],
-          "type": "with_arguments"
-        }
-      ],
-      "definition": {
-        "path": [
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
           {
-            "name": "_extension#0|callWithArgs"
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              0
+            ],
+            "type": "with_arguments"
           }
-        ],
-        "uri": "package:record_use_test/extension.dart"
+        ]
       }
-    }
-  ]
+    ]
+  }
 }

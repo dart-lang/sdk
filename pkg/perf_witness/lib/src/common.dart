@@ -9,8 +9,8 @@ import 'package:dart_data_home/dart_data_home.dart';
 import 'package:path/path.dart' as p;
 
 final String? _controlSocketsDirectory = () {
-  final dir = getDartDataHome('perf');
   try {
+    final dir = getDartDataHome('perf');
     // Ensure that directory exists.
     io.Directory(dir).createSync(recursive: true);
     return dir;

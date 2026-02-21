@@ -979,6 +979,22 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   _AssignedVariablesVisitor(this.assignedVariables);
 
   @override
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    node.target?.accept(this);
+    var parameters = node.parameters;
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        var element = parameter.declaredFragment?.element;
+        if (element is FormalParameterElementImpl) {
+          assignedVariables.declare(element);
+        }
+      }
+      parameters.accept(this);
+    }
+    node.body.accept(this);
+  }
+
+  @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var element = node.element;
     if (element is PromotableElementImpl) {

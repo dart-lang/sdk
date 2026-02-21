@@ -9,19 +9,15 @@ import "dart:_js_helper";
 import 'dart:_wasm';
 import 'dart:js_interop' hide JS;
 
-/// TODO(joshualitt): When `JSNull` and `JSUndefined` are boxed we can share
-/// this with `js_interop_patch.dart`.
-T _box<T>(WasmExternRef? ref) => JSValue.box(ref) as T;
-
 @patch
 extension JSObjectUnsafeUtilExtension on JSObject {
   @patch
-  JSBoolean hasProperty(JSAny property) => _box<JSBoolean>(
+  JSBoolean hasProperty(JSAny property) => JSValue.boxT<JSBoolean>(
     JS<WasmExternRef?>('(o, p) => p in o', toExternRef, property.toExternRef),
   );
 
   @patch
-  T getProperty<T extends JSAny?>(JSAny property) => _box<T>(
+  T getProperty<T extends JSAny?>(JSAny property) => JSValue.boxT<T>(
     JS<WasmExternRef?>('(o, p) => o[p]', toExternRef, property.toExternRef),
   );
 
@@ -40,7 +36,7 @@ extension JSObjectUnsafeUtilExtension on JSObject {
     JSAny? arg2,
     JSAny? arg3,
     JSAny? arg4,
-  ]) => _box<JSAny?>(
+  ]) => JSValue.boxT<JSAny?>(
     callMethodVarArgsRaw(
       toExternRef,
       method.toExternRef,
@@ -55,7 +51,7 @@ extension JSObjectUnsafeUtilExtension on JSObject {
 
   @patch
   JSAny? _callMethodVarArgs(JSAny method, [List<JSAny?>? arguments]) =>
-      _box<JSAny?>(
+      JSValue.boxT<JSAny?>(
         callMethodVarArgsRaw(
           toExternRef,
           method.toExternRef,
@@ -64,7 +60,7 @@ extension JSObjectUnsafeUtilExtension on JSObject {
       );
 
   @patch
-  JSBoolean delete(JSAny property) => _box<JSBoolean>(
+  JSBoolean delete(JSAny property) => JSValue.boxT<JSBoolean>(
     JS<WasmExternRef?>(
       '(o, p) => delete o[p]',
       toExternRef,
@@ -81,7 +77,7 @@ extension JSFunctionUnsafeUtilExtension on JSFunction {
     JSAny? arg2,
     JSAny? arg3,
     JSAny? arg4,
-  ]) => _box<JSObject>(
+  ]) => JSValue.boxT<JSObject>(
     callConstructorVarArgsRaw(
       toExternRef,
       [
@@ -95,7 +91,7 @@ extension JSFunctionUnsafeUtilExtension on JSFunction {
 
   @patch
   JSObject _callAsConstructorVarArgs([List<JSAny?>? arguments]) =>
-      _box<JSObject>(
+      JSValue.boxT<JSObject>(
         callConstructorVarArgsRaw(
           toExternRef,
           (arguments ?? <JSAny?>[]).toJS.toExternRef,

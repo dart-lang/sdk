@@ -26,6 +26,7 @@ import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/perf_witness/perf_witness.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analysis_server/src/socket_server.dart';
@@ -38,12 +39,9 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
-import 'package:perf_witness/server.dart' as perf_witness;
-import 'package:perf_witness/src/async_span.dart' as perf_witness;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
@@ -183,9 +181,8 @@ class Driver implements ServerStarter {
     List<String> arguments, {
     SendPort? sendPort,
     bool defaultToLsp = false,
-  }) {
-    OperationPerformanceImpl.runAsyncHook = perf_witness.AsyncSpan.runUnary;
-    perf_witness.PerfWitnessServer.start(tag: 'das').ignore();
+  }) async {
+    await startPerfWitness();
 
     var sessionStartTime = DateTime.now();
     var parser = createArgParser(defaultToLsp: defaultToLsp);

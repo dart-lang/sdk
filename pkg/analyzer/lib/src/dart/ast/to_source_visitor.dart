@@ -40,21 +40,20 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   @experimental
   void visitAnonymousExpressionBody(AnonymousExpressionBody node) {
-    sink.write(node.functionDefinition);
+    sink.write(node.functionDefinition.lexeme);
+    sink.write(' ');
     _visitNode(node.expression);
   }
 
   @override
   @experimental
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
-    if (node.isCascaded) {
-      sink.write(node.operator.lexeme);
-    } else {
-      _visitNode(node.target);
-      sink.write(node.operator.lexeme);
+    _visitNode(node.target);
+    _visitToken(node.operator);
+    _visitNode(node.parameters);
+    if (node.parameters != null) {
+      sink.write(' ');
     }
-    var parameters = node.parameters;
-    if (parameters != null) _visitNode(parameters);
     _visitNode(node.body);
   }
 

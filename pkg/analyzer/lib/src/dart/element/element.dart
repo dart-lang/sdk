@@ -3888,7 +3888,8 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   FunctionType get type => _firstFragment.type;
 
   @override
-  List<TypeParameterElement> get typeParameters => _firstFragment.typeParameters
+  List<TypeParameterElementImpl> get typeParameters => _firstFragment
+      .typeParameters
       .map((fragment) => fragment.element)
       .toList();
 
@@ -5448,6 +5449,21 @@ mixin InternalSetterElement on InternalPropertyAccessorElement
 
   @override
   List<SetterFragmentImpl> get fragments;
+}
+
+mixin InternalSuperFormalParameterElement on InternalFormalParameterElement
+    implements SuperFormalParameterElement {
+  @override
+  SuperFormalParameterElementImpl get baseElement;
+
+  @override
+  SuperFormalParameterFragmentImpl get firstFragment;
+
+  @override
+  List<SuperFormalParameterFragmentImpl> get fragments;
+
+  @override
+  InternalFormalParameterElement? get superConstructorParameter;
 }
 
 mixin InternalVariableElement implements VariableElement {
@@ -9400,8 +9416,11 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 }
 
 class SuperFormalParameterElementImpl extends FormalParameterElementImpl
-    implements SuperFormalParameterElement {
+    with InternalSuperFormalParameterElement {
   SuperFormalParameterElementImpl(super.firstFragment);
+
+  @override
+  SuperFormalParameterElementImpl get baseElement => this;
 
   @override
   String? get defaultValueCode {

@@ -179,7 +179,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
               name: "this");
           translator
               .getDummyValuesCollectorForModule(b.moduleBuilder)
-              .instantiateDummyValue(b, thisLocal!.type);
+              .instantiateLocalDummyValue(b, thisLocal!.type);
           b.local_set(thisLocal!);
 
           preciseThisLocal = thisLocal;

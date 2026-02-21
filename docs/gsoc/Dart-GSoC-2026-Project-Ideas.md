@@ -149,15 +149,34 @@ Related to: https://github.com/flutter/dart-intellij-third-party/issues/207
 
 ## **Idea:** Add WebSocket/GRPC Support to Flutter DevTools Network panel
 
- - **Possible Mentor(s)**: Elliott Brooks, Samuel Rawlins
- - **Difficulty**: Medium
- - **Project size**: Medium (175 hours)
+ - **Possible Mentor(s)**: [Elliott Brooks](https://github.com/elliette), [Samuel Rawlins](https://github.com/srawlins)
+ - **Difficulty**: Hard
+ - **Project size**: Medium (175 hours) or Large (350 hours)
  - **Skills**: Dart, Flutter
 
 **Description**:
 
-The network panel on Flutter DevTools currently only supports HTTP connections, but many developers use other types of connections between their applications and back end services. Adding support for these would dramatically increase the effectiveness of the network panel for developers.
+The Dart & Flutter DevTools Network panel currently only supports HTTP requests, but many developers use other types of connections between their applications and back end services. Adding support for these would dramatically increase the effectiveness of the Network panel for developers.
 
+This project involves extending `dart:io`, `dart:developer`, and the `VM Service` to record and expose `WebSocket` traffic details, and updating the DevTools Network panel to display that information. Once `WebSocket` support is added, there is an opportunity to add the same support for gRPC traffic (which would likely make this a `Large` and not `Medium` project).
+
+The expected outcome of the project is for WebSocket traffic details (and potentially gRPC traffic details) to be displayed in the DevTools Network panel.
+
+**Good Sample Projects**:
+
+Implement a `ProfileableWebSocket` wrapper and create a Dart CLI application that uses this wrapper to display real-time traffic logs.
+
+Part 1: Create a `ProfileableWebSocket` wrapper class that implements `dart:io`'s `WebSocket` interface. The wrapper should record network traffic by intercepting every `add` call and `listen` event. It should record the time, size, and type of each frame and store it in a local buffer that can be queried.
+
+Part 2: Create a Dart CLI app that uses `ProfileableWebSocket`. It should connect to a public [WebSocket echo server](https://websocket.org/tools/websocket-echo-server/) and allow users to send messages. After every message sent it should print to the console a formatted table of the last ten socket events captured by the wrapper.
+
+**Further reading**:
+
+* [Design and Sizing for WebSocket Support](https://github.com/flutter/devtools/issues/9507)
+* [`dart:io` documentation](https://dart.dev/libraries/dart-io)
+* [Dart VM Service Protocol](https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md)
+* [DevTools Network Panel documentation](https://docs.flutter.dev/tools/devtools/network)
+* [Dart DevTools source code](https://github.com/flutter/devtools)
 
 
 
