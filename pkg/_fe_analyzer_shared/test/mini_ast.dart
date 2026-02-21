@@ -1790,6 +1790,7 @@ class Harness {
     'int.>=': Type('bool Function(num)'),
     'int.abs': Type('int Function()'),
     'int.isEven': Type('bool'),
+    'num.+': Type('num Function(num)'),
     'num.sign': Type('num'),
     'Object.toString': Type('String Function()'),
   };
@@ -2769,11 +2770,11 @@ abstract class LValue extends Expression {
   void preVisit(PreVisitor visitor, {_LValueDisposition disposition});
 
   /// Creates an expression representing a write to this L-value.
-  Expression write(ProtoExpression? value) {
+  Expression write(ProtoExpression value) {
     var location = computeLocation();
     return new Write(
       this,
-      value?.asExpression(location: location),
+      value.asExpression(location: location),
       location: location,
     );
   }
@@ -4368,12 +4369,58 @@ class PostIncDec extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    Type type = h.typeAnalyzer
+    Type operandType = h.typeAnalyzer
         .analyzeExpression(lhs, h.operations.unknownType)
         .type
         .unwrapTypeView();
-    lhs._visitPostIncDec(h, this, type);
-    return new ExpressionTypeAnalysisResult(type: SharedTypeView(type));
+    var member = h.getMember(operandType, '+');
+    if (member == null) {
+      fail('No + operator found for $operandType');
+    }
+    var memberType = member._type;
+    if (memberType is! FunctionType) {
+      fail('Expected function type for + operator, got $memberType');
+    }
+    var writtenType = memberType.returnType;
+    lhs._visitPostIncDec(h, this, writtenType);
+    return new ExpressionTypeAnalysisResult(type: SharedTypeView(operandType));
+  }
+}
+
+/// Representation of a postfix increment or decrement operation.
+class PreIncDec extends Expression {
+  final LValue lhs;
+
+  PreIncDec(this.lhs, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    lhs.preVisit(visitor, disposition: _LValueDisposition.readWrite);
+  }
+
+  @override
+  String toString() => '++$lhs';
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    Type operandType = h.typeAnalyzer
+        .analyzeExpression(lhs, h.operations.unknownType)
+        .type
+        .unwrapTypeView();
+    var member = h.getMember(operandType, '+');
+    if (member == null) {
+      fail('No + operator found for $operandType');
+    }
+    var memberType = member._type;
+    if (memberType is! FunctionType) {
+      fail('Expected function type for + operator, got $memberType');
+    }
+    var writtenType = memberType.returnType;
+    var flowAnalysisInfo = lhs._visitWrite(h, this, writtenType, null);
+    return new ExpressionTypeAnalysisResult(
+      type: SharedTypeView(writtenType),
+      flowAnalysisInfo: flowAnalysisInfo,
+    );
   }
 }
 
@@ -5616,6 +5663,16 @@ class Var extends Node
     );
   }
 
+  /// Creates an expression representing a prefix increment or decrement
+  /// operation applied to this variable.
+  Expression preIncDec() {
+    var location = computeLocation();
+    return new PreIncDec(
+      new VariableReference._(this, null, location: location),
+      location: location,
+    );
+  }
+
   @override
   void preVisit(PreVisitor visitor) {}
 
@@ -5628,11 +5685,11 @@ class Var extends Node
   String toString() => 'var $name';
 
   /// Creates an expression representing a write to this variable.
-  Expression write(ProtoExpression? value) {
+  Expression write(ProtoExpression value) {
     var location = computeLocation();
     return new Write(
       new VariableReference._(this, null, location: location),
-      value?.asExpression(location: location),
+      value.asExpression(location: location),
       location: location,
     );
   }
@@ -5896,13 +5953,10 @@ class VariableReference extends LValue {
     Expression postIncDecExpression,
     Type writtenType,
   ) {
-    h.flow.storeExpressionInfo(
+    h.flow.postIncDec(
       postIncDecExpression,
-      h.flow.postIncDec(
-        postIncDecExpression,
-        variable,
-        SharedTypeView(writtenType),
-      ),
+      variable,
+      SharedTypeView(writtenType),
     );
   }
 
@@ -6086,19 +6140,14 @@ class WrappedExpression extends Expression {
 
 class Write extends Expression {
   final LValue lhs;
-  final Expression? rhs;
+  final Expression rhs;
 
   Write(this.lhs, this.rhs, {required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
-    lhs.preVisit(
-      visitor,
-      disposition: rhs == null
-          ? _LValueDisposition.readWrite
-          : _LValueDisposition.write,
-    );
-    rhs?.preVisit(visitor);
+    lhs.preVisit(visitor, disposition: _LValueDisposition.write);
+    rhs.preVisit(visitor);
   }
 
   @override
@@ -6107,20 +6156,10 @@ class Write extends Expression {
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     var rhs = this.rhs;
-    Type type;
-    if (rhs == null) {
-      // We are simulating an increment/decrement operation.
-      // TODO(paulberry): Make a separate node type for this.
-      type = h.typeAnalyzer
-          .analyzeExpression(lhs, h.operations.unknownType)
-          .type
-          .unwrapTypeView();
-    } else {
-      type = h.typeAnalyzer
-          .analyzeExpression(rhs, h.operations.unknownType)
-          .type
-          .unwrapTypeView();
-    }
+    Type type = h.typeAnalyzer
+        .analyzeExpression(rhs, h.operations.unknownType)
+        .type
+        .unwrapTypeView();
     var flowAnalysisInfo = lhs._visitWrite(h, this, type, rhs);
     // TODO(paulberry): null shorting
     return new ExpressionTypeAnalysisResult(

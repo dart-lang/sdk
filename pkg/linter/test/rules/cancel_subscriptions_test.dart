@@ -30,6 +30,37 @@ class CancelSubscriptionsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.cancel_subscriptions;
 
+  test_extensionType_implementsStreamSubscription_canceled() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(Stream stream) {
+  E e = E(stream.listen((_) {}));
+  e.cancel();
+}
+extension type E(StreamSubscription _s) implements StreamSubscription {}
+''');
+  }
+
+  test_extensionType_implementsStreamSubscription_notCanceled() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:async';
+void f(Stream stream) {
+  E e = E(stream.listen((_) {}));
+}
+extension type E(StreamSubscription _s) implements StreamSubscription {}
+''',
+      [lint(49, 28)],
+    );
+  }
+
+  test_extensionType_representation_notCanceled() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+extension type E(StreamSubscription _s) {}
+''');
+  }
+
   test_localVariable_canceled() async {
     await assertNoDiagnostics(r'''
 import 'dart:async';

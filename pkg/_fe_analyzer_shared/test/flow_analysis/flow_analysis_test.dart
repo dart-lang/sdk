@@ -2090,6 +2090,62 @@ main() {
       ]);
     });
 
+    test('postIncDec() demotes to the written type', () {
+      // If `x` has type B, but is promoted to subtype C and then D, and D
+      // has a `+` operator that returns C, then after `x++`, `x` should be
+      // demoted to C.
+      var x = Var('x');
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('D', (_) => [Type('C'), Type('B'), Type('Object')]);
+      h.addMember('D', '+', 'C Function(int)');
+      h.run([
+        declare(x, initializer: expr('B')),
+        x.as_('C'),
+        x.as_('D'),
+        x.postIncDec(),
+        checkPromoted(x, 'C'),
+      ]);
+    });
+
+    test('preIncDec() stores expressionInfo in the write', () {
+      // num x;
+      // if (++x is int) {
+      //   x is promoted.
+      // }
+
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'num'),
+        if_(
+          x
+              .preIncDec()
+              .is_('int')
+              .getExpressionInfo((info) => expect(info, isNotNull)),
+          [checkPromoted(x, 'int')],
+        ),
+        checkNotPromoted(x),
+      ]);
+    });
+
+    test('preIncDec() demotes to the written type', () {
+      // If `x` has type B, but is promoted to subtype C and then D, and D
+      // has a `+` operator that returns C, then after `++x`, `x` should be
+      // demoted to C.
+      var x = Var('x');
+      h.addSuperInterfaces('B', (_) => [Type('Object')]);
+      h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+      h.addSuperInterfaces('D', (_) => [Type('C'), Type('B'), Type('Object')]);
+      h.addMember('D', '+', 'C Function(int)');
+      h.run([
+        declare(x, initializer: expr('B')),
+        x.as_('C'),
+        x.as_('D'),
+        x.preIncDec(),
+        checkPromoted(x, 'C'),
+      ]);
+    });
+
     test('switchExpression throw in scrutinee makes all cases unreachable', () {
       h.run([
         switchExpr(throw_(expr('C')), [
@@ -3291,20 +3347,6 @@ main() {
               .eq(nullLiteral)
               .getExpressionInfo((info) => expect(info, isNotNull)),
         ),
-        getSsaNodes((nodes) {
-          expect(nodes[x], isNot(ssaBeforeWrite));
-          expect(nodes[x]!.conditionVariableState, isNull);
-        }),
-      ]);
-    });
-
-    test('write() permits expression to be null', () {
-      var x = Var('x');
-      late SsaNode ssaBeforeWrite;
-      h.run([
-        declare(x, type: 'Object', initializer: expr('Object')),
-        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
-        x.write(null),
         getSsaNodes((nodes) {
           expect(nodes[x], isNot(ssaBeforeWrite));
           expect(nodes[x]!.conditionVariableState, isNull);
