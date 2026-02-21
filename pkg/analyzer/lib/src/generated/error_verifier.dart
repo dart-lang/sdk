@@ -369,7 +369,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+  void visitAnonymousMethodInvocation(
+    covariant AnonymousMethodInvocationImpl node,
+  ) {
+    var target = node.target;
+    if (target != null) checkForUseOfVoidResult(target);
     _constArgumentsVerifier.visitAnonymousMethodInvocation(node);
     if (node.parameters == null) {
       _withThisContext(ThisContext.instanceMemberBody, () {
