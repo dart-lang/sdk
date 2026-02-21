@@ -120,6 +120,11 @@ namespace dart {
   V(ImmutableList_from, 4)                                                     \
   V(StringBase_createFromCodePoints, 3)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
+  V(Json_findStringTerminator, 3)                                              \
+  V(Json_findStringTerminatorUtf8, 3)                                          \
+  V(Json_parseOneByteFast, 2)                                                  \
+  V(Json_parseTwoByteFast, 2)                                                  \
+  V(CompactHash_createMapFromKeyValueListUnsafe, 2)                            \
   V(StringBase_joinReplaceAllResult, 4)                                        \
   V(StringBase_intern, 1)                                                      \
   V(StringBuffer_createStringFromUint16Array, 3)                               \
@@ -276,6 +281,8 @@ namespace dart {
   V(Internal_allocateTwoByteString, 1)                                         \
   V(Internal_writeIntoOneByteString, 3)                                        \
   V(Internal_writeIntoTwoByteString, 3)                                        \
+  V(Internal_decodeUtf8ToOneByteString, 4)                                     \
+  V(Internal_decodeUtf8ToTwoByteString, 4)                                     \
   V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
   V(Internal_allocateObjectInstructionsStart, 0)                               \
   V(Internal_allocateObjectInstructionsEnd, 0)                                 \

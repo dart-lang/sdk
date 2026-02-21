@@ -1338,6 +1338,16 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
 typedef DefaultMap<K, V> = _Map<K, V>;
 typedef DefaultSet<E> = _Set<E>;
 
+final Object _mapFastFailureSentinel = Object();
+
 @pragma('vm:prefer-inline')
-Map<K, V> createMapFromKeyValueListUnsafe<K, V>(List keyValuePairs) =>
-    DefaultMap<K, V>().._populateUnsafe(keyValuePairs);
+Map<K, V> createMapFromKeyValueListUnsafe<K, V>(List keyValuePairs) {
+  final Object? fast = internal.createMapFromKeyValueListUnsafeNative<K, V>(
+    keyValuePairs,
+    _mapFastFailureSentinel,
+  );
+  if (!identical(fast, _mapFastFailureSentinel)) {
+    return internal.unsafeCast<Map<K, V>>(fast);
+  }
+  return DefaultMap<K, V>().._populateUnsafe(keyValuePairs);
+}
