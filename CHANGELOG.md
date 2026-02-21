@@ -71,11 +71,15 @@ main() {
 
 #### `dart:js_interop`
 
-- **Breaking Change**: `isA` is moved from `JSAnyUtilityExtension` to
-  `NullableObjectUtilExtension` to support type-checking any `Object?`.
-  `isA<JSObject>()` also now handles JS objects with no prototypes correctly and
-  `isA<JSAny>()` does a non-trivial check to make sure the value is a JS value.
-  See [#56905][] for more details.
+- **Breaking Change in extension name of `isA`**: `isA` is moved from
+  `JSAnyUtilityExtension` to `NullableObjectUtilExtension` to support
+  type-checking any `Object?`. `isA<JSObject>()` also now handles JS objects
+  with no prototypes correctly and `isA<JSAny>()` does a non-trivial check to
+  make sure the value is a JS value. See [#56905][] for more details. As
+  `JSAnyUtilityExtension` is on `JSAny?` and `NullableObjectUtilExtension` is on
+  the supertype `Object?`, this change is only breaking if users referred to the
+  extension name directly, either through applying the extension directly or
+  through using `show`/`hide` directives.
 
 [#56905]: https://github.com/dart-lang/sdk/issues/56905
 
