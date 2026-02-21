@@ -17,6 +17,30 @@ class CloseSinksTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.close_sinks;
 
+  test_extensionType_implementsSink_closed() async {
+    await assertNoDiagnostics(r'''
+import 'dart:io';
+void f(IOSink sink) {
+  E e = E(sink);
+  e.close();
+}
+extension type E(IOSink _s) implements IOSink {}
+''');
+  }
+
+  test_extensionType_implementsSink_notClosed() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:io';
+void f(IOSink sink) {
+  E e = E(sink);
+}
+extension type E(IOSink _s) implements IOSink {}
+''',
+      [lint(44, 11)],
+    );
+  }
+
   test_field_closed() async {
     await assertNoDiagnostics(r'''
 import 'dart:io';
