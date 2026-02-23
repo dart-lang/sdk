@@ -566,19 +566,18 @@ class ParallelWaitError<V, E> extends Error {
 
   /// Creates error with the provided [values] and [errors].
   ///
-  /// If [defaultError] is provided, its [AsyncError.error] is used in
+  /// If [_defaultError] is provided, its [AsyncError.error] is used in
   /// the [toString] of this parallel error, and its [AsyncError.stackTrace]
   /// is returned by [stackTrace].
   ///
-  /// If [errorCount] is provided, and it's greater than one,
+  /// If [_errorCount] is provided, and it's greater than one,
   /// the number is reported in the [toString].
   ParallelWaitError(
     this.values,
     this.errors, {
-    @Since("3.4") int? errorCount,
-    @Since("3.4") AsyncError? defaultError,
-  }) : _defaultError = defaultError,
-       _errorCount = errorCount;
+    @Since("3.4") this._errorCount,
+    @Since("3.4") this._defaultError,
+  });
 
   String toString() {
     if (_defaultError == null) {

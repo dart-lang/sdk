@@ -20,7 +20,7 @@ void main() {
 }
 
 @RecordUse()
-class MyClass {
+final class MyClass {
   final int i;
   final String s;
   final Map<String, bool> m;

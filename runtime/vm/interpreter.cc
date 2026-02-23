@@ -328,7 +328,7 @@ Interpreter::Interpreter()
 
   last_setjmp_buffer_ = nullptr;
 
-  DEBUG_ONLY(icount_ = 1);  // So that tracing after 0 traces first bytecode.
+  DEBUG_ONLY(icount_ = 0);
 
 #if defined(DEBUG)
   trace_file_bytes_written_ = 0;
@@ -378,7 +378,6 @@ Interpreter* Interpreter::Current() {
 
 #if defined(DEBUG)
 // Returns true if tracing of executed instructions is enabled.
-// May be called on entry, when icount_ has not been incremented yet.
 DART_FORCE_INLINE bool Interpreter::IsTracingExecution() const {
   return icount_ > FLAG_trace_interpreter_after;
 }
@@ -389,10 +388,13 @@ DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc,
   THR_Print("%" Pu64 " ", icount_);
   if (FLAG_support_disassembler) {
     auto const bytecode = Function::GetBytecode(FrameFunction(FP));
+    auto const start = reinterpret_cast<uword>(pc);
+    auto const end = reinterpret_cast<uword>(KernelBytecode::Next(pc));
     KernelBytecodeDisassembler::Disassemble(
-        reinterpret_cast<uword>(pc),
-        reinterpret_cast<uword>(KernelBytecode::Next(pc)),
-        Bytecode::PayloadStartOf(bytecode));
+        start, end,
+        UntaggedBytecode::ContainsPC(bytecode, start)
+            ? Bytecode::PayloadStartOf(bytecode)
+            : start);
   } else {
     THR_Print("Disassembler not supported in this mode.\n");
   }
@@ -804,31 +806,26 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 // Counts and prints executed bytecode instructions (in DEBUG mode).
 #if defined(DEBUG)
 #define TRACE_INSTRUCTION                                                      \
+  icount_++;                                                                   \
   if (IsTracingExecution()) {                                                  \
     TraceInstruction(pc, FP);                                                  \
   }                                                                            \
   if (IsWritingTraceFile()) {                                                  \
     WriteInstructionToTrace(pc);                                               \
-  }                                                                            \
-  icount_++;
+  }
 #define BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION                                  \
   do {                                                                         \
-    if (IsTracingExecution()) {                                                \
-      /* Use the original instruction count. */                                \
-      auto const icount = icount_ - 1;                                         \
-      auto const instr_size = KernelBytecode::kInstructionSize[op];            \
-      THR_Print("%" Pu64 " ", icount);                                         \
-      THR_Print("dispatching to original instruction\n");                      \
-      THR_Print("%" Pu64 " ", icount);                                         \
-      if (FLAG_support_disassembler) {                                         \
-        KBCInstr temp[6];                                                      \
-        *temp = op;                                                            \
-        memmove(temp + 1, pc + 1, instr_size - 1);                             \
-        KernelBytecodeDisassembler::Disassemble(                               \
-            reinterpret_cast<uword>(temp),                                     \
-            reinterpret_cast<uword>(temp + instr_size));                       \
-      } else {                                                                 \
-        THR_Print("Disassembler not supported in this mode.\n");               \
+    if (IsTracingExecution() || IsWritingTraceFile()) {                        \
+      KBCInstr temp[KernelBytecode::kMaxInstructionSize];                      \
+      *temp = op;                                                              \
+      memmove(temp + 1, pc + 1, KernelBytecode::kInstructionSize[op] - 1);     \
+      if (IsTracingExecution()) {                                              \
+        THR_Print("%" Pu64 " ", icount_);                                      \
+        THR_Print("dispatching to original instruction\n");                    \
+        TraceInstruction(temp, FP);                                            \
+      }                                                                        \
+      if (IsWritingTraceFile()) {                                              \
+        WriteInstructionToTrace(temp);                                         \
       }                                                                        \
     }                                                                          \
   } while (0)
@@ -858,8 +855,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     goto* dispatch[ADJUST_FOR_SINGLE_STEPPING(op)];                            \
   } while (0)
 #if !defined(PRODUCT)
-// The dispatch from a single step check back to the original instruction
-// implementation should ignore single_stepping_offset.
+// Used when dispatching from a breakpoint or single step handler back to
+// the original instruction implementation.
 #define DISPATCH_ORIGINAL_OPCODE goto* dispatch[op]
 #endif  // !defined(PRODUCT)
 #else
@@ -870,8 +867,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     goto SwitchDispatch;                                                       \
   } while (0)
 #if !defined(PRODUCT)
-// The dispatch from a single step check back to the original instruction
-// implementation should ignore single_stepping_offset.
+// Used when dispatching from a breakpoint or single step handler back to
+// the original instruction implementation.
 #define DISPATCH_ORIGINAL_OPCODE goto SwitchDispatchNoSingleStep
 #endif  // !defined(PRODUCT)
 #endif  // defined(DART_HAS_COMPUTED_GOTO)
@@ -4410,6 +4407,7 @@ SwitchDispatchNoSingleStep:
 #define DEFINE_BREAKPOINT(Name, __, ___, ____, _____, ______)                  \
   {                                                                            \
     BYTECODE_ENTRY_LABEL(Name) DEFINE_BREAKPOINT_BODY;                         \
+    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
     DISPATCH_ORIGINAL_OPCODE;                                                  \
   }
   INTERNAL_KERNEL_BREAKPOINT_BYTECODES(DEFINE_BREAKPOINT)
@@ -4428,9 +4426,7 @@ SwitchDispatchNoSingleStep:
 #define SINGLE_STEP_HANDLER_BODY                                               \
   do {                                                                         \
     if (IsTracingExecution()) {                                                \
-      /* Use the original instruction count, as it was incremented before */   \
-      /* the dispatch jump. */                                                 \
-      THR_Print("%" Pu64 " calling single step handler\n", icount_ - 1);       \
+      THR_Print("%" Pu64 " calling single step handler\n", icount_);           \
     }                                                                          \
     SINGLE_STEP_HANDLER_BODY_NO_TRACE;                                         \
   } while (0)
@@ -4453,6 +4449,7 @@ SwitchDispatchNoSingleStep:
     // not pause immediately at the same location before hitting the breakpoint.
     DEFINE_BREAKPOINT_BODY;
     SINGLE_STEP_HANDLER_BODY;
+    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;
     DISPATCH_ORIGINAL_OPCODE;
   }
 #undef SINGLE_STEP_HANDLER_ENTRY

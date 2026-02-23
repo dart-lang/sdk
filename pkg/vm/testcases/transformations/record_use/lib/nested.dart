@@ -13,13 +13,13 @@ void main() {
 }
 
 @RecordUse()
-class MyClass {
+final class MyClass {
   final Object i;
 
   const MyClass(this.i);
 }
 
 @RecordUse()
-class MyOtherClass {
+final class MyOtherClass {
   const MyOtherClass();
 }

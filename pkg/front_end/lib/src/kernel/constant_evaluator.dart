@@ -352,28 +352,21 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   void transformAnnotations(List<Expression> nodes, Annotatable parent) {
-    if (evaluateAnnotations && nodes.length > 0) {
-      transformExpressions(nodes, parent);
+    if (evaluateAnnotations) {
+      if (nodes.length > 0) {
+        transformExpressions(nodes, parent);
 
-      if (StaticWeakReferences.isAnnotatedWithWeakReferencePragma(
-        parent,
-        typeEnvironment.coreTypes,
-      )) {
-        StaticWeakReferences.validateWeakReferenceDeclaration(
+        if (StaticWeakReferences.isAnnotatedWithWeakReferencePragma(
           parent,
-          constantEvaluator.errorReporter,
-        );
+          typeEnvironment.coreTypes,
+        )) {
+          StaticWeakReferences.validateWeakReferenceDeclaration(
+            parent,
+            constantEvaluator.errorReporter,
+          );
+        }
       }
-      final Iterable<InstanceConstant> resourceAnnotations =
-          RecordUse.findRecordUseAnnotation(parent);
-      if (resourceAnnotations.isNotEmpty) {
-        // Coverage-ignore-block(suite): Not run.
-        RecordUse.validateRecordUseDeclaration(
-          parent,
-          constantEvaluator.errorReporter,
-          resourceAnnotations,
-        );
-      }
+      RecordUse.validateAnnotations(parent, constantEvaluator.errorReporter);
     }
   }
 

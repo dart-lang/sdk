@@ -2,7 +2,7 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 
-abstract class MyClass extends core::Object /*hasConstConstructor*/  {
+abstract final class MyClass extends core::Object /*hasConstConstructor*/  {
 
   [@vm.unreachable.metadata=]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]

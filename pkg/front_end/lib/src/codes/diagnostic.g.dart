@@ -11099,11 +11099,39 @@ const MessageCode recordUseCannotBePlacedHere = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode recordUseClassesMustBeFinal = const MessageCode(
+  "RecordUseClassesMustBeFinal",
+  problemMessage: """Classes marked with '@RecordUse' must be final.""",
+  correctionMessage:
+      """Try marking the class as 'final' or removing the '@RecordUse' annotation.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode recordUseOutsideOfPackage = const MessageCode(
   "RecordUseOutsideOfPackage",
   problemMessage:
       """`RecordUse` annotations are only supported in libraries with a `package:` URI.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
+recordUseSubtypingNotSupported = const Template(
+  "RecordUseSubtypingNotSupported",
+  withArguments: _withArgumentsRecordUseSubtypingNotSupported,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRecordUseSubtypingNotSupported({required String name}) {
+  var name_0 = conversions.validateAndDemangleName(name);
+  return new Message(
+    recordUseSubtypingNotSupported,
+    problemMessage:
+        """Class '${name_0}' is marked with '@RecordUse' and cannot be used as a supertype.""",
+    correctionMessage:
+        """Try removing the supertype or removing the '@RecordUse' annotation from '${name_0}'.""",
+    arguments: {'name': name},
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode recordUsedAsCallable = const MessageCode(

@@ -32,7 +32,6 @@ Iterable<InstanceConstant> findRecordUseAnnotation(Annotatable node) {
   return result ?? const [];
 }
 
-// Coverage-ignore(suite): Not run.
 bool hasRecordUseAnnotation(Annotatable node) =>
     findRecordUseAnnotation(node).isNotEmpty;
 
@@ -55,12 +54,12 @@ bool _enclosedInLibraryWithPackageUri(Annotatable node) {
   return library?.importUri.isScheme('package') ?? false;
 }
 
-// Coverage-ignore(suite): Not run.
 bool isBeingRecorded(Annotatable node) {
   final bool hasAnnotation = hasRecordUseAnnotation(node);
 
   if (!hasAnnotation) return false;
 
+  // Coverage-ignore(suite): Not run.
   return _enclosedInLibraryWithPackageUri(node);
 }
 
@@ -72,10 +71,59 @@ Uri? _getFileUri(Annotatable node) {
   return node.location?.file;
 }
 
+/// Performs all validations for `@RecordUse` on the given [node].
+void validateAnnotations(Annotatable node, ErrorReporter errorReporter) {
+  final Iterable<InstanceConstant> annotations = findRecordUseAnnotation(node);
+
+  if (annotations.isNotEmpty) {
+    // Coverage-ignore-block(suite): Not run.
+    _validateRecordUseDeclaration(node, errorReporter, annotations);
+    _validateClassIsFinal(node, errorReporter);
+  }
+
+  if (node is Class) {
+    _validateSubtyping(node, errorReporter);
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+void _validateClassIsFinal(Annotatable node, ErrorReporter errorReporter) {
+  if (node is Class && !node.isFinal) {
+    final Uri? fileUri = _getFileUri(node);
+    if (fileUri != null) {
+      errorReporter.report(
+        diag.recordUseClassesMustBeFinal.withLocation(
+          fileUri,
+          node.fileOffset,
+          node.name.length,
+        ),
+      );
+    }
+  }
+}
+
+void _validateSubtyping(Class node, ErrorReporter errorReporter) {
+  final List<Class> supertypes = node.supers.map((e) => e.classNode).toList();
+
+  for (final Class supertype in supertypes) {
+    if (isBeingRecorded(supertype)) {
+      // Coverage-ignore-block(suite): Not run.
+      final Uri? fileUri = _getFileUri(node);
+      if (fileUri != null) {
+        errorReporter.report(
+          diag.recordUseSubtypingNotSupported
+              .withArguments(name: supertype.name)
+              .withLocation(fileUri, node.fileOffset, node.name.length),
+        );
+      }
+    }
+  }
+}
+
 // Coverage-ignore(suite): Not run.
 /// Report if the resource annotations is placed on anything but a static
 /// method or a class without a const constructor.
-void validateRecordUseDeclaration(
+void _validateRecordUseDeclaration(
   Annotatable node,
   ErrorReporter errorReporter,
   Iterable<InstanceConstant> resourceAnnotations,

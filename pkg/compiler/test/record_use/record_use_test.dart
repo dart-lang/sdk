@@ -88,6 +88,14 @@ Future<void> main() async {
               errors,
             );
           }
+          if (testFile.basename.contains('record_use_final')) {
+            Expect.contains('RecordUse', errors);
+            Expect.contains('must be final', errors);
+          }
+          if (testFile.basename.contains('subtyping')) {
+            Expect.contains('RecordUse', errors);
+            Expect.contains('cannot be used as a supertype', errors);
+          }
           return;
         }
 
@@ -152,19 +160,21 @@ void main() {
 }
 
 Iterable<TestFile> _getTestFiles(String dirPath, String packageName) {
-  return Directory(dirPath)
-      .listSync()
+  final baseDir = Directory(dirPath);
+  return baseDir
+      .listSync(recursive: true)
       .whereType<File>()
       .where((file) => file.path.endsWith('.dart'))
-      .map(
-        (file) => TestFile(
+      .map((file) {
+        final relativePath = path.relative(file.path, from: baseDir.path);
+        return TestFile(
           file: file,
-          basename: path.basename(file.path),
+          basename: relativePath,
           contents: file.readAsStringSync(),
-          uri: Uri.parse('package:$packageName/${path.basename(file.path)}'),
+          uri: Uri.parse('package:$packageName/$relativePath'),
           packageName: packageName,
-        ),
-      );
+        );
+      });
 }
 
 class TestFile {

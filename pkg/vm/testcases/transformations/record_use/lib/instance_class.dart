@@ -9,7 +9,7 @@ void main() {
 }
 
 @RecordUse()
-class MyClass {
+final class MyClass {
   final int i;
 
   const MyClass(this.i);
