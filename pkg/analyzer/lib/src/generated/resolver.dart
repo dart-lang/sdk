@@ -5128,26 +5128,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.nameScope = nameScope;
-      node.namePart.typeParameters?.accept(this);
-      node.extendsClause?.accept(this);
-      node.withClause?.accept(this);
-      node.implementsClause?.accept(this);
-      node.nativeClause?.accept(this);
-
-      _scopeContext.withInstanceScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.namePart
-            .tryCast<PrimaryConstructorDeclarationImpl>()
-            ?.formalParameters
-            .accept(this);
-        node.body.accept(this);
-      });
-    });
+    _scopeContext.visitClassDeclaration(
+      node,
+      visitor: this,
+      visitDocumentationComment: _visitDocumentationComment,
+      visitBody: (body) {
+        body.accept(this);
+      },
+    );
   }
 
   @override
@@ -5248,39 +5236,22 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.nameScope = nameScope;
-      node.typeParameters?.accept(this);
-      node.onClause?.accept(this);
-
-      _scopeContext.withExtensionScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.body.accept(this);
-      });
-    });
+    _scopeContext.visitExtensionDeclaration(
+      node,
+      visitor: this,
+      visitDocumentationComment: _visitDocumentationComment,
+    );
   }
 
   @override
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    var element = node.declaredFragment!.element;
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.nameScope = nameScope;
-      node.primaryConstructor.typeParameters?.accept(this);
-      node.implementsClause?.accept(this);
-
-      _scopeContext.withInstanceScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.primaryConstructor.formalParameters.accept(this);
-        node.body.accept(this);
-      });
-    });
+    _scopeContext.visitExtensionTypeDeclaration(
+      node,
+      visitor: this,
+      visitDocumentationComment: _visitDocumentationComment,
+    );
   }
 
   @override

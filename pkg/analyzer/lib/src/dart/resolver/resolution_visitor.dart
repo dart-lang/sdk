@@ -211,34 +211,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-    node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.namePart.typeParameters, () {
-      node.namePart.accept(this);
-
-      var extendsClause = node.extendsClause;
-      var withClause = node.withClause;
-
-      if (extendsClause != null) {
-        _resolveType(
-          declaration: node,
-          clause: extendsClause,
-          namedType: extendsClause.superclass,
-        );
-      }
-
-      _resolveWithClause(declaration: node, clause: withClause);
-      _resolveImplementsClause(
-        declaration: node,
-        clause: node.implementsClause,
-      );
-
-      _withEnclosingInstanceElement(element, () {
-        _scopeContext.withInstanceScope(element, () {
-          node.body.accept(this);
+    _scopeContext.visitClassDeclaration(
+      node,
+      visitor: this,
+      visitBody: (body) {
+        _withEnclosingInstanceElement(element, () {
+          body.accept(this);
         });
-      });
-    });
+      },
+    );
 
     _namedTypeResolver.enclosingClass = null;
   }
@@ -389,22 +371,28 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtendsClause(covariant ExtendsClauseImpl node) {
+    _resolveType(
+      declaration: node.parent as Declaration?,
+      clause: node,
+      namedType: node.superclass,
+    );
+  }
+
+  @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(this);
-      node.onClause?.accept(this);
-
-      _withEnclosingInstanceElement(element, () {
-        _scopeContext.withExtensionScope(element, () {
-          node.body.accept(this);
+    _scopeContext.visitExtensionDeclaration(
+      node,
+      visitor: this,
+      visitBody: (body) {
+        _withEnclosingInstanceElement(element, () {
+          body.accept(this);
         });
-      });
-    });
+      },
+    );
   }
 
   @override
@@ -417,20 +405,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _namedTypeResolver.enclosingClass = element;
     node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(
-      node.primaryConstructor.typeParameters,
-      () {
-        node.primaryConstructor.accept(this);
-
-        _resolveImplementsClause(
-          declaration: node,
-          clause: node.implementsClause,
-        );
-
+    _scopeContext.visitExtensionTypeDeclaration(
+      node,
+      visitor: this,
+      visitBody: (body) {
         _withEnclosingInstanceElement(element, () {
-          _scopeContext.withInstanceScope(element, () {
-            node.body.accept(this);
-          });
+          body.accept(this);
         });
       },
     );
@@ -1037,6 +1017,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitWhileStatement(covariant WhileStatementImpl node) {
     node.condition.accept(this);
     _visitStatementInScope(node.body);
+  }
+
+  @override
+  void visitWithClause(covariant WithClauseImpl node) {
+    _resolveWithClause(declaration: node.parent as Declaration?, clause: node);
   }
 
   List<BindPatternVariableElementImpl> _computeDeclaredPatternVariables(
