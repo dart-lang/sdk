@@ -134,10 +134,17 @@ class RuntimeTypeGenerator {
       FunctionEntity method = classFunctionType.callFunction;
       FunctionType type = classFunctionType.callType;
 
-      // TODO(johnniwinther): Avoid unneeded function type indices or
-      // signatures. We either need them for mirrors or because [type] is
-      // potentially a subtype of a checked function. Currently we eagerly
-      // generate a function type index or signature for all callable classes.
+      // Only generate function type signatures for closures or when the
+      // signature function exists and has generated code. This avoids
+      // creating unused entries in the types table for callable classes that
+      // don't have tear-offs.
+      js_ast.Expression? signatureFunctionCode =
+          generatedCode[classFunctionType.signatureFunction];
+      if (signatureFunctionCode == null) {
+        // No signature function was generated, so we don't need this entry.
+        return;
+      }
+
       js_ast.Expression? functionTypeIndex;
       bool isDeferred = false;
       if (!type.containsTypeVariables) {
@@ -162,8 +169,7 @@ class RuntimeTypeGenerator {
       if (storeFunctionTypeInMetadata && functionTypeIndex != null) {
         result.functionTypeIndex = functionTypeIndex;
       } else {
-        js_ast.Expression? encoding =
-            generatedCode[classFunctionType.signatureFunction];
+        js_ast.Expression? encoding = signatureFunctionCode;
         if (functionTypeIndex != null) {
           if (isDeferred) {
             // The function type index must be offset by the number of types
