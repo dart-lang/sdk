@@ -554,6 +554,48 @@ suggestions
 ''');
   }
 
+  Future<void>
+  test_matchingContext_pattern_first_withoutGetter_afterColon_partial() async {
+    await computeSuggestions('''
+void f1(Object x0) {
+  switch (x0) {
+    case A1(: g^)
+  }
+}
+class A0 {
+  int f01 = 0;
+  int get g01 => 0;
+  set s01(x) {}
+  int m01() => 0;
+  static int f02 = 0;
+  static int get g02 => 0;
+  static int m02() => 0;
+  static set s02(x) {}
+}
+class A1 extends A0 {
+  int f11 = 0;
+  int get g11 => 0;
+  set s11(x) {}
+  int m11() => 0;
+  static int f12 = 0;
+  static int get g12 => 0;
+  static int m12() => 0;
+  static set s12(x) {}
+}
+''');
+    assertResponse(r'''
+location: PatternField_pattern
+locationOpType: PatternField_pattern
+replacement
+  left: 1
+suggestions
+  g01
+    kind: getter
+  g11
+    kind: getter
+''');
+  }
+
   @FailingTest(reason: 'Suggest invalid static field / getter')
   Future<void> test_pattern_first() async {
     await computeSuggestions('''

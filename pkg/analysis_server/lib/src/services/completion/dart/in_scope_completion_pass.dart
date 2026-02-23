@@ -2404,8 +2404,30 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         isTypeNeeded: true,
       );
     } else {
-      collector.completionLocation = 'PatternField_pattern';
-      _forPattern(node, mustBeConst: false);
+      // Check if we're still completing within the name token after the colon.
+      // If so, suggest getter names. Otherwise, suggest patterns.
+      var nameToken = name.name;
+      if (nameToken != null && offset <= nameToken.end) {
+        // We're completing the getter name (e.g., ":in^" where "in" is partial)
+        collector.completionLocation = 'PatternField_pattern';
+        var parent = node.thisOrAncestorOfType<PatternVariableDeclarationImpl>();
+        if (parent == null) {
+          _forVariablePattern();
+        }
+        var isKeywordNeeded = false;
+        if (node.thisOrAncestorOfType<GuardedPattern>() != null) {
+          isKeywordNeeded = true;
+        }
+        _forPatternFieldName(
+          name,
+          isKeywordNeeded: isKeywordNeeded,
+          isTypeNeeded: true,
+        );
+      } else {
+        // We're past the name, suggesting patterns
+        collector.completionLocation = 'PatternField_pattern';
+        _forPattern(node, mustBeConst: false);
+      }
     }
   }
 
