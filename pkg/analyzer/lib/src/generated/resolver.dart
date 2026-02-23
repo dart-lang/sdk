@@ -5140,17 +5140,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      _scopeContext.withInstanceScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.typeParameters?.accept(this);
-        node.superclass.accept(this);
-        node.withClause.accept(this);
-        node.implementsClause?.accept(this);
-      });
-    });
+    _scopeContext.visitClassTypeAlias(
+      node,
+      visitor: this,
+      visitDocumentationComment: _visitDocumentationComment,
+    );
   }
 
   @override
@@ -5208,24 +5202,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.nameScope = nameScope;
-      node.namePart.typeParameters?.accept(this);
-      node.withClause?.accept(this);
-      node.implementsClause?.accept(this);
-
-      _scopeContext.withInstanceScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.namePart
-            .tryCast<PrimaryConstructorDeclarationImpl>()
-            ?.formalParameters
-            .accept(this);
-        node.body.accept(this);
-      });
-    });
+    _scopeContext.visitEnumDeclaration(
+      node,
+      visitor: this,
+      visitDocumentationComment: _visitDocumentationComment,
+    );
   }
 
   @override

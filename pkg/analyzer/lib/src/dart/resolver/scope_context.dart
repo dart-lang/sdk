@@ -62,6 +62,76 @@ class ScopeContext {
     });
   }
 
+  void visitClassTypeAlias(
+    ClassTypeAliasImpl node, {
+    required AstVisitor visitor,
+    void Function(CommentImpl)? visitDocumentationComment,
+    void Function(NamedTypeImpl)? visitSuperclass,
+    void Function()? enterTypeParameterScope,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      if (enterTypeParameterScope != null) {
+        enterTypeParameterScope();
+      }
+      node.typeParameters?.accept(visitor);
+      node.superclass.visitWithOverride(visitor, visitSuperclass);
+      node.withClause.accept(visitor);
+      node.implementsClause?.accept(visitor);
+
+      withInstanceScope(element, () {
+        node.documentationComment?.visitWithOverride(
+          visitor,
+          visitDocumentationComment,
+        );
+      });
+    });
+  }
+
+  void visitEnumDeclaration(
+    EnumDeclarationImpl node, {
+    required AstVisitor visitor,
+    void Function(CommentImpl)? visitDocumentationComment,
+    void Function()? enterBodyScope,
+    void Function(EnumDeclarationImpl node)? visitBody,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.namePart.typeParameters?.accept(visitor);
+      node.withClause?.accept(visitor);
+      node.implementsClause?.accept(visitor);
+
+      withInstanceScope(element, () {
+        enterBodyScope?.call();
+        node.documentationComment?.visitWithOverride(
+          visitor,
+          visitDocumentationComment,
+        );
+
+        node.namePart
+            .tryCast<PrimaryConstructorDeclarationImpl>()
+            ?.formalParameters
+            .accept(visitor);
+
+        if (visitBody != null) {
+          visitBody(node);
+        } else {
+          node.body.constants.accept(visitor);
+          node.body.members.accept(visitor);
+        }
+      });
+    });
+  }
+
   void visitExtensionDeclaration(
     ExtensionDeclarationImpl node, {
     required AstVisitor visitor,
