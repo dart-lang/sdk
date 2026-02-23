@@ -217,7 +217,7 @@ class SnapshotSerializer {
   }
 
   Object? preprocess(Object? obj) => switch (obj) {
-    ast.Name() when !obj.isPrivate => obj.text,
+    ast.Name() => Name(obj.text, obj.library),
     ast.PrimitiveConstant() when obj is! ast.DoubleConstant => obj.value,
     ast.TypeLiteralConstant() => preprocess(obj.type),
     ast.SymbolConstant() => ast.InstanceConstant(
@@ -286,7 +286,7 @@ class SnapshotSerializer {
       PredefinedClusters.closureFunctionRefs,
     ),
     CFunction() => getPredefinedCluster(PredefinedClusters.functionRefs),
-    ast.Name() => getPredefinedCluster(PredefinedClusters.privateNames),
+    PrivateName() => getPredefinedCluster(PredefinedClusters.privateNames),
     ArgumentsShape() => getPredefinedCluster(
       PredefinedClusters.argumentsDescriptorRefs,
     ),
@@ -408,7 +408,7 @@ class WrapperConstant extends ast.AuxiliaryConstant {
 /// Private names should have a non-null [library].
 ast.Constant getNameConstant(String name, ast.Library? library) =>
     (library != null)
-    ? WrapperConstant(ast.Name(name, library))
+    ? WrapperConstant(PrivateName(name, library))
     : ast.StringConstant(name);
 
 /// Create a ListConstant from given [elements], wrapping them if needed.
@@ -440,7 +440,7 @@ final class LibraryRefSerializationCluster extends SerializationCluster {
 
 extension on ast.Class {
   Object get mangledName =>
-      name.startsWith('_') ? ast.Name(name, enclosingLibrary) : name;
+      name.startsWith('_') ? PrivateName(name, enclosingLibrary) : name;
 }
 
 final class ClassRefSerializationCluster extends SerializationCluster {
@@ -700,14 +700,35 @@ final class TwoByteStringSerializationCluster extends SerializationCluster {
   }
 }
 
+extension type Name._(Object raw) implements Object {
+  factory Name(String text, ast.Library? library) =>
+      Name._((library != null) ? PrivateName(text, library) : text);
+}
+
+/// Private name in a [library].
+/// VM mangles such names with a library key (`@nnnn`).
+final class PrivateName {
+  final String text;
+  final ast.Library library;
+  PrivateName(this.text, this.library);
+
+  @override
+  bool operator ==(Object other) =>
+      other is PrivateName && text == other.text && library == other.library;
+
+  @override
+  int get hashCode =>
+      finalizeHash(combineHash(text.hashCode, library.hashCode));
+}
+
 final class PrivateNameSerializationCluster extends SerializationCluster {
-  final List<ast.Name> _objects = [];
+  final List<PrivateName> _objects = [];
 
   @override
   void trace(SnapshotSerializer serializer, Object object) {
-    final name = object as ast.Name;
+    final name = object as PrivateName;
     _objects.add(name);
-    serializer.push(name.library!);
+    serializer.push(name.library);
     serializer.push(name.text);
   }
 
@@ -717,7 +738,7 @@ final class PrivateNameSerializationCluster extends SerializationCluster {
     serializer.writeUint(_objects.length);
     for (final name in _objects) {
       serializer.assignRef(name);
-      serializer.writeRefId(name.library!);
+      serializer.writeRefId(name.library);
       serializer.writeRefId(name.text);
     }
   }
@@ -1216,7 +1237,7 @@ final class CodeSerializationCluster extends SerializationCluster {
 class ICData {
   final CFunction owner;
   final ArgumentsShape argumentsShape;
-  final ast.Name targetName;
+  final Name targetName;
   ICData(this.owner, this.argumentsShape, this.targetName);
 }
 
@@ -1273,7 +1294,10 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             final icData = icDatas[entry] = ICData(
               entry.owner,
               entry.argumentsShape,
-              entry.interfaceTarget.member.name,
+              Name(
+                entry.selectorName,
+                entry.interfaceTarget.member.name.library,
+              ),
             );
             serializer.push(icData);
           case ReservedEntry():

@@ -64,6 +64,18 @@ final class InterfaceCallEntry extends PairSpecializedEntry {
 
   InterfaceCallEntry(this.owner, this.argumentsShape, this.interfaceTarget);
 
+  /// Returns selector name corresponding to interface call
+  /// in the VM convention (with get: and set: prefixes),
+  /// but without a library key (`@nnnn`).
+  String get selectorName {
+    final simpleName = interfaceTarget.member.name.text;
+    return switch (interfaceTarget) {
+      GetterFunction() => 'get:$simpleName',
+      SetterFunction() => 'set:$simpleName',
+      _ => simpleName,
+    };
+  }
+
   @override
   int get hashCode => interfaceTarget.hashCode + 23;
 
