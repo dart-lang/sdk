@@ -17,6 +17,7 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../ast.dart';
 import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
@@ -148,8 +149,9 @@ class _DeclarationGatherer {
             }
           }
         case PrimaryConstructorBody():
-          // TODO(scheglov): Handle this case.
-          throw UnimplementedError();
+        // TODO(srawlins): Handle fields declared here, except in extension type
+        // declarations.
+        // No declarations to add.
       }
     }
   }
@@ -416,8 +418,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     if (enclosingElement is InterfaceElement ||
         enclosingElement is ExtensionElement ||
         enclosingElement is ExtensionTypeElement) {
-      var declarationElement = element.baseElement;
-      var declaration = declarationMap[declarationElement];
+      var declaration = declarationMap[element.baseElement];
       if (declaration != null) {
         declarations.add(declaration);
       }
@@ -548,52 +549,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     }).toList();
 
     for (var member in unusedMembers) {
-      switch (member) {
-        case ClassDeclaration():
-          rule.reportAtToken(
-            member.namePart.typeName,
-            arguments: [member.nameForError],
-          );
-        case ConstructorDeclaration():
-          var name = member.name;
-          if (name == null) {
-            rule.reportAtNode(
-              // TODO(scheglov): support primary constructors
-              member.typeName,
-              arguments: [member.nameForError],
-            );
-          } else {
-            rule.reportAtToken(name, arguments: [member.nameForError]);
-          }
-        case EnumDeclaration():
-          rule.reportAtToken(
-            member.namePart.typeName,
-            arguments: [member.nameForError],
-          );
-        case ExtensionDeclaration():
-          var name = member.name;
-          rule.reportAtToken(
-            name ?? member.extensionKeyword,
-            arguments: [name?.lexeme ?? '<unnamed>'],
-          );
-        case ExtensionTypeDeclaration():
-          rule.reportAtToken(
-            member.primaryConstructor.typeName,
-            arguments: [member.nameForError],
-          );
-        case FunctionDeclaration():
-          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
-        case MethodDeclaration():
-          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
-        case MixinDeclaration():
-          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
-        case TypeAlias():
-          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
-        case VariableDeclaration():
-          rule.reportAtToken(member.name, arguments: [member.nameForError]);
-        default:
-          throw UnimplementedError('(${member.runtimeType}) $member');
-      }
+      var nodeToAnnotate = getNodeToAnnotate(member);
+      rule.reportAtOffset(
+        nodeToAnnotate.offset,
+        nodeToAnnotate.length,
+        arguments: [member.nameForError],
+      );
     }
   }
 

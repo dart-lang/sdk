@@ -354,6 +354,18 @@ class D {}
 ''');
   }
 
+  test_class_reachable_referencedInTypeArgument_genericGenericType() async {
+    await assertNoDiagnostics(r'''
+class A {}
+
+void main() {
+  f();
+}
+
+void f([List<List<A>>? l]) {}
+''');
+  }
+
   test_class_reachable_typeLiteral() async {
     await assertNoDiagnostics(r'''
 void main() {
@@ -776,38 +788,6 @@ class C {
     );
   }
 
-  test_constructor_named_unreachable_inExtensionType() async {
-    await assertDiagnostics(
-      r'''
-void main() {
-  E(7);
-}
-
-extension type E(int it) {
-  E.named(this.it);
-}
-''',
-      [lint(56, 5)],
-    );
-  }
-
-  test_constructor_named_unreachable_otherHasRedirectedConstructor() async {
-    await assertDiagnostics(
-      r'''
-void main() {
-  C.two();
-}
-
-class C {
-  C.named();
-  C.one();
-  factory C.two() = C.one;
-}
-''',
-      [lint(42, 5)],
-    );
-  }
-
   test_constructor_reachableViaTestReflectiveLoader() async {
     await assertNoDiagnostics(r'''
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1061,6 +1041,84 @@ extension IntExtension on int {}
     );
   }
 
+  test_extensionType_constructor_named_unreachable() async {
+    await assertDiagnostics(
+      r'''
+void main() {
+  E(7);
+}
+
+extension type E(int it) {
+  E.named(this.it);
+}
+''',
+      [lint(56, 5)],
+    );
+  }
+
+  test_extensionType_instanceMethod_reachable() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  E(1).m();
+}
+
+extension type E(int i) {
+  void m() {}
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_unreachable() async {
+    await assertDiagnostics(
+      r'''
+void main() {
+  E(1);
+}
+
+extension type E(int i) {
+  void m() {}
+}
+''',
+      [lint(58, 1)],
+    );
+  }
+
+  test_extensionType_member_redeclare_unreachable() async {
+    await assertDiagnostics(
+      r'''
+void main() {
+  var c = C();
+  c.m();
+  E(c);
+}
+
+class C {
+  void m() {}
+}
+
+extension type E(C c) implements C {
+  void m() {}
+}
+''',
+      [lint(120, 1)],
+    );
+  }
+
+  test_extensionType_primaryConstructorBody_reachable() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  E(1);
+  print(E(1).i);
+}
+
+extension type E(int i) {
+  this {
+    print(i);
+  }
+}
+''');
+  }
+
   test_extensionType_reachable_referencedInTypeAnnotation_asExpression() async {
     await assertNoDiagnostics(r'''
 void main() {
@@ -1071,15 +1129,62 @@ extension type E(int it) {}
 ''');
   }
 
-  test_extensionType_reachable_referencedInTypeAnnotation_castPattern() async {
+  test_extensionType_representation_private_unreachable() async {
     await assertNoDiagnostics(r'''
 void main() {
-  var r = (1, );
-  var (s as E, ) = r;
+  E(1);
 }
 
-extension type E(int it) {}
+extension type E(int _i) {}
 ''');
+  }
+
+  test_extensionType_representation_reachable() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  E(1).i;
+}
+
+extension type E(int i) {}
+''');
+  }
+
+  test_extensionType_representation_unreachable() async {
+    // We do not worry about the representation field, and whether or not it is
+    // used or reachable.
+    await assertNoDiagnostics(r'''
+void main() {
+  E(1);
+}
+
+extension type E(int i) {}
+''');
+  }
+
+  test_extensionType_staticMethod_unreachable() async {
+    await assertDiagnostics(
+      r'''
+void main() {
+  E(1);
+}
+
+extension type E(int i) {
+  static void f() {}
+}
+''',
+      [lint(65, 1)],
+    );
+  }
+
+  test_extensionType_unreachable() async {
+    await assertDiagnostics(
+      r'''
+void main() {}
+
+extension type E(int i) {}
+''',
+      [lint(31, 1)],
+    );
   }
 
   test_instanceFieldOnExtension_unreachable() async {
@@ -1110,21 +1215,6 @@ class C {
   List<Object> toJson() => ['c'];
 }
 ''');
-  }
-
-  test_instanceMethod_unreachable_inExtensionType() async {
-    await assertDiagnostics(
-      r'''
-void main() {
-  E(7);
-}
-
-extension type E(int it) {
-  void m() {}
-}
-''',
-      [lint(59, 1)],
-    );
   }
 
   test_mixin_reachable_implemented() async {
@@ -1699,15 +1789,12 @@ void main() {}
 
 class B {
   // Widget previews can't be defined with instance methods.
+  // ignore: invalid_widget_preview_application
   @Preview()
   Widget foo() => Text('');
 }
 ''',
-      [
-        lint(109, 1),
-        error(diag.invalidWidgetPreviewApplication, 177, 7),
-        lint(196, 3),
-      ],
+      [lint(109, 1), lint(244, 3)],
     );
   }
 
@@ -1752,17 +1839,14 @@ import 'package:flutter/widget_previews.dart';
 void main() {}
 
 class B {
+  // ignore: invalid_widget_preview_application
   @Preview()
   factory B.foo() => B();
 
   const B();
 }
 ''',
-      [
-        lint(70, 1),
-        error(diag.invalidWidgetPreviewApplication, 77, 7),
-        lint(122, 1),
-      ],
+      [lint(70, 1), lint(170, 1)],
     );
   }
 
@@ -1799,17 +1883,15 @@ void _f6() {}
   }
 
   test_widgetPreview_topLevelFunction() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 import 'package:flutter/widget_previews.dart';
 
 void main() {}
 
+// ignore: invalid_widget_preview_application
 @Preview()
 void f6() {}
-''',
-      [error(diag.invalidWidgetPreviewApplication, 65, 7)],
-    );
+''');
   }
 
   test_widgetPreview_topLevelFunction_const() async {
