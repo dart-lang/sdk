@@ -1092,6 +1092,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
     case MethodRecognizer::kFinalizerBase_setIsolate:
+    case MethodRecognizer::kFinalizerBase_trySetIsolate:
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
     case MethodRecognizer::kFinalizerEntry_allocate:
     case MethodRecognizer::kFinalizerEntry_getExternalSize:
@@ -1877,6 +1878,33 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
                                InnerPointerAccess::kCannotBeInnerPointer);
       body += NullConstant();
       break;
+    case MethodRecognizer::kFinalizerBase_trySetIsolate: {
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      // Check if there's a current isolate. If yes, set it and return true.
+      // If no, return false.
+      TargetEntryInstr* is_null;
+      TargetEntryInstr* is_not_null;
+      body += LoadIsolate();
+      body += BranchIfNull(&is_null, &is_not_null);
+
+      // Isolate is null - return false
+      Fragment null_fragment(is_null);
+      null_fragment += Constant(Bool::False());
+      null_fragment += Return(TokenPosition::kNoSource);
+
+      // Isolate is not null - store it and return true
+      Fragment not_null_fragment(is_not_null);
+      not_null_fragment += LoadLocal(parsed_function_->RawParameterVariable(0));
+      not_null_fragment += LoadIsolate();
+      not_null_fragment += StoreNativeField(
+          Slot::FinalizerBase_isolate(),
+          InnerPointerAccess::kCannotBeInnerPointer);
+      not_null_fragment += Constant(Bool::True());
+      not_null_fragment += Return(TokenPosition::kNoSource);
+
+      body = Fragment(body.entry, is_null);
+      break;
+    }
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += LoadIsolate();

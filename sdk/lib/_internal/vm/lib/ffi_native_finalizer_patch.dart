@@ -33,8 +33,12 @@ final class _NativeFinalizer extends FinalizerBase implements NativeFinalizer {
   _NativeFinalizer(Pointer<NativeFinalizerFunction> callback) {
     allEntries = <FinalizerEntry>{};
     _callback = callback;
-    setIsolate();
-    isolateRegisterFinalizer();
+    // Native finalizers can be created without an isolate (e.g., in
+    // IsolateGroup.runSync callbacks). In such cases, skip the isolate
+    // registration as native finalizers only call native code.
+    if (_trySetIsolate()) {
+      isolateRegisterFinalizer();
+    }
   }
 
   void attach(

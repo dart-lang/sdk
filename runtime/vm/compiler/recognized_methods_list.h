@@ -207,6 +207,8 @@ namespace dart {
     FinalizerBase_exchangeEntriesCollectedWithNull, 0x7633c339)                \
   V(InternalLibrary, FinalizerBase, _setIsolate, FinalizerBase_setIsolate,     \
     0xc95e4a30)                                                                \
+  V(InternalLibrary, FinalizerBase, _trySetIsolate,                            \
+    FinalizerBase_trySetIsolate, 0x18b23121)                                   \
   V(InternalLibrary, FinalizerBase, get:_isolateFinalizers,                    \
     FinalizerBase_getIsolateFinalizers, 0x572a4340)                            \
   V(InternalLibrary, FinalizerBase, set:_isolateFinalizers,                    \

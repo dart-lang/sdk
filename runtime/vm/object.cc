@@ -9690,6 +9690,7 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
     case MethodRecognizer::kFinalizerBase_setIsolate:
+    case MethodRecognizer::kFinalizerBase_trySetIsolate:
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
     case MethodRecognizer::kFinalizerEntry_getExternalSize:
     case MethodRecognizer::kProfiler_getCurrentTag:

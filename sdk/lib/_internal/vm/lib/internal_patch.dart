@@ -295,6 +295,12 @@ class FinalizerBase {
   @pragma("vm:idempotent")
   external _setIsolate();
 
+  /// Try to set the isolate for this finalizer. Returns false if there is no
+  /// current isolate (e.g., in IsolateGroup.runSync callbacks).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external bool _trySetIsolate();
+
   /// All active attachments.
   ///
   /// This keeps the [FinalizerEntry]s belonging to this finalizer alive. If an
@@ -392,6 +398,9 @@ extension FinalizerBaseMembers on FinalizerBase {
 
   /// See documentation on [_setIsolate].
   setIsolate() => _setIsolate();
+
+  /// See documentation on [_trySetIsolate].
+  bool trySetIsolate() => _trySetIsolate();
 }
 
 /// Contains the information of an active [Finalizer.attach].
