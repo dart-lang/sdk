@@ -195,13 +195,19 @@ class FlowGraphBuilder {
       addConstant(ConstantValue.fromBool(value));
 
   /// Append [DirectCall] to the graph.
-  DirectCall addDirectCall(CFunction target, int inputCount, CType type) {
+  DirectCall addDirectCall(
+    CFunction target,
+    int inputCount,
+    ArgumentsShape argumentsShape,
+    CType type,
+  ) {
     final instr = DirectCall(
       graph,
       currentSourcePosition,
       target,
       type,
       inputCount: inputCount,
+      argumentsShape: argumentsShape,
     );
     popInputs(instr, 0, inputCount);
     push(instr);
@@ -213,6 +219,7 @@ class FlowGraphBuilder {
   InterfaceCall addInterfaceCall(
     CFunction interfaceTarget,
     int inputCount,
+    ArgumentsShape argumentsShape,
     CType type,
   ) {
     final instr = InterfaceCall(
@@ -221,6 +228,7 @@ class FlowGraphBuilder {
       interfaceTarget,
       type,
       inputCount: inputCount,
+      argumentsShape: argumentsShape,
     );
     popInputs(instr, 0, inputCount);
     push(instr);
@@ -229,12 +237,17 @@ class FlowGraphBuilder {
   }
 
   /// Append [ClosureCall] to the graph.
-  ClosureCall addClosureCall(int inputCount, CType type) {
+  ClosureCall addClosureCall(
+    int inputCount,
+    ArgumentsShape argumentsShape,
+    CType type,
+  ) {
     final instr = ClosureCall(
       graph,
       currentSourcePosition,
       type,
       inputCount: inputCount,
+      argumentsShape: argumentsShape,
     );
     popInputs(instr, 0, inputCount);
     push(instr);
@@ -247,6 +260,7 @@ class FlowGraphBuilder {
     ast.Name selector,
     DynamicCallKind kind,
     int inputCount,
+    ArgumentsShape argumentsShape,
   ) {
     final instr = DynamicCall(
       graph,
@@ -254,6 +268,7 @@ class FlowGraphBuilder {
       selector,
       kind,
       inputCount: inputCount,
+      argumentsShape: argumentsShape,
     );
     popInputs(instr, 0, inputCount);
     push(instr);

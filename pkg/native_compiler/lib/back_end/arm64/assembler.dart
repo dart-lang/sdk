@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
-import 'package:native_compiler/back_end/arm64/stack_frame.dart';
+import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:cfg/ir/constant_value.dart';
 
@@ -470,6 +471,18 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     ldr(
       reg,
       address(poolPointerReg, vmOffsets.ObjectPool_elementOffset(poolIndex)),
+    );
+  }
+
+  void loadPairFromPool(Register low, Register high, PairSpecializedEntry obj) {
+    int poolIndex = objectPool.getObject(obj);
+    ldp(
+      low,
+      high,
+      pairAddress(
+        poolPointerReg,
+        vmOffsets.ObjectPool_elementOffset(poolIndex),
+      ),
     );
   }
 

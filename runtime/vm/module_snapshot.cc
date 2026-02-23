@@ -56,6 +56,7 @@ class ModuleSnapshot : public AllStatic {
     kFunctionRefs,
     kClosureFunctionRefs,
     kClosureRefs,
+    kArgumentsDescriptorRefs,
     kInts,
     kDoubles,
     kLists,
@@ -70,6 +71,7 @@ class ModuleSnapshot : public AllStatic {
     kTypeParameterTypes,
     kTypeArguments,
     kCodes,
+    kICDatas,
     kObjectPools,
     kInstances,
   };
@@ -94,6 +96,7 @@ class ModuleSnapshot : public AllStatic {
   enum ObjectPoolEntryKind {
     kObjectRef,
     kNewObjectTags,
+    kInterfaceCall,
   };
 };
 
@@ -571,6 +574,46 @@ class ClosureRefDeserializationCluster : public DeserializationCluster {
   Closure& closure_;
 };
 
+class ArgumentsDescriptorRefDeserializationCluster
+    : public DeserializationCluster {
+ public:
+  explicit ArgumentsDescriptorRefDeserializationCluster(Zone* zone)
+      : DeserializationCluster("ArgumentsDescriptorRef"),
+        name_(String::Handle(zone)),
+        named_(Array::Handle(zone)),
+        args_descriptor_(Array::Handle(zone)) {}
+  ~ArgumentsDescriptorRefDeserializationCluster() {}
+
+  void PreLoad(Deserializer* d) override {
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t num_type_args = d->ReadUnsigned();
+      const intptr_t num_positional = d->ReadUnsigned();
+      const intptr_t num_named = d->ReadUnsigned();
+      const intptr_t total_args = num_positional + num_named;
+      // TODO(alexmarkov): support unboxed parameters.
+      if (num_named > 0) {
+        named_ = Array::New(num_named, Heap::kOld);
+        for (intptr_t i = 0; i < num_named; ++i) {
+          name_ ^= d->ReadRef();
+          named_.SetAt(i, name_);
+        }
+        args_descriptor_ = ArgumentsDescriptor::New(num_type_args, total_args,
+                                                    total_args, named_);
+      } else {
+        args_descriptor_ =
+            ArgumentsDescriptor::New(num_type_args, total_args, total_args);
+      }
+      d->AssignRefPreLoad(args_descriptor_);
+    }
+  }
+
+ private:
+  String& name_;
+  Array& named_;
+  Array& args_descriptor_;
+};
+
 class IntDeserializationCluster : public DeserializationCluster {
  public:
   IntDeserializationCluster()
@@ -959,7 +1002,9 @@ class InterfaceTypeDeserializationCluster : public DeserializationCluster {
 
 class CodeDeserializationCluster : public DeserializationCluster {
  public:
-  CodeDeserializationCluster() : DeserializationCluster("Code") {}
+  explicit CodeDeserializationCluster(Zone* zone)
+      : DeserializationCluster("Code"),
+        code_source_map_(CodeSourceMap::Handle(zone, CodeSourceMap::New(0))) {}
   ~CodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -987,7 +1032,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->untag()->catch_entry_ = Object::null();
       code->untag()->compressed_stackmaps_ = CompressedStackMaps::null();
       code->untag()->inlined_id_to_function_ = Array::null();
-      code->untag()->code_source_map_ = CodeSourceMap::null();
+      code->untag()->code_source_map_ = code_source_map_.ptr();
       code->untag()->active_instructions_ = Instructions::null();
       code->untag()->deopt_info_array_ = Array::null();
       code->untag()->static_calls_target_table_ = Array::null();
@@ -1039,6 +1084,37 @@ class CodeDeserializationCluster : public DeserializationCluster {
         Code::NotifyCodeObservers(code, code.is_optimized());
       }
 #endif
+    }
+  }
+
+ private:
+  const CodeSourceMap& code_source_map_;
+};
+
+class ICDataDeserializationCluster : public DeserializationCluster {
+ public:
+  ICDataDeserializationCluster() : DeserializationCluster("ICData") {}
+  ~ICDataDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, ICData::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      ICDataPtr ic = static_cast<ICDataPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(ic, kICDataCid, ICData::InstanceSize());
+      ic->untag()->target_name_ = static_cast<StringPtr>(d.ReadRef());
+      ic->untag()->args_descriptor_ = static_cast<ArrayPtr>(d.ReadRef());
+      ic->untag()->entries_ = ICData::CachedEmptyICDataArray(
+          /*num_args_tested=*/1, /*tracking_exactness=*/false);
+      ic->untag()->receivers_static_type_ =
+          static_cast<AbstractTypePtr>(d.null());
+      ic->untag()->owner_ = static_cast<FunctionPtr>(d.ReadRef());
+      ic->untag()->deopt_id_ = DeoptId::kNone;
+      ic->untag()->state_bits_ = ICData::NumArgsTestedBits::encode(1);
     }
   }
 };
@@ -1096,6 +1172,17 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
                                               kCompressedWordSize));
             break;
           }
+          case ModuleSnapshot::kInterfaceCall: {
+            pool->untag()->entry_bits()[j] = tagged_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_obj_ = d.ReadRef();
+            ASSERT(j < length);
+            ++j;
+            pool->untag()->entry_bits()[j] = tagged_entry_bits;
+            UntaggedObjectPool::Entry& entry2 = pool->untag()->data()[j];
+            entry2.raw_obj_ = StubCode::OneArgOptimizedCheckInlineCache().ptr();
+            break;
+          }
         }
       }
     }
@@ -1113,7 +1200,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
           continue;
         }
         obj = pool.ObjectAt(i);
-        if (obj.IsInstance()) {
+        if (obj.IsInstance() && !obj.InVMIsolateHeap()) {
           obj = Instance::Cast(obj).Canonicalize(d->thread());
           pool.SetObjectAt(i, obj);
         }
@@ -1192,6 +1279,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ClosureFunctionRefDeserializationCluster(Z);
     case ModuleSnapshot::kClosureRefs:
       return new (Z) ClosureRefDeserializationCluster(Z);
+    case ModuleSnapshot::kArgumentsDescriptorRefs:
+      return new (Z) ArgumentsDescriptorRefDeserializationCluster(Z);
     case ModuleSnapshot::kInts:
       return new (Z) IntDeserializationCluster();
     case ModuleSnapshot::kDoubles:
@@ -1229,7 +1318,9 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case ModuleSnapshot::kTypeArguments:
       return new (Z) TypeArgumentsDeserializationCluster();
     case ModuleSnapshot::kCodes:
-      return new (Z) CodeDeserializationCluster();
+      return new (Z) CodeDeserializationCluster(Z);
+    case ModuleSnapshot::kICDatas:
+      return new (Z) ICDataDeserializationCluster();
     case ModuleSnapshot::kObjectPools:
       return new (Z) ObjectPoolDeserializationCluster();
     case ModuleSnapshot::kInstances: {

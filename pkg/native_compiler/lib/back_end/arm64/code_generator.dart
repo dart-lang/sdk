@@ -200,7 +200,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     Register getTempReg() => (pendingReg == tempReg) ? LR : tempReg;
 
-    for (var i = 0; i < instr.inputCount; ++i) {
+    for (var i = instr.inputCount - 1; i >= 0; --i) {
       final arg = instr.inputDefAt(i);
       Register reg;
       if (arg is Constant) {
@@ -226,12 +226,14 @@ final class Arm64CodeGenerator extends CodeGenerator {
       if (pendingReg == invalidReg) {
         pendingReg = reg;
       } else {
+        // TODO: support large offsets
         _asm.stp(pendingReg, reg, RegOffsetAddress(stackPointerReg, offset));
         pendingReg = invalidReg;
         offset += 2 * wordSize;
       }
     }
     if (pendingReg != invalidReg) {
+      // TODO: support large offsets
       _asm.str(pendingReg, RegOffsetAddress(stackPointerReg, offset));
       offset += wordSize;
     }
@@ -240,9 +242,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitDirectCall(DirectCall instr) {
-    // TODO: pass arg_desc when needed.
-    _asm.loadImmediate(argumentsDescriptorReg, 0);
     _passArguments(instr);
+    _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
     _asm.loadFromPool(functionReg, instr.target);
     // TODO: call directly through Code.
     _asm.ldr(
@@ -261,7 +262,31 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitInterfaceCall(InterfaceCall instr) {
-    _asm.unimplemented('Unimplemented: code generation for InterfaceCall');
+    _passArguments(instr);
+    _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
+    // TODO: call through monomorphic/table dispatcher.
+    _asm.loadFromPool(R6, graph.function);
+    _asm.ldr(
+      R0,
+      _asm.address(
+        stackPointerReg,
+        (instr.inputCount - 1 - (instr.hasTypeArguments ? 1 : 0)) * wordSize,
+      ),
+    );
+    _asm.loadPairFromPool(
+      inlineCacheDataReg,
+      codeReg,
+      InterfaceCallEntry(
+        graph.function,
+        instr.argumentsShape,
+        instr.interfaceTarget,
+      ),
+    );
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
+    );
+    _asm.blr(tempReg);
   }
 
   @override

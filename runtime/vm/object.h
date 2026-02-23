@@ -2962,6 +2962,7 @@ class ICData : public CallSiteData {
   friend class ICDataTestTask;
   friend class Interpreter;
   friend class VMSerializationRoots;
+  friend class module_snapshot::ICDataDeserializationCluster;
 };
 
 // Often used constants for number of free function type parameters.

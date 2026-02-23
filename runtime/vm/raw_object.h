@@ -51,6 +51,7 @@ class CodeDeserializationCluster;
 class Deserializer;
 class DoubleDeserializationCluster;
 class FunctionTypeDeserializationCluster;
+class ICDataDeserializationCluster;
 class IntDeserializationCluster;
 class InterfaceTypeDeserializationCluster;
 class ListDeserializationCluster;
@@ -2721,6 +2722,8 @@ class UntaggedCallSiteData : public UntaggedObject {
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(CallSiteData)
+
+  friend class module_snapshot::ICDataDeserializationCluster;
 };
 
 class UntaggedUnlinkedCall : public UntaggedCallSiteData {
@@ -2756,6 +2759,8 @@ class UntaggedICData : public UntaggedCallSiteData {
   NOT_IN_PRECOMPILED(int32_t deopt_id_);
   // Number of arguments tested in IC, deopt reasons.
   AtomicBitFieldContainer<uint32_t> state_bits_;
+
+  friend class module_snapshot::ICDataDeserializationCluster;
 };
 
 class UntaggedMegamorphicCache : public UntaggedCallSiteData {
