@@ -243,20 +243,21 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     var realTarget = node.realTarget;
-    if (realTarget == null) return;
-    if (_hasMatch(predicates, variableElement.type, node.methodName.name) &&
-        (_isSimpleIdentifierElementEqualToVariable(
-              realTarget,
-              variableElement,
-            ) ||
-            _isPostfixExpressionOperandEqualToVariable(
-              realTarget,
-              variableElement,
-            ) ||
-            _isPropertyAccessThroughThis(realTarget, variableElement) ||
-            (node.thisOrAncestorMatching((a) => a == variable) != null))) {
-      containsValidUse = true;
-      return;
+    if (realTarget != null) {
+      if (_hasMatch(predicates, variableElement.type, node.methodName.name) &&
+          (_isSimpleIdentifierElementEqualToVariable(
+                realTarget,
+                variableElement,
+              ) ||
+              _isPostfixExpressionOperandEqualToVariable(
+                realTarget,
+                variableElement,
+              ) ||
+              _isPropertyAccessThroughThis(realTarget, variableElement) ||
+              (node.thisOrAncestorMatching((a) => a == variable) != null))) {
+        containsValidUse = true;
+        return;
+      }
     }
 
     if (_isInvocationThroughCascadeExpression(node, variableElement)) {
