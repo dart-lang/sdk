@@ -2804,7 +2804,7 @@ abstract class LValue extends Expression {
     Harness h,
     Expression assignmentExpression,
     Type writtenType,
-    Expression? rhs,
+    ExpressionInfo? rhsInfo,
   );
 }
 
@@ -4511,27 +4511,30 @@ class Property extends PromotableLValue {
     );
   }
 
-  _PropertyElement? _computeMember(Harness h) {
+  (_PropertyElement?, ExpressionInfo?) _computeMemberAndFlowAnalysisInfo(
+    Harness h,
+  ) {
     if (isNullAware) {
       fail(
         "at $location: it doesn't make sense to compute the promoted type of "
         'a null-aware property.',
       );
     }
-    var receiverType = h.typeAnalyzer
-        .analyzeExpression(target, h.operations.unknownType)
-        .type
-        .unwrapTypeView<Type>();
+    var analysisResult = h.typeAnalyzer.analyzeExpression(
+      target,
+      h.operations.unknownType,
+    );
+    var receiverType = analysisResult.type.unwrapTypeView<Type>();
     var member = h.typeAnalyzer._lookupMember(receiverType, propertyName);
-    return member;
+    return (member, analysisResult.flowAnalysisInfo);
   }
 
   @override
   Type? _getPromotedType(Harness h) {
-    _PropertyElement? member = _computeMember(h);
+    var (member, flowAnalysisInfo) = _computeMemberAndFlowAnalysisInfo(h);
     return h.flow
         .promotedPropertyType(
-          ExpressionPropertyTarget(h.getFlowAnalysisInfo(target)),
+          ExpressionPropertyTarget(flowAnalysisInfo),
           propertyName,
           member,
           SharedTypeView(member!._type),
@@ -4541,10 +4544,10 @@ class Property extends PromotableLValue {
 
   @override
   List<Type> _getPromotionChain(Harness h) {
-    _PropertyElement? member = _computeMember(h);
+    var (member, flowAnalysisInfo) = _computeMemberAndFlowAnalysisInfo(h);
     return h.flow
         .propertyPromotionChainForTesting(
-          ExpressionPropertyTarget(h.getFlowAnalysisInfo(target)),
+          ExpressionPropertyTarget(flowAnalysisInfo),
           propertyName,
           member,
         )
@@ -4567,7 +4570,7 @@ class Property extends PromotableLValue {
     Harness h,
     Expression assignmentExpression,
     Type writtenType,
-    Expression? rhs,
+    ExpressionInfo? rhsInfo,
   ) {
     assert(!isNullAware); // TODO(paulberry): implement null-aware support
     // No flow analysis impact
@@ -5466,7 +5469,7 @@ class ThisOrSuperProperty extends PromotableLValue {
     Harness h,
     Expression assignmentExpression,
     Type writtenType,
-    Expression? rhs,
+    ExpressionInfo? rhsInfo,
   ) {
     // No flow analysis impact
     return null;
@@ -5980,13 +5983,13 @@ class VariableReference extends LValue {
     Harness h,
     Expression assignmentExpression,
     Type writtenType,
-    Expression? rhs,
+    ExpressionInfo? rhsInfo,
   ) {
     var flowAnalysisInfo = h.flow.write(
       assignmentExpression,
       variable,
       SharedTypeView(writtenType),
-      h.getFlowAnalysisInfo(rhs),
+      rhsInfo,
     );
     h.storeFlowAnalysisInfo(assignmentExpression, flowAnalysisInfo);
     return flowAnalysisInfo;
@@ -6171,14 +6174,19 @@ class Write extends Expression {
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     var rhs = this.rhs;
-    Type type = h.typeAnalyzer
-        .analyzeExpression(rhs, h.operations.unknownType)
-        .type
-        .unwrapTypeView();
-    var flowAnalysisInfo = lhs._visitWrite(h, this, type, rhs);
+    var rhsAnalysisResult = h.typeAnalyzer.analyzeExpression(
+      rhs,
+      h.operations.unknownType,
+    );
+    var flowAnalysisInfo = lhs._visitWrite(
+      h,
+      this,
+      rhsAnalysisResult.type.unwrapTypeView(),
+      rhsAnalysisResult.flowAnalysisInfo,
+    );
     // TODO(paulberry): null shorting
     return new ExpressionTypeAnalysisResult(
-      type: SharedTypeView(type),
+      type: SharedTypeView(rhsAnalysisResult.type.unwrapTypeView()),
       flowAnalysisInfo: flowAnalysisInfo,
     );
   }
@@ -6999,17 +7007,22 @@ class _MiniAstTypeAnalyzer
     flow.whileStatement_end();
   }
 
-  SharedTypeView createNullAwareGuard(
+  ExpressionTypeAnalysisResult createNullAwareGuard(
     Expression target,
-    SharedTypeView targetType,
+    ExpressionTypeAnalysisResult targetAnalysisResult,
   ) {
     var tmp = _harness.irBuilder.allocateTmp(location: target.location);
-    _harness.storeFlowAnalysisInfo(
-      target,
-      startNullShorting(tmp, _harness.getFlowAnalysisInfo(target), targetType),
+    var flowAnalysisInfo = startNullShorting(
+      tmp,
+      targetAnalysisResult.flowAnalysisInfo,
+      targetAnalysisResult.type,
     );
+    _harness.storeFlowAnalysisInfo(target, flowAnalysisInfo);
     _harness.irBuilder.readTmp(tmp, location: target.location);
-    return operations.promoteToNonNull(targetType);
+    return ExpressionTypeAnalysisResult(
+      type: operations.promoteToNonNull(targetAnalysisResult.type),
+      flowAnalysisInfo: flowAnalysisInfo,
+    );
   }
 
   @override
@@ -7549,14 +7562,20 @@ class _MiniAstTypeAnalyzer
       _harness.irBuilder.readTmp(_currentCascadeTargetIR!, location: location);
       targetType = _currentCascadeTargetType!;
     } else {
-      targetType = analyzeExpression(
+      var targetAnalysisResult = analyzeExpression(
         target,
         operations.unknownType,
         continueNullShorting: true,
-      ).type;
-      if (isNullAware) targetType = createNullAwareGuard(target, targetType);
+      );
+      if (isNullAware) {
+        targetAnalysisResult = createNullAwareGuard(
+          target,
+          targetAnalysisResult,
+        );
+      }
+      targetType = targetAnalysisResult.type;
       propertyTarget = ExpressionPropertyTarget(
-        _harness.getFlowAnalysisInfo(target),
+        targetAnalysisResult.flowAnalysisInfo,
       );
     }
     // Look up the type of the member, applying type promotion if necessary.
