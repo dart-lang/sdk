@@ -6431,7 +6431,10 @@ class const A(this.x) {
 
 const a = A(1);
 ''',
-      [error(diag.initializerForNonExistentField, 33, 5)],
+      [
+        error(diag.initializingFormalForNonExistentField, 14, 6),
+        error(diag.initializerForNonExistentField, 33, 5),
+      ],
     );
     assertDartObjectText(_topLevelVar('a'), r'''
 A

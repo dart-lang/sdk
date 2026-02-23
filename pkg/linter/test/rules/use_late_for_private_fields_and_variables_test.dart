@@ -101,6 +101,8 @@ enum E(final String _v, [final String? v2]) {
 enum E(this._v, [this._v2]) {
   a('a'),
   b('b', 'c');
+  final String _v;
+  final String? _v2;
 }
 ''');
   }

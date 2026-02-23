@@ -6141,63 +6141,51 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForValidField(FieldFormalParameter parameter) {
-    var parent2 = parameter.parent?.parent;
-    if (parent2 is! ConstructorDeclaration &&
-        parent2?.parent is! ConstructorDeclaration) {
+    var constructor = parameter.parentFormalParameterList.parent;
+    if (constructor is PrimaryConstructorDeclaration &&
+        constructor.parent is ExtensionTypeDeclaration) {
       return;
     }
+    if (constructor is! ConstructorDeclaration &&
+        constructor is! PrimaryConstructorDeclaration) {
+      return;
+    }
+
     var element = parameter.declaredFragment?.element;
-    if (element is FieldFormalParameterElementImpl) {
-      var fieldElement = element.field;
-      if (fieldElement == null || fieldElement.isOriginGetterSetter) {
-        diagnosticReporter.report(
-          diag.initializingFormalForNonExistentField
-              .withArguments(formalName: parameter.name.lexeme)
-              .at(parameter),
-        );
-      } else {
-        var parameterElement = parameter.declaredFragment?.element;
-        if (parameterElement is FieldFormalParameterElementImpl) {
-          var declaredType = parameterElement.type;
-          var fieldType = fieldElement.type;
-          if (fieldElement.isOriginGetterSetter) {
-            diagnosticReporter.report(
-              diag.initializingFormalForNonExistentField
-                  .withArguments(formalName: parameter.name.lexeme)
-                  .at(parameter),
-            );
-          } else if (fieldElement.isStatic) {
-            diagnosticReporter.report(
-              diag.initializerForStaticField
-                  .withArguments(formalName: parameter.name.lexeme)
-                  .at(parameter),
-            );
-          } else if (!typeSystem.isSubtypeOf(declaredType, fieldType)) {
-            diagnosticReporter.report(
-              diag.fieldInitializingFormalNotAssignable
-                  .withArguments(
-                    formalParameterType: declaredType,
-                    fieldType: fieldType,
-                  )
-                  .at(parameter),
-            );
-          }
-        } else {
-          if (fieldElement.isOriginGetterSetter) {
-            diagnosticReporter.report(
-              diag.initializingFormalForNonExistentField
-                  .withArguments(formalName: parameter.name.lexeme)
-                  .at(parameter),
-            );
-          } else if (fieldElement.isStatic) {
-            diagnosticReporter.report(
-              diag.initializerForStaticField
-                  .withArguments(formalName: parameter.name.lexeme)
-                  .at(parameter),
-            );
-          }
-        }
-      }
+    if (element is! FieldFormalParameterElementImpl) {
+      return;
+    }
+
+    var fieldElement = element.field;
+    if (fieldElement == null || fieldElement.isOriginGetterSetter) {
+      diagnosticReporter.report(
+        diag.initializingFormalForNonExistentField
+            .withArguments(formalName: parameter.name.lexeme)
+            .at(parameter),
+      );
+      return;
+    }
+
+    if (fieldElement.isStatic) {
+      diagnosticReporter.report(
+        diag.initializerForStaticField
+            .withArguments(formalName: parameter.name.lexeme)
+            .at(parameter),
+      );
+      return;
+    }
+
+    var elementType = element.type;
+    var fieldType = fieldElement.type;
+    if (!typeSystem.isSubtypeOf(elementType, fieldType)) {
+      diagnosticReporter.report(
+        diag.fieldInitializingFormalNotAssignable
+            .withArguments(
+              formalParameterType: elementType,
+              fieldType: fieldType,
+            )
+            .at(parameter),
+      );
     }
     //        else {
     // TODO(jwren): Report error, constructor initializer variable is a top level element
