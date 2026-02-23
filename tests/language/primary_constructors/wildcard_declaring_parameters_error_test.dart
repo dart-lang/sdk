@@ -68,7 +68,7 @@ class E(int _, int _) {
   // [cfe] unspecified
 }
 
-enum E1(var int _) {
+enum E1(final int _) {
   e(1);
 
   final int x = _;
