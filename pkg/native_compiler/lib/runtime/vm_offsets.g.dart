@@ -912,7 +912,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_allocate_object_slow_entry_point_offset => 0x230;
   @override
-  int get Thread_api_top_scope_offset => 0x898;
+  int get Thread_api_top_scope_offset => 0x888;
   @override
   int get Thread_async_exception_handler_stub_offset => 0x160;
   @override
@@ -928,15 +928,15 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_call_to_runtime_stub_offset => 0xd8;
   @override
-  int get Thread_dart_stream_offset => 0x8f0;
+  int get Thread_dart_stream_offset => 0x8e0;
   @override
   int get Thread_dispatch_table_array_offset => 0x68;
   @override
-  int get Thread_double_truncate_round_supported_offset => 0x8a0;
+  int get Thread_double_truncate_round_supported_offset => 0x890;
   @override
-  int get Thread_service_extension_stream_offset => 0x8f8;
+  int get Thread_service_extension_stream_offset => 0x8e8;
   @override
-  int get Thread_thread_locals_offset => 0x900;
+  int get Thread_thread_locals_offset => 0x8f0;
   @override
   int get Thread_optimize_entry_offset => 0x258;
   @override
@@ -1062,7 +1062,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_shared_field_table_values_offset => 0x78;
   @override
-  int get Thread_single_step_offset => 0x8d0;
+  int get Thread_single_step_offset => 0x8c0;
   @override
   int get Thread_slow_type_test_stub_offset => 0x1d0;
   @override
@@ -1117,7 +1117,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_top_resource_offset => 0x20;
   @override
-  int get Thread_unboxed_runtime_arg_offset => 0x8a8;
+  int get Thread_unboxed_runtime_arg_offset => 0x898;
   @override
   int get Thread_vm_tag_offset => 0x6c0;
   @override
@@ -1125,19 +1125,19 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_write_barrier_mask_offset => 0x50;
   @override
-  int get Thread_next_task_id_offset => 0x8b8;
+  int get Thread_next_task_id_offset => 0x8a8;
   @override
-  int get Thread_random_offset => 0x8c0;
+  int get Thread_random_offset => 0x8b0;
   @override
   int get Thread_jump_to_frame_entry_point_offset => 0x270;
   @override
-  int get Thread_tsan_utils_offset => 0x8c8;
+  int get Thread_tsan_utils_offset => 0x8b8;
   @override
-  int get Thread_current_tag_offset => 0x8e0;
+  int get Thread_current_tag_offset => 0x8d0;
   @override
-  int get Thread_default_tag_offset => 0x8e8;
+  int get Thread_default_tag_offset => 0x8d8;
   @override
-  int get Thread_user_tag_offset => 0x8d8;
+  int get Thread_user_tag_offset => 0x8c8;
   @override
   int get TsanUtils_setjmp_function_offset => 0x0;
   @override
@@ -1823,7 +1823,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_allocate_object_slow_entry_point_offset => 0x230;
   @override
-  int get Thread_api_top_scope_offset => 0x898;
+  int get Thread_api_top_scope_offset => 0x888;
   @override
   int get Thread_async_exception_handler_stub_offset => 0x160;
   @override
@@ -1839,15 +1839,15 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_call_to_runtime_stub_offset => 0xd8;
   @override
-  int get Thread_dart_stream_offset => 0x8f0;
+  int get Thread_dart_stream_offset => 0x8e0;
   @override
   int get Thread_dispatch_table_array_offset => 0x68;
   @override
-  int get Thread_double_truncate_round_supported_offset => 0x8a0;
+  int get Thread_double_truncate_round_supported_offset => 0x890;
   @override
-  int get Thread_service_extension_stream_offset => 0x8f8;
+  int get Thread_service_extension_stream_offset => 0x8e8;
   @override
-  int get Thread_thread_locals_offset => 0x900;
+  int get Thread_thread_locals_offset => 0x8f0;
   @override
   int get Thread_optimize_entry_offset => 0x258;
   @override
@@ -2026,7 +2026,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_top_resource_offset => 0x20;
   @override
-  int get Thread_unboxed_runtime_arg_offset => 0x8a8;
+  int get Thread_unboxed_runtime_arg_offset => 0x898;
   @override
   int get Thread_vm_tag_offset => 0x6c0;
   @override
@@ -2034,19 +2034,19 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_write_barrier_mask_offset => 0x50;
   @override
-  int get Thread_next_task_id_offset => 0x8b8;
+  int get Thread_next_task_id_offset => 0x8a8;
   @override
-  int get Thread_random_offset => 0x8c0;
+  int get Thread_random_offset => 0x8b0;
   @override
   int get Thread_jump_to_frame_entry_point_offset => 0x270;
   @override
-  int get Thread_tsan_utils_offset => 0x8c8;
+  int get Thread_tsan_utils_offset => 0x8b8;
   @override
-  int get Thread_current_tag_offset => 0x8e0;
+  int get Thread_current_tag_offset => 0x8d0;
   @override
-  int get Thread_default_tag_offset => 0x8e8;
+  int get Thread_default_tag_offset => 0x8d8;
   @override
-  int get Thread_user_tag_offset => 0x8d8;
+  int get Thread_user_tag_offset => 0x8c8;
   @override
   int get TsanUtils_setjmp_function_offset => 0x0;
   @override
@@ -2626,8 +2626,6 @@ enum LeafRuntimeEntry {
   LibcAtan2,
   LibcExp,
   LibcLog,
-  CaseInsensitiveCompareUCS2,
-  CaseInsensitiveCompareUTF16,
   EnterSafepoint,
   ExitSafepoint,
   EnterHandleScope,

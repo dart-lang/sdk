@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class ScopeContext {
   final LibraryFragmentImpl _libraryFragment;
@@ -25,6 +26,98 @@ class ScopeContext {
        _nameScope = nameScope;
 
   Scope get nameScope => _nameScope;
+
+  void visitClassDeclaration(
+    ClassDeclarationImpl node, {
+    required AstVisitor visitor,
+    void Function(CommentImpl)? visitDocumentationComment,
+    void Function()? enterBodyScope,
+    void Function(ClassBodyImpl body)? visitBody,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.namePart.typeParameters?.accept(visitor);
+      node.extendsClause?.accept(visitor);
+      node.withClause?.accept(visitor);
+      node.implementsClause?.accept(visitor);
+      node.nativeClause?.accept(visitor);
+
+      withInstanceScope(element, () {
+        enterBodyScope?.call();
+        node.documentationComment?.visitWithOverride(
+          visitor,
+          visitDocumentationComment,
+        );
+        node.namePart
+            .tryCast<PrimaryConstructorDeclarationImpl>()
+            ?.formalParameters
+            .accept(visitor);
+        node.body.visitWithOverride(visitor, visitBody);
+      });
+    });
+  }
+
+  void visitExtensionDeclaration(
+    ExtensionDeclarationImpl node, {
+    required AstVisitor visitor,
+    void Function(CommentImpl)? visitDocumentationComment,
+    void Function()? enterBodyScope,
+    void Function(BlockClassBodyImpl body)? visitBody,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.typeParameters?.accept(visitor);
+      node.onClause?.accept(visitor);
+
+      withExtensionScope(element, () {
+        enterBodyScope?.call();
+        node.documentationComment?.visitWithOverride(
+          visitor,
+          visitDocumentationComment,
+        );
+        node.body.visitWithOverride(visitor, visitBody);
+      });
+    });
+  }
+
+  void visitExtensionTypeDeclaration(
+    ExtensionTypeDeclarationImpl node, {
+    required AstVisitor visitor,
+    void Function(CommentImpl)? visitDocumentationComment,
+    void Function()? enterBodyScope,
+    void Function(ClassBodyImpl body)? visitBody,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.primaryConstructor.typeParameters?.accept(visitor);
+      node.implementsClause?.accept(visitor);
+
+      withInstanceScope(element, () {
+        enterBodyScope?.call();
+        node.documentationComment?.visitWithOverride(
+          visitor,
+          visitDocumentationComment,
+        );
+        node.primaryConstructor.formalParameters.accept(visitor);
+        node.body.visitWithOverride(visitor, visitBody);
+      });
+    });
+  }
 
   void visitMixinDeclaration(
     MixinDeclarationImpl node, {
@@ -97,8 +190,9 @@ class ScopeContext {
   }
 
   /// Run [operation] with a new [LocalScope].
-  void withLocalScope(void Function() operation) {
-    withScope(LocalScope(nameScope), operation);
+  void withLocalScope(void Function(LocalScope scope) operation) {
+    var scope = LocalScope(nameScope);
+    withScope(scope, () => operation(scope));
   }
 
   void withPrimaryParameterScope(
@@ -153,6 +247,14 @@ extension<T extends AstNode> on T {
       visitOverride(this);
     } else {
       accept(visitor);
+    }
+  }
+}
+
+extension LocalScopeExtension on LocalScope {
+  void addFormalParameterList(FormalParameterList node) {
+    for (var formalParameter in node.parameters) {
+      add(formalParameter.declaredFragment!.element);
     }
   }
 }

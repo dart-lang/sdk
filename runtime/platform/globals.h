@@ -466,6 +466,8 @@ constexpr intptr_t kInt64SizeLog2 = 3;
 constexpr intptr_t kInt64Size = 1 << kInt64SizeLog2;
 static_assert(kInt64Size == sizeof(int64_t), "Mismatched int64 size constant");
 
+constexpr int kUInt32Size = sizeof(uint32_t);
+
 constexpr intptr_t kDoubleSize = sizeof(double);
 constexpr intptr_t kFloatSize = sizeof(float);
 constexpr intptr_t kQuadSize = 4 * kFloatSize;

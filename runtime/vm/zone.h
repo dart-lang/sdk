@@ -35,6 +35,12 @@ class Zone {
   // size computation.
   template <class ElementType>
   inline ElementType* Alloc(intptr_t len);
+  template <class ElementType>
+  inline ElementType* AllocateArray(intptr_t len) {
+    return Alloc<ElementType>(len);
+  }
+  template <class ElementType>
+  void DeleteArray(ElementType* data, intptr_t len) {}
 
   // Allocates an array sized to hold 'len' elements of type
   // 'ElementType'.  The new array is initialized from the memory of

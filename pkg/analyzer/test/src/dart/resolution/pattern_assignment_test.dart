@@ -338,6 +338,88 @@ PatternAssignment
 ''');
   }
 
+  test_context_arrowBody_formalParameter() async {
+    await assertNoErrorsInCode(r'''
+int f(int x) => (x) = 0;
+''');
+
+    var node = findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: AssignedVariablePattern
+      name: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      matchedValueType: int
+    rightParenthesis: )
+    matchedValueType: int
+  equals: =
+  expression: IntegerLiteral
+    literal: 0
+    staticType: int
+  patternTypeSchema: int
+  staticType: int
+''');
+  }
+
+  test_context_returnExpression_formalParameter() async {
+    await assertNoErrorsInCode(r'''
+int f(int x) {
+  return (x) = 0;
+}
+''');
+
+    var node = findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: AssignedVariablePattern
+      name: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      matchedValueType: int
+    rightParenthesis: )
+    matchedValueType: int
+  equals: =
+  expression: IntegerLiteral
+    literal: 0
+    staticType: int
+  patternTypeSchema: int
+  staticType: int
+''');
+  }
+
+  test_context_variableInitializer_localVariable() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  int x = 1;
+  var y = (x) = 0;
+  x;
+  y;
+}
+''');
+
+    var node = findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: AssignedVariablePattern
+      name: x
+      element: x@17
+      matchedValueType: int
+    rightParenthesis: )
+    matchedValueType: int
+  equals: =
+  expression: IntegerLiteral
+    literal: 0
+    staticType: int
+  patternTypeSchema: int
+  staticType: int
+''');
+  }
+
   test_declaredVariable_inPatternAssignment_referenced() async {
     // Note: the error is reporting during parsing but we test it here to make
     // sure that error recovery produces an AST that can be analyzed without

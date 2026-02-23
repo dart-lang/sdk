@@ -84,16 +84,6 @@ class RuntimeEntry : public BaseRuntimeEntry {
   extern const RuntimeEntry k##name##RuntimeEntry;                             \
   extern "C" void DRT_##name(NativeArguments arguments);
 
-#define DEFINE_LEAF_RUNTIME_ENTRY(name, argument_count, func)                  \
-  extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
-      true, false, /*can_lazy_deopt=*/false)
-
-#define DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(name, argument_count, func)            \
-  extern const RuntimeEntry k##name##RuntimeEntry(                             \
-      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
-      true, true, /*can_lazy_deopt=*/false)
-
 #define DECLARE_LEAF_RUNTIME_ENTRY(type, name, ...)                            \
   extern const RuntimeEntry k##name##RuntimeEntry;                             \
   extern "C" type DLRT_##name(__VA_ARGS__);

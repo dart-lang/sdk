@@ -1921,12 +1921,13 @@ bool test6 = false;
   }
 
   Future<void> test_manyImports_sortBug() async {
-    // This test is for a bug where some "import" tokens would not be highlighted
-    // correctly. Imports are made up of a DIRECTIVE token that spans a
-    // BUILT_IN ("import") and LITERAL_STRING. The original code sorted by only
-    // offset when handling overlapping tokens, which for certain lists (such as
-    // the one created for the code below) would result in the BUILTIN coming before
-    // the DIRECTIVE, which resulted in the DIRECTIVE overwriting it.
+    // This test is for a bug where some "import" tokens would not be
+    // highlighted correctly. Imports are made up of a DIRECTIVE token that
+    // spans a KEYWORD ("import") and LITERAL_STRING. The original code sorted
+    // by only offset when handling overlapping tokens, which for certain lists
+    // (such as the one created for the code below) would result in the KEYWORD
+    // coming before the DIRECTIVE, which resulted in the DIRECTIVE overwriting
+    // it.
     var content = '''
 import 'dart:async';
 import 'dart:async';

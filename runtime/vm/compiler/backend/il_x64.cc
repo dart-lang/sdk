@@ -4640,28 +4640,6 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #undef DEFINE_EMIT
 
-LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
-  summary->set_in(0, Location::RegisterLocation(CallingConventions::kArg1Reg));
-  summary->set_in(1, Location::RegisterLocation(CallingConventions::kArg2Reg));
-  summary->set_in(2, Location::RegisterLocation(CallingConventions::kArg3Reg));
-  summary->set_in(3, Location::RegisterLocation(CallingConventions::kArg4Reg));
-  summary->set_out(0, Location::RegisterLocation(RAX));
-  return summary;
-}
-
-void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler::LeafRuntimeScope rt(compiler->assembler(),
-                                /*frame_size=*/0,
-                                /*preserve_registers=*/false);
-  // Call the function. Parameters are already in their correct spots.
-  rt.Call(TargetFunction(), TargetFunction().argument_count());
-}
-
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;

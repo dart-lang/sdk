@@ -77,6 +77,9 @@ void closureCalls(Function func1, int Function<T>(T, String) func2) {
   void func3(int x) => print(x);
   func3(42);
 
+  void func4<T>(T x) => print(x);
+  func4('abc');
+
   () {
     print('hey');
   }();

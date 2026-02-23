@@ -209,6 +209,16 @@ void OnEveryRuntimeEntryCall(Thread* thread,
 #define DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(name, argument_count)               \
   DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, /*can_lazy_deopt=*/false)
 
+#define DEFINE_LEAF_RUNTIME_ENTRY(name, argument_count, func)                  \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
+      true, false, /*can_lazy_deopt=*/false)
+
+#define DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(name, argument_count, func)            \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
+      true, true, /*can_lazy_deopt=*/false)
+
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& index = Instance::CheckedHandle(zone, arguments.ArgAt(1));

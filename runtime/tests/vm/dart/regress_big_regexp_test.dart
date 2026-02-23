@@ -15,7 +15,7 @@ void testBigRegExp(String source) {
     Expect.isTrue(re.hasMatch(source));
   } catch (e) {
     // May throw a compile-time error, but shouldn't crash.
-    Expect.isTrue(e.toString().contains('RegExp too big'));
+    Expect.isTrue(e.toString().contains('Regular expression too large'));
   }
 }
 

@@ -7742,6 +7742,7 @@ LinterLintCode:
     correctionMessage: "Try removing the type annotation."
     state:
       experimental: "3.6"
+      stable: "3.11"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -7814,6 +7815,7 @@ LinterLintCode:
     correctionMessage: "Try removing the type annotation."
     state:
       experimental: "3.7"
+      stable: "3.11"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -11930,6 +11932,7 @@ LinterLintCode:
     correctionMessage: "Try adding a type annotation."
     state:
       experimental: "3.6"
+      stable: "3.11"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -11989,6 +11992,7 @@ LinterLintCode:
     correctionMessage: "Try adding a type annotation."
     state:
       experimental: "3.7"
+      stable: "3.11"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-

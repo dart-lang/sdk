@@ -620,10 +620,9 @@ config("runtime_library") {
   } else if (is_android) {
     # Android standard library setup.
 
-    ldflags += [
-      "-Wl,--warn-shared-textrel",
-      "-static-libstdc++",
-    ]
+    if (!use_flutter_cxx) {
+      ldflags += [ "-static-libstdc++" ]
+    }
 
     libs += [
       "c",

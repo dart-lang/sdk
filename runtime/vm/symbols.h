@@ -448,9 +448,6 @@ class ObjectPointerVisitor;
   V(_ffi_resolver_function, "_ffi_resolver_function")                          \
   V(future, "future")                                                          \
   V(_future, "_future")                                                        \
-  V(_getRegisters, "_getRegisters")                                            \
-  V(_getBacktrackingStack, "_getBacktrackingStack")                            \
-  V(_growBacktrackingStack, "_growBacktrackingStack")                          \
   V(_handleException, "_handleException")                                      \
   V(_handleFinalizerMessage, "_handleFinalizerMessage")                        \
   V(_handleMessage, "_handleMessage")                                          \
@@ -507,7 +504,6 @@ class ObjectPointerVisitor;
   V(_toString, "_toString")                                                    \
   V(_typedDataBase, "_typedDataBase")                                          \
   V(_varData, "_varData")                                                      \
-  V(_wordCharacterMap, "_wordCharacterMap")                                    \
   V(_yieldAsyncStar, "_yieldAsyncStar")                                        \
   V(_yieldStarIterable, "_yieldStarIterable")                                  \
   V(_yieldSyncStar, "_yieldSyncStar")                                          \

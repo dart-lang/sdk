@@ -4,6 +4,7 @@
 
 import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
+import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
 
 /// Base class representing a function (getter, setter, regular method,
@@ -217,6 +218,33 @@ final class TearOffFunction extends ClosureFunction {
   );
 }
 
+class ArgumentsShape {
+  final int types;
+  final int positional;
+  final List<String> named;
+
+  const ArgumentsShape(this.types, this.positional, this.named);
+
+  @override
+  String toString() =>
+      'Args[$positional${types > 0 ? ', types: $types' : ''}${named.isNotEmpty ? ', named: $named' : ''}]';
+
+  @override
+  bool operator ==(Object other) =>
+      other is ArgumentsShape &&
+      this.types == other.types &&
+      this.positional == other.positional &&
+      listEquals(this.named, other.named);
+
+  @override
+  int get hashCode => finalizeHash(
+    combineHash(
+      combineHash(types.hashCode, positional.hashCode),
+      listHashCode(named),
+    ),
+  );
+}
+
 /// Mapping between AST nodes and functions.
 ///
 /// Ensures that unique [CFunction] is used to represent
@@ -228,6 +256,7 @@ class FunctionRegistry {
   final Map<ast.Member, CFunction> _tearOffs = {};
   final Map<ast.Member, CFunction> _fieldInitializers = {};
   final Map<ast.Member, CFunction> _other = {};
+  final List<ArgumentsShape> _positionalArgShapes = [];
 
   /// Returns [CFunction] corresponding to [member] with
   /// given properties.
@@ -271,5 +300,19 @@ class FunctionRegistry {
       ast.Procedure() => RegularFunction._(member),
       _ => throw 'Unexpected member ${member.runtimeType} $member',
     };
+  }
+
+  ArgumentsShape getArgumentsShape(
+    int positional, {
+    int types = 0,
+    List<String> named = const [],
+  }) {
+    if (types == 0 && named.isEmpty) {
+      for (int i = _positionalArgShapes.length, n = positional; i <= n; ++i) {
+        _positionalArgShapes.add(ArgumentsShape(0, i, const <String>[]));
+      }
+      return _positionalArgShapes[positional];
+    }
+    return ArgumentsShape(types, positional, named);
   }
 }

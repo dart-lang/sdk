@@ -50,7 +50,7 @@ class Invalid {
 
   test_requiredParam_declaring() async {
     await assertNoDiagnostics(r'''
-class A({required var String this.s});
+class A({required var String s});
 ''');
   }
 

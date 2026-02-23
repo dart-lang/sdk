@@ -746,6 +746,15 @@ Map<String, int> map = <String, int>{};
 ''');
   }
 
+  Future<void> test_mapMap() async {
+    await resolveTestCode('''
+va^r foo = <String, Map<String, String>>{};
+''');
+    await assertHasAssist('''
+Map<String, Map<String, String>> foo = <String, Map<String, String>>{};
+''');
+  }
+
   Future<void> test_parameter() async {
     await resolveTestCode('''
 foo(f(int p)) {}

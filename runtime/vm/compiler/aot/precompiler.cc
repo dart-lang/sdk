@@ -47,8 +47,6 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/program_visitor.h"
-#include "vm/regexp/regexp_assembler.h"
-#include "vm/regexp/regexp_parser.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_trace.h"

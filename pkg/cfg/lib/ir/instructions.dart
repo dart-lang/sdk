@@ -761,14 +761,23 @@ final class Constant extends Definition with NoThrow, Pure {
 /// Base class for various calls.
 abstract base class CallInstruction extends Definition
     with CanThrow, HasSideEffects {
+  final ArgumentsShape argumentsShape;
+
   CallInstruction(
     super.graph,
     super.sourcePosition, {
     required super.inputCount,
-  });
+    required this.argumentsShape,
+  }) {
+    assert(
+      inputCount ==
+          ((argumentsShape.types > 0) ? 1 : 0) +
+              argumentsShape.positional +
+              argumentsShape.named.length,
+    );
+  }
 
-  bool get hasTypeArguments =>
-      inputCount > 0 && inputDefAt(0).type is TypeArgumentsType;
+  bool get hasTypeArguments => argumentsShape.types > 0;
   Definition? get typeArguments => hasTypeArguments ? inputDefAt(0) : null;
 }
 
@@ -785,6 +794,7 @@ final class DirectCall extends CallInstruction {
     this.target,
     this.type, {
     required super.inputCount,
+    required super.argumentsShape,
   });
 
   @override
@@ -804,9 +814,10 @@ final class InterfaceCall extends CallInstruction {
     this.interfaceTarget,
     this.type, {
     required super.inputCount,
-  }) : assert(inputCount > 0);
+    required super.argumentsShape,
+  }) : assert(argumentsShape.positional > 0);
 
-  Definition get receiver => inputDefAt(0);
+  Definition get receiver => inputDefAt(hasTypeArguments ? 1 : 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitInterfaceCall(this);
@@ -822,9 +833,10 @@ final class ClosureCall extends CallInstruction {
     super.sourcePosition,
     this.type, {
     required super.inputCount,
-  }) : assert(inputCount > 0);
+    required super.argumentsShape,
+  }) : assert(argumentsShape.positional > 0);
 
-  Definition get closure => inputDefAt(0);
+  Definition get closure => inputDefAt(hasTypeArguments ? 1 : 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitClosureCall(this);
@@ -843,9 +855,10 @@ final class DynamicCall extends CallInstruction {
     this.selector,
     this.kind, {
     required super.inputCount,
-  }) : assert(inputCount > 0);
+    required super.argumentsShape,
+  }) : assert(argumentsShape.positional > 0);
 
-  Definition get receiver => inputDefAt(0);
+  Definition get receiver => inputDefAt(hasTypeArguments ? 1 : 0);
 
   @override
   CType get type => const TopType();

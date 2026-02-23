@@ -60,6 +60,7 @@ enum PredefinedClusters {
   functionRefs,
   closureFunctionRefs,
   closureRefs,
+  argumentsDescriptorRefs,
   ints,
   doubles,
   lists,
@@ -74,6 +75,7 @@ enum PredefinedClusters {
   typeParameterTypes,
   typeArguments,
   codes,
+  icDatas,
   objectPools,
   instances, // Separate cluster for every class.
 }
@@ -97,7 +99,7 @@ enum FunctionKind {
 ///
 /// This enum should match ModuleSnapshot::ObjectPoolEntryKind
 /// enum declared in runtime/vm/module_snapshot.cc.
-enum ObjectPoolEntryKind { objectRef, newObjectTags }
+enum ObjectPoolEntryKind { objectRef, newObjectTags, interfaceCall }
 
 abstract base class SerializationCluster {
   /// Add [object] to the cluster and push its outgoing references.
@@ -215,7 +217,7 @@ class SnapshotSerializer {
   }
 
   Object? preprocess(Object? obj) => switch (obj) {
-    ast.Name() when !obj.isPrivate => obj.text,
+    ast.Name() => Name(obj.text, obj.library),
     ast.PrimitiveConstant() when obj is! ast.DoubleConstant => obj.value,
     ast.TypeLiteralConstant() => preprocess(obj.type),
     ast.SymbolConstant() => ast.InstanceConstant(
@@ -284,7 +286,10 @@ class SnapshotSerializer {
       PredefinedClusters.closureFunctionRefs,
     ),
     CFunction() => getPredefinedCluster(PredefinedClusters.functionRefs),
-    ast.Name() => getPredefinedCluster(PredefinedClusters.privateNames),
+    PrivateName() => getPredefinedCluster(PredefinedClusters.privateNames),
+    ArgumentsShape() => getPredefinedCluster(
+      PredefinedClusters.argumentsDescriptorRefs,
+    ),
     // Constants.
     String() => getPredefinedCluster(
       OneByteStringSerializationCluster.isOneByteString(obj)
@@ -326,6 +331,7 @@ class SnapshotSerializer {
     ),
     // Generated code and object pool
     Code() => getPredefinedCluster(PredefinedClusters.codes),
+    ICData() => getPredefinedCluster(PredefinedClusters.icDatas),
     ObjectPool() => getPredefinedCluster(PredefinedClusters.objectPools),
     _ => throw 'Unxpected ${obj.runtimeType} $obj',
   };
@@ -345,6 +351,7 @@ class SnapshotSerializer {
     .functionRefs => FunctionRefSerializationCluster(),
     .closureFunctionRefs => ClosureFunctionRefSerializationCluster(),
     .closureRefs => ClosureRefSerializationCluster(),
+    .argumentsDescriptorRefs => ArgumentsDescriptorRefSerializationCluster(),
     .oneByteStrings => OneByteStringSerializationCluster(),
     .twoByteStrings => TwoByteStringSerializationCluster(),
     .privateNames => PrivateNameSerializationCluster(),
@@ -363,6 +370,7 @@ class SnapshotSerializer {
     .recordTypes => throw 'Unimplemented cluster $clusterId',
     .typeParameterTypes => throw 'Unimplemented cluster $clusterId',
     .codes => CodeSerializationCluster(),
+    .icDatas => ICDataSerializationCluster(),
     .objectPools => ObjectPoolSerializationCluster(),
     .instances => throw 'Each class has a separate instance cluster',
   };
@@ -400,7 +408,7 @@ class WrapperConstant extends ast.AuxiliaryConstant {
 /// Private names should have a non-null [library].
 ast.Constant getNameConstant(String name, ast.Library? library) =>
     (library != null)
-    ? WrapperConstant(ast.Name(name, library))
+    ? WrapperConstant(PrivateName(name, library))
     : ast.StringConstant(name);
 
 /// Create a ListConstant from given [elements], wrapping them if needed.
@@ -432,7 +440,7 @@ final class LibraryRefSerializationCluster extends SerializationCluster {
 
 extension on ast.Class {
   Object get mangledName =>
-      name.startsWith('_') ? ast.Name(name, enclosingLibrary) : name;
+      name.startsWith('_') ? PrivateName(name, enclosingLibrary) : name;
 }
 
 final class ClassRefSerializationCluster extends SerializationCluster {
@@ -611,6 +619,35 @@ final class ClosureRefSerializationCluster extends SerializationCluster {
   }
 }
 
+final class ArgumentsDescriptorRefSerializationCluster
+    extends SerializationCluster {
+  final List<ArgumentsShape> _objects = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final args = object as ArgumentsShape;
+    _objects.add(args);
+    for (final name in args.named) {
+      serializer.push(name);
+    }
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.argumentsDescriptorRefs.index);
+    serializer.writeUint(_objects.length);
+    for (final args in _objects) {
+      serializer.assignRef(args);
+      serializer.writeUint(args.types);
+      serializer.writeUint(args.positional);
+      serializer.writeUint(args.named.length);
+      for (final name in args.named) {
+        serializer.writeRefId(name);
+      }
+    }
+  }
+}
+
 final class OneByteStringSerializationCluster extends SerializationCluster {
   final List<String> _objects = [];
 
@@ -663,14 +700,35 @@ final class TwoByteStringSerializationCluster extends SerializationCluster {
   }
 }
 
+extension type Name._(Object raw) implements Object {
+  factory Name(String text, ast.Library? library) =>
+      Name._((library != null) ? PrivateName(text, library) : text);
+}
+
+/// Private name in a [library].
+/// VM mangles such names with a library key (`@nnnn`).
+final class PrivateName {
+  final String text;
+  final ast.Library library;
+  PrivateName(this.text, this.library);
+
+  @override
+  bool operator ==(Object other) =>
+      other is PrivateName && text == other.text && library == other.library;
+
+  @override
+  int get hashCode =>
+      finalizeHash(combineHash(text.hashCode, library.hashCode));
+}
+
 final class PrivateNameSerializationCluster extends SerializationCluster {
-  final List<ast.Name> _objects = [];
+  final List<PrivateName> _objects = [];
 
   @override
   void trace(SnapshotSerializer serializer, Object object) {
-    final name = object as ast.Name;
+    final name = object as PrivateName;
     _objects.add(name);
-    serializer.push(name.library!);
+    serializer.push(name.library);
     serializer.push(name.text);
   }
 
@@ -680,7 +738,7 @@ final class PrivateNameSerializationCluster extends SerializationCluster {
     serializer.writeUint(_objects.length);
     for (final name in _objects) {
       serializer.assignRef(name);
-      serializer.writeRefId(name.library!);
+      serializer.writeRefId(name.library);
       serializer.writeRefId(name.text);
     }
   }
@@ -915,7 +973,9 @@ final class InstanceSerializationCluster extends SerializationCluster {
     final offsetToField = <int, ast.Field>{};
     for (ast.Class? cls = _cls; cls != null; cls = cls.superclass) {
       for (final field in cls.fields) {
-        offsetToField[objectLayout.getFieldOffset(CField(field))] = field;
+        if (field.isInstanceMember) {
+          offsetToField[objectLayout.getFieldOffset(CField(field))] = field;
+        }
       }
     }
     final typeArgsOffset = (typeArgumentsField != null)
@@ -1174,8 +1234,51 @@ final class CodeSerializationCluster extends SerializationCluster {
   }
 }
 
+class ICData {
+  final CFunction owner;
+  final ArgumentsShape argumentsShape;
+  final Name targetName;
+  ICData(this.owner, this.argumentsShape, this.targetName);
+}
+
+final class ICDataSerializationCluster extends SerializationCluster {
+  final List<ICData> _objects = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final obj = object as ICData;
+    _objects.add(obj);
+    serializer.push(obj.targetName);
+    serializer.push(obj.argumentsShape);
+    serializer.push(obj.owner);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.icDatas.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final obj in _objects) {
+      serializer.assignRef(obj);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (final obj in _objects) {
+      serializer.writeRefId(obj.targetName);
+      serializer.writeRefId(obj.argumentsShape);
+      serializer.writeRefId(obj.owner);
+    }
+  }
+}
+
 final class ObjectPoolSerializationCluster extends SerializationCluster {
   final List<ObjectPool> _objects = [];
+  final Map<InterfaceCallEntry, ICData> icDatas = {};
 
   @override
   void trace(SnapshotSerializer serializer, Object object) {
@@ -1186,6 +1289,18 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
         switch (entry) {
           case NewObjectTags():
             serializer.push(entry.cls);
+          case InterfaceCallEntry():
+            // TODO: call through monomorphic/table dispatcher.
+            final icData = icDatas[entry] = ICData(
+              entry.owner,
+              entry.argumentsShape,
+              Name(
+                entry.selectorName,
+                entry.interfaceTarget.member.name.library,
+              ),
+            );
+            serializer.push(icData);
+          case ReservedEntry():
         }
       } else {
         serializer.push(entry);
@@ -1217,6 +1332,10 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             case NewObjectTags():
               serializer.writeUint(ObjectPoolEntryKind.newObjectTags.index);
               serializer.writeRefId(entry.cls);
+            case InterfaceCallEntry():
+              serializer.writeUint(ObjectPoolEntryKind.interfaceCall.index);
+              serializer.writeRefId(icDatas[entry]);
+            case ReservedEntry():
           }
         } else {
           serializer.writeUint(ObjectPoolEntryKind.objectRef.index);

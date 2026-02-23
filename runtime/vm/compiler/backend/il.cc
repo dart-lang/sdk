@@ -37,7 +37,6 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
-#include "vm/regexp/regexp_assembler_ir.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
@@ -1097,11 +1096,6 @@ bool StrictCompareInstr::AttributesEqual(const Instruction& other) const {
   ASSERT(other_op != nullptr);
   return ConditionInstr::AttributesEqual(other) &&
          (needs_number_check() == other_op->needs_number_check());
-}
-
-const RuntimeEntry& CaseInsensitiveCompareInstr::TargetFunction() const {
-  return handle_surrogates_ ? kCaseInsensitiveCompareUTF16RuntimeEntry
-                            : kCaseInsensitiveCompareUCS2RuntimeEntry;
 }
 
 bool MathMinMaxInstr::AttributesEqual(const Instruction& other) const {

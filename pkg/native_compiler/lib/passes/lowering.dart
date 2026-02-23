@@ -166,6 +166,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
       _growableListLiteral,
       instr.type,
       inputCount: 2,
+      argumentsShape: functionRegistry.getArgumentsShape(1, types: 1),
     );
     replacement.setInputAt(0, instr.typeArguments);
     replacement.setInputAt(1, argument);
@@ -211,6 +212,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
       _mapFromLiteral,
       instr.type,
       inputCount: 2,
+      argumentsShape: functionRegistry.getArgumentsShape(1, types: 2),
     );
     replacement.setInputAt(0, instr.typeArguments);
     replacement.setInputAt(1, argument);
@@ -251,6 +253,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
       target,
       const StringType(),
       inputCount: 1,
+      argumentsShape: functionRegistry.getArgumentsShape(1),
     );
     replacement.setInputAt(0, argument);
     replacement.insertBefore(instr);

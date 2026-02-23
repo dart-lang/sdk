@@ -71,6 +71,16 @@ void f(Stream stream) {
 ''');
   }
 
+  test_localVariable_canceled_inMethodInvocation() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(Stream stream) {
+  StreamSubscription s = stream.listen((_) {});
+  unawaited(s.cancel());
+}
+''');
+  }
+
   test_localVariable_notCanceled() async {
     await assertDiagnostics(
       r'''

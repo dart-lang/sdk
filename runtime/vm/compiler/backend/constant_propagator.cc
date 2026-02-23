@@ -1489,11 +1489,6 @@ void ConstantPropagator::VisitMathMinMax(MathMinMaxInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitCaseInsensitiveCompare(
-    CaseInsensitiveCompareInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
 void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsUnknown(value)) {

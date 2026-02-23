@@ -59,7 +59,6 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/profiler.h"
-#include "vm/regexp/regexp.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/reverse_pc_lookup_cache.h"
@@ -27535,26 +27534,6 @@ void RegExp::set_pattern(const String& pattern) const {
   untag()->set_pattern(pattern.ptr());
 }
 
-void RegExp::set_function(intptr_t cid,
-                          bool sticky,
-                          const Function& value) const {
-  if (sticky) {
-    switch (cid) {
-      case kOneByteStringCid:
-        return untag()->set_one_byte_sticky(value.ptr());
-      case kTwoByteStringCid:
-        return untag()->set_two_byte_sticky(value.ptr());
-    }
-  } else {
-    switch (cid) {
-      case kOneByteStringCid:
-        return untag()->set_one_byte(value.ptr());
-      case kTwoByteStringCid:
-        return untag()->set_two_byte(value.ptr());
-    }
-  }
-}
-
 void RegExp::set_bytecode(bool is_one_byte,
                           bool sticky,
                           const TypedData& bytecode) const {
@@ -27581,61 +27560,49 @@ void RegExp::set_capture_name_map(const Array& array) const {
   untag()->set_capture_name_map<std::memory_order_release>(array.ptr());
 }
 
-RegExpPtr RegExp::New(Zone* zone, Heap::Space space) {
-  const auto& result = RegExp::Handle(Object::Allocate<RegExp>(space));
-  ASSERT_EQUAL(result.type(), kUninitialized);
-  ASSERT(result.flags() == RegExpFlags());
+RegExpPtr RegExp::New(const String& pattern, RegExpFlags flags) {
+  const auto& result = RegExp::Handle(Object::Allocate<RegExp>(Heap::kNew));
+  result.set_pattern(pattern);
+  result.set_flags(flags);
   result.set_num_bracket_expressions(-1);
   result.set_num_registers(/*is_one_byte=*/false, -1);
   result.set_num_registers(/*is_one_byte=*/true, -1);
-
-  if (!FLAG_interpret_irregexp) {
-    auto thread = Thread::Current();
-    const Library& lib = Library::Handle(zone, Library::CoreLibrary());
-    const Class& owner =
-        Class::Handle(zone, lib.LookupClass(Symbols::RegExp()));
-
-    for (intptr_t cid = kOneByteStringCid; cid <= kTwoByteStringCid; cid++) {
-      CreateSpecializedFunction(thread, zone, result, cid, /*sticky=*/false,
-                                owner);
-      CreateSpecializedFunction(thread, zone, result, cid, /*sticky=*/true,
-                                owner);
-    }
-  }
   return result.ptr();
 }
 
-const char* RegExpFlags::ToCString() const {
-  switch (value_ & ~kGlobal) {
-    case kIgnoreCase | kMultiLine | kDotAll | kUnicode:
+const char* FlagsToCString(RegExpFlags flags) {
+  switch (flags & ~RegExpFlag::kGlobal) {
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kMultiline |
+        RegExpFlag::kDotAll | RegExpFlag::kUnicode:
       return "imsu";
-    case kIgnoreCase | kMultiLine | kDotAll:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kMultiline | RegExpFlag::kDotAll:
       return "ims";
-    case kIgnoreCase | kMultiLine | kUnicode:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kMultiline |
+        RegExpFlag::kUnicode:
       return "imu";
-    case kIgnoreCase | kUnicode | kDotAll:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kUnicode | RegExpFlag::kDotAll:
       return "ius";
-    case kMultiLine | kDotAll | kUnicode:
+    case RegExpFlag::kMultiline | RegExpFlag::kDotAll | RegExpFlag::kUnicode:
       return "msu";
-    case kIgnoreCase | kMultiLine:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kMultiline:
       return "im";
-    case kIgnoreCase | kDotAll:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kDotAll:
       return "is";
-    case kIgnoreCase | kUnicode:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kUnicode:
       return "iu";
-    case kMultiLine | kDotAll:
+    case RegExpFlag::kMultiline | RegExpFlag::kDotAll:
       return "ms";
-    case kMultiLine | kUnicode:
+    case RegExpFlag::kMultiline | RegExpFlag::kUnicode:
       return "mu";
-    case kDotAll | kUnicode:
+    case RegExpFlag::kDotAll | RegExpFlag::kUnicode:
       return "su";
-    case kIgnoreCase:
+    case RegExpFlags(RegExpFlag::kIgnoreCase):
       return "i";
-    case kMultiLine:
+    case RegExpFlags(RegExpFlag::kMultiline):
       return "m";
-    case kDotAll:
+    case RegExpFlags(RegExpFlag::kDotAll):
       return "s";
-    case kUnicode:
+    case RegExpFlags(RegExpFlag::kUnicode):
       return "u";
     default:
       break;
@@ -27666,13 +27633,13 @@ bool RegExp::CanonicalizeEquals(const Instance& other) const {
 
 uint32_t RegExp::CanonicalizeHash() const {
   // Must agree with RegExpKey::Hash.
-  return CombineHashes(String::Hash(pattern()), flags().value());
+  return CombineHashes(String::Hash(pattern()), flags());
 }
 
 const char* RegExp::ToCString() const {
   const String& str = String::Handle(pattern());
   return OS::SCreate(Thread::Current()->zone(), "RegExp: pattern=%s flags=%s",
-                     str.ToCString(), flags().ToCString());
+                     str.ToCString(), FlagsToCString(flags()));
 }
 
 WeakPropertyPtr WeakProperty::New(Heap::Space space) {

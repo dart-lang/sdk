@@ -38,10 +38,6 @@ class AsmIntrinsifier : public AllStatic {
 
 #undef DECLARE_FUNCTION
 
-  static void IntrinsifyRegExpExecuteMatch(Assembler* assembler,
-                                           Label* normal_ir_body,
-                                           bool sticky);
-
   static void StringEquality(Assembler* assembler,
                              Register obj1,
                              Register obj2,

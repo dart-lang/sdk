@@ -539,6 +539,12 @@ class LocalScope extends EnclosedScope {
       _addGetter(element);
     }
   }
+
+  void addAll(Iterable<Element> elements) {
+    for (var element in elements) {
+      add(element);
+    }
+  }
 }
 
 class PrefixScope implements Scope {

@@ -17,6 +17,9 @@ public class HighlightRegionType {
 
   public static final String ANNOTATION = "ANNOTATION";
 
+  /**
+   * Deprecated - no longer sent, KEYWORD used instead.
+   */
   public static final String BUILT_IN = "BUILT_IN";
 
   public static final String CLASS = "CLASS";

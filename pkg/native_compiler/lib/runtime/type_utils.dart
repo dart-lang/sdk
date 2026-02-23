@@ -99,3 +99,29 @@ bool isAllDynamic(List<ast.DartType> typeArgs) {
   }
   return true;
 }
+
+/// Returns true if [field] has a non-trivial initializer.
+///
+/// VM does not allow field initializer functions for fields
+/// with trivial initializers.
+bool hasNonTrivialInitializer(ast.Field field) {
+  final initializer = field.initializer;
+  if (initializer == null) return false;
+  if (field.isStatic) {
+    return switch (initializer) {
+      ast.StringLiteral() ||
+      ast.BoolLiteral() ||
+      ast.IntLiteral() ||
+      ast.DoubleLiteral() ||
+      ast.NullLiteral() ||
+      ast.ConstantExpression(constant: ast.PrimitiveConstant()) => false,
+      _ => true,
+    };
+  } else {
+    return switch (initializer) {
+      ast.NullLiteral() ||
+      ast.ConstantExpression(constant: ast.NullConstant()) => false,
+      _ => true,
+    };
+  }
+}

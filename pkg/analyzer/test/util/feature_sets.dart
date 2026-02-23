@@ -50,10 +50,5 @@ class FeatureSets {
     flags: experimentsForTests,
   );
 
-  static final FeatureSet latestWithVariance = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: ExperimentStatus.currentVersion,
-    flags: [Feature.variance.enableString],
-  );
-
   FeatureSets._();
 }
