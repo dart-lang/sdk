@@ -3719,10 +3719,10 @@ class UntaggedRegExp : public UntaggedInstance {
   VISIT_FROM(capture_name_map)
   // Pattern to be used for matching.
   COMPRESSED_POINTER_FIELD(StringPtr, pattern)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte)  // FunctionPtr or TypedDataPtr
-  COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte_sticky)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte_sticky)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, one_byte)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, two_byte)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, one_byte_sticky)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, two_byte_sticky)
   VISIT_TO(two_byte_sticky)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -3741,13 +3741,8 @@ class UntaggedRegExp : public UntaggedInstance {
   intptr_t num_one_byte_registers_;
   intptr_t num_two_byte_registers_;
 
-  // A bitfield with two fields:
-  // type: Uninitialized, simple or complex.
-  // flags: Represents global/local, case insensitive, multiline, unicode,
-  //        dotAll.
-  // It is possible multiple compilers race to update the flags concurrently.
-  // That should be safe since all updates update to the same values..
-  AtomicBitFieldContainer<int8_t> type_flags_;
+  // RegExpFlags
+  uint32_t flags_;
 };
 
 class UntaggedWeakProperty : public UntaggedInstance {

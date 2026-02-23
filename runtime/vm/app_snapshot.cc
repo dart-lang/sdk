@@ -6188,7 +6188,7 @@ class RegExpSerializationCluster : public SerializationCluster {
       WriteFromTo(regexp);
       s->Write<int32_t>(regexp->untag()->num_one_byte_registers_);
       s->Write<int32_t>(regexp->untag()->num_two_byte_registers_);
-      s->Write<int8_t>(regexp->untag()->type_flags_);
+      s->Write<uint32_t>(regexp->untag()->flags_);
     }
   }
 
@@ -6220,7 +6220,7 @@ class RegExpDeserializationCluster : public DeserializationCluster {
       d.ReadFromTo(regexp);
       regexp->untag()->num_one_byte_registers_ = d.Read<int32_t>();
       regexp->untag()->num_two_byte_registers_ = d.Read<int32_t>();
-      regexp->untag()->type_flags_ = d.Read<int8_t>();
+      regexp->untag()->flags_ = d.Read<uint32_t>();
     }
   }
 };

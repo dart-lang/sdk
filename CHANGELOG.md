@@ -50,6 +50,13 @@ main() {
 }
 ```
 
+### Libraries
+
+#### `dart:core`
+
+- The Dart VM's implementation of `RegExp` has been updated to include support
+  for modifier spans and duplicate named capture groups.
+
 ### Tools
 
 #### Pub

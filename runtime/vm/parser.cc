@@ -28,7 +28,6 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
-#include "vm/regexp/regexp_assembler.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
@@ -254,19 +253,6 @@ void ParsedFunction::AllocateVariables() {
       nullptr, &found_captured_variables);
 
   num_stack_locals_ = -next_free_index.value();
-}
-
-void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
-  ASSERT(function().IsIrregexpFunction());
-  ASSERT(function().NumOptionalParameters() == 0);
-  const intptr_t num_params = function().num_fixed_parameters();
-  ASSERT(num_params == RegExpMacroAssembler::kParamCount);
-  // Compute start indices to parameters and locals, and the number of
-  // parameters to copy.
-  first_parameter_index_ = VariableIndex(num_params);
-
-  // Frame indices are relative to the frame pointer and are decreasing.
-  num_stack_locals_ = num_stack_locals;
 }
 
 void ParsedFunction::SetGenericCovariantImplParameters(

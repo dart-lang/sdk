@@ -7080,54 +7080,6 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id) {
 #endif
 }
 
-#if (!defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME))
-
-// Any flag that affects how we compile code might cause a problem when the
-// snapshot writer generates code with one value of the flag and the snapshot
-// reader expects code to behave according to another value of the flag.
-// Normally, we add these flags to Dart::FeaturesString and refuse to run the
-// snapshot it they don't match, but since --interpret-irregexp affects only
-// 2 functions we choose to remove the code instead. See issue #34422.
-static void DropRegExpMatchCode(Zone* zone) {
-  const String& execute_match_name =
-      String::Handle(zone, String::New("_ExecuteMatch"));
-  const String& execute_match_sticky_name =
-      String::Handle(zone, String::New("_ExecuteMatchSticky"));
-
-  const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-  const Class& reg_exp_class =
-      Class::Handle(zone, core_lib.LookupClassAllowPrivate(Symbols::_RegExp()));
-  ASSERT(!reg_exp_class.IsNull());
-
-  auto thread = Thread::Current();
-  Function& func = Function::Handle(
-      zone, reg_exp_class.LookupFunctionAllowPrivate(execute_match_name));
-  ASSERT(!func.IsNull());
-  Code& code = Code::Handle(zone);
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-  if (func.HasCode()) {
-    code = func.CurrentCode();
-    ASSERT(!code.IsNull());
-    code.DisableDartCode();
-  }
-  func.ClearCode();
-  func.ClearICDataArray();
-  ASSERT(!func.HasCode());
-
-  func = reg_exp_class.LookupFunctionAllowPrivate(execute_match_sticky_name);
-  ASSERT(!func.IsNull());
-  if (func.HasCode()) {
-    code = func.CurrentCode();
-    ASSERT(!code.IsNull());
-    code.DisableDartCode();
-  }
-  func.ClearCode();
-  func.ClearICDataArray();
-  ASSERT(!func.HasCode());
-}
-
-#endif  // (!defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME))
-
 #if !defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
 static void KillNonMainIsolatesSlow(Thread* thread, Isolate* main_isolate) {
   auto group = main_isolate->group();
@@ -7181,7 +7133,6 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   KillNonMainIsolatesSlow(T, I);
 
   NoBackgroundCompilerScope no_bg_compiler(T);
-  DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup(T);
 

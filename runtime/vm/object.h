@@ -34,6 +34,7 @@
 #include "vm/json_stream.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
+#include "vm/regexp/regexp-flags.h"
 #include "vm/report.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/thread.h"
@@ -10466,6 +10467,12 @@ class String : public Instance {
   static constexpr intptr_t kOneByteChar = 1;
   static constexpr intptr_t kTwoByteChar = 2;
 
+  static const int32_t kMaxOneByteCharCode = 0xff;
+  static const uint32_t kMaxOneByteCharCodeU = 0xff;
+  static const int kMaxUtf16CodeUnit = 0xffff;
+  static const uint32_t kMaxUtf16CodeUnitU = kMaxUtf16CodeUnit;
+  static const uint32_t kMaxCodePoint = 0x10ffff;
+
 // All strings share the same maximum element count to keep things
 // simple.  We choose a value that will prevent integer overflow for
 // 2 byte strings, since it is the worst case.
@@ -10929,6 +10936,11 @@ class OneByteString : public AllStatic {
     return static_cast<OneByteStringPtr>(Object::null());
   }
 
+  static uint8_t* DataStart(const String& str) {
+    ASSERT(str.IsOneByteString());
+    return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
+  }
+
  private:
   static OneByteStringPtr raw(const String& str) {
     return static_cast<OneByteStringPtr>(str.ptr());
@@ -10942,11 +10954,6 @@ class OneByteString : public AllStatic {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsOneByteString());
     return &str.UnsafeMutableNonPointer(untag(str)->data())[index];
-  }
-
-  static uint8_t* DataStart(const String& str) {
-    ASSERT(str.IsOneByteString());
-    return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
   }
 
   ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(OneByteString, String);
@@ -11050,6 +11057,13 @@ class TwoByteString : public AllStatic {
 
   static const ClassId kClassId = kTwoByteStringCid;
 
+  // Use this instead of CharAddr(0).  It will not assert that the index is <
+  // length.
+  static uint16_t* DataStart(const String& str) {
+    ASSERT(str.IsTwoByteString());
+    return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
+  }
+
  private:
   static TwoByteStringPtr raw(const String& str) {
     return static_cast<TwoByteStringPtr>(str.ptr());
@@ -11063,13 +11077,6 @@ class TwoByteString : public AllStatic {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsTwoByteString());
     return &str.UnsafeMutableNonPointer(untag(str)->data())[index];
-  }
-
-  // Use this instead of CharAddr(0).  It will not assert that the index is <
-  // length.
-  static uint16_t* DataStart(const String& str) {
-    ASSERT(str.IsTwoByteString());
-    return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
   }
 
   ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(TwoByteString, String);
@@ -13023,92 +13030,9 @@ class SuspendState : public Instance {
   friend class Interpreter;
 };
 
-class RegExpFlags {
- public:
-  // Flags are passed to a regex object as follows:
-  // 'i': ignore case, 'g': do global matches, 'm': pattern is multi line,
-  // 'u': pattern is full Unicode, not just BMP, 's': '.' in pattern matches
-  // all characters including line terminators.
-  enum Flags {
-    kNone = 0,
-    kGlobal = 1,
-    kIgnoreCase = 2,
-    kMultiLine = 4,
-    kUnicode = 8,
-    kDotAll = 16,
-  };
-
-  static constexpr int kDefaultFlags = 0;
-
-  RegExpFlags() : value_(kDefaultFlags) {}
-  explicit RegExpFlags(int value) : value_(value) {}
-
-  inline bool IsGlobal() const { return (value_ & kGlobal) != 0; }
-  inline bool IgnoreCase() const { return (value_ & kIgnoreCase) != 0; }
-  inline bool IsMultiLine() const { return (value_ & kMultiLine) != 0; }
-  inline bool IsUnicode() const { return (value_ & kUnicode) != 0; }
-  inline bool IsDotAll() const { return (value_ & kDotAll) != 0; }
-
-  inline bool NeedsUnicodeCaseEquivalents() {
-    // Both unicode and ignore_case flags are set. We need to use ICU to find
-    // the closure over case equivalents.
-    return IsUnicode() && IgnoreCase();
-  }
-
-  void SetGlobal() { value_ |= kGlobal; }
-  void SetIgnoreCase() { value_ |= kIgnoreCase; }
-  void SetMultiLine() { value_ |= kMultiLine; }
-  void SetUnicode() { value_ |= kUnicode; }
-  void SetDotAll() { value_ |= kDotAll; }
-
-  const char* ToCString() const;
-
-  int value() const { return value_; }
-
-  bool operator==(const RegExpFlags& other) const {
-    return value_ == other.value_;
-  }
-  bool operator!=(const RegExpFlags& other) const {
-    return value_ != other.value_;
-  }
-
- private:
-  int value_;
-};
-
 // Internal JavaScript regular expression object.
 class RegExp : public Instance {
  public:
-  // Meaning of RegExType:
-  // kUninitialized: the type of th regexp has not been initialized yet.
-  // kSimple: A simple pattern to match against, using string indexOf operation.
-  // kComplex: A complex pattern to match.
-  enum RegExType {
-    kUninitialized = 0,
-    kSimple = 1,
-    kComplex = 2,
-  };
-
-  using TypeBits = BitField<int8_t, RegExType, 0, 2>;
-
-  // Must be kept in sync with RegExFlags::Flags.
-  using GlobalBit = BitField<int8_t, bool, TypeBits::kNextBit>;
-  using IgnoreCaseBit = BitField<int8_t, bool, GlobalBit::kNextBit>;
-  using MultiLineBit = BitField<int8_t, bool, IgnoreCaseBit::kNextBit>;
-  using UnicodeBit = BitField<int8_t, bool, MultiLineBit::kNextBit>;
-  using DotAllBit = BitField<int8_t, bool, UnicodeBit::kNextBit>;
-
-  // The portion of the bitfield container that contains all the above
-  // bool bits, which is passed to the constructor for RegExFlags.
-  using FlagsBits = BitField<int8_t,
-                             int8_t,
-                             TypeBits::kNextBit,
-                             DotAllBit::kNextBit - TypeBits::kNextBit>;
-
-  bool is_initialized() const { return (type() != kUninitialized); }
-  bool is_simple() const { return (type() == kSimple); }
-  bool is_complex() const { return (type() == kComplex); }
-
   intptr_t num_registers(bool is_one_byte) const {
     return LoadNonPointer<intptr_t, std::memory_order_relaxed>(
         is_one_byte ? &untag()->num_one_byte_registers_
@@ -13125,13 +13049,29 @@ class RegExp : public Instance {
 
   TypedDataPtr bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {
-      return TypedData::RawCast(
-          is_one_byte ? untag()->one_byte_sticky<std::memory_order_acquire>()
-                      : untag()->two_byte_sticky<std::memory_order_acquire>());
+      return is_one_byte
+                 ? untag()->one_byte_sticky<std::memory_order_acquire>()
+                 : untag()->two_byte_sticky<std::memory_order_acquire>();
     } else {
-      return TypedData::RawCast(
-          is_one_byte ? untag()->one_byte<std::memory_order_acquire>()
-                      : untag()->two_byte<std::memory_order_acquire>());
+      return is_one_byte ? untag()->one_byte<std::memory_order_acquire>()
+                         : untag()->two_byte<std::memory_order_acquire>();
+    }
+  }
+  bool has_bytecode(bool is_one_byte, bool sticky) const {
+    if (sticky) {
+      if (is_one_byte) {
+        return Object::null() !=
+               untag()->one_byte_sticky<std::memory_order_relaxed>();
+      } else {
+        return Object::null() !=
+               untag()->two_byte_sticky<std::memory_order_relaxed>();
+      }
+    } else {
+      if (is_one_byte) {
+        return Object::null() != untag()->one_byte<std::memory_order_relaxed>();
+      } else {
+        return Object::null() != untag()->two_byte<std::memory_order_relaxed>();
+      }
     }
   }
 
@@ -13178,7 +13118,6 @@ class RegExp : public Instance {
   }
 
   void set_pattern(const String& pattern) const;
-  void set_function(intptr_t cid, bool sticky, const Function& value) const;
   void set_bytecode(bool is_one_byte,
                     bool sticky,
                     const TypedData& bytecode) const;
@@ -13187,23 +13126,6 @@ class RegExp : public Instance {
   void set_num_bracket_expressions(const Smi& value) const;
   void set_num_bracket_expressions(intptr_t value) const;
   void set_capture_name_map(const Array& array) const;
-  void set_is_global() const {
-    untag()->type_flags_.UpdateBool<GlobalBit>(true);
-  }
-  void set_is_ignore_case() const {
-    untag()->type_flags_.UpdateBool<IgnoreCaseBit>(true);
-  }
-  void set_is_multi_line() const {
-    untag()->type_flags_.UpdateBool<MultiLineBit>(true);
-  }
-  void set_is_unicode() const {
-    untag()->type_flags_.UpdateBool<UnicodeBit>(true);
-  }
-  void set_is_dot_all() const {
-    untag()->type_flags_.UpdateBool<DotAllBit>(true);
-  }
-  void set_is_simple() const { set_type(kSimple); }
-  void set_is_complex() const { set_type(kComplex); }
   void set_num_registers(bool is_one_byte, intptr_t value) const {
     StoreNonPointer<intptr_t, intptr_t, std::memory_order_relaxed>(
         is_one_byte ? &untag()->num_one_byte_registers_
@@ -13211,12 +13133,8 @@ class RegExp : public Instance {
         value);
   }
 
-  RegExpFlags flags() const {
-    return RegExpFlags(untag()->type_flags_.Read<FlagsBits>());
-  }
-  void set_flags(RegExpFlags flags) const {
-    untag()->type_flags_.Update<FlagsBits>(flags.value());
-  }
+  RegExpFlags flags() const { return RegExpFlags(untag()->flags_); }
+  void set_flags(RegExpFlags flags) const { untag()->flags_ = flags; }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
@@ -13225,14 +13143,9 @@ class RegExp : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedRegExp));
   }
 
-  static RegExpPtr New(Zone* zone, Heap::Space space = Heap::kNew);
+  static RegExpPtr New(const String& pattern, RegExpFlags flags);
 
  private:
-  void set_type(RegExType type) const {
-    untag()->type_flags_.Update<TypeBits>(type);
-  }
-  RegExType type() const { return untag()->type_flags_.Read<TypeBits>(); }
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(RegExp, Instance);
   friend class Class;
 };

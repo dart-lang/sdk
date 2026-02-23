@@ -2004,30 +2004,20 @@ void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
-  jsobj.AddProperty("isCaseSensitive", !flags().IgnoreCase());
-  jsobj.AddProperty("isMultiLine", flags().IsMultiLine());
+  jsobj.AddProperty("isCaseSensitive", !IsIgnoreCase(flags()));
+  jsobj.AddProperty("isMultiLine", IsMultiline(flags()));
+  jsobj.AddProperty("isUnicode", IsUnicode(flags()));
+  jsobj.AddProperty("isDotAll", IsDotAll(flags()));
 
-  if (!FLAG_interpret_irregexp) {
-    Function& func = Function::Handle();
-    func = function(kOneByteStringCid, /*sticky=*/false);
-    jsobj.AddProperty("_oneByteFunction", func);
-    func = function(kTwoByteStringCid, /*sticky=*/false);
-    jsobj.AddProperty("_twoByteFunction", func);
-    func = function(kOneByteStringCid, /*sticky=*/true);
-    jsobj.AddProperty("_oneByteFunctionSticky", func);
-    func = function(kTwoByteStringCid, /*sticky=*/true);
-    jsobj.AddProperty("_twoByteFunctionSticky", func);
-  } else {
-    TypedData& bc = TypedData::Handle();
-    bc = bytecode(/*is_one_byte=*/true, /*sticky=*/false);
-    jsobj.AddProperty("_oneByteBytecode", bc);
-    bc = bytecode(/*is_one_byte=*/false, /*sticky=*/false);
-    jsobj.AddProperty("_twoByteBytecode", bc);
-    bc = bytecode(/*is_one_byte=*/true, /*sticky=*/true);
-    jsobj.AddProperty("_oneByteBytecodeSticky", bc);
-    bc = bytecode(/*is_one_byte=*/false, /*sticky=*/true);
-    jsobj.AddProperty("_twoByteBytecodeSticky", bc);
-  }
+  TypedData& bc = TypedData::Handle();
+  bc = bytecode(/*is_one_byte=*/true, /*sticky=*/false);
+  jsobj.AddProperty("_oneByteBytecode", bc);
+  bc = bytecode(/*is_one_byte=*/false, /*sticky=*/false);
+  jsobj.AddProperty("_twoByteBytecode", bc);
+  bc = bytecode(/*is_one_byte=*/true, /*sticky=*/true);
+  jsobj.AddProperty("_oneByteBytecodeSticky", bc);
+  bc = bytecode(/*is_one_byte=*/false, /*sticky=*/true);
+  jsobj.AddProperty("_twoByteBytecodeSticky", bc);
 }
 
 void RegExp::PrintImplementationFieldsImpl(

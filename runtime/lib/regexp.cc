@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/regexp/regexp.h"
 #include "platform/assert.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/canonical_tables.h"
@@ -9,15 +10,10 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
-#include "vm/regexp/regexp_assembler_bytecode.h"
-#include "vm/regexp/regexp_parser.h"
+#include "vm/regexp/regexp-parser.h"
 #include "vm/reusable_handles.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-#include "vm/regexp/regexp_assembler_ir.h"
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -32,11 +28,11 @@ DEFINE_NATIVE_ENTRY(RegExp_factory, 0, 6) {
   bool dot_all = arguments->NativeArgAt(5) == Bool::True().ptr();
 
   RegExpFlags flags;
-  flags.SetGlobal();  // All dart regexps are global.
-  if (ignore_case) flags.SetIgnoreCase();
-  if (multi_line) flags.SetMultiLine();
-  if (unicode) flags.SetUnicode();
-  if (dot_all) flags.SetDotAll();
+  flags |= RegExpFlag::kGlobal;  // All dart regexps are global.
+  if (ignore_case) flags |= RegExpFlag::kIgnoreCase;
+  if (multi_line) flags |= RegExpFlag::kMultiline;
+  if (unicode) flags |= RegExpFlag::kUnicode;
+  if (dot_all) flags |= RegExpFlag::kDotAll;
 
   RegExpKey lookup_key(pattern, flags);
   RegExp& regexp = RegExp::Handle(thread->zone());
@@ -60,7 +56,12 @@ DEFINE_NATIVE_ENTRY(RegExp_factory, 0, 6) {
   // the factory constructor. It is parsed again upon compilation.
   RegExpCompileData compileData;
   // Throws an exception on parsing failure.
-  RegExpParser::ParseRegExp(pattern, flags, &compileData);
+  if (!RegExpParser::ParseRegExpFromHeapString(isolate, zone, pattern, flags,
+                                               &compileData)) {
+    USE(RegExpStatics::ThrowRegExpException(isolate, flags, pattern,
+                                            compileData.error));
+    UNREACHABLE();
+  }
 
   {
     RegExpKey lookup_symbol_key(String::Handle(Symbols::New(thread, pattern)),
@@ -86,31 +87,31 @@ DEFINE_NATIVE_ENTRY(RegExp_getPattern, 0, 1) {
 DEFINE_NATIVE_ENTRY(RegExp_getIsMultiLine, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(regexp.flags().IsMultiLine()).ptr();
+  return Bool::Get(IsMultiline(regexp.flags())).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getIsUnicode, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(regexp.flags().IsUnicode()).ptr();
+  return Bool::Get(IsUnicode(regexp.flags())).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getIsDotAll, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(regexp.flags().IsDotAll()).ptr();
+  return Bool::Get(IsDotAll(regexp.flags())).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getIsCaseSensitive, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(!regexp.flags().IgnoreCase()).ptr();
+  return Bool::Get(!IsIgnoreCase(regexp.flags())).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getGroupCount, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  if (regexp.is_initialized()) {
+  if (regexp.num_bracket_expressions() != -1) {
     return Smi::New(regexp.num_bracket_expressions());
   }
   const String& pattern = String::Handle(regexp.pattern());
@@ -126,7 +127,7 @@ DEFINE_NATIVE_ENTRY(RegExp_getGroupCount, 0, 1) {
 DEFINE_NATIVE_ENTRY(RegExp_getGroupNameMap, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  if (regexp.is_initialized()) {
+  if (regexp.num_bracket_expressions() != -1) {
     return regexp.capture_name_map();
   }
   const String& pattern = String::Handle(regexp.pattern());
@@ -139,7 +140,8 @@ DEFINE_NATIVE_ENTRY(RegExp_getGroupNameMap, 0, 1) {
   return Object::null();
 }
 
-static ObjectPtr ExecuteMatch(Zone* zone,
+static ObjectPtr ExecuteMatch(Thread* thread,
+                              Zone* zone,
                               NativeArguments* arguments,
                               bool sticky) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -160,24 +162,18 @@ static ObjectPtr ExecuteMatch(Zone* zone,
                                 kMinInt32, kMaxInt32);
   }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (!FLAG_interpret_irregexp) {
-    return IRRegExpMacroAssembler::Execute(regexp, subject, start_index,
-                                           /*sticky=*/sticky, zone);
-  }
-#endif
-  return BytecodeRegExpMacroAssembler::Interpret(regexp, subject, start_index,
-                                                 /*is_sticky=*/sticky, zone);
+  return RegExpStatics::Interpret(thread, regexp, subject, start_index.Value(),
+                                  sticky);
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_ExecuteMatch, 0, 3) {
   // This function is intrinsified. See Intrinsifier::RegExp_ExecuteMatch.
-  return ExecuteMatch(zone, arguments, /*sticky=*/false);
+  return ExecuteMatch(thread, zone, arguments, /*sticky=*/false);
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_ExecuteMatchSticky, 0, 3) {
   // This function is intrinsified. See Intrinsifier::RegExp_ExecuteMatchSticky.
-  return ExecuteMatch(zone, arguments, /*sticky=*/true);
+  return ExecuteMatch(thread, zone, arguments, /*sticky=*/true);
 }
 
 }  // namespace dart

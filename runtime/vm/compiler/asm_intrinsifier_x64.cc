@@ -1833,48 +1833,6 @@ void AsmIntrinsifier::TwoByteString_equality(Assembler* assembler,
                  kTwoByteStringCid);
 }
 
-void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
-                                                   Label* normal_ir_body,
-                                                   bool sticky) {
-  if (FLAG_interpret_irregexp) return;
-
-  const intptr_t kRegExpParamOffset = 3 * target::kWordSize;
-  const intptr_t kStringParamOffset = 2 * target::kWordSize;
-  // start_index smi is located at offset 1.
-
-  // Incoming registers:
-  // RAX: Function. (Will be loaded with the specialized matcher function.)
-  // RCX: Unknown. (Must be GC safe on tail call.)
-  // R10: Arguments descriptor. (Will be preserved.)
-
-  // Load the specialized function pointer into RAX. Leverage the fact the
-  // string CIDs as well as stored function pointers are in sequence.
-  __ movq(RBX, Address(RSP, kRegExpParamOffset));
-  __ movq(RDI, Address(RSP, kStringParamOffset));
-  __ LoadClassId(RDI, RDI);
-  __ SubImmediate(RDI, Immediate(kOneByteStringCid));
-#if !defined(DART_COMPRESSED_POINTERS)
-  __ movq(FUNCTION_REG, FieldAddress(RBX, RDI, TIMES_8,
-                                     target::RegExp::function_offset(
-                                         kOneByteStringCid, sticky)));
-#else
-  __ LoadCompressed(FUNCTION_REG, FieldAddress(RBX, RDI, TIMES_4,
-                                               target::RegExp::function_offset(
-                                                   kOneByteStringCid, sticky)));
-#endif
-
-  // Registers are now set up for the lazy compile stub. It expects the function
-  // in RAX, the argument descriptor in R10, and IC-Data in RCX.
-  __ xorq(RCX, RCX);
-
-  // Tail-call the function.
-  __ LoadCompressed(
-      CODE_REG, FieldAddress(FUNCTION_REG, target::Function::code_offset()));
-  __ movq(RDI,
-          FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
-  __ jmp(RDI);
-}
-
 void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,
                                              Label* normal_ir_body) {
 #if !defined(SUPPORT_TIMELINE)
