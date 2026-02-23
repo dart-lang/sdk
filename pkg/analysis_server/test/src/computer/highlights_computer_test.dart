@@ -47,7 +47,7 @@ class A {}
 extension E on String {}
 ''');
     _check(HighlightRegionType.KEYWORD, 'extension');
-    _check(HighlightRegionType.BUILT_IN, 'on');
+    _check(HighlightRegionType.KEYWORD, 'on');
   }
 
   Future<void> test_function_callMethod_invocation() async {
