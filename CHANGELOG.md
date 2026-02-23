@@ -59,6 +59,11 @@ main() {
 
 ### Tools
 
+#### Analyzer
+
+- The analyzer now warns when a function which contains a parameter which is
+  annotated with `@mustBeConst` is torn off.
+
 #### Pub
 
 - `dart pub cache repair` now by default only repairs the packages referenced
