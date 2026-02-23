@@ -108,6 +108,12 @@ String? getWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
       defaultValue: member.name.text);
 }
 
+bool hasWasmPureFunctionPragma(CoreTypes coreTypes, Member member) {
+  return getPragma<bool>(coreTypes, member, 'wasm:pure-function',
+          defaultValue: true) ==
+      true;
+}
+
 /// Add a `@pragma('wasm:entry-point')` annotation to an annotatable.
 T addWasmEntryPointPragma<T extends Annotatable>(T node, CoreTypes coreTypes) =>
     addPragma(node, 'wasm:entry-point', coreTypes);

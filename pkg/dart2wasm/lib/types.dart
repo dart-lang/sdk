@@ -780,7 +780,8 @@ class IsCheckerCallTarget extends CallTarget {
           signature.inputs,
           signature.outputs,
         ),
-        name);
+        name)
+      ..isPure = true;
     translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
     return function;
   })();

@@ -51,7 +51,8 @@ class Globals {
       final getter = _globalGetters.putIfAbsent(global, () {
         final getterType =
             owningModule.types.defineFunction(const [], [global.type.type]);
-        final getterFunction = owningModule.functions.define(getterType);
+        final getterFunction = owningModule.functions.define(getterType)
+          ..isPure = true;
         final getterBody = getterFunction.body;
         getterBody.global_get(global);
         getterBody.end();

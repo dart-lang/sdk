@@ -1000,24 +1000,30 @@ int _jsCompare(WasmExternRef? s1, WasmExternRef? s2) =>
 external WasmI32 _jsStringCharCodeAtImport(WasmExternRef? s, WasmI32 index);
 
 @pragma("wasm:import", "wasm:js-string.compare")
+@pragma("wasm:pure-function")
 external WasmI32 _jsStringCompareImport(WasmExternRef? s1, WasmExternRef? s2);
 
 @pragma("wasm:import", "wasm:js-string.concat")
+@pragma("wasm:pure-function")
 external WasmExternRef _jsStringConcatImport(
   WasmExternRef? s1,
   WasmExternRef? s2,
 );
 
 @pragma("wasm:import", "wasm:js-string.equals")
+@pragma("wasm:pure-function")
 external WasmI32 _jsStringEqualsImport(WasmExternRef? s1, WasmExternRef? s2);
 
 @pragma("wasm:import", "wasm:js-string.fromCharCode")
+@pragma("wasm:pure-function")
 external WasmExternRef _jsStringFromCharCodeImport(WasmI32 c);
 
 @pragma("wasm:import", "wasm:js-string.length")
+@pragma("wasm:pure-function")
 external WasmI32 _jsStringLengthImport(WasmExternRef? s);
 
 @pragma("wasm:import", "wasm:js-string.substring")
+@pragma("wasm:pure-function")
 external WasmExternRef _jsStringSubstringImport(
   WasmExternRef? s,
   WasmI32 startIndex,
@@ -1025,6 +1031,7 @@ external WasmExternRef _jsStringSubstringImport(
 );
 
 @pragma("wasm:import", "wasm:js-string.fromCharCodeArray")
+@pragma("wasm:pure-function")
 external WasmExternRef jsStringFromCharCodeArray(
   WasmArray<WasmI16>? array,
   WasmI32 start,
@@ -1039,4 +1046,5 @@ external WasmI32 jsStringIntoCharCodeArray(
 );
 
 @pragma("wasm:import", "wasm:js-string.test")
+@pragma("wasm:pure-function")
 external WasmI32 jsStringTest(WasmExternRef? s);
