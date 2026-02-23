@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -26,6 +27,8 @@ class ScopeContext {
        _nameScope = nameScope;
 
   Scope get nameScope => _nameScope;
+
+  FeatureSet get _featureSet => _libraryFragment.library.featureSet;
 
   void visitClassDeclaration(
     ClassDeclarationImpl node, {
@@ -249,7 +252,10 @@ class ScopeContext {
     List<FormalParameterElementImpl> elements,
     void Function() operation,
   ) {
-    withScope(FormalParameterScope(nameScope, elements), operation);
+    withScope(
+      FormalParameterScope(nameScope, elements, featureSet: _featureSet),
+      operation,
+    );
   }
 
   void withInstanceScope(
@@ -261,7 +267,7 @@ class ScopeContext {
 
   /// Run [operation] with a new [LocalScope].
   void withLocalScope(void Function(LocalScope scope) operation) {
-    var scope = LocalScope(nameScope);
+    var scope = LocalScope(nameScope, featureSet: _featureSet);
     withScope(scope, () => operation(scope));
   }
 
@@ -301,11 +307,7 @@ class ScopeContext {
     void Function() operation,
   ) {
     withScope(
-      TypeParameterScope(
-        nameScope,
-        elements,
-        featureSet: _libraryFragment.library.featureSet,
-      ),
+      TypeParameterScope(nameScope, elements, featureSet: _featureSet),
       operation,
     );
   }
