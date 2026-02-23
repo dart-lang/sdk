@@ -7180,6 +7180,19 @@ recordUseOutsideOfPackage:
   parameters: none
   problemMessage: "`RecordUse` annotations are only supported in libraries with a `package:` URI."
 
+recordUseClassesMustBeFinal:
+  # Used by RecordUse validation
+  parameters: none
+  problemMessage: "Classes marked with '@RecordUse' must be final."
+  correctionMessage: "Try marking the class as 'final' or removing the '@RecordUse' annotation."
+
+recordUseSubtypingNotSupported:
+  # Used by RecordUse validation
+  parameters:
+    Name name: The name of the recorded class.
+  problemMessage: "Class '#name' is marked with '@RecordUse' and cannot be used as a supertype."
+  correctionMessage: "Try removing the supertype or removing the '@RecordUse' annotation from '#name'."
+
 wasmImportOrExportInUserCode:
   parameters: none
   problemMessage: "Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code."

@@ -10,6 +10,6 @@ void main() {
 }
 
 @RecordUse()
-class MyClass {
+final class MyClass {
   const MyClass();
 }

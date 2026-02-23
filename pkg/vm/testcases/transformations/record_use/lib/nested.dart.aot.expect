@@ -6,7 +6,7 @@ import "dart:core" as core;
 import "package:meta/meta.dart" show RecordUse;
 
 @#C1
-class MyClass extends core::Object /*hasConstConstructor*/  {
+final class MyClass extends core::Object /*hasConstConstructor*/  {
 
   [@vm.inferred-type.metadata=!]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
@@ -14,7 +14,7 @@ class MyClass extends core::Object /*hasConstConstructor*/  {
   final field core::Object i;
 }
 @#C1
-class MyOtherClass extends core::Object /*hasConstConstructor*/  {
+final class MyOtherClass extends core::Object /*hasConstConstructor*/  {
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]

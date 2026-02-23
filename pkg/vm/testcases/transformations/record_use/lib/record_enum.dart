@@ -17,7 +17,7 @@ void main() {
 }
 
 @RecordUse()
-class MyClass {
+final class MyClass {
   final A a;
 
   const MyClass(this.a);

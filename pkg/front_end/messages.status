@@ -140,7 +140,9 @@ front_end/PatchInjectionFailed/example: missingExample # Patching.
 front_end/PatternMatchingError/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
 front_end/PositionalAfterNamedArgument/example: missingExample # Seemingly only issued in Analyzer
 front_end/RecordUseCannotBePlacedHere/example: missingExample # No coverage.
+front_end/RecordUseClassesMustBeFinal/example: missingExample # No coverage.
 front_end/RecordUseOutsideOfPackage/example: missingExample # No coverage.
+front_end/RecordUseSubtypingNotSupported/example: missingExample # No coverage.
 front_end/SdkRootNotFound/example: missingExample # Issued on what is essentially a wrong setup.
 front_end/SdkSpecificationNotFound/example: missingExample # Issued on what is essentially a wrong setup.
 front_end/SdkSummaryNotFound/example: missingExample # Issued on what is essentially a wrong setup.

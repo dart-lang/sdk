@@ -128,8 +128,8 @@ void main(List<String> args) {
       if (file.path.endsWith('.dart') &&
           !file.path.contains('helper') &&
           (filter == null || file.path.contains(filter))) {
-        final name = path.basename(file.path);
-        final packageUri = Uri.parse('package:record_use_test/$name');
+        final relativePath = path.relative(file.path, from: testCasesDir.path);
+        final packageUri = Uri.parse('package:record_use_test/$relativePath');
         test(
           '${file.path} aot',
           () => runTestCaseAot(

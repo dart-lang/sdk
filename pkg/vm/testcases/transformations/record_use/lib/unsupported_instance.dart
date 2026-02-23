@@ -11,7 +11,7 @@ void main() {
 void someStaticMethod() {}
 
 @RecordUse()
-class MyClass {
+final class MyClass {
   final Object field;
   const MyClass(this.field);
 }

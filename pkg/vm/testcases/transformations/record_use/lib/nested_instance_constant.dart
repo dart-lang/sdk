@@ -17,7 +17,7 @@ void useRecorded(Wrapper wrapper) {
 }
 
 @RecordUse()
-class Recorded {
+final class Recorded {
   final String id;
   const Recorded(this.id);
 }
