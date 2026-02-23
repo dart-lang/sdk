@@ -283,6 +283,7 @@ class KernelBytecode {
     return names[op];
   }
 
+  static const intptr_t kMaxInstructionSize = 6;
   static const intptr_t kInstructionSize[];
 
   enum SpecialIndex {
