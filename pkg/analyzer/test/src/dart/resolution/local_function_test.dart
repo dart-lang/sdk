@@ -129,4 +129,32 @@ MethodInvocation
   staticType: Null
 ''');
   }
+
+  test_recursiveReference_ifStatement_nonBlock() async {
+    await assertErrorsInCode(
+      r'''
+f(bool c) {
+  if (c)
+    g() {
+      g(); // ref
+    }
+}
+''',
+      [error(diag.unusedElement, 25, 1)],
+    );
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    element: g@25
+    staticType: dynamic Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic Function()
+  staticType: dynamic
+''');
+  }
 }

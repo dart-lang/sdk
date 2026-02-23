@@ -97,8 +97,9 @@ class ScopeContext {
   }
 
   /// Run [operation] with a new [LocalScope].
-  void withLocalScope(void Function() operation) {
-    withScope(LocalScope(nameScope), operation);
+  void withLocalScope(void Function(LocalScope scope) operation) {
+    var scope = LocalScope(nameScope);
+    withScope(scope, () => operation(scope));
   }
 
   void withPrimaryParameterScope(
@@ -153,6 +154,14 @@ extension<T extends AstNode> on T {
       visitOverride(this);
     } else {
       accept(visitor);
+    }
+  }
+}
+
+extension LocalScopeExtension on LocalScope {
+  void addFormalParameterList(FormalParameterList node) {
+    for (var formalParameter in node.parameters) {
+      add(formalParameter.declaredFragment!.element);
     }
   }
 }

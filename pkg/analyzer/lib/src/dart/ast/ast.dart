@@ -12115,7 +12115,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   DartPatternImpl _pattern;
 
   /// Variables declared in [pattern].
-  late final List<BindPatternVariableFragmentImpl> variables;
+  late final List<BindPatternVariableElementImpl> variables;
 
   @generated
   ForEachPartsWithPatternImpl({
