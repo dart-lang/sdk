@@ -97,9 +97,7 @@ class _GetExpressionInfo extends Expression {
       target,
       h.operations.unknownType,
     );
-    var flowAnalysisInfo = h.getFlowAnalysisInfo(target);
-    h.storeFlowAnalysisInfo(this, flowAnalysisInfo);
-    callback(flowAnalysisInfo);
+    callback(analysisResult.flowAnalysisInfo);
     return analysisResult;
   }
 }
@@ -143,9 +141,7 @@ class _WhyNotPromoted extends Expression {
       target,
       h.operations.unknownType,
     );
-    var flowAnalysisInfo = h.getFlowAnalysisInfo(target);
-    h.storeFlowAnalysisInfo(this, flowAnalysisInfo);
-    callback(h.flow.whyNotPromoted(flowAnalysisInfo)());
+    callback(h.flow.whyNotPromoted(analysisResult.flowAnalysisInfo)());
     return analysisResult;
   }
 }
