@@ -227,6 +227,54 @@ class A<T extends B<A<T>>> {
     expect(edit.replacement, equalsIgnoringWhitespace('B<A<dynamic>>?'));
   }
 
+  Future<void> test_writeType_recursive_notTypeParameter() async {
+    // See https://github.com/dart-lang/sdk/issues/62549
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+var foo = <String, Map<String, String>>{};
+''';
+    addSource(path, content);
+    var unitResult = await resolveFile(path);
+    var variable = unitResult.libraryElement.getTopLevelVariable('foo')!;
+    var type = variable.type;
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(type);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('Map<String, Map<String, String>>'),
+    );
+  }
+
+  Future<void> test_writeType_recursive_notTypeParameter_sameElement() async {
+    // See https://github.com/dart-lang/sdk/issues/62549
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+var foo = <String, Map<String, Map<String, String>>>{};
+''';
+    addSource(path, content);
+    var unitResult = await resolveFile(path);
+    var variable = unitResult.libraryElement.getTopLevelVariable('foo')!;
+    var type = variable.type;
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(type);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('Map<String, Map<String, Map<String, String>>>'),
+    );
+  }
+
   Future<void> test_writeType_twoEqualTypeArguments() async {
     var path = convertPath('$testPackageRootPath/lib/test.dart');
     var content = '''

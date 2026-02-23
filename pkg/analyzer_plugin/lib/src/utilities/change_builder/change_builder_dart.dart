@@ -1642,7 +1642,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         if (i != 0) {
           write(', ');
         }
-        if (seenTypes.elements.contains(argument.element)) {
+        if (seenTypes.containsElementAndArguments(argument)) {
           write('dynamic');
           continue;
         }
@@ -3265,6 +3265,48 @@ class _LibraryImport implements Comparable<_LibraryImport> {
   }
 }
 
+extension on Set<DartType> {
+  bool containsElementAndArguments(DartType argument) {
+    for (var type in this) {
+      if (type == argument) {
+        return true;
+      }
+      if (type.element != argument.element) {
+        continue;
+      }
+      if (type is InterfaceType && argument is InterfaceType) {
+        if (type.sameTypeArguments(argument)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+}
+
+extension on InterfaceType {
+  bool sameTypeArguments(InterfaceType other) {
+    var typeArgs = typeArguments;
+    var otherTypeArgs = other.typeArguments;
+    if (typeArgs.length != otherTypeArgs.length) {
+      return false;
+    }
+    for (var i = 0; i < typeArgs.length; i++) {
+      var argument = typeArgs[i];
+      var otherArgument = otherTypeArgs[i];
+      if (argument.element != otherArgument.element) {
+        return false;
+      }
+      if (argument is InterfaceType &&
+          otherArgument is InterfaceType &&
+          !argument.sameTypeArguments(otherArgument)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 extension on CompilationUnitMember {
   /// The left bracket of a [CompilationUnitMember] with a known left bracket,
   /// and `null` otherwise.
@@ -3356,8 +3398,4 @@ extension on DartType {
     }
     return null;
   }
-}
-
-extension on Iterable<DartType?> {
-  Iterable<Element?> get elements => map((type) => type?.element);
 }
