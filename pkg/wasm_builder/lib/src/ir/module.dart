@@ -112,12 +112,9 @@ class Module implements Serializable {
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
     NameSection(
-            moduleName,
-            <BaseFunction>[...functions.imported, ...functions.defined],
-            types.recursionGroups,
-            <Global>[...globals.imported, ...globals.defined],
-            watchPoints)
+            moduleName, functions, types.recursionGroups, globals, watchPoints)
         .serialize(s);
+    RemovableIfUnusedSection(functions).serialize(s);
     SourceMapSection(sourceMapUrl).serialize(s);
   }
 
@@ -220,6 +217,9 @@ class Module implements Serializable {
         functions,
         types,
         globals);
+    RemovableIfUnusedSection.deserialize(
+        customSections[RemovableIfUnusedSection.customSectionName]?.single,
+        functions);
     final sourceMapUrl = SourceMapSection.deserialize(
         customSections[SourceMapSection.customSectionName]?.single);
 
