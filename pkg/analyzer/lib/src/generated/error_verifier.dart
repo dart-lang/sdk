@@ -276,8 +276,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
 
-  /// The features enabled in the unit currently being checked for errors.
-  FeatureSet? _featureSet;
+  /// The features enabled in the library being analyzed.
+  final FeatureSet _featureSet;
 
   final LibraryVerificationContext libraryContext;
   final RequiredParametersVerifier _requiredParametersVerifier;
@@ -298,7 +298,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     this.libraryContext,
     this.options, {
     required this.typeSystemOperations,
-  }) : _uninstantiatedBoundChecker = _UninstantiatedBoundChecker(
+  }) : _featureSet = _currentLibrary.featureSet,
+       _uninstantiatedBoundChecker = _UninstantiatedBoundChecker(
          diagnosticReporter,
        ),
        _checkUseVerifier = UseResultVerifier(diagnosticReporter),
@@ -589,7 +590,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitCompilationUnit(covariant CompilationUnitImpl node) {
     var fragment = node.declaredFragment!;
-    _featureSet = node.featureSet;
     _duplicateDefinitionVerifier.checkUnit(node);
     _checkForDeferredPrefixCollisions(node);
     _checkForIllegalLanguageOverride(node);
@@ -601,7 +601,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ).checkStaticGetters(fragment.element.getters);
 
     super.visitCompilationUnit(node);
-    _featureSet = null;
   }
 
   @override
@@ -2361,7 +2360,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required WithClause? withClause,
   }) {
     // With the `class_modifiers` feature `Function` is final.
-    if (_featureSet!.isEnabled(Feature.class_modifiers)) {
+    if (_featureSet.isEnabled(Feature.class_modifiers)) {
       return;
     }
 
@@ -3468,15 +3467,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // An implicit tear-off conversion does occur on the values of the
         // iterator, but this does not guarantee their assignability.
 
-        if (_featureSet?.isEnabled(Feature.constructor_tearoffs) ?? true) {
+        if (_featureSet.isEnabled(Feature.constructor_tearoffs)) {
           var typeArguments = typeSystem.inferFunctionTypeInstantiation(
             variableType as FunctionTypeImpl,
             tearoffType,
             diagnosticReporter: diagnosticReporter,
             errorNode: node.iterable,
             genericMetadataIsEnabled: true,
-            inferenceUsingBoundsIsEnabled:
-                _featureSet?.isEnabled(Feature.inference_using_bounds) ?? true,
+            inferenceUsingBoundsIsEnabled: _featureSet.isEnabled(
+              Feature.inference_using_bounds,
+            ),
             strictInference: options.strictInference,
             strictCasts: options.strictCasts,
             typeSystemOperations: typeSystemOperations,
@@ -3838,7 +3838,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
     }
 
-    if (_featureSet!.isEnabled(Feature.primary_constructors)) {
+    if (_featureSet.isEnabled(Feature.primary_constructors)) {
       if (inner is SimpleFormalParameterImpl) {
         var keyword = inner.keyword;
         if (keyword != null) {
@@ -4077,7 +4077,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (node == null) {
       return;
     }
-    if (_featureSet?.isEnabled(Feature.generic_metadata) ?? false) {
+    if (_featureSet.isEnabled(Feature.generic_metadata)) {
       return;
     }
     DartType type = node.typeOrThrow;
@@ -4474,7 +4474,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       this,
       forList: true,
       elementType: listElementType,
-      featureSet: _featureSet!,
+      featureSet: _featureSet,
     );
     for (CollectionElement element in literal.elements) {
       verifier.verify(element);
@@ -4566,7 +4566,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         forMap: true,
         mapKeyType: keyType,
         mapValueType: valueType,
-        featureSet: _featureSet!,
+        featureSet: _featureSet,
       );
       for (CollectionElement element in literal.elements) {
         verifier.verify(element);
@@ -5754,7 +5754,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         this,
         forSet: true,
         elementType: setElementType,
-        featureSet: _featureSet!,
+        featureSet: _featureSet,
       );
       for (CollectionElement element in literal.elements) {
         verifier.verify(element);
