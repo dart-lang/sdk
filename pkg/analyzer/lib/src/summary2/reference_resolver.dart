@@ -287,69 +287,33 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-
-      nodesToBuildType.addDeclaration(node);
-    });
+    nodesToBuildType.addDeclaration(node);
+    _scopeContext.visitFunctionTypeAlias(node, visitor: this);
   }
 
   @override
   void visitFunctionTypedFormalParameter(
     covariant FunctionTypedFormalParameterImpl node,
   ) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-      nodesToBuildType.addDeclaration(node);
-    });
+    nodesToBuildType.addDeclaration(node);
+    _scopeContext.visitFunctionTypedFormalParameter(node, visitor: this);
   }
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
+    _scopeContext.visitGenericFunctionType(node, visitor: this);
 
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-
-      var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
-      var builder = FunctionTypeBuilder.of(node, nullabilitySuffix);
-      node.type = builder;
-      nodesToBuildType.addDeclaration(node);
-      nodesToBuildType.addTypeBuilder(builder);
-    });
+    var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
+    var builder = FunctionTypeBuilder.of(node, nullabilitySuffix);
+    node.type = builder;
+    nodesToBuildType.addDeclaration(node);
+    nodesToBuildType.addTypeBuilder(builder);
   }
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.metadata.accept(this);
-      node.typeParameters?.accept(this);
-      node.type.accept(this);
-      nodesToBuildType.addDeclaration(node);
-
-      var aliasedType = node.type;
-      if (aliasedType is GenericFunctionTypeImpl) {
-        fragment.encloseElement(
-          aliasedType.declaredFragment as GenericFunctionTypeFragmentImpl,
-        );
-      }
-    });
+    nodesToBuildType.addDeclaration(node);
+    _scopeContext.visitGenericTypeAlias(node, visitor: this);
   }
 
   @override
@@ -359,18 +323,16 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      LinkingNodeContext(node, nameScope);
-
-      node.metadata.accept(this);
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-      nodesToBuildType.addDeclaration(node);
-    });
+    _scopeContext.visitMethodDeclaration(
+      node,
+      visitor: this,
+      enterTypeParameterScope: () {
+        LinkingNodeContext(node, nameScope);
+      },
+      visitBody: (_) {
+        nodesToBuildType.addDeclaration(node);
+      },
+    );
   }
 
   @override

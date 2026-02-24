@@ -496,53 +496,30 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(this);
-
-      node.returnType?.accept(this);
-      node.parameters.accept(this);
-    });
+    _scopeContext.visitFunctionTypeAlias(node, visitor: this);
   }
 
   @override
   void visitFunctionTypedFormalParameter(
     covariant FunctionTypedFormalParameterImpl node,
   ) {
-    var fragment = node.declaredFragment;
-    node.metadata.accept(this);
+    _scopeContext.visitFunctionTypedFormalParameter(node, visitor: this);
 
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-      node.returnType?.accept(this);
-
-      if (fragment != null) {
-        var returnType = node.returnType?.type ?? _typeProvider.dynamicType;
-        var type = FunctionTypeImpl(
-          typeParameters: fragment.typeParameters
-              .map((f) => f.element)
-              .toList(),
-          parameters: fragment.formalParameters.map((f) => f.element).toList(),
-          returnType: returnType,
-          nullabilitySuffix: _getNullability(node.question != null),
-        );
-        fragment.element.type = type;
-      }
-    });
+    var element = node.declaredFragment!.element;
+    element.type = FunctionTypeImpl(
+      typeParameters: element.typeParameters,
+      parameters: element.formalParameters,
+      returnType: node.returnType?.type ?? _typeProvider.dynamicType,
+      nullabilitySuffix: _getNullability(node.question != null),
+    );
   }
 
   @override
-  void visitGenericFunctionType(GenericFunctionType node) {
-    node as GenericFunctionTypeImpl;
+  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     var fragment = node.declaredFragment!;
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-      node.returnType?.accept(this);
-    });
+    _scopeContext.visitGenericFunctionType(node, visitor: this);
 
+    // TODO(scheglov): use element
     fragment.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
     var parameters = node.parameters.parameters;
     for (var i = 0; i < parameters.length; i++) {
@@ -566,12 +543,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(this);
-      node.type.accept(this);
-    });
+    _scopeContext.visitGenericTypeAlias(node, visitor: this);
   }
 
   @override
@@ -702,22 +674,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-      node.returnType?.accept(this);
-
-      _scopeContext.withFormalParameterScope(
-        fragment.element.formalParameters,
-        () {
-          node.body.accept(this);
-        },
-      );
-    });
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
   @override
