@@ -56,14 +56,15 @@ class ElementUsageDetector<TagInfo extends Object> {
     if (element is PropertyAccessorElement && element.isOriginVariable) {
       element = element.variable;
     }
+
+    if (element is FormalParameterElement && element.isRequired) {
+      return;
+    }
+
     var tagInfo = elementUsageSet.getTagInfo(element);
     if (tagInfo == null) return;
 
     if (_isLocalParameter(element, node)) {
-      return;
-    }
-
-    if (element is FormalParameterElement && element.isRequired) {
       return;
     }
 
