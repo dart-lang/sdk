@@ -24,6 +24,7 @@
 #include "vm/message_handler.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
@@ -1647,7 +1648,23 @@ void CodeLookupTable::Build(Thread* thread) {
 
   thread->CheckForSafepoint();
   // Add all found Code objects.
-  {
+  if (FLAG_precompiled_mode) {
+    const GrowableObjectArray& tables = GrowableObjectArray::Handle(
+        IsolateGroup::Current()->object_store()->instructions_tables());
+    InstructionsTable& table = InstructionsTable::Handle();
+    Array& codes = Array::Handle();
+    for (intptr_t i = 0; i < tables.Length(); i++) {
+      table ^= tables.At(i);
+      codes = table.code_objects();
+      for (intptr_t j = 0; j < codes.Length(); j++) {
+        Code& code = Code::Handle();  // Separate handle for each.
+        code ^= codes.At(j);
+        if (!Code::IsUnknownDartCode(code.ptr())) {
+          Add(code);
+        }
+      }
+    }
+  } else {
     TimelineBeginEndScope tl(Timeline::GetIsolateStream(),
                              "CodeLookupTable::Build HeapIterationScope");
     HeapIterationScope iteration(thread);
