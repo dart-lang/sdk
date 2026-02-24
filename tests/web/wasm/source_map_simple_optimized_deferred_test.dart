@@ -11,18 +11,20 @@ void main() {
 }
 
 const List<(String?, int?, int?, String?)?> frameDetails = [
+  ('stack_trace_patch.dart', 11, 52, 'current'),
   ('source_map_simple_lib.dart', 18, 3, 'g'),
   ('source_map_simple_lib.dart', 14, 3, 'f'),
   ('source_map_simple_lib.dart', 43, 5, 'testMain'),
+  ('internal_patch.dart', 136, 17, '_invokeMain'),
 ];
 
 /*
-at <minified>.g (wasm://wasm/$-000a82a6:wasm-function[193]:0xed1f)
-at <minified>.f (wasm://wasm/$-000a82a6:wasm-function[192]:0xed13)
-at <minified>.main (wasm://wasm//$-000a82a6:wasm-function[57]:0xb364)
-at <minified>._invokeMain (wasm://wasm/$-000a82a6:wasm-function[53]:0xb275)
-at InstantiatedApp.invokeMain (.../source_map_simple_optimized_deferred_test.mjs:368:37)
+at $.Error._throwWithCurrentStackTrace (wasm://wasm/$-0009ed7a:wasm-function[57]:0xb2bb)
+at $.g (wasm://wasm/$-0009ed7a:wasm-function[194]:0xe340)
+at $.f (wasm://wasm/$-0009ed7a:wasm-function[193]:0xe334)
+at $.main (wasm://wasm/$-0009ed7a:wasm-function[56]:0xa90c)
+at $._invokeMain (wasm://wasm/$-0009ed7a:wasm-function[52]:0xa82c)
+at InstantiatedApp.invokeMain (.../source_map_simple_optimized_deferred_test.mjs:413:37)
 at main (.../run_wasm.js:428:21)
 at async action (.../run_wasm.js:353:38)
-at async eventLoop (.../run_wasm.js:329:9)
 */

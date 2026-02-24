@@ -146,14 +146,12 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
     constant.entries.map(evaluateConstant).toList(),
   ),
   ast.InstanceConstant() => evaluateInstanceConstant(constant),
+  ast.RecordConstant() => evaluateRecordConstant(constant),
   // The following are not supported, but theoretically could be, so they
   // are listed explicitly here.
   ast.AuxiliaryConstant() => _unsupported('AuxiliaryConstant'),
   ast.SetConstant() => UnsupportedConstant(
     'Set literals are not supported for recording.',
-  ),
-  ast.RecordConstant() => UnsupportedConstant(
-    'Record literals are not supported for recording.',
   ),
   ast.InstantiationConstant() => UnsupportedConstant(
     'Generic instantiations are not supported for recording.',
@@ -191,6 +189,15 @@ InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) =>
             MapEntry(key.asField.name.text, evaluateConstant(value)),
       ),
     );
+
+RecordConstant evaluateRecordConstant(ast.RecordConstant constant) {
+  return RecordConstant(
+    positional: constant.positional.map(evaluateConstant).toList(),
+    named: constant.named.map(
+      (key, value) => MapEntry(key, evaluateConstant(value)),
+    ),
+  );
+}
 
 UnsupportedConstant _unsupported(String constantType) =>
     UnsupportedConstant('$constantType is not supported for recording.');

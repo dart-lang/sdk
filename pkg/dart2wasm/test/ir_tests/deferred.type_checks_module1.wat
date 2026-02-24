@@ -9,7 +9,7 @@
   (type $_Type <...>)
   (global $"\")\"_11" (import "$" "1") (ref $JSStringImpl))
   (global $_InterfaceType (import "$" "/") (ref $_InterfaceType))
-  (table $$.$ (import "$" "$") 915 funcref)
+  (table $$.$ (import "$" "$") 876 funcref)
   (table $$.& (import "$" "&") 22 funcref)
   (global $"\">.takeT(\"" (ref $JSStringImpl) <...>)
   (global $"\"Foo<\"" (ref $JSStringImpl) <...>)
@@ -161,7 +161,7 @@
       local.get $var1
       local.get $var2
       struct.get $_Type $field0
-      i32.const 575
+      i32.const 550
       i32.add
       call_indirect $$.$ (param (ref $_Type) (ref $#Top)) (result i32)
     end $label0

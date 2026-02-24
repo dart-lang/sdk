@@ -11,30 +11,30 @@
     i32.const 1
     memory.grow $foo.mem
     drop
-    i32.const 98
+    i32.const 99
     i32.const 0
     f32.load align=4
     f64.promote_f32
     struct.new $BoxedDouble
     call $print
-    i32.const 98
+    i32.const 99
     i32.const 0
     f32.load align=4
     f64.promote_f32
     struct.new $BoxedDouble
     call $print
-    i32.const 98
+    i32.const 99
     i32.const 0
     f64.load align=8
     struct.new $BoxedDouble
     call $print
-    i32.const 98
+    i32.const 99
     i32.const 1
     f32.load align=4
     f64.promote_f32
     struct.new $BoxedDouble
     call $print
-    i32.const 98
+    i32.const 99
     i32.const 1
     f32.load align=4
     f64.promote_f32

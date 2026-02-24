@@ -65,6 +65,20 @@ import 'package:pub_semver/pub_semver.dart';
 
 part 'element.g.dart';
 
+/// Create MetadataImpl from fragments, but return [MetadataImpl.empty] if
+/// there are none instead of creating a new one.
+MetadataImpl _metadataHelper(List<FragmentImpl> fragments) {
+  List<ElementAnnotationImpl>? annotations;
+  for (var fragment in fragments) {
+    var fragmentAnnotations = fragment.metadata.annotations;
+    if (fragmentAnnotations.isNotEmpty) {
+      (annotations ??= []).addAll(fragmentAnnotations);
+    }
+  }
+  if (annotations == null) return MetadataImpl.empty;
+  return MetadataImpl(annotations);
+}
+
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement {
   BindPatternVariableElementImpl(super.firstFragment);
@@ -2246,11 +2260,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
-    var annotations = <ElementAnnotationImpl>[];
-    for (var fragment in _fragments) {
-      annotations.addAll(fragment.metadata.annotations);
-    }
-    return MetadataImpl(annotations);
+    return _metadataHelper(_fragments);
   }
 
   @override
@@ -2963,11 +2973,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
       }
     }
 
-    var annotations = <ElementAnnotationImpl>[];
-    for (var fragment in _fragments) {
-      annotations.addAll(fragment.metadata.annotations);
-    }
-    return MetadataImpl(annotations);
+    return _metadataHelper(_fragments);
   }
 
   @override
@@ -3306,11 +3312,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   MetadataImpl get metadata {
-    var annotations = <ElementAnnotationImpl>[];
-    for (var fragment in fragments) {
-      annotations.addAll(fragment.metadata.annotations);
-    }
-    return MetadataImpl(annotations);
+    return _metadataHelper(fragments);
   }
 
   @override
@@ -9845,11 +9847,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
-    var annotations = <ElementAnnotationImpl>[];
-    for (var fragment in _fragments) {
-      annotations.addAll(fragment.metadata.annotations);
-    }
-    return MetadataImpl(annotations);
+    return _metadataHelper(_fragments);
   }
 
   @override
@@ -10062,11 +10060,7 @@ class TypeAliasElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
-    var annotations = <ElementAnnotationImpl>[];
-    for (var fragment in _fragments) {
-      annotations.addAll(fragment.metadata.annotations);
-    }
-    return MetadataImpl(annotations);
+    return _metadataHelper(_fragments);
   }
 
   @override
@@ -10335,11 +10329,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   MetadataImpl get metadata {
-    var annotations = <ElementAnnotationImpl>[];
-    for (var fragment in fragments) {
-      annotations.addAll(fragment.metadata.annotations);
-    }
-    return MetadataImpl(annotations);
+    return _metadataHelper(fragments);
   }
 
   @override

@@ -14,7 +14,7 @@
   (global $5 (import "module0" "global5") (ref $BoxedInt))
   (global $FooConst0 (import "module0" "global7") (ref $Object))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 34 funcref)
-  (table $module0.dispatch0 (import "module0" "dispatch0") 792 funcref)
+  (table $module0.dispatch0 (import "module0" "dispatch0") 811 funcref)
   (global $"\"FooConst5(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
@@ -118,7 +118,7 @@
     call $"fooGlobal5 implicit getter"
     local.get $var2
     struct.get $Object $field0
-    i32.const 435
+    i32.const 462
     i32.add
     call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top)) (result (ref null $#Top))
     drop

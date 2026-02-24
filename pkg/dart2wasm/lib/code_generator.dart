@@ -1014,10 +1014,14 @@ abstract class AstCodeGenerator
         .any((c) => guardCanMatchJSException(translator, c.guard))) {
       b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
 
-      call(translator.javaScriptErrorFactory.reference);
+      final jsExceptionLocal = addLocal(w.RefType.extern(nullable: true));
+      b.local_tee(jsExceptionLocal);
+
+      call(translator.boxJsException.reference);
       b.local_tee(thrownException); // ref null #Top
 
-      b.getJavaScriptErrorStackTrace(translator);
+      b.local_get(jsExceptionLocal);
+      call(translator.jsExceptionStackTrace.reference);
       b.local_set(thrownStackTrace);
 
       for (int catchBlockIndex = 0;
@@ -5164,24 +5168,6 @@ extension MacroAssembler on w.InstructionsBuilder {
     struct_get(
         translator.classInfoCollector.topInfo.struct, FieldIndex.classId);
   }
-
-  /// Expects a `_JavaScriptError` object to be on stack, calls
-  /// `_JavaScriptError.stackTrace` getter, downcasts the stack trace to
-  /// non-null. The cast is safe as this getter doesn't return null, but its
-  /// return type in the signature is nullable as it's an override.
-  ///
-  /// This is used to get the JS stack trace of a JS exception after boxing the
-  /// exception's `externref` (caught with the tag `WebAssembly.JSTag`) as
-  /// `_JavaScriptError`.
-  void getJavaScriptErrorStackTrace(Translator translator) {
-    final stackTraceGetter =
-        translator.javaScriptErrorStackTraceGetter.reference;
-    final stackTraceGetterFunction =
-        translator.functions.getFunction(stackTraceGetter);
-    ref_cast(stackTraceGetterFunction.type.inputs[0] as w.RefType);
-    translator.callReference(stackTraceGetter, this);
-    ref_as_non_null();
-  }
 }
 
 /// A call target that may be called with a direct call or may be inlined.
@@ -5237,16 +5223,15 @@ class AstCallTarget extends CallTarget {
   w.BaseFunction get function => _translator.functions.getFunction(_reference);
 }
 
+/// Whether a `catch` guard has the right type to catch JS exceptions.
+///
+/// JS exceptions are only caught as: `dynamic`, `Object`, an extension of
+/// `JSValue` like `JSObject`.
+///
+/// Note that the guard type can be nullable, but the value for the exception
+/// needs to be non-null regardless of the guard type, as per Dart semantics.
 bool guardCanMatchJSException(Translator translator, DartType guard) {
-  if (guard is DynamicType) {
-    return true;
-  }
-  if (guard is InterfaceType) {
-    return translator.hierarchy
-        .isSubInterfaceOf(translator.javaScriptErrorClass, guard.classNode);
-  }
-  if (guard is TypeParameterType) {
-    return guardCanMatchJSException(translator, guard.bound);
-  }
-  return false;
+  return translator.typeEnvironment.isSubtypeOf(
+      InterfaceType(translator.jsValueClass, Nullability.nonNullable),
+      guard.extensionTypeErasure);
 }

@@ -350,10 +350,11 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
   uword lower_bound_;
 };
 
-static bool ValidateThreadStackBounds(uintptr_t fp,
+static bool ValidateThreadStackBounds(uintptr_t* fp,
                                       uintptr_t sp,
                                       uword stack_lower,
-                                      uword stack_upper) {
+                                      uword stack_upper,
+                                      bool allow_invalid_fp = false) {
   if (stack_lower >= stack_upper) {
     // Stack boundary is invalid.
     return false;
@@ -364,8 +365,12 @@ static bool ValidateThreadStackBounds(uintptr_t fp,
     return false;
   }
 
-  if ((fp < stack_lower) || (fp >= stack_upper)) {
+  if ((*fp < stack_lower) || (*fp >= stack_upper)) {
     // Frame pointer is outside threads's stack boundary.
+    if (allow_invalid_fp) {
+      *fp = 0;
+      return true;
+    }
     return false;
   }
 
@@ -375,12 +380,18 @@ static bool ValidateThreadStackBounds(uintptr_t fp,
 #if defined(DART_INCLUDE_PROFILER)
 // Get |thread|'s stack boundary and verify that |sp| and |fp| are within
 // it. Return |false| if anything looks suspicious.
+//
+// If |allow_invalid_fp| is true, then |fp| is allowed to be outside the
+// stack boundary - in which case |fp| will be set to `0`. This is usefull
+// to allow sampling threads which exited the Dart code - in which case
+// fp and sp values are not going to be used directly anyway.
 static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
                                             Thread* thread,
-                                            uintptr_t fp,
+                                            uintptr_t* fp,
                                             uintptr_t sp,
                                             uword* stack_lower,
-                                            uword* stack_upper) {
+                                            uword* stack_upper,
+                                            bool allow_invalid_fp = false) {
   ASSERT(os_thread != nullptr);
   ASSERT(stack_lower != nullptr);
   ASSERT(stack_upper != nullptr);
@@ -413,7 +424,8 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
     *stack_lower = sp;
   }
 
-  return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper);
+  return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper,
+                                   allow_invalid_fp);
 }
 #endif  // defined(DART_INCLUDE_PROFILER)
 
@@ -437,7 +449,7 @@ static bool GetAndValidateCurrentThreadStackBounds(uintptr_t fp,
     *stack_lower = sp;
   }
 
-  return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper);
+  return ValidateThreadStackBounds(&fp, sp, *stack_lower, *stack_upper);
 }
 
 void Profiler::DumpStackTrace(void* context) {
@@ -1272,6 +1284,7 @@ static void CollectSample(Isolate* isolate,
                           uword sp,
                           ProfilerCounters* counters) {
   ASSERT(counters != nullptr);
+
 #if defined(DART_HOST_OS_WINDOWS)
   // Use structured exception handling to trap guard page access on Windows.
   __try {
@@ -1387,8 +1400,9 @@ void Profiler::SampleAllocation(Thread* thread,
   uword stack_lower = 0;
   uword stack_upper = 0;
 
-  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
-                                       &stack_upper)) {
+  if (!GetAndValidateThreadStackBounds(os_thread, thread, &fp, sp, &stack_lower,
+                                       &stack_upper,
+                                       /*allow_invalid_fp=*/exited_dart_code)) {
     // Could not get stack boundary.
     return;
   }
@@ -1548,8 +1562,10 @@ void Profiler::SampleThread(Thread* thread,
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-  if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
-                                       &stack_upper)) {
+  const bool exited_dart_code = thread->HasExitedDartCode();
+  if (!GetAndValidateThreadStackBounds(os_thread, thread, &fp, sp, &stack_lower,
+                                       &stack_upper,
+                                       /*allow_invalid_fp=*/exited_dart_code)) {
     counters_.single_frame_sample_get_and_validate_stack_bounds.fetch_add(1);
     // Could not get stack boundary.
     SampleThreadSingleFrame(thread, sample, pc);
@@ -1572,7 +1588,6 @@ void Profiler::SampleThread(Thread* thread,
   Dart_Port port = (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT;
   ProfilerNativeStackWalker native_stack_walker(
       &counters_, port, sample, isolate, stack_lower, stack_upper, pc, fp, sp);
-  const bool exited_dart_code = thread->HasExitedDartCode();
   ProfilerDartStackWalker dart_stack_walker(thread, port, sample, isolate, pc,
                                             fp, sp, lr,
                                             /*allocation_sample=*/false);
