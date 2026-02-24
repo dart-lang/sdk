@@ -183,6 +183,22 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest
 
     driver.addFile2(b);
     driver.addFile2(a);
+    assertDriverStateString(a, r'''
+driver
+  workState
+    pendingFileChanges
+      add /home/test/lib/b.dart
+      add /home/test/lib/a.dart
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+    workPriority: general
+  fileSystemState
+    files
+  libraryContext
+    libraryCycles
+    elementFactory
+''');
 
     // The files are analyzed in the order of adding.
     await assertEventsText(collector, r'''
@@ -204,6 +220,61 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest
     uri: package:test/a.dart
     flags: exists isLibrary
 [status] idle
+''');
+    assertDriverStateString(a, r'''
+driver
+  workState
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+      addedFiles
+        /home/test/lib/a.dart
+        /home/test/lib/b.dart
+    workPriority: nothing
+  fileSystemState
+    files
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        current
+          id: file_0
+          kind: library_0
+            libraryImports
+              library_2 dart:core synthetic
+            fileKinds: library_0
+            cycle_0
+              dependencies: dart:core
+              libraries: library_0
+              apiSignature_0
+          unlinkedKey: k00
+      /home/test/lib/b.dart
+        uri: package:test/b.dart
+        current
+          id: file_1
+          kind: library_1
+            libraryImports
+              library_2 dart:core synthetic
+            fileKinds: library_1
+            cycle_1
+              dependencies: dart:core
+              libraries: library_1
+              apiSignature_1
+          unlinkedKey: k00
+  libraryContext
+    libraryCycles
+      /home/test/lib/a.dart
+        current: cycle_0
+          key: k01
+        get: []
+        put: [k01]
+      /home/test/lib/b.dart
+        current: cycle_1
+          key: k02
+        get: []
+        put: [k02]
+    elementFactory
+      hasElement
+        package:test/a.dart
+        package:test/b.dart
 ''');
   }
 
@@ -3506,6 +3577,23 @@ import 'b.dart';
 
     driver.addFile2(a);
     driver.priorityFiles2 = [a];
+    assertDriverStateString(testFile, r'''
+driver
+  workState
+    priorityFiles
+      /home/test/lib/a.dart
+    pendingFileChanges
+      add /home/test/lib/a.dart
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+    workPriority: general
+  fileSystemState
+    files
+  libraryContext
+    libraryCycles
+    elementFactory
+''');
 
     configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
         (result) {
@@ -3533,32 +3621,42 @@ import 'b.dart';
 [status] idle
 ''');
 
-    // When no fine-grained dependencies, we don't cache bundles.
-    // So, [LinkedBundleProvider] is empty, and not printed.
     assertDriverStateString(testFile, r'''
-files
-  /home/test/lib/a.dart
-    uri: package:test/a.dart
-    current
-      id: file_0
-      kind: library_0
-        libraryImports
-          library_1 dart:core synthetic
-        fileKinds: library_0
-        cycle_0
-          dependencies: dart:core
-          libraries: library_0
-          apiSignature_0
-      unlinkedKey: k00
-libraryCycles
-  /home/test/lib/a.dart
-    current: cycle_0
-      key: k01
-    get: []
-    put: [k01]
-elementFactory
-  hasElement
-    package:test/a.dart
+driver
+  workState
+    priorityFiles
+      /home/test/lib/a.dart
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+      addedFiles
+        /home/test/lib/a.dart
+    workPriority: nothing
+  fileSystemState
+    files
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        current
+          id: file_0
+          kind: library_0
+            libraryImports
+              library_1 dart:core synthetic
+            fileKinds: library_0
+            cycle_0
+              dependencies: dart:core
+              libraries: library_0
+              apiSignature_0
+          unlinkedKey: k00
+  libraryContext
+    libraryCycles
+      /home/test/lib/a.dart
+        current: cycle_0
+          key: k01
+        get: []
+        put: [k01]
+    elementFactory
+      hasElement
+        package:test/a.dart
 ''');
 
     // Update the file, but don't notify the driver.
@@ -3586,29 +3684,41 @@ elementFactory
 ''');
 
     assertDriverStateString(testFile, r'''
-files
-  /home/test/lib/a.dart
-    uri: package:test/a.dart
-    current
-      id: file_0
-      kind: library_7
-        libraryImports
-          library_1 dart:core synthetic
-        fileKinds: library_7
-        cycle_2
-          dependencies: dart:core
-          libraries: library_7
-          apiSignature_1
-      unlinkedKey: k02
-libraryCycles
-  /home/test/lib/a.dart
-    current: cycle_2
-      key: k03
-    get: []
-    put: [k01, k03]
-elementFactory
-  hasElement
-    package:test/a.dart
+driver
+  workState
+    priorityFiles
+      /home/test/lib/a.dart
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+      addedFiles
+        /home/test/lib/a.dart
+    workPriority: nothing
+  fileSystemState
+    files
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        current
+          id: file_0
+          kind: library_7
+            libraryImports
+              library_1 dart:core synthetic
+            fileKinds: library_7
+            cycle_2
+              dependencies: dart:core
+              libraries: library_7
+              apiSignature_1
+          unlinkedKey: k02
+  libraryContext
+    libraryCycles
+      /home/test/lib/a.dart
+        current: cycle_2
+          key: k03
+        get: []
+        put: [k01, k03]
+    elementFactory
+      hasElement
+        package:test/a.dart
 ''');
   }
 
