@@ -79,6 +79,14 @@ main() {
   functions must now also accept an `instantiator` callback to which they
   should pass the loaded results.
 
+#### dart2js
+
+- `JSExportedDartFunction.toDart` sometimes incorrectly returned the original
+  Dart function even if the wrapper JS function was cast from a call to the
+  deprecated `allowInterop`. Instead, to be consistent with DDC and dart2wasm,
+  it now throws if the wrapper JS function wasn't a result of `Function.toJS` or
+  `Function.toJSCaptureThis`.
+
 ### Libraries
 
 #### `dart:js_interop`
@@ -92,6 +100,9 @@ main() {
   the supertype `Object?`, this change is only breaking if users referred to the
   extension name directly, either through applying the extension directly or
   through using `show`/`hide` directives.
+- `isA<JSExportedDartFunction>()` now checks if the function is actually a JS
+  wrapper function that is returned from `Function.toJS` or
+  `Function.toJSCaptureThis`.
 
 [#56905]: https://github.com/dart-lang/sdk/issues/56905
 

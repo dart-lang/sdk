@@ -76,8 +76,10 @@ static method test(js_::JSAny /* erasure=core::Object */ any, js_::JSAny? /* era
   js_::NullableObjectUtilExtension|isA<js_::JSArray<js_::JSAny? /* erasure=core::Object? */>? /* erasure=_interceptors::JSArray<core::Object?>? */>(obj);
   js_::NullableObjectUtilExtension|isA<js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */>(any);
   js_::NullableObjectUtilExtension|isA<js_::JSBoxedDartObject /* erasure=_interceptors::JSObject */>(any);
+  js_::NullableObjectUtilExtension|isA<js_::JSExportedDartFunction /* erasure=_interceptors::JavaScriptFunction */>(any);
   js_::NullableObjectUtilExtension|isA<js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */>(obj);
   js_::NullableObjectUtilExtension|isA<js_::JSBoxedDartObject /* erasure=_interceptors::JSObject */>(obj);
+  js_::NullableObjectUtilExtension|isA<js_::JSExportedDartFunction /* erasure=_interceptors::JavaScriptFunction */>(obj);
   js_::NullableObjectUtilExtension|isA<self::CustomJSAny /* erasure=core::Object */>(any);
   js_::NullableObjectUtilExtension|isA<self::CustomJSObject /* erasure=_interceptors::JSObject */>(any);
   js_::NullableObjectUtilExtension|isA<self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */>(any);

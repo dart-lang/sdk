@@ -200,12 +200,12 @@ class CallbackSpecializer {
   /// Create a [Procedure] that will wrap a Dart callback in a JS wrapper.
   ///
   /// [node] is the conversion function that is called by the user (either
-  /// `allowInterop`, `Function.toJS`, or `Function.toJSCaptureThis`). [type] is
-  /// the static type of the callback. [boxExternRef] determines if the
-  /// trampoline should box the arguments and return value or convert every
-  /// value. [needsCastClosure] determines if a cast closure is needed in order
-  /// to validate the types of some arguments. [captureThis] determines if
-  /// `this` needs to be passed into the trampoline from the JS wrapper.
+  /// `Function.toJS` or `Function.toJSCaptureThis`). [type] is the static type
+  /// of the callback. [boxExternRef] determines if the trampoline should box
+  /// the arguments and return value or convert every value. [needsCastClosure]
+  /// determines if a cast closure is needed in order to validate the types of
+  /// some arguments. [captureThis] determines if `this` needs to be passed into
+  /// the trampoline from the JS wrapper.
   ///
   /// The procedure will call a JS method that will create a wrapper, cache the
   /// callback, and call the trampoline function with the callback, the JS
