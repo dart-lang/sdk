@@ -13040,9 +13040,12 @@ class RegExp : public Instance {
   }
 
   StringPtr pattern() const { return untag()->pattern(); }
+
+  template <std::memory_order order = std::memory_order_relaxed>
   intptr_t num_bracket_expressions() const {
-    return untag()->num_bracket_expressions_;
+    return untag()->num_bracket_expressions<order>();
   }
+
   ArrayPtr capture_name_map() const {
     return untag()->capture_name_map<std::memory_order_acquire>();
   }
@@ -13055,23 +13058,6 @@ class RegExp : public Instance {
     } else {
       return is_one_byte ? untag()->one_byte<std::memory_order_acquire>()
                          : untag()->two_byte<std::memory_order_acquire>();
-    }
-  }
-  bool has_bytecode(bool is_one_byte, bool sticky) const {
-    if (sticky) {
-      if (is_one_byte) {
-        return Object::null() !=
-               untag()->one_byte_sticky<std::memory_order_relaxed>();
-      } else {
-        return Object::null() !=
-               untag()->two_byte_sticky<std::memory_order_relaxed>();
-      }
-    } else {
-      if (is_one_byte) {
-        return Object::null() != untag()->one_byte<std::memory_order_relaxed>();
-      } else {
-        return Object::null() != untag()->two_byte<std::memory_order_relaxed>();
-      }
     }
   }
 
@@ -13122,9 +13108,10 @@ class RegExp : public Instance {
                     bool sticky,
                     const TypedData& bytecode) const;
 
-  void set_num_bracket_expressions(SmiPtr value) const;
-  void set_num_bracket_expressions(const Smi& value) const;
-  void set_num_bracket_expressions(intptr_t value) const;
+  template <std::memory_order order = std::memory_order_relaxed>
+  void set_num_bracket_expressions(intptr_t value) const {
+    return untag()->set_num_bracket_expressions<order>(value);
+  }
   void set_capture_name_map(const Array& array) const;
   void set_num_registers(bool is_one_byte, intptr_t value) const {
     StoreNonPointer<intptr_t, intptr_t, std::memory_order_relaxed>(

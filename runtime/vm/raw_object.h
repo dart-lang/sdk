@@ -3727,11 +3727,14 @@ class UntaggedRegExp : public UntaggedInstance {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   std::atomic<intptr_t> num_bracket_expressions_;
+
+  template <std::memory_order order = std::memory_order_relaxed>
   intptr_t num_bracket_expressions() {
-    return num_bracket_expressions_.load(std::memory_order_relaxed);
+    return num_bracket_expressions_.load(order);
   }
+  template <std::memory_order order = std::memory_order_relaxed>
   void set_num_bracket_expressions(intptr_t value) {
-    num_bracket_expressions_.store(value, std::memory_order_relaxed);
+    num_bracket_expressions_.store(value, order);
   }
 
   // The same pattern may use different amount of registers if compiled

@@ -27552,10 +27552,6 @@ void RegExp::set_bytecode(bool is_one_byte,
   }
 }
 
-void RegExp::set_num_bracket_expressions(intptr_t value) const {
-  untag()->num_bracket_expressions_ = value;
-}
-
 void RegExp::set_capture_name_map(const Array& array) const {
   untag()->set_capture_name_map<std::memory_order_release>(array.ptr());
 }

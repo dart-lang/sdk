@@ -108,36 +108,33 @@ DEFINE_NATIVE_ENTRY(RegExp_getIsCaseSensitive, 0, 1) {
   return Bool::Get(!IsIgnoreCase(regexp.flags())).ptr();
 }
 
-DEFINE_NATIVE_ENTRY(RegExp_getGroupCount, 0, 1) {
-  const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
-  ASSERT(!regexp.IsNull());
-  if (regexp.num_bracket_expressions() != -1) {
-    return Smi::New(regexp.num_bracket_expressions());
-  }
+static ObjectPtr ThrowUninitialized(const RegExp& regexp) {
   const String& pattern = String::Handle(regexp.pattern());
   const String& errmsg =
       String::Handle(String::New("Regular expression is not initialized yet."));
   const String& message = String::Handle(String::Concat(errmsg, pattern));
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, message);
-  Exceptions::ThrowByType(Exceptions::kFormat, args);
+  Exceptions::ThrowByType(Exceptions::kState, args);
   return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(RegExp_getGroupCount, 0, 1) {
+  const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
+  ASSERT(!regexp.IsNull());
+  if (regexp.num_bracket_expressions() != -1) {
+    return Smi::New(regexp.num_bracket_expressions());
+  }
+  return ThrowUninitialized(regexp);
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getGroupNameMap, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  if (regexp.num_bracket_expressions() != -1) {
+  if (regexp.num_bracket_expressions<std::memory_order_acquire>() != -1) {
     return regexp.capture_name_map();
   }
-  const String& pattern = String::Handle(regexp.pattern());
-  const String& errmsg = String::Handle(
-      String::New("Regular expression is not initialized yet. "));
-  const String& message = String::Handle(String::Concat(errmsg, pattern));
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, message);
-  Exceptions::ThrowByType(Exceptions::kFormat, args);
-  return Object::null();
+  return ThrowUninitialized(regexp);
 }
 
 static ObjectPtr ExecuteMatch(Thread* thread,

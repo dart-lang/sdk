@@ -10,11 +10,12 @@
 // the algorithm defined in ECMAScript 2020 21.2.2.8.2 (Runtime
 // Semantics: Canonicalize) step 3.
 
-#if 1 /*V8_INTL_SUPPORT*/
-
 #include "vm/regexp/special-case.h"
 
+#include <mutex>
+
 #include "unicode/uniset.h"
+
 namespace dart {
 
 icu::UnicodeSet BuildIgnoreSet() {
@@ -49,9 +50,8 @@ struct IgnoreSetData {
 //static
 const icu::UnicodeSet& RegExpCaseFolding::IgnoreSet() {
   static IgnoreSetData* set = nullptr;
-  if (set == nullptr) {
-    set = new IgnoreSetData();
-  }
+  static std::once_flag init_once = {};
+  std::call_once(init_once, [] { set = new IgnoreSetData(); });
   return set->set;
 }
 
@@ -80,11 +80,9 @@ struct SpecialAddSetData {
 //static
 const icu::UnicodeSet& RegExpCaseFolding::SpecialAddSet() {
   static SpecialAddSetData* set = nullptr;
-  if (set == nullptr) {
-    set = new SpecialAddSetData();
-  }
+  static std::once_flag init_once = {};
+  std::call_once(init_once, [] { set = new SpecialAddSetData(); });
   return set->set;
 }
 
 }  // namespace dart
-#endif  // V8_INTL_SUPPORT
