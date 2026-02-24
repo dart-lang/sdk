@@ -444,11 +444,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
-  void visitTypeParameters(TypeParameters instr) {
-    _asm.unimplemented('Unimplemented: code generation for TypeParameters');
-  }
-
-  @override
   void visitTypeCast(TypeCast instr) {
     _asm.unimplemented('Unimplemented: code generation for TypeCast');
   }

@@ -674,8 +674,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Receiver can only be Pointer if the class extends
       // NativeFieldWrapperClass1.
       if (ffiSignature.normalParameterTypes[0].isPointer) {
-        var cls = declarationElement.enclosingElement as InterfaceElement;
-        if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
+        var enclosingElement = declarationElement.enclosingElement;
+        var receiverType = switch (enclosingElement) {
+          InterfaceElement() => enclosingElement.thisType,
+          ExtensionElement(extendedType: InterfaceType type) => type,
+          _ => null,
+        };
+        if (!_extendsNativeFieldWrapperClass1(receiverType)) {
           _diagnosticReporter.report(
             diag.ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer
                 .at(errorToken),

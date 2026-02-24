@@ -16,7 +16,7 @@
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: curly_braces_in_flow_control_structures
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
 
 import 'dart:core' as $core;
 
@@ -103,10 +103,16 @@ class InternedString extends $pb.GeneratedMessage {
 class Mapping extends $pb.GeneratedMessage {
   factory Mapping({
     $fixnum.Int64? iid,
+    $fixnum.Int64? startOffset,
+    $fixnum.Int64? start,
+    $fixnum.Int64? end,
     $core.Iterable<$fixnum.Int64>? pathStringIds,
   }) {
     final result = create();
     if (iid != null) result.iid = iid;
+    if (startOffset != null) result.startOffset = startOffset;
+    if (start != null) result.start = start;
+    if (end != null) result.end = end;
     if (pathStringIds != null) result.pathStringIds.addAll(pathStringIds);
     return result;
   }
@@ -126,6 +132,13 @@ class Mapping extends $pb.GeneratedMessage {
           const $pb.PackageName(_omitMessageNames ? '' : 'perfetto.protos'),
       createEmptyInstance: create)
     ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'iid', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(
+        3, _omitFieldNames ? '' : 'startOffset', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(4, _omitFieldNames ? '' : 'start', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(5, _omitFieldNames ? '' : 'end', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..p<$fixnum.Int64>(
         7, _omitFieldNames ? '' : 'pathStringIds', $pb.PbFieldType.PU6)
@@ -159,10 +172,37 @@ class Mapping extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearIid() => $_clearField(1);
 
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get startOffset => $_getI64(1);
+  @$pb.TagNumber(3)
+  set startOffset($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(3)
+  $core.bool hasStartOffset() => $_has(1);
+  @$pb.TagNumber(3)
+  void clearStartOffset() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get start => $_getI64(2);
+  @$pb.TagNumber(4)
+  set start($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(4)
+  $core.bool hasStart() => $_has(2);
+  @$pb.TagNumber(4)
+  void clearStart() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $fixnum.Int64 get end => $_getI64(3);
+  @$pb.TagNumber(5)
+  set end($fixnum.Int64 value) => $_setInt64(3, value);
+  @$pb.TagNumber(5)
+  $core.bool hasEnd() => $_has(3);
+  @$pb.TagNumber(5)
+  void clearEnd() => $_clearField(5);
+
   /// E.g. ["system", "lib64", "libc.so"]
   /// id of string.
   @$pb.TagNumber(7)
-  $pb.PbList<$fixnum.Int64> get pathStringIds => $_getList(1);
+  $pb.PbList<$fixnum.Int64> get pathStringIds => $_getList(4);
 }
 
 class Frame extends $pb.GeneratedMessage {
@@ -245,6 +285,14 @@ class Frame extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearFunctionNameId() => $_clearField(2);
 
+  /// The mapping in which this frame's instruction pointer resides.
+  /// iid of Mapping.iid.
+  ///
+  /// If set (non-zero), rel_pc MUST also be set. If mapping_id is 0 (not set),
+  /// this frame has no associated memory mapping (e.g., symbolized frames
+  /// without address information).
+  ///
+  /// Starts from 1, 0 is the same as "not set".
   @$pb.TagNumber(3)
   $fixnum.Int64 get mappingId => $_getI64(2);
   @$pb.TagNumber(3)
@@ -254,6 +302,8 @@ class Frame extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearMappingId() => $_clearField(3);
 
+  /// Instruction pointer relative to the start of the mapping.
+  /// MUST be set if mapping_id is set (non-zero). Ignored if mapping_id is 0.
   @$pb.TagNumber(4)
   $fixnum.Int64 get relPc => $_getI64(3);
   @$pb.TagNumber(4)

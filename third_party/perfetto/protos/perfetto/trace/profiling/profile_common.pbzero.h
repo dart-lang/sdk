@@ -24,9 +24,8 @@ namespace perfetto {
 namespace protos {
 namespace pbzero {
 
-class Callstack_Decoder : public ::protozero::TypedProtoDecoder<
-                              /*MAX_FIELD_ID=*/2,
-                              /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
+class Callstack_Decoder
+    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
  public:
   Callstack_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -91,9 +90,8 @@ class Callstack : public ::protozero::Message {
   }
 };
 
-class Frame_Decoder : public ::protozero::TypedProtoDecoder<
-                          /*MAX_FIELD_ID=*/4,
-                          /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
+class Frame_Decoder
+    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/4> {
  public:
   Frame_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -196,9 +194,8 @@ class Frame : public ::protozero::Message {
   }
 };
 
-class Mapping_Decoder : public ::protozero::TypedProtoDecoder<
-                            /*MAX_FIELD_ID=*/7,
-                            /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
+class Mapping_Decoder
+    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/7> {
  public:
   Mapping_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -209,6 +206,12 @@ class Mapping_Decoder : public ::protozero::TypedProtoDecoder<
       : TypedProtoDecoder(raw.data, raw.size) {}
   bool has_iid() const { return at<1>().valid(); }
   uint64_t iid() const { return at<1>().as_uint64(); }
+  bool has_start_offset() const { return at<3>().valid(); }
+  uint64_t start_offset() const { return at<3>().as_uint64(); }
+  bool has_start() const { return at<4>().valid(); }
+  uint64_t start() const { return at<4>().as_uint64(); }
+  bool has_end() const { return at<5>().valid(); }
+  uint64_t end() const { return at<5>().as_uint64(); }
   bool has_path_string_ids() const { return at<7>().valid(); }
   ::protozero::RepeatedFieldIterator<uint64_t> path_string_ids() const {
     return GetRepeated<uint64_t>(7);
@@ -220,6 +223,9 @@ class Mapping : public ::protozero::Message {
   using Decoder = Mapping_Decoder;
   enum : int32_t {
     kIidFieldNumber = 1,
+    kStartOffsetFieldNumber = 3,
+    kStartFieldNumber = 4,
+    kEndFieldNumber = 5,
     kPathStringIdsFieldNumber = 7,
   };
   static constexpr const char* GetName() { return ".perfetto.protos.Mapping"; }
@@ -234,6 +240,60 @@ class Mapping : public ::protozero::Message {
   static constexpr FieldMetadata_Iid kIid{};
   void set_iid(uint64_t value) {
     static constexpr uint32_t field_id = FieldMetadata_Iid::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kUint64>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+
+  using FieldMetadata_StartOffset = ::protozero::proto_utils::FieldMetadata<
+      3,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kUint64,
+      uint64_t,
+      Mapping>;
+
+  static constexpr FieldMetadata_StartOffset kStartOffset{};
+  void set_start_offset(uint64_t value) {
+    static constexpr uint32_t field_id = FieldMetadata_StartOffset::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kUint64>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+
+  using FieldMetadata_Start = ::protozero::proto_utils::FieldMetadata<
+      4,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kUint64,
+      uint64_t,
+      Mapping>;
+
+  static constexpr FieldMetadata_Start kStart{};
+  void set_start(uint64_t value) {
+    static constexpr uint32_t field_id = FieldMetadata_Start::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kUint64>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+
+  using FieldMetadata_End = ::protozero::proto_utils::FieldMetadata<
+      5,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kUint64,
+      uint64_t,
+      Mapping>;
+
+  static constexpr FieldMetadata_End kEnd{};
+  void set_end(uint64_t value) {
+    static constexpr uint32_t field_id = FieldMetadata_End::kFieldId;
     // Call the appropriate protozero::Message::Append(field_id, ...)
     // method based on the type of the field.
     ::protozero::internal::FieldWriter<
@@ -261,9 +321,8 @@ class Mapping : public ::protozero::Message {
   }
 };
 
-class InternedString_Decoder : public ::protozero::TypedProtoDecoder<
-                                   /*MAX_FIELD_ID=*/2,
-                                   /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
+class InternedString_Decoder
+    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
  public:
   InternedString_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}

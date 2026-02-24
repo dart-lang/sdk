@@ -19,6 +19,14 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
+/// Strategy for adding [TypeParameters] instructions when building CFG IR.
+enum TypeParametersStyle {
+  /// Maintain separate [TypeParameters] for function type parameters and
+  /// class type parameters.
+  /// Represent incoming function type parameters as the first parameter.
+  separateFunctionAndClassTypeParameters,
+}
+
 /// Translates kernel AST to the flow graph.
 ///
 /// Not implemented yet:
@@ -41,6 +49,7 @@ class AstToIr extends ast.RecursiveVisitor {
   final RecognizedMethods recognizedMethods;
   final FlowGraphBuilder builder;
   final bool enableAsserts;
+  final TypeParametersStyle typeParametersStyle;
   late final AstToIrTypes _typeTranslator;
   late final LocalVariableIndexer localVarIndexer;
   late final StaticTypeContext _staticTypeContext = StaticTypeContext(
@@ -51,13 +60,17 @@ class AstToIr extends ast.RecursiveVisitor {
   Map<ast.LabeledStatement, JoinBlock>? labeledStatements;
   Map<ast.SwitchCase, JoinBlock>? switchCases;
   Map<ast.TryFinally, List<FinallyBlock>>? finallyBlocks;
-  TypeParameters? typeParameters;
+
+  bool _hasTypeParametersInScope = false;
+  TypeParameters? functionTypeParameters;
+  TypeParameters? classTypeParameters;
 
   AstToIr(
     this.function,
     this.functionRegistry,
     this.recognizedMethods, {
     required this.enableAsserts,
+    required this.typeParametersStyle,
   }) : coreTypes = GlobalContext.instance.coreTypes,
        hierarchy = GlobalContext.instance.classHierarchy,
        builder = FlowGraphBuilder(function) {
@@ -76,11 +89,23 @@ class AstToIr extends ast.RecursiveVisitor {
     for (final param in localVarIndexer.parameters) {
       builder.addParameter(param);
     }
-    if (function.hasClassTypeParameters) {
-      builder.addLoadLocal(localVarIndexer.receiver);
-      typeParameters = builder.addTypeParameters(receiver: builder.pop());
-    } else if (function.hasFunctionTypeParameters) {
-      typeParameters = builder.addTypeParameters();
+    if (function.hasFunctionTypeParameters || function.hasClassTypeParameters) {
+      _hasTypeParametersInScope = true;
+      switch (typeParametersStyle) {
+        case .separateFunctionAndClassTypeParameters:
+          if (function.hasFunctionTypeParameters) {
+            builder.addLoadLocal(localVarIndexer.functionTypeParameters);
+            functionTypeParameters = builder.addTypeParameters(
+              .functionTypeParameters,
+            );
+          }
+          if (function.hasClassTypeParameters) {
+            builder.addLoadLocal(localVarIndexer.receiver);
+            classTypeParameters = builder.addTypeParameters(
+              .classTypeParameters,
+            );
+          }
+      }
     }
     final member = function.member;
     switch (function) {
@@ -334,25 +359,41 @@ class AstToIr extends ast.RecursiveVisitor {
     }
   }
 
-  bool _hasTypeParameterReferences(ast.DartType type) =>
-      type.accept(const _FindTypeParameters());
-
-  TypeParameters? _typeParametersForType(ast.DartType type) {
-    if (typeParameters != null && _hasTypeParameterReferences(type)) {
-      return typeParameters;
+  List<Definition> _referencedTypeParameters(_FindTypeParameters visitor) {
+    if (!visitor.containsClassTypeParams &&
+        !visitor.containsFunctionTypeParams) {
+      return const [];
     }
-    return null;
+    return switch (typeParametersStyle) {
+      .separateFunctionAndClassTypeParameters => [
+        visitor.containsFunctionTypeParams
+            ? functionTypeParameters!
+            : builder.graph.getConstant(ConstantValue.fromNull()),
+        visitor.containsClassTypeParams
+            ? classTypeParameters!
+            : builder.graph.getConstant(ConstantValue.fromNull()),
+      ],
+    };
   }
 
-  TypeParameters? _typeParametersForTypes(List<ast.DartType> types) {
-    if (typeParameters != null) {
-      for (final type in types) {
-        if (_hasTypeParameterReferences(type)) {
-          return typeParameters;
-        }
-      }
+  List<Definition> _typeParametersForType(ast.DartType type) {
+    if (!_hasTypeParametersInScope) {
+      return const [];
     }
-    return null;
+    final visitor = _FindTypeParameters();
+    type.accept(visitor);
+    return _referencedTypeParameters(visitor);
+  }
+
+  List<Definition> _typeParametersForTypes(List<ast.DartType> types) {
+    if (!_hasTypeParametersInScope) {
+      return const [];
+    }
+    final visitor = _FindTypeParameters();
+    for (final type in types) {
+      type.accept(visitor);
+    }
+    return _referencedTypeParameters(visitor);
   }
 
   @override
@@ -386,12 +427,10 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitTypeLiteral(ast.TypeLiteral node) {
-    final typeParameters = _typeParametersForType(node.type);
-    if (typeParameters != null) {
-      builder.addTypeLiteral(node.type, typeParameters: typeParameters);
-    } else {
-      builder.addConstant(ConstantValue(ast.TypeLiteralConstant(node.type)));
-    }
+    builder.addTypeLiteral(
+      node.type,
+      typeParameters: _typeParametersForType(node.type),
+    );
   }
 
   @override
@@ -1667,7 +1706,8 @@ class LocalVariableIndexer {
   final Map<ast.TreeNode, LocalVariable> _stackTraceVariables = {};
 
   final List<LocalVariable> parameters = [];
-  LocalVariable get receiver => parameters[0];
+  late final LocalVariable functionTypeParameters;
+  late final LocalVariable receiver;
 
   LocalVariableIndexer(
     this.builder,
@@ -1675,17 +1715,24 @@ class LocalVariableIndexer {
     this.typeTranslator,
     CFunction function,
   ) {
+    if (function.hasFunctionTypeParameters) {
+      functionTypeParameters = builder.declareLocalVariable(
+        '#functionTypeParameters',
+        null,
+        const TypeParametersType(),
+      );
+      parameters.add(functionTypeParameters);
+    }
     if (function.hasReceiverParameter) {
       final cls = function.member.enclosingClass!;
-      parameters.add(
-        builder.declareLocalVariable(
-          'this',
-          null,
-          typeTranslator.translate(
-            cls.getThisType(coreTypes, ast.Nullability.nonNullable),
-          ),
+      receiver = builder.declareLocalVariable(
+        'this',
+        null,
+        typeTranslator.translate(
+          cls.getThisType(coreTypes, ast.Nullability.nonNullable),
         ),
       );
+      parameters.add(receiver);
     }
     if (function.hasClosureParameter) {
       parameters.add(
@@ -1760,94 +1807,25 @@ class FinallyBlock {
   FinallyBlock(FlowGraphBuilder builder, this.generateContinuation);
 }
 
-/// Look up references to free type parameters.
-class _FindTypeParameters
-    with ast.DartTypeVisitorExperimentExclusionMixin<bool>
-    implements ast.DartTypeVisitor<bool> {
-  const _FindTypeParameters();
+/// Look up references to type parameters.
+class _FindTypeParameters extends ast.RecursiveVisitor {
+  _FindTypeParameters();
+
+  bool containsClassTypeParams = false;
+  bool containsFunctionTypeParams = false;
 
   @override
-  bool visitFunctionType(ast.FunctionType node) {
-    if (node.returnType.accept(this)) return true;
-    for (final param in node.positionalParameters) {
-      if (param.accept(this)) return true;
+  void visitTypeParameterType(ast.TypeParameterType node) {
+    final declaration = node.parameter.declaration;
+    switch (declaration) {
+      case ast.Class():
+        containsClassTypeParams = true;
+        break;
+      case ast.GenericFunction():
+        containsFunctionTypeParams = true;
+        break;
+      default:
+        throw 'Unexpected type parameter $node declaration ${declaration.runtimeType} $declaration';
     }
-    for (final namedParam in node.namedParameters) {
-      if (namedParam.type.accept(this)) return true;
-    }
-    for (final typeParam in node.typeParameters) {
-      if (typeParam.bound.accept(this)) return true;
-      if (typeParam.defaultType.accept(this)) return true;
-    }
-    return false;
   }
-
-  @override
-  bool visitInterfaceType(ast.InterfaceType node) {
-    for (final type in node.typeArguments) {
-      if (type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitTypedefType(ast.TypedefType node) {
-    for (final type in node.typeArguments) {
-      if (type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitTypeParameterType(ast.TypeParameterType node) => true;
-
-  @override
-  bool visitStructuralParameterType(ast.StructuralParameterType node) => false;
-
-  @override
-  bool visitIntersectionType(ast.IntersectionType node) {
-    return node.left.accept(this) || node.right.accept(this);
-  }
-
-  @override
-  bool visitExtensionType(ast.ExtensionType node) {
-    for (final type in node.typeArguments) {
-      if (type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitRecordType(ast.RecordType node) {
-    for (final type in node.positional) {
-      if (type.accept(this)) return true;
-    }
-    for (final namedType in node.named) {
-      if (namedType.type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitFutureOrType(ast.FutureOrType node) =>
-      node.typeArgument.accept(this);
-
-  @override
-  bool visitInvalidType(ast.InvalidType node) => false;
-
-  @override
-  bool visitNeverType(ast.NeverType node) => false;
-
-  @override
-  bool visitNullType(ast.NullType node) => false;
-
-  @override
-  bool visitVoidType(ast.VoidType node) => false;
-
-  @override
-  bool visitDynamicType(ast.DynamicType node) => false;
-
-  @override
-  bool visitAuxiliaryType(ast.AuxiliaryType node) =>
-      throw 'Unsupported type ${node.runtimeType} $node';
 }

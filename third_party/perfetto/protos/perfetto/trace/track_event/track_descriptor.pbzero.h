@@ -23,13 +23,18 @@
 namespace perfetto {
 namespace protos {
 namespace pbzero {
-
 class ProcessDescriptor;
 class ThreadDescriptor;
+}  // Namespace pbzero.
+}  // Namespace protos.
+}  // Namespace perfetto.
 
-class TrackDescriptor_Decoder : public ::protozero::TypedProtoDecoder<
-                                    /*MAX_FIELD_ID=*/5,
-                                    /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
+namespace perfetto {
+namespace protos {
+namespace pbzero {
+
+class TrackDescriptor_Decoder
+    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/5> {
  public:
   TrackDescriptor_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}

@@ -188,9 +188,6 @@ class InvalidExpression extends Expression {
 }
 
 class VariableGet extends Expression {
-  /// The target variable as [VariableDeclaration].
-  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
-
   /// The target variable.
   ExpressionVariable expressionVariable;
 
@@ -198,6 +195,9 @@ class VariableGet extends Expression {
   DartType? promotedType;
 
   VariableGet(this.expressionVariable, [this.promotedType]);
+
+  /// The target variable as [VariableDeclaration].
+  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
 
   @override
   DartType getStaticType(StaticTypeContext context) =>

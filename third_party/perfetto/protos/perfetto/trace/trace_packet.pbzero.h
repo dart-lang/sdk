@@ -23,12 +23,18 @@
 namespace perfetto {
 namespace protos {
 namespace pbzero {
-
 class ClockSnapshot;
 class InternedData;
 class PerfSample;
 class TrackDescriptor;
 class TrackEvent;
+}  // Namespace pbzero.
+}  // Namespace protos.
+}  // Namespace perfetto.
+
+namespace perfetto {
+namespace protos {
+namespace pbzero {
 
 namespace perfetto_pbzero_enum_TracePacket {
 enum SequenceFlags : int32_t {
@@ -63,9 +69,8 @@ const char* TracePacket_SequenceFlags_Name(
   return "PBZERO_UNKNOWN_ENUM_VALUE";
 }
 
-class TracePacket_Decoder : public ::protozero::TypedProtoDecoder<
-                                /*MAX_FIELD_ID=*/66,
-                                /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
+class TracePacket_Decoder
+    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/66> {
  public:
   TracePacket_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}

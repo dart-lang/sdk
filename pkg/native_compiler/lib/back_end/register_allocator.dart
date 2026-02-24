@@ -87,8 +87,10 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   Instruction instructionByPos(int pos) =>
       graph.instructions[_instructionByPos[pos ~/ step]];
 
+  bool hasLiveRange(Definition instr) => instr is! Constant;
+
   LiveRange liveRangeFor(Definition instr) {
-    assert(instr is! Constant);
+    assert(hasLiveRange(instr));
     return _liveRanges[instr.id] ??= LiveRange(registerClass(instr));
   }
 
@@ -172,7 +174,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       // Add intervals for values which are live-out.
       for (final instrId in liveness.liveOut(block).elements) {
         final instr = graph.instructions[instrId] as Definition;
-        if (instr is! Constant) {
+        if (hasLiveRange(instr)) {
           final liveRange = liveRangeFor(instr);
           liveRange.addInterval(blockStart, blockEnd);
         }
@@ -241,7 +243,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           _processTemp(pos, constr.temps[i], operandId);
         }
         // Process output.
-        if (instr is Definition && instr is! Constant) {
+        if (instr is Definition && hasLiveRange(instr)) {
           final operandId = OperandId.result(instr.id);
           final liveRange = liveRangeFor(instr);
           final resultConstr = constr.result;
@@ -262,7 +264,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     errorContext.annotator = (Instruction instr) {
       if (instr is ParallelMove) return null;
       return '[${instructionPos(instr)}]' +
-          ((instr is Definition && instr is! Constant)
+          ((instr is Definition && hasLiveRange(instr))
               ? ' ${liveRangeFor(instr)}'
               : '');
     };

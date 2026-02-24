@@ -176,32 +176,38 @@ final class Arm64Constraints extends Constraints {
       const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
 
   @override
-  InstructionConstraints? visitTypeParameters(TypeParameters instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        if (instr.inputCount == 1) anyCpuRegister,
-      ]);
-
-  @override
   InstructionConstraints? visitTypeCast(TypeCast instr) =>
       InstructionConstraints(anyCpuRegister, [
         anyCpuRegister,
-        if (instr.inputCount == 2) anyCpuRegister,
+        if (instr.inputCount > 1) ...[
+          anyRegisterOrImmediate(instr.inputDefAt(1)),
+          anyRegisterOrImmediate(instr.inputDefAt(2)),
+        ],
       ]);
 
   @override
   InstructionConstraints? visitTypeTest(TypeTest instr) =>
       InstructionConstraints(anyCpuRegister, [
         anyCpuRegister,
-        if (instr.inputCount == 2) anyCpuRegister,
+        if (instr.inputCount > 1) ...[
+          anyRegisterOrImmediate(instr.inputDefAt(1)),
+          anyRegisterOrImmediate(instr.inputDefAt(2)),
+        ],
       ]);
 
   @override
   InstructionConstraints? visitTypeArguments(TypeArguments instr) =>
-      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+      InstructionConstraints(anyCpuRegister, [
+        anyRegisterOrImmediate(instr.inputDefAt(0)),
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+      ]);
 
   @override
   InstructionConstraints? visitTypeLiteral(TypeLiteral instr) =>
-      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+      InstructionConstraints(anyCpuRegister, [
+        anyRegisterOrImmediate(instr.inputDefAt(0)),
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+      ]);
 
   @override
   InstructionConstraints? visitAllocateObject(AllocateObject instr) =>

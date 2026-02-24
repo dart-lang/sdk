@@ -1193,6 +1193,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         writeWord('synthetic-variable');
       case VariableDeclaration():
         writeWord('variable-declaration');
+      case CatchVariable():
+        writeWord('catch-variable');
     }
 
     // TODO(cstefantsova): Should [Variable]s have annotations?

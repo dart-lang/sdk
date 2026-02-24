@@ -144,6 +144,7 @@ class CompileAndDumpIr extends RecursiveVisitor {
       functionRegistry,
       recognizedMethods,
       enableAsserts: true,
+      typeParametersStyle: .separateFunctionAndClassTypeParameters,
     ).buildFlowGraph();
     final pipeline = Pipeline([
       SSAComputation(),

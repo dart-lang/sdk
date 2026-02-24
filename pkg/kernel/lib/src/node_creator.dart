@@ -329,6 +329,7 @@ class NodeCreator {
         case NodeKind.PatternSwitchCase:
         case NodeKind.SwitchExpressionCase:
         case NodeKind.LocalVariable:
+        case NodeKind.CatchVariable:
         case NodeKind.PositionalParameter:
         case NodeKind.NamedParameter:
         case NodeKind.SyntheticVariable:
@@ -1855,6 +1856,7 @@ class NodeCreator {
             _createExpression())
           ..fileOffset = _needFileOffset();
       case NodeKind.LocalVariable:
+      case NodeKind.CatchVariable:
       case NodeKind.PositionalParameter:
       case NodeKind.NamedParameter:
       case NodeKind.SyntheticVariable:

@@ -38,7 +38,9 @@ sealed class CFunction {
   bool get hasFunctionTypeParameters =>
       member is ast.Procedure && member.function!.typeParameters.isNotEmpty;
 
-  /// Total number of parameters including receiver, closure and optional parameters.
+  /// Total number of parameters including function type parameters
+  /// (represented with a single parameter), receiver, closure and
+  /// optional parameters.
   int get numberOfParameters;
 
   /// Return type of this function.
@@ -115,6 +117,7 @@ final class RegularFunction extends CFunction {
 
   @override
   int get numberOfParameters =>
+      (hasFunctionTypeParameters ? 1 : 0) +
       (hasReceiverParameter ? 1 : 0) +
       member.function!.positionalParameters.length +
       member.function!.namedParameters.length;
@@ -170,6 +173,7 @@ final class LocalFunction extends ClosureFunction {
 
   @override
   int get numberOfParameters =>
+      (hasFunctionTypeParameters ? 1 : 0) +
       1 /* closure */ +
       localFunction.function.positionalParameters.length +
       localFunction.function.namedParameters.length;
@@ -200,6 +204,7 @@ final class TearOffFunction extends ClosureFunction {
 
   @override
   int get numberOfParameters =>
+      (hasFunctionTypeParameters ? 1 : 0) +
       1 /* closure */ +
       member.function!.positionalParameters.length +
       member.function!.namedParameters.length;

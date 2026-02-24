@@ -66,6 +66,10 @@ message Mapping {
   // start_offset is the offset into the library file of the first mapping
   // for that library. For native libraries (.so files) this should be 0.
 
+  optional uint64 start_offset = 3;
+  optional uint64 start = 4;
+  optional uint64 end = 5;
+
   // E.g. ["system", "lib64", "libc.so"]
   // id of string.
   repeated uint64 path_string_ids = 7;
@@ -79,7 +83,18 @@ message Frame {
   // id of string.
   optional uint64 function_name_id = 2;
 
+  // The mapping in which this frame's instruction pointer resides.
+  // iid of Mapping.iid.
+  //
+  // If set (non-zero), rel_pc MUST also be set. If mapping_id is 0 (not set),
+  // this frame has no associated memory mapping (e.g., symbolized frames
+  // without address information).
+  //
+  // Starts from 1, 0 is the same as "not set".
   optional uint64 mapping_id = 3;
+
+  // Instruction pointer relative to the start of the mapping.
+  // MUST be set if mapping_id is set (non-zero). Ignored if mapping_id is 0.
   optional uint64 rel_pc = 4;
 }
 

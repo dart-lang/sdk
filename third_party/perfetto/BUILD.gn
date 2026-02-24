@@ -1,78 +1,8 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
 import("//build_overrides/build.gni")
-import("//third_party/protobuf/proto_library.gni")
-
-# This is a modified copy of Perfetto's template of the same name defined in
-# //third_party/perfetto/gn/proto_library.gni.
-# This is equivalent to the proto_library template (generation of .h/.cc from
-# .proto files) but enables generation using the protozero plugin.
-# The generated files will have the .pbzero.{cc,h} suffix, as opposed to the
-# .pb.{cc,h} of the official proto library.
-template("protozero_library") {
-  proto_library(target_name) {
-    generate_cc = false
-    generate_python = false
-    generator_plugin_label =
-        perfetto_root_path + "src/protozero/protoc_plugin:protozero_plugin"
-    generator_plugin_suffix = ".pbzero"
-
-    if (defined(invoker.deps)) {
-      deps = invoker.deps
-    } else {
-      deps = []
-    }
-
-    forward_variables_from(invoker,
-                           [
-                             "defines",
-                             "generator_plugin_options",
-                             "include_dirs",
-                             "proto_in_dir",
-                             "proto_out_dir",
-                             "sources",
-                             "testonly",
-                             "visibility",
-                             "generate_descriptor",
-                             "propagate_imports_configs",
-                             "import_dirs",
-                           ])
-  }
-}
-
-_perfetto_proto_definition_sources = [
-  "protos/perfetto/common/builtin_clock.proto",
-  "protos/perfetto/trace/clock_snapshot.proto",
-  "protos/perfetto/trace/interned_data/interned_data.proto",
-  "protos/perfetto/trace/profiling/profile_common.proto",
-  "protos/perfetto/trace/profiling/profile_packet.proto",
-  "protos/perfetto/trace/trace.proto",
-  "protos/perfetto/trace/trace_packet.proto",
-  "protos/perfetto/trace/track_event/debug_annotation.proto",
-  "protos/perfetto/trace/track_event/process_descriptor.proto",
-  "protos/perfetto/trace/track_event/thread_descriptor.proto",
-  "protos/perfetto/trace/track_event/track_descriptor.proto",
-  "protos/perfetto/trace/track_event/track_event.proto",
-]
-
-# This target is not a dependency of any other GN target. It is required to make
-# tools/compile_perfetto_protos.dart work though.
-protozero_library("perfetto_protos_protozero") {
-  proto_in_dir = "."
-  proto_out_dir = "//third_party/perfetto"
-  generator_plugin_options = "wrapper_namespace=pbzero"
-  sources = _perfetto_proto_definition_sources
-}
-
-proto_library("perfetto_protos_dart") {
-  generate_cc = false
-  generate_python = false
-  generator_plugin_script = "tools/protoc_gen_dart_wrapper"
-  generator_plugin_suffixes = [ ".pb.dart" ]
-
-  proto_in_dir = "."
-  proto_out_dir = "//pkg/vm_service_protos/lib/src"
-
-  sources = _perfetto_proto_definition_sources
-}
 
 # This config needs to be propagated to all targets that depend on
 # ":libprotozero".

@@ -132,7 +132,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
       ValueNumbering(simplification: Simplification()),
       ConstantPropagation(),
       ControlFlowOptimizations(),
-      Lowering(functionRegistry),
+      Lowering(functionRegistry, objectLayout),
       ReorderBlocks(backEndState),
       LinearScanRegisterAllocator(backEndState, constraints),
       RegisterAllocationChecker(backEndState, constraints),

@@ -1075,16 +1075,36 @@ class InternalPositionalParameter extends TreeNode
   @override
   final bool isLocalFunction;
 
-  @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  List<VariableContext>? contexts;
-
   InternalPositionalParameter({
     required this.astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
   });
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  List<VariableContext>? get contexts {
+    throw new UnsupportedError("${this.runtimeType}.contexts");
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  void set contexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  String get catchVariableName {
+    throw new UnsupportedError("${this.runtimeType}.catchVariableName");
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  void set catchVariableName(String value) {
+    throw new UnsupportedError("${this.runtimeType}.catchVariableName=");
+  }
 
   @override
   R accept<R>(StatementVisitor<R> v) => v.visitPositionalParameter(astVariable);
@@ -1170,16 +1190,36 @@ class InternalNamedParameter extends TreeNode
   @override
   final bool isLocalFunction;
 
-  @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  List<VariableContext>? contexts;
-
   InternalNamedParameter({
     required this.astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
   });
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  List<VariableContext>? get contexts {
+    throw new UnsupportedError("${this.runtimeType}.contexts");
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  void set contexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  String get catchVariableName {
+    throw new UnsupportedError("${this.runtimeType}.catchVariableName");
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  void set catchVariableName(String value) {
+    throw new UnsupportedError("${this.runtimeType}.catchVariableName=");
+  }
 
   @override
   R accept<R>(StatementVisitor<R> v) => v.visitNamedParameter(astVariable);

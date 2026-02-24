@@ -134,8 +134,8 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'SwitchStatement': {'cases': FieldRule(isDeclaration: true)},
   'ContinueSwitchStatement': {'target': FieldRule(isDeclaration: false)},
   'Catch': {
-    'exception': FieldRule(isDeclaration: true),
-    'stackTrace': FieldRule(isDeclaration: true),
+    'exceptionCatchVariable': FieldRule(isDeclaration: true),
+    'stackTraceCatchVariable': FieldRule(isDeclaration: true),
   },
   'FunctionDeclaration': {'variable': FieldRule(isDeclaration: true)},
   'FunctionType': {'typeParameters': FieldRule(isDeclaration: true)},

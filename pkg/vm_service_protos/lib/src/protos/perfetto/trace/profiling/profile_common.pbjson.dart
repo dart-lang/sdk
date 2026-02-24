@@ -16,7 +16,8 @@
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: curly_braces_in_flow_control_structures
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, unused_import
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
+// ignore_for_file: unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -40,14 +41,18 @@ const Mapping$json = {
   '1': 'Mapping',
   '2': [
     {'1': 'iid', '3': 1, '4': 1, '5': 4, '10': 'iid'},
+    {'1': 'start_offset', '3': 3, '4': 1, '5': 4, '10': 'startOffset'},
+    {'1': 'start', '3': 4, '4': 1, '5': 4, '10': 'start'},
+    {'1': 'end', '3': 5, '4': 1, '5': 4, '10': 'end'},
     {'1': 'path_string_ids', '3': 7, '4': 3, '5': 4, '10': 'pathStringIds'},
   ],
 };
 
 /// Descriptor for `Mapping`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List mappingDescriptor = $convert.base64Decode(
-    'CgdNYXBwaW5nEhAKA2lpZBgBIAEoBFIDaWlkEiYKD3BhdGhfc3RyaW5nX2lkcxgHIAMoBFINcG'
-    'F0aFN0cmluZ0lkcw==');
+    'CgdNYXBwaW5nEhAKA2lpZBgBIAEoBFIDaWlkEiEKDHN0YXJ0X29mZnNldBgDIAEoBFILc3Rhcn'
+    'RPZmZzZXQSFAoFc3RhcnQYBCABKARSBXN0YXJ0EhAKA2VuZBgFIAEoBFIDZW5kEiYKD3BhdGhf'
+    'c3RyaW5nX2lkcxgHIAMoBFINcGF0aFN0cmluZ0lkcw==');
 
 @$core.Deprecated('Use frameDescriptor instead')
 const Frame$json = {

@@ -219,7 +219,7 @@ main(List<String> files) async {
     await Future.wait(
       files.map((String filepath) async {
         // The `runtime/.clang-tidy` file has the enabled checks in it.
-        final args = <String>['-quiet', filepath, '--']
+        final args = <String>['--allow-no-checks', '-quiet', filepath, '--']
           ..addAll(compilerFlagsForFile(filepath))
           ..addAll(defines);
         final processResult = await pool.withResource(
@@ -227,8 +227,12 @@ main(List<String> files) async {
         );
 
         final int exitCode = processResult.exitCode;
-        final String stdout = processResult.stdout.trim();
+        String stdout = processResult.stdout.trim();
         final String stderr = processResult.stderr.trim();
+
+        if (stdout == 'No checks enabled.') {
+          stdout = '';
+        }
 
         if (exitCode != 0 || stdout.isNotEmpty) {
           if (!isFirstFailure) {
