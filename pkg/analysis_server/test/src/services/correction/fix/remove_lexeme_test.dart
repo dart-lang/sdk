@@ -15,6 +15,7 @@ void main() {
     defineReflectiveTests(RemoveLexemeAvoidFinalParameters);
     defineReflectiveTests(RemoveLexemeMultiTest);
     defineReflectiveTests(RemoveLexemeTest);
+    defineReflectiveTests(RemoveLexemeVarWithNoTypeAnnotationTest);
   });
 }
 
@@ -854,6 +855,401 @@ factory class C {}
 ''');
     await assertHasFix('''
 class C {}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveLexemeVarWithNoTypeAnnotationTest extends FixProcessorLintTest {
+  @override
+  List<String> get experiments => super.experiments
+      .where(
+        (experiment) => experiment != Feature.primary_constructors.enableString,
+      )
+      .toList();
+
+  @override
+  FixKind get kind => DartFixKind.removeLexeme;
+
+  @override
+  String get lintCode => 'var_with_no_type_annotation';
+
+  Future<void> test_constructor_fieldFormal() async {
+    await resolveTestCode('''
+class C {
+  final int f;
+  C(var this.f);
+}
+''');
+    await assertHasFix('''
+class C {
+  final int f;
+  C(this.f);
+}
+''');
+  }
+
+  Future<void> test_constructor_fieldFormal_named() async {
+    await resolveTestCode('''
+class C {
+  final int f;
+  C({required var this.f});
+}
+''');
+    await assertHasFix('''
+class C {
+  final int f;
+  C({required this.f});
+}
+''');
+  }
+
+  Future<void> test_constructor_fieldFormal_optional() async {
+    await resolveTestCode('''
+class C {
+  final int? f;
+  C([var this.f]);
+}
+''');
+    await assertHasFix('''
+class C {
+  final int? f;
+  C([this.f]);
+}
+''');
+  }
+
+  Future<void> test_constructor_simple() async {
+    await resolveTestCode('''
+class C {
+  C(var p);
+}
+''');
+    await assertHasFix('''
+class C {
+  C(p);
+}
+''');
+  }
+
+  Future<void> test_enum_constructor() async {
+    await resolveTestCode('''
+enum E {
+  v(1);
+  const E(var p);
+}
+''');
+    await assertHasFix('''
+enum E {
+  v(1);
+  const E(p);
+}
+''');
+  }
+
+  Future<void> test_enum_method() async {
+    await resolveTestCode('''
+enum E {
+  v;
+  void m(var p) {}
+}
+''');
+    await assertHasFix('''
+enum E {
+  v;
+  void m(p) {}
+}
+''');
+  }
+
+  Future<void> test_extension_method() async {
+    await resolveTestCode('''
+extension E on int {
+  void f(var p) {}
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  void f(p) {}
+}
+''');
+  }
+
+  Future<void> test_extensionType_method() async {
+    await resolveTestCode('''
+extension type E(int i) {
+  void f(var p) {}
+}
+''');
+    await assertHasFix('''
+extension type E(int i) {
+  void f(p) {}
+}
+''');
+  }
+
+  Future<void> test_function() async {
+    await resolveTestCode('''
+void f(var p) {}
+''');
+    await assertHasFix('''
+void f(p) {}
+''');
+  }
+
+  Future<void> test_function_named() async {
+    await resolveTestCode('''
+void f({var p = 0}) {}
+''');
+    await assertHasFix('''
+void f({p = 0}) {}
+''');
+  }
+
+  Future<void> test_function_named_noDefault() async {
+    await resolveTestCode('''
+void f({var p}) {}
+''');
+    await assertHasFix('''
+void f({p}) {}
+''');
+  }
+
+  Future<void> test_function_optional() async {
+    await resolveTestCode('''
+void f([var p = 0]) {}
+''');
+    await assertHasFix('''
+void f([p = 0]) {}
+''');
+  }
+
+  Future<void> test_function_optional_noDefault() async {
+    await resolveTestCode('''
+void f([var p]) {}
+''');
+    await assertHasFix('''
+void f([p]) {}
+''');
+  }
+
+  Future<void> test_function_requiredNamed() async {
+    await resolveTestCode('''
+void f({required var p}) {}
+''');
+    await assertHasFix('''
+void f({required p}) {}
+''');
+  }
+
+  Future<void> test_functionExpression() async {
+    await resolveTestCode('''
+var f = (var value) {};
+''');
+    await assertHasFix('''
+var f = (value) {};
+''');
+  }
+
+  Future<void> test_functionTyped_fieldFormal() async {
+    await resolveTestCode('''
+class C {
+  final void Function(int) f;
+  C(void this.f(var p));
+}
+''');
+    await assertHasFix('''
+class C {
+  final void Function(int) f;
+  C(void this.f(p));
+}
+''');
+  }
+
+  Future<void> test_functionTyped_parameter() async {
+    await resolveTestCode('''
+void f(void g(var p)) {}
+''');
+    await assertHasFix('''
+void f(void g(p)) {}
+''');
+  }
+
+  Future<void> test_functionTyped_superFormal() async {
+    await resolveTestCode('''
+class A {
+  A(void f(int p));
+}
+class B extends A {
+  B(void super.f(var p));
+}
+''');
+    await assertHasFix('''
+class A {
+  A(void f(int p));
+}
+class B extends A {
+  B(void super.f(p));
+}
+''');
+  }
+
+  Future<void> test_localFunction() async {
+    await resolveTestCode('''
+void f() {
+  void g(var p) {}
+  g(1);
+}
+''');
+    await assertHasFix('''
+void f() {
+  void g(p) {}
+  g(1);
+}
+''');
+  }
+
+  Future<void> test_method() async {
+    await resolveTestCode('''
+class C {
+  void m(var p) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m(p) {}
+}
+''');
+  }
+
+  Future<void> test_method_named() async {
+    await resolveTestCode('''
+class C {
+  void m({var p = 0}) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m({p = 0}) {}
+}
+''');
+  }
+
+  Future<void> test_method_named_noDefault() async {
+    await resolveTestCode('''
+class C {
+  void m({var p}) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m({p}) {}
+}
+''');
+  }
+
+  Future<void> test_method_optional() async {
+    await resolveTestCode('''
+class C {
+  void m([var p = 0]) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m([p = 0]) {}
+}
+''');
+  }
+
+  Future<void> test_method_optional_noDefault() async {
+    await resolveTestCode('''
+class C {
+  void m([var p]) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m([p]) {}
+}
+''');
+  }
+
+  Future<void> test_method_requiredNamed() async {
+    await resolveTestCode('''
+class C {
+  void m({required var p}) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m({required p}) {}
+}
+''');
+  }
+
+  Future<void> test_method_setter() async {
+    await resolveTestCode('''
+class C {
+  set f(var value) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  set f(value) {}
+}
+''');
+  }
+
+  Future<void> test_mixin_method() async {
+    await resolveTestCode('''
+mixin M {
+  void f(var p) {}
+}
+''');
+    await assertHasFix('''
+mixin M {
+  void f(p) {}
+}
+''');
+  }
+
+  Future<void> test_operator() async {
+    await resolveTestCode('''
+class C {
+  int operator +(var other) => 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  int operator +(other) => 0;
+}
+''');
+  }
+
+  Future<void> test_setter() async {
+    await resolveTestCode('''
+set f(var value) {}
+''');
+    await assertHasFix('''
+set f(value) {}
+''');
+  }
+
+  Future<void> test_typedef() async {
+    await resolveTestCode('''
+typedef String Type(var value);
+''');
+    await assertHasFix('''
+typedef String Type(value);
+''');
+  }
+
+  Future<void> test_wildcard() async {
+    await resolveTestCode('''
+void f(var _) {}
+''');
+    await assertHasFix('''
+void f(_) {}
 ''');
   }
 }
