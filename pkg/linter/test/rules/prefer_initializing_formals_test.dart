@@ -55,7 +55,7 @@ class A {
 }
 class C extends A {
   int? c, d;
-  C(int c, int d) : super(c, d) {
+  C(int c, int d) : super(1, 2) {
     this.c = c;
     this.d = d;
   }
@@ -74,6 +74,61 @@ class C {
   }
   set x(num value) {}
   set y(num value) {}
+}
+''');
+  }
+
+  test_assignedInBody_multipleReference_body() async {
+    await assertNoDiagnostics(r'''
+class C {
+  num x = 0;
+  C(num x) {
+    print(x);
+    this.x = x;
+  }
+}
+''');
+  }
+
+  test_assignedInBody_multipleReference_closure() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int? x;
+  Function()? closure;
+  C(int? x) {
+    closure = () {
+      print(x);
+    };
+    this.x = x;
+  }
+}
+''');
+  }
+
+  test_assignedInBody_multipleReference_docComment() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  num x = 0;
+
+  /// References to [x] in this doc comment like [x] and [x] are ignored.
+  C(num x) {
+    this.x = x;
+  }
+}
+''',
+      [lint(115, 10)],
+    );
+  }
+
+  test_assignedInBody_multipleReference_initializer() async {
+    await assertNoDiagnostics(r'''
+class C {
+  num x = 0;
+  num y = 0;
+  C(num x) : y = x {
+    this.x = x;
+  }
 }
 ''');
   }
@@ -198,7 +253,7 @@ class C extends A {
   C(int c, int d)
       : this.c = c,
         this.d = d,
-        super(c, d);
+        super(1, 2);
 }
 ''',
       [lint(103, 10), lint(123, 10)],

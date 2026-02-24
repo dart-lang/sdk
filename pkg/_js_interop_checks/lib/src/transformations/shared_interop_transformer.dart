@@ -36,9 +36,11 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isATearoff;
   final Procedure _isJSAny;
   final Procedure _isJSBoxedDartObject;
+  final Procedure _isJSExportedDartFunction;
   final Procedure _isJSObject;
   final Procedure _isNullableJSAny;
   final Procedure _isNullableJSBoxedDartObject;
+  final Procedure _isNullableJSExportedDartFunction;
   final Procedure _isNullableJSObject;
   final ExtensionTypeDeclaration _jsAny;
   final ExtensionTypeDeclaration _jsFunction;
@@ -103,6 +105,8 @@ class SharedInteropTransformer extends Transformer {
       ),
       _isJSBoxedDartObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isJSBoxedDartObject'),
+      _isJSExportedDartFunction = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isJSExportedDartFunction'),
       _isJSObject = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         '_isJSObject',
@@ -115,6 +119,11 @@ class SharedInteropTransformer extends Transformer {
           .getTopLevelProcedure(
             'dart:js_interop',
             '_isNullableJSBoxedDartObject',
+          ),
+      _isNullableJSExportedDartFunction = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure(
+            'dart:js_interop',
+            '_isNullableJSExportedDartFunction',
           ),
       _isNullableJSObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSObject'),
@@ -601,8 +610,6 @@ class SharedInteropTransformer extends Transformer {
     Expression? check;
     String? typeofString;
     String? instanceOfString;
-    // TODO(srujzs): Add specific check for `JSExportedDartFunction`.
-    // https://github.com/dart-lang/sdk/issues/62573
     // TODO(srujzs): Maybe use `Array.isArray` for `JSArray`.
     // https://github.com/dart-lang/sdk/issues/62699
     switch (jsTypeName) {
@@ -640,6 +647,18 @@ class SharedInteropTransformer extends Transformer {
         nullChecksNeeded = false;
         check = StaticInvocation(
           interopTypeNullable ? _isNullableJSObject : _isJSObject,
+          Arguments([VariableGet(receiverVar)]),
+        );
+        break;
+      case 'JSExportedDartFunction' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
+        check = StaticInvocation(
+          interopTypeNullable
+              ? _isNullableJSExportedDartFunction
+              : _isJSExportedDartFunction,
           Arguments([VariableGet(receiverVar)]),
         );
         break;

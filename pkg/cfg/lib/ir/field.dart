@@ -13,4 +13,5 @@ extension type CField(ast.Field _raw) {
   bool get hasInitializer => _raw.initializer != null;
   CType get type => CType.fromStaticType(_raw.type);
   ast.Class get enclosingClass => _raw.enclosingClass!;
+  ast.Field get astField => _raw;
 }

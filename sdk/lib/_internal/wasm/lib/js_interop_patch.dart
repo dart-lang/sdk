@@ -266,6 +266,13 @@ bool _isJSObject(Object? any) =>
 
 bool _isNullableJSObject(Object? any) => any == null || _isJSObject(any);
 
+bool _isJSExportedDartFunction(Object? any) =>
+    _isJSAny(any) &&
+    js_helper.isJSWrappedDartFunction(unsafeCast<JSAny>(any).toExternRef);
+
+bool _isNullableJSExportedDartFunction(Object? any) =>
+    any == null || _isJSExportedDartFunction(any);
+
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
 @patch

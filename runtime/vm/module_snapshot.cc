@@ -96,6 +96,7 @@ class ModuleSnapshot : public AllStatic {
   enum ObjectPoolEntryKind {
     kObjectRef,
     kNewObjectTags,
+    kStaticFieldOffset,
     kInterfaceCall,
   };
 };
@@ -1172,6 +1173,14 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
                                               kCompressedWordSize));
             break;
           }
+          case ModuleSnapshot::kStaticFieldOffset: {
+            FieldPtr field = static_cast<FieldPtr>(d.ReadRef());
+            pool->untag()->entry_bits()[j] = immediate_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_value_ = FieldTable::FieldOffsetFor(
+                Smi::Value(field->untag()->host_offset_or_field_id()));
+            break;
+          }
           case ModuleSnapshot::kInterfaceCall: {
             pool->untag()->entry_bits()[j] = tagged_entry_bits;
             UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
@@ -1371,6 +1380,7 @@ void Deserializer::Deserialize() {
   AddBaseObject(Object::null_object());
   AddBaseObject(Bool::True());
   AddBaseObject(Bool::False());
+  AddBaseObject(Object::sentinel());
   AddBaseObject(Object::dynamic_type());
   AddBaseObject(Object::void_type());
   AddBaseObject(Type::Handle(zone(), object_store->null_type()));

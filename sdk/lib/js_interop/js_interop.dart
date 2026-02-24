@@ -888,6 +888,10 @@ extension NullableObjectUtilExtension on Object? {
   /// - `JSObject`: `isA<JSObject>` will call an intrinsic function to check
   ///   that the value is a JS object (`instanceof Object` is insufficient for
   ///   some objects).
+  /// - `JSExportedDartFunction`: `isA<JSExportedDartFunction>` will check if
+  ///   the value is a result of a previous
+  ///   [FunctionToJSExportedDartFunction.toJS] or
+  ///   [FunctionToJSExportedDartFunction.toJSCaptureThis] call.
   /// - User interop types whose representation types are JS primitive types:
   ///   This will result in an error to avoid confusion on whether the user
   ///   interop type is used in the type-check. Use the primitive JS type as the

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
+import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/utils/misc.dart';
@@ -17,9 +19,10 @@ import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
 final class Arm64CodeGenerator extends CodeGenerator {
+  final FunctionRegistry functionRegistry;
   late final Arm64Assembler _asm;
 
-  Arm64CodeGenerator(super.backEndState);
+  Arm64CodeGenerator(super.backEndState, this.functionRegistry);
 
   @override
   Assembler createAssembler() => _asm = Arm64Assembler(backEndState.vmOffsets);
@@ -240,12 +243,9 @@ final class Arm64CodeGenerator extends CodeGenerator {
     assert(offset <= stackFrame.maxArgumentsStackSlots * wordSize);
   }
 
-  @override
-  void visitDirectCall(DirectCall instr) {
-    _passArguments(instr);
-    _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
-    _asm.loadFromPool(functionReg, instr.target);
+  void _callFunction(CFunction function) {
     // TODO: call directly through Code.
+    _asm.loadFromPool(functionReg, function);
     _asm.ldr(
       codeReg,
       _asm.fieldAddress(functionReg, vmOffsets.Function_code_offset),
@@ -258,6 +258,13 @@ final class Arm64CodeGenerator extends CodeGenerator {
       ),
     );
     _asm.blr(tempReg);
+  }
+
+  @override
+  void visitDirectCall(DirectCall instr) {
+    _passArguments(instr);
+    _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
+    _callFunction(instr.target);
   }
 
   @override
@@ -423,14 +430,93 @@ final class Arm64CodeGenerator extends CodeGenerator {
     }
   }
 
+  void _loadStaticFieldAddress(Register dst, CField field, Register scratch) {
+    _asm.ldr(
+      scratch,
+      _asm.address(threadReg, vmOffsets.Thread_field_table_values_offset),
+    );
+    _asm.loadFromPool(dst, StaticFieldOffset(field));
+    _asm.add(dst, dst, scratch);
+  }
+
   @override
   void visitLoadStaticField(LoadStaticField instr) {
-    _asm.unimplemented('Unimplemented: code generation for LoadStaticField');
+    final field = instr.field;
+    final valueReg = outputReg(instr);
+    final scratch1Reg = temporaryReg(instr, 0);
+    final scratch2Reg = temporaryReg(instr, 1);
+
+    // TODO: shared static fields
+    _loadStaticFieldAddress(scratch1Reg, field, scratch2Reg);
+    _asm.ldr(valueReg, RegOffsetAddress(scratch1Reg, 0));
+
+    if (instr.checkInitialized) {
+      _asm.loadFromPool(scratch2Reg, SentinelConstant());
+      _asm.cmp(valueReg, scratch2Reg);
+
+      final done = Label();
+      Label slowPath = addSlowPath(() {
+        if (hasNonTrivialInitializer(field.astField)) {
+          _callFunction(
+            functionRegistry.getFunction(field.astField, isInitializer: true),
+          );
+          assert(valueReg == returnReg);
+          _loadStaticFieldAddress(scratch1Reg, field, scratch2Reg);
+
+          if (field.isLate && field.isFinal) {
+            final ok = Label();
+            _asm.ldr(scratch2Reg, RegOffsetAddress(scratch1Reg, 0));
+            _asm.loadFromPool(tempReg, SentinelConstant());
+            _asm.cmp(scratch2Reg, tempReg);
+            _asm.b(ok, .equal);
+            _asm.unimplemented(
+              'Unimplemented: already initialized late final field in LoadStaticField',
+            );
+            _asm.bind(ok);
+          }
+
+          _asm.str(valueReg, RegOffsetAddress(scratch1Reg, 0));
+          _asm.b(done);
+        } else {
+          _asm.unimplemented(
+            'Unimplemented: uninitialized late field without initializer in LoadStaticField',
+          );
+        }
+      });
+
+      _asm.b(slowPath, .equal);
+      _asm.bind(done);
+    }
   }
 
   @override
   void visitStoreStaticField(StoreStaticField instr) {
-    _asm.unimplemented('Unimplemented: code generation for StoreStaticField');
+    final field = instr.field;
+    final valueReg = inputReg(instr, 0);
+    final scratch1Reg = temporaryReg(instr, 0);
+    final scratch2Reg = temporaryReg(instr, 1);
+
+    // TODO: shared static fields
+    _loadStaticFieldAddress(scratch1Reg, field, scratch2Reg);
+
+    if (instr.checkNotInitialized) {
+      _asm.ldr(scratch2Reg, RegOffsetAddress(scratch1Reg, 0));
+      _asm.loadFromPool(tempReg, SentinelConstant());
+      _asm.cmp(scratch2Reg, tempReg);
+
+      final done = Label();
+      Label slowPath = addSlowPath(() {
+        _asm.unimplemented(
+          'Unimplemented: already initialized late final field in StoreStaticField',
+        );
+        _asm.b(done);
+      });
+
+      _asm.b(slowPath, .notEqual);
+      _asm.bind(done);
+    }
+
+    _asm.str(valueReg, RegOffsetAddress(scratch1Reg, 0));
   }
 
   @override

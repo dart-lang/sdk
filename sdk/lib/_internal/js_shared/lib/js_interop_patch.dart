@@ -3,7 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_foreign_helper' as foreign_helper;
-import 'dart:_interceptors' show Interceptor, JavaScriptObject;
+import 'dart:_interceptors'
+    show
+        Interceptor,
+        JavaScriptFunction,
+        JavaScriptObject,
+        isJSExportedDartFunction;
 import 'dart:_internal' show patch;
 import 'dart:_js_helper' show createObjectLiteral, staticInteropGlobalContext;
 import 'dart:_js_types';
@@ -129,6 +134,14 @@ bool _isJSObject(Object? any) =>
 
 @pragma('dart2js:prefer-inline')
 bool _isNullableJSObject(Object? any) => any == null || _isJSObject(any);
+
+@pragma('dart2js:prefer-inline')
+bool _isJSExportedDartFunction(Object? any) =>
+    any is JavaScriptFunction && isJSExportedDartFunction(any);
+
+@pragma('dart2js:prefer-inline')
+bool _isNullableJSExportedDartFunction(Object? any) =>
+    any == null || _isJSExportedDartFunction(any);
 
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object

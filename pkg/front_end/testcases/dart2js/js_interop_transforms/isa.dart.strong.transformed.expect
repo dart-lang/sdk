@@ -77,8 +77,10 @@ static method test(js_::JSAny /* erasure=core::Object */ any, js_::JSAny? /* era
   obj == null || js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "Array");
   !(any == null) && js_::JSAnyUtilityExtension|instanceof(any, js_2::JSObjectUnsafeUtilExtension|callMethodVarArgs<js_::JSFunction /* erasure=_interceptors::JavaScriptFunction */>(js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Object") as js_::JSObject /* erasure=_interceptors::JSObject */, js_::StringToJSString|get#toJS("getPrototypeOf"), <js_::JSAny? /* erasure=core::Object? */>[js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Int8Array") as js_::JSObject /* erasure=_interceptors::JSObject */]));
   js_::_isJSBoxedDartObject(any);
+  js_::_isJSExportedDartFunction(any);
   !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceof(obj as js_::JSAny? /* erasure=core::Object? */, js_2::JSObjectUnsafeUtilExtension|callMethodVarArgs<js_::JSFunction /* erasure=_interceptors::JavaScriptFunction */>(js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Object") as js_::JSObject /* erasure=_interceptors::JSObject */, js_::StringToJSString|get#toJS("getPrototypeOf"), <js_::JSAny? /* erasure=core::Object? */>[js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Int8Array") as js_::JSObject /* erasure=_interceptors::JSObject */])));
   js_::_isJSBoxedDartObject(obj);
+  js_::_isJSExportedDartFunction(obj);
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomJSAny");
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomJSObject");
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomTypedArray");

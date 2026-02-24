@@ -178,12 +178,21 @@ class ScopeContext {
       node.primaryConstructor.typeParameters?.accept(visitor);
       node.implementsClause?.accept(visitor);
 
-      withInstanceScope(element, () {
-        enterBodyScope?.call();
-        visitDocumentationComment(node.documentationComment, visitor);
+      if (_featureSet.isEnabled(Feature.primary_constructors)) {
+        withInstanceScope(element, () {
+          enterBodyScope?.call();
+          visitDocumentationComment(node.documentationComment, visitor);
+          node.primaryConstructor.formalParameters.accept(visitor);
+          node.body.visitWithOverride(visitor, visitBody);
+        });
+      } else {
         node.primaryConstructor.formalParameters.accept(visitor);
-        node.body.visitWithOverride(visitor, visitBody);
-      });
+        withInstanceScope(element, () {
+          enterBodyScope?.call();
+          visitDocumentationComment(node.documentationComment, visitor);
+          node.body.visitWithOverride(visitor, visitBody);
+        });
+      }
     });
   }
 

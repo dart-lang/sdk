@@ -120,8 +120,6 @@ class _ConstructorChecker {
     }
 
     _nodesToLintByField.forEach((field, nodes) {
-      if (nodes.length > 1) return;
-
       for (var lintNode in nodes) {
         _rule.reportAtNode(lintNode, arguments: [field.name!]);
       }
@@ -168,7 +166,33 @@ class _ConstructorChecker {
       return;
     }
 
+    // There can't be any other references to the parameter. If there are, it's
+    // possible removing the initializer/assignment and moving it up to be an
+    // initializing formal could be a semantic change.
+    var visitor = _ReferenceCounter(parameter);
+    // Visit the initializers and body directly so that we ignore references in
+    // the doc comment.
+    _constructor.initializers.accept(visitor);
+    _constructor.body.accept(visitor);
+    if (visitor.count > 1) return;
+
     _nodesToLintByField.putIfAbsent(field, () => []).add(node);
+  }
+}
+
+/// Counts references in the visited AST to a given parameter.
+class _ReferenceCounter extends RecursiveAstVisitor<void> {
+  final FormalParameterElement parameterElement;
+
+  int count = 0;
+
+  _ReferenceCounter(this.parameterElement);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.element == parameterElement) {
+      count++;
+    }
   }
 }
 

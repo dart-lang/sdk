@@ -43,8 +43,14 @@ extension type ArraySubtype._(JSArray _) implements JSObject {
 extension type WrapJSBoxedDartObject(JSBoxedDartObject _)
     implements JSBoxedDartObject {}
 
+extension type WrapJSExportedDartFunction(JSExportedDartFunction _)
+    implements JSExportedDartFunction {}
+
 @JS('WrapJSBoxedDartObject.prototype')
 external JSObject get wrapJSBoxedDartObjectPrototype;
+
+@JS('WrapJSExportedDartFunction.prototype')
+external JSObject get wrapJSExportedDartFunctionPrototype;
 
 @JS('Object.setPrototypeOf')
 external void setPrototypeOf(JSObject obj, JSObject prototype);
@@ -100,19 +106,23 @@ void testNull() {
   Expect.isTrue(nil.isA<JSObject?>());
   Expect.isTrue(nil.isA<JSAny?>());
   Expect.isTrue(nil.isA<JSBoxedDartObject?>());
+  Expect.isTrue(nil.isA<JSExportedDartFunction?>());
   Expect.isFalse(nil.isA<JSString>());
   Expect.isFalse(nil.isA<JSObject>());
   Expect.isFalse(nil.isA<JSAny>());
   Expect.isFalse(nil.isA<JSBoxedDartObject>());
+  Expect.isFalse(nil.isA<JSExportedDartFunction>());
   Object? nilObj = null;
   Expect.isTrue(nilObj.isA<JSString?>());
   Expect.isTrue(nilObj.isA<JSObject?>());
   Expect.isTrue(nilObj.isA<JSAny?>());
   Expect.isTrue(nilObj.isA<JSBoxedDartObject?>());
+  Expect.isTrue(nilObj.isA<JSExportedDartFunction?>());
   Expect.isFalse(nilObj.isA<JSString>());
   Expect.isFalse(nilObj.isA<JSObject>());
   Expect.isFalse(nilObj.isA<JSAny>());
   Expect.isFalse(nilObj.isA<JSBoxedDartObject>());
+  Expect.isFalse(nilObj.isA<JSExportedDartFunction>());
   // JS nullish values should behave no differently.
   eval('''
     globalThis.nullable = null;
@@ -121,10 +131,12 @@ void testNull() {
   Expect.isTrue(nullable.isA<JSObject?>());
   Expect.isTrue(nullable.isA<JSAny?>());
   Expect.isTrue(nullable.isA<JSBoxedDartObject?>());
+  Expect.isTrue(nullable.isA<JSExportedDartFunction?>());
   Expect.isFalse(nullable.isA<JSString>());
   Expect.isFalse(nullable.isA<JSObject>());
   Expect.isFalse(nullable.isA<JSAny>());
   Expect.isFalse(nullable.isA<JSBoxedDartObject>());
+  Expect.isFalse(nullable.isA<JSExportedDartFunction>());
   eval('''
     globalThis.nullable = undefined;
   ''');
@@ -132,10 +144,12 @@ void testNull() {
   Expect.isTrue(nullable.isA<JSObject?>());
   Expect.isTrue(nullable.isA<JSAny?>());
   Expect.isTrue(nullable.isA<JSBoxedDartObject?>());
+  Expect.isTrue(nullable.isA<JSExportedDartFunction?>());
   Expect.isFalse(nullable.isA<JSString>());
   Expect.isFalse(nullable.isA<JSObject>());
   Expect.isFalse(nullable.isA<JSAny>());
   Expect.isFalse(nullable.isA<JSBoxedDartObject>());
+  Expect.isFalse(nullable.isA<JSExportedDartFunction>());
 }
 
 void testPrimitives() {
@@ -292,14 +306,12 @@ void testJSObjects() {
   Expect.isTrue(jsFunction.isA<JSFunction?>());
   testIsJSObject(jsFunction);
   Expect.isFalse(jsFunction.isA<JSNumber>());
-  // TODO(srujzs): Currently, we can't distinguish between a JS function and an
-  // exported function. https://github.com/dart-lang/sdk/issues/62573
-  Expect.isTrue(jsFunction.isA<JSExportedDartFunction>());
+  Expect.isFalse(jsFunction.isA<JSExportedDartFunction>());
 
   Object jsFunctionObj = jsFunction;
   Expect.isTrue(jsFunctionObj.isA<JSFunction>());
   Expect.isFalse(jsFunctionObj.isA<JSBoxedDartObject>());
-  Expect.isTrue(jsFunctionObj.isA<JSExportedDartFunction>());
+  Expect.isFalse(jsFunctionObj.isA<JSExportedDartFunction>());
 
   // JSExportedDartFunction.
   final jsExportedDartFunction = () {}.toJS;
@@ -525,6 +537,22 @@ void testUserTypes() {
   Expect.isTrue(wrapJsBox.isA<WrapJSBoxedDartObject>());
   Expect.isTrue(wrapJsBox.isA<WrapJSBoxedDartObject?>());
   Expect.isTrue(wrapJsBoxObj.isA<WrapJSBoxedDartObject>());
+
+  // Test that a type wrapping `JSExportedDartFunction` should have a different
+  // type-check.
+  eval('''
+    class WrapJSExportedDartFunction {}
+    globalThis.WrapJSExportedDartFunction = WrapJSExportedDartFunction;
+  ''');
+  final wrapJsEdf = WrapJSExportedDartFunction(() {}.toJS);
+  Expect.isFalse(wrapJsEdf.isA<WrapJSExportedDartFunction>());
+  setPrototypeOf(wrapJsEdf, wrapJSExportedDartFunctionPrototype);
+  Expect.isTrue(wrapJsEdf.isA<WrapJSExportedDartFunction>());
+  Expect.isTrue(nil.isA<WrapJSExportedDartFunction?>());
+  Expect.isFalse(nil.isA<WrapJSExportedDartFunction>());
+
+  Object? wrapJsEdfObj = wrapJsEdf;
+  Expect.isTrue(wrapJsEdfObj.isA<WrapJSExportedDartFunction>());
 
   // Test subtyping a type in the browser.
   eval('''

@@ -85,8 +85,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       }
       scheduler.start();
     }
-    // TODO(scheglov): https://github.com/dart-lang/linter/issues/3134
-    // ignore: prefer_initializing_formals
     this.scheduler = scheduler;
 
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);

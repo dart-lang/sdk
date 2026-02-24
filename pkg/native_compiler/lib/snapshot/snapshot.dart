@@ -99,7 +99,12 @@ enum FunctionKind {
 ///
 /// This enum should match ModuleSnapshot::ObjectPoolEntryKind
 /// enum declared in runtime/vm/module_snapshot.cc.
-enum ObjectPoolEntryKind { objectRef, newObjectTags, interfaceCall }
+enum ObjectPoolEntryKind {
+  objectRef,
+  newObjectTags,
+  staticFieldOffset,
+  interfaceCall,
+}
 
 abstract base class SerializationCluster {
   /// Add [object] to the cluster and push its outgoing references.
@@ -145,6 +150,7 @@ class SnapshotSerializer {
     addBaseObject(null);
     addBaseObject(true);
     addBaseObject(false);
+    addBaseObject(SentinelConstant());
     addBaseObject(const ast.DynamicType());
     addBaseObject(const ast.VoidType());
     addBaseObject(const ast.NullType());
@@ -1289,6 +1295,8 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
         switch (entry) {
           case NewObjectTags():
             serializer.push(entry.cls);
+          case StaticFieldOffset():
+            serializer.push(entry.field);
           case InterfaceCallEntry():
             // TODO: call through monomorphic/table dispatcher.
             final icData = icDatas[entry] = ICData(
@@ -1301,6 +1309,7 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             );
             serializer.push(icData);
           case ReservedEntry():
+            break;
         }
       } else {
         serializer.push(entry);
@@ -1332,6 +1341,9 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             case NewObjectTags():
               serializer.writeUint(ObjectPoolEntryKind.newObjectTags.index);
               serializer.writeRefId(entry.cls);
+            case StaticFieldOffset():
+              serializer.writeUint(ObjectPoolEntryKind.staticFieldOffset.index);
+              serializer.writeRefId(entry.field);
             case InterfaceCallEntry():
               serializer.writeUint(ObjectPoolEntryKind.interfaceCall.index);
               serializer.writeRefId(icDatas[entry]);
