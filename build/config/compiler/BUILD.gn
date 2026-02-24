@@ -887,18 +887,19 @@ if (is_win) {
       "-Wl,--gc-sections",
     ]
 
-    if (is_clang && !using_sanitizer) {
-      # Identical code folding to reduce size.
-      # Warning: This changes C/C++ semantics of function pointer comparison.
-      common_optimize_on_ldflags += [ "-Wl,--icf=all" ]
-    }
-
     if (!using_sanitizer) {
       # Functions interposed by the sanitizers can make ld think
       # that some libraries aren't needed when they actually are,
       # http://crbug.com/234010. As workaround, disable --as-needed.
       common_optimize_on_ldflags += [ "-Wl,--as-needed" ]
     }
+  }
+
+  if (is_clang && !using_sanitizer) {
+    # Identical code folding to reduce size.
+    # Warning: This changes C/C++ semantics of function pointer comparison.
+    # Needs lld/gold/mold instead of GNU ld/Mac ld.
+    common_optimize_on_ldflags += [ "-Wl,--icf=all" ]
   }
 }
 
