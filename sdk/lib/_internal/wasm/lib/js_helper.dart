@@ -776,3 +776,95 @@ external T JS<T>(
 
 @pragma("wasm:intrinsic")
 external WasmExternRef get thisModule;
+
+/// Represents a JS `null` or `undefined` thrown from JS and caught in Wasm.
+///
+/// The class name is copied from the dart2js class for the same thing, for
+/// compatibility.
+///
+/// This class is allocated by the generated code.
+class NullThrownFromJavaScriptException implements Exception {
+  /// Whether the reference was `null`. If not, then it must be pointing to a JS
+  /// `undefined`.
+  final bool _isNull;
+
+  const NullThrownFromJavaScriptException.fromNull() : _isNull = true;
+
+  const NullThrownFromJavaScriptException.fromUndefined() : _isNull = false;
+
+  /// `toString` copied from dart2js's `NullThrownFromJavaScriptException` for
+  /// compatibility.
+  @override
+  String toString() =>
+      "Throw of null ('${_isNull ? 'null' : 'undefined'}' from JavaScript)";
+}
+
+/// Box an exception caught from JS, the same way as dart2js.
+///
+/// When the exception value is `null` or `undefined`, this returns a
+/// [NullThrownFromJavaScriptException].
+///
+/// Otherwise it returns a `JSValue`.
+///
+/// This is called by the generated code and passed a JS exception as
+/// `externref`, caught using the `WebAssembly.JSTag` exception tag. The return
+/// value will be used to assign the exception variable in `catch` blocks, so it
+/// needs to have type `Object`.
+@pragma('wasm:entry-point')
+Object boxJsException(WasmExternRef? ref) {
+  if (ref.isNull) return NullThrownFromJavaScriptException.fromNull();
+  if (isJSUndefined(ref))
+    return NullThrownFromJavaScriptException.fromUndefined();
+  return JSValue(ref);
+}
+
+/// Get the stack trace of an exception value thrown in JS and caught in Wasm.
+///
+/// This is called by the generated code, with the same argument as
+/// [boxJsException].
+///
+/// The return value will be assigned to the stack trace variables in `catch`
+/// blocks, so it needs to have type [StackTrace].
+@pragma('wasm:entry-point')
+StackTrace jsExceptionStackTrace(WasmExternRef? ref) => JavaScriptStack(
+  JS<WasmExternRef?>("""
+      (exn) => {
+        if (exn instanceof Error) {
+          return exn.stack;
+        } else {
+          return null;
+        }
+      }
+    """, ref),
+);
+
+class JavaScriptStack implements StackTrace {
+  // May be null.
+  final WasmExternRef? stack;
+
+  // Note: We remove the first two frames to prevent including
+  // `StackTrace.current` and the JS interop function. On Chrome, the first line
+  // is not a frame but a line with just "Error", sometimes with details:
+  // "Error: ...". Also remove that line.
+  late final String _stringified = stack.isNull
+      ? ""
+      : JSStringImpl.fromRefUnchecked(
+          JS<WasmExternRef?>(r"""(exn) => {
+            let stackString = exn.toString();
+            let frames = stackString.split('\n');
+            let drop = 2;
+            if (frames[0].startsWith('Error')) {
+                drop += 1;
+            }
+            return frames.slice(drop).join('\n');
+          }""", stack),
+        );
+
+  JavaScriptStack(this.stack);
+
+  JavaScriptStack.current()
+    : stack = JS<WasmExternRef?>("() => new Error().stack");
+
+  @override
+  String toString() => _stringified;
+}

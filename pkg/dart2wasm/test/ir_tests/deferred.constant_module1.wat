@@ -139,7 +139,7 @@
     struct.get $H1 $fun
     local.tee $var0
     struct.get $#Closure-0-1 $context
-    i32.const 69
+    i32.const 118
     i64.const 1
     struct.new $BoxedInt
     local.get $var0

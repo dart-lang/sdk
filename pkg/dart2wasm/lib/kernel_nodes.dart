@@ -53,8 +53,6 @@ mixin KernelNodes {
   late final Class noSuchMethodErrorClass =
       index.getClass("dart:core", "NoSuchMethodError");
   late final Class typeErrorClass = index.getClass("dart:core", "_TypeError");
-  late final Class javaScriptErrorClass =
-      index.getClass("dart:core", "_JavaScriptError");
   late final Field enumIndexField =
       index.getField('dart:core', '_Enum', 'index');
 
@@ -211,13 +209,18 @@ mixin KernelNodes {
   late final Field wasmLimitsMaximum =
       index.getField('dart:_wasm', 'Limits', 'maximum');
 
-  // dart:_js_helper procedures
+  // dart:_js_helper classes and procedures
+  late final Class jsValueClass = index.getClass("dart:_js_helper", "JSValue");
   late final Procedure getInternalizedString =
       index.getTopLevelProcedure("dart:_js_helper", "getInternalizedString");
   late final Procedure areEqualInJS =
       index.getTopLevelProcedure("dart:_js_helper", "areEqualInJS");
   late final Procedure toJSNumber =
       index.getTopLevelProcedure("dart:_js_helper", "toJSNumber");
+  late final Procedure boxJsException =
+      index.getTopLevelProcedure("dart:_js_helper", "boxJsException");
+  late final Procedure jsExceptionStackTrace =
+      index.getTopLevelProcedure("dart:_js_helper", "jsExceptionStackTrace");
 
   // dart:_js_types procedures
   late final Procedure jsStringEquals =
@@ -321,10 +324,6 @@ mixin KernelNodes {
       "dart:core", "_TypeError", "_throwTypeArgumentBoundCheckError");
   late final Procedure throwAssertionError =
       index.getProcedure("dart:core", "AssertionError", "_throwWithMessage");
-  late final Procedure javaScriptErrorFactory =
-      index.getProcedure("dart:core", "_JavaScriptError", "_");
-  late final Procedure javaScriptErrorStackTraceGetter =
-      index.getProcedure("dart:core", "_JavaScriptError", "get:stackTrace");
   late final Procedure rangeErrorCheckValueInInterval =
       index.getProcedure("dart:core", "RangeError", "checkValueInInterval");
   late final Class errorClass = index.getClass("dart:core", "Error");

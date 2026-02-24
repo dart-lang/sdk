@@ -1,7 +1,7 @@
 (module $module0
   (type $#Top (struct
     (field $field0 i32)))
-  (func $"dart2wasm._174 (import)" (import "dart2wasm" "_174") (param i32) (result externref))
+  (func $"dart2wasm._173 (import)" (import "dart2wasm" "_173") (param i32) (result externref))
   (func $"dart2wasm._298 (import)" (import "dart2wasm" "_298") (param externref) (result externref))
   (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param externref) (result externref))
   (global $"boolValueNullable initialized" (mut i32) <...>)
@@ -14,7 +14,7 @@
   (func $sinkBoolNullable <noInline> (param $var0 (ref null $#Top)) <...>)
   (func $"testBoolConstant <noInline>"
     i32.const 1
-    call $"dart2wasm._174 (import)"
+    call $"dart2wasm._173 (import)"
     call $"dart2wasm._298 (import)"
     call $toDartBool
     call $"sinkBool <noInline>"
@@ -27,7 +27,7 @@
   )
   (func $"testBoolValue <noInline>"
     call $"boolValue implicit getter"
-    call $"dart2wasm._174 (import)"
+    call $"dart2wasm._173 (import)"
     call $"dart2wasm._298 (import)"
     call $toDartBool
     call $"sinkBool <noInline>"

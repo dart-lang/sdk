@@ -4,7 +4,7 @@
   (type $BoxedDouble (sub final $#Top (struct
     (field $field0 i32)
     (field $value f64))))
-  (func $"dart2wasm._171 (import)" (import "dart2wasm" "_171") (param f64) (result externref))
+  (func $"dart2wasm._170 (import)" (import "dart2wasm" "_170") (param f64) (result externref))
   (func $"dart2wasm._298 (import)" (import "dart2wasm" "_298") (param externref) (result externref))
   (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param externref) (result externref))
   (global $"numValueNullable initialized" (mut i32) <...>)
@@ -22,7 +22,7 @@
   )
   (func $"testNumConstantDouble <noInline>"
     f64.const 1.1
-    call $"dart2wasm._171 (import)"
+    call $"dart2wasm._170 (import)"
     call $"dart2wasm._298 (import)"
     call $toDartDouble
     call $"sinkNum <noInline>"

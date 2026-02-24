@@ -11,22 +11,23 @@ void main() {
 }
 
 const List<(String?, int?, int?, String?)?> frameDetails = [
-  ('errors_patch.dart', null, null, '_throwWithCurrentStackTrace'),
+  ('js_helper.dart', 865, 3, 'current'),
+  ('stack_trace_patch.dart', 11, 52, 'current'),
+  ('errors_patch.dart', 19, 39, '_throwWithCurrentStackTrace'),
   ('source_map_simple_lib.dart', 18, 3, 'g'),
   ('source_map_simple_lib.dart', 14, 3, 'f'),
   ('source_map_simple_lib.dart', 43, 5, 'testMain'),
   ('source_map_simple_test.dart', 10, 7, 'main'),
-  null, // main tear-off, compiler generated, not mapped
-  // The rest of the stack is dependent on the compiler mode.
+  ('internal_patch.dart', 136, 17, '_invokeMain'),
 ];
 
 /*
-at Error._throwWithCurrentStackTrace (wasm://wasm/00119ad6:wasm-function[144]:0x165f1)
-at g (wasm://wasm/00119ad6:wasm-function[1251]:0x2a8f6)
-at f (wasm://wasm/00119ad6:wasm-function[809]:0x1f441)
-at testMain (wasm://wasm/00119ad6:wasm-function[804]:0x1f0d4)
-at main (wasm://wasm/00119ad6:wasm-function[801]:0x1f031)
-at main tear-off trampoline (wasm://wasm/00119ad6:wasm-function[803]:0x1f044)
-at _invokeMain (wasm://wasm/00119ad6:wasm-function[104]:0x1555b)
-at Module.invoke (...)
+at module0.JavaScriptStack.current (wasm://wasm/module0-0012402a:wasm-function[252]:0x12932)
+at module0.StackTrace.current (wasm://wasm/module0-0012402a:wasm-function[239]:0x1280f)
+at module0.Error._throwWithCurrentStackTrace (wasm://wasm/module0-0012402a:wasm-function[132]:0x11274)
+at module0.g (wasm://wasm/module0-0012402a:wasm-function[473]:0x15b7f)
+at module0.f (wasm://wasm/module0-0012402a:wasm-function[471]:0x15b6d)
+at module0.testMain (wasm://wasm/module0-0012402a:wasm-function[470]:0x158aa)
+at module0.main (wasm://wasm/module0-0012402a:wasm-function[131]:0x11269)
+at module0._invokeMain (wasm://wasm/module0-0012402a:wasm-function[124]:0x111bc)
 */

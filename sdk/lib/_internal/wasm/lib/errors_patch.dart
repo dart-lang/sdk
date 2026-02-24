@@ -48,39 +48,6 @@ class _Error extends Error {
   String toString() => _message;
 }
 
-// This error is emitted when we catch an opaque object that was thrown from
-// JavaScript.
-@pragma("wasm:entry-point")
-class _JavaScriptError extends Error {
-  /// Reference to the error thrown from JavaScript.
-  ///
-  /// This can be any JavaScript object, including `null` and `undefined`.
-  final WasmExternRef? _errorRef;
-
-  _JavaScriptError(this._errorRef);
-
-  @pragma("wasm:entry-point")
-  factory _JavaScriptError._(WasmExternRef? errorRef) =>
-      _JavaScriptError(errorRef);
-
-  @override
-  String toString() => stringify(_errorRef);
-
-  @override
-  @pragma("wasm:entry-point")
-  StackTrace get stackTrace => _JavaScriptStack(
-    JS<WasmExternRef?>("""
-        (exn) => {
-          if (exn instanceof Error) {
-            return exn.stack;
-          } else {
-            return null;
-          }
-        }
-      """, _errorRef),
-  );
-}
-
 class _TypeError extends _Error implements TypeError {
   _TypeError(String message) : super(message);
 
