@@ -250,6 +250,17 @@ struct simd128_value_t {
 #error Automatic compiler detection failed.
 #endif
 
+#if defined(__clang__)
+#define DART_ASSUME(expr) __builtin_assume(expr)
+#elif defined(__GNUC__)
+#define DART_ASSUME(expr)                                                      \
+  if (!(expr)) __builtin_unreachable()
+#elif defined(_MSC_VER)
+#define DART_ASSUME(expr) __assume(expr)
+#else
+#error Automatic compiler detection failed.
+#endif
+
 #ifdef _MSC_VER
 #elif __GNUC__
 #define DART_HAS_COMPUTED_GOTO 1

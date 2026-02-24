@@ -1,5 +1,7 @@
 ## 0.3.11-dev
 
+- Files which are excluded in analysis options are no longer analyzed by
+  analyzer plugins.
 - Require version `10.3.0-dev` of the `analyzer` package.
 - Require version `0.14.5-dev` of the `analyzer_plugin` package.
 
