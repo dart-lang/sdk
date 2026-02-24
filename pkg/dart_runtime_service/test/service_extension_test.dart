@@ -23,20 +23,21 @@ void main() {
       final client2 = await vmServiceConnectUri(service.uri.toString());
 
       const kServiceName = 'service';
-      const kServiceAlias = 'My custom service extension';
       const kParameter = 'parameter';
       const kValue = 'value';
 
-      client1.registerServiceCallback(kServiceName, (parameters) async {
-        expect(parameters[kParameter], kValue);
-        return {'result': Success().toJson()};
-      });
-      await client1.registerService(kServiceName, kServiceAlias);
+      final serviceName = await registerServiceHelper(
+        client: client2,
+        serviceProvider: client1,
+        serviceName: kServiceName,
+        callback: (parameters) async {
+          expect(parameters[kParameter], kValue);
+          return {'result': Success().toJson()};
+        },
+      );
 
       final result = await client2.callServiceExtension(
-        // TODO(bkonyi): requires stream support to get service name with the
-        // correct namespace.
-        's0.$kServiceName',
+        serviceName,
         args: {kParameter: kValue},
       );
       expect(result, isA<Success>());
@@ -51,21 +52,21 @@ void main() {
       final client2 = await vmServiceConnectUri(service.uri.toString());
 
       const kServiceName = 'service';
-      // TODO(bkonyi): requires stream support to get service name with the
-      // correct namespace.
-      const kMethod = 's0.$kServiceName';
-      const kServiceAlias = 'My custom service extension';
       const kError = 'Error!';
 
-      client1.registerServiceCallback(kServiceName, (parameters) {
-        throw Exception(kError);
-      });
-      await client1.registerService(kServiceName, kServiceAlias);
+      final serviceName = await registerServiceHelper(
+        client: client2,
+        serviceProvider: client1,
+        serviceName: kServiceName,
+        callback: (parameters) {
+          throw Exception(kError);
+        },
+      );
 
       try {
-        await client2.callServiceExtension(kMethod);
+        await client2.callServiceExtension(serviceName);
       } on RPCError catch (e) {
-        expect(e.callingMethod, kMethod);
+        expect(e.callingMethod, serviceName);
         expect(e.message, 'Exception: $kError');
         expect(e.code, RpcException.serverError.code);
       }
@@ -101,35 +102,39 @@ void main() {
         final client3 = await vmServiceConnectUri(service.uri.toString());
 
         const kServiceName = 'service';
-        const kServiceAlias = 'My custom service extension';
         const kParameter = 'parameter';
         const kValue1 = 'abc';
         const kValue2 = 'def';
         const kResult = 'result';
 
-        client1.registerServiceCallback(kServiceName, (parameters) async {
-          expect(parameters[kParameter], kValue1);
-          return {kResult: parameters};
-        });
-        client2.registerServiceCallback(kServiceName, (parameters) async {
-          expect(parameters[kParameter], kValue2);
-          return {kResult: parameters};
-        });
-        await client1.registerService(kServiceName, kServiceAlias);
-        await client2.registerService(kServiceName, kServiceAlias);
+        final serviceName1 = await registerServiceHelper(
+          client: client3,
+          serviceProvider: client1,
+          serviceName: kServiceName,
+          callback: (parameters) async {
+            expect(parameters[kParameter], kValue1);
+            return {kResult: parameters};
+          },
+        );
+
+        final serviceName2 = await registerServiceHelper(
+          client: client3,
+          serviceProvider: client2,
+          serviceName: kServiceName,
+          callback: (parameters) async {
+            expect(parameters[kParameter], kValue2);
+            return {kResult: parameters};
+          },
+        );
 
         var result = await client3.callServiceExtension(
-          // TODO(bkonyi): requires stream support to get service name with the
-          // correct namespace.
-          's0.$kServiceName',
+          serviceName1,
           args: {kParameter: kValue1},
         );
         expect(result.json![kParameter], kValue1);
 
         result = await client3.callServiceExtension(
-          // TODO(bkonyi): requires stream support to get service name with the
-          // correct namespace.
-          's1.$kServiceName',
+          serviceName2,
           args: {kParameter: kValue2},
         );
         expect(result.json![kParameter], kValue2);

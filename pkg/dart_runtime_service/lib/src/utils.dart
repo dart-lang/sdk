@@ -20,20 +20,35 @@ String generateSecret() {
   return base64Url.encode(bytes);
 }
 
+/// An unmodifiable view of a [NamedLookup].
+class UnmodifiableNamedLookup<E> with IterableMixin<E> {
+  UnmodifiableNamedLookup(this._namedLookup);
+
+  final NamedLookup<E> _namedLookup;
+
+  E? operator [](String id) => _namedLookup[id];
+
+  String? keyOf(E e) => _namedLookup.keyOf(e);
+
+  @override
+  Iterator<E> get iterator => _namedLookup.iterator;
+}
+
 /// [Set]-like containers which automatically generate [String] IDs for its
 /// items.
 ///
 /// Originally pulled from dart:_vmservice.
-class NamedLookup<E> with IterableMixin<E> {
+final class NamedLookup<E> extends IterableMixin<E> {
   NamedLookup({String prefix = ''}) : _generator = IdGenerator(prefix: prefix);
   final IdGenerator _generator;
-  final Map<String, E> _elements = {};
   final Map<E, String> _ids = {};
+  final Map<String, E> _elements = {};
 
-  void add(E e) {
+  String add(E e) {
     final id = _generator.newId();
     _elements[id] = e;
     _ids[e] = id;
+    return id;
   }
 
   void remove(E e) {
