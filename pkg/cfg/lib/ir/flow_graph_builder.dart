@@ -12,7 +12,7 @@ import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:kernel/ast.dart'
     as ast
-    show DartType, Name, VariableDeclaration;
+    show DartType, Name, TypeLiteralConstant, VariableDeclaration;
 
 /// Helper class to create IR instructions and populate [FlowGraph].
 ///
@@ -418,12 +418,10 @@ class FlowGraphBuilder {
     return instr;
   }
 
-  /// Append [TypeParameters] to the graph.
-  ///
-  /// Optional [receiver] input should be passed if there are class type
-  /// parameters in scope.
-  TypeParameters addTypeParameters({Definition? receiver}) {
-    final instr = TypeParameters(graph, currentSourcePosition, receiver);
+  /// Append [TypeParameters] taking a parameter as input to the graph.
+  TypeParameters addTypeParameters(TypeParametersKind kind) {
+    final parameter = pop();
+    final instr = TypeParameters(graph, currentSourcePosition, kind, parameter);
     appendInstruction(instr);
     return instr;
   }
@@ -437,7 +435,7 @@ class FlowGraphBuilder {
   /// check at runtime.
   TypeCast addTypeCast(
     CType testedType, {
-    Definition? typeParameters,
+    List<Definition> typeParameters = const [],
     bool isChecked = true,
   }) {
     final object = pop();
@@ -446,9 +444,12 @@ class FlowGraphBuilder {
       currentSourcePosition,
       object,
       testedType,
-      typeParameters,
+      inputCount: 1 + typeParameters.length,
       isChecked: isChecked,
     );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(1 + i, typeParameters[i]);
+    }
     push(instr);
     appendInstruction(instr);
     return instr;
@@ -458,15 +459,21 @@ class FlowGraphBuilder {
   ///
   /// Optional [typeParameters] input should be passed if tested type
   /// depends on type parameters (not fully instantiated).
-  TypeTest addTypeTest(CType testedType, {Definition? typeParameters}) {
+  TypeTest addTypeTest(
+    CType testedType, {
+    List<Definition> typeParameters = const [],
+  }) {
     final object = pop();
     final instr = TypeTest(
       graph,
       currentSourcePosition,
       object,
       testedType,
-      typeParameters,
+      inputCount: 1 + typeParameters.length,
     );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(1 + i, typeParameters[i]);
+    }
     push(instr);
     appendInstruction(instr);
     return instr;
@@ -479,9 +486,9 @@ class FlowGraphBuilder {
   /// depend on type parameters (not fully instantiated).
   void addTypeArguments(
     List<ast.DartType> types, {
-    Definition? typeParameters,
+    List<Definition> typeParameters = const [],
   }) {
-    if (typeParameters == null) {
+    if (typeParameters.isEmpty) {
       addConstant(ConstantValue(TypeArgumentsConstant(types)));
       return;
     }
@@ -489,26 +496,35 @@ class FlowGraphBuilder {
       graph,
       currentSourcePosition,
       types,
-      typeParameters,
+      inputCount: typeParameters.length,
     );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(i, typeParameters[i]);
+    }
     push(instr);
     appendInstruction(instr);
   }
 
-  /// Append [TypeLiteral] to the graph.
-  TypeLiteral addTypeLiteral(
-    ast.DartType uninstantiatedType, {
-    required Definition typeParameters,
+  /// Append [TypeLiteral] or [Constant] representing type to the graph.
+  void addTypeLiteral(
+    ast.DartType type, {
+    required List<Definition> typeParameters,
   }) {
+    if (typeParameters.isEmpty) {
+      addConstant(ConstantValue(ast.TypeLiteralConstant(type)));
+      return;
+    }
     final instr = TypeLiteral(
       graph,
       currentSourcePosition,
-      uninstantiatedType,
-      typeParameters,
+      type,
+      inputCount: typeParameters.length,
     );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(i, typeParameters[i]);
+    }
     push(instr);
     appendInstruction(instr);
-    return instr;
   }
 
   /// Append [AllocateObject] to the graph.

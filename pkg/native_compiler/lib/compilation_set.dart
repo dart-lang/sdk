@@ -119,6 +119,7 @@ class CompilationSet {
         functionRegistry,
         recognizedMethods,
         enableAsserts: config.enableAsserts,
+        typeParametersStyle: .separateFunctionAndClassTypeParameters,
       ).buildFlowGraph();
     } catch (_) {
       print('Compiler crashed while compiling $function');

@@ -128,6 +128,10 @@ abstract base class Constraints
   InstructionConstraints? visitParallelMove(ParallelMove instr) => null;
 
   @override
+  InstructionConstraints? visitTypeParameters(TypeParameters instr) =>
+      throw 'Unexpected TypeParameters (should be lowered)';
+
+  @override
   InstructionConstraints? visitAllocateListLiteral(AllocateListLiteral instr) =>
       throw 'Unexpected AllocateListLiteral (should be lowered)';
 

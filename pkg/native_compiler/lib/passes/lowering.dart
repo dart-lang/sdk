@@ -11,6 +11,7 @@ import 'package:cfg/ir/visitor.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
+import 'package:native_compiler/runtime/object_layout.dart';
 
 /// IR lowering for native back-end.
 ///
@@ -21,8 +22,9 @@ import 'package:kernel/ast.dart' as ast;
 /// TODO: insert boxing/unboxing
 final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   final FunctionRegistry functionRegistry;
+  final ObjectLayout objectLayout;
 
-  Lowering(this.functionRegistry) : super('Lowering');
+  Lowering(this.functionRegistry, this.objectLayout) : super('Lowering');
 
   late final CFunction _growableListLiteral = functionRegistry.getFunction(
     GlobalContext.instance.coreTypes.index.getProcedure(
@@ -137,6 +139,35 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
           break;
       }
     }
+  }
+
+  @override
+  void visitTypeParameters(TypeParameters instr) {
+    switch (instr.kind) {
+      case .classTypeParameters:
+        final receiver = instr.inputDefAt(0);
+        final receiverClass =
+            (receiver.type.dartType as ast.InterfaceType).classNode;
+        final typeArgsField = objectLayout.getTypeArgumentsField(
+          receiverClass,
+        )!;
+        for (final use in instr.inputUses) {
+          final user = use.getInstruction(graph);
+          final load = LoadInstanceField(
+            graph,
+            user.sourcePosition,
+            typeArgsField,
+            receiver,
+          );
+          load.insertBefore(user);
+          user.replaceInputAt(user.getInputIndex(use), load);
+        }
+      case .functionTypeParameters:
+        final replacement = instr.inputDefAt(0);
+        instr.replaceUsesWith(replacement);
+        break;
+    }
+    instr.removeFromGraph();
   }
 
   @override

@@ -81,6 +81,15 @@ extension type const UsesArray(ArenaPointer _ptr) {
     return Use(_ptr + elementsOffset + index * Use.useSize);
   }
 
+  int indexOf(FlowGraph graph, Use use) {
+    assert(_ptr != ArenaPointer.Null);
+    final offset = use._ptr - (_ptr + elementsOffset);
+    assert((offset % Use.useSize) == 0);
+    final index = offset ~/ Use.useSize;
+    assert(0 <= index && index < getLength(graph));
+    return index;
+  }
+
   void truncateTo(FlowGraph graph, int newLength) {
     assert(_ptr != ArenaPointer.Null);
     assert((0 <= newLength) && (newLength <= getLength(graph)));
