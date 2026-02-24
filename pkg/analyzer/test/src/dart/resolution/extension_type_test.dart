@@ -2809,6 +2809,120 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_primaryConstructor_formalParameters_scope() async {
+    await assertErrorsInCode(
+      r'''
+extension type A(int it) {
+  static const String int = 'not a type';
+}
+''',
+      [error(diag.notAType, 17, 3)],
+    );
+
+    var node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: <testLibrary>::@extensionType::A::@getter::int
+          type: InvalidType
+        name: it
+        declaredFragment: <testLibraryFragment> it@21
+          element: isFinal isPublic
+            type: InvalidType
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(InvalidType)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+          variables
+            VariableDeclaration
+              name: int
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'not a type'
+              declaredFragment: <testLibraryFragment> int@49
+        semicolon: ;
+        declaredFragment: <null>
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+''');
+  }
+
+  test_primaryConstructor_formalParameters_scope_language310() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 3.10
+extension type A(int it) {
+  static const String int = 'not a type';
+}
+''');
+
+    var node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@37
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+          variables
+            VariableDeclaration
+              name: int
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'not a type'
+              declaredFragment: <testLibraryFragment> int@65
+        semicolon: ;
+        declaredFragment: <null>
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+''');
+  }
+
   test_primaryConstructor_formalParameters_superFormalParameter() async {
     await assertErrorsInCode(
       r'''
