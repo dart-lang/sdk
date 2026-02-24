@@ -26,6 +26,9 @@ Future<int> generateWasm(WasmCompilerOptions options,
     print('  - packagesPath file = ${options.packagesPath}');
     print('  - platformPath file = ${options.platformPath}');
     print('  - strip wasm = ${options.stripWasm}');
+    print('  - wasm-opt path = ${options.wasmOptPath}');
+    print(
+        '  - max active wasm-opt processes = ${options.maxActiveWasmOptProcesses}');
     print('');
     print('Translator options:');
     print('  - enable asserts = ${translatorOptions.enableAsserts}');
