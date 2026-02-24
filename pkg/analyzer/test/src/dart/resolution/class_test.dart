@@ -575,6 +575,76 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructor_formalParameters_bodyScope_metadata() async {
+    await assertNoErrorsInCode(r'''
+const foo = 0;
+class A(@foo int x) {
+  static const foo = 1;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@getter::foo
+            staticType: null
+          element: <testLibrary>::@class::A::@getter::foo
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      name: x
+      declaredFragment: <testLibraryFragment> x@32
+        element: isPublic
+          type: int
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::A::@constructor::new
+      type: A Function(int)
+''');
+  }
+
+  test_primaryConstructor_formalParameters_bodyScope_type() async {
+    await assertErrorsInCode(
+      r'''
+class A(int x) {
+  static const String int = '';
+}
+''',
+      [error(diag.notAType, 8, 3)],
+    );
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+        element: <testLibrary>::@class::A::@getter::int
+        type: InvalidType
+      name: x
+      declaredFragment: <testLibraryFragment> x@12
+        element: isPublic
+          type: InvalidType
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::A::@constructor::new
+      type: A Function(InvalidType)
+''');
+  }
+
   test_primaryConstructor_hasTypeParameters_named() async {
     await assertNoErrorsInCode(r'''
 class A<T>.named(T t) {}

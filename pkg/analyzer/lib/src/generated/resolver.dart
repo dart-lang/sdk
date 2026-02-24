@@ -5131,7 +5131,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     _scopeContext.visitClassDeclaration(
       node,
       visitor: this,
-      visitDocumentationComment: _visitDocumentationComment,
       visitBody: (body) {
         body.accept(this);
       },
@@ -5140,17 +5139,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      _scopeContext.withInstanceScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.typeParameters?.accept(this);
-        node.superclass.accept(this);
-        node.withClause.accept(this);
-        node.implementsClause?.accept(this);
-      });
-    });
+    _scopeContext.visitClassTypeAlias(node, visitor: this);
   }
 
   @override
@@ -5170,7 +5159,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
     _scopeContext.withConstructorInitializerScope(element, () {
       node.initializers.accept(this);
-      _visitDocumentationComment(node.documentationComment);
+      _scopeContext.visitDocumentationComment(node.documentationComment, this);
     });
 
     node.redirectedConstructor?.accept(this);
@@ -5202,30 +5191,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     covariant EnumConstantDeclarationImpl node,
   ) {
     node.metadata.accept(this);
-    _visitDocumentationComment(node.documentationComment);
+    _scopeContext.visitDocumentationComment(node.documentationComment, this);
     node.arguments?.accept(this);
   }
 
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.nameScope = nameScope;
-      node.namePart.typeParameters?.accept(this);
-      node.withClause?.accept(this);
-      node.implementsClause?.accept(this);
-
-      _scopeContext.withInstanceScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
-        node.namePart
-            .tryCast<PrimaryConstructorDeclarationImpl>()
-            ?.formalParameters
-            .accept(this);
-        node.body.accept(this);
-      });
-    });
+    _scopeContext.visitEnumDeclaration(node, visitor: this);
   }
 
   @override
@@ -5236,28 +5208,20 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    _scopeContext.visitExtensionDeclaration(
-      node,
-      visitor: this,
-      visitDocumentationComment: _visitDocumentationComment,
-    );
+    _scopeContext.visitExtensionDeclaration(node, visitor: this);
   }
 
   @override
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    _scopeContext.visitExtensionTypeDeclaration(
-      node,
-      visitor: this,
-      visitDocumentationComment: _visitDocumentationComment,
-    );
+    _scopeContext.visitExtensionTypeDeclaration(node, visitor: this);
   }
 
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     node.metadata.accept(this);
-    _visitDocumentationComment(node.documentationComment);
+    _scopeContext.visitDocumentationComment(node.documentationComment, this);
 
     if (!node.isStatic && node.fields.lateKeyword == null) {
       var primaryConstructor = node.parent?.parent
@@ -5352,7 +5316,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         node.parameters?.accept(this);
 
         _scopeContext.withFormalParameterScope(element.formalParameters, () {
-          _visitDocumentationComment(parent.documentationComment);
+          _scopeContext.visitDocumentationComment(
+            parent.documentationComment,
+            this,
+          );
           node.body.accept(this);
         });
         return;
@@ -5383,7 +5350,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       // is safe to visit the documentation comment now.
       _scopeContext.withLocalScope((scope) {
         scope.addFormalParameterList(node.parameters);
-        _visitDocumentationComment(node.documentationComment);
+        _scopeContext.visitDocumentationComment(
+          node.documentationComment,
+          this,
+        );
       });
     });
   }
@@ -5399,7 +5369,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
       _scopeContext.withFormalParameterScope(element.formalParameters, () {
-        _visitDocumentationComment(node.documentationComment);
+        _scopeContext.visitDocumentationComment(
+          node.documentationComment,
+          this,
+        );
       });
     });
   }
@@ -5428,12 +5401,18 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           () {
             _scopeContext.withLocalScope((scope) {
               scope.addFormalParameterList(functionTypeNode.parameters);
-              _visitDocumentationComment(node.documentationComment);
+              _scopeContext.visitDocumentationComment(
+                node.documentationComment,
+                this,
+              );
             });
           },
         );
       } else {
-        _visitDocumentationComment(node.documentationComment);
+        _scopeContext.visitDocumentationComment(
+          node.documentationComment,
+          this,
+        );
       }
     });
   }
@@ -5488,7 +5467,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     node.metadata.accept(this);
-    _visitDocumentationComment(node.documentationComment);
+    _scopeContext.visitDocumentationComment(node.documentationComment, this);
   }
 
   @override
@@ -5507,7 +5486,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       // Visiting the parameters added them to the scope as a side effect. So it
       // is safe to visit the documentation comment now.
       _scopeContext.withFormalParameterScope(element.formalParameters, () {
-        _visitDocumentationComment(node.documentationComment);
+        _scopeContext.visitDocumentationComment(
+          node.documentationComment,
+          this,
+        );
         node.body.accept(this);
       });
     });
@@ -5529,11 +5511,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    _scopeContext.visitMixinDeclaration(
-      node,
-      visitor: this,
-      visitDocumentationComment: _visitDocumentationComment,
-    );
+    _scopeContext.visitMixinDeclaration(node, visitor: this);
   }
 
   @override
@@ -5568,11 +5546,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
     if (element != null) {
       _scopeContext.withPrimaryParameterScope(element, () {
-        _visitDocumentationComment(node.documentationComment);
+        _scopeContext.visitDocumentationComment(
+          node.documentationComment,
+          this,
+        );
         node.body.accept(this);
       });
     } else {
-      _visitDocumentationComment(node.documentationComment);
+      _scopeContext.visitDocumentationComment(node.documentationComment, this);
       node.body.accept(this);
     }
   }
@@ -5712,7 +5693,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     covariant TopLevelVariableDeclarationImpl node,
   ) {
     node.metadata.accept(this);
-    _visitDocumentationComment(node.documentationComment);
+    _scopeContext.visitDocumentationComment(node.documentationComment, this);
     node.variables.accept(this);
   }
 
@@ -5796,16 +5777,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       }
       return node;
     }
-  }
-
-  /// Visits a documentation comment with a [DocumentationCommentScope] that
-  /// encloses the current [nameScope].
-  void _visitDocumentationComment(CommentImpl? node) {
-    if (node == null) return;
-
-    _scopeContext.withDocImportScope(node, () {
-      node.accept(this);
-    });
   }
 
   void _visitForLoopParts(LocalScope scope, ForLoopPartsImpl parts) {

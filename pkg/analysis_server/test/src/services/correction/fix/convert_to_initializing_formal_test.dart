@@ -144,6 +144,27 @@ class C {
 ''');
   }
 
+  Future<void> test_assignment_otherInitializer() async {
+    await resolveTestCode('''
+class C {
+  int? x;
+  int? y;
+
+  C({int? x}) : y = 1 {
+    this.x = x;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int? x;
+  int? y;
+
+  C({this.x}) : y = 1;
+}
+''');
+  }
+
   Future<void> test_assignment_positional_differentType() async {
     await resolveTestCode('''
 class C {

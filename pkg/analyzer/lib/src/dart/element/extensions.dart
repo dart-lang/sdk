@@ -114,13 +114,6 @@ extension Element2Extension on Element {
   }
 }
 
-extension Element2OrNullExtension on Element? {
-  /// Return true if this element is a wildcard variable.
-  bool get isWildcardVariable {
-    return this?.isWildcardVariable ?? false;
-  }
-}
-
 extension ElementAnnotationExtension on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {
     for (var kind in TargetKind.values) kind.name: kind,

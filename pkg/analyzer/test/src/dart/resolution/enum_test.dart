@@ -942,6 +942,78 @@ EnumDeclaration
 ''');
   }
 
+  test_primaryConstructor_formalParameters_bodyScope_metadata() async {
+    await assertNoErrorsInCode(r'''
+const foo = 0;
+enum A(@foo int x) {
+  v(0);
+  static const foo = 1;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@enum::A::@getter::foo
+            staticType: null
+          element: <testLibrary>::@enum::A::@getter::foo
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      name: x
+      declaredFragment: <testLibraryFragment> x@31
+        element: isPublic
+          type: int
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::A::@constructor::new
+      type: A Function(int)
+''');
+  }
+
+  test_primaryConstructor_formalParameters_bodyScope_type() async {
+    await assertErrorsInCode(
+      r'''
+enum A(int x) {
+  v(0);
+  static const String int = '';
+}
+''',
+      [error(diag.notAType, 7, 3)],
+    );
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+        element: <testLibrary>::@enum::A::@getter::int
+        type: InvalidType
+      name: x
+      declaredFragment: <testLibraryFragment> x@11
+        element: isPublic
+          type: InvalidType
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::A::@constructor::new
+      type: A Function(InvalidType)
+''');
+  }
+
   test_primaryConstructor_hasTypeParameters_named() async {
     await assertNoErrorsInCode(r'''
 enum A<T>.named(T t) { v.named(0) }

@@ -485,6 +485,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.useSuperParametersSingle: [ConvertToSuperParameters.new],
   diag.useSuperParametersMultiple: [ConvertToSuperParameters.new],
   diag.useTruncatingDivision: [UseEffectiveIntegerDivision.new],
+  diag.varWithNoTypeAnnotation: [RemoveLexeme.keyword],
 };
 
 final _builtInLintMultiGenerators = {

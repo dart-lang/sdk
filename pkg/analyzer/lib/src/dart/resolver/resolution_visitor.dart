@@ -230,19 +230,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var fragment = node.declaredFragment!;
     _namedTypeResolver.enclosingClass = fragment.element;
 
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(this);
-
-      _resolveType(declaration: node, clause: null, namedType: node.superclass);
-
-      _resolveWithClause(declaration: node, clause: node.withClause);
-      _resolveImplementsClause(
-        declaration: node,
-        clause: node.implementsClause,
-      );
-    });
+    _scopeContext.visitClassTypeAlias(
+      node,
+      visitor: this,
+      visitSuperclass: (superclass) {
+        _resolveType(declaration: node, clause: null, namedType: superclass);
+      },
+    );
 
     _namedTypeResolver.enclosingClass = null;
   }
@@ -344,23 +338,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-    node.metadata.accept(this);
 
-    _scopeContext.withTypeParameterList(node.namePart.typeParameters, () {
-      node.namePart.accept(this);
-
-      _resolveWithClause(declaration: node, clause: node.withClause);
-      _resolveImplementsClause(
-        declaration: node,
-        clause: node.implementsClause,
-      );
-
-      _withEnclosingInstanceElement(element, () {
-        _scopeContext.withInstanceScope(element, () {
-          node.body.accept(this);
+    _scopeContext.visitEnumDeclaration(
+      node,
+      visitor: this,
+      visitBody: (_) {
+        _withEnclosingInstanceElement(element, () {
+          node.body.constants.accept(this);
+          node.body.members.accept(this);
         });
-      });
-    });
+      },
+    );
 
     _namedTypeResolver.enclosingClass = null;
   }
