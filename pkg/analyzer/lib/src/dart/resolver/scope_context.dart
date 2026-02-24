@@ -33,7 +33,6 @@ class ScopeContext {
   void visitClassDeclaration(
     ClassDeclarationImpl node, {
     required AstVisitor visitor,
-    void Function(CommentImpl)? visitDocumentationComment,
     void Function()? enterBodyScope,
     void Function(ClassBodyImpl body)? visitBody,
   }) {
@@ -52,10 +51,7 @@ class ScopeContext {
 
       withInstanceScope(element, () {
         enterBodyScope?.call();
-        node.documentationComment?.visitWithOverride(
-          visitor,
-          visitDocumentationComment,
-        );
+        visitDocumentationComment(node.documentationComment, visitor);
         node.namePart
             .tryCast<PrimaryConstructorDeclarationImpl>()
             ?.formalParameters
@@ -68,7 +64,6 @@ class ScopeContext {
   void visitClassTypeAlias(
     ClassTypeAliasImpl node, {
     required AstVisitor visitor,
-    void Function(CommentImpl)? visitDocumentationComment,
     void Function(NamedTypeImpl)? visitSuperclass,
     void Function()? enterTypeParameterScope,
   }) {
@@ -87,18 +82,29 @@ class ScopeContext {
       node.implementsClause?.accept(visitor);
 
       withInstanceScope(element, () {
-        node.documentationComment?.visitWithOverride(
-          visitor,
-          visitDocumentationComment,
-        );
+        visitDocumentationComment(node.documentationComment, visitor);
       });
     });
+  }
+
+  void visitDocumentationComment(CommentImpl? node, AstVisitor visitor) {
+    if (node != null) {
+      var docImportInnerScope = _docImportScope.innerScope;
+      _docImportScope.innerScope = nameScope;
+      try {
+        withScope(_docImportScope, () {
+          node.nameScope = nameScope;
+          node.accept(visitor);
+        });
+      } finally {
+        _docImportScope.innerScope = docImportInnerScope;
+      }
+    }
   }
 
   void visitEnumDeclaration(
     EnumDeclarationImpl node, {
     required AstVisitor visitor,
-    void Function(CommentImpl)? visitDocumentationComment,
     void Function()? enterBodyScope,
     void Function(EnumDeclarationImpl node)? visitBody,
   }) {
@@ -115,10 +121,7 @@ class ScopeContext {
 
       withInstanceScope(element, () {
         enterBodyScope?.call();
-        node.documentationComment?.visitWithOverride(
-          visitor,
-          visitDocumentationComment,
-        );
+        visitDocumentationComment(node.documentationComment, visitor);
 
         node.namePart
             .tryCast<PrimaryConstructorDeclarationImpl>()
@@ -138,7 +141,6 @@ class ScopeContext {
   void visitExtensionDeclaration(
     ExtensionDeclarationImpl node, {
     required AstVisitor visitor,
-    void Function(CommentImpl)? visitDocumentationComment,
     void Function()? enterBodyScope,
     void Function(BlockClassBodyImpl body)? visitBody,
   }) {
@@ -154,10 +156,7 @@ class ScopeContext {
 
       withExtensionScope(element, () {
         enterBodyScope?.call();
-        node.documentationComment?.visitWithOverride(
-          visitor,
-          visitDocumentationComment,
-        );
+        visitDocumentationComment(node.documentationComment, visitor);
         node.body.visitWithOverride(visitor, visitBody);
       });
     });
@@ -166,7 +165,6 @@ class ScopeContext {
   void visitExtensionTypeDeclaration(
     ExtensionTypeDeclarationImpl node, {
     required AstVisitor visitor,
-    void Function(CommentImpl)? visitDocumentationComment,
     void Function()? enterBodyScope,
     void Function(ClassBodyImpl body)? visitBody,
   }) {
@@ -182,10 +180,7 @@ class ScopeContext {
 
       withInstanceScope(element, () {
         enterBodyScope?.call();
-        node.documentationComment?.visitWithOverride(
-          visitor,
-          visitDocumentationComment,
-        );
+        visitDocumentationComment(node.documentationComment, visitor);
         node.primaryConstructor.formalParameters.accept(visitor);
         node.body.visitWithOverride(visitor, visitBody);
       });
@@ -195,7 +190,6 @@ class ScopeContext {
   void visitMixinDeclaration(
     MixinDeclarationImpl node, {
     required AstVisitor visitor,
-    void Function(CommentImpl)? visitDocumentationComment,
     void Function()? enterBodyScope,
     void Function(BlockClassBodyImpl body)? visitBody,
   }) {
@@ -212,10 +206,7 @@ class ScopeContext {
 
       withInstanceScope(element, () {
         enterBodyScope?.call();
-        node.documentationComment?.visitWithOverride(
-          visitor,
-          visitDocumentationComment,
-        );
+        visitDocumentationComment(node.documentationComment, visitor);
         node.body.visitWithOverride(visitor, visitBody);
       });
     });
@@ -226,19 +217,6 @@ class ScopeContext {
     void Function() operation,
   ) {
     withScope(ConstructorInitializerScope(nameScope, element), operation);
-  }
-
-  void withDocImportScope(CommentImpl node, void Function() operation) {
-    var docImportInnerScope = _docImportScope.innerScope;
-    _docImportScope.innerScope = nameScope;
-    try {
-      withScope(_docImportScope, () {
-        node.nameScope = nameScope;
-        operation();
-      });
-    } finally {
-      _docImportScope.innerScope = docImportInnerScope;
-    }
   }
 
   void withExtensionScope(
