@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/types.dart';
 import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
 import 'package:native_compiler/back_end/constraints.dart';
 import 'package:native_compiler/back_end/locations.dart';
-import 'package:cfg/ir/instructions.dart';
-import 'package:cfg/ir/types.dart';
+import 'package:native_compiler/runtime/type_utils.dart';
 
 /// Defines arm64 register allocation contraints for
 /// inputs/outputs/temporaries of the IR instructions.
@@ -154,16 +155,24 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitLoadStaticField(LoadStaticField instr) =>
-      InstructionConstraints(
-        instr.field.type is DoubleType ? anyFpuRegister : anyCpuRegister,
-        const [],
-      );
+      (instr.checkInitialized && hasNonTrivialInitializer(instr.field.astField))
+      ? InstructionConstraints(
+          returnReg,
+          const [],
+          volatileRegistersExceptReturnReg,
+        )
+      : const InstructionConstraints(anyCpuRegister, [], [
+          anyCpuRegister,
+          anyCpuRegister,
+        ]);
 
   @override
   InstructionConstraints? visitStoreStaticField(StoreStaticField instr) =>
-      InstructionConstraints(null, [
-        instr.field.type is DoubleType ? anyFpuRegister : anyCpuRegister,
-      ]);
+      const InstructionConstraints(
+        null,
+        [anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister],
+      );
 
   @override
   InstructionConstraints? visitThrow(Throw instr) => InstructionConstraints(

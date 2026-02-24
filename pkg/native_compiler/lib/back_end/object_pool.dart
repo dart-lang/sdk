@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:kernel/ast.dart' as ast;
 
@@ -94,4 +95,18 @@ final class ReservedEntry extends SpecializedEntry {
 
   @override
   int get numReservedEntries => 0;
+}
+
+/// Object pool entry representing offset of the static field
+/// relative to static field table.
+final class StaticFieldOffset extends SpecializedEntry {
+  final CField field;
+  StaticFieldOffset(this.field);
+
+  @override
+  int get hashCode => field.hashCode + 13;
+
+  @override
+  bool operator ==(Object other) =>
+      other is StaticFieldOffset && this.field == other.field;
 }

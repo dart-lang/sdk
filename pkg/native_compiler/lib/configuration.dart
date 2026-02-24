@@ -76,10 +76,12 @@ abstract base class Configuration {
     TargetCPU.arm64 => Arm64StackFrame(function),
   };
 
-  CodeGenerator createCodeGenerator(BackEndState backEndState) =>
-      switch (targetCPU) {
-        TargetCPU.arm64 => Arm64CodeGenerator(backEndState),
-      };
+  CodeGenerator createCodeGenerator(
+    BackEndState backEndState,
+    FunctionRegistry functionRegistry,
+  ) => switch (targetCPU) {
+    TargetCPU.arm64 => Arm64CodeGenerator(backEndState, functionRegistry),
+  };
 
   StubFactory createStubFactory(CodeConsumer consumeGeneratedCode) =>
       switch (targetCPU) {
@@ -136,7 +138,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
       ReorderBlocks(backEndState),
       LinearScanRegisterAllocator(backEndState, constraints),
       RegisterAllocationChecker(backEndState, constraints),
-      createCodeGenerator(backEndState),
+      createCodeGenerator(backEndState, functionRegistry),
     ]);
   }
 }
