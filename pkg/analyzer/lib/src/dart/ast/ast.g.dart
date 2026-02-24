@@ -320,12 +320,6 @@ abstract class AstVisitor<R> {
 
   R? visitRelationalPattern(RelationalPattern node);
 
-  // ignore: deprecated_member_use_from_same_package
-  R? visitRepresentationConstructorName(RepresentationConstructorName node);
-
-  // ignore: deprecated_member_use_from_same_package
-  R? visitRepresentationDeclaration(RepresentationDeclaration node);
-
   R? visitRestPatternElement(RestPatternElement node);
 
   R? visitRethrowExpression(RethrowExpression node);

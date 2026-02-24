@@ -352,13 +352,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.typeName != null) {
-      assert(
-        // ignore: deprecated_member_use_from_same_package
-        identical(node.returnType, node.typeName),
-      );
-    }
-
     _sink.writeln('ConstructorDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1826,8 +1819,6 @@ Expected parent: (${parent.runtimeType}) $parent
       _sink.writeIf(fragment.isPrivate, 'isPrivate ');
       _sink.writeIf(fragment.isPublic, 'isPublic ');
       _sink.writeIf(fragment.isStatic, 'isStatic ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(fragment.isSynthetic, 'isSynthetic ');
       _sink.write('${fragment.name ?? ''}@${fragment.nameOffset}');
     });
 

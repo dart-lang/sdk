@@ -180,8 +180,6 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         MethodReferenceExpression,
         MixinDeclaration,
         MixinOnClause,
-        // ignore: deprecated_member_use_from_same_package
-        NamedCompilationUnitMember,
         NamedExpression,
         NamedType,
         NamespaceDirective,
@@ -220,10 +218,6 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         RecordTypeAnnotationPositionalField,
         RedirectingConstructorInvocation,
         RelationalPattern,
-        // ignore: deprecated_member_use_from_same_package
-        RepresentationConstructorName,
-        // ignore: deprecated_member_use_from_same_package
-        RepresentationDeclaration,
         RestPatternElement,
         RethrowExpression,
         ReturnStatement,

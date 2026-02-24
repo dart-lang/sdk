@@ -1119,8 +1119,7 @@ class LibraryManifestBuilder {
       var newManifest = LibraryManifest(
         name: libraryElement.name.nullIfEmpty,
         isOriginNotExistingFile: libraryElement.isOriginNotExistingFile,
-        // ignore: deprecated_member_use_from_same_package
-        isSynthetic: libraryElement.isSynthetic,
+        isSynthetic: false,
         featureSet: (libraryElement.featureSet as ExperimentStatus).toStorage(),
         languageVersion: ManifestLibraryLanguageVersion.encode(
           libraryElement.languageVersion,

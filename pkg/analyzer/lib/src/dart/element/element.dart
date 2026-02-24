@@ -768,14 +768,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @trackedIncludedInId
   bool get isPrimary => _firstFragment.isPrimary;
 
-  @Deprecated(
-    'Use isOriginDeclaration / isOriginImplicitDefault / '
-    'isOriginMixinApplication instead, depending on intent.',
-  )
-  @override
-  @trackedIncludedInId
-  bool get isSynthetic => !isOriginDeclaration;
-
   @override
   @trackedIncludedInId
   ElementKind get kind => ElementKind.CONSTRUCTOR;
@@ -1009,13 +1001,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     return !isFactory;
   }
 
-  @Deprecated(
-    'Use isOriginDeclaration / isOriginImplicitDefault / '
-    'isOriginMixinApplication instead, depending on intent.',
-  )
-  @override
-  bool get isSynthetic => !isOriginDeclaration;
-
   @override
   int get offset =>
       nameOffset ??
@@ -1208,10 +1193,6 @@ class DynamicElementImpl extends ElementImpl {
         fragment,
     ];
   }
-
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic => true;
 
   @override
   ElementKind get kind => ElementKind.DYNAMIC;
@@ -2233,13 +2214,6 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     return _firstFragment.isStatic;
   }
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  @trackedIncludedInId
-  bool get isSynthetic {
-    return _firstFragment.isSynthetic;
-  }
-
   @trackedDirectlyOpaque
   ExecutableFragmentImpl get lastFragment {
     globalResultRequirements?.recordOpaqueApiUse(
@@ -2937,11 +2911,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @trackedIncludedInId
   bool get isStatic => _firstFragment.isStatic;
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  @trackedIncludedInId
-  bool get isSynthetic => _firstFragment.isSynthetic;
-
   @override
   @trackedIncludedInId
   ElementKind get kind => ElementKind.FIELD;
@@ -3300,12 +3269,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   bool get isSuperFormal => _firstFragment.isSuperFormal;
-
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic {
-    return _firstFragment.isSynthetic;
-  }
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
@@ -3870,10 +3833,6 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   @override
   bool get isSimplyBounded => true;
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic => _firstFragment.isSynthetic;
-
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
 
@@ -4277,13 +4236,6 @@ sealed class InstanceElementImpl extends ElementImpl
 
   set isSimplyBounded(bool value) {
     setModifier(Modifier.SIMPLY_BOUNDED, value);
-  }
-
-  @Deprecated('Use isOriginX instead')
-  @override
-  @trackedIncludedInId
-  bool get isSynthetic {
-    return _firstFragment.isSynthetic;
   }
 
   @override
@@ -5622,10 +5574,6 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   /// or `default`).
   bool get isOnSwitchMember => _firstFragment.isOnSwitchMember;
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic => _firstFragment.isSynthetic;
-
   @override
   ElementKind get kind => ElementKind.LABEL;
 
@@ -6063,14 +6011,6 @@ class LibraryElementImpl extends ElementImpl
       element: this,
     );
     return _firstFragment.isOriginNotExistingFile;
-  }
-
-  @Deprecated('Use isOriginNotExistingFile instead')
-  @override
-  @trackedDirectly
-  bool get isSynthetic {
-    globalResultRequirements?.record_library_isSynthetic(element: this);
-    return hasModifier(Modifier.SYNTHETIC);
   }
 
   set isSynthetic(bool isSynthetic) {
@@ -7334,10 +7274,6 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @override
   bool get isStatic => _firstFragment.isStatic;
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic => _firstFragment.isSynthetic;
-
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
@@ -8413,10 +8349,6 @@ class MultiplyDefinedElementImpl extends ElementImpl
   @override
   bool get isPublic => true;
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic => true;
-
   bool get isVisibleForTemplate => false;
 
   bool get isVisibleOutsideTemplate => false;
@@ -8552,10 +8484,6 @@ class NeverElementImpl extends ElementImpl {
   List<NeverFragmentImpl> get fragments {
     return [_firstFragment];
   }
-
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic => true;
 
   @override
   ElementKind get kind => ElementKind.NEVER;
@@ -8817,10 +8745,6 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
         .toList();
   }
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic => false;
-
   @override
   ElementKind get kind => ElementKind.PREFIX;
 
@@ -8940,10 +8864,6 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
     return _firstFragment.isOriginVariable;
   }
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic;
-
   @override
   @trackedDirectlyOpaque
   PropertyAccessorFragmentImpl get lastFragment {
@@ -8997,11 +8917,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   PropertyAccessorElementImpl get element;
-
-  @Deprecated('Use isOriginX instead.')
-  @override
-  @trackedIncludedInId
-  bool get isSynthetic => super.isSynthetic;
 
   @override
   MetadataImpl get metadata {
@@ -9819,13 +9734,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @trackedIncludedInId
   bool get isStatic => _firstFragment.isStatic;
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  @trackedIncludedInId
-  bool get isSynthetic {
-    return _firstFragment.isSynthetic;
-  }
-
   @override
   @trackedIncludedInId
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
@@ -10040,13 +9948,6 @@ class TypeAliasElementImpl extends ElementImpl
 
   set isSimplyBounded(bool value) {
     setModifier(Modifier.SIMPLY_BOUNDED, value);
-  }
-
-  @Deprecated('Use isOriginX instead')
-  @override
-  @trackedIncludedInId
-  bool get isSynthetic {
-    return _firstFragment.isSynthetic;
   }
 
   @override
@@ -10316,12 +10217,6 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   bool get isLegacyCovariant {
     return _variance == null;
-  }
-
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic {
-    return _firstFragment.isSynthetic;
   }
 
   @override
