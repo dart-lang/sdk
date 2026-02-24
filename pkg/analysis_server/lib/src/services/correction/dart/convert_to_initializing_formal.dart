@@ -181,7 +181,12 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         var functionBody = block.parent;
         if (statements.length == 1 && functionBody is BlockFunctionBody) {
           builder.addSimpleReplacement(
-            range.endEnd(constructor.parameters, functionBody),
+            range.endEnd(
+              constructor.initializers.isNotEmpty
+                  ? constructor.initializers.last
+                  : constructor.parameters,
+              functionBody,
+            ),
             ';',
           );
         } else {
