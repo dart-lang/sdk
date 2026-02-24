@@ -1982,6 +1982,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  new
+    kind: keyword
   operator
     kind: keyword
   var
@@ -4097,7 +4099,11 @@ suggestions
   Future<void> test_commentSnippets004_1() async {
     allowedIdentifiers = {'A'};
     await computeSuggestions('''
-class A {^int x; mth() {int y = this.x;}}class B{}
+class A {
+  ^int x;
+  mth() {int y = this.x;}
+}
+class B{}
 ''');
     assertResponse(r'''
 replacement
@@ -4151,6 +4157,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  new
+    kind: keyword
   operator
     kind: keyword
   var
@@ -4188,6 +4196,8 @@ suggestions
   get
     kind: keyword
   late
+    kind: keyword
+  new
     kind: keyword
   operator
     kind: keyword
@@ -4611,6 +4621,8 @@ suggestions
   get
     kind: keyword
   late
+    kind: keyword
+  new
     kind: keyword
   operator
     kind: keyword
@@ -5261,7 +5273,10 @@ suggestions
   Future<void> test_commentSnippets032_2() async {
     allowedIdentifiers = {'Fit'};
     await computeSuggestions('''
-class Fit{}class Bar<T extends Fooa> {const ^Fara();}
+class Fit{}
+class Bar<T extends Fooa> {
+  const ^Fara();
+}
 ''');
     assertResponse(r'''
 replacement
@@ -5288,6 +5303,8 @@ suggestions
   get
     kind: keyword
   late
+    kind: keyword
+  new
     kind: keyword
   operator
     kind: keyword
@@ -9649,7 +9666,9 @@ suggestions
   Future<void> test_completion_newMemberType1_1() async {
     allowedIdentifiers = {'Collection', 'List'};
     await computeSuggestions('''
-class Collection{}class List extends Collection{}class Foo { ^ }
+class Collection{}
+class List extends Collection{}
+class Foo { ^ }
 ''');
     assertResponse(r'''
 suggestions
@@ -9702,6 +9721,8 @@ suggestions
   get
     kind: keyword
   late
+    kind: keyword
+  new
     kind: keyword
   operator
     kind: keyword
@@ -9713,7 +9734,9 @@ suggestions
   Future<void> test_completion_newMemberType2_1() async {
     allowedIdentifiers = {'Collection', 'List'};
     await computeSuggestions('''
-class Collection{}class List extends Collection{}class Foo {^}
+class Collection{}
+class List extends Collection{}
+class Foo {^}
 ''');
     assertResponse(r'''
 suggestions
@@ -9766,6 +9789,8 @@ suggestions
   get
     kind: keyword
   late
+    kind: keyword
+  new
     kind: keyword
   operator
     kind: keyword
@@ -11167,7 +11192,11 @@ suggestions
   Future<void> test_single_2() async {
     allowedIdentifiers = {'B'};
     await computeSuggestions('''
-class A {int x; ^mth() {int y = this.x;}}class B{}
+class A {
+  int x;
+  ^mth() {int y = this.x;}
+}
+class B{}
 ''');
     assertResponse(r'''
 replacement
@@ -11194,6 +11223,8 @@ suggestions
   get
     kind: keyword
   late
+    kind: keyword
+  new
     kind: keyword
   operator
     kind: keyword
