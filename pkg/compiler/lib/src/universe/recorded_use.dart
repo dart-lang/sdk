@@ -241,15 +241,13 @@ record_use.Constant _findValue(ConstantValue constant) {
     StringConstantValue() => record_use.StringConstant(constant.stringValue),
     MapConstantValue() => _findMapValue(constant),
     ListConstantValue() => _findListValue(constant),
+    RecordConstantValue() => findRecordConstant(constant),
     ConstructedConstantValue() => findInstanceValue(constant),
     DoubleConstantValue() => record_use.UnsupportedConstant(
       'Double literals are not supported for recording.',
     ),
     SetConstantValue() => record_use.UnsupportedConstant(
       'Set literals are not supported for recording.',
-    ),
-    RecordConstantValue() => record_use.UnsupportedConstant(
-      'Record literals are not supported for recording.',
     ),
     InstantiationConstantValue() => record_use.UnsupportedConstant(
       'Generic instantiations are not supported for recording.',
@@ -264,6 +262,20 @@ record_use.Constant _findValue(ConstantValue constant) {
       '${constant.runtimeType} is not supported for recording.',
     ),
   };
+}
+
+record_use.RecordConstant findRecordConstant(RecordConstantValue constant) {
+  final positional = <record_use.Constant>[];
+  for (var i = 0; i < constant.shape.positionalFieldCount; i++) {
+    positional.add(_findValue(constant.values[i]));
+  }
+  final named = <String, record_use.Constant>{};
+  for (var i = 0; i < constant.shape.fieldNames.length; i++) {
+    final name = constant.shape.fieldNames[i];
+    final value = constant.values[constant.shape.positionalFieldCount + i];
+    named[name] = _findValue(value);
+  }
+  return record_use.RecordConstant(positional: positional, named: named);
 }
 
 record_use.MapConstant _findMapValue(MapConstantValue constant) {
