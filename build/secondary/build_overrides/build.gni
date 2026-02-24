@@ -7,3 +7,8 @@
 # builds in the Android tree.
 perfetto_build_with_embedder = true
 perfetto_root_path = "//third_party/perfetto/src/"
+
+# We do not actually bring a real protobuf library as a dependency for Dart
+# because it requires pulling lots of other things (e.g. abseil).
+perfetto_protobuf_target_prefix = "//third_party/perfetto/mock_protobuf"
+perfetto_protobuf_gni = perfetto_protobuf_target_prefix + "/proto_library.gni"
