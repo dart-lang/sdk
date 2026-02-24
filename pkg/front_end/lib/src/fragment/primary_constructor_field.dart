@@ -436,7 +436,6 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void setCovariantByClassInternal() {
     _encoding.setCovariantByClass();
   }

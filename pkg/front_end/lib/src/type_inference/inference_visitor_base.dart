@@ -3269,7 +3269,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.nullableInstanceMember:
         kind = InstanceAccessKind.Nullable;
         break;
-      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.objectMember:
         kind = InstanceAccessKind.Object;
         break;
@@ -3392,9 +3391,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           )..fileOffset = nullAwareAction.fileOffset,
         );
       } else if (nullAwareAction is DynamicInvocation &&
-          // Coverage-ignore(suite): Not run.
           nullAwareAction.receiver == originalPropertyGet) {
-        // Coverage-ignore-block(suite): Not run.
         invocationResult = new ExpressionInferenceResult(
           invocationResult.inferredType,
           new InstanceGetterInvocation(

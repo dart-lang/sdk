@@ -824,6 +824,7 @@ abstract class TreeVisitor<R>
   R visitComponent(Component node);
   R visitTypeVariable(TypeVariable node);
   R visitLocalVariable(LocalVariable node);
+  R visitCatchVariable(CatchVariable node);
   R visitThisVariable(ThisVariable node);
   R visitSyntheticVariable(SyntheticVariable node);
   R visitVariableContext(VariableContext node);
@@ -886,6 +887,8 @@ mixin TreeVisitorDefaultMixin<R> implements TreeVisitor<R> {
   R visitTypeVariable(TypeVariable node) => defaultTreeNode(node);
   @override
   R visitLocalVariable(LocalVariable node) => defaultTreeNode(node);
+  @override
+  R visitCatchVariable(CatchVariable node) => defaultTreeNode(node);
   @override
   R visitThisVariable(ThisVariable node) => defaultTreeNode(node);
   @override
@@ -958,6 +961,7 @@ abstract class TreeVisitor1<R, A>
   R visitComponent(Component node, A arg);
   R visitTypeVariable(TypeVariable node, A arg);
   R visitLocalVariable(LocalVariable node, A arg);
+  R visitCatchVariable(CatchVariable node, A arg);
   R visitThisVariable(ThisVariable node, A arg);
   R visitSyntheticVariable(SyntheticVariable node, A arg);
   R visitVariableContext(VariableContext node, A arg);
@@ -1026,6 +1030,8 @@ mixin TreeVisitor1DefaultMixin<R, A> implements TreeVisitor1<R, A> {
   R visitTypeVariable(TypeVariable node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitLocalVariable(LocalVariable node, A arg) => defaultTreeNode(node, arg);
+  @override
+  R visitCatchVariable(CatchVariable node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitThisVariable(ThisVariable node, A arg) => defaultTreeNode(node, arg);
   @override
@@ -2245,6 +2251,19 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
     return transformOrRemove(node, dummyVariableDeclaration);
   }
 
+  /// Visits [node], returning the transformation result. Removal of [node] is
+  /// supported with `null` as the result.
+  ///
+  /// This is convenience method for calling [transformOrRemove] with removal
+  /// sentinel for [VariableDeclaration] nodes.
+  CatchVariable? transformOrRemoveCatchVariable(CatchVariable node) {
+    if (node is VariableDeclaration) {
+      return transformOrRemoveVariableDeclaration(node);
+    } else {
+      return transformOrRemove(node, dummyCatchVariable);
+    }
+  }
+
   /// Visits [node] using [removalSentinel] as the removal sentinel.
   ///
   /// If [removalSentinel] is the result of visiting [node], `null` is returned.
@@ -3433,6 +3452,13 @@ mixin TreeVisitorExperimentExclusionMixin<R> implements TreeVisitor<R> {
   }
 
   @override
+  R visitCatchVariable(CatchVariable node) {
+    throw StateError(
+      "${runtimeType}.visitCatchVariable isn't supported.",
+    );
+  }
+
+  @override
   R visitThisVariable(ThisVariable node) {
     throw StateError(
       "${runtimeType}.visitThisVariable isn't supported.",
@@ -3494,6 +3520,13 @@ mixin TreeVisitor1ExperimentExclusionMixin<R, A> implements TreeVisitor1<R, A> {
   R visitLocalVariable(LocalVariable node, A arg) {
     throw StateError(
       "${runtimeType}.visitLocalVariable isn't supported.",
+    );
+  }
+
+  @override
+  R visitCatchVariable(CatchVariable node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitCatchVariable isn't supported.",
     );
   }
 

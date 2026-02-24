@@ -5813,12 +5813,47 @@ class BodyBuilderImpl extends StackListenerImpl
           // Coverage-ignore(suite): Not run.
           stackTrace.kind == FormalParameterKind.optionalPositional,
     );
+
+    CatchVariable? exceptionVariable;
+    if (exception?.variable
+        case VariableDeclaration exceptionVariableDeclaration) {
+      if (isClosureContextLoweringEnabled) {
+        // Coverage-ignore-block(suite): Not run.
+        // TODO(62743): Avoid the conversion when [FormalParameterBuilder]
+        // produces [CatchVariable]s directly.
+        exceptionVariable = new CatchVariable(
+          name: exceptionVariableDeclaration.name!,
+          type: exceptionVariableDeclaration.type,
+          isWildcard: exceptionVariableDeclaration.isWildcard,
+        );
+      } else {
+        exceptionVariable = exceptionVariableDeclaration;
+      }
+    }
+
+    CatchVariable? stackTraceVariable;
+    if (stackTrace?.variable
+        case VariableDeclaration stackTraceVariableDeclaration) {
+      if (isClosureContextLoweringEnabled) {
+        // Coverage-ignore-block(suite): Not run.
+        // TODO(62743): Avoid the conversion when [FormalParameterBuilder]
+        // produces [CatchVariable]s directly.
+        stackTraceVariable = new CatchVariable(
+          name: stackTraceVariableDeclaration.name!,
+          type: stackTraceVariableDeclaration.type,
+          isWildcard: stackTraceVariableDeclaration.isWildcard,
+        );
+      } else {
+        stackTraceVariable = stackTraceVariableDeclaration;
+      }
+    }
+
     push(
       forest.createCatch(
         offsetForToken(onKeyword ?? catchKeyword),
         exceptionType,
-        exception?.variable,
-        stackTrace?.variable,
+        exceptionVariable,
+        stackTraceVariable,
         coreTypes.stackTraceRawType(Nullability.nonNullable),
         body,
       ),
