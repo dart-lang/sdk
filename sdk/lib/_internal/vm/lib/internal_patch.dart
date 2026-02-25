@@ -87,6 +87,22 @@ external String allocateTwoByteString(int length);
 @pragma("vm:external-name", "Internal_writeIntoTwoByteString")
 external void writeIntoTwoByteString(String string, int index, int codePoint);
 
+@pragma("vm:external-name", "Internal_decodeUtf8ToOneByteString")
+external String? decodeUtf8ToOneByteString(
+  Uint8List bytes,
+  int start,
+  int end,
+  int size,
+);
+
+@pragma("vm:external-name", "Internal_decodeUtf8ToTwoByteString")
+external String? decodeUtf8ToTwoByteString(
+  Uint8List bytes,
+  int start,
+  int end,
+  int size,
+);
+
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
   static Timer Function(int, void Function(Timer), bool)? timerFactory;
@@ -162,6 +178,13 @@ external _boundsCheckForPartialInstantiation(closure, typeArgs);
 @patch
 @pragma("vm:external-name", "Internal_unsafeCast")
 external T unsafeCast<T>(dynamic v);
+
+@patch
+@pragma("vm:external-name", "CompactHash_createMapFromKeyValueListUnsafe")
+external Object? createMapFromKeyValueListUnsafeNative<K, V>(
+  List keyValuePairs,
+  Object failureSentinel,
+);
 
 // This function can be used to keep an object alive till that point.
 @pragma("vm:recognized", "other")

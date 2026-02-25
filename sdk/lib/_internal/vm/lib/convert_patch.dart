@@ -10,6 +10,8 @@ import "dart:_internal"
         allocateTwoByteString,
         ClassID,
         copyRangeFromUint8ListToOneByteString,
+        decodeUtf8ToOneByteString,
+        decodeUtf8ToTwoByteString,
         patch,
         POWERS_OF_TEN,
         unsafeCast,
@@ -23,11 +25,38 @@ import "dart:typed_data" show Uint8List, Uint16List;
 
 // JSON conversion.
 
+final Object _jsonFastParseFailureSentinel = Object();
+
+@pragma('vm:external-name', 'Json_parseOneByteFast')
+external Object? _parseJsonOneByteFast(String source, Object failureSentinel);
+@pragma('vm:external-name', 'Json_parseTwoByteFast')
+external Object? _parseJsonTwoByteFast(String source, Object failureSentinel);
+
 @patch
 dynamic _parseJson(
   String source,
   Object? Function(Object? key, Object? value)? reviver,
 ) {
+  if (reviver == null && source.length >= 128) {
+    final int cid = ClassID.getID(source);
+    if (cid == ClassID.cidOneByteString) {
+      final Object? fast = _parseJsonOneByteFast(
+        source,
+        _jsonFastParseFailureSentinel,
+      );
+      if (!identical(fast, _jsonFastParseFailureSentinel)) {
+        return fast;
+      }
+    } else if (cid == ClassID.cidTwoByteString) {
+      final Object? fast = _parseJsonTwoByteFast(
+        source,
+        _jsonFastParseFailureSentinel,
+      );
+      if (!identical(fast, _jsonFastParseFailureSentinel)) {
+        return fast;
+      }
+    }
+  }
   _JsonListener listener = _JsonListener(reviver);
   var parser = _JsonStringParser(listener);
   parser.chunk = source;
@@ -831,7 +860,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       position = parsePartial(position);
       if (position == length) return;
     }
-    final charAttributes = _characterAttributes;
+    final charAttributes = _ChunkedJsonParser._characterAttributes;
 
     int state = this.state;
     outer:
@@ -1050,7 +1079,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    */
   @pragma('vm:unsafe:no-interrupts')
   int parseString(int position) {
-    final charAttributes = _characterAttributes;
+    final charAttributes = _ChunkedJsonParser._characterAttributes;
 
     // Format: '"'([^\x00-\x1f\\\"]|'\\'[bfnrt/\\"])*'"'
     // Initial position is right after first '"'.
@@ -1135,7 +1164,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    */
   @pragma('vm:unsafe:no-interrupts')
   int parseStringToBuffer(int position) {
-    final charAttributes = _characterAttributes;
+    final charAttributes = _ChunkedJsonParser._characterAttributes;
 
     int end = chunkEnd;
     int start = position;
@@ -1478,6 +1507,25 @@ class _JsonStringParser extends _JsonParserWithListener
 
   _JsonStringParser(_JsonListener listener) : super(listener);
 
+  static const int _fastStringScanThreshold = 32;
+  static final List<String> _smallIntStrings = List<String>.generate(
+    1000,
+    (i) => '$i',
+  );
+
+  @pragma('vm:external-name', 'Json_findStringTerminator')
+  external static int _findStringTerminator(
+    String chunk,
+    int start,
+    int end,
+  );
+
+  @pragma('vm:prefer-inline')
+  bool _useFastStringScan(int position, int end) {
+    return end - position >= _fastStringScanThreshold &&
+        ClassID.getID(chunk) == ClassID.cidOneByteString;
+  }
+
   @pragma('vm:prefer-inline')
   bool get isUtf16Input => true;
 
@@ -1485,7 +1533,197 @@ class _JsonStringParser extends _JsonParserWithListener
   @pragma('vm:unsafe:no-bounds-checks')
   int _getCharUnsafe(int position) => chunk.codeUnitAt(position);
 
+  @pragma('vm:unsafe:no-interrupts')
+  @override
+  int parseString(int position) {
+    final charAttributes = _ChunkedJsonParser._characterAttributes;
+
+    // Format: '"'([^\x00-\x1f\\\"]|'\\'[bfnrt/\\"])*'"'
+    // Initial position is right after first '"'.
+    int start = position;
+    int end = chunkEnd;
+    int bits = 0;
+    int char = 0;
+    if (position < end) {
+      if (_useFastStringScan(position, end)) {
+        final int scan = _findStringTerminator(chunk, position, end);
+        if (scan == end) {
+          beginString();
+          if (start < end) addSliceToString(start, end);
+          return chunkString(_ChunkedJsonParser.STR_PLAIN);
+        }
+        char = chunk.codeUnitAt(scan);
+        bits |= char; // Includes final '"', but that never matters.
+        if (char == _ChunkedJsonParser.QUOTE) {
+          listener.handleString(getString(start, scan, bits));
+          return scan + 1;
+        }
+        if (char == _ChunkedJsonParser.BACKSLASH) {
+          int sliceEnd = scan;
+          beginString();
+          if (start < sliceEnd) addSliceToString(start, sliceEnd);
+          return parseStringToBuffer(sliceEnd);
+        }
+        if (char < _ChunkedJsonParser.SPACE) {
+          fail(scan, "Control character in string");
+        }
+      }
+      do {
+        // Caveat: do not combine the following two lines together. It helps
+        // compiler to generate better code (it currently can't reorder operations
+        // to reduce register pressure).
+        char = _getCharUnsafe(position);
+        position++;
+        bits |= char; // Includes final '"', but that never matters.
+        if (isUtf16Input && char > 0xFF) {
+          continue;
+        }
+        if ((charAttributes.codeUnitAt(char) &
+                _ChunkedJsonParser.CHAR_SIMPLE_STRING_END) !=
+            0) {
+          break;
+        }
+      } while (position < end);
+      if (char == _ChunkedJsonParser.QUOTE) {
+        int sliceEnd = position - 1;
+        listener.handleString(getString(start, sliceEnd, bits));
+        return sliceEnd + 1;
+      }
+      if (char == _ChunkedJsonParser.BACKSLASH) {
+        int sliceEnd = position - 1;
+        beginString();
+        if (start < sliceEnd) addSliceToString(start, sliceEnd);
+        return parseStringToBuffer(sliceEnd);
+      }
+      if (char < _ChunkedJsonParser.SPACE) {
+        fail(position - 1, "Control character in string");
+      }
+    }
+    beginString();
+    if (start < end) addSliceToString(start, end);
+    return chunkString(_ChunkedJsonParser.STR_PLAIN);
+  }
+
+  @pragma('vm:unsafe:no-interrupts')
+  @override
+  int parseStringToBuffer(int position) {
+    final charAttributes = _ChunkedJsonParser._characterAttributes;
+
+    int end = chunkEnd;
+    int start = position;
+    while (true) {
+      if (position == end) {
+        if (position > start) {
+          addSliceToString(start, position);
+        }
+        return chunkString(_ChunkedJsonParser.STR_PLAIN);
+      }
+
+      if (_useFastStringScan(position, end)) {
+        final int scan = _findStringTerminator(chunk, position, end);
+        if (scan == end) {
+          if (end > start) {
+            addSliceToString(start, end);
+          }
+          return chunkString(_ChunkedJsonParser.STR_PLAIN);
+        }
+        int char = chunk.codeUnitAt(scan);
+        position = scan + 1;
+
+        if (char < _ChunkedJsonParser.SPACE) {
+          fail(scan); // Control character in string.
+        }
+
+        if (char == _ChunkedJsonParser.QUOTE) {
+          if (scan > start) {
+            addSliceToString(start, scan);
+          }
+          listener.handleString(endString());
+          return position;
+        }
+
+        if (char == _ChunkedJsonParser.BACKSLASH) {
+          if (scan > start) {
+            addSliceToString(start, scan);
+          }
+          if (position == end) {
+            return chunkString(_ChunkedJsonParser.STR_ESCAPE);
+          }
+          position = parseStringEscape(position);
+          if (position == end) return position;
+          start = position;
+          continue;
+        }
+      }
+
+      int char = 0;
+      do {
+        char = _getCharUnsafe(position);
+        position++;
+        if (isUtf16Input && char > 0xFF) {
+          continue;
+        }
+        if ((charAttributes.codeUnitAt(char) &
+                _ChunkedJsonParser.CHAR_SIMPLE_STRING_END) !=
+            0) {
+          break;
+        }
+      } while (position < end);
+
+      if (char < _ChunkedJsonParser.SPACE) {
+        fail(position - 1); // Control character in string.
+      }
+
+      if (char == _ChunkedJsonParser.QUOTE) {
+        int quotePosition = position - 1;
+        if (quotePosition > start) {
+          addSliceToString(start, quotePosition);
+        }
+        listener.handleString(endString());
+        return position;
+      }
+
+      if (char != _ChunkedJsonParser.BACKSLASH) {
+        continue;
+      }
+
+      // Handle escape.
+      if (position - 1 > start) {
+        addSliceToString(start, position - 1);
+      }
+
+      if (position == end) {
+        return chunkString(_ChunkedJsonParser.STR_ESCAPE);
+      }
+      position = parseStringEscape(position);
+      if (position == end) return position;
+      start = position;
+    }
+    return -1; // UNREACHABLE.
+  }
+
   String getString(int start, int end, int bits) {
+    final int length = end - start;
+    if (length > 0 && length <= 3 && bits <= 0x7f) {
+      int value = 0;
+      int first = chunk.codeUnitAt(start);
+      if (first != _ChunkedJsonParser.CHAR_0 || length == 1) {
+        value = first - _ChunkedJsonParser.CHAR_0;
+        if (value >= 0 && value <= 9) {
+          for (int i = start + 1; i < end; i++) {
+            int digit = chunk.codeUnitAt(i) - _ChunkedJsonParser.CHAR_0;
+            if (digit < 0 || digit > 9) {
+              value = -1;
+              break;
+            }
+            value = value * 10 + digit;
+          }
+          if (value >= 0 && value < _smallIntStrings.length) {
+            return _smallIntStrings[value];
+          }
+        }
+      }
+    }
     return chunk.substring(start, end);
   }
 
@@ -1826,6 +2064,8 @@ class _Utf8Decoder {
     // Special case empty input.
     if (start == end) return "";
 
+    const int nativeDecodeMinSize = 64;
+
     // Scan input to determine size and appropriate decoder.
     int size = scan(bytes, start, end);
     int flags = _scanFlags;
@@ -1836,6 +2076,26 @@ class _Utf8Decoder {
       String result = allocateOneByteString(size);
       copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
       return result;
+    }
+
+    if (!allowMalformed && size >= nativeDecodeMinSize) {
+      if (flags == (flagLatin1 | flagExtension)) {
+        final String? result = decodeUtf8ToOneByteString(
+          bytes,
+          start,
+          end,
+          size,
+        );
+        if (result != null) return result;
+      } else {
+        final String? result = decodeUtf8ToTwoByteString(
+          bytes,
+          start,
+          end,
+          size,
+        );
+        if (result != null) return result;
+      }
     }
 
     String result;
@@ -2015,6 +2275,7 @@ class _Utf8Decoder {
     String result = allocateOneByteString(size);
     int i = start;
     int j = 0;
+    const int asciiCopyMin = 16;
     if (_state == X1) {
       // Half-way though 2-byte sequence
       assert(_charOrIndex == 2 || _charOrIndex == 3);
@@ -2030,26 +2291,48 @@ class _Utf8Decoder {
     assert(_state == accept);
     while (i < end) {
       int byte = bytes[i++];
-      if (byte >= 0x80) {
-        if (byte < 0xC0) {
-          _state = errorUnexpectedExtension;
-          _charOrIndex = i - 1;
-          return "";
+      if (byte < 0x80) {
+        int runStart = i - 1;
+        int runEnd = i;
+        while (runEnd < end && bytes[runEnd] < 0x80) {
+          runEnd++;
         }
-        assert(byte == 0xC2 || byte == 0xC3);
-        if (i == end) {
-          _state = X1;
-          _charOrIndex = byte & 0x1F;
-          break;
+        final int runLength = runEnd - runStart;
+        if (runLength >= asciiCopyMin) {
+          copyRangeFromUint8ListToOneByteString(
+            bytes,
+            result,
+            runStart,
+            j,
+            runLength,
+          );
+          j += runLength;
+        } else {
+          for (int k = runStart; k < runEnd; k++) {
+            writeIntoOneByteString(result, j++, bytes[k]);
+          }
         }
-        final int e = bytes[i++] ^ 0x80;
-        if (e >= 0x40) {
-          _state = errorMissingExtension;
-          _charOrIndex = i - 1;
-          return "";
-        }
-        byte = (byte << 6) | e;
+        i = runEnd;
+        continue;
       }
+      if (byte < 0xC0) {
+        _state = errorUnexpectedExtension;
+        _charOrIndex = i - 1;
+        return "";
+      }
+      assert(byte == 0xC2 || byte == 0xC3);
+      if (i == end) {
+        _state = X1;
+        _charOrIndex = byte & 0x1F;
+        break;
+      }
+      final int e = bytes[i++] ^ 0x80;
+      if (e >= 0x40) {
+        _state = errorMissingExtension;
+        _charOrIndex = i - 1;
+        return "";
+      }
+      byte = (byte << 6) | e;
       writeIntoOneByteString(result, j++, byte);
     }
     // Output size must match, unless we are doing single conversion and are

@@ -25438,6 +25438,27 @@ OneByteStringPtr OneByteString::SubStringUnchecked(const String& str,
   return result;
 }
 
+TwoByteStringPtr TwoByteString::SubStringUnchecked(const String& str,
+                                                   intptr_t begin_index,
+                                                   intptr_t length,
+                                                   Heap::Space space) {
+  ASSERT(!str.IsNull() && str.IsTwoByteString());
+  ASSERT(begin_index >= 0);
+  ASSERT(length >= 0);
+  if (begin_index <= str.Length() && length == 0) {
+    return TwoByteString::New(0, space);
+  }
+  ASSERT(begin_index < str.Length());
+  TwoByteStringPtr result = TwoByteString::New(length, space);
+  NoSafepointScope no_safepoint;
+  if (length > 0) {
+    uint16_t* dest = &result->untag()->data()[0];
+    const uint16_t* src = &untag(str)->data()[begin_index];
+    memmove(dest, src, length * sizeof(uint16_t));
+  }
+  return result;
+}
+
 TwoByteStringPtr TwoByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
