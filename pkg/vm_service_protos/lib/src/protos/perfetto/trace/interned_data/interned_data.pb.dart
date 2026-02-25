@@ -45,6 +45,7 @@ class InternedData extends $pb.GeneratedMessage {
     $core.Iterable<$2.InternedString>? functionNames,
     $core.Iterable<$2.Frame>? frames,
     $core.Iterable<$2.Callstack>? callstacks,
+    $core.Iterable<$2.InternedString>? buildIds,
     $core.Iterable<$2.InternedString>? mappingPaths,
     $core.Iterable<$2.Mapping>? mappings,
     $core.Iterable<$2.InternedString>? debugAnnotationStringValues,
@@ -57,6 +58,7 @@ class InternedData extends $pb.GeneratedMessage {
     if (functionNames != null) result.functionNames.addAll(functionNames);
     if (frames != null) result.frames.addAll(frames);
     if (callstacks != null) result.callstacks.addAll(callstacks);
+    if (buildIds != null) result.buildIds.addAll(buildIds);
     if (mappingPaths != null) result.mappingPaths.addAll(mappingPaths);
     if (mappings != null) result.mappings.addAll(mappings);
     if (debugAnnotationStringValues != null)
@@ -91,6 +93,8 @@ class InternedData extends $pb.GeneratedMessage {
         subBuilder: $2.Frame.create)
     ..pPM<$2.Callstack>(7, _omitFieldNames ? '' : 'callstacks',
         subBuilder: $2.Callstack.create)
+    ..pPM<$2.InternedString>(16, _omitFieldNames ? '' : 'buildIds',
+        subBuilder: $2.InternedString.create)
     ..pPM<$2.InternedString>(17, _omitFieldNames ? '' : 'mappingPaths',
         subBuilder: $2.InternedString.create)
     ..pPM<$2.Mapping>(19, _omitFieldNames ? '' : 'mappings',
@@ -140,17 +144,21 @@ class InternedData extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $pb.PbList<$2.Callstack> get callstacks => $_getList(5);
 
+  /// Build IDs of exectuable files.
+  @$pb.TagNumber(16)
+  $pb.PbList<$2.InternedString> get buildIds => $_getList(6);
+
   /// Paths to executable files.
   @$pb.TagNumber(17)
-  $pb.PbList<$2.InternedString> get mappingPaths => $_getList(6);
+  $pb.PbList<$2.InternedString> get mappingPaths => $_getList(7);
 
   /// Executable files mapped into processes.
   @$pb.TagNumber(19)
-  $pb.PbList<$2.Mapping> get mappings => $_getList(7);
+  $pb.PbList<$2.Mapping> get mappings => $_getList(8);
 
   /// Interned string values in the DebugAnnotation proto.
   @$pb.TagNumber(29)
-  $pb.PbList<$2.InternedString> get debugAnnotationStringValues => $_getList(8);
+  $pb.PbList<$2.InternedString> get debugAnnotationStringValues => $_getList(9);
 }
 
 const $core.bool _omitFieldNames =

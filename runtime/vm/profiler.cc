@@ -4,11 +4,16 @@
 
 #include "vm/profiler.h"
 
+#include <utility>
+
 #include "platform/address_sanitizer.h"
 #include "platform/atomic.h"
 #include "platform/memory_sanitizer.h"
 #include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
+#if defined(SUPPORT_PERFETTO)
+#include "third_party/perfetto/protos/perfetto/trace/profiling/profile_packet.pbzero.h"
+#endif
 #include "vm/allocation.h"
 #include "vm/code_patcher.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -17,6 +22,9 @@
 #include "vm/debugger.h"
 #include "vm/globals.h"
 #include "vm/heap/safepoint.h"
+#if defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/image_snapshot.h"
+#endif
 #include "vm/instructions.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
@@ -26,6 +34,9 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#if defined(SUPPORT_PERFETTO)
+#include "vm/perfetto_utils.h"
+#endif
 #include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
 #include "vm/signal_handler.h"
@@ -629,9 +640,8 @@ Profiler::Config Profiler::config_ = {.enabled = false,
                                       .max_depth = 0};
 RelaxedAtomic<bool> Profiler::running_ = false;
 SampleBlockBuffer* Profiler::sample_block_buffer_ = nullptr;
-Profiler::ProfileProcessorCallback Profiler::process_profile_callback_ =
-    nullptr;
 
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 bool SampleBlockProcessor::initialized_ = false;
 bool SampleBlockProcessor::shutdown_ = false;
 bool SampleBlockProcessor::drain_ = false;
@@ -639,11 +649,14 @@ bool SampleBlockProcessor::thread_running_ = false;
 ThreadJoinId SampleBlockProcessor::processor_thread_id_ =
     OSThread::kInvalidThreadJoinId;
 Monitor* SampleBlockProcessor::monitor_ = nullptr;
+#endif
 
 void Profiler::Init() {
   monitor_ = new Monitor();
   ThreadInterrupter::Init();
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
   SampleBlockProcessor::Init();
+#endif
   SetConfig({});
 }
 
@@ -653,7 +666,9 @@ void Profiler::Cleanup() {
     StopLocked();
   }
 
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
   SampleBlockProcessor::Cleanup();
+#endif
   ThreadInterrupter::Cleanup();
   delete monitor_;
 }
@@ -669,6 +684,9 @@ Profiler::Config NormalizeConfig(const Profiler::Config& config) {
       .max_depth = Utils::Minimum(
           kMaximumDepth,
           Utils::Maximum(kMinimumDepth, config.max_depth.load())),
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+      .stream_to_timeline = config.stream_to_timeline,
+#endif
   };
 }
 }  // namespace
@@ -688,6 +706,16 @@ void Profiler::SetConfig(const Profiler::Config& config) {
       StopLocked();
     }
   } else if (old_config.enabled) {
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+    if (new_config.stream_to_timeline != old_config.stream_to_timeline) {
+      if (new_config.stream_to_timeline) {
+        SampleBlockProcessor::Startup();
+      } else {
+        SampleBlockProcessor::Shutdown();
+      }
+    }
+#endif
+
     // Check if we need to reconfigure a running profiler.
     //
     // Note: this will not resize the sampling buffer, you
@@ -718,7 +746,11 @@ void Profiler::StartLocked() {
   }
   ThreadInterrupter::SetInterruptPeriod(config_.period_us);
   ThreadInterrupter::Startup();
-  SampleBlockProcessor::Startup();
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+  if (config_.stream_to_timeline) {
+    SampleBlockProcessor::Startup();
+  }
+#endif
   running_ = true;
 }
 
@@ -739,9 +771,9 @@ void Profiler::StopLocked() {
   }
 
   ThreadInterrupter::Shutdown();
-
-  const bool should_drain = process_profile_callback_ != nullptr;
-  SampleBlockProcessor::Shutdown(should_drain);
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+  SampleBlockProcessor::Shutdown();
+#endif
 
   SampleBlockCleanupVisitor visitor;
   Isolate::VisitIsolates(&visitor);
@@ -1789,6 +1821,327 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
   return buffer;
 }
 
+#if defined(SUPPORT_PERFETTO) && defined(DART_PRECOMPILED_RUNTIME)
+class PerfettoPerfSampleWriter : public ValueObject {
+ public:
+  PerfettoPerfSampleWriter(
+      int64_t from_micros,
+      int64_t to_micros,
+      perfetto_utils::InternedDataBuilder& interned_data_builder,
+      void* file,
+      Dart_FileWriteCallback write_bytes)
+      : from_micros_(from_micros),
+        to_micros_(to_micros),
+        file_(file),
+        write_bytes_(write_bytes),
+        interned_data_builder_(interned_data_builder) {
+    CollectMappings();
+  }
+
+  ~PerfettoPerfSampleWriter() {
+    for (auto m : mappings_) {
+      delete m;
+    }
+  }
+
+  struct SnapshotMapping : public MallocAllocated {
+    uint32_t iid;
+
+    uword start;
+    uword end;
+    const char* path;
+    Dart_Port isolate_group_id;
+    bool is_root_unit;
+
+    bool Contains(uword pc) { return start < pc && pc <= end; }
+  };
+
+  void CollectMappings() {
+    IsolateGroup::ForEach([&](IsolateGroup* group) {
+      const auto group_source = group->source();
+      const auto isolate_group_instructions =
+          reinterpret_cast<uword>(group_source->snapshot_instructions);
+      const Image isolate_group_image(isolate_group_instructions);
+      group->heap()->old_space()->ForEachImagePage([&](Page* page) {
+        if (page->is_executable()) {
+          mappings_.Add(new SnapshotMapping{
+              .start = page->object_start(),
+              .end = page->object_end(),
+              .path = group->source()->script_uri,
+              .isolate_group_id = group->id(),
+              .is_root_unit =
+                  (page->object_start() ==
+                   reinterpret_cast<uword>(isolate_group_image.object_start())),
+          });
+        }
+      });
+    });
+
+    mappings_.Sort([](auto a, auto b) -> int {
+      if ((*a)->start < (*b)->start) return -1;
+      if ((*a)->start > (*b)->start) return 1;
+      return 0;
+    });
+
+    // Remove duplicated mappings.
+    intptr_t j = 0;
+    for (intptr_t i = 0; i < mappings_.length(); i++) {
+      if (j > 0 && mappings_[j - 1]->start == mappings_[i]->start) {
+        delete mappings_[i];
+      } else {
+        mappings_[j++] = mappings_[i];
+      }
+    }
+    mappings_.SetLength(j);
+  }
+
+  void WriteSamples(SampleBuffer* buffer) {
+    const intptr_t length = buffer->capacity();
+    for (intptr_t i = 0; i < length; i++) {
+      Sample* sample = buffer->At(i);
+
+      if (sample->ignore_sample()) {
+        // Bad sample.
+        continue;
+      }
+
+      if (!sample->head_sample()) {
+        // An inner sample in a chain of samples.
+        continue;
+      }
+
+      if (sample->timestamp() == 0) {
+        // Empty.
+        continue;
+      }
+
+      if (sample->At(0) == 0) {
+        // No frames.
+        continue;
+      }
+
+      if (sample->is_allocation_sample()) {
+        continue;
+      }
+
+      auto timestamp = sample->timestamp();
+      if (from_micros_ > timestamp || to_micros_ < timestamp) {
+        continue;
+      }
+
+      WriteSample(sample);
+    }
+  }
+
+  std::pair<uint32_t, uint64_t> FindMapping(uword pc) {
+    const auto lower_bound =
+        std::lower_bound(mappings_.begin(), mappings_.end(), pc,
+                         [](auto m, auto pc) { return m->end < pc; });
+
+    if (lower_bound == mappings_.end() || !(*lower_bound)->Contains(pc)) {
+      return std::make_pair(0, pc);
+    }
+
+    const auto m = *lower_bound;
+
+    return std::make_pair(InternMapping(m), pc - m->start);
+  }
+
+  uint32_t InternMapping(SnapshotMapping* m) {
+    if (m->iid == 0) {
+      // When Perfetto is matching ModuleSymbols to a corresponding mapping,
+      // it uses both path and build_id for matching (and both of them are
+      // used as opaque identifiers). We use this to support deferred units:
+      // all mappings corresponding to an isolate group have the same build-id
+      // (which is based on isolate group id) while path is based on the script
+      // uri with address of the mapping appended for non-root units - this
+      // makes the combination of path+build_id unique for each unit including
+      // the root one.
+      //
+      // Additionally we make sure to prepend "/" to the path if it does not
+      // start with "/" to compensation for similar logic in Perfetto:
+      // Mapping.path_string_ids is an array of path components, to construct
+      // mappings path from path components Perfetto joins them with "/"
+      // and prepends "/" if there is no leading slash (see [1]). To normalize
+      // paths between Mapping and ModuleSymbols we simply ensure that path
+      // here always starts with "/".
+      //
+      // [1]: https://github.com/google/perfetto/blob/a3e107ec803c876a870205f89c1e37742184b598/src/trace_processor/importers/proto/profile_packet_utils.cc#L24-L38
+
+      const char* path = m->path;
+      if (!m->is_root_unit) {
+        Utils::SNPrint(&name_buf_[0], ARRAY_SIZE(name_buf_),
+                       "%s%s(%016" Px64 ")", m->path[0] == '/' ? "" : "/",
+                       m->path, static_cast<uint64_t>(m->start));
+        path = name_buf_;
+      } else if (m->path[0] != '/') {
+        Utils::SNPrint(&name_buf_[0], ARRAY_SIZE(name_buf_), "/%s", m->path);
+        path = name_buf_;
+      }
+
+      const auto path_id = interned_data_builder_.mapping_paths().Intern(path);
+      const auto build_id_iid =
+          interned_data_builder_.InternSyntheticBuildIdForIsolateGroup(
+              m->isolate_group_id);
+
+      m->iid = interned_data_builder_.mappings().Intern({
+          .start = m->start,
+          .end = m->end,
+          .path_string = path_id,
+          .build_id = build_id_iid,
+      });
+    }
+    return m->iid;
+  }
+
+  void WriteSample(Sample* sample) {
+    WriteClockSnapshotPacket();
+
+    // Walk the sampled PCs and intern the stack.
+    callstack_.Clear();
+
+    Sample* current = sample;
+    bool unknown_mappings = false;
+    intptr_t pc_adjustment = 0;
+    while (current != nullptr) {
+      for (intptr_t i = 0; i < Sample::kPCArraySizeInWords; i++) {
+        if (current->At(i) == 0) {
+          break;
+        }
+
+        const uword pc = current->At(i) + pc_adjustment;
+        const auto [mapping_iid, rel_pc] = FindMapping(pc);
+
+        const auto frame_iid = interned_data_builder_.frames().Intern({
+            .rel_pc = rel_pc,
+            .mapping_iid = mapping_iid,
+        });
+
+        if (mapping_iid == 0) {
+          unknown_mappings = true;
+
+          // Eagerly symbolize native frames.
+          const auto& frame =
+              interned_data_builder_.frames().GetByIid(frame_iid);
+          if (frame.function_name_iid == 0) {
+            const auto name_iid =
+                interned_data_builder_.function_names().Intern(
+                    LookupNativeName(pc));
+            const_cast<perfetto_utils::InternedDataBuilder::Frame&>(frame)
+                .function_name_iid = name_iid;
+          }
+        }
+
+        callstack_.Add(frame_iid);
+        pc_adjustment = -1;
+      }
+
+      current = current->Next();
+    }
+
+    if (unknown_mappings) {
+      interned_data_builder_.MarkNeedUnknownMapping();
+    }
+
+    // Perfetto UI requires callstack frames to be in caller-first order, while
+    // profiler records samples in callee-first order.
+    callstack_.Reverse();
+
+    const auto callstack_iid = interned_data_builder_.callstacks().Intern(
+        {&callstack_[0], callstack_.length()});
+
+    perfetto_utils::SetTrustedPacketSequenceId(packet_.get());
+    perfetto_utils::SetTimestampAndMonotonicClockId(packet_.get(),
+                                                    sample->timestamp());
+
+    auto& perf_sample = *packet_->set_perf_sample();
+    perf_sample.set_pid(pid_);
+    perf_sample.set_tid(OSThread::ThreadIdToIntPtr(sample->tid()));
+    perf_sample.set_callstack_iid(callstack_iid);
+
+    interned_data_builder_.AttachInternedDataTo(packet_.get());
+
+    perfetto_utils::WritePacketBytes(&packet_, [this](auto bytes, auto size) {
+      write_bytes_(bytes, size, file_);
+    });
+    packet_.Reset();
+  }
+
+ private:
+  void WriteClockSnapshotPacket() {
+    if (clock_snapshot_written_) {
+      return;
+    }
+
+    perfetto_utils::PopulateClockSnapshotPacket(packet_.get());
+    perfetto_utils::WritePacketBytes(&packet_, [this](auto bytes, auto size) {
+      write_bytes_(bytes, size, file_);
+    });
+    packet_.Reset();
+    clock_snapshot_written_ = true;
+  }
+
+  char* LookupNativeName(uword pc) {
+    uword start;
+    if (auto const name = NativeSymbolResolver::LookupSymbolName(pc, &start)) {
+      Utils::SNPrint(&name_buf_[0], ARRAY_SIZE(name_buf_),
+                     "[Native] %s+0x%" Px "", name, pc - start);
+      NativeSymbolResolver::FreeSymbolName(name);
+      return &name_buf_[0];
+    }
+
+    uword dso_base;
+    const char* dso_name;
+    if (NativeSymbolResolver::LookupSharedObject(pc, &dso_base, &dso_name)) {
+      uword dso_offset = pc - dso_base;
+      Utils::SNPrint(&name_buf_[0], ARRAY_SIZE(name_buf_),
+                     "[Native] %s+0x%" Px "", dso_name, dso_offset);
+      NativeSymbolResolver::FreeSymbolName(dso_name);
+      return &name_buf_[0];
+    } else {
+      Utils::SNPrint(&name_buf_[0], ARRAY_SIZE(name_buf_), "[Native] %" Px "",
+                     pc);
+      return &name_buf_[0];
+    }
+  }
+
+  int64_t from_micros_;
+  int64_t to_micros_;
+
+  void* file_;
+  Dart_FileWriteCallback write_bytes_;
+
+  const intptr_t pid_ = OS::ProcessId();
+
+  MallocGrowableArray<SnapshotMapping*> mappings_;
+  char name_buf_[1024];
+
+  perfetto_utils::InternedDataBuilder& interned_data_builder_;
+
+  bool clock_snapshot_written_ = false;
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket> packet_;
+  MallocGrowableArray<uint64_t> callstack_{128};
+};
+
+void SampleBlockBuffer::WritePerfetto(
+    int64_t from_micros,
+    int64_t to_micros,
+    perfetto_utils::InternedDataBuilder& interned_data_builder,
+    void* file,
+    Dart_FileWriteCallback write_bytes) {
+  PerfettoPerfSampleWriter writer(from_micros, to_micros, interned_data_builder,
+                                  file, write_bytes);
+
+  for (intptr_t i = 0; i < capacity_; ++i) {
+    SampleBlock* block = &blocks_[i];
+    if (block->TryAcquireStreaming(/*isolate=*/nullptr)) {
+      writer.WriteSamples(block);
+      block->StreamingToFree();  // We consumed samples.
+    }
+  }
+}
+#endif
+
 ProcessedSample* SampleBuffer::BuildProcessedSample(
     Sample* sample,
     const CodeLookupTable& clt) {
@@ -1811,8 +2164,9 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
 
   // Copy stack trace from sample(s).
   bool truncated = false;
-  Sample* current = sample;
-  while (current != nullptr) {
+
+  for (Sample* current = sample; current != nullptr;
+       current = current->Next()) {
     for (intptr_t i = 0; i < Sample::kPCArraySizeInWords; i++) {
       if (current->At(i) == 0) {
         break;
@@ -1821,7 +2175,6 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
     }
 
     truncated = truncated || current->truncated_trace();
-    current = Next(current);
   }
 
   if (!sample->exit_frame_sample()) {
@@ -1831,24 +2184,6 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
 
   processed_sample->set_truncated(truncated);
   return processed_sample;
-}
-
-Sample* SampleBuffer::Next(Sample* sample) {
-  if (!sample->is_continuation_sample()) return nullptr;
-  Sample* next_sample = sample->continuation_sample();
-  // Sanity check.
-  ASSERT(sample != next_sample);
-  // Detect invalid chaining.
-  if (sample->port() != next_sample->port()) {
-    return nullptr;
-  }
-  if (sample->timestamp() != next_sample->timestamp()) {
-    return nullptr;
-  }
-  if (sample->tid() != next_sample->tid()) {
-    return nullptr;
-  }
-  return next_sample;
 }
 
 ProcessedSample::ProcessedSample()
@@ -1939,6 +2274,7 @@ ProcessedSampleBuffer::ProcessedSampleBuffer()
   ASSERT(code_lookup_table_ != nullptr);
 }
 
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 void SampleBlockProcessor::Init() {
   ASSERT(!initialized_);
   monitor_ = new Monitor();
@@ -1966,16 +2302,14 @@ void SampleBlockProcessor::Startup() {
   ASSERT(processor_thread_id_ != OSThread::kInvalidThreadJoinId);
 }
 
-void SampleBlockProcessor::Shutdown(bool drain /* = false */) {
+void SampleBlockProcessor::Shutdown() {
   {
     SafepointMonitorLocker shutdown_ml(monitor_);
     if (shutdown_) {
       // Already shutdown.
       return;
     }
-    drain_ = drain;
     shutdown_ = true;
-    // Notify.
     shutdown_ml.Notify();
     ASSERT(initialized_);
   }
@@ -1993,31 +2327,17 @@ void SampleBlockProcessor::Shutdown(bool drain /* = false */) {
   ASSERT(!thread_running_);
 }
 
-void Profiler::ProcessCompletedBlocks(Isolate* isolate) {
-  const auto process_profile_callback = process_profile_callback_;
-  if (process_profile_callback == nullptr) {
-    return;
-  }
-
-  auto thread = Thread::Current();
-  if (Isolate::IsSystemIsolate(isolate)) return;
-
-  TIMELINE_DURATION(thread, Isolate, "Profiler::ProcessCompletedBlocks")
-  DisableThreadInterruptsScope dtis(thread);
-  StackZone zone(thread);
-  HandleScope handle_scope(thread);
-
-  NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
-                                  -1, -1);
-  Profile profile;
-  profile.Build(thread, isolate, &filter, Profiler::sample_block_buffer());
-
-  process_profile_callback(profile);
+void Profiler::IsolateShutdown(Isolate* isolate) {
+  FlushSampleBlocks(isolate);
+  NOT_IN_PRECOMPILED(Timeline::DrainCompletedSampleBlocksIntoRecorder(isolate));
 }
 
-void Profiler::IsolateShutdown(Thread* thread) {
-  FlushSampleBlocks(thread->isolate());
-  ProcessCompletedBlocks(thread->isolate());
+void Profiler::IsolateGroupShutdown(IsolateGroup* isolate_group) {
+#if defined(SUPPORT_TIMELINE)
+  if (config_.enabled && config_.stream_to_timeline) {
+    Timeline::NotifyAboutIsolateGroupShutdown(isolate_group);
+  }
+#endif  // defined(SUPPORT_TIMELINE)
 }
 
 void SampleBlockProcessor::ThreadMain(uword parameters) {
@@ -2037,10 +2357,23 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
   const int64_t wakeup_interval = 1000 * 100;
   while (true) {
     wait_ml.WaitMicros(wakeup_interval);
-    if (shutdown_ && !drain_) {
-      break;
-    }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+    // If shutting down flush all sample blocks from all isolates.
+    if (shutdown_) {
+      IsolateGroup::ForEach([&](IsolateGroup* group) {
+        if (group == Dart::vm_isolate_group()) return;
+
+        const bool kBypassSafepoint = false;
+        Thread::EnterIsolateGroupAsHelper(group, Thread::kSampleBlockTask,
+                                          kBypassSafepoint);
+        group->ForEachIsolate(
+            [&](Isolate* isolate) { FlushSampleBlocks(isolate); });
+        Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
+      });
+    }
+    Timeline::DrainCompletedSampleBlocksIntoRecorder();
+#else
     IsolateGroup::ForEach([&](IsolateGroup* group) {
       if (group == Dart::vm_isolate_group()) return;
 
@@ -2048,15 +2381,16 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
       Thread::EnterIsolateGroupAsHelper(group, Thread::kSampleBlockTask,
                                         kBypassSafepoint);
       group->ForEachIsolate([&](Isolate* isolate) {
-        if (drain_) {
+        if (shutdown_) {
           FlushSampleBlocks(isolate);
         }
         if (isolate->TakeHasCompletedBlocks()) {
-          Profiler::ProcessCompletedBlocks(isolate);
+          Timeline::DrainCompletedSampleBlocksIntoRecorder(isolate);
         }
       });
       Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     });
+#endif
 
     if (shutdown_) {
       break;
@@ -2065,6 +2399,7 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
   // Signal to main thread we are exiting.
   thread_running_ = false;
 }
+#endif
 
 #endif  // defined(DART_INCLUDE_PROFILER)
 

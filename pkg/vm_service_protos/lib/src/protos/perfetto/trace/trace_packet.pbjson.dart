@@ -63,6 +63,15 @@ const TracePacket$json = {
       '10': 'trackDescriptor'
     },
     {
+      '1': 'module_symbols',
+      '3': 61,
+      '4': 1,
+      '5': 11,
+      '6': '.perfetto.protos.ModuleSymbols',
+      '9': 0,
+      '10': 'moduleSymbols'
+    },
+    {
       '1': 'perf_sample',
       '3': 66,
       '4': 1,
@@ -113,11 +122,12 @@ final $typed_data.Uint8List tracePacketDescriptor = $convert.base64Decode(
     'KAsyHi5wZXJmZXR0by5wcm90b3MuQ2xvY2tTbmFwc2hvdEgAUg1jbG9ja1NuYXBzaG90Ej4KC3'
     'RyYWNrX2V2ZW50GAsgASgLMhsucGVyZmV0dG8ucHJvdG9zLlRyYWNrRXZlbnRIAFIKdHJhY2tF'
     'dmVudBJNChB0cmFja19kZXNjcmlwdG9yGDwgASgLMiAucGVyZmV0dG8ucHJvdG9zLlRyYWNrRG'
-    'VzY3JpcHRvckgAUg90cmFja0Rlc2NyaXB0b3ISPgoLcGVyZl9zYW1wbGUYQiABKAsyGy5wZXJm'
-    'ZXR0by5wcm90b3MuUGVyZlNhbXBsZUgAUgpwZXJmU2FtcGxlEj0KGnRydXN0ZWRfcGFja2V0X3'
-    'NlcXVlbmNlX2lkGAogASgNSAFSF3RydXN0ZWRQYWNrZXRTZXF1ZW5jZUlkEkIKDWludGVybmVk'
-    'X2RhdGEYDCABKAsyHS5wZXJmZXR0by5wcm90b3MuSW50ZXJuZWREYXRhUgxpbnRlcm5lZERhdG'
-    'ESJQoOc2VxdWVuY2VfZmxhZ3MYDSABKA1SDXNlcXVlbmNlRmxhZ3MiaAoNU2VxdWVuY2VGbGFn'
-    'cxITCg9TRVFfVU5TUEVDSUZJRUQQABIhCh1TRVFfSU5DUkVNRU5UQUxfU1RBVEVfQ0xFQVJFRB'
-    'ABEh8KG1NFUV9ORUVEU19JTkNSRU1FTlRBTF9TVEFURRACQgYKBGRhdGFCJQojb3B0aW9uYWxf'
-    'dHJ1c3RlZF9wYWNrZXRfc2VxdWVuY2VfaWQ=');
+    'VzY3JpcHRvckgAUg90cmFja0Rlc2NyaXB0b3ISRwoObW9kdWxlX3N5bWJvbHMYPSABKAsyHi5w'
+    'ZXJmZXR0by5wcm90b3MuTW9kdWxlU3ltYm9sc0gAUg1tb2R1bGVTeW1ib2xzEj4KC3BlcmZfc2'
+    'FtcGxlGEIgASgLMhsucGVyZmV0dG8ucHJvdG9zLlBlcmZTYW1wbGVIAFIKcGVyZlNhbXBsZRI9'
+    'Chp0cnVzdGVkX3BhY2tldF9zZXF1ZW5jZV9pZBgKIAEoDUgBUhd0cnVzdGVkUGFja2V0U2VxdW'
+    'VuY2VJZBJCCg1pbnRlcm5lZF9kYXRhGAwgASgLMh0ucGVyZmV0dG8ucHJvdG9zLkludGVybmVk'
+    'RGF0YVIMaW50ZXJuZWREYXRhEiUKDnNlcXVlbmNlX2ZsYWdzGA0gASgNUg1zZXF1ZW5jZUZsYW'
+    'dzImgKDVNlcXVlbmNlRmxhZ3MSEwoPU0VRX1VOU1BFQ0lGSUVEEAASIQodU0VRX0lOQ1JFTUVO'
+    'VEFMX1NUQVRFX0NMRUFSRUQQARIfChtTRVFfTkVFRFNfSU5DUkVNRU5UQUxfU1RBVEUQAkIGCg'
+    'RkYXRhQiUKI29wdGlvbmFsX3RydXN0ZWRfcGFja2V0X3NlcXVlbmNlX2lk');

@@ -12,31 +12,59 @@ import 'package:perf_witness/server.dart';
 import 'package:perf_witness/src/async_span.dart';
 import 'package:perf_witness/src/common.dart';
 
+import 'simple_hot_loop.dart' deferred as simple_hot_loop;
+
 final parser = ArgParser()
   ..addOption('tag', abbr: 't', help: 'Tag for the process')
   ..addFlag(
     'start-in-background',
     help: 'Start PerfWitnessServer server in background',
   )
-  ..addFlag('start-isolate', abbr: 'i', help: 'Start test isolate');
+  ..addFlag('start-isolate', abbr: 'i', help: 'Start test isolate')
+  ..addFlag('no-shutdown', help: 'Do not shutdown PerfWitnessServer')
+  ..addOption('spawn-uri', help: 'Spawn another isolate using spawnUri')
+  ..addFlag('use-deferred', help: 'Use deferred library');
 
 bool shouldStop = false;
 
-Future<void> busyLoop({required String name}) async {
+Future<int> busyLoop({required String name, bool useDeferred = false}) async {
+  if (useDeferred) {
+    await simple_hot_loop.loadLibrary();
+  }
+
   print('[$name] BUSY LOOP READY');
+  var sum = 0;
   while (!shouldStop) {
     await AsyncSpan.run('sleep', () async {
       print(
         '[$name] AsyncSpan.create is nop: ${identical(Zone.current, Zone.root)}',
       );
-      await Future.delayed(const Duration(milliseconds: 500));
+      final sw = Stopwatch()..start();
+      while (sw.elapsedMilliseconds < 250) {
+        final l = <int>[];
+        for (var i = 0; i < 10000; i++) {
+          l.add(i * i);
+        }
+        sum += l[50];
+      }
+      if (useDeferred) {
+        simple_hot_loop.hotLoop(duration: Duration(milliseconds: 100));
+      }
+
+      if (sw.elapsedMilliseconds < 500) {
+        await Future.delayed(
+          Duration(milliseconds: 500 - sw.elapsedMilliseconds),
+        );
+      }
     });
   }
   print('done');
+  return sum;
 }
 
 void main(List<String> args) async {
   print('PID: $pid');
+  final parsedArgs = parser.parse(args);
 
   // On Windows there is no easy way to send Ctrl-C (SIGINT) to the process
   // so we use a keypress instead.
@@ -48,7 +76,12 @@ void main(List<String> args) async {
     shouldStop = true;
   });
 
-  final parsedArgs = parser.parse(args);
+  final spawnUri = parsedArgs['spawn-uri'] as String?;
+  Isolate? childIsolate;
+  if (spawnUri != null) {
+    childIsolate = await Isolate.spawnUri(Uri.parse(spawnUri), [], null);
+  }
+
   final tag = parsedArgs['tag'] as String?;
   await PerfWitnessServer.start(
     tag: tag,
@@ -65,7 +98,13 @@ void main(List<String> args) async {
       exit(1);
     });
   }
-  await busyLoop(name: 'main');
+  await busyLoop(name: 'main', useDeferred: parsedArgs.flag('use-deferred'));
+  if (parsedArgs.flag('no-shutdown')) {
+    throw 'Abrupt exit without shutdown';
+  }
+  if (childIsolate != null) {
+    childIsolate.kill(priority: Isolate.immediate);
+  }
   await PerfWitnessServer.shutdown();
   exit(0);
 }

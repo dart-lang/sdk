@@ -63,6 +63,11 @@ class InternedData_Decoder
   debug_annotation_names() const {
     return GetRepeated<::protozero::ConstBytes>(3);
   }
+  bool has_build_ids() const { return at<16>().valid(); }
+  ::protozero::RepeatedFieldIterator<::protozero::ConstBytes> build_ids()
+      const {
+    return GetRepeated<::protozero::ConstBytes>(16);
+  }
   bool has_mapping_paths() const { return at<17>().valid(); }
   ::protozero::RepeatedFieldIterator<::protozero::ConstBytes> mapping_paths()
       const {
@@ -100,6 +105,7 @@ class InternedData : public ::protozero::Message {
     kEventCategoriesFieldNumber = 1,
     kEventNamesFieldNumber = 2,
     kDebugAnnotationNamesFieldNumber = 3,
+    kBuildIdsFieldNumber = 16,
     kMappingPathsFieldNumber = 17,
     kFunctionNamesFieldNumber = 5,
     kMappingsFieldNumber = 19,
@@ -149,6 +155,19 @@ class InternedData : public ::protozero::Message {
   template <typename T = DebugAnnotationName>
   T* add_debug_annotation_names() {
     return BeginNestedMessage<T>(3);
+  }
+
+  using FieldMetadata_BuildIds = ::protozero::proto_utils::FieldMetadata<
+      16,
+      ::protozero::proto_utils::RepetitionType::kRepeatedNotPacked,
+      ::protozero::proto_utils::ProtoSchemaType::kMessage,
+      InternedString,
+      InternedData>;
+
+  static constexpr FieldMetadata_BuildIds kBuildIds{};
+  template <typename T = InternedString>
+  T* add_build_ids() {
+    return BeginNestedMessage<T>(16);
   }
 
   using FieldMetadata_MappingPaths = ::protozero::proto_utils::FieldMetadata<

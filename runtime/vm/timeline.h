@@ -56,6 +56,7 @@ class JSONWriter;
 class Object;
 class ObjectPointerVisitor;
 class Isolate;
+class IsolateGroup;
 class Thread;
 class TimelineEvent;
 class TimelineEventBlock;
@@ -63,6 +64,19 @@ class TimelineEventRecorder;
 class TimelineStream;
 class VirtualMemory;
 class Zone;
+
+#if defined(DART_INCLUDE_PROFILER)
+// In AOT mode we don't preprocess collected samples into a Profile before
+// writing them out. See also Timeline::DrainCompletedSampleBlocksIntoRecorder
+// below.
+#if defined(DART_PRECOMPILED_RUNTIME)
+class SampleBlockBuffer;
+using TimelineProfileType = SampleBlockBuffer;
+#else
+class Profile;
+using TimelineProfileType = Profile;
+#endif
+#endif
 
 #if defined(SUPPORT_TIMELINE)
 #define CALLBACK_RECORDER_NAME "Callback"
@@ -238,7 +252,18 @@ class Timeline : public AllStatic {
                        const char* streams,
                        const char** error);
 
-  static void StopStreaming();
+  // Stop streaming started by |StreamTo|.
+  //
+  // If |reinitialize| is true, restores original recorder configured via
+  // flags otherwise leaves timeline recording stopped.
+  static void StopStreaming(bool reinitialize = true);
+
+  // Notify current recorder about isolate group shutdown.
+  //
+  // Most recorders don't care about this but when streaming Perfetto timeline
+  // in AOT mode with profiler enabled we might need to emit symbols for
+  // collected frames into the timeline stream.
+  static void NotifyAboutIsolateGroupShutdown(IsolateGroup* isolate_group);
 
   // Access the global recorder. Not thread safe.
   static TimelineEventRecorder* recorder() { return recorder_; }
@@ -279,6 +304,24 @@ class Timeline : public AllStatic {
   }
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAGS)
 #undef TIMELINE_STREAM_FLAGS
+
+#if defined(DART_INCLUDE_PROFILER)
+  // Drains completed sample blocks from Profiler's |SampleBlockBuffer| into
+  // the timeline recorder. This should only be called when using Perfetto
+  // recorder (because it is the only one that supports profiling data as
+  // part of the timeline).
+  //
+  // In JIT mode we drain blocks for each isolate independently by processing
+  // them into |Profile| object. This is an extremely expensive operation
+  // because it requires stopping the whole isolate group to construct
+  // code map used for symbolization.
+  //
+  // In AOT mode we drain the whole |SampleBlockBuffer| at once and we do not
+  // symbolize Dart frames as we do it. Instead we expect to emit additional
+  // symbolization data when recording is complete.
+  static void DrainCompletedSampleBlocksIntoRecorder(
+      NOT_IN_PRECOMPILED(Isolate* isolate));
+#endif
 
  private:
   // Initialize timeline system. Not thread safe.
@@ -929,6 +972,14 @@ class TimelineEventRecorder : public MallocAllocated {
                                              const intptr_t trace_id,
                                              const char* thread_name);
   virtual void AddAsyncTrackMetadataBasedOnEvent(const TimelineEvent& event);
+
+  virtual void NotifyAboutIsolateGroupShutdown(IsolateGroup* isolate_group) {
+    // Most recorders don't care about it.
+  }
+
+#if defined(DART_INCLUDE_PROFILER)
+  virtual void WriteProfile(TimelineProfileType& profile) {}
+#endif
 
  protected:
   static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;

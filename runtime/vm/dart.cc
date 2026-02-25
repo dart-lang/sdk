@@ -687,6 +687,14 @@ char* Dart::Cleanup() {
   Profiler::SetConfig({.enabled = false});
 #endif  // defined(DART_INCLUDE_PROFILER)
 
+#if defined(SUPPORT_TIMELINE)
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Stopping timeline streaming\n",
+                 UptimeMillis());
+  }
+  Timeline::StopStreaming(/*reinitialize=*/false);
+#endif
+
   NativeSymbolResolver::Cleanup();
 
   // Disable the creation of new isolates.

@@ -248,6 +248,11 @@ DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_streamTimelineTo, 0, 5) {
     Profiler::SetConfig({
         .enabled = true,
         .period_us = static_cast<intptr_t>(sampling_interval.Value()),
+#if defined(SUPPORT_PERFETTO)
+        // We only implement profile streaming for perfetto format, we
+        // assume that the caller ensured that recorder is "perfettofile".
+        .stream_to_timeline = true,
+#endif
     });
   }
 #endif

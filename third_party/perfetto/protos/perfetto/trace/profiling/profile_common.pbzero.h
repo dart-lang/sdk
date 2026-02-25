@@ -23,6 +23,15 @@
 namespace perfetto {
 namespace protos {
 namespace pbzero {
+class AddressSymbols;
+class Line;
+}  // Namespace pbzero.
+}  // Namespace protos.
+}  // Namespace perfetto.
+
+namespace perfetto {
+namespace protos {
+namespace pbzero {
 
 class Callstack_Decoder
     : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
@@ -206,6 +215,8 @@ class Mapping_Decoder
       : TypedProtoDecoder(raw.data, raw.size) {}
   bool has_iid() const { return at<1>().valid(); }
   uint64_t iid() const { return at<1>().as_uint64(); }
+  bool has_build_id() const { return at<2>().valid(); }
+  uint64_t build_id() const { return at<2>().as_uint64(); }
   bool has_start_offset() const { return at<3>().valid(); }
   uint64_t start_offset() const { return at<3>().as_uint64(); }
   bool has_start() const { return at<4>().valid(); }
@@ -223,6 +234,7 @@ class Mapping : public ::protozero::Message {
   using Decoder = Mapping_Decoder;
   enum : int32_t {
     kIidFieldNumber = 1,
+    kBuildIdFieldNumber = 2,
     kStartOffsetFieldNumber = 3,
     kStartFieldNumber = 4,
     kEndFieldNumber = 5,
@@ -240,6 +252,24 @@ class Mapping : public ::protozero::Message {
   static constexpr FieldMetadata_Iid kIid{};
   void set_iid(uint64_t value) {
     static constexpr uint32_t field_id = FieldMetadata_Iid::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kUint64>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+
+  using FieldMetadata_BuildId = ::protozero::proto_utils::FieldMetadata<
+      2,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kUint64,
+      uint64_t,
+      Mapping>;
+
+  static constexpr FieldMetadata_BuildId kBuildId{};
+  void set_build_id(uint64_t value) {
+    static constexpr uint32_t field_id = FieldMetadata_BuildId::kFieldId;
     // Call the appropriate protozero::Message::Append(field_id, ...)
     // method based on the type of the field.
     ::protozero::internal::FieldWriter<
@@ -316,6 +346,258 @@ class Mapping : public ::protozero::Message {
     // method based on the type of the field.
     ::protozero::internal::FieldWriter<
         ::protozero::proto_utils::ProtoSchemaType::kUint64>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+};
+
+class ModuleSymbols_Decoder
+    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/3> {
+ public:
+  ModuleSymbols_Decoder(const uint8_t* data, size_t len)
+      : TypedProtoDecoder(data, len) {}
+  explicit ModuleSymbols_Decoder(const std::string& raw)
+      : TypedProtoDecoder(reinterpret_cast<const uint8_t*>(raw.data()),
+                          raw.size()) {}
+  explicit ModuleSymbols_Decoder(const ::protozero::ConstBytes& raw)
+      : TypedProtoDecoder(raw.data, raw.size) {}
+  bool has_path() const { return at<1>().valid(); }
+  ::protozero::ConstChars path() const { return at<1>().as_string(); }
+  bool has_build_id() const { return at<2>().valid(); }
+  ::protozero::ConstChars build_id() const { return at<2>().as_string(); }
+  bool has_address_symbols() const { return at<3>().valid(); }
+  ::protozero::RepeatedFieldIterator<::protozero::ConstBytes> address_symbols()
+      const {
+    return GetRepeated<::protozero::ConstBytes>(3);
+  }
+};
+
+class ModuleSymbols : public ::protozero::Message {
+ public:
+  using Decoder = ModuleSymbols_Decoder;
+  enum : int32_t {
+    kPathFieldNumber = 1,
+    kBuildIdFieldNumber = 2,
+    kAddressSymbolsFieldNumber = 3,
+  };
+  static constexpr const char* GetName() {
+    return ".perfetto.protos.ModuleSymbols";
+  }
+
+  using FieldMetadata_Path = ::protozero::proto_utils::FieldMetadata<
+      1,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kString,
+      std::string,
+      ModuleSymbols>;
+
+  static constexpr FieldMetadata_Path kPath{};
+  void set_path(const char* data, size_t size) {
+    AppendBytes(FieldMetadata_Path::kFieldId, data, size);
+  }
+  void set_path(::protozero::ConstChars chars) {
+    AppendBytes(FieldMetadata_Path::kFieldId, chars.data, chars.size);
+  }
+  void set_path(std::string value) {
+    static constexpr uint32_t field_id = FieldMetadata_Path::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kString>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+
+  using FieldMetadata_BuildId = ::protozero::proto_utils::FieldMetadata<
+      2,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kString,
+      std::string,
+      ModuleSymbols>;
+
+  static constexpr FieldMetadata_BuildId kBuildId{};
+  void set_build_id(const char* data, size_t size) {
+    AppendBytes(FieldMetadata_BuildId::kFieldId, data, size);
+  }
+  void set_build_id(::protozero::ConstChars chars) {
+    AppendBytes(FieldMetadata_BuildId::kFieldId, chars.data, chars.size);
+  }
+  void set_build_id(std::string value) {
+    static constexpr uint32_t field_id = FieldMetadata_BuildId::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kString>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+
+  using FieldMetadata_AddressSymbols = ::protozero::proto_utils::FieldMetadata<
+      3,
+      ::protozero::proto_utils::RepetitionType::kRepeatedNotPacked,
+      ::protozero::proto_utils::ProtoSchemaType::kMessage,
+      AddressSymbols,
+      ModuleSymbols>;
+
+  static constexpr FieldMetadata_AddressSymbols kAddressSymbols{};
+  template <typename T = AddressSymbols>
+  T* add_address_symbols() {
+    return BeginNestedMessage<T>(3);
+  }
+};
+
+class AddressSymbols_Decoder
+    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
+ public:
+  AddressSymbols_Decoder(const uint8_t* data, size_t len)
+      : TypedProtoDecoder(data, len) {}
+  explicit AddressSymbols_Decoder(const std::string& raw)
+      : TypedProtoDecoder(reinterpret_cast<const uint8_t*>(raw.data()),
+                          raw.size()) {}
+  explicit AddressSymbols_Decoder(const ::protozero::ConstBytes& raw)
+      : TypedProtoDecoder(raw.data, raw.size) {}
+  bool has_address() const { return at<1>().valid(); }
+  uint64_t address() const { return at<1>().as_uint64(); }
+  bool has_lines() const { return at<2>().valid(); }
+  ::protozero::RepeatedFieldIterator<::protozero::ConstBytes> lines() const {
+    return GetRepeated<::protozero::ConstBytes>(2);
+  }
+};
+
+class AddressSymbols : public ::protozero::Message {
+ public:
+  using Decoder = AddressSymbols_Decoder;
+  enum : int32_t {
+    kAddressFieldNumber = 1,
+    kLinesFieldNumber = 2,
+  };
+  static constexpr const char* GetName() {
+    return ".perfetto.protos.AddressSymbols";
+  }
+
+  using FieldMetadata_Address = ::protozero::proto_utils::FieldMetadata<
+      1,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kUint64,
+      uint64_t,
+      AddressSymbols>;
+
+  static constexpr FieldMetadata_Address kAddress{};
+  void set_address(uint64_t value) {
+    static constexpr uint32_t field_id = FieldMetadata_Address::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kUint64>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+
+  using FieldMetadata_Lines = ::protozero::proto_utils::FieldMetadata<
+      2,
+      ::protozero::proto_utils::RepetitionType::kRepeatedNotPacked,
+      ::protozero::proto_utils::ProtoSchemaType::kMessage,
+      Line,
+      AddressSymbols>;
+
+  static constexpr FieldMetadata_Lines kLines{};
+  template <typename T = Line>
+  T* add_lines() {
+    return BeginNestedMessage<T>(2);
+  }
+};
+
+class Line_Decoder : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/3> {
+ public:
+  Line_Decoder(const uint8_t* data, size_t len)
+      : TypedProtoDecoder(data, len) {}
+  explicit Line_Decoder(const std::string& raw)
+      : TypedProtoDecoder(reinterpret_cast<const uint8_t*>(raw.data()),
+                          raw.size()) {}
+  explicit Line_Decoder(const ::protozero::ConstBytes& raw)
+      : TypedProtoDecoder(raw.data, raw.size) {}
+  bool has_function_name() const { return at<1>().valid(); }
+  ::protozero::ConstChars function_name() const { return at<1>().as_string(); }
+  bool has_source_file_name() const { return at<2>().valid(); }
+  ::protozero::ConstChars source_file_name() const {
+    return at<2>().as_string();
+  }
+  bool has_line_number() const { return at<3>().valid(); }
+  uint32_t line_number() const { return at<3>().as_uint32(); }
+};
+
+class Line : public ::protozero::Message {
+ public:
+  using Decoder = Line_Decoder;
+  enum : int32_t {
+    kFunctionNameFieldNumber = 1,
+    kSourceFileNameFieldNumber = 2,
+    kLineNumberFieldNumber = 3,
+  };
+  static constexpr const char* GetName() { return ".perfetto.protos.Line"; }
+
+  using FieldMetadata_FunctionName = ::protozero::proto_utils::FieldMetadata<
+      1,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kString,
+      std::string,
+      Line>;
+
+  static constexpr FieldMetadata_FunctionName kFunctionName{};
+  void set_function_name(const char* data, size_t size) {
+    AppendBytes(FieldMetadata_FunctionName::kFieldId, data, size);
+  }
+  void set_function_name(::protozero::ConstChars chars) {
+    AppendBytes(FieldMetadata_FunctionName::kFieldId, chars.data, chars.size);
+  }
+  void set_function_name(std::string value) {
+    static constexpr uint32_t field_id = FieldMetadata_FunctionName::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kString>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+
+  using FieldMetadata_SourceFileName = ::protozero::proto_utils::FieldMetadata<
+      2,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kString,
+      std::string,
+      Line>;
+
+  static constexpr FieldMetadata_SourceFileName kSourceFileName{};
+  void set_source_file_name(const char* data, size_t size) {
+    AppendBytes(FieldMetadata_SourceFileName::kFieldId, data, size);
+  }
+  void set_source_file_name(::protozero::ConstChars chars) {
+    AppendBytes(FieldMetadata_SourceFileName::kFieldId, chars.data, chars.size);
+  }
+  void set_source_file_name(std::string value) {
+    static constexpr uint32_t field_id = FieldMetadata_SourceFileName::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kString>::Append(*this,
+                                                                    field_id,
+                                                                    value);
+  }
+
+  using FieldMetadata_LineNumber = ::protozero::proto_utils::FieldMetadata<
+      3,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kUint32,
+      uint32_t,
+      Line>;
+
+  static constexpr FieldMetadata_LineNumber kLineNumber{};
+  void set_line_number(uint32_t value) {
+    static constexpr uint32_t field_id = FieldMetadata_LineNumber::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+        ::protozero::proto_utils::ProtoSchemaType::kUint32>::Append(*this,
                                                                     field_id,
                                                                     value);
   }

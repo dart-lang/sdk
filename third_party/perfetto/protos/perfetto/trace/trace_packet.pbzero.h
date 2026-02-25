@@ -25,6 +25,7 @@ namespace protos {
 namespace pbzero {
 class ClockSnapshot;
 class InternedData;
+class ModuleSymbols;
 class PerfSample;
 class TrackDescriptor;
 class TrackEvent;
@@ -91,6 +92,8 @@ class TracePacket_Decoder
   ::protozero::ConstBytes track_descriptor() const {
     return at<60>().as_bytes();
   }
+  bool has_module_symbols() const { return at<61>().valid(); }
+  ::protozero::ConstBytes module_symbols() const { return at<61>().as_bytes(); }
   bool has_perf_sample() const { return at<66>().valid(); }
   ::protozero::ConstBytes perf_sample() const { return at<66>().as_bytes(); }
   bool has_trusted_packet_sequence_id() const { return at<10>().valid(); }
@@ -110,6 +113,7 @@ class TracePacket : public ::protozero::Message {
     kClockSnapshotFieldNumber = 6,
     kTrackEventFieldNumber = 11,
     kTrackDescriptorFieldNumber = 60,
+    kModuleSymbolsFieldNumber = 61,
     kPerfSampleFieldNumber = 66,
     kTrustedPacketSequenceIdFieldNumber = 10,
     kInternedDataFieldNumber = 12,
@@ -205,6 +209,19 @@ class TracePacket : public ::protozero::Message {
   template <typename T = TrackDescriptor>
   T* set_track_descriptor() {
     return BeginNestedMessage<T>(60);
+  }
+
+  using FieldMetadata_ModuleSymbols = ::protozero::proto_utils::FieldMetadata<
+      61,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kMessage,
+      ModuleSymbols,
+      TracePacket>;
+
+  static constexpr FieldMetadata_ModuleSymbols kModuleSymbols{};
+  template <typename T = ModuleSymbols>
+  T* set_module_symbols() {
+    return BeginNestedMessage<T>(61);
   }
 
   using FieldMetadata_PerfSample = ::protozero::proto_utils::FieldMetadata<
