@@ -12,8 +12,118 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToInitializingFormalBulkTest);
     defineReflectiveTests(ConvertToInitializingFormalTest);
   });
+}
+
+@reflectiveTest
+class ConvertToInitializingFormalBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_initializing_formals;
+
+  Future<void> test_inBody_contiguous() async {
+    await resolveTestCode(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  int? d;
+  C(int? a, int? b, int? c, int? d) {
+    this.a = a;
+    this.b = b;
+    this.c = c;
+    this.d = d;
+  }
+}
+''');
+    // Doesn't fix b because both a and b try to remove the whitespace between
+    // the first two statements.
+    await assertHasFix(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  int? d;
+  C(this.a, int? b, this.c, this.d) {
+    this.b = b;
+  }
+}
+''');
+  }
+
+  Future<void> test_inBody_noncontiguous() async {
+    await resolveTestCode(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  C(int? a, int? b, int? c) {
+    this.a = a;
+    print(1);
+    this.b = b;
+    print(2);
+    this.c = c;
+  }
+}
+''');
+    await assertHasFix(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  C(this.a, this.b, this.c) {
+    print(1);
+    print(2);
+  }
+}
+''');
+  }
+
+  Future<void> test_inInitializer_contiguous() async {
+    await resolveTestCode(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  int? d;
+  C(int? a, int? b, int? c, int? d) : a = a, b = b, c = c, d = d;
+}
+''');
+    // Doesn't fix b because both a and b try to remove the same comma.
+    await assertHasFix(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  int? d;
+  C(this.a, int? b, this.c, this.d) : b = b;
+}
+''');
+  }
+
+  Future<void> test_inInitializer_noncontiguous() async {
+    await resolveTestCode(r'''
+class C {
+  int? a;
+  int x;
+  int? b;
+  int y;
+  int? c;
+  C(int? a, int? b, int? c) : a = a, x = 1, b = b, y = 2, c = c;
+}
+''');
+    await assertHasFix(r'''
+class C {
+  int? a;
+  int x;
+  int? b;
+  int y;
+  int? c;
+  C(this.a, this.b, this.c) : x = 1, y = 2;
+}
+''');
+  }
 }
 
 @reflectiveTest

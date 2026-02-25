@@ -19,15 +19,20 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // The fix isn't able to remove the initializer list / block function body
-      // in the case where multiple initializers / statements are being removed.
-      CorrectionApplicability.singleLocation;
+      // The code to remove an initializer or assignment statement assumes that
+      // no other initializers or statements are being removed concurrently, so
+      // only works one at a time. But it is safe to run this fix multiple times
+      // sequentially.
+      CorrectionApplicability.automatically;
 
   @override
   AssistKind get assistKind => DartAssistKind.convertToInitializingFormal;
 
   @override
   FixKind get fixKind => DartFixKind.convertToInitializingFormal;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.convertToInitializingFormalMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

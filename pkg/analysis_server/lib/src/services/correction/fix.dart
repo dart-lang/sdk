@@ -551,6 +551,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Convert to an initializing formal parameter',
   );
+  static const convertToInitializingFormalMulti = FixKind(
+    'dart.fix.convert.toInitializingFormal.multi',
+    DartFixKindPriority.standard,
+    'Convert to initializing formal parameters everywhere in file',
+  );
   static const convertToIntLiteral = FixKind(
     'dart.fix.convert.toIntLiteral',
     DartFixKindPriority.standard,
