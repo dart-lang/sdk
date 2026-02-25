@@ -109,6 +109,16 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_atDeclaration_constructor_named_factoryKeyword() async {
+    var contents = '''
+class A {
+  ^factory [!named!]() => throw 0;
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_atDeclaration_constructor_named_name() async {
     var contents = '''
 class A {
@@ -143,6 +153,16 @@ class [!A!] {
     var contents = '''
 class A {
   [!^A!]() {}
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_defaultConstructor_factoryKeyword() async {
+    var contents = '''
+class A {
+  [!^factory!]() => throw 0;
 }
 ''';
 
@@ -422,6 +442,20 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_constructor_factory() async {
+    var contents = '''
+f() {
+  final a = A.ne^w();
+}
+
+class A {
+  [!factory!]() => throw 0;
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_constructor_named() async {
     var contents = '''
 f() {
@@ -430,6 +464,20 @@ f() {
 
 class A {
   A.[!named!]();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructor_named_factory() async {
+    var contents = '''
+f() {
+  final a = A.nam^ed();
+}
+
+class A {
+  factory [!named!]() => throw 0;
 }
 ''';
 
