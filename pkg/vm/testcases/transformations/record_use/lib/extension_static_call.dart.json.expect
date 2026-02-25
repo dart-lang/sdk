@@ -1,11 +1,8 @@
 {
   "constants": [
     {
-      "type": "non_constant"
-    },
-    {
       "type": "string",
-      "value": "hello-world"
+      "value": "arg"
     }
   ],
   "definitions": [
@@ -13,17 +10,17 @@
       "path": [
         {
           "kind": "extension",
-          "name": "Ext"
+          "name": "StringUtils"
         },
         {
           "disambiguators": [
-            "instance"
+            "static"
           ],
           "kind": "method",
-          "name": "foo"
+          "name": "printHello"
         }
       ],
-      "uri": "package:record_use_test/named_with_function_arg.dart"
+      "uri": "package:record_use_test/extension_static_call.dart"
     }
   ],
   "loading_units": [
@@ -42,12 +39,6 @@
         "uses": [
           {
             "loading_unit_indices": [
-              0
-            ],
-            "named": {
-              "s": 1
-            },
-            "positional": [
               0
             ],
             "receiver": 0,

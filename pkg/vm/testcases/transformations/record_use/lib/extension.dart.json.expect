@@ -3,6 +3,10 @@
     {
       "type": "string",
       "value": "42"
+    },
+    {
+      "type": "string",
+      "value": "suffix"
     }
   ],
   "definitions": [
@@ -42,8 +46,9 @@
               0
             ],
             "positional": [
-              0
+              1
             ],
+            "receiver": 0,
             "type": "with_arguments"
           }
         ]

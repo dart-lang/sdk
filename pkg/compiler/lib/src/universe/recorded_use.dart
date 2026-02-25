@@ -83,8 +83,29 @@ sealed class RecordedUse {
 sealed class RecordedStaticCall extends RecordedUse {
   final FunctionEntity function;
 
+  /// Whether the call has a receiver in the recorded use format.
+  ///
+  /// This is true for calls to extension instance methods and extension type
+  /// instance methods. It is false for all other static calls, including
+  /// class static methods, static extension methods, and static extension type
+  /// methods.
+  final bool definitionHasReceiver;
+
+  /// The constant value of the receiver, if it is a constant.
+  ///
+  /// If [definitionHasReceiver] is true, but [constantReceiver] is null, then the
+  /// receiver is not a constant.
+  final ConstantValue? constantReceiver;
+
+  record_use.MaybeConstant? receiverInRecordUseFormat() {
+    if (!definitionHasReceiver) return null;
+    return _findValueOrNonConst(constantReceiver);
+  }
+
   RecordedStaticCall({
     required this.function,
+    required this.definitionHasReceiver,
+    required this.constantReceiver,
     required super.sourceInformation,
   });
 
@@ -92,11 +113,18 @@ sealed class RecordedStaticCall extends RecordedUse {
   bool operator ==(Object other) {
     if (other is! RecordedStaticCall) return false;
     return function == other.function &&
+        definitionHasReceiver == other.definitionHasReceiver &&
+        constantReceiver == other.constantReceiver &&
         sourceInformation == other.sourceInformation;
   }
 
   @override
-  int get hashCode => Object.hash(function, sourceInformation);
+  int get hashCode => Object.hash(
+    function,
+    definitionHasReceiver,
+    constantReceiver,
+    sourceInformation,
+  );
 }
 
 /// Dart2js version of [record_use.CallWithArguments], with [ConstantValue]s
@@ -115,6 +143,8 @@ class RecordedCallWithArguments extends RecordedStaticCall {
 
   RecordedCallWithArguments({
     required super.function,
+    required super.definitionHasReceiver,
+    required super.constantReceiver,
     required super.sourceInformation,
     required this.positionalArguments,
     required this.namedArguments,
@@ -128,10 +158,14 @@ class RecordedCallWithArguments extends RecordedStaticCall {
     DataSourceReader source,
   ) {
     final function = source.readMember() as FunctionEntity;
+    final definitionHasReceiver = source.readBool();
+    final constantReceiver = source.readConstantOrNull();
     final positionalArguments = source.readList(source.readConstantOrNull);
     final namedArguments = source.readStringMap(source.readConstantOrNull);
     return RecordedCallWithArguments(
       function: function,
+      definitionHasReceiver: definitionHasReceiver,
+      constantReceiver: constantReceiver,
       sourceInformation: sourceInformation,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
@@ -141,6 +175,8 @@ class RecordedCallWithArguments extends RecordedStaticCall {
   @override
   void _writeFieldsForKind(DataSinkWriter sink) {
     sink.writeMember(function);
+    sink.writeBool(definitionHasReceiver);
+    sink.writeConstantOrNull(constantReceiver);
     sink.writeList(positionalArguments, sink.writeConstantOrNull);
     sink.writeStringMap(namedArguments, sink.writeConstantOrNull);
   }
@@ -164,7 +200,12 @@ class RecordedCallWithArguments extends RecordedStaticCall {
 
 /// Dart2js version of [record_use.CallTearoff].
 class RecordedTearOff extends RecordedStaticCall {
-  RecordedTearOff({required super.function, required super.sourceInformation});
+  RecordedTearOff({
+    required super.function,
+    required super.definitionHasReceiver,
+    required super.constantReceiver,
+    required super.sourceInformation,
+  });
 
   @override
   RecordedUseKind get kind => RecordedUseKind.staticCallTearOff;
@@ -174,8 +215,12 @@ class RecordedTearOff extends RecordedStaticCall {
     DataSourceReader source,
   ) {
     final function = source.readMember() as FunctionEntity;
+    final definitionHasReceiver = source.readBool();
+    final constantReceiver = source.readConstantOrNull();
     return RecordedTearOff(
       function: function,
+      definitionHasReceiver: definitionHasReceiver,
+      constantReceiver: constantReceiver,
       sourceInformation: sourceInformation,
     );
   }
@@ -183,6 +228,8 @@ class RecordedTearOff extends RecordedStaticCall {
   @override
   void _writeFieldsForKind(DataSinkWriter sink) {
     sink.writeMember(function);
+    sink.writeBool(definitionHasReceiver);
+    sink.writeConstantOrNull(constantReceiver);
   }
 }
 

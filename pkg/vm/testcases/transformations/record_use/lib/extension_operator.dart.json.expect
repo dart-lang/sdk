@@ -1,11 +1,12 @@
 {
   "constants": [
     {
-      "type": "non_constant"
+      "type": "string",
+      "value": "abc"
     },
     {
       "type": "string",
-      "value": "hello-world"
+      "value": "b"
     }
   ],
   "definitions": [
@@ -19,11 +20,11 @@
           "disambiguators": [
             "instance"
           ],
-          "kind": "method",
-          "name": "foo"
+          "kind": "operator",
+          "name": "-"
         }
       ],
-      "uri": "package:record_use_test/named_with_function_arg.dart"
+      "uri": "package:record_use_test/extension_operator.dart"
     }
   ],
   "loading_units": [
@@ -44,11 +45,8 @@
             "loading_unit_indices": [
               0
             ],
-            "named": {
-              "s": 1
-            },
             "positional": [
-              0
+              1
             ],
             "receiver": 0,
             "type": "with_arguments"

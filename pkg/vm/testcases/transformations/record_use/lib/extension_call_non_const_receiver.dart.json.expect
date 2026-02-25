@@ -1,11 +1,12 @@
 {
   "constants": [
     {
-      "type": "non_constant"
+      "type": "string",
+      "value": "43"
     },
     {
       "type": "string",
-      "value": "hello-world"
+      "value": "arg"
     }
   ],
   "definitions": [
@@ -23,7 +24,7 @@
           "name": "foo"
         }
       ],
-      "uri": "package:record_use_test/named_with_function_arg.dart"
+      "uri": "package:record_use_test/extension_call_non_const_receiver.dart"
     }
   ],
   "loading_units": [
@@ -44,11 +45,8 @@
             "loading_unit_indices": [
               0
             ],
-            "named": {
-              "s": 1
-            },
             "positional": [
-              0
+              1
             ],
             "receiver": 0,
             "type": "with_arguments"

@@ -4,8 +4,11 @@
 
 import 'dart:collection' show Queue;
 
+import 'package:kernel/ast.dart' as ir;
+
 // ignore: implementation_imports
-import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+import 'package:front_end/src/api_prototype/lowering_predicates.dart'
+    show isExtensionMemberTearOff, getExtensionMemberImplementation;
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
@@ -2387,7 +2390,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           callStructure,
           node.typeArguments,
         );
-        if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
+        if (_shouldRecordMethodUses(element)) {
           recordedMethodUses = _recordMethodUses(
             element,
             node.inputs,
@@ -2406,15 +2409,83 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
   }
 
+  bool _shouldRecordMethodUses(FunctionEntity element) {
+    if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
+      final currentElement = currentGraph.element;
+      if (currentElement is FunctionEntity) {
+        final currentNode = _closedWorld.elementMap
+            .getMemberDefinition(currentElement)
+            .node;
+        if (currentNode is ir.Procedure) {
+          final implementation = getExtensionMemberImplementation(currentNode);
+          if (implementation != null &&
+              _closedWorld.elementMap.containsMethod(implementation)) {
+            final implementationEntity = _closedWorld.elementMap.getMember(
+              implementation,
+            );
+            if (element == implementationEntity) return false;
+          }
+        }
+        // If we are currently compiling a tear-off closure's call method,
+        // we should also skip recording the call to the implementation method.
+        final enclosingMember = _closedWorld.closureDataLookup
+            .getEnclosingMember(currentElement);
+        if (enclosingMember != currentElement &&
+            enclosingMember is FunctionEntity) {
+          final enclosingNode = _closedWorld.elementMap
+              .getMemberDefinition(enclosingMember)
+              .node;
+          if (enclosingNode is ir.Procedure) {
+            final implementation = getExtensionMemberImplementation(
+              enclosingNode,
+            );
+            if (implementation != null &&
+                _closedWorld.elementMap.containsMethod(implementation)) {
+              final implementationEntity = _closedWorld.elementMap.getMember(
+                implementation,
+              );
+              if (element == implementationEntity) return false;
+            }
+          }
+        }
+      }
+      return true;
+    }
+    return _shouldRecordExtensionTearOff(element);
+  }
+
+  /// Returns `true` if [element] is an extension member tear-off that should
+  /// be recorded.
+  ///
+  /// When an extension member is annotated with `@RecordUse`, we want to
+  /// record whenever it is torn off.
+  bool _shouldRecordExtensionTearOff(FunctionEntity element) {
+    final node = _closedWorld.elementMap.getMemberDefinition(element).node;
+    if (node is ir.Procedure && isExtensionMemberTearOff(node)) {
+      final implementation = getExtensionMemberImplementation(node);
+      if (implementation != null &&
+          _closedWorld.elementMap.containsMethod(implementation)) {
+        return _closedWorld.annotationsData.shouldRecordMethodUses(
+          _closedWorld.elementMap.getMember(implementation) as FunctionEntity,
+        );
+      }
+    }
+    return false;
+  }
+
   RecordedUse _recordMethodUses(
     FunctionEntity element,
     List<HInstruction> arguments,
     SourceInformation sourceInformation,
   ) {
-    final isExtensionMethod = hasUnnamedExtensionNamePrefix(element.name!);
+    final node = _closedWorld.elementMap.getMemberDefinition(element).node;
+    final definitionHasReceiver =
+        node is ir.Procedure &&
+        (node.isExtensionMember || node.isExtensionTypeMember);
 
     final originalParameterStructure = element.parameterStructure;
 
+    ConstantValue? constantReceiver;
     final positionalArguments = <ConstantValue?>[];
     final namedArguments = <String, ConstantValue?>{};
     var argumentIndex = 0;
@@ -2424,11 +2495,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       String? name,
       ConstantValue? defaultValue,
     ) {
-      if (argumentIndex == 0 && isExtensionMethod) {
-        // Skip extension method receiver.
-        argumentIndex++;
-        // TODO(https://github.com/dart-lang/native/issues/2948): Support
-        // extension method receiver.
+      if (argumentIndex == 0 && definitionHasReceiver) {
+        constantReceiver = _findConstant(arguments[argumentIndex++]);
       } else if (argumentIndex <
           originalParameterStructure.positionalParameters) {
         positionalArguments.add(_findConstant(arguments[argumentIndex++]));
@@ -2437,20 +2505,38 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       }
     });
 
+    if (_shouldRecordExtensionTearOff(element)) {
+      return RecordedTearOff(
+        function: element,
+        definitionHasReceiver: definitionHasReceiver,
+        constantReceiver: constantReceiver,
+        sourceInformation: sourceInformation,
+      );
+    }
+
     return RecordedCallWithArguments(
       function: element,
+      definitionHasReceiver: definitionHasReceiver,
+      constantReceiver: constantReceiver,
       sourceInformation: sourceInformation,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
     );
   }
 
+  /// Records a tear-off of a static method.
+  ///
+  /// Since this is a tear-off of a static method, it has no receiver.
+  /// Extension member tear-offs are recorded as calls to their tear-off
+  /// implementation in [_recordMethodUses] instead.
   RecordedUse _recordTearOff(
     FunctionEntity element,
     SourceInformation sourceInformation,
   ) {
     return RecordedTearOff(
       function: element,
+      definitionHasReceiver: false,
+      constantReceiver: null,
       sourceInformation: sourceInformation,
     );
   }
@@ -2693,8 +2779,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     Object? recordedMethodUses;
     final sourceInformation = node.sourceInformation;
-    if (sourceInformation != null &&
-        _closedWorld.annotationsData.shouldRecordMethodUses(target)) {
+    if (sourceInformation != null && _shouldRecordMethodUses(target)) {
       recordedMethodUses = _recordMethodUses(target, inputs, sourceInformation);
     }
 
@@ -2939,7 +3024,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     switch (constant) {
       case FunctionConstantValue():
         final element = constant.element;
-        if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
+        if (_shouldRecordMethodUses(element)) {
           yield _recordTearOff(element, sourceInformation!);
         }
       case ConstructedConstantValue():

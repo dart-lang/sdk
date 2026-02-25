@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
 import 'package:vm/metadata/loading_units.dart' as vm_metadata;
@@ -71,6 +72,17 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   final InstanceRecorder instanceUseRecorder;
 
   _RecordUseVisitor(this.staticCallRecorder, this.instanceUseRecorder);
+
+  @override
+  void visitProcedure(ast.Procedure node) {
+    // Extension member tear-offs call the implementation. We skip them here
+    // to avoid recording the implementation call as a usage, as the usage is
+    // already recorded by the call to the extension member tear-off itself.
+    if (isExtensionMemberTearOff(node)) {
+      return;
+    }
+    super.visitProcedure(node);
+  }
 
   @override
   void visitStaticInvocation(ast.StaticInvocation node) {
