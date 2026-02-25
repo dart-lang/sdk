@@ -350,8 +350,6 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isFactory, 'factory ');
@@ -419,8 +417,6 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.isExternal, 'external ');
       _sink.writeIf(f.isConst, 'const ');
       _sink.writeIf(f.isFactory, 'factory ');
@@ -574,8 +570,6 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isCovariant, 'covariant ');
@@ -670,8 +664,6 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 
       _assertHasExactlyOneTrue([
@@ -946,8 +938,6 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
@@ -1006,8 +996,6 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(f.isSynthetic, 'synthetic ');
 
       _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginVariable]);
       _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
@@ -1373,8 +1361,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeMethodElement(MethodElementImpl e) {
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
@@ -1563,8 +1549,6 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
@@ -1628,8 +1612,6 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(f.isSynthetic, 'synthetic ');
 
       _assertHasExactlyOneTrue([
         f.isOriginDeclaration,
@@ -1770,8 +1752,6 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(type, isNotNull);
 
     _sink.writeIndentedLine(() {
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isLate, 'late ');
       _sink.writeIf(e.isFinal, 'final ');
@@ -1837,8 +1817,6 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(f.isSynthetic, 'synthetic ');
       _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 
       _assertHasExactlyOneTrue([f.isOriginDeclaration, f.isOriginGetterSetter]);

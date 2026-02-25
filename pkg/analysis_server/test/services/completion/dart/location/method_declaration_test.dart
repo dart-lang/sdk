@@ -44,6 +44,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  new
+    kind: keyword
   operator
     kind: keyword
   var
@@ -238,6 +240,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  new
+    kind: keyword
   operator
     kind: keyword
   var
@@ -316,6 +320,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  new
+    kind: keyword
   operator
     kind: keyword
   sync*
@@ -384,6 +390,8 @@ suggestions
   get
     kind: keyword
   late
+    kind: keyword
+  new
     kind: keyword
   operator
     kind: keyword

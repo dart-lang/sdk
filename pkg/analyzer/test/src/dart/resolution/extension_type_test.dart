@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -2607,12 +2605,6 @@ extension type A() {}
     );
 
     var node = findNode.extensionTypeDeclaration('A');
-    if (node is ExtensionTypeDeclarationImpl) {
-      // ignore: deprecated_member_use_from_same_package
-      var representation = node.representation;
-      expect(representation.constructorFragment, isNotNull);
-      expect(representation.fieldFragment, isNotNull);
-    }
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension

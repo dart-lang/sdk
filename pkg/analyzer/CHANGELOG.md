@@ -1,3 +1,50 @@
+## 11.0.0-dev
+
+* Remove deprecated `ClassDeclaration.leftBracket`.
+* Remove deprecated `ClassDeclaration.members`.
+* Remove deprecated `ClassDeclaration.name`.
+* Remove deprecated `ClassDeclaration.rightBracket`.
+* Remove deprecated `ClassDeclaration.typeParameters`.
+* Remove deprecated `EnumDeclaration.constants`.
+* Remove deprecated `EnumDeclaration.leftBracket`.
+* Remove deprecated `EnumDeclaration.members`.
+* Remove deprecated `EnumDeclaration.name`.
+* Remove deprecated `EnumDeclaration.rightBracket`.
+* Remove deprecated `EnumDeclaration.semicolon`.
+* Remove deprecated `EnumDeclaration.typeParameters`.
+* Remove deprecated `ExtensionDeclaration.leftBracket`.
+* Remove deprecated `ExtensionDeclaration.members`.
+* Remove deprecated `ExtensionDeclaration.rightBracket`.
+* Remove deprecated `ExtensionTypeDeclaration.constKeyword`.
+* Remove deprecated `ExtensionTypeDeclaration.leftBracket`.
+* Remove deprecated `ExtensionTypeDeclaration.members`.
+* Remove deprecated `ExtensionTypeDeclaration.name`.
+* Remove deprecated `ExtensionTypeDeclaration.representation`.
+* Remove deprecated `ExtensionTypeDeclaration.rightBracket`.
+* Remove deprecated `ExtensionTypeDeclaration.typeParameters`.
+* Remove deprecated `ConstructorDeclaration.returnType`.
+* Remove deprecated `MixinDeclaration.leftBracket`.
+* Remove deprecated `MixinDeclaration.members`.
+* Remove deprecated `MixinDeclaration.rightBracket`.
+* Remove deprecated `NamedCompilationUnitMember`.
+* Remove deprecated `RepresentationConstructorName`.
+* Remove deprecated `RepresentationDeclaration`.
+* Remove deprecated `ConstructorElement.isSynthetic`.
+* Remove deprecated `ConstructorFragment.isSynthetic`.
+* Remove deprecated `Element.isSynthetic`.
+* Remove deprecated `ExecutableFragment.isSynthetic`.
+* Remove deprecated `PropertyAccessorElement.isSynthetic`.
+* Remove deprecated `PropertyInducingElement.isSynthetic`.
+* Remove deprecated `PropertyInducingFragment.isSynthetic`.
+* Remove deprecated `visitNamedCompilationUnitMember`.
+* Remove deprecated `visitRepresentationConstructorName`.
+* Remove deprecated `visitRepresentationDeclaration`.
+* Remove deprecated `RuleVisitorRegistry.addRepresentationConstructorName`.
+* Remove deprecated `RuleVisitorRegistry.addRepresentationDeclaration`.
+* `ClassDeclaration`, `EnumDeclaration`, `FunctionDeclaration`,
+  `MixinDeclaration`, and `TypeAlias` now implement `CompilationUnitMember`
+  directly (instead of `NamedCompilationUnitMember`).
+
 ## 10.3.0-dev
 
 * Internal changes only

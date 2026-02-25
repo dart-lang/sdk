@@ -2828,9 +2828,21 @@ class AnalysisDriverTestView {
     return libraryReferences.map((e) => e.name).toSet();
   }
 
+  int get numberOfFilesToAnalyze => driver.numberOfFilesToAnalyze;
+
+  List<String> get pendingFileChanges {
+    return driver._pendingFileChanges.map((change) {
+      return '${change.kind.name} ${change.path}';
+    }).toList();
+  }
+
+  Set<String> get priorityFiles => driver._priorityFiles;
+
   Map<String, ResolvedUnitResult> get priorityResults {
     return driver._priorityResults;
   }
+
+  AnalysisDriverPriority get workPriority => driver.workPriority;
 }
 
 /// An object that watches for the creation and removal of analysis drivers.

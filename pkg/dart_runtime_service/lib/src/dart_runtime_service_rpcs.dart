@@ -11,7 +11,9 @@ import 'package:vm_service/vm_service.dart';
 
 import 'clients.dart';
 import 'dart_runtime_service.dart';
+import 'event_streams.dart';
 import 'rpc_exceptions.dart';
+import 'utils.dart';
 
 typedef RpcResponse = Map<String, Object?>;
 typedef RpcHandlerWithNoParameters = FutureOr<RpcResponse> Function();
@@ -21,9 +23,17 @@ typedef RpcHandlerWithParameters =
 /// Manages requests made to platform-agnostic RPCs provided by
 /// [DartRuntimeService] by a single [Client].
 final class DartRuntimeServiceRpcs {
-  DartRuntimeServiceRpcs({required this.clientManager, required this.client});
+  DartRuntimeServiceRpcs({
+    required this.clients,
+    required this.eventStreamMethods,
+    required this.client,
+  });
 
-  final ClientManager clientManager;
+  /// The current set of clients connected to the service.
+  final UnmodifiableNamedLookup<Client> clients;
+
+  /// Wrapper for methods used to interact with event stream state.
+  final EventStreamMethods eventStreamMethods;
 
   /// The client sending and receiving RPCs.
   final Client client;
@@ -32,10 +42,15 @@ final class DartRuntimeServiceRpcs {
   static const _kService = 'service';
   static const _kAlias = 'alias';
 
+  // Parameters for streamListen
+  static const _kStreamId = 'streamId';
+
   late final _commonRpcs = <(String, Function)>[
     ('getClientName', getClientName),
-    ('setClientName', setClientName),
     ('registerService', registerService),
+    ('setClientName', setClientName),
+    ('streamCancel', streamCancel),
+    ('streamListen', streamListen),
   ];
 
   /// Registers the set of platform-agnostic RPCs for use by [client].
@@ -47,17 +62,22 @@ final class DartRuntimeServiceRpcs {
       }
 
       clientPeer.registerMethod(method, (json_rpc.Parameters parameters) async {
-        late RpcResponse response;
-        if (callback is RpcHandlerWithNoParameters) {
-          client.logger.info('invoked $method');
-          response = await callback();
-          client.logger.info('response: $response');
-        } else if (callback is RpcHandlerWithParameters) {
-          client.logger.info('invoked $method (${parameters.value})');
-          response = await callback(parameters);
-          client.logger.info('response: $response');
+        try {
+          late RpcResponse response;
+          if (callback is RpcHandlerWithNoParameters) {
+            client.logger.info('Invoked $method');
+            response = await callback();
+            client.logger.info('Response: $response');
+          } else if (callback is RpcHandlerWithParameters) {
+            client.logger.info('Invoked $method (${parameters.value})');
+            response = await callback(parameters);
+            client.logger.info('Response: $response');
+          }
+          return response;
+        } catch (e) {
+          client.logger.info('Exception thrown when invoking $method: $e');
+          rethrow;
         }
-        return response;
       });
     }
 
@@ -121,7 +141,7 @@ final class DartRuntimeServiceRpcs {
     // Lookup the client associated with the service extension's namespace.
     // If the client exists and that client has registered the specified
     // method, forward the request to that client.
-    final serviceClient = clientManager.clients[namespace];
+    final serviceClient = clients[namespace];
     if (serviceClient != null && serviceClient.hasService(service)) {
       client.logger.info(
         'Invoking $method provided by ${serviceClient.name} with '
@@ -170,6 +190,32 @@ final class DartRuntimeServiceRpcs {
     if (!client.registerService(service: service, alias: alias)) {
       RpcException.serviceAlreadyRegistered.throwException();
     }
+    return Success().toJson();
+  }
+
+  /// Subscribes this client to events on the specified stream.
+  ///
+  /// If the stream ID corresponds with a stream that's already subscribed to
+  /// by this client, an error response is returned.
+  ///
+  /// If the stream ID does not correspond with a known stream, an error
+  /// response may be returned.
+  RpcResponse streamListen(json_rpc.Parameters parameters) {
+    final stream = parameters[_kStreamId].asString;
+    eventStreamMethods.streamListen(client: client, streamId: stream);
+    return Success().toJson();
+  }
+
+  /// Cancels this client's subscription to the specified stream.
+  ///
+  /// If the stream ID corresponds with a stream that's not subscribed to by
+  /// this client, an error response is returned.
+  ///
+  /// If the stream ID does not correspond with a known stream, an error
+  /// response may be returned.
+  RpcResponse streamCancel(json_rpc.Parameters parameters) {
+    final streamId = parameters[_kStreamId].asString;
+    eventStreamMethods.streamCancel(client: client, streamId: streamId);
     return Success().toJson();
   }
 }

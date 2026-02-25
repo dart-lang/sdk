@@ -5340,81 +5340,30 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters.cast(), () {
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-      // Visiting the parameters added them to the scope as a side effect. So it
-      // is safe to visit the documentation comment now.
-      _scopeContext.withLocalScope((scope) {
-        scope.addFormalParameterList(node.parameters);
-        _scopeContext.visitDocumentationComment(
-          node.documentationComment,
-          this,
-        );
-      });
-    });
+    _scopeContext.visitFunctionTypeAlias(node, visitor: this);
   }
 
   @override
   void visitFunctionTypedFormalParameter(
     covariant FunctionTypedFormalParameterImpl node,
   ) {
-    node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-      _scopeContext.withFormalParameterScope(element.formalParameters, () {
-        _scopeContext.visitDocumentationComment(
-          node.documentationComment,
-          this,
-        );
-      });
-    });
+    _scopeContext.visitFunctionTypedFormalParameter(node, visitor: this);
   }
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.nameScope = nameScope;
-      super.visitGenericFunctionType(node);
-    });
+    _scopeContext.visitGenericFunctionType(node, visitor: this);
   }
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters.cast(), () {
-      node.nameScope = nameScope;
-      node.typeParameters?.accept(this);
-      node.type.accept(this);
-
-      if (node.type case GenericFunctionTypeImpl functionTypeNode) {
-        _scopeContext.withTypeParameterList(
-          functionTypeNode.typeParameters,
-          () {
-            _scopeContext.withLocalScope((scope) {
-              scope.addFormalParameterList(functionTypeNode.parameters);
-              _scopeContext.visitDocumentationComment(
-                node.documentationComment,
-                this,
-              );
-            });
-          },
-        );
-      } else {
-        _scopeContext.visitDocumentationComment(
-          node.documentationComment,
-          this,
-        );
-      }
-    });
+    _scopeContext.visitGenericTypeAlias(
+      node,
+      visitor: this,
+      enterTypeParameterScope: () {
+        node.nameScope = nameScope;
+      },
+    );
   }
 
   @override
@@ -5476,23 +5425,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     node.body.localVariableInfo = _localVariableInfo;
-    node.metadata.accept(this);
-    var element = node.declaredFragment!.element;
-    _scopeContext.withTypeParameterScope(element.typeParameters.cast(), () {
-      node.nameScope = nameScope;
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-      // Visiting the parameters added them to the scope as a side effect. So it
-      // is safe to visit the documentation comment now.
-      _scopeContext.withFormalParameterScope(element.formalParameters, () {
-        _scopeContext.visitDocumentationComment(
-          node.documentationComment,
-          this,
-        );
-        node.body.accept(this);
-      });
-    });
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
   @override

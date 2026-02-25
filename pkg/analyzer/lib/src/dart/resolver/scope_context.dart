@@ -196,6 +196,109 @@ class ScopeContext {
     });
   }
 
+  void visitFunctionTypeAlias(
+    FunctionTypeAliasImpl node, {
+    required AstVisitor visitor,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      node.returnType?.accept(visitor);
+      node.typeParameters?.accept(visitor);
+      node.parameters.accept(visitor);
+
+      withLocalScope((scope) {
+        scope.addFormalParameterList(node.parameters);
+        visitDocumentationComment(node.documentationComment, visitor);
+      });
+    });
+  }
+
+  void visitFunctionTypedFormalParameter(
+    FunctionTypedFormalParameterImpl node, {
+    required AstVisitor visitor,
+  }) {
+    node.metadata.accept(visitor);
+
+    withTypeParameterList(node.typeParameters, () {
+      node.typeParameters?.accept(visitor);
+      node.parameters.accept(visitor);
+      node.returnType?.accept(visitor);
+    });
+  }
+
+  void visitGenericFunctionType(
+    GenericFunctionTypeImpl node, {
+    required AstVisitor visitor,
+  }) {
+    withTypeParameterList(node.typeParameters, () {
+      node.nameScope = nameScope;
+      node.typeParameters?.accept(visitor);
+      node.parameters.accept(visitor);
+      node.returnType?.accept(visitor);
+    });
+  }
+
+  void visitGenericTypeAlias(
+    GenericTypeAliasImpl node, {
+    required AstVisitor visitor,
+    void Function()? enterTypeParameterScope,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      if (enterTypeParameterScope != null) {
+        enterTypeParameterScope();
+      }
+      node.typeParameters?.accept(visitor);
+      node.type.accept(visitor);
+
+      if (node.type case GenericFunctionTypeImpl functionTypeNode) {
+        withTypeParameterList(functionTypeNode.typeParameters, () {
+          withLocalScope((scope) {
+            scope.addFormalParameterList(functionTypeNode.parameters);
+            visitDocumentationComment(node.documentationComment, visitor);
+          });
+        });
+      } else {
+        visitDocumentationComment(node.documentationComment, visitor);
+      }
+    });
+  }
+
+  void visitMethodDeclaration(
+    MethodDeclarationImpl node, {
+    required AstVisitor visitor,
+    void Function()? enterTypeParameterScope,
+    void Function(FunctionBodyImpl body)? visitBody,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      if (enterTypeParameterScope != null) {
+        enterTypeParameterScope();
+      }
+      node.nameScope = nameScope;
+      node.returnType?.accept(visitor);
+      node.typeParameters?.accept(visitor);
+      node.parameters?.accept(visitor);
+
+      withFormalParameterScope(element.formalParameters, () {
+        visitDocumentationComment(node.documentationComment, visitor);
+        node.body.visitWithOverride(visitor, visitBody);
+      });
+    });
+  }
+
   void visitMixinDeclaration(
     MixinDeclarationImpl node, {
     required AstVisitor visitor,

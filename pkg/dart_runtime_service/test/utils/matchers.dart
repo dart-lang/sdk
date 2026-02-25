@@ -49,3 +49,23 @@ final Matcher throwsServiceAlreadyRegisteredRPCError = throwsA(
     RpcException.serviceAlreadyRegistered.code,
   ),
 );
+
+/// Matches exception thrown by package:json_rpc_2 when trying to listen to a
+/// stream that's already subscribed to.
+final Matcher throwsStreamAlreadySubscribedRPCError = throwsA(
+  isA<RPCError>().having(
+    (e) => e.code,
+    'Error code',
+    RpcException.streamAlreadySubscribed.code,
+  ),
+);
+
+/// Matches exception thrown by package:json_rpc_2 when trying to cancel a
+/// stream subscription for a stream that isn't subscribed to.
+final Matcher throwsStreamNotSubscribedRPCError = throwsA(
+  isA<RPCError>().having(
+    (e) => e.code,
+    'Error code',
+    RpcException.streamNotSubscribed.code,
+  ),
+);

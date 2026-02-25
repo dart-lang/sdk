@@ -6,12 +6,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 
 import 'clients.dart';
 import 'dart_runtime_service_backend.dart';
 import 'dart_runtime_service_options.dart';
+import 'event_streams.dart';
 import 'exceptions.dart';
 import 'handlers.dart';
 import 'utils.dart';
@@ -58,14 +60,23 @@ class DartRuntimeService {
   final String? authCode;
 
   final _logger = Logger('$DartRuntimeService');
-  final _clientManager = ClientManager();
+
+  @visibleForTesting
+  late final ClientManager clientManager = ClientManager(
+    eventStreamMethods: eventStreamManager,
+  );
+
+  @visibleForTesting
+  late final eventStreamManager = EventStreamManager(
+    clientsGetter: () => UnmodifiableNamedLookup(clientManager.clients),
+  );
 
   HttpServer? _server;
 
   /// Shuts down the service and cleans up backend state.
   Future<void> shutdown() async {
     await _server?.close(force: true);
-    await _clientManager.shutdown();
+    await clientManager.shutdown();
     await backend.shutdown();
     Logger.root.clearListeners();
   }
@@ -138,7 +149,7 @@ class DartRuntimeService {
       );
       handlerCascade = handlerCascade.add(
         sseClientHandler(
-          clientManager: _clientManager,
+          clientManager: clientManager,
           sseHandlerPath: config.sseHandlerPath!,
           authCode: authCode,
         ),
@@ -149,7 +160,7 @@ class DartRuntimeService {
       'Web socket connections are enabled. Adding web socket handler.',
     );
     handlerCascade = handlerCascade.add(
-      webSocketClientHandler(clientManager: _clientManager),
+      webSocketClientHandler(clientManager: clientManager),
     );
 
     _logger.info('Shelf handlers generated.');
