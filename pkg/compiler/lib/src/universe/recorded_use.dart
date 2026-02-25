@@ -18,8 +18,11 @@ library;
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/source_information.dart';
+// ignore: implementation_imports
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:record_use/record_use_internal.dart' as record_use;
 
+import '../common/elements.dart' show JElementEnvironment;
 import '../serialization/serialization.dart';
 
 enum RecordedUseKind {
@@ -97,9 +100,11 @@ sealed class RecordedStaticCall extends RecordedUse {
   /// receiver is not a constant.
   final ConstantValue? constantReceiver;
 
-  record_use.MaybeConstant? receiverInRecordUseFormat() {
+  record_use.MaybeConstant? receiverInRecordUseFormat(
+    JElementEnvironment elementEnvironment,
+  ) {
     if (!definitionHasReceiver) return null;
-    return _findValueOrNonConst(constantReceiver);
+    return _findValueOrNonConst(constantReceiver, elementEnvironment);
   }
 
   RecordedStaticCall({
@@ -134,12 +139,18 @@ class RecordedCallWithArguments extends RecordedStaticCall {
   final Map<String, ConstantValue?> namedArguments;
 
   /// Constant positional argument values in `package:record_use` format.
-  List<record_use.MaybeConstant> positionalArgumentsInRecordUseFormat() =>
-      positionalArguments.map(_findValueOrNonConst).toList();
+  List<record_use.MaybeConstant> positionalArgumentsInRecordUseFormat(
+    JElementEnvironment elementEnvironment,
+  ) => positionalArguments
+      .map((v) => _findValueOrNonConst(v, elementEnvironment))
+      .toList();
 
   /// Constant named argument values in `package:record_use` format.
-  Map<String, record_use.MaybeConstant> namedArgumentsInRecordUseFormat() =>
-      namedArguments.map((k, v) => MapEntry(k, _findValueOrNonConst(v)));
+  Map<String, record_use.MaybeConstant> namedArgumentsInRecordUseFormat(
+    JElementEnvironment elementEnvironment,
+  ) => namedArguments.map(
+    (k, v) => MapEntry(k, _findValueOrNonConst(v, elementEnvironment)),
+  );
 
   RecordedCallWithArguments({
     required super.function,
@@ -275,21 +286,30 @@ class RecordedConstInstance extends RecordedUse {
   int get hashCode => Object.hash(constant, sourceInformation);
 }
 
-record_use.MaybeConstant _findValueOrNonConst(ConstantValue? constant) {
+record_use.MaybeConstant _findValueOrNonConst(
+  ConstantValue? constant,
+  JElementEnvironment elementEnvironment,
+) {
   if (constant == null) return const record_use.NonConstant();
-  return _findValue(constant);
+  return _findValue(constant, elementEnvironment);
 }
 
-record_use.Constant _findValue(ConstantValue constant) {
+record_use.Constant _findValue(
+  ConstantValue constant,
+  JElementEnvironment elementEnvironment,
+) {
   return switch (constant) {
     NullConstantValue() => record_use.NullConstant(),
     BoolConstantValue() => record_use.BoolConstant(constant.boolValue),
     IntConstantValue() => record_use.IntConstant(constant.intValue.toInt()),
     StringConstantValue() => record_use.StringConstant(constant.stringValue),
-    MapConstantValue() => _findMapValue(constant),
-    ListConstantValue() => _findListValue(constant),
-    RecordConstantValue() => findRecordConstant(constant),
-    ConstructedConstantValue() => findInstanceValue(constant),
+    MapConstantValue() => _findMapValue(constant, elementEnvironment),
+    ListConstantValue() => _findListValue(constant, elementEnvironment),
+    RecordConstantValue() => findRecordConstant(constant, elementEnvironment),
+    ConstructedConstantValue() => findInstanceValue(
+      constant,
+      elementEnvironment,
+    ),
     DoubleConstantValue() => record_use.UnsupportedConstant(
       'Double literals are not supported for recording.',
     ),
@@ -311,50 +331,92 @@ record_use.Constant _findValue(ConstantValue constant) {
   };
 }
 
-record_use.RecordConstant findRecordConstant(RecordConstantValue constant) {
+record_use.RecordConstant findRecordConstant(
+  RecordConstantValue constant,
+  JElementEnvironment elementEnvironment,
+) {
   final positional = <record_use.Constant>[];
   for (var i = 0; i < constant.shape.positionalFieldCount; i++) {
-    positional.add(_findValue(constant.values[i]));
+    positional.add(_findValue(constant.values[i], elementEnvironment));
   }
   final named = <String, record_use.Constant>{};
   for (var i = 0; i < constant.shape.fieldNames.length; i++) {
     final name = constant.shape.fieldNames[i];
     final value = constant.values[constant.shape.positionalFieldCount + i];
-    named[name] = _findValue(value);
+    named[name] = _findValue(value, elementEnvironment);
   }
   return record_use.RecordConstant(positional: positional, named: named);
 }
 
-record_use.MapConstant _findMapValue(MapConstantValue constant) {
+record_use.MapConstant _findMapValue(
+  MapConstantValue constant,
+  JElementEnvironment elementEnvironment,
+) {
   final List<MapEntry<record_use.Constant, record_use.Constant>> result = [];
   for (var index = 0; index < constant.keys.length; index++) {
     final keyConstantValue = constant.keys[index];
-    final keyValue = _findValue(keyConstantValue);
-    final value = _findValue(constant.values[index]);
+    final keyValue = _findValue(keyConstantValue, elementEnvironment);
+    final value = _findValue(constant.values[index], elementEnvironment);
 
     result.add(MapEntry(keyValue, value));
   }
   return record_use.MapConstant(result);
 }
 
-record_use.ListConstant _findListValue(ListConstantValue constant) {
+record_use.ListConstant _findListValue(
+  ListConstantValue constant,
+  JElementEnvironment elementEnvironment,
+) {
   final result = <record_use.Constant>[];
   for (final constantValue in constant.entries) {
-    result.add(_findValue(constantValue));
+    result.add(_findValue(constantValue, elementEnvironment));
   }
   return record_use.ListConstant(result);
 }
 
-record_use.InstanceConstant findInstanceValue(
+record_use.Constant findInstanceValue(
   ConstructedConstantValue constant,
+  JElementEnvironment elementEnvironment,
 ) {
-  final fieldValues = <String, record_use.Constant>{};
-  for (final entry in constant.fields.entries) {
-    final name = entry.key.name;
-    if (name == null) continue;
-    fieldValues[name] = _findValue(entry.value);
-  }
   final cls = constant.type.element;
+
+  if (elementEnvironment.isEnumClass(cls)) {
+    int? index;
+    String? name;
+    final fields = <String, record_use.Constant>{};
+
+    constant.fields.forEach((field, value) {
+      final fieldName = field.name;
+      if (fieldName == null) return;
+      if (fieldName == enumIndexFieldName) {
+        index = (value as IntConstantValue).intValue.toInt();
+      } else if (fieldName == enumNameFieldName) {
+        name = (value as StringConstantValue).stringValue;
+      } else {
+        fields[fieldName] = _findValue(value, elementEnvironment);
+      }
+    });
+
+    final libraryUri = cls.library.canonicalUri.toString();
+    final definition = record_use.Definition(libraryUri, [
+      record_use.Name(cls.name, kind: record_use.DefinitionKind.enumKind),
+    ]);
+
+    return record_use.EnumConstant(
+      definition: definition,
+      index: index!,
+      name: name!,
+      fields: fields,
+    );
+  }
+
+  final fieldValues = <String, record_use.Constant>{};
+  constant.fields.forEach((field, value) {
+    final name = field.name;
+    if (name == null) return;
+    fieldValues[name] = _findValue(value, elementEnvironment);
+  });
+
   final libraryUri = cls.library.canonicalUri.toString();
   final definition = record_use.Definition(libraryUri, [
     record_use.Name(cls.name, kind: record_use.DefinitionKind.classKind),

@@ -62,24 +62,35 @@ class RecordUseCollector {
       case RecordedCallWithArguments():
         final reference = CallWithArguments(
           loadingUnits: [LoadingUnit(loadingUnit)],
-          receiver: recordedUse.receiverInRecordUseFormat(),
-          namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
-          positionalArguments: recordedUse
-              .positionalArgumentsInRecordUseFormat(),
+          receiver: recordedUse.receiverInRecordUseFormat(_elementEnvironment),
+          namedArguments: recordedUse.namedArgumentsInRecordUseFormat(
+            _elementEnvironment,
+          ),
+          positionalArguments: recordedUse.positionalArgumentsInRecordUseFormat(
+            _elementEnvironment,
+          ),
         );
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
         break;
       case RecordedTearOff():
         final reference = CallTearoff(
           loadingUnits: [LoadingUnit(loadingUnit)],
-          receiver: recordedUse.receiverInRecordUseFormat(),
+          receiver: recordedUse.receiverInRecordUseFormat(_elementEnvironment),
         );
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
         break;
       case RecordedConstInstance():
-        final instanceValue = findInstanceValue(recordedUse.constant);
+        if (_elementEnvironment.isEnumClass(recordedUse.constantClass)) {
+          // TODO(https://github.com/dart-lang/native/issues/2908): Support enum
+          // constant instances.
+          break;
+        }
+        final instanceValue = findInstanceValue(
+          recordedUse.constant,
+          _elementEnvironment,
+        );
         final reference = InstanceConstantReference(
-          instanceConstant: instanceValue,
+          instanceConstant: instanceValue as InstanceConstant,
           loadingUnits: [LoadingUnit(loadingUnit)],
         );
         instanceMap
@@ -109,7 +120,12 @@ class RecordUseCollector {
       instances: instanceMap.map((key, value) {
         return MapEntry(
           Definition(key.library.canonicalUri.toString(), [
-            Name(kind: DefinitionKind.classKind, key.name),
+            Name(
+              key.name,
+              kind: _elementEnvironment.isEnumClass(key)
+                  ? DefinitionKind.enumKind
+                  : DefinitionKind.classKind,
+            ),
           ]),
           value,
         );

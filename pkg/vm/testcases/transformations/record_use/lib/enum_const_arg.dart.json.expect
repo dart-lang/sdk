@@ -1,20 +1,10 @@
 {
   "constants": [
     {
-      "type": "int",
-      "value": 1
-    },
-    {
-      "type": "string",
-      "value": "b"
-    },
-    {
       "definition_index": 1,
-      "type": "instance",
-      "value": {
-        "index": 0,
-        "_name": 1
-      }
+      "index": 1,
+      "name": "b",
+      "type": "enum"
     }
   ],
   "definitions": [
@@ -33,7 +23,7 @@
     {
       "path": [
         {
-          "kind": "class",
+          "kind": "enum",
           "name": "A"
         }
       ],
@@ -59,7 +49,7 @@
               0
             ],
             "positional": [
-              2
+              0
             ],
             "type": "with_arguments"
           }

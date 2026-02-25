@@ -79,10 +79,15 @@ class _ConstantCollector implements ConstantVisitor {
   void visitInstanceConstant(InstanceConstant constant) {
     assert(_expression != null);
     final classNode = constant.classNode;
-    if (_hasRecordUseAnnotation[classNode] ??= record_use.isBeingRecorded(
+    if ((_hasRecordUseAnnotation[classNode] ??= record_use.isBeingRecorded(
       classNode,
-    )) {
-      collector(_expression!, constant);
+    ))) {
+      if (classNode.isEnum) {
+        // TODO(https://github.com/dart-lang/native/issues/2908): Support enum
+        // constant instances.
+      } else {
+        collector(_expression!, constant);
+      }
     }
     for (final value in constant.fieldValues.values) {
       handleConstantReference(value);

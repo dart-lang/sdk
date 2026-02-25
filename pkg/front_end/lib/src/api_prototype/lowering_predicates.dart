@@ -1110,3 +1110,9 @@ Procedure? getExtensionMemberImplementation(Procedure node) {
   }
   return null;
 }
+
+/// The name of the internal field in an enum that stores its index.
+const String enumIndexFieldName = 'index';
+
+/// The name of the internal field in an enum that stores its name.
+const String enumNameFieldName = '_name';
