@@ -1,0 +1,4 @@
+# src/gn/write_buildflag_header.py requires at least 3.9 because
+# it uses type hints like list[str].
+
+python_version: "3.11"
