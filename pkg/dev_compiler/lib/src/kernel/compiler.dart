@@ -4429,6 +4429,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (isCovariantByClass != null &&
           isCovariantByClass &&
           !_types.isTop(bound)) {
+        // TODO(nshahan): Ensure we have an name for the method and then
+        // just call the `checkTypeBound()` in the rti library directly.
         body.add(
           _runtimeStatement('checkTypeBound(#, #, #)', [
             _emitType(typeParameterType),
