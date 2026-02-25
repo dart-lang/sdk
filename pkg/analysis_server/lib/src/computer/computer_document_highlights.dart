@@ -18,9 +18,10 @@ class DartDocumentHighlightsComputer {
   /// Computes matching highlight tokens for the requested offset.
   List<Token> compute(int requestedOffset) {
     var coveringNode = _unit.nodeCovering(offset: requestedOffset);
+    coveringNode = _adjustNode(requestedOffset, coveringNode);
     if (coveringNode == null) return [];
 
-    var targets = _computeTargets(_adjustNode(requestedOffset, coveringNode));
+    var targets = _computeTargets(coveringNode);
     if (targets == null) return [];
 
     var visitor = _DartDocumentHighlightsVisitor(targets);
@@ -30,12 +31,29 @@ class DartDocumentHighlightsComputer {
 
   /// Adjusts the result of `nodeCovering` for cases where a position falls
   /// between two nodes and the wrong one is selected.
-  AstNode _adjustNode(int offset, AstNode coveringNode) {
+  AstNode? _adjustNode(int offset, AstNode? coveringNode) {
     return switch (coveringNode) {
       // In `ClassName.new^()` nodeCovering selects the parameter list but
       // we want the constructor.
       FormalParameterList(:var parent?) when offset == coveringNode.offset =>
         parent,
+      // In a constructor declaration with either a type name or a constructor
+      // name, we don't treat the keyword as something that has matches. It only
+      // has matches if it's `new()` or `factory()`.
+      ConstructorDeclaration(
+        :var typeName,
+        :var name,
+        newKeyword: var keyword?,
+      ) ||
+      ConstructorDeclaration(
+        :var typeName,
+        :var name,
+        factoryKeyword: var keyword?,
+      )
+          when (typeName != null || name != null) &&
+              offset >= keyword.offset &&
+              offset <= keyword.end =>
+        null,
       _ => coveringNode,
     };
   }
@@ -176,7 +194,10 @@ class _DartDocumentHighlightsVisitor extends GeneralizingAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _addOccurrence(
       node.declaredFragment?.element,
-      node.name ?? node.newKeyword ?? node.typeName?.beginToken,
+      node.name ??
+          node.typeName?.beginToken ??
+          node.newKeyword ??
+          node.factoryKeyword,
     );
 
     super.visitConstructorDeclaration(node);
