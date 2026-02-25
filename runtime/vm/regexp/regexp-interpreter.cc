@@ -1120,9 +1120,9 @@ int IrregexpInterpreter::Match(Thread* thread,
                                bool is_sticky) {
   // bool is_any_unicode = IsEitherUnicode((regexp_data.flags()));
   bool is_one_byte = subject_string.IsOneByteString();
-  SBXCHECK(regexp_data.has_bytecode(is_one_byte, is_sticky));
   const TypedData& code_array =
       TypedData::Handle(regexp_data.bytecode(is_one_byte, is_sticky));
+  SBXCHECK(!code_array.IsNull());
   int total_register_count = regexp_data.num_registers(is_one_byte);
   // MatchInternal only supports returning a single match per call. In global
   // mode, i.e. when output_registers has space for more than one match, we
