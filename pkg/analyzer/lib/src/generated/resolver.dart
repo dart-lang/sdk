@@ -5128,13 +5128,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    _scopeContext.visitClassDeclaration(
-      node,
-      visitor: this,
-      visitBody: (body) {
-        body.accept(this);
-      },
-    );
+    _scopeContext.visitClassDeclaration(node, visitor: this);
   }
 
   @override
