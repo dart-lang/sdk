@@ -57,9 +57,11 @@ reg_exp_receive_port_test: SkipByDesign # uses SendPort/ReceivePort
 
 [ $runtime != none && ($compiler == dart2js || $compiler == ddc) ]
 int_parse_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
-integer_arith_vm_test: SkipByDesign # Is a VM optimization test that requires int64 support.
 iterable_return_type_int64_test: SkipByDesign # Requires int64 support.
 typed_data_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
+
+[ $runtime == safari && ($compiler == dart2js || $compiler == ddc) ]
+regexp/group_modifier_test: RuntimeError # Safari lacks support for new regexp modifiers
 
 [ $builder_tag == dwarf || $builder_tag == obfuscated ]
 error_stack_trace1_test: SkipByDesign # Relies on symbol names in stack traces.
