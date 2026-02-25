@@ -551,10 +551,12 @@ class AstBinaryReader {
     fragment.formalParameters = formalParameters.parameters
         .map((parameter) => parameter.declaredFragment!)
         .toList();
-    fragment.returnType = returnType?.type ?? DynamicTypeImpl.instance;
-    fragment.type = type;
     node.declaredFragment = fragment;
     _reader.currentLibraryFragment.encloseElement(fragment);
+
+    var element = fragment.element;
+    element.returnType = type.returnType;
+    element.type = type;
 
     return node;
   }

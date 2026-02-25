@@ -365,7 +365,16 @@ class ZoneDirectChainedHashMap
   DISALLOW_COPY_AND_ASSIGN(ZoneDirectChainedHashMap);
 };
 
+// Concept for checking if T provides Hash and Equals methods that are expected
+// by |PointerSetKeyValueTrait|.
+
 template <typename T>
+concept DefinesHashAndEquality = requires(const T& a, const T& b) {
+  { a.Equals(b) } -> std::same_as<bool>;
+  { a.Hash() } -> std::same_as<uword>;
+};
+
+template <DefinesHashAndEquality T>
 class PointerSetKeyValueTrait {
  public:
   typedef T* Value;
@@ -378,7 +387,7 @@ class PointerSetKeyValueTrait {
   static inline bool IsKeyEqual(Pair kv, Key key) { return kv->Equals(*key); }
 };
 
-template <typename T>
+template <DefinesHashAndEquality T>
 using PointerSet = DirectChainedHashMap<PointerSetKeyValueTrait<T>>;
 
 template <typename T>

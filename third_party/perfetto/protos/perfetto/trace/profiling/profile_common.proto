@@ -37,9 +37,48 @@ message InternedString {
   optional bytes str = 2;
 }
 
+// Source line info.
+message Line {
+  optional string function_name = 1;
+  optional string source_file_name = 2;
+  optional uint32 line_number = 3;
+}
+
+// Symbols for a given address in a module.
+message AddressSymbols {
+  optional uint64 address = 1;
+
+  // Source lines that correspond to this address.
+  //
+  // These are repeated because when inlining happens, multiple functions'
+  // frames can be at a single address. Imagine function Foo calling the
+  // std::vector<int> constructor, which gets inlined at 0xf00. We then get
+  // both Foo and the std::vector<int> constructor when we symbolize the
+  // address.
+  repeated Line lines = 2;
+}
+
+// Symbols for addresses seen in a module.
+// Used in re-symbolisation of complete traces.
+message ModuleSymbols {
+  // Fully qualified path to the mapping.
+  // E.g. /system/lib64/libc.so.
+  optional string path = 1;
+
+  // .note.gnu.build-id on Linux (not hex encoded).
+  // uuid on MacOS.
+  // Module GUID on Windows.
+  optional string build_id = 2;
+  repeated AddressSymbols address_symbols = 3;
+}
+
 message Mapping {
   // Interning key.
   optional uint64 iid = 1;
+
+  // Interning key.
+  // Starts from 1, 0 is the same as "not set".
+  optional uint64 build_id = 2;
 
   // The linker may create multiple memory mappings for the same shared
   // library.

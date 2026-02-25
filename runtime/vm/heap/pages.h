@@ -224,6 +224,14 @@ class PageSpace {
     return size >> kWordSizeLog2;
   }
 
+  template <typename F>
+  void ForEachImagePage(F&& callback) const {
+    MutexLocker ml(&pages_lock_);
+    for (Page* page = image_pages_; page != nullptr; page = page->next()) {
+      callback(page);
+    }
+  }
+
   bool Contains(uword addr) const;
   bool ContainsUnsafe(uword addr) const;
   bool CodeContains(uword addr) const;

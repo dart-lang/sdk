@@ -25,7 +25,8 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'clock_snapshot.pb.dart' as $0;
 import 'interned_data/interned_data.pb.dart' as $2;
-import 'profiling/profile_packet.pb.dart' as $4;
+import 'profiling/profile_common.pb.dart' as $4;
+import 'profiling/profile_packet.pb.dart' as $5;
 import 'track_event/track_descriptor.pb.dart' as $3;
 import 'track_event/track_event.pb.dart' as $1;
 
@@ -37,6 +38,7 @@ enum TracePacket_Data {
   clockSnapshot,
   trackEvent,
   trackDescriptor,
+  moduleSymbols,
   perfSample,
   notSet
 }
@@ -77,7 +79,8 @@ class TracePacket extends $pb.GeneratedMessage {
     $core.int? sequenceFlags,
     $core.int? timestampClockId,
     $3.TrackDescriptor? trackDescriptor,
-    $4.PerfSample? perfSample,
+    $4.ModuleSymbols? moduleSymbols,
+    $5.PerfSample? perfSample,
   }) {
     final result = create();
     if (clockSnapshot != null) result.clockSnapshot = clockSnapshot;
@@ -89,6 +92,7 @@ class TracePacket extends $pb.GeneratedMessage {
     if (sequenceFlags != null) result.sequenceFlags = sequenceFlags;
     if (timestampClockId != null) result.timestampClockId = timestampClockId;
     if (trackDescriptor != null) result.trackDescriptor = trackDescriptor;
+    if (moduleSymbols != null) result.moduleSymbols = moduleSymbols;
     if (perfSample != null) result.perfSample = perfSample;
     return result;
   }
@@ -106,6 +110,7 @@ class TracePacket extends $pb.GeneratedMessage {
     6: TracePacket_Data.clockSnapshot,
     11: TracePacket_Data.trackEvent,
     60: TracePacket_Data.trackDescriptor,
+    61: TracePacket_Data.moduleSymbols,
     66: TracePacket_Data.perfSample,
     0: TracePacket_Data.notSet
   };
@@ -119,7 +124,7 @@ class TracePacket extends $pb.GeneratedMessage {
       package:
           const $pb.PackageName(_omitMessageNames ? '' : 'perfetto.protos'),
       createEmptyInstance: create)
-    ..oo(0, [6, 11, 60, 66])
+    ..oo(0, [6, 11, 60, 61, 66])
     ..oo(1, [10])
     ..aOM<$0.ClockSnapshot>(6, _omitFieldNames ? '' : 'clockSnapshot',
         subBuilder: $0.ClockSnapshot.create)
@@ -138,8 +143,10 @@ class TracePacket extends $pb.GeneratedMessage {
         fieldType: $pb.PbFieldType.OU3)
     ..aOM<$3.TrackDescriptor>(60, _omitFieldNames ? '' : 'trackDescriptor',
         subBuilder: $3.TrackDescriptor.create)
-    ..aOM<$4.PerfSample>(66, _omitFieldNames ? '' : 'perfSample',
-        subBuilder: $4.PerfSample.create)
+    ..aOM<$4.ModuleSymbols>(61, _omitFieldNames ? '' : 'moduleSymbols',
+        subBuilder: $4.ModuleSymbols.create)
+    ..aOM<$5.PerfSample>(66, _omitFieldNames ? '' : 'perfSample',
+        subBuilder: $5.PerfSample.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -164,11 +171,13 @@ class TracePacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   @$pb.TagNumber(11)
   @$pb.TagNumber(60)
+  @$pb.TagNumber(61)
   @$pb.TagNumber(66)
   TracePacket_Data whichData() => _TracePacket_DataByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(6)
   @$pb.TagNumber(11)
   @$pb.TagNumber(60)
+  @$pb.TagNumber(61)
   @$pb.TagNumber(66)
   void clearData() => $_clearField($_whichOneof(0));
 
@@ -276,16 +285,28 @@ class TracePacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(60)
   $3.TrackDescriptor ensureTrackDescriptor() => $_ensure(7);
 
+  /// Only used in profile packets.
+  @$pb.TagNumber(61)
+  $4.ModuleSymbols get moduleSymbols => $_getN(8);
+  @$pb.TagNumber(61)
+  set moduleSymbols($4.ModuleSymbols value) => $_setField(61, value);
+  @$pb.TagNumber(61)
+  $core.bool hasModuleSymbols() => $_has(8);
+  @$pb.TagNumber(61)
+  void clearModuleSymbols() => $_clearField(61);
+  @$pb.TagNumber(61)
+  $4.ModuleSymbols ensureModuleSymbols() => $_ensure(8);
+
   @$pb.TagNumber(66)
-  $4.PerfSample get perfSample => $_getN(8);
+  $5.PerfSample get perfSample => $_getN(9);
   @$pb.TagNumber(66)
-  set perfSample($4.PerfSample value) => $_setField(66, value);
+  set perfSample($5.PerfSample value) => $_setField(66, value);
   @$pb.TagNumber(66)
-  $core.bool hasPerfSample() => $_has(8);
+  $core.bool hasPerfSample() => $_has(9);
   @$pb.TagNumber(66)
   void clearPerfSample() => $_clearField(66);
   @$pb.TagNumber(66)
-  $4.PerfSample ensurePerfSample() => $_ensure(8);
+  $5.PerfSample ensurePerfSample() => $_ensure(9);
 }
 
 const $core.bool _omitFieldNames =

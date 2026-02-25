@@ -100,9 +100,240 @@ class InternedString extends $pb.GeneratedMessage {
   void clearStr() => $_clearField(2);
 }
 
+/// Source line info.
+class Line extends $pb.GeneratedMessage {
+  factory Line({
+    $core.String? functionName,
+    $core.String? sourceFileName,
+    $core.int? lineNumber,
+  }) {
+    final result = create();
+    if (functionName != null) result.functionName = functionName;
+    if (sourceFileName != null) result.sourceFileName = sourceFileName;
+    if (lineNumber != null) result.lineNumber = lineNumber;
+    return result;
+  }
+
+  Line._();
+
+  factory Line.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Line.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Line',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'perfetto.protos'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'functionName')
+    ..aOS(2, _omitFieldNames ? '' : 'sourceFileName')
+    ..aI(3, _omitFieldNames ? '' : 'lineNumber', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Line clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Line copyWith(void Function(Line) updates) =>
+      super.copyWith((message) => updates(message as Line)) as Line;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Line create() => Line._();
+  @$core.override
+  Line createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Line getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Line>(create);
+  static Line? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get functionName => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set functionName($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasFunctionName() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearFunctionName() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get sourceFileName => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set sourceFileName($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSourceFileName() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSourceFileName() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get lineNumber => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set lineNumber($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasLineNumber() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearLineNumber() => $_clearField(3);
+}
+
+/// Symbols for a given address in a module.
+class AddressSymbols extends $pb.GeneratedMessage {
+  factory AddressSymbols({
+    $fixnum.Int64? address,
+    $core.Iterable<Line>? lines,
+  }) {
+    final result = create();
+    if (address != null) result.address = address;
+    if (lines != null) result.lines.addAll(lines);
+    return result;
+  }
+
+  AddressSymbols._();
+
+  factory AddressSymbols.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AddressSymbols.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AddressSymbols',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'perfetto.protos'),
+      createEmptyInstance: create)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'address', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..pPM<Line>(2, _omitFieldNames ? '' : 'lines', subBuilder: Line.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AddressSymbols clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AddressSymbols copyWith(void Function(AddressSymbols) updates) =>
+      super.copyWith((message) => updates(message as AddressSymbols))
+          as AddressSymbols;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AddressSymbols create() => AddressSymbols._();
+  @$core.override
+  AddressSymbols createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AddressSymbols getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AddressSymbols>(create);
+  static AddressSymbols? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get address => $_getI64(0);
+  @$pb.TagNumber(1)
+  set address($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasAddress() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAddress() => $_clearField(1);
+
+  /// Source lines that correspond to this address.
+  ///
+  /// These are repeated because when inlining happens, multiple functions'
+  /// frames can be at a single address. Imagine function Foo calling the
+  /// `std::vector<int>` constructor, which gets inlined at 0xf00. We then get
+  /// both Foo and the `std::vector<int>` constructor when we symbolize the
+  /// address.
+  @$pb.TagNumber(2)
+  $pb.PbList<Line> get lines => $_getList(1);
+}
+
+/// Symbols for addresses seen in a module.
+/// Used in re-symbolisation of complete traces.
+class ModuleSymbols extends $pb.GeneratedMessage {
+  factory ModuleSymbols({
+    $core.String? path,
+    $core.String? buildId,
+    $core.Iterable<AddressSymbols>? addressSymbols,
+  }) {
+    final result = create();
+    if (path != null) result.path = path;
+    if (buildId != null) result.buildId = buildId;
+    if (addressSymbols != null) result.addressSymbols.addAll(addressSymbols);
+    return result;
+  }
+
+  ModuleSymbols._();
+
+  factory ModuleSymbols.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ModuleSymbols.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ModuleSymbols',
+      package:
+          const $pb.PackageName(_omitMessageNames ? '' : 'perfetto.protos'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'path')
+    ..aOS(2, _omitFieldNames ? '' : 'buildId')
+    ..pPM<AddressSymbols>(3, _omitFieldNames ? '' : 'addressSymbols',
+        subBuilder: AddressSymbols.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ModuleSymbols clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ModuleSymbols copyWith(void Function(ModuleSymbols) updates) =>
+      super.copyWith((message) => updates(message as ModuleSymbols))
+          as ModuleSymbols;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ModuleSymbols create() => ModuleSymbols._();
+  @$core.override
+  ModuleSymbols createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ModuleSymbols getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ModuleSymbols>(create);
+  static ModuleSymbols? _defaultInstance;
+
+  /// Fully qualified path to the mapping.
+  /// E.g. /system/lib64/libc.so.
+  @$pb.TagNumber(1)
+  $core.String get path => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set path($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPath() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPath() => $_clearField(1);
+
+  /// .note.gnu.build-id on Linux (not hex encoded).
+  /// uuid on MacOS.
+  /// Module GUID on Windows.
+  @$pb.TagNumber(2)
+  $core.String get buildId => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set buildId($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBuildId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBuildId() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $pb.PbList<AddressSymbols> get addressSymbols => $_getList(2);
+}
+
 class Mapping extends $pb.GeneratedMessage {
   factory Mapping({
     $fixnum.Int64? iid,
+    $fixnum.Int64? buildId,
     $fixnum.Int64? startOffset,
     $fixnum.Int64? start,
     $fixnum.Int64? end,
@@ -110,6 +341,7 @@ class Mapping extends $pb.GeneratedMessage {
   }) {
     final result = create();
     if (iid != null) result.iid = iid;
+    if (buildId != null) result.buildId = buildId;
     if (startOffset != null) result.startOffset = startOffset;
     if (start != null) result.start = start;
     if (end != null) result.end = end;
@@ -132,6 +364,8 @@ class Mapping extends $pb.GeneratedMessage {
           const $pb.PackageName(_omitMessageNames ? '' : 'perfetto.protos'),
       createEmptyInstance: create)
     ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'iid', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'buildId', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$fixnum.Int64>(
         3, _omitFieldNames ? '' : 'startOffset', $pb.PbFieldType.OU6,
@@ -172,37 +406,48 @@ class Mapping extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearIid() => $_clearField(1);
 
+  /// Interning key.
+  /// Starts from 1, 0 is the same as "not set".
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get buildId => $_getI64(1);
+  @$pb.TagNumber(2)
+  set buildId($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBuildId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBuildId() => $_clearField(2);
+
   @$pb.TagNumber(3)
-  $fixnum.Int64 get startOffset => $_getI64(1);
+  $fixnum.Int64 get startOffset => $_getI64(2);
   @$pb.TagNumber(3)
-  set startOffset($fixnum.Int64 value) => $_setInt64(1, value);
+  set startOffset($fixnum.Int64 value) => $_setInt64(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasStartOffset() => $_has(1);
+  $core.bool hasStartOffset() => $_has(2);
   @$pb.TagNumber(3)
   void clearStartOffset() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $fixnum.Int64 get start => $_getI64(2);
+  $fixnum.Int64 get start => $_getI64(3);
   @$pb.TagNumber(4)
-  set start($fixnum.Int64 value) => $_setInt64(2, value);
+  set start($fixnum.Int64 value) => $_setInt64(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasStart() => $_has(2);
+  $core.bool hasStart() => $_has(3);
   @$pb.TagNumber(4)
   void clearStart() => $_clearField(4);
 
   @$pb.TagNumber(5)
-  $fixnum.Int64 get end => $_getI64(3);
+  $fixnum.Int64 get end => $_getI64(4);
   @$pb.TagNumber(5)
-  set end($fixnum.Int64 value) => $_setInt64(3, value);
+  set end($fixnum.Int64 value) => $_setInt64(4, value);
   @$pb.TagNumber(5)
-  $core.bool hasEnd() => $_has(3);
+  $core.bool hasEnd() => $_has(4);
   @$pb.TagNumber(5)
   void clearEnd() => $_clearField(5);
 
   /// E.g. ["system", "lib64", "libc.so"]
   /// id of string.
   @$pb.TagNumber(7)
-  $pb.PbList<$fixnum.Int64> get pathStringIds => $_getList(4);
+  $pb.PbList<$fixnum.Int64> get pathStringIds => $_getList(5);
 }
 
 class Frame extends $pb.GeneratedMessage {
