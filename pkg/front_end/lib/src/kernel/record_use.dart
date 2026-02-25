@@ -11,7 +11,8 @@
 /// appearing within metadata (annotations) are ignored.
 library;
 
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
+import '../api_prototype/lowering_predicates.dart';
+import '../codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
 import 'constant_evaluator.dart' show ErrorReporter;
@@ -55,12 +56,20 @@ bool _enclosedInLibraryWithPackageUri(Annotatable node) {
 }
 
 bool isBeingRecorded(Annotatable node) {
-  final bool hasAnnotation = hasRecordUseAnnotation(node);
+  if (hasRecordUseAnnotation(node)) {
+    // Coverage-ignore-block(suite): Not run.
+    return _enclosedInLibraryWithPackageUri(node);
+  }
 
-  if (!hasAnnotation) return false;
+  if (node is Procedure) {
+    // Coverage-ignore-block(suite): Not run.
+    Procedure? implementation = getExtensionMemberImplementation(node);
+    if (implementation != null) {
+      return isBeingRecorded(implementation);
+    }
+  }
 
-  // Coverage-ignore(suite): Not run.
-  return _enclosedInLibraryWithPackageUri(node);
+  return false;
 }
 
 // Coverage-ignore(suite): Not run.

@@ -15,7 +15,12 @@ import 'package:test/test.dart';
 
 /// Options to pass to the compiler such as
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
-const List<String> compilerOptions = [Flags.writeRecordedUses, Flags.testMode];
+const List<String> compilerOptions = [
+  Flags.writeRecordedUses,
+  Flags.testMode,
+  Flags.disableInlining,
+  Flags.disableTypeInference,
+];
 
 /// Run `dart --define=updateExpectations=true pkg/compiler/test/record_use/record_use_test.dart`
 /// to update.
@@ -210,7 +215,7 @@ Future<String?> compileWithUsages({
     memorySourceFiles: memorySourceFiles,
     outputProvider: outputProvider,
     diagnosticHandler: diagnosticHandler,
-    options: [Flags.writeRecordedUses],
+    options: compilerOptions,
     packageConfig: Uri.parse('memory:/.dart_tool/package_config.json'),
   );
   if (expectSuccess) {

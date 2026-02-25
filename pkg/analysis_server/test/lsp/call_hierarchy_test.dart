@@ -94,6 +94,46 @@ class Bar {
     );
   }
 
+  Future<void> test_constructor_factory() async {
+    var code = TestCode.parse('''
+class Foo {
+  new _();
+  fact^ory() => Foo._();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  final foo = Foo.new();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+              otherCode,
+              RegExp(r'class Bar \{.*\}', dotAll: true),
+            ),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [rangeOfString(otherCode, 'new')],
+        ),
+      ],
+    );
+  }
+
   Future<void> test_constructor_named() async {
     var code = TestCode.parse('''
 class Foo {
@@ -833,6 +873,50 @@ import 'other.dart';
 class Foo {
   Fo^o() {
     final b = Bar();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Bar {
+  Bar();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'Bar',
+            kind: SymbolKind.Constructor,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'Bar();'),
+            selectionRange: rangeStartingAtString(
+              otherCode.code,
+              'Bar();',
+              'Bar',
+            ),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [rangeOfString(code, 'Bar')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_constructor_factory() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+class Foo {
+  new _();
+  fact^ory() {
+    final b = Bar();
+    throw 0;
   }
 }
 ''');
@@ -1701,6 +1785,27 @@ class Foo {
         kind: SymbolKind.Constructor,
         uri: mainFileUri,
         range: rangeOfString(code, 'Foo(String a) {}'),
+        selectionRange: code.range.range,
+      ),
+    );
+  }
+
+  Future<void> test_constructor_factory() async {
+    var code = TestCode.parse('''
+class Foo {
+  new _();
+  [!fact^ory!](String a) => Foo._();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      expectedResult: CallHierarchyItem(
+        name: 'Foo',
+        detail: 'Foo', // Containing class name
+        kind: SymbolKind.Constructor,
+        uri: mainFileUri,
+        range: rangeOfString(code, 'factory(String a) => Foo._();'),
         selectionRange: code.range.range,
       ),
     );

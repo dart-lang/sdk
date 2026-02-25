@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
 import 'package:vm/metadata/loading_units.dart' as vm_metadata;
@@ -71,6 +72,17 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   final InstanceRecorder instanceUseRecorder;
 
   _RecordUseVisitor(this.staticCallRecorder, this.instanceUseRecorder);
+
+  @override
+  void visitProcedure(ast.Procedure node) {
+    // Extension member tear-offs call the implementation. We skip them here
+    // to avoid recording the implementation call as a usage, as the usage is
+    // already recorded by the call to the extension member tear-off itself.
+    if (isExtensionMemberTearOff(node)) {
+      return;
+    }
+    super.visitProcedure(node);
+  }
 
   @override
   void visitStaticInvocation(ast.StaticInvocation node) {
@@ -145,7 +157,10 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   ast.ListConstant() => ListConstant(
     constant.entries.map(evaluateConstant).toList(),
   ),
-  ast.InstanceConstant() => evaluateInstanceConstant(constant),
+  ast.InstanceConstant() =>
+    constant.classNode.isEnum
+        ? evaluateEnumConstant(constant)
+        : evaluateInstanceConstant(constant),
   ast.RecordConstant() => evaluateRecordConstant(constant),
   // The following are not supported, but theoretically could be, so they
   // are listed explicitly here.
@@ -181,6 +196,28 @@ Constant evaluateLiteral(ast.BasicLiteral expression) => switch (expression) {
   ast.BasicLiteral() => _unsupported(expression.runtimeType.toString()),
 };
 
+EnumConstant evaluateEnumConstant(ast.InstanceConstant constant) {
+  int? index;
+  String? name;
+  final fields = <String, Constant>{};
+  for (final entry in constant.fieldValues.entries) {
+    final fieldName = entry.key.asField.name.text;
+    if (fieldName == enumIndexFieldName) {
+      index = (entry.value as ast.IntConstant).value;
+    } else if (fieldName == enumNameFieldName) {
+      name = (entry.value as ast.StringConstant).value;
+    } else {
+      fields[fieldName] = evaluateConstant(entry.value);
+    }
+  }
+  return EnumConstant(
+    definition: _definitionFromClass(constant.classNode),
+    index: index!,
+    name: name!,
+    fields: fields,
+  );
+}
+
 InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) =>
     InstanceConstant(
       definition: _definitionFromClass(constant.classNode),
@@ -207,7 +244,10 @@ Definition _definitionFromClass(ast.Class cls) {
   final importUri = enclosingLibrary.importUri.toString();
 
   return Definition(importUri, [
-    Name(cls.name, kind: DefinitionKind.classKind),
+    Name(
+      cls.name,
+      kind: cls.isEnum ? DefinitionKind.enumKind : DefinitionKind.classKind,
+    ),
   ]);
 }
 

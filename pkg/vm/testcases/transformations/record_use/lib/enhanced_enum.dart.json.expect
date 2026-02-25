@@ -1,16 +1,43 @@
 {
   "constants": [
     {
+      "type": "int",
+      "value": 10
+    },
+    {
       "definition_index": 1,
       "index": 0,
       "name": "a",
-      "type": "enum"
+      "type": "enum",
+      "value": {
+        "customField": 0
+      }
     },
     {
       "definition_index": 0,
       "type": "instance",
       "value": {
-        "a": 0
+        "a": 1
+      }
+    },
+    {
+      "type": "int",
+      "value": 20
+    },
+    {
+      "definition_index": 1,
+      "index": 1,
+      "name": "b",
+      "type": "enum",
+      "value": {
+        "customField": 3
+      }
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "a": 4
       }
     }
   ],
@@ -22,7 +49,7 @@
           "name": "MyClass"
         }
       ],
-      "uri": "package:record_use_test/record_enum.dart"
+      "uri": "package:record_use_test/enhanced_enum.dart"
     },
     {
       "path": [
@@ -31,7 +58,7 @@
           "name": "A"
         }
       ],
-      "uri": "package:record_use_test/record_enum.dart"
+      "uri": "package:record_use_test/enhanced_enum.dart"
     }
   ],
   "loading_units": [
@@ -49,7 +76,14 @@
         "definition_index": 0,
         "uses": [
           {
-            "constant_index": 1,
+            "constant_index": 2,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
+          },
+          {
+            "constant_index": 5,
             "loading_unit_indices": [
               0
             ],

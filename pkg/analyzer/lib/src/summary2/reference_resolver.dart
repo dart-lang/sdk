@@ -88,11 +88,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       enterBodyScope: () {
         LinkingNodeContext(node, nameScope);
       },
-      visitBody: (body) {
-        body.accept(this);
-        nodesToBuildType.addDeclaration(node);
-      },
     );
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -139,6 +136,18 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
+  void visitEmptyFunctionBody(EmptyFunctionBody node) {}
+
+  @override
+  void visitEnumBody(EnumBody node) {
+    node.constants.accept(this);
+    node.members.accept(this);
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {}
+
+  @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
 
@@ -147,10 +156,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       visitor: this,
       enterBodyScope: () {
         LinkingNodeContext(node, nameScope);
-      },
-      visitBody: (node) {
-        node.body.members.accept(this);
-        nodesToBuildType.addDeclaration(node);
 
         for (var field in fragment.fields) {
           var isExplicitField =
@@ -164,6 +169,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         }
       },
     );
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -182,11 +188,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       enterBodyScope: () {
         LinkingNodeContext(node, nameScope);
       },
-      visitBody: (body) {
-        body.members.accept(this);
-        nodesToBuildType.addDeclaration(node);
-      },
     );
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -204,11 +207,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       enterBodyScope: () {
         LinkingNodeContext(node, nameScope);
       },
-      visitBody: (body) {
-        body.accept(this);
-        nodesToBuildType.addDeclaration(node);
-      },
     );
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -255,8 +255,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       node.type?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
-      nodesToBuildType.addDeclaration(node);
     });
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -275,8 +275,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       node.metadata.accept(this);
       node.returnType?.accept(this);
       node.functionExpression.accept(this);
-      nodesToBuildType.addDeclaration(node);
     });
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -287,16 +287,16 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    nodesToBuildType.addDeclaration(node);
     _scopeContext.visitFunctionTypeAlias(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
   void visitFunctionTypedFormalParameter(
     covariant FunctionTypedFormalParameterImpl node,
   ) {
-    nodesToBuildType.addDeclaration(node);
     _scopeContext.visitFunctionTypedFormalParameter(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -312,8 +312,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    nodesToBuildType.addDeclaration(node);
     _scopeContext.visitGenericTypeAlias(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -329,15 +329,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       enterTypeParameterScope: () {
         LinkingNodeContext(node, nameScope);
       },
-      visitBody: (_) {
-        nodesToBuildType.addDeclaration(node);
-      },
     );
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    nodesToBuildType.addDeclaration(node);
     _scopeContext.visitMixinDeclaration(
       node,
       visitor: this,
@@ -345,6 +342,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         LinkingNodeContext(node, nameScope);
       },
     );
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -410,6 +408,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitNativeClause(NativeClause node) {}
 
   @override
+  void visitNativeFunctionBody(NativeFunctionBody node) {}
+
+  @override
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     LinkingNodeContext(node, nameScope);
   }
@@ -469,8 +470,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       node.type?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
-      nodesToBuildType.addDeclaration(node);
     });
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override

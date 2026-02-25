@@ -95,7 +95,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
 
   /// Validates that there is a target in [testTargets]  with [testFile], at the
   /// offset of [search] in [testFile], and with the given [length] or the
-  /// length of an leading identifier in [search].
+  /// length of a leading identifier in [search].
   void assertHasTarget(String search, {int length = -1, File? targetFile}) {
     var file = targetFile ?? testFile;
     var offset = offsetInFile(file, search);

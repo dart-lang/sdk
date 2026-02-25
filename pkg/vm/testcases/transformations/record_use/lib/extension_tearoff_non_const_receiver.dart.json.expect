@@ -1,11 +1,8 @@
 {
   "constants": [
     {
-      "type": "non_constant"
-    },
-    {
       "type": "string",
-      "value": "hello-world"
+      "value": "43"
     }
   ],
   "definitions": [
@@ -23,7 +20,7 @@
           "name": "foo"
         }
       ],
-      "uri": "package:record_use_test/named_with_function_arg.dart"
+      "uri": "package:record_use_test/extension_tearoff_non_const_receiver.dart"
     }
   ],
   "loading_units": [
@@ -44,14 +41,8 @@
             "loading_unit_indices": [
               0
             ],
-            "named": {
-              "s": 1
-            },
-            "positional": [
-              0
-            ],
             "receiver": 0,
-            "type": "with_arguments"
+            "type": "tearoff"
           }
         ]
       }

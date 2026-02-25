@@ -1,0 +1,23 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension StringUtils on core::String {
+  static method printHello = self::StringUtils|printHello;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+@#C1
+static extension-member method StringUtils|printHello([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "arg")] core::String s) → void
+  return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::print("hello ${s}");
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::StringUtils|printHello("arg");
+}
+constants  {
+  #C1 = meta::RecordUse {}
+}

@@ -114,7 +114,7 @@ class ModelEmitter {
   final api.CompilerOutput _outputProvider;
   final DumpInfoJsAstRegistry _dumpInfoRegistry;
   late final RecordUseCollector _recordUseCollector = RecordUseCollector(
-    _closedWorld.elementEnvironment,
+    _closedWorld.elementMap,
   );
   final Namer _namer;
   final CompilerTask _task;

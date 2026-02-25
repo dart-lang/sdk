@@ -983,3 +983,136 @@ String? extractQualifiedNameFromExtensionMember(Member member) {
   }
   return null;
 }
+
+// Coverage-ignore(suite): Not run.
+extension ExtensionMemberExtension on Member {
+  ExtensionMemberDescriptor? get extensionMemberDescriptor {
+    if (!isExtensionMember) return null;
+    for (Extension extension in enclosingLibrary.extensions) {
+      for (ExtensionMemberDescriptor descriptor
+          in extension.memberDescriptors) {
+        if (descriptor.memberReference == reference ||
+            descriptor.tearOffReference == reference) {
+          return descriptor;
+        }
+      }
+    }
+    assert(false, "Extension member descriptor not found for $this");
+    return null;
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+extension ExtensionTypeMemberExtension on Member {
+  ExtensionTypeMemberDescriptor? get extensionTypeMemberDescriptor {
+    if (!isExtensionTypeMember) return null;
+    for (ExtensionTypeDeclaration extensionTypeDeclaration
+        in enclosingLibrary.extensionTypeDeclarations) {
+      for (ExtensionTypeMemberDescriptor descriptor
+          in extensionTypeDeclaration.memberDescriptors) {
+        if (descriptor.memberReference == reference ||
+            descriptor.tearOffReference == reference) {
+          return descriptor;
+        }
+      }
+    }
+    assert(false, "Extension type member descriptor not found for $this");
+    return null;
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns `true` if [node] is a lowered extension or extension type getter.
+bool isExtensionMemberGetter(Procedure node) {
+  final ExtensionMemberDescriptor? descriptor = node.extensionMemberDescriptor;
+  if (descriptor != null) {
+    return descriptor.kind == ExtensionMemberKind.Getter &&
+        descriptor.memberReference == node.reference;
+  }
+  final ExtensionTypeMemberDescriptor? extensionTypeDescriptor =
+      node.extensionTypeMemberDescriptor;
+  if (extensionTypeDescriptor != null) {
+    return extensionTypeDescriptor.kind == ExtensionTypeMemberKind.Getter &&
+        extensionTypeDescriptor.memberReference == node.reference;
+  }
+  return false;
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns `true` if [node] is a lowered extension or extension type setter.
+bool isExtensionMemberSetter(Procedure node) {
+  final ExtensionMemberDescriptor? descriptor = node.extensionMemberDescriptor;
+  if (descriptor != null) {
+    return descriptor.kind == ExtensionMemberKind.Setter &&
+        descriptor.memberReference == node.reference;
+  }
+  final ExtensionTypeMemberDescriptor? extensionTypeDescriptor =
+      node.extensionTypeMemberDescriptor;
+  if (extensionTypeDescriptor != null) {
+    return extensionTypeDescriptor.kind == ExtensionTypeMemberKind.Setter &&
+        extensionTypeDescriptor.memberReference == node.reference;
+  }
+  return false;
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns `true` if [node] is a lowered extension or extension type operator.
+bool isExtensionMemberOperator(Procedure node) {
+  final ExtensionMemberDescriptor? descriptor = node.extensionMemberDescriptor;
+  if (descriptor != null) {
+    return descriptor.kind == ExtensionMemberKind.Operator &&
+        descriptor.memberReference == node.reference;
+  }
+  final ExtensionTypeMemberDescriptor? extensionTypeDescriptor =
+      node.extensionTypeMemberDescriptor;
+  if (extensionTypeDescriptor != null) {
+    return extensionTypeDescriptor.kind == ExtensionTypeMemberKind.Operator &&
+        extensionTypeDescriptor.memberReference == node.reference;
+  }
+  return false;
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns `true` if [node] is a lowered extension or extension type method
+/// tear-off.
+bool isExtensionMemberTearOff(Procedure node) {
+  final ExtensionMemberDescriptor? descriptor = node.extensionMemberDescriptor;
+  if (descriptor != null) {
+    return descriptor.tearOffReference == node.reference;
+  }
+  final ExtensionTypeMemberDescriptor? extensionTypeDescriptor =
+      node.extensionTypeMemberDescriptor;
+  if (extensionTypeDescriptor != null) {
+    return extensionTypeDescriptor.tearOffReference == node.reference;
+  }
+  return false;
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns the implementation [Procedure] for a lowered extension or extension
+/// type member [node], if it exists.
+///
+/// For instance, for the tear-off lowering `Extension|get#method`, this returns
+/// the implementation method `Extension|method`.
+Procedure? getExtensionMemberImplementation(Procedure node) {
+  final ExtensionMemberDescriptor? descriptor = node.extensionMemberDescriptor;
+  if (descriptor != null) {
+    if (descriptor.tearOffReference == node.reference) {
+      return descriptor.memberReference?.asProcedure;
+    }
+  }
+  final ExtensionTypeMemberDescriptor? extensionTypeDescriptor =
+      node.extensionTypeMemberDescriptor;
+  if (extensionTypeDescriptor != null) {
+    if (extensionTypeDescriptor.tearOffReference == node.reference) {
+      return extensionTypeDescriptor.memberReference?.asProcedure;
+    }
+  }
+  return null;
+}
+
+/// The name of the internal field in an enum that stores its index.
+const String enumIndexFieldName = 'index';
+
+/// The name of the internal field in an enum that stores its name.
+const String enumNameFieldName = '_name';

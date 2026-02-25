@@ -12,6 +12,7 @@ library;
 
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+import 'package:kernel/ast.dart' as ir;
 import 'package:record_use/record_use_internal.dart';
 
 import '../common/elements.dart';
@@ -19,6 +20,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
+import '../js_model/element_map.dart';
 import '../universe/recorded_use.dart'
     show
         findInstanceValue,
@@ -43,8 +45,10 @@ class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
 }
 
 class RecordUseCollector {
-  final JElementEnvironment _elementEnvironment;
-  RecordUseCollector(this._elementEnvironment);
+  final JsToElementMap _elementMap;
+  RecordUseCollector(this._elementMap);
+
+  JElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
 
   final Map<FunctionEntity, List<CallReference>> callMap = {};
   final Map<ClassEntity, List<InstanceReference>> instanceMap = {};
@@ -58,20 +62,35 @@ class RecordUseCollector {
       case RecordedCallWithArguments():
         final reference = CallWithArguments(
           loadingUnits: [LoadingUnit(loadingUnit)],
-          namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
-          positionalArguments: recordedUse
-              .positionalArgumentsInRecordUseFormat(),
+          receiver: recordedUse.receiverInRecordUseFormat(_elementEnvironment),
+          namedArguments: recordedUse.namedArgumentsInRecordUseFormat(
+            _elementEnvironment,
+          ),
+          positionalArguments: recordedUse.positionalArgumentsInRecordUseFormat(
+            _elementEnvironment,
+          ),
         );
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
         break;
       case RecordedTearOff():
-        final reference = CallTearoff(loadingUnits: [LoadingUnit(loadingUnit)]);
+        final reference = CallTearoff(
+          loadingUnits: [LoadingUnit(loadingUnit)],
+          receiver: recordedUse.receiverInRecordUseFormat(_elementEnvironment),
+        );
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
         break;
       case RecordedConstInstance():
-        final instanceValue = findInstanceValue(recordedUse.constant);
+        if (_elementEnvironment.isEnumClass(recordedUse.constantClass)) {
+          // TODO(https://github.com/dart-lang/native/issues/2908): Support enum
+          // constant instances.
+          break;
+        }
+        final instanceValue = findInstanceValue(
+          recordedUse.constant,
+          _elementEnvironment,
+        );
         final reference = InstanceConstantReference(
-          instanceConstant: instanceValue,
+          instanceConstant: instanceValue as InstanceConstant,
           loadingUnits: [LoadingUnit(loadingUnit)],
         );
         instanceMap
@@ -81,34 +100,68 @@ class RecordUseCollector {
     }
   }
 
-  Map<String, dynamic> finish(Map<String, String> environment) => Recordings(
-    metadata: Metadata(
-      comment:
-          'Recorded usages of objects tagged with a `RecordUse` annotation',
-      version: version,
-      extension: {'AppTag': 'TBD', 'environment': environment},
-    ),
-    calls: callMap.map((k, v) => MapEntry(_getDefinitionForFunction(k), v)),
-    instances: instanceMap.map((key, value) {
-      return MapEntry(
-        Definition(key.library.canonicalUri.toString(), [
-          Name(kind: DefinitionKind.classKind, key.name),
-        ]),
-        value,
-      );
-    }),
-  ).toJson();
+  Map<String, dynamic> finish(Map<String, String> environment) {
+    final calls = <Definition, List<CallReference>>{};
+    callMap.forEach((k, v) {
+      final definition = _getDefinitionForFunction(k);
+      // Multiple FunctionEntitys can map to the same Definition, for example
+      // an extension member implementation and its extension member tear-off.
+      // We merge them here because they represent the same logical member.
+      calls.putIfAbsent(definition, () => []).addAll(v);
+    });
+    return Recordings(
+      metadata: Metadata(
+        comment:
+            'Recorded usages of objects tagged with a `RecordUse` annotation',
+        version: version,
+        extension: {'AppTag': 'TBD', 'environment': environment},
+      ),
+      calls: calls,
+      instances: instanceMap.map((key, value) {
+        return MapEntry(
+          Definition(key.library.canonicalUri.toString(), [
+            Name(
+              key.name,
+              kind: _elementEnvironment.isEnumClass(key)
+                  ? DefinitionKind.enumKind
+                  : DefinitionKind.classKind,
+            ),
+          ]),
+          value,
+        );
+      }),
+    ).toJson();
+  }
 
   Definition _getDefinitionForFunction(FunctionEntity function) {
     final libraryUri = function.library.canonicalUri.toString();
     final String name = function.name!;
 
-    DefinitionKind kind = switch (function) {
-      _ when function.isGetter => DefinitionKind.getterKind,
-      _ when function.isSetter => DefinitionKind.setterKind,
-      ConstructorEntity() => DefinitionKind.constructorKind,
-      _ => DefinitionKind.methodKind,
-    };
+    final node = _elementMap.getMemberDefinition(function).node;
+    DefinitionKind kind = DefinitionKind.methodKind;
+    if (node is ir.Procedure) {
+      if (node.isExtensionMember || node.isExtensionTypeMember) {
+        kind = isExtensionMemberTearOff(node)
+            ? DefinitionKind.methodKind
+            : isExtensionMemberGetter(node)
+            ? DefinitionKind.getterKind
+            : isExtensionMemberSetter(node)
+            ? DefinitionKind.setterKind
+            : isExtensionMemberOperator(node)
+            ? DefinitionKind.operatorKind
+            : DefinitionKind.methodKind;
+      } else {
+        kind = switch (node.kind) {
+          ir.ProcedureKind.Getter => DefinitionKind.getterKind,
+          ir.ProcedureKind.Setter => DefinitionKind.setterKind,
+          ir.ProcedureKind.Operator => DefinitionKind.operatorKind,
+          ir.ProcedureKind.Factory => DefinitionKind.constructorKind,
+          ir.ProcedureKind.Method => DefinitionKind.methodKind,
+        };
+      }
+    } else if (function is ConstructorEntity) {
+      kind = DefinitionKind.constructorKind;
+    }
 
     final String? qualifiedExtensionName =
         extractQualifiedNameFromExtensionMethodName(name);

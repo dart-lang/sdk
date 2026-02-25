@@ -1278,7 +1278,7 @@ final a = new MyNewClass();
     if (expectedContent == null) {
       expect(result, isNull);
     } else {
-      // For convenience, if a test doesn't provide an full set of edits
+      // For convenience, if a test doesn't provide a full set of edits
       // we assume only a single edit of the file that was being modified.
       if (!expectedContent.startsWith(LspChangeVerifier.editMarkerStart)) {
         expectedContent =

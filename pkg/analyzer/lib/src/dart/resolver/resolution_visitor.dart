@@ -39,9 +39,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final NamedTypeResolver _namedTypeResolver;
   final RecordTypeAnnotationResolver _recordTypeResolver;
 
-  /// The enclosing instance element, or `null` if not in an instance element.
-  InstanceElement? _enclosingInstanceElement;
-
   /// Data structure for tracking declared pattern variables.
   late final _VariableBinder _patternVariables = _VariableBinder(
     errors: _VariableBinderErrors(this),
@@ -144,7 +141,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     if (element == null) {
       // Recovery: the code might try to refer to an instance field.
-      if (_enclosingInstanceElement
+      if (_scopeContext.enclosingInstanceElement
           case InterfaceElementImpl enclosingInterfaceElement?) {
         var element = enclosingInterfaceElement.inheritanceManager.getMember(
           enclosingInterfaceElement,
@@ -211,17 +208,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-
-    _scopeContext.visitClassDeclaration(
-      node,
-      visitor: this,
-      visitBody: (body) {
-        _withEnclosingInstanceElement(element, () {
-          body.accept(this);
-        });
-      },
-    );
-
+    _scopeContext.visitClassDeclaration(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
@@ -338,18 +325,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-
-    _scopeContext.visitEnumDeclaration(
-      node,
-      visitor: this,
-      visitBody: (_) {
-        _withEnclosingInstanceElement(element, () {
-          node.body.constants.accept(this);
-          node.body.members.accept(this);
-        });
-      },
-    );
-
+    _scopeContext.visitEnumDeclaration(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
@@ -369,18 +345,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.visitExtensionDeclaration(
-      node,
-      visitor: this,
-      visitBody: (body) {
-        _withEnclosingInstanceElement(element, () {
-          body.accept(this);
-        });
-      },
-    );
+    _scopeContext.visitExtensionDeclaration(node, visitor: this);
   }
 
   @override
@@ -391,18 +356,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-    node.metadata.accept(this);
-
-    _scopeContext.visitExtensionTypeDeclaration(
-      node,
-      visitor: this,
-      visitBody: (body) {
-        _withEnclosingInstanceElement(element, () {
-          body.accept(this);
-        });
-      },
-    );
-
+    _scopeContext.visitExtensionTypeDeclaration(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
@@ -595,7 +549,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       nameScope,
       node,
       libraryElement: _libraryElement,
-      enclosingInstanceElement: _enclosingInstanceElement,
+      enclosingInstanceElement: _scopeContext.enclosingInstanceElement,
     );
     if (newNode != node) {
       if (node.constructorName.type.typeArguments != null &&
@@ -679,18 +633,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.visitMixinDeclaration(
-      node,
-      visitor: this,
-      visitBody: (body) {
-        _withEnclosingInstanceElement(element, () {
-          body.accept(this);
-        });
-      },
-    );
+    _scopeContext.visitMixinDeclaration(node, visitor: this);
   }
 
   @override
@@ -1280,19 +1223,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         statement.accept(this);
       }
     });
-  }
-
-  void _withEnclosingInstanceElement(
-    InstanceElement element,
-    void Function() f,
-  ) {
-    var previous = _enclosingInstanceElement;
-    _enclosingInstanceElement = element;
-    try {
-      f();
-    } finally {
-      _enclosingInstanceElement = previous;
-    }
   }
 
   /// We always build local elements for [VariableDeclarationStatement]s and
