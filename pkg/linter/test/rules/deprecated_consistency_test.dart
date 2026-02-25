@@ -207,4 +207,41 @@ class A(this.a) {
       [lint(8, 6)],
     );
   }
+
+  test_repro_62759() async {
+    // Regression test for issue 62759: deprecated_consistency lint swaps
+    // parameter and field
+    await assertDiagnostics(
+      r'''
+class C {
+  @deprecated
+  int? deprecatedField;
+
+  int? deprecatedParameter;
+
+  C({this.deprecatedField, @deprecated this.deprecatedParameter});
+}
+''',
+      [
+        lint(
+          56,
+          19,
+          messageContainsAll: [
+            // ignore: no_adjacent_strings_in_list
+            'Fields that are initialized by a deprecated parameter should be '
+                'deprecated',
+          ],
+        ),
+        lint(
+          83,
+          20,
+          messageContainsAll: [
+            // ignore: no_adjacent_strings_in_list
+            'Parameters that initialize a deprecated field should be '
+                'deprecated',
+          ],
+        ),
+      ],
+    );
+  }
 }

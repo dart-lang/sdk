@@ -80,7 +80,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (field.metadata.hasDeprecated &&
         !declaredElement.metadata.hasDeprecated) {
-      rule.reportAtNode(node, diagnosticCode: diag.deprecatedConsistencyField);
+      rule.reportAtNode(
+        node,
+        diagnosticCode: diag.deprecatedConsistencyParameter,
+      );
     }
     if (!field.metadata.hasDeprecated &&
         declaredElement.metadata.hasDeprecated) {
@@ -92,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         nameOffset,
         nameLength,
-        diagnosticCode: diag.deprecatedConsistencyParameter,
+        diagnosticCode: diag.deprecatedConsistencyField,
       );
     }
   }
