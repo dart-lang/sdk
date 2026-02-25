@@ -3801,6 +3801,12 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   @override
   final GenericFunctionTypeFragmentImpl _firstFragment;
 
+  @override
+  late TypeImpl returnType;
+
+  /// The type defined by this element.
+  FunctionTypeImpl? _type;
+
   GenericFunctionTypeElementImpl(this._firstFragment);
 
   @override
@@ -3843,10 +3849,20 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   String? get name => _firstFragment.name;
 
   @override
-  TypeImpl get returnType => _firstFragment.returnType;
+  FunctionTypeImpl get type {
+    return _type ??= FunctionTypeImpl(
+      typeParameters: typeParameters,
+      parameters: formalParameters,
+      returnType: returnType,
+      nullabilitySuffix: _firstFragment.isNullable
+          ? NullabilitySuffix.question
+          : NullabilitySuffix.none,
+    );
+  }
 
-  @override
-  FunctionType get type => _firstFragment.type;
+  set type(FunctionTypeImpl type) {
+    _type = type;
+  }
 
   @override
   List<TypeParameterElementImpl> get typeParameters => _firstFragment
@@ -3873,17 +3889,11 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
     implements FunctionTypedFragmentImpl, GenericFunctionTypeFragment {
   List<TypeParameterFragmentImpl> _typeParameters = const [];
 
-  /// The declared return type of the function.
-  TypeImpl? _returnType;
-
   /// The elements representing the parameters of the function.
   List<FormalParameterFragmentImpl> _formalParameters = const [];
 
   /// Is `true` if the type has the question mark, so is nullable.
   bool isNullable = false;
-
-  /// The type defined by this element.
-  FunctionTypeImpl? _type;
 
   late final GenericFunctionTypeElementImpl _element2 =
       GenericFunctionTypeElementImpl(this);
@@ -3929,38 +3939,6 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
 
   @override
   GenericFunctionTypeFragmentImpl? get previousFragment => null;
-
-  /// The return type defined by this element.
-  TypeImpl get returnType {
-    return _returnType!;
-  }
-
-  /// Set the return type defined by this function type element to the given
-  /// [returnType].
-  set returnType(DartType returnType) {
-    // TODO(paulberry): eliminate this cast by changing the setter parameter
-    // type to `TypeImpl`.
-    _returnType = returnType as TypeImpl;
-  }
-
-  FunctionTypeImpl get type {
-    if (_type != null) return _type!;
-
-    return _type = FunctionTypeImpl(
-      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
-      parameters: formalParameters.map((f) => f.asElement2).toList(),
-      returnType: returnType,
-      nullabilitySuffix: isNullable
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.none,
-    );
-  }
-
-  /// Set the function type defined by this function type element to the given
-  /// [type].
-  set type(FunctionTypeImpl type) {
-    _type = type;
-  }
 
   @override
   List<TypeParameterFragmentImpl> get typeParameters {

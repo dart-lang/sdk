@@ -796,7 +796,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeGenericFunctionTypeElement(
+        _writeGenericFunctionTypeFragment(
           'declaredFragment',
           node.declaredFragment,
         );
@@ -1908,17 +1908,19 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
-  void _writeGenericFunctionTypeElement(
+  void _writeGenericFunctionTypeFragment(
     String name,
-    GenericFunctionTypeFragmentImpl? element,
+    GenericFunctionTypeFragmentImpl? fragment,
   ) {
     _sink.writeWithIndent('$name: ');
-    if (element == null) {
+    if (fragment == null) {
       _sink.writeln('<null>');
     } else {
       _sink.withIndent(() {
         _sink.writeln('GenericFunctionTypeElement');
-        _writeFormalParameterFragments(element.formalParameters);
+        _writeFormalParameterFragments(fragment.formalParameters);
+
+        var element = fragment.element;
         _writeType('returnType', element.returnType);
         _writeType('type', element.type);
       });

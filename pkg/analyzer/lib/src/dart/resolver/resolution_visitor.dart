@@ -516,28 +516,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var fragment = node.declaredFragment!;
     _scopeContext.visitGenericFunctionType(node, visitor: this);
 
-    // TODO(scheglov): use element
-    fragment.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
-    var parameters = node.parameters.parameters;
-    for (var i = 0; i < parameters.length; i++) {
-      var parameter = parameters[i];
-      if (parameter is SimpleFormalParameterImpl) {
-        var element = fragment.formalParameters[i];
-        element.element.type =
-            parameter.type?.type ?? _typeProvider.dynamicType;
-      }
-    }
+    var element = node.declaredFragment!.element;
+    element.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
 
     var type = FunctionTypeImpl(
-      typeParameters: fragment.typeParameters.map((f) => f.element).toList(),
-      parameters: fragment.formalParameters.map((f) => f.element).toList(),
-      returnType: fragment.returnType,
+      typeParameters: element.typeParameters,
+      parameters: element.formalParameters,
+      returnType: element.returnType,
       nullabilitySuffix: _getNullability(node.question != null),
     );
-    fragment.type = type;
+    element.type = type;
     node.type = type;
   }
 
