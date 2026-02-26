@@ -50,7 +50,6 @@ class JsInteropChecks extends RecursiveVisitor {
 
   final ExportChecker exportChecker;
   final bool isDart2Wasm;
-  final bool enableExperimentalFfi;
 
   /// Native tests to exclude from checks on external.
   // TODO(rileyporter): Use ExternalName from CFE to exclude native tests.
@@ -62,18 +61,6 @@ class JsInteropChecks extends RecursiveVisitor {
 
   static final List<Pattern> _allowedTrustTypesTestPatterns = [
     RegExp(r'(?<!generated_)tests/lib/js'),
-  ];
-
-  static const allowedInteropLibrariesInDart2WasmPackages = [
-    // Flutter/benchmarks.
-    'flutter',
-    'engine',
-    'ui',
-    // Non-SDK packages that have been migrated for the Wasm experiment but
-    // still have references to older interop libraries.
-    'package_info_plus',
-    'test',
-    'url_launcher_web',
   ];
 
   /// Libraries that use `external` to exclude from checks on external.
@@ -104,7 +91,6 @@ class JsInteropChecks extends RecursiveVisitor {
     this._reporter,
     this._nativeClasses, {
     this.isDart2Wasm = false,
-    this.enableExperimentalFfi = false,
   }) : exportChecker = ExportChecker(_reporter, _coreTypes.objectClass),
        _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
          'dart:js_interop',
@@ -315,8 +301,6 @@ class JsInteropChecks extends RecursiveVisitor {
     _libraryHasJSAnnotation =
         _libraryHasDartJSInteropAnnotation || hasJSInteropAnnotation(node);
     _libraryIsGlobalNamespace = _isLibraryGlobalNamespace(node);
-
-    if (isDart2Wasm) _checkDisallowedLibrariesForDart2Wasm(node);
 
     super.visitLibrary(node);
     exportChecker.visitLibrary(node);
@@ -555,35 +539,6 @@ class JsInteropChecks extends RecursiveVisitor {
   // work.
 
   // JS interop library checks
-
-  /// Check that [node] doesn't depend on any disallowed interop libraries in
-  /// dart2wasm.
-  ///
-  /// We allowlist `dart:*` libraries and select packages.
-  void _checkDisallowedLibrariesForDart2Wasm(Library node) {
-    final uri = node.importUri;
-    for (final dependency in node.dependencies) {
-      final dependencyUriString = dependency.targetLibrary.importUri.toString();
-      if (!enableExperimentalFfi && dependencyUriString == 'dart:ffi') {
-        // TODO(srujzs): While we allow these imports for all `dart:*`
-        // libraries, we may want to restrict this further, as it may include
-        // `dart:ui`.
-        final allowedToImport =
-            uri.isScheme('dart') ||
-            uri.isScheme('package') &&
-                allowedInteropLibrariesInDart2WasmPackages.contains(
-                  uri.pathSegments.first,
-                );
-        if (allowedToImport) return;
-        _reporter.report(
-          diag.dartFfiLibraryInDart2Wasm,
-          dependency.fileOffset,
-          dependencyUriString.length,
-          node.fileUri,
-        );
-      }
-    }
-  }
 
   /// Compute whether top-level nodes under [node] would be using the global
   /// JS namespace.

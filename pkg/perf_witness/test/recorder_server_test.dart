@@ -944,9 +944,8 @@ void main() {
       expect(traceData.seenEvents, containsAll(['sleep']));
     });
 
-    test(
-      'with deferred units',
-      () async {
+    if (!io.Platform.isMacOS) {
+      test('with deferred units', () async {
         final outputDir = io.Directory('${tempDir.path}/output')..createSync();
 
         final busyLoopAotProcess = await BusyLoopProcess.start(
@@ -995,11 +994,8 @@ void main() {
         expect(traceData.seenEvents, containsAll(['sleep']));
 
         await busyLoopAotProcess.process.askToExit();
-      },
-      onPlatform: {
-        'mac-os': Skip('Deferred units are not supported on Mac OS'),
-      },
-    );
+      });
+    }
 
     test('AOT compiled busy loop is recorded', () async {
       final busyLoopProcess = await BusyLoopProcess.start(

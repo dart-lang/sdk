@@ -1,70 +1,70 @@
 {
   "constants": [
     {
-      "type": "int",
-      "value": 15
-    },
-    {
-      "type": "string",
-      "value": "s"
-    },
-    {
-      "type": "string",
-      "value": "h"
+      "type": "null"
     },
     {
       "type": "bool",
       "value": false
     },
     {
-      "type": "map",
-      "value": [
-        {
-          "key": 2,
-          "value": 3
-        }
-      ]
-    },
-    {
       "type": "bool",
       "value": true
-    },
-    {
-      "type": "string",
-      "value": "l"
     },
     {
       "type": "int",
       "value": 3
     },
     {
+      "type": "int",
+      "value": 15
+    },
+    {
+      "type": "string",
+      "value": "h"
+    },
+    {
+      "type": "string",
+      "value": "l"
+    },
+    {
+      "type": "string",
+      "value": "s"
+    },
+    {
+      "type": "map",
+      "value": [
+        {
+          "key": 5,
+          "value": 1
+        }
+      ]
+    },
+    {
       "type": "map",
       "value": [
         {
           "key": 6,
-          "value": 7
+          "value": 3
         }
       ]
     },
     {
       "type": "list",
       "value": [
-        8
+        9
       ]
-    },
-    {
-      "type": "null"
     },
     {
       "definition_index": 0,
       "type": "instance",
       "value": {
-        "i": 0,
-        "s": 1,
-        "m": 4,
-        "b": 5,
-        "l": 9,
-        "n": 10
+        "b": 2,
+        "i": 4,
+        "l": 10,
+        "m": 8,
+        "n": 0,
+        "s": 7
       }
     }
   ],
@@ -85,7 +85,7 @@
     }
   ],
   "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
     "version": "0.4.0"
   },
   "uses": {

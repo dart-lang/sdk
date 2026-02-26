@@ -5,7 +5,7 @@
       "type": "unsupported"
     },
     {
-      "definition_index": 1,
+      "definition_index": 0,
       "type": "instance",
       "value": {
         "field": 0
@@ -13,6 +13,15 @@
     }
   ],
   "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "MyClass"
+        }
+      ],
+      "uri": "package:record_use_test/unsupported_instance.dart"
+    },
     {
       "path": [
         {
@@ -24,15 +33,6 @@
         }
       ],
       "uri": "package:record_use_test/unsupported_instance.dart"
-    },
-    {
-      "path": [
-        {
-          "kind": "class",
-          "name": "MyClass"
-        }
-      ],
-      "uri": "package:record_use_test/unsupported_instance.dart"
     }
   ],
   "loading_units": [
@@ -41,13 +41,13 @@
     }
   ],
   "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
     "version": "0.4.0"
   },
   "uses": {
     "instances": [
       {
-        "definition_index": 1,
+        "definition_index": 0,
         "uses": [
           {
             "constant_index": 1,
@@ -61,7 +61,7 @@
     ],
     "static_calls": [
       {
-        "definition_index": 0,
+        "definition_index": 1,
         "uses": [
           {
             "loading_unit_indices": [

@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
 import 'package:vm/metadata/loading_units.dart' as vm_metadata;
@@ -94,6 +95,24 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   }
 
   @override
+  void visitStaticGet(ast.StaticGet node) {
+    if (_isAnnotation(node)) return;
+
+    staticCallRecorder.recordStaticGet(node);
+
+    super.visitStaticGet(node);
+  }
+
+  @override
+  void visitStaticSet(ast.StaticSet node) {
+    if (_isAnnotation(node)) return;
+
+    staticCallRecorder.recordStaticSet(node);
+
+    super.visitStaticSet(node);
+  }
+
+  @override
   void visitConstantExpression(ast.ConstantExpression node) {
     if (_isAnnotation(node)) return;
 
@@ -127,15 +146,7 @@ Recordings _usages(
   Map<Definition, List<CallReference>> calls,
   Map<Definition, List<InstanceReference>> instances,
 ) {
-  return Recordings(
-    metadata: Metadata(
-      comment:
-          'Recorded usages of objects tagged with a `RecordUse` annotation',
-      version: version,
-    ),
-    calls: calls,
-    instances: instances,
-  );
+  return Recordings(calls: calls, instances: instances);
 }
 
 Constant evaluateConstant(ast.Constant constant) => switch (constant) {
@@ -158,9 +169,15 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
     constant.entries.map(evaluateConstant).toList(),
   ),
   ast.InstanceConstant() =>
-    constant.classNode.isEnum
-        ? evaluateEnumConstant(constant)
-        : evaluateInstanceConstant(constant),
+    !isBeingRecorded(constant.classNode)
+        ? UnsupportedConstant(
+          "The definition of '${constant.classNode.name}' from "
+          "'${constant.classNode.enclosingLibrary.importUri}' must be "
+          "annotated with '@RecordUse()'.",
+        )
+        : (constant.classNode.isEnum
+            ? evaluateEnumConstant(constant)
+            : evaluateInstanceConstant(constant)),
   ast.RecordConstant() => evaluateRecordConstant(constant),
   // The following are not supported, but theoretically could be, so they
   // are listed explicitly here.
@@ -197,6 +214,13 @@ Constant evaluateLiteral(ast.BasicLiteral expression) => switch (expression) {
 };
 
 EnumConstant evaluateEnumConstant(ast.InstanceConstant constant) {
+  if (!isBeingRecorded(constant.classNode)) {
+    throw UnsupportedConstant(
+      "The definition of '${constant.classNode.name}' from "
+      "'${constant.classNode.enclosingLibrary.importUri}' must be "
+      "annotated with '@RecordUse()'.",
+    );
+  }
   int? index;
   String? name;
   final fields = <String, Constant>{};
@@ -218,14 +242,21 @@ EnumConstant evaluateEnumConstant(ast.InstanceConstant constant) {
   );
 }
 
-InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) =>
-    InstanceConstant(
-      definition: _definitionFromClass(constant.classNode),
-      fields: constant.fieldValues.map(
-        (key, value) =>
-            MapEntry(key.asField.name.text, evaluateConstant(value)),
-      ),
+InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) {
+  if (!isBeingRecorded(constant.classNode)) {
+    throw UnsupportedConstant(
+      "The definition of '${constant.classNode.name}' from "
+      "'${constant.classNode.enclosingLibrary.importUri}' must be "
+      "annotated with '@RecordUse()'.",
     );
+  }
+  return InstanceConstant(
+    definition: _definitionFromClass(constant.classNode),
+    fields: constant.fieldValues.map(
+      (key, value) => MapEntry(key.asField.name.text, evaluateConstant(value)),
+    ),
+  );
+}
 
 RecordConstant evaluateRecordConstant(ast.RecordConstant constant) {
   return RecordConstant(

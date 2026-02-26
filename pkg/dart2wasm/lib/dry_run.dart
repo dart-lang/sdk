@@ -20,6 +20,7 @@ import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/rules/avoid_double_and_int_checks.dart';
 import 'package:linter/src/rules/invalid_runtime_check_with_js_interop_types.dart';
 import 'package:path/path.dart' as p;
+import 'target.dart' show allowedToImportDartFfiOrUsePragmas;
 
 /// Used to record the type of error in Flutter telemetry.
 ///
@@ -47,7 +48,8 @@ enum _DryRunErrorCode {
   invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs(12),
   avoidDoubleAndIntChecks(13),
   noPackageJs(14),
-  noDartJsUtil(15);
+  noDartJsUtil(15),
+  noDartFfiWithoutFlag(16);
 
   const _DryRunErrorCode(this.code);
 
@@ -90,10 +92,11 @@ class DryRunSummarizer {
   final _invalidRuntimeCheckWithJSInteropTypes =
       InvalidRuntimeCheckWithJSInteropTypes();
   final Component component;
+  final bool enableExperimentalFfi;
   late final CoreTypes coreTypes;
   late final ClassHierarchy classHierarchy;
 
-  DryRunSummarizer(this.component) {
+  DryRunSummarizer(this.component, {required this.enableExperimentalFfi}) {
     coreTypes = CoreTypes(component);
     classHierarchy = ClassHierarchy(component, coreTypes);
   }
@@ -106,7 +109,6 @@ class DryRunSummarizer {
     'dart:svg': _DryRunErrorCode.noDartHtml,
     'dart:web_audio': _DryRunErrorCode.noDartHtml,
     'dart:web_gl': _DryRunErrorCode.noDartHtml,
-    // 'dart:ffi' is handled by interop checks.
   };
 
   static const Map<String, _DryRunErrorCode> _disallowedPackageUris = {
@@ -126,15 +128,28 @@ class DryRunSummarizer {
     final errors = <_DryRunError>[];
 
     for (final library in component.libraries) {
-      if (_shouldSkipLibrary(library)) continue;
+      final skipLibraryForFfiCheck =
+          allowedToImportDartFfiOrUsePragmas(library.importUri) ||
+              enableExperimentalFfi;
+      final skipLibraryForGeneralChecks = _shouldSkipLibrary(library);
 
       for (final dep in library.dependencies) {
         final depLib = dep.importedLibraryReference.asLibrary;
         final depUriString = depLib.importUri.toString();
+        if (depUriString == 'dart:ffi') {
+          if (!skipLibraryForFfiCheck) {
+            errors.add(_DryRunError(_DryRunErrorCode.noDartFfiWithoutFlag,
+                '$depUriString unsupported without --enable-experimental-ffi',
+                errorSourceUri: library.importUri,
+                errorLocation: dep.location));
+          }
+          continue;
+        }
+        if (skipLibraryForGeneralChecks) continue;
         var code = _disallowedDartUris[depUriString] ??
             _disallowedPackageUris[depUriString];
         if (code != null) {
-          errors.add(_DryRunError(code, '${depLib.importUri} unsupported',
+          errors.add(_DryRunError(code, '$depUriString unsupported',
               errorSourceUri: library.importUri, errorLocation: dep.location));
         }
       }

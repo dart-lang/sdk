@@ -5,6 +5,10 @@
       "value": 10
     },
     {
+      "type": "int",
+      "value": 20
+    },
+    {
       "definition_index": 1,
       "index": 0,
       "name": "a",
@@ -14,30 +18,26 @@
       }
     },
     {
-      "definition_index": 0,
-      "type": "instance",
-      "value": {
-        "a": 1
-      }
-    },
-    {
-      "type": "int",
-      "value": 20
-    },
-    {
       "definition_index": 1,
       "index": 1,
       "name": "b",
       "type": "enum",
       "value": {
-        "customField": 3
+        "customField": 1
       }
     },
     {
       "definition_index": 0,
       "type": "instance",
       "value": {
-        "a": 4
+        "a": 2
+      }
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "a": 3
       }
     }
   ],
@@ -67,7 +67,7 @@
     }
   ],
   "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
     "version": "0.4.0"
   },
   "uses": {
@@ -76,7 +76,7 @@
         "definition_index": 0,
         "uses": [
           {
-            "constant_index": 2,
+            "constant_index": 4,
             "loading_unit_indices": [
               0
             ],

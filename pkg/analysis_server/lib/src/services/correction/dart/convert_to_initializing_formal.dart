@@ -115,7 +115,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   /// Attempts to compute a change [parameter] to an initializing formal for
   /// [field].
   ///
-  /// This may not produce a change if it's not valid or safe to convert to an
+  /// This won't produce a change if it's not valid or safe to convert to an
   /// initializing formal.
   ///
   /// The parameter should currently be initialized by either [initializer] or
@@ -129,8 +129,10 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     ConstructorFieldInitializer? initializer,
     Statement? assignment,
   }) async {
+    assert(initializer == null || assignment == null);
     var parameterName = parameter.name!.lexeme;
     var fieldName = field.displayName;
+    var updateCommentReferences = false;
 
     if (parameter.isNamed) {
       if (fieldName == '_$parameterName') {
@@ -140,6 +142,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
             Identifier.isPrivateName(fieldName)) {
           return;
         }
+        updateCommentReferences = true;
       } else if (fieldName != parameterName) {
         // We can't rename the parameter to match the field name if the parameter
         // is named since that's an API change.
@@ -196,6 +199,19 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
           );
         } else {
           builder.addDeletion(range.nodeInList(statements, assignment));
+        }
+      }
+
+      if (updateCommentReferences) {
+        var references = constructor.documentationComment?.references;
+        if (references != null) {
+          for (var reference in references) {
+            if (reference.expression case SimpleIdentifier expression) {
+              if (expression.element == parameterElement) {
+                builder.addSimpleInsertion(expression.offset, '_');
+              }
+            }
+          }
         }
       }
     });

@@ -1,30 +1,22 @@
 {
   "constants": [
     {
-      "type": "string",
-      "value": "43"
-    },
-    {
-      "type": "string",
-      "value": "arg"
+      "message": "The definition of 'A' from 'package:record_use_test/unsupported_enum_instance_not_annotated.dart' must be annotated with '@RecordUse()'.",
+      "type": "unsupported"
     }
   ],
   "definitions": [
     {
       "path": [
         {
-          "kind": "extension",
-          "name": "Ext"
-        },
-        {
           "disambiguators": [
-            "instance"
+            "static"
           ],
           "kind": "method",
-          "name": "foo"
+          "name": "recorded"
         }
       ],
-      "uri": "package:record_use_test/extension_call_non_const_receiver.dart"
+      "uri": "package:record_use_test/unsupported_enum_instance_not_annotated.dart"
     }
   ],
   "loading_units": [
@@ -46,9 +38,8 @@
               0
             ],
             "positional": [
-              1
+              0
             ],
-            "receiver": 0,
             "type": "with_arguments"
           }
         ]

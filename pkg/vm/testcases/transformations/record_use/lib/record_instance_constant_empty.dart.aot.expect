@@ -13,7 +13,8 @@ final class MyClass extends core::Object /*hasConstConstructor*/  {
   [@vm.unboxing-info.metadata=[!regcc]]
   final field self::A a;
 }
-class A extends core::Object /*hasConstConstructor*/  {
+@#C1
+final class A extends core::Object /*hasConstConstructor*/  {
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]

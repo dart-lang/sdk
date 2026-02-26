@@ -21,9 +21,10 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_model/element_map.dart';
+import '../js_model/js_world.dart';
 import '../universe/recorded_use.dart'
     show
-        findInstanceValue,
+        RecordUseValueConverter,
         RecordedCallWithArguments,
         RecordedConstInstance,
         RecordedTearOff,
@@ -45,10 +46,16 @@ class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
 }
 
 class RecordUseCollector {
-  final JsToElementMap _elementMap;
-  RecordUseCollector(this._elementMap);
+  final JClosedWorld _closedWorld;
+  RecordUseCollector(this._closedWorld);
 
-  JElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
+  JsToElementMap get _elementMap => _closedWorld.elementMap;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
+  late final RecordUseValueConverter _converter = RecordUseValueConverter(
+    _elementEnvironment,
+    _closedWorld.annotationsData,
+  );
 
   final Map<FunctionEntity, List<CallReference>> callMap = {};
   final Map<ClassEntity, List<InstanceReference>> instanceMap = {};
@@ -62,12 +69,12 @@ class RecordUseCollector {
       case RecordedCallWithArguments():
         final reference = CallWithArguments(
           loadingUnits: [LoadingUnit(loadingUnit)],
-          receiver: recordedUse.receiverInRecordUseFormat(_elementEnvironment),
+          receiver: recordedUse.receiverInRecordUseFormat(_converter),
           namedArguments: recordedUse.namedArgumentsInRecordUseFormat(
-            _elementEnvironment,
+            _converter,
           ),
           positionalArguments: recordedUse.positionalArgumentsInRecordUseFormat(
-            _elementEnvironment,
+            _converter,
           ),
         );
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
@@ -75,7 +82,7 @@ class RecordUseCollector {
       case RecordedTearOff():
         final reference = CallTearoff(
           loadingUnits: [LoadingUnit(loadingUnit)],
-          receiver: recordedUse.receiverInRecordUseFormat(_elementEnvironment),
+          receiver: recordedUse.receiverInRecordUseFormat(_converter),
         );
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
         break;
@@ -85,9 +92,8 @@ class RecordUseCollector {
           // constant instances.
           break;
         }
-        final instanceValue = findInstanceValue(
+        final instanceValue = _converter.findInstanceValue(
           recordedUse.constant,
-          _elementEnvironment,
         );
         final reference = InstanceConstantReference(
           instanceConstant: instanceValue as InstanceConstant,
@@ -113,7 +119,6 @@ class RecordUseCollector {
       metadata: Metadata(
         comment:
             'Recorded usages of objects tagged with a `RecordUse` annotation',
-        version: version,
         extension: {'AppTag': 'TBD', 'environment': environment},
       ),
       calls: calls,

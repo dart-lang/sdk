@@ -1,19 +1,18 @@
 {
   "constants": [
     {
-      "type": "int",
-      "value": 42
+      "type": "non_constant"
     },
     {
       "type": "null"
     },
     {
-      "type": "string",
-      "value": "s"
-    },
-    {
       "type": "bool",
       "value": true
+    },
+    {
+      "type": "int",
+      "value": 42
     },
     {
       "type": "string",
@@ -28,13 +27,6 @@
       "value": "a2"
     },
     {
-      "type": "list",
-      "value": [
-        5,
-        6
-      ]
-    },
-    {
       "type": "string",
       "value": "b"
     },
@@ -47,10 +39,21 @@
       "value": "b2"
     },
     {
+      "type": "string",
+      "value": "s"
+    },
+    {
       "type": "list",
       "value": [
-        9,
-        10
+        5,
+        6
+      ]
+    },
+    {
+      "type": "list",
+      "value": [
+        8,
+        9
       ]
     },
     {
@@ -58,16 +61,13 @@
       "value": [
         {
           "key": 4,
-          "value": 7
+          "value": 11
         },
         {
-          "key": 8,
-          "value": 11
+          "key": 7,
+          "value": 12
         }
       ]
-    },
-    {
-      "type": "non_constant"
     }
   ],
   "definitions": [
@@ -94,7 +94,7 @@
     }
   ],
   "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
     "version": "0.4.0"
   },
   "uses": {
@@ -107,7 +107,7 @@
               0
             ],
             "positional": [
-              0
+              3
             ],
             "type": "with_arguments"
           },
@@ -125,6 +125,15 @@
               0
             ],
             "positional": [
+              10
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
               2
             ],
             "type": "with_arguments"
@@ -134,25 +143,16 @@
               0
             ],
             "positional": [
-              3
-            ],
-            "type": "with_arguments"
-          },
-          {
-            "loading_unit_indices": [
-              0
-            ],
-            "positional": [
-              12
-            ],
-            "type": "with_arguments"
-          },
-          {
-            "loading_unit_indices": [
-              0
-            ],
-            "positional": [
               13
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              0
             ],
             "type": "with_arguments"
           }

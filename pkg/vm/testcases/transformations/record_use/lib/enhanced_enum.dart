@@ -25,6 +25,7 @@ void keepIndexFieldAlive(Enum e) {
   print(e.index);
 }
 
+@RecordUse()
 enum A {
   a(10),
   b(20);

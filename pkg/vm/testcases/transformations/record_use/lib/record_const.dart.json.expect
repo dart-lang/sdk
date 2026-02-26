@@ -5,12 +5,20 @@
       "value": 1
     },
     {
+      "type": "int",
+      "value": 10
+    },
+    {
+      "type": "int",
+      "value": 20
+    },
+    {
       "type": "string",
       "value": "foo"
     },
     {
       "named": {
-        "name": 1
+        "name": 3
       },
       "positional": [
         0
@@ -18,25 +26,17 @@
       "type": "record"
     },
     {
-      "type": "int",
-      "value": 10
-    },
-    {
-      "definition_index": 1,
+      "definition_index": 0,
       "type": "instance",
       "value": {
-        "value": 3
+        "value": 1
       }
     },
     {
-      "type": "int",
-      "value": 20
-    },
-    {
-      "definition_index": 1,
+      "definition_index": 0,
       "type": "instance",
       "value": {
-        "value": 5
+        "value": 2
       }
     },
     {
@@ -44,12 +44,21 @@
         "val": 6
       },
       "positional": [
-        4
+        5
       ],
       "type": "record"
     }
   ],
   "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "MyClass"
+        }
+      ],
+      "uri": "package:record_use_test/record_const.dart"
+    },
     {
       "path": [
         {
@@ -61,15 +70,6 @@
         }
       ],
       "uri": "package:record_use_test/record_const.dart"
-    },
-    {
-      "path": [
-        {
-          "kind": "class",
-          "name": "MyClass"
-        }
-      ],
-      "uri": "package:record_use_test/record_const.dart"
     }
   ],
   "loading_units": [
@@ -78,16 +78,16 @@
     }
   ],
   "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
     "version": "0.4.0"
   },
   "uses": {
     "instances": [
       {
-        "definition_index": 1,
+        "definition_index": 0,
         "uses": [
           {
-            "constant_index": 4,
+            "constant_index": 5,
             "loading_unit_indices": [
               0
             ],
@@ -105,14 +105,14 @@
     ],
     "static_calls": [
       {
-        "definition_index": 0,
+        "definition_index": 1,
         "uses": [
           {
             "loading_unit_indices": [
               0
             ],
             "positional": [
-              2
+              4
             ],
             "type": "with_arguments"
           },

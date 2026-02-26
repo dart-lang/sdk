@@ -97,7 +97,7 @@ void validateAnnotations(Annotatable node, ErrorReporter errorReporter) {
 
 // Coverage-ignore(suite): Not run.
 void _validateClassIsFinal(Annotatable node, ErrorReporter errorReporter) {
-  if (node is Class && !node.isFinal) {
+  if (node is Class && !node.isFinal && !node.isEnum) {
     final Uri? fileUri = _getFileUri(node);
     if (fileUri != null) {
       errorReporter.report(
@@ -148,13 +148,13 @@ void _validateRecordUseDeclaration(
     );
   }
 
-  final bool onNonStaticMethod =
-      node is! Procedure || !node.isStatic || node.kind != ProcedureKind.Method;
+  final bool onStaticMethod =
+      node is Procedure && node.isStatic && node.kind != ProcedureKind.Factory;
 
   final bool onClassWithoutConstConstructor =
       node is! Class ||
       !node.constructors.any((constructor) => constructor.isConst);
-  if (onNonStaticMethod && onClassWithoutConstConstructor) {
+  if (!onStaticMethod && onClassWithoutConstConstructor) {
     errorReporter.report(
       diag.recordUseCannotBePlacedHere.withLocation(
         fileUri,

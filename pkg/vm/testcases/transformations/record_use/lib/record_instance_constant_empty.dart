@@ -15,6 +15,7 @@ final class MyClass {
   const MyClass(this.a);
 }
 
-class A {
+@RecordUse()
+final class A {
   const A();
 }
