@@ -9,3 +9,4 @@ for v8.
 
 Local Modifications:
 Removed the test directory and the build files.
+Removed dependency on <locale>.
