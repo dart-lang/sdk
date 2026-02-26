@@ -2377,8 +2377,22 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         staticUse = StaticUse.constructorInvoke(element, callStructure);
       } else if (element.isGetter) {
         staticUse = StaticUse.staticGet(element);
+        if (_shouldRecordMethodUses(element)) {
+          recordedMethodUses = _recordMethodUses(
+            element,
+            node.inputs,
+            node.sourceInformation!,
+          );
+        }
       } else if (element.isSetter) {
         staticUse = StaticUse.staticSet(element);
+        if (_shouldRecordMethodUses(element)) {
+          recordedMethodUses = _recordMethodUses(
+            element,
+            node.inputs,
+            node.sourceInformation!,
+          );
+        }
       } else {
         assert(element.isFunction);
         CallStructure callStructure = CallStructure.unnamed(

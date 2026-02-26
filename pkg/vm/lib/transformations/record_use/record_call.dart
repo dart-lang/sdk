@@ -36,6 +36,36 @@ class CallRecorder {
     }
   }
 
+  /// Will record a static get if it is annotated with `@RecordUse`.
+  void recordStaticGet(ast.StaticGet node) {
+    final target = node.target;
+    if (target is ast.Procedure && isBeingRecorded(target)) {
+      _addToUsage(
+        target,
+        CallWithArguments(
+          positionalArguments: [],
+          namedArguments: {},
+          loadingUnits: [_loadingUnitLookup(node)],
+        ),
+      );
+    }
+  }
+
+  /// Will record a static set if it is annotated with `@RecordUse`.
+  void recordStaticSet(ast.StaticSet node) {
+    final target = node.target;
+    if (target is ast.Procedure && isBeingRecorded(target)) {
+      _addToUsage(
+        target,
+        CallWithArguments(
+          positionalArguments: [_evaluateLiteral(node.value)],
+          namedArguments: {},
+          loadingUnits: [_loadingUnitLookup(node)],
+        ),
+      );
+    }
+  }
+
   /// Will record a tear-off if the target is annotated with `@RecordUse`.
   void recordConstantExpression(ast.ConstantExpression node) {
     final constant = node.constant;

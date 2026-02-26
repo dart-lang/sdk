@@ -95,6 +95,24 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   }
 
   @override
+  void visitStaticGet(ast.StaticGet node) {
+    if (_isAnnotation(node)) return;
+
+    staticCallRecorder.recordStaticGet(node);
+
+    super.visitStaticGet(node);
+  }
+
+  @override
+  void visitStaticSet(ast.StaticSet node) {
+    if (_isAnnotation(node)) return;
+
+    staticCallRecorder.recordStaticSet(node);
+
+    super.visitStaticSet(node);
+  }
+
+  @override
   void visitConstantExpression(ast.ConstantExpression node) {
     if (_isAnnotation(node)) return;
 

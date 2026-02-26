@@ -1,0 +1,133 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 123
+    },
+    {
+      "type": "int",
+      "value": 456
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "getter",
+          "name": "someStaticGetter"
+        }
+      ],
+      "uri": "package:record_use_test/static_getters_setters.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "setter",
+          "name": "someStaticSetter"
+        }
+      ],
+      "uri": "package:record_use_test/static_getters_setters.dart"
+    },
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "getter",
+          "name": "someTopLevelGetter"
+        }
+      ],
+      "uri": "package:record_use_test/static_getters_setters.dart"
+    },
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "setter",
+          "name": "someTopLevelSetter"
+        }
+      ],
+      "uri": "package:record_use_test/static_getters_setters.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      },
+      {
+        "definition_index": 1,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              0
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      },
+      {
+        "definition_index": 2,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      },
+      {
+        "definition_index": 3,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              1
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}
