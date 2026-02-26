@@ -11,9 +11,7 @@ void main() {
 }
 
 const List<(String?, int?, int?, String?)?> frameDetails = [
-  ('js_helper.dart', 865, 3, 'current'),
-  ('stack_trace_patch.dart', 11, 52, 'current'),
-  ('errors_patch.dart', 19, 39, '_throwWithCurrentStackTrace'),
+  ('errors_patch.dart', 20, 39, '_throwWithCurrentStackTrace'),
   ('source_map_simple_lib.dart', 18, 3, 'g'),
   ('source_map_simple_lib.dart', 14, 3, 'f'),
   ('source_map_simple_lib.dart', 43, 5, 'testMain'),
@@ -22,8 +20,6 @@ const List<(String?, int?, int?, String?)?> frameDetails = [
 ];
 
 /*
-at module0.JavaScriptStack.current (wasm://wasm/module0-0012402a:wasm-function[252]:0x12932)
-at module0.StackTrace.current (wasm://wasm/module0-0012402a:wasm-function[239]:0x1280f)
 at module0.Error._throwWithCurrentStackTrace (wasm://wasm/module0-0012402a:wasm-function[132]:0x11274)
 at module0.g (wasm://wasm/module0-0012402a:wasm-function[473]:0x15b7f)
 at module0.f (wasm://wasm/module0-0012402a:wasm-function[471]:0x15b6d)

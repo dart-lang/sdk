@@ -11,7 +11,6 @@ void main() {
 }
 
 const List<(String?, int?, int?, String?)?> frameDetails = [
-  ('stack_trace_patch.dart', 11, 52, 'current'),
   ('source_map_simple_lib.dart', 18, 3, 'g'),
   ('source_map_simple_lib.dart', 14, 3, 'f'),
   ('source_map_simple_lib.dart', 43, 5, 'testMain'),

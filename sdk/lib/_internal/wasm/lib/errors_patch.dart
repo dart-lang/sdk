@@ -15,6 +15,7 @@ class Error {
   }
 
   @pragma('wasm:entry-point')
+  @pragma('wasm:never-inline')
   static Never _throwWithCurrentStackTrace(Object object) =>
       Error._throw(object, StackTrace.current);
 

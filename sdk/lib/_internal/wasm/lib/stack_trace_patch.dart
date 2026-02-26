@@ -8,5 +8,6 @@ part of "core_patch.dart";
 class StackTrace {
   @patch
   @pragma("wasm:entry-point")
+  @pragma('wasm:never-inline')
   static StackTrace get current => JavaScriptStack.current();
 }
