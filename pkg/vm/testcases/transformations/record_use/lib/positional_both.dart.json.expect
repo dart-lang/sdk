@@ -2,19 +2,19 @@
   "constants": [
     {
       "type": "int",
-      "value": 5
-    },
-    {
-      "type": "int",
       "value": 3
     },
     {
       "type": "int",
-      "value": 6
+      "value": 4
     },
     {
       "type": "int",
-      "value": 4
+      "value": 5
+    },
+    {
+      "type": "int",
+      "value": 6
     }
   ],
   "definitions": [
@@ -41,7 +41,7 @@
     }
   ],
   "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
     "version": "0.4.0"
   },
   "uses": {
@@ -54,8 +54,8 @@
               0
             ],
             "positional": [
-              0,
-              1
+              2,
+              0
             ],
             "type": "with_arguments"
           },
@@ -64,8 +64,8 @@
               0
             ],
             "positional": [
-              2,
-              3
+              3,
+              1
             ],
             "type": "with_arguments"
           }

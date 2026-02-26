@@ -119,7 +119,6 @@ class RecordUseCollector {
       metadata: Metadata(
         comment:
             'Recorded usages of objects tagged with a `RecordUse` annotation',
-        version: version,
         extension: {'AppTag': 'TBD', 'environment': environment},
       ),
       calls: calls,

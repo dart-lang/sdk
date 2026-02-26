@@ -1,15 +1,7 @@
 {
   "constants": [
     {
-      "type": "int",
-      "value": 3
-    },
-    {
       "type": "null"
-    },
-    {
-      "type": "int",
-      "value": 5
     },
     {
       "type": "int",
@@ -21,7 +13,15 @@
     },
     {
       "type": "int",
+      "value": 3
+    },
+    {
+      "type": "int",
       "value": 4
+    },
+    {
+      "type": "int",
+      "value": 5
     }
   ],
   "definitions": [
@@ -48,7 +48,7 @@
     }
   ],
   "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
     "version": "0.4.0"
   },
   "uses": {
@@ -61,20 +61,9 @@
               0
             ],
             "named": {
-              "i": 0,
-              "l": 1,
-              "k": 0
-            },
-            "type": "with_arguments"
-          },
-          {
-            "loading_unit_indices": [
-              0
-            ],
-            "named": {
-              "i": 2,
+              "i": 3,
               "k": 3,
-              "l": 1
+              "l": 0
             },
             "type": "with_arguments"
           },
@@ -83,9 +72,9 @@
               0
             ],
             "named": {
-              "i": 2,
-              "l": 4,
-              "k": 0
+              "i": 5,
+              "k": 1,
+              "l": 0
             },
             "type": "with_arguments"
           },
@@ -94,9 +83,20 @@
               0
             ],
             "named": {
-              "i": 2,
-              "l": 4,
-              "k": 5
+              "i": 5,
+              "k": 3,
+              "l": 2
+            },
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "named": {
+              "i": 5,
+              "k": 4,
+              "l": 2
             },
             "type": "with_arguments"
           }

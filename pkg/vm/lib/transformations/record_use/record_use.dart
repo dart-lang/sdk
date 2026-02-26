@@ -128,15 +128,7 @@ Recordings _usages(
   Map<Definition, List<CallReference>> calls,
   Map<Definition, List<InstanceReference>> instances,
 ) {
-  return Recordings(
-    metadata: Metadata(
-      comment:
-          'Recorded usages of objects tagged with a `RecordUse` annotation',
-      version: version,
-    ),
-    calls: calls,
-    instances: instances,
-  );
+  return Recordings(calls: calls, instances: instances);
 }
 
 Constant evaluateConstant(ast.Constant constant) => switch (constant) {
