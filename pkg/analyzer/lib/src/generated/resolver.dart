@@ -5235,6 +5235,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
+    _scopeContext.visitFieldFormalParameter(node, visitor: this);
+  }
+
+  @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     // We visit the iterator before the loop variable because the loop variable
     // cannot be in scope while visiting the iterator.
@@ -5284,12 +5289,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       var element = node.declaredFragment!.element;
       _enclosingClosure = element.tryCast<LocalFunctionElementImpl>();
-      node.metadata.accept(this);
-      _scopeContext.withTypeParameterScope(element.typeParameters.cast(), () {
-        node.nameScope = nameScope;
-        node.returnType?.accept(this);
-        node.functionExpression.accept(this);
-      });
+      _scopeContext.visitFunctionDeclaration(node, visitor: this);
     } finally {
       _enclosingClosure = outerClosure;
     }
@@ -5304,29 +5304,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         node.body.localVariableInfo = _localVariableInfo;
         _enclosingClosure = element as LocalFunctionElementImpl;
       }
-      var parent = node.parent;
-      if (parent is FunctionDeclarationImpl) {
-        node.typeParameters?.accept(this);
-        node.parameters?.accept(this);
-
-        _scopeContext.withFormalParameterScope(element.formalParameters, () {
-          _scopeContext.visitDocumentationComment(
-            parent.documentationComment,
-            this,
-          );
-          node.body.accept(this);
-        });
-        return;
-      }
-
-      _scopeContext.withTypeParameterScope(element.typeParameters.cast(), () {
-        node.typeParameters?.accept(this);
-        node.parameters?.accept(this);
-
-        _scopeContext.withFormalParameterScope(element.formalParameters, () {
-          node.body.accept(this);
-        });
-      });
+      _scopeContext.visitFunctionExpression(node, visitor: this);
     } finally {
       _enclosingClosure = outerClosure;
     }
@@ -5553,6 +5531,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (element is JoinPatternVariableElementImpl) {
       element.references.add(node);
     }
+  }
+
+  @override
+  void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
+    _scopeContext.visitSuperFormalParameter(node, visitor: this);
   }
 
   @override

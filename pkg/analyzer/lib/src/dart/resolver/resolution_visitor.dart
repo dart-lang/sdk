@@ -362,13 +362,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-      node.type?.accept(this);
-    });
+    _scopeContext.visitFieldFormalParameter(node, visitor: this);
   }
 
   @override
@@ -410,42 +404,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    _scopeContext.withTypeParameterList(
-      node.functionExpression.typeParameters,
-      () {
-        super.visitFunctionDeclaration(node);
-      },
-    );
+    var element = node.declaredFragment!.element;
 
-    if (node.parent is FunctionDeclarationStatement) {
-      fragment.element.returnType =
-          node.returnType?.type ?? _typeProvider.dynamicType;
+    _scopeContext.visitFunctionDeclaration(node, visitor: this);
+
+    if (element is LocalFunctionElementImpl) {
+      element.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
     }
   }
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    var fragment = node.declaredFragment;
-
-    if (fragment is LocalFunctionFragmentImpl) {
-      fragment.element.returnType = _typeProvider.dynamicType;
-    }
-
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-      if (fragment != null) {
-        _scopeContext.withFormalParameterScope(
-          fragment.element.formalParameters,
-          () {
-            node.body.accept(this);
-          },
-        );
-      } else {
-        node.body.accept(this);
-      }
-    });
+    _scopeContext.visitFunctionExpression(node, visitor: this);
   }
 
   @override
@@ -773,13 +743,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
-    node.metadata.accept(this);
-
-    _scopeContext.withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(this);
-      node.type?.accept(this);
-      node.parameters?.accept(this);
-    });
+    _scopeContext.visitSuperFormalParameter(node, visitor: this);
   }
 
   @override

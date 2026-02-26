@@ -179,6 +179,60 @@ class ScopeContext {
     });
   }
 
+  void visitFieldFormalParameter(
+    FieldFormalParameterImpl node, {
+    required AstVisitor visitor,
+  }) {
+    var element = node.declaredFragment!.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      node.type?.accept(visitor);
+      node.typeParameters?.accept(visitor);
+      node.parameters?.accept(visitor);
+    });
+  }
+
+  void visitFunctionDeclaration(
+    FunctionDeclarationImpl node, {
+    required AstVisitor visitor,
+  }) {
+    var element = node.declaredFragment!.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.returnType?.accept(visitor);
+
+      var functionExpression = node.functionExpression;
+      functionExpression.typeParameters?.accept(visitor);
+      functionExpression.parameters?.accept(visitor);
+
+      withFormalParameterScope(element.formalParameters, () {
+        visitDocumentationComment(node.documentationComment, visitor);
+        functionExpression.body.accept(visitor);
+      });
+    });
+  }
+
+  void visitFunctionExpression(
+    FunctionExpressionImpl node, {
+    required AstVisitor visitor,
+  }) {
+    var element = node.declaredFragment!.element;
+
+    withTypeParameterList(node.typeParameters, () {
+      node.typeParameters?.accept(visitor);
+      node.parameters?.accept(visitor);
+
+      withFormalParameterScope(element.formalParameters, () {
+        node.body.accept(visitor);
+      });
+    });
+  }
+
   void visitFunctionTypeAlias(
     FunctionTypeAliasImpl node, {
     required AstVisitor visitor,
@@ -203,12 +257,14 @@ class ScopeContext {
     FunctionTypedFormalParameterImpl node, {
     required AstVisitor visitor,
   }) {
+    var element = node.declaredFragment!.element;
+
     node.metadata.accept(visitor);
 
-    withTypeParameterList(node.typeParameters, () {
+    withTypeParameterScope(element.typeParameters, () {
+      node.returnType?.accept(visitor);
       node.typeParameters?.accept(visitor);
       node.parameters.accept(visitor);
-      node.returnType?.accept(visitor);
     });
   }
 
@@ -294,6 +350,21 @@ class ScopeContext {
         visitDocumentationComment(node.documentationComment, visitor);
         node.body.accept(visitor);
       });
+    });
+  }
+
+  void visitSuperFormalParameter(
+    SuperFormalParameterImpl node, {
+    required AstVisitor visitor,
+  }) {
+    var element = node.declaredFragment!.element;
+
+    node.metadata.accept(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      node.type?.accept(visitor);
+      node.typeParameters?.accept(visitor);
+      node.parameters?.accept(visitor);
     });
   }
 

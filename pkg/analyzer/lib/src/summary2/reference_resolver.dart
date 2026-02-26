@@ -205,14 +205,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.type?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-    });
+    _scopeContext.visitFieldFormalParameter(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 
@@ -223,21 +216,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.metadata.accept(this);
-      node.returnType?.accept(this);
-      node.functionExpression.accept(this);
-    });
+    _scopeContext.visitFunctionDeclaration(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    node.typeParameters?.accept(this);
-    node.parameters?.accept(this);
   }
 
   @override
@@ -405,14 +385,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.type?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-    });
+    _scopeContext.visitSuperFormalParameter(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 
