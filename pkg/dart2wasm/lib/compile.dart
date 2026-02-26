@@ -365,7 +365,8 @@ Future<CompilationResult> _runCfePhase(
     if (component == null) {
       return CompilationDryRunError();
     }
-    final summarizer = DryRunSummarizer(component);
+    final summarizer = DryRunSummarizer(component,
+        enableExperimentalFfi: options.translatorOptions.enableExperimentalFfi);
     final hasErrors = await summarizer.summarize();
     return hasErrors ? CompilationDryRunError() : CompilationDryRunSuccess();
   }

@@ -115,9 +115,10 @@ class TestResults {
 
 class TestCase {
   final Uri path;
+  final List<String> compilerFlags;
   final List<TestExpectation> expectations;
 
-  TestCase(this.path, this.expectations);
+  TestCase(this.path, this.compilerFlags, this.expectations);
 
   String get name => path.pathSegments.last.replaceAll('.dart', '');
 }
@@ -133,6 +134,7 @@ Future<TestResults> runTest(TestCase testCase) async {
       testCase.path.toFilePath(),
       '--platform=$platformDill',
       '--dry-run',
+      ...testCase.compilerFlags,
       'out.wasm',
     ]);
   } catch (e, s) {
@@ -211,6 +213,10 @@ Future<List<TestCase>> _loadTestCases() async {
 Future<TestCase> _parseTestCase(Uri path) async {
   final fileContents = await File.fromUri(path).readAsString();
   final lines = fileContents.split('\n');
+  // Bespoke flags syntax over the SDK test syntax of `// dart2wasmOptions=`
+  // as the value of the latter can't be passed directly to dart2wasm.
+  const compilerFlagsComment = '// compilerFlags=';
+  final compilerFlags = <String>[];
   final expectations = <TestExpectation>[];
   int lineIndex = 0;
   for (final line in lines) {
@@ -219,10 +225,15 @@ Future<TestCase> _parseTestCase(Uri path) async {
           lines.indexWhere((l) => !l.trim().startsWith('//'), lineIndex + 1) +
               1;
       expectations.add(TestExpectation.fromLine(line, nextNonCommentLine));
+    } else if (line.contains(compilerFlagsComment)) {
+      compilerFlags.addAll(line
+          .substring(
+              line.indexOf(compilerFlagsComment) + compilerFlagsComment.length)
+          .split(' '));
     }
     lineIndex++;
   }
-  return TestCase(path, expectations);
+  return TestCase(path, compilerFlags, expectations);
 }
 
 List<TestFinding> _parseTestFindings(String result) {
