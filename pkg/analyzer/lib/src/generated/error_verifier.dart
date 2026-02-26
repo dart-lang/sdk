@@ -392,6 +392,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    _checkForAssignmentToPrimaryConstructorParameter(node);
+    super.visitAssignedVariablePattern(node);
+  }
+
+  @override
   void visitAssignmentExpression(covariant AssignmentExpressionImpl node) {
     TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
@@ -399,7 +405,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForDeadNullCoalesce(node.readType!, node.rightHandSide);
     }
     _checkForAssignmentToFinal(lhs);
-    _checkForAssignmentToPrimaryConstructorParameterInInitializer(lhs);
+    _checkForAssignmentToPrimaryConstructorParameter(lhs);
 
     _constArgumentsVerifier.visitAssignmentExpression(node);
     super.visitAssignmentExpression(node);
@@ -1460,7 +1466,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
     } else {
       _checkForAssignmentToFinal(operand);
-      _checkForAssignmentToPrimaryConstructorParameterInInitializer(operand);
+      _checkForAssignmentToPrimaryConstructorParameter(operand);
       _checkForIntNotAssignable(operand);
     }
     super.visitPostfixExpression(node);
@@ -1485,7 +1491,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (operatorType != TokenType.BANG) {
       if (operatorType.isIncrementOperator) {
         _checkForAssignmentToFinal(operand);
-        _checkForAssignmentToPrimaryConstructorParameterInInitializer(operand);
+        _checkForAssignmentToPrimaryConstructorParameter(operand);
       }
       checkForUseOfVoidResult(operand);
       _checkForIntNotAssignable(operand);
@@ -2313,10 +2319,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForAssignmentToPrimaryConstructorParameterInInitializer(
-    Expression node,
-  ) {
-    var formalParameter = node.tryCast<SimpleIdentifier>()?.element;
+  void _checkForAssignmentToPrimaryConstructorParameter(AstNode node) {
+    Element? formalParameter;
+    if (node is AssignedVariablePattern) {
+      formalParameter = node.element;
+    } else if (node is SimpleIdentifier) {
+      formalParameter = node.element;
+    } else {
+      return;
+    }
+
     if (formalParameter is! FormalParameterElement) {
       return;
     }
