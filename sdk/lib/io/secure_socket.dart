@@ -1177,6 +1177,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   // If a read event should be sent, add it to the controller.
   _scheduleReadEvent() {
     if (!_pendingReadEvent &&
+        !_closedRead &&
         _readEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
@@ -1189,6 +1190,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   _sendReadEvent() {
     _pendingReadEvent = false;
     if (_status != closedStatus &&
+        !_closedRead &&
         _readEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
