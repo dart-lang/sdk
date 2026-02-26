@@ -97,7 +97,7 @@ void validateAnnotations(Annotatable node, ErrorReporter errorReporter) {
 
 // Coverage-ignore(suite): Not run.
 void _validateClassIsFinal(Annotatable node, ErrorReporter errorReporter) {
-  if (node is Class && !node.isFinal) {
+  if (node is Class && !node.isFinal && !node.isEnum) {
     final Uri? fileUri = _getFileUri(node);
     if (fileUri != null) {
       errorReporter.report(

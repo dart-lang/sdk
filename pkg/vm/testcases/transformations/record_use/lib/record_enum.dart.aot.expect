@@ -13,6 +13,7 @@ final class MyClass extends core::Object /*hasConstConstructor*/  {
   [@vm.unboxing-info.metadata=[!regcc]]
   final field self::A a;
 }
+@#C1
 class A extends core::_Enum /*isEnum*/  {
 
   [@vm.inferred-return-type.metadata=!]

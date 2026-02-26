@@ -45,6 +45,20 @@
     "version": "0.4.0"
   },
   "uses": {
+    "instances": [
+      {
+        "definition_index": 1,
+        "uses": [
+          {
+            "constant_index": 1,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
+          }
+        ]
+      }
+    ],
     "static_calls": [
       {
         "definition_index": 0,

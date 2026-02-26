@@ -1,0 +1,49 @@
+{
+  "constants": [
+    {
+      "message": "The definition of 'A' from 'package:record_use_test/unsupported_enum_instance_not_annotated.dart' must be annotated with '@RecordUse()'.",
+      "type": "unsupported"
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "recorded"
+        }
+      ],
+      "uri": "package:record_use_test/unsupported_enum_instance_not_annotated.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              0
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

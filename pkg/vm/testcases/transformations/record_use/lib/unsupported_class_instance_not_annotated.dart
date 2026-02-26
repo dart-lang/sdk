@@ -5,16 +5,13 @@
 import 'package:meta/meta.dart' show RecordUse;
 
 void main() {
-  print(someStaticMethod2(const SomeClass(14)));
+  recorded(const SomeClass(14));
 }
 
 @RecordUse()
-int someStaticMethod2(SomeClass someClass) {
-  return someClass.i + 1;
-}
+void recorded(Object arg) {}
 
-@RecordUse()
-final class SomeClass {
+class SomeClass {
   final int i;
 
   const SomeClass(this.i);

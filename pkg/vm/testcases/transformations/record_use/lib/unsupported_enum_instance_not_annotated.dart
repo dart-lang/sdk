@@ -5,20 +5,16 @@
 import 'package:meta/meta.dart' show RecordUse;
 
 void main() {
-  const myA = A.b;
-  doSomething(myA);
+  recorded(A.a);
 
   // To make record use expectation files be the same across backends, we ensure
-  // to keep the `Enum.index` field alive. If we don't do this then the VM's AOT
-  // and dart2wasm will tree shake differently (e.g. due to different platform
-  // file) and produce different record use information, no longer allowing the
-  // same expectation file across backends.
+  // to keep the `Enum.index` field alive.
   keepIndexFieldAlive(A.a);
   keepIndexFieldAlive(A.b);
 }
 
 @RecordUse()
-void doSomething(A a) {
+void recorded(A a) {
   print(a.name);
 }
 
@@ -26,5 +22,4 @@ void keepIndexFieldAlive(Enum e) {
   print(e.index);
 }
 
-@RecordUse()
 enum A { a, b }
