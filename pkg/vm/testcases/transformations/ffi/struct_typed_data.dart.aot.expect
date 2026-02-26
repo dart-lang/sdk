@@ -76,7 +76,7 @@ final class Coordinate extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 16)]
   [@vm.unboxing-info.metadata=()->i]
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 

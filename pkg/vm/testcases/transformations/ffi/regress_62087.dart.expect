@@ -29,7 +29,7 @@ final class UA_DataTypeMember extends ffi::Struct {
   static synthetic get memberType#offsetOf() → core::int
     return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C3
@@ -55,7 +55,7 @@ final class UA_DataType extends ffi::Struct {
   static synthetic get members#offsetOf() → core::int
     return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C18

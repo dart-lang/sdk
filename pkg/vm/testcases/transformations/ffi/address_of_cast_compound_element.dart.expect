@@ -64,7 +64,7 @@ final class MyStruct extends ffi::Struct {
   static synthetic get array2#offsetOf() → core::int
     return #C31.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C15
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C34.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C3
@@ -103,7 +103,7 @@ final class MyUnion extends ffi::Union {
   static synthetic get b#offsetOf() → core::int
     return #C24.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C15
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C26.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → void {

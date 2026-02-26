@@ -64,7 +64,7 @@ final class TestStruct extends ffi::Struct {
   static synthetic get abiSpecificIntegerArray#offsetOf() → core::int
     return #C39.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C20
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C42.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C3
@@ -92,7 +92,7 @@ final class MyStruct extends ffi::Struct {
   static synthetic get structValue#offsetOf() → core::int
     return #C32.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C20
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C48.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C3
@@ -131,7 +131,7 @@ final class MyUnion extends ffi::Union {
   static synthetic get unionAlt2#offsetOf() → core::int
     return #C32.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C20
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C57.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → void {
