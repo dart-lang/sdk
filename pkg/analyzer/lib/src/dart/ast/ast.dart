@@ -4087,6 +4087,8 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ClassFragmentImpl? declaredFragment;
 
+  Scope? bodyScope;
+
   @generated
   ClassDeclarationImpl({
     required super.comment,
@@ -4486,6 +4488,8 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @override
   ClassFragmentImpl? declaredFragment;
+
+  Scope? typeParameterScope;
 
   @generated
   ClassTypeAliasImpl({
@@ -6028,6 +6032,9 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @override
   ConstructorFragmentImpl? declaredFragment;
+
+  // TODO(scheglov): store better scope
+  Scope? enclosingBodyScope;
 
   /// The fields that are not initialized by the constructor.
   List<FieldElement>? notInitializedFields;
@@ -9196,6 +9203,8 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @override
   EnumFragmentImpl? declaredFragment;
 
+  Scope? bodyScope;
+
   @generated
   EnumDeclarationImpl({
     required super.comment,
@@ -10271,6 +10280,8 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ExtensionFragmentImpl? declaredFragment;
 
+  Scope? bodyScope;
+
   @generated
   ExtensionDeclarationImpl({
     required super.comment,
@@ -10824,6 +10835,8 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   ExtensionTypeFragmentImpl? declaredFragment;
+
+  Scope? bodyScope;
 
   @generated
   ExtensionTypeDeclarationImpl({
@@ -12212,6 +12225,14 @@ sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
   FormalParameterFragmentImpl? declaredFragment;
+
+  /// The name scope, used for the type, and the default value.
+  ///
+  /// For formal parameters of constructors and methods, this is the same as
+  /// the enclosing body scope. An exception to this is the formal parameter
+  /// of the primary constructor for an extension type, when
+  /// [Feature.primary_constructors] is not enabled.
+  Scope? scope;
 
   Token? get finalOrVarKeyword {
     Token? finalOrVarKeyword(Token? token) {
@@ -19394,6 +19415,8 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @override
   ExecutableFragmentImpl? declaredFragment;
 
+  Scope? typeParameterScope;
+
   @generated
   MethodDeclarationImpl({
     required super.comment,
@@ -19976,6 +19999,8 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   MixinFragmentImpl? declaredFragment;
+
+  Scope? bodyScope;
 
   @generated
   MixinDeclarationImpl({
@@ -23657,6 +23682,9 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
 
   @generated
   FunctionBodyImpl _body;
+
+  // TODO(scheglov): store better scope
+  Scope? enclosingBodyScope;
 
   @generated
   PrimaryConstructorBodyImpl({
@@ -30102,6 +30130,11 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @override
   VariableFragmentImpl? declaredFragment;
+
+  /// For instance non-late fields inside classes with primary constructors
+  /// the initializer scope is different from the scope of the enclosing
+  /// [FieldDeclaration].
+  Scope? initializerScope;
 
   /// When this node is read as a part of summaries, we usually don't want
   /// to read the [initializer], but we need to know if there is one in

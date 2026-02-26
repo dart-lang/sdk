@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linking_node_scope.dart';
 
 class ConstructorInitializerResolver {
   final Linker _linker;
@@ -43,9 +42,8 @@ class ConstructorInitializerResolver {
       var node = _linker.getLinkingNode2(fragment);
       switch (node) {
         case ConstructorDeclarationImpl():
-          var constructorScope = LinkingNodeContext.get(node).scope;
           var initializerScope = ConstructorInitializerScope(
-            constructorScope,
+            node.enclosingBodyScope!,
             element,
           );
 
@@ -93,9 +91,8 @@ class ConstructorInitializerResolver {
           }
         case PrimaryConstructorDeclarationImpl():
           if (node.body case var body?) {
-            var bodyScope = LinkingNodeContext.get(body).scope;
             var initializerScope = ConstructorInitializerScope(
-              bodyScope,
+              body.enclosingBodyScope!,
               element,
             );
 
