@@ -217,6 +217,25 @@ class C {
     await assertNoFix();
   }
 
+  Future<void> test_assignment_named_private_withCommentReference() async {
+    await resolveTestCode('''
+class C {
+  int? _a;
+  /// [a]
+  C({int? a = 1}) {
+    this._a = a;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int? _a;
+  /// [_a]
+  C({this._a = 1});
+}
+''', filter: (d) => d.diagnosticCode != diag.unusedField);
+  }
+
   Future<void> test_assignment_named_private_withType() async {
     await resolveTestCode('''
 class C {
