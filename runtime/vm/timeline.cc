@@ -2390,6 +2390,7 @@ TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
 
 void TimelineEventPerfettoFileRecorder::EmitModuleSymbolsFor(
     IsolateGroup* isolate_group) {
+  ASSERT(IsolateGroup::Current() == nullptr);
   auto& interned_data_builder = writer_.interned_data_builder();
 
   const auto build_id_iid =
@@ -2399,92 +2400,84 @@ void TimelineEventPerfettoFileRecorder::EmitModuleSymbolsFor(
     return;
   }
 
-  const bool need_to_enter_different_group =
-      IsolateGroup::Current() != isolate_group &&
-      (Dart::vm_isolate_group() != isolate_group ||
-       IsolateGroup::Current() == nullptr);
-  if (need_to_enter_different_group) {
-    // Exit the current isolate, caller will re-enter it if necessary.
-    if (Isolate::Current() != nullptr) {
-      Thread::ExitIsolate();
-    }
-    const bool kBypassSafepoint = false;
-    Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
-                                      kBypassSafepoint);
-  }
-  StackZone stack_zone(Thread::Current());
+  const bool kBypassSafepoint = false;
+  Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,
+                                    kBypassSafepoint);
 
-  Code& code = Code::Handle();
-  GrowableArray<const Function*> functions;
-  GrowableArray<TokenPosition> token_positions;
+  {
+    StackZone stack_zone(Thread::Current());
 
-  // We assume that in general there is going to be a small number of mappings
-  // (usually just one for each isolate group) and small number of isolate
-  // groups (just one) so iterating them linearly is fine.
-  for (auto interned_mapping : interned_data_builder.mappings()) {
-    const auto mapping_iid = interned_mapping->iid;
-    const auto& mapping = interned_mapping->data;
-    if (mapping.build_id != build_id_iid) {
-      continue;
-    }
+    Code& code = Code::Handle();
+    GrowableArray<const Function*> functions;
+    GrowableArray<TokenPosition> token_positions;
 
-    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
-        this->packet();
-    perfetto::protos::pbzero::ModuleSymbols* module_symbols = nullptr;
-
-    for (const auto& interned_frame : interned_data_builder.frames()) {
-      const auto& frame = interned_frame->data;
-      if (frame.mapping_iid != mapping_iid) {
+    // We assume that in general there is going to be a small number of mappings
+    // (usually just one for each isolate group) and small number of isolate
+    // groups (just one) so iterating them linearly is fine.
+    for (auto interned_mapping : interned_data_builder.mappings()) {
+      const auto mapping_iid = interned_mapping->iid;
+      const auto& mapping = interned_mapping->data;
+      if (mapping.build_id != build_id_iid) {
         continue;
       }
 
-      const auto pc = mapping.start + frame.rel_pc;
-      // Note: PCs are already adjusted when converting from Sample to interned
-      // Frame, see PerfettoPerfSampleWriter::WriteSample.
-      code = ReversePc::Lookup(isolate_group, pc, /*is_return_address=*/false);
-      if (code.IsNull()) {
-        continue;
-      }
+      protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
+          this->packet();
+      perfetto::protos::pbzero::ModuleSymbols* module_symbols = nullptr;
 
-      if (module_symbols == nullptr) {
-        perfetto_utils::SetTrustedPacketSequenceId(packet.get());
-        module_symbols = packet->set_module_symbols();
-        const auto mapping_path =
-            interned_data_builder.mapping_paths().GetByIid(mapping.path_string);
-        module_symbols->set_path(mapping_path);
-        module_symbols->set_build_id(
-            interned_data_builder.build_ids().GetByIid(build_id_iid));
-      }
-
-      auto* address_symbols = module_symbols->add_address_symbols();
-      address_symbols->set_address(frame.rel_pc);
-
-      if (code.IsFunctionCode()) {
-        const intptr_t offset = pc - code.PayloadStart();
-        code.GetInlinedFunctionsAtInstruction(offset, &functions,
-                                              &token_positions);
-        for (intptr_t i = functions.length() - 1; i >= 0; --i) {
-          const char* function_name =
-              functions[i]->QualifiedUserVisibleNameCString();
-          auto* line = address_symbols->add_lines();
-          line->set_function_name(function_name);
+      for (const auto& interned_frame : interned_data_builder.frames()) {
+        const auto& frame = interned_frame->data;
+        if (frame.mapping_iid != mapping_iid) {
+          continue;
         }
-      } else {
-        auto* line = address_symbols->add_lines();
-        line->set_function_name(code.Name());
+
+        const auto pc = mapping.start + frame.rel_pc;
+        // Note: PCs are already adjusted when converting from Sample to
+        // interned Frame, see PerfettoPerfSampleWriter::WriteSample.
+        code =
+            ReversePc::Lookup(isolate_group, pc, /*is_return_address=*/false);
+        if (code.IsNull()) {
+          continue;
+        }
+
+        if (module_symbols == nullptr) {
+          perfetto_utils::SetTrustedPacketSequenceId(packet.get());
+          module_symbols = packet->set_module_symbols();
+          const auto mapping_path =
+              interned_data_builder.mapping_paths().GetByIid(
+                  mapping.path_string);
+          module_symbols->set_path(mapping_path);
+          module_symbols->set_build_id(
+              interned_data_builder.build_ids().GetByIid(build_id_iid));
+        }
+
+        auto* address_symbols = module_symbols->add_address_symbols();
+        address_symbols->set_address(frame.rel_pc);
+
+        if (code.IsFunctionCode()) {
+          const intptr_t offset = pc - code.PayloadStart();
+          code.GetInlinedFunctionsAtInstruction(offset, &functions,
+                                                &token_positions);
+          for (intptr_t i = functions.length() - 1; i >= 0; --i) {
+            const char* function_name =
+                functions[i]->QualifiedUserVisibleNameCString();
+            auto* line = address_symbols->add_lines();
+            line->set_function_name(function_name);
+          }
+        } else {
+          auto* line = address_symbols->add_lines();
+          line->set_function_name(code.Name());
+        }
+      }
+
+      if (module_symbols != nullptr) {
+        WritePacket(&packet);
+        packet.Reset();
       }
     }
-
-    if (module_symbols != nullptr) {
-      WritePacket(&packet);
-      packet.Reset();
-    }
   }
 
-  if (need_to_enter_different_group) {
-    const bool kBypassSafepoint = false;
-    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
-  }
+  Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
 }
 
 void TimelineEventPerfettoFileRecorder::NotifyAboutIsolateGroupShutdown(
@@ -2499,8 +2492,11 @@ TimelineEventPerfettoFileRecorder::~TimelineEventPerfettoFileRecorder() {
 #if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_INCLUDE_PROFILER)
   if (!writer_.interned_data_builder().frames().IsEmpty()) {
     Isolate* caller_isolate = Isolate::Current();
+    if (caller_isolate != nullptr) {
+      Thread::ExitIsolate();
+    }
     IsolateGroup::ForEach([&](auto group) { EmitModuleSymbolsFor(group); });
-    if (Isolate::Current() != caller_isolate) {
+    if (caller_isolate != nullptr) {
       Thread::EnterIsolate(caller_isolate);
     }
   }

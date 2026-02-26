@@ -944,56 +944,62 @@ void main() {
       expect(traceData.seenEvents, containsAll(['sleep']));
     });
 
-    test('with deferred units', () async {
-      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+    test(
+      'with deferred units',
+      () async {
+        final outputDir = io.Directory('${tempDir.path}/output')..createSync();
 
-      final busyLoopAotProcess = await BusyLoopProcess.start(
-        'busy-loop-aot',
-        tempDir,
-        aot: true,
-        useDeferred: true,
-      );
+        final busyLoopAotProcess = await BusyLoopProcess.start(
+          'busy-loop-aot',
+          tempDir,
+          aot: true,
+          useDeferred: true,
+        );
 
-      // Run the recorder in a separate process.
-      final recorder = await RecorderProcess.start(
-        tempDir,
-        outputDir,
-        tag: 'busy-loop-aot',
-      );
-      await Future.delayed(const Duration(seconds: 2));
-      await recorder.stop();
+        // Run the recorder in a separate process.
+        final recorder = await RecorderProcess.start(
+          tempDir,
+          outputDir,
+          tag: 'busy-loop-aot',
+        );
+        await Future.delayed(const Duration(seconds: 2));
+        await recorder.stop();
 
-      final timelineFiles = outputDir
-          .listSync()
-          .whereType<io.File>()
-          .where((file) => file.path.endsWith('.timeline'))
-          .toList();
+        final timelineFiles = outputDir
+            .listSync()
+            .whereType<io.File>()
+            .where((file) => file.path.endsWith('.timeline'))
+            .toList();
 
-      final timelines = timelineFiles.map((e) => p.basename(e.path)).toList();
-      expect(
-        timelines,
-        equals(['${busyLoopAotProcess.pid}.timeline']),
-        reason: 'Expected timeline file to be created',
-      );
+        final timelines = timelineFiles.map((e) => p.basename(e.path)).toList();
+        expect(
+          timelines,
+          equals(['${busyLoopAotProcess.pid}.timeline']),
+          reason: 'Expected timeline file to be created',
+        );
 
-      final traceData = TraceData.fromBytes(
-        timelineFiles.first.readAsBytesSync(),
-      );
-      expect(traceData.trace.packet.any((p) => p.hasPerfSample()), isTrue);
-      expect(
-        traceData.hasSeenStack([
-          'busyLoop',
-          'AsyncSpan.run',
-          'busyLoop.<anonymous closure>',
-          // Must be able to symbolize a function from a deferred unit.
-          'hotLoop',
-        ]),
-        isTrue,
-      );
-      expect(traceData.seenEvents, containsAll(['sleep']));
+        final traceData = TraceData.fromBytes(
+          timelineFiles.first.readAsBytesSync(),
+        );
+        expect(traceData.trace.packet.any((p) => p.hasPerfSample()), isTrue);
+        expect(
+          traceData.hasSeenStack([
+            'busyLoop',
+            'AsyncSpan.run',
+            'busyLoop.<anonymous closure>',
+            // Must be able to symbolize a function from a deferred unit.
+            'hotLoop',
+          ]),
+          isTrue,
+        );
+        expect(traceData.seenEvents, containsAll(['sleep']));
 
-      await busyLoopAotProcess.process.askToExit();
-    });
+        await busyLoopAotProcess.process.askToExit();
+      },
+      onPlatform: {
+        'mac-os': Skip('Deferred units are not supported on Mac OS'),
+      },
+    );
 
     test('AOT compiled busy loop is recorded', () async {
       final busyLoopProcess = await BusyLoopProcess.start(
