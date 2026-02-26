@@ -134,6 +134,46 @@ class ConvertToInitializingFormalTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_initializing_formals;
 
+  Future<void> test_annotatedParameter() async {
+    await resolveTestCode('''
+const annotation = Object();
+
+class C {
+  int? a;
+  C({@annotation int? a}) : a = a;
+}''');
+    await assertHasFix('''
+const annotation = Object();
+
+class C {
+  int? a;
+  C({@annotation this.a});
+}''');
+  }
+
+  Future<void> test_annotatedParameter_private() async {
+    await resolveTestCode(r'''
+const annotation = Object();
+
+class C {
+  int? _a;
+  C({@annotation int? a}) : _a = a;
+
+  @override
+  String toString() => '$_a';
+}''');
+    await assertHasFix(r'''
+const annotation = Object();
+
+class C {
+  int? _a;
+  C({@annotation this._a});
+
+  @override
+  String toString() => '$_a';
+}''');
+  }
+
   Future<void> test_assignment_differentType() async {
     await resolveTestCode('''
 class C {
@@ -440,6 +480,57 @@ class C {
 class C {
   int? a;
   C([this.a = 1]);
+}
+''');
+  }
+
+  Future<void> test_oldFunctionTypeSyntax_noReturnType() async {
+    await resolveTestCode('''
+class C {
+  Function(int) a;
+
+  C(a(int i)) : a = a;
+}
+''');
+    await assertHasFix('''
+class C {
+  Function(int) a;
+
+  C(this.a);
+}
+''');
+  }
+
+  Future<void> test_oldFunctionTypeSyntax_withReturnType() async {
+    await resolveTestCode('''
+class C {
+  void Function(int) a;
+
+  C(void a(int i)) : a = a;
+}
+''');
+    await assertHasFix('''
+class C {
+  void Function(int) a;
+
+  C(this.a);
+}
+''');
+  }
+
+  Future<void> test_oldFunctionTypeSyntax_withTypeParameters() async {
+    await resolveTestCode('''
+class C {
+  void Function<T>(T) a;
+
+  C(void a<T>(T i)) : a = a;
+}
+''');
+    await assertHasFix('''
+class C {
+  void Function<T>(T) a;
+
+  C(this.a);
 }
 ''');
   }
