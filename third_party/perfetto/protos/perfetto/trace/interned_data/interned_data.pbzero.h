@@ -23,6 +23,7 @@
 namespace perfetto {
 namespace protos {
 namespace pbzero {
+
 class Callstack;
 class DebugAnnotationName;
 class EventCategory;
@@ -30,16 +31,10 @@ class EventName;
 class Frame;
 class InternedString;
 class Mapping;
-}  // Namespace pbzero.
-}  // Namespace protos.
-}  // Namespace perfetto.
 
-namespace perfetto {
-namespace protos {
-namespace pbzero {
-
-class InternedData_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/29> {
+class InternedData_Decoder : public ::protozero::TypedProtoDecoder<
+                                 /*MAX_FIELD_ID=*/29,
+                                 /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
  public:
   InternedData_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}

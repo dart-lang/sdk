@@ -23,18 +23,13 @@
 namespace perfetto {
 namespace protos {
 namespace pbzero {
+
 class AddressSymbols;
 class Line;
-}  // Namespace pbzero.
-}  // Namespace protos.
-}  // Namespace perfetto.
 
-namespace perfetto {
-namespace protos {
-namespace pbzero {
-
-class Callstack_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
+class Callstack_Decoder : public ::protozero::TypedProtoDecoder<
+                              /*MAX_FIELD_ID=*/2,
+                              /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
  public:
   Callstack_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -99,8 +94,9 @@ class Callstack : public ::protozero::Message {
   }
 };
 
-class Frame_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/4> {
+class Frame_Decoder : public ::protozero::TypedProtoDecoder<
+                          /*MAX_FIELD_ID=*/4,
+                          /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   Frame_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -203,8 +199,9 @@ class Frame : public ::protozero::Message {
   }
 };
 
-class Mapping_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/7> {
+class Mapping_Decoder : public ::protozero::TypedProtoDecoder<
+                            /*MAX_FIELD_ID=*/7,
+                            /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
  public:
   Mapping_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -351,8 +348,9 @@ class Mapping : public ::protozero::Message {
   }
 };
 
-class ModuleSymbols_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/3> {
+class ModuleSymbols_Decoder : public ::protozero::TypedProtoDecoder<
+                                  /*MAX_FIELD_ID=*/3,
+                                  /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
  public:
   ModuleSymbols_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -446,8 +444,9 @@ class ModuleSymbols : public ::protozero::Message {
   }
 };
 
-class AddressSymbols_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
+class AddressSymbols_Decoder : public ::protozero::TypedProtoDecoder<
+                                   /*MAX_FIELD_ID=*/2,
+                                   /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
  public:
   AddressSymbols_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -507,7 +506,9 @@ class AddressSymbols : public ::protozero::Message {
   }
 };
 
-class Line_Decoder : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/3> {
+class Line_Decoder : public ::protozero::TypedProtoDecoder<
+                         /*MAX_FIELD_ID=*/3,
+                         /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   Line_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -603,8 +604,9 @@ class Line : public ::protozero::Message {
   }
 };
 
-class InternedString_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
+class InternedString_Decoder : public ::protozero::TypedProtoDecoder<
+                                   /*MAX_FIELD_ID=*/2,
+                                   /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   InternedString_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}

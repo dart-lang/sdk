@@ -25,7 +25,9 @@ namespace protos {
 namespace pbzero {
 
 class DebugAnnotationName_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
+    : public ::protozero::TypedProtoDecoder<
+          /*MAX_FIELD_ID=*/2,
+          /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   DebugAnnotationName_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -94,8 +96,9 @@ class DebugAnnotationName : public ::protozero::Message {
   }
 };
 
-class DebugAnnotation_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/17> {
+class DebugAnnotation_Decoder : public ::protozero::TypedProtoDecoder<
+                                    /*MAX_FIELD_ID=*/17,
+                                    /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   DebugAnnotation_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
