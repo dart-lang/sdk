@@ -37,6 +37,9 @@ class DoNotSubmitElementUsageSet implements ElementUsageSet<()> {
   const DoNotSubmitElementUsageSet();
 
   @override
-  ()? getTagInfo(Element element) =>
-      element.metadata.hasDoNotSubmit ? () : null;
+  bool get reliesOnlyOnElementMetadata => true;
+
+  @override
+  ()? getTagInfo(Element _, Metadata elementMetadata) =>
+      elementMetadata.hasDoNotSubmit ? () : null;
 }
