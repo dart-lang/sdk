@@ -53,17 +53,17 @@
     (local $var1 (ref $_FunctionType))
     (local $var2 (ref $#Closure-0-1))
     (local $var3 (ref $H1))
-    i32.const 120
+    i32.const 121
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
       global.get $"InstantiationConstant(globalH1Foo<int>)"
       br_on_non_null $label0
-      i32.const 32
+      i32.const 33
       i32.const 0
       block $label1 (result (ref $#Closure-1-1))
         global.get $"globalH1Foo tear-off"
         br_on_non_null $label1
-        i32.const 32
+        i32.const 33
         i32.const 0
         global.get $global0
         global.get $global2
@@ -139,7 +139,7 @@
     struct.get $H1 $fun
     local.tee $var0
     struct.get $#Closure-0-1 $context
-    i32.const 118
+    i32.const 119
     i64.const 1
     struct.new $BoxedInt
     local.get $var0

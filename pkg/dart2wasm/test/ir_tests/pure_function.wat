@@ -21,7 +21,7 @@
     global.get $"\")\""
     call $JSStringImpl._interpolate3
     drop
-    i32.const 68
+    i32.const 69
     local.get $var0
     struct.get $JSStringImpl $_ref
     call $"wasm:js-string.length (import)"

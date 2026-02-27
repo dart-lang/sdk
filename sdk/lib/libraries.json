@@ -73,7 +73,10 @@
         ]
       },
       "_http": {
-        "uri": "_http/http.dart"
+        "uri": "_http/http.dart",
+        "patches": [
+          "_internal/vm/lib/http_patch.dart"
+        ]
       },
       "io": {
         "uri": "io/io.dart",
@@ -262,7 +265,10 @@
         "uri": "_internal/wasm/lib/error_utils.dart"
       },
       "_http": {
-        "uri": "_http/http.dart"
+        "uri": "_http/http.dart",
+        "patches": [
+          "_internal/js_shared/lib/http_patch.dart"
+        ]
       },
       "_internal": {
         "uri": "internal/internal.dart",
@@ -429,7 +435,10 @@
         "patches": "_internal/js_runtime/lib/developer_patch.dart"
       },
       "_http": {
-        "uri": "_http/http.dart"
+        "uri": "_http/http.dart",
+        "patches": [
+          "_internal/js_shared/lib/http_patch.dart"
+        ]
       },
       "io": {
         "uri": "io/io.dart",
@@ -540,7 +549,10 @@
         "uri": "_internal/js_dev_runtime/private/foreign_helper.dart"
       },
       "_http": {
-        "uri": "_http/http.dart"
+        "uri": "_http/http.dart",
+        "patches": [
+          "_internal/js_shared/lib/http_patch.dart"
+        ]
       },
       "_interceptors": {
         "uri": "_internal/js_dev_runtime/private/interceptors.dart"

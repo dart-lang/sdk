@@ -5,7 +5,7 @@
   (type $_DefaultSet&_HashFieldBase&SetMixin <...>)
   (type $_InterfaceType <...>)
   (table $cross-module-funcs-0 (export "cross-module-funcs-0") 3 funcref)
-  (global $_InterfaceType_444 (ref $_InterfaceType) <...>)
+  (global $_InterfaceType_445 (ref $_InterfaceType) <...>)
   (elem $cross-module-funcs-0
     (set 1 (ref.func $JSStringImpl._interpolate2))
     (set 2 (ref.func $print)))
@@ -17,7 +17,7 @@
     call $_DefaultSet&_HashFieldBase&SetMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashSetMixin.contains
     i32.eqz
     if
-      i32.const 51
+      i32.const 52
       i32.const 0
       ref.null none
       i64.const 0
@@ -30,7 +30,7 @@
     drop
   )
   (func $"useFooAsType <noInline>"
-    global.get $_InterfaceType_444
+    global.get $_InterfaceType_445
     call $print
     drop
   )

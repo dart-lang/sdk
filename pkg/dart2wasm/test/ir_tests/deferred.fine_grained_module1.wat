@@ -15,7 +15,7 @@
     (struct.new $JSStringImpl))
   (global $"\"foo1Code(\"" (ref $JSStringImpl) <...>)
   (global $FooConst1 (ref $Object)
-    (i32.const 122)
+    (i32.const 123)
     (i32.const 0)
     (struct.new $Object))
   (global $fooGlobal1 (mut (ref null $#Top))

@@ -29,7 +29,7 @@
   (global $"\"foo0Code(\"" (ref $JSStringImpl) <...>)
   (global $0 (ref $BoxedInt) <...>)
   (global $FooConst0 (ref $Object)
-    (i32.const 121)
+    (i32.const 122)
     (i32.const 0)
     (struct.new $Object))
   (global $fooGlobal0 (mut (ref null $#Top))
