@@ -24,17 +24,21 @@ class ElementUsageDetector<TagInfo extends Object> {
   /// parameter of [ElementUsageReporter.report].
   final WorkspacePackage? _workspacePackage;
 
-  /// The set of elements to detect usages of.
-  final ElementUsageSet<TagInfo> elementUsageSet;
-
-  /// What to do when a usage of an element in [elementUsageSet] is detected.
-  final ElementUsageReporter<TagInfo> elementUsageReporter;
+  final List<UsageSetAndReporter> usagesArbitrary = [];
+  final List<UsageSetAndReporter> usagesMetadataOnly = [];
 
   ElementUsageDetector({
     required WorkspacePackage? workspacePackage,
-    required this.elementUsageSet,
-    required this.elementUsageReporter,
-  }) : _workspacePackage = workspacePackage;
+    required List<UsageSetAndReporter> usagesAndReporters,
+  }) : _workspacePackage = workspacePackage {
+    for (var usageSetAndReporter in usagesAndReporters) {
+      if (usageSetAndReporter.elementUsageSet.reliesOnlyOnElementMetadata) {
+        usagesMetadataOnly.add(usageSetAndReporter);
+      } else {
+        usagesArbitrary.add(usageSetAndReporter);
+      }
+    }
+  }
 
   void assignmentExpression(AssignmentExpression node) {
     checkUsage(node.readElement, node.leftHandSide);
@@ -47,7 +51,7 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   /// Reports the usage of [element] at [node] if [element] is in
-  /// [elementUsageSet].
+  /// any of [usagesMetadataOnly] or [usagesArbitrary].
   void checkUsage(Element? element, AstNode node) {
     if (element == null) {
       return;
@@ -61,8 +65,33 @@ class ElementUsageDetector<TagInfo extends Object> {
       return;
     }
 
-    var tagInfo = elementUsageSet.getTagInfo(element);
-    if (tagInfo == null) return;
+    List<UsageSetAndReporter>? givesNonNullResults;
+    var elementMetadata = element.metadata;
+    if (elementMetadata.annotations.isNotEmpty) {
+      for (int i = 0; i < usagesMetadataOnly.length; i++) {
+        if (!shouldCheckMetadataOnlyForIndex(i)) continue;
+        var usagesAndReporter = usagesMetadataOnly[i];
+        var tagInfo = usagesAndReporter.elementUsageSet.getTagInfo(
+          element,
+          elementMetadata,
+        );
+        if (tagInfo != null) {
+          (givesNonNullResults ??= []).add(usagesAndReporter);
+        }
+      }
+    }
+    for (int i = 0; i < usagesArbitrary.length; i++) {
+      if (!shouldCheckArbitraryForIndex(i)) continue;
+      var usagesAndReporter = usagesArbitrary[i];
+      var tagInfo = usagesAndReporter.elementUsageSet.getTagInfo(
+        element,
+        elementMetadata,
+      );
+      if (tagInfo != null) {
+        (givesNonNullResults ??= []).add(usagesAndReporter);
+      }
+    }
+    if (givesNonNullResults == null) return;
 
     if (_isLocalParameter(element, node)) {
       return;
@@ -120,12 +149,15 @@ class ElementUsageDetector<TagInfo extends Object> {
     // `ConstructorDeclaration.errorRange` here. This would stray from the API
     // of passing a SyntacticEntity here.
 
-    elementUsageReporter.report(
-      errorEntity,
-      displayName,
-      tagInfo,
-      isInSamePackage: _isLibraryInWorkspacePackage(element.library),
-    );
+    for (var reportThis in givesNonNullResults) {
+      reportThis.elementUsageReporter.report(
+        errorEntity,
+        displayName,
+        // Getting it again might not be ideal...
+        reportThis.elementUsageSet.getTagInfo(element, elementMetadata)!,
+        isInSamePackage: _isLibraryInWorkspacePackage(element.library),
+      );
+    }
   }
 
   void constructorDeclaration(ConstructorDeclaration node) {
@@ -264,6 +296,18 @@ class ElementUsageDetector<TagInfo extends Object> {
   void redirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     checkUsage(node.element, node);
     _invocationArguments(node.element, node.argumentList);
+  }
+
+  /// If false [checkUsage] may skip the call to `getTagInfo` on the [i]th
+  /// entry of [usagesArbitrary].
+  bool shouldCheckArbitraryForIndex(int i) {
+    return true;
+  }
+
+  /// If false [checkUsage] may skip the call to `getTagInfo` on the [i]th
+  /// entry of [usagesMetadataOnly].
+  bool shouldCheckMetadataOnlyForIndex(int i) {
+    return true;
   }
 
   void simpleIdentifier(SimpleIdentifier node) {
@@ -426,12 +470,28 @@ abstract class ElementUsageReporter<TagInfo extends Object> {
 /// string). If there is no auxiliary information, supply `()` for this type
 /// parameter.
 abstract class ElementUsageSet<TagInfo extends Object> {
+  /// If [getTagInfo] only relies on the element metadata and can only return
+  /// non-null if the metadata is not empty.
+  ///
+  /// Used to skip calls to [getTagInfo] is there is no metadata.
+  bool get reliesOnlyOnElementMetadata;
+
   /// If [element] is in the set of elements that [ElementUsageDetector] should
   /// detect usages of, returns auxiliary information associated with [element].
+  ///
+  /// [elementMetadata] is the result of [element].metadata, but should be used
+  /// to avoid the overhead of asking again.
   ///
   /// Otherwise returns `null`.
   ///
   /// For example, [DeprecatedElementUsageSet]'s implementation of this method
   /// returns the deprecation message if [element] is deprecated.
-  TagInfo? getTagInfo(Element element);
+  TagInfo? getTagInfo(Element element, Metadata elementMetadata);
+}
+
+class UsageSetAndReporter<TagInfo extends Object> {
+  final ElementUsageSet<TagInfo> elementUsageSet;
+  final ElementUsageReporter<TagInfo> elementUsageReporter;
+
+  UsageSetAndReporter(this.elementUsageSet, this.elementUsageReporter);
 }

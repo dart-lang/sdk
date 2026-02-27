@@ -63,12 +63,15 @@ class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
 class DeprecatedElementUsageSet implements ElementUsageSet<String> {
   const DeprecatedElementUsageSet();
 
-  /// The message in the deprecated annotation on the given [element], or
+  @override
+  bool get reliesOnlyOnElementMetadata => true;
+
+  /// The message in the deprecated annotation in [elementMetadata], or
   /// the empty string if the annotation does not have a message, or `null` if
   /// the element doesn't have a deprecated annotation.
   @override
-  String? getTagInfo(Element element) {
-    for (var annotation in element.metadata.annotations) {
+  String? getTagInfo(Element _, Metadata elementMetadata) {
+    for (var annotation in elementMetadata.annotations) {
       if (!annotation.isDeprecated) continue;
       var value = annotation.computeConstantValue();
       if (value == null) continue;

@@ -40,6 +40,9 @@ class ExperimentalElementUsageSet implements ElementUsageSet<()> {
   const ExperimentalElementUsageSet();
 
   @override
-  ()? getTagInfo(Element element) =>
-      element.metadata.annotations.any((e) => e.isExperimental) ? () : null;
+  bool get reliesOnlyOnElementMetadata => true;
+
+  @override
+  ()? getTagInfo(Element _, Metadata elementMetadata) =>
+      elementMetadata.annotations.any((e) => e.isExperimental) ? () : null;
 }

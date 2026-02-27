@@ -16,7 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show DeprecatedElementUsageSet, normalizeDeprecationMessage;
 import 'package:analyzer/src/error/element_usage_detector.dart' // ignore: implementation_imports
-    show ElementUsageReporter;
+    show ElementUsageReporter, UsageSetAndReporter;
 import 'package:analyzer/src/error/element_usage_frontier_detector.dart' // ignore: implementation_imports
     show ElementUsageFrontierDetector;
 import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implementation_imports
@@ -95,8 +95,12 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   _RecursiveVisitor(MultiAnalysisRule rule, WorkspacePackage package)
     : _deprecatedVerifier = ElementUsageFrontierDetector(
         workspacePackage: package,
-        elementUsageSet: const DeprecatedElementUsageSet(),
-        elementUsageReporter: _DeprecatedElementUsageReporter(rule: rule),
+        usagesAndReporters: [
+          UsageSetAndReporter(
+            const DeprecatedElementUsageSet(),
+            _DeprecatedElementUsageReporter(rule: rule),
+          ),
+        ],
       );
 
   @override
