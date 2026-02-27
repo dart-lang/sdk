@@ -17,6 +17,7 @@ general/issue45700.crash: FormatterCrash
 general/issue48919: FormatterCrash
 inference/property_set_bad_setter: FormatterCrash
 nnbd/instance_duplicates: FormatterCrash
+nnbd/required: FormatterCrash
 primary_constructors/body_without_primary: FormatterCrash
 primary_constructors/class_primary_constructor: FormatterCrash
 primary_constructors/class_primary_declaring_parameters: FormatterCrash

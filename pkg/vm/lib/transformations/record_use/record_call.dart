@@ -92,17 +92,21 @@ class CallRecorder {
 
   CallReference _createCallReference(ast.StaticInvocation node) {
     final target = node.target;
-    final isExtensionMember =
-        target.isExtensionMember || target.isExtensionTypeMember;
+
+    final isTearOffLowering = isExtensionMemberTearOff(target);
+    final bool hasReceiver =
+        (target.function.positionalParameters.isNotEmpty &&
+            isExtensionThisName(
+              target.function.positionalParameters[0].name,
+            )) ||
+        isTearOffLowering;
 
     // Record the artificial `this` argument for extension methods as a
     // receiver.
     MaybeConstant? receiver =
-        (isExtensionMember && node.arguments.positional.isNotEmpty)
+        (hasReceiver && node.arguments.positional.isNotEmpty)
             ? _evaluateLiteral(node.arguments.positional[0])
             : null;
-
-    final isTearOffLowering = isExtensionMemberTearOff(target);
 
     if (isTearOffLowering) {
       return CallTearoff(

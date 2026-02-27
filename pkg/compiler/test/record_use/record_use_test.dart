@@ -231,4 +231,4 @@ Future<String?> compileWithUsages({
       .toString();
 }
 
-const Set<String> dart2jsNotSupported = {};
+const Set<String> dart2jsNotSupported = {'external_function.dart'};

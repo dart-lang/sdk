@@ -1,26 +1,26 @@
 {
   "constants": [
     {
-      "type": "string",
-      "value": "arg"
+      "type": "int",
+      "value": 123
     }
   ],
   "definitions": [
     {
       "path": [
         {
-          "kind": "extension",
-          "name": "StringUtils"
+          "kind": "extension_type",
+          "name": "ET"
         },
         {
           "disambiguators": [
             "static"
           ],
           "kind": "method",
-          "name": "printHello"
+          "name": "staticMethod"
         }
       ],
-      "uri": "package:record_use_test/extension_static_call.dart"
+      "uri": "package:record_use_test/extension_type_static_method.dart"
     }
   ],
   "loading_units": [

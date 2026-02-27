@@ -8,7 +8,10 @@ import 'package:kernel/ast.dart' as ir;
 
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/lowering_predicates.dart'
-    show isExtensionMemberTearOff, getExtensionMemberImplementation;
+    show
+        isExtensionMemberTearOff,
+        getExtensionMemberImplementation,
+        isExtensionThisName;
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
@@ -2493,9 +2496,17 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     SourceInformation sourceInformation,
   ) {
     final node = _closedWorld.elementMap.getMemberDefinition(element).node;
-    final definitionHasReceiver =
-        node is ir.Procedure &&
-        (node.isExtensionMember || node.isExtensionTypeMember);
+    var definitionHasReceiver = false;
+    if (node is ir.Procedure) {
+      if (node.isExtensionMember || node.isExtensionTypeMember) {
+        definitionHasReceiver =
+            (node.function.positionalParameters.isNotEmpty &&
+                isExtensionThisName(
+                  node.function.positionalParameters[0].name,
+                )) ||
+            isExtensionMemberTearOff(node);
+      }
+    }
 
     final originalParameterStructure = element.parameterStructure;
 

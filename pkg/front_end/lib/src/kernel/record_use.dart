@@ -67,6 +67,15 @@ bool isBeingRecorded(Annotatable node) {
     if (implementation != null) {
       return isBeingRecorded(implementation);
     }
+    Extension? extension = node.extension;
+    if (extension != null) {
+      if (isBeingRecorded(extension)) return true;
+    }
+    ExtensionTypeDeclaration? extensionTypeDeclaration =
+        node.extensionTypeDeclaration;
+    if (extensionTypeDeclaration != null) {
+      if (isBeingRecorded(extensionTypeDeclaration)) return true;
+    }
   }
 
   return false;

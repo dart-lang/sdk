@@ -776,11 +776,7 @@ var $startupMetricsGlobal =
         'resources.json',
         api.OutputType.recordedUses,
       )
-      ..add(
-        JsonEncoder.withIndent(
-          '  ',
-        ).convert(_recordUseCollector.finish(_options.environment)),
-      )
+      ..add(JsonEncoder.withIndent('  ').convert(_recordUseCollector.finish()))
       ..close();
   }
 }

@@ -3,9 +3,29 @@
     {
       "type": "int",
       "value": 6
+    },
+    {
+      "type": "int",
+      "value": 7
     }
   ],
   "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "someExternalStaticMethod"
+        }
+      ],
+      "uri": "package:record_use_test/external_function.dart"
+    },
     {
       "path": [
         {
@@ -16,12 +36,12 @@
           "name": "someExternalFunction"
         }
       ],
-      "uri": "package:record_use_js_test/js_interop.dart"
+      "uri": "package:record_use_test/external_function.dart"
     }
   ],
   "loading_units": [
     {
-      "name": "out"
+      "name": "1"
     }
   ],
   "metadata": {
@@ -32,6 +52,20 @@
     "static_calls": [
       {
         "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              1
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      },
+      {
+        "definition_index": 1,
         "uses": [
           {
             "loading_unit_indices": [
