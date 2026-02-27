@@ -1293,6 +1293,77 @@ void main() {
         ''',
       );
     });
+
+    group('evaluateNames include ?', () {
+      // https://github.com/dart-lang/sdk/issues/62487
+      test('when accessing nullable values of variables', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+void main() {
+  var c = C(0, C(10));
+  print('Done!'); $breakpointMarker
+}
+
+class C {
+  int? value;
+  C? other;
+
+  C? get otherGetter => other;
+  int? get valueGetter => value;
+
+  C([this.value, this.other]);
+}
+    ''');
+
+        // Hit the breakpoint ready to evaluate.
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+        final stop = await client.hitBreakpoint(
+          testFile,
+          breakpointLine,
+          launch: () => client.launch(
+            testFile.path,
+            evaluateGettersInDebugViews: true,
+          ),
+        );
+
+        // Walk down the variables path to locate our `A().myField`.
+        var c = await client.getLocalVariable(
+          stop.threadId!,
+          'c',
+        );
+        var cOther = await client.getChildVariable(
+          c.variablesReference,
+          'other',
+        );
+        var cOtherValue = await client.getChildVariable(
+          cOther.variablesReference,
+          'value',
+        );
+        var cOtherGetter = await client.getChildVariable(
+          c.variablesReference,
+          'otherGetter',
+        );
+        var cOtherGetterValueGetter = await client.getChildVariable(
+          cOtherGetter.variablesReference,
+          'valueGetter',
+        );
+
+        expect([
+          c.evaluateName,
+          cOther.evaluateName,
+          cOtherValue.evaluateName,
+          cOtherGetter.evaluateName,
+          cOtherGetterValueGetter.evaluateName,
+        ], [
+          'c',
+          'c.other',
+          'c.other?.value',
+          'c.otherGetter',
+          'c.otherGetter?.valueGetter',
+        ]);
+      });
+    });
+
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }

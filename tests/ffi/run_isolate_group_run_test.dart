@@ -68,10 +68,9 @@ main(List<String> args) {
   testRandom();
   testEncoding();
   testRecursiveToString();
-
   testBytesBuilder();
-
   testRegExp();
+  testContentType();
 
   print("All tests completed :)");
 }
@@ -546,5 +545,20 @@ void testRegExp() {
     RegExp re = new RegExp("abc", multiLine: false, caseSensitive: true);
     Match? m = re.firstMatch("defabcghi");
     Expect.equals("abc", m?[0]);
+  });
+}
+
+///
+void testContentType() {
+  IsolateGroup.runSync(() {
+    Expect.isNotNull(ContentType.text);
+    Expect.equals("text/plain; charset=utf-8", ContentType.text.toString());
+    Expect.isNotNull(ContentType.html);
+    Expect.equals("text/html; charset=utf-8", ContentType.html.toString());
+    Expect.isNotNull(ContentType.json);
+    Expect.equals(
+      "application/json; charset=utf-8",
+      ContentType.json.toString(),
+    );
   });
 }

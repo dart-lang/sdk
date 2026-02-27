@@ -44,8 +44,10 @@ class SourcePositions extends BytecodeDeclaration {
     return (value >> _numFlags, value & _flagMask);
   }
 
-  // Maps the given PC to the given file offset. If there is already an entry
-  // for the given PC, then the new information overwrites the old information.
+  // Adds a mapping from the PC to the given file offset as long as there's
+  // no mapping for that PC already, otherwise no change is made. Returns
+  // whether the requested mapping exists, which can be either because a new
+  // mapping was created or the mapping already existed before the request.
   //
   // Marks the source position as synthetic (not to be used by the debugger
   // or coverage calculations) if [(flags & syntheticFlag) != 0].
@@ -54,7 +56,7 @@ class SourcePositions extends BytecodeDeclaration {
   //
   // Assumes that the pc is greater than or equal to the pc used in the most
   // recent call to add, if any.
-  void add(int pc, int fileOffset, int flags) {
+  bool add(int pc, int fileOffset, int flags) {
     assert(fileOffset >= 0 || fileOffset == noSourcePosition);
     assert((flags & ~_flagMask) == 0);
     if (_lastPcAdded > pc) {
@@ -67,16 +69,18 @@ class SourcePositions extends BytecodeDeclaration {
       final lastPc = _positions[i];
       final lastFileOffset = _positions[i + 1];
       if (lastFileOffset == encodedFileOffset) {
-        // The last entry covers this PC offset as well.
-        return;
+        // The last entry covers this PC offset as well, or this is a repeated
+        // request for the same (pc, offset) mapping.
+        return true;
       }
       if (lastPc == pc) {
-        // The new entry for this PC overwrites the old one.
-        _positions.removeRange(i, i + 2);
+        // There's already a mapping for (pc, lastFileOffset).
+        return false;
       }
     }
     _positions.add(pc);
     _positions.add(encodedFileOffset);
+    return true;
   }
 
   bool get isEmpty => _positions.isEmpty;

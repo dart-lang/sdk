@@ -33,7 +33,7 @@
   (func $"foo0 <noInline>"
     call $"runtimeTrue implicit getter"
     if (result (ref $Object))
-      i32.const 121
+      i32.const 122
       i32.const 0
       struct.new $Object
     else

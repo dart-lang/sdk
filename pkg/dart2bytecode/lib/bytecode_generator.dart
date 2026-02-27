@@ -3591,11 +3591,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     _genDirectCallWithArgs(target, args,
         isFactory: target.isFactory, node: node);
     if (target == debugger) {
-      // The debugger needs a pause right after stepping out from the debugger
-      // function. Just using asm.emitSourcePosition() won't work here, because
-      // the next emitted instruction may have its own source position
-      // and thus would overwrite that one.
-      asm.emitNop();
+      // The debugger needs a pause for the current source position right after
+      // stepping out from the debugger function.
+      assert(asm.currentSourcePosition != TreeNode.noOffset);
+      asm.emitSourcePosition();
     }
   }
 

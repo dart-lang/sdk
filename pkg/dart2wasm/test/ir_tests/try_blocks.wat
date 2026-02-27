@@ -7,9 +7,9 @@
   (type $JavaScriptStack <...>)
   (type $_ModuleRtt <...>)
   (tag $tag0 (param (ref $#Top) (ref $#Top)))
-  (global $"WasmArray<WasmI16>[765]" (ref $Array<WasmI16>) <...>)
-  (global $"WasmArray<WasmI32>[241]" (ref $Array<WasmI32>) <...>)
-  (global $"WasmArray<WasmI32>[765]" (ref $Array<WasmI32>) <...>)
+  (global $"WasmArray<WasmI16>[785]" (ref $Array<WasmI16>) <...>)
+  (global $"WasmArray<WasmI32>[242]" (ref $Array<WasmI32>) <...>)
+  (global $"WasmArray<WasmI32>[785]" (ref $Array<WasmI32>) <...>)
   (global $"\"Caught Error\"" (ref $JSStringImpl) <...>)
   (global $"\"Caught JSAny\"" (ref $JSStringImpl) <...>)
   (global $"\"Caught Object\"" (ref $JSStringImpl) <...>)
@@ -37,7 +37,7 @@
           local.get $var1
           struct.get $#Top $field0
           local.tee $var0
-          i32.const 116
+          i32.const 117
           i32.eq
           if (result i32)
             i32.const 0
@@ -54,23 +54,23 @@
               end $label4
               drop
               i32.const -1
-              global.get $"WasmArray<WasmI32>[241]"
-              i32.const 116
+              global.get $"WasmArray<WasmI32>[242]"
+              i32.const 117
               array.get $Array<WasmI32>
               local.get $var0
               i32.add
               local.tee $var0
-              i32.const 765
+              i32.const 785
               i32.ge_u
               br_if $label3
               drop
-              global.get $"WasmArray<WasmI32>[765]"
+              global.get $"WasmArray<WasmI32>[785]"
               local.get $var0
               array.get $Array<WasmI32>
-              i32.const 116
+              i32.const 117
               i32.eq
               if
-                global.get $"WasmArray<WasmI16>[765]"
+                global.get $"WasmArray<WasmI16>[785]"
                 local.get $var0
                 array.get_u $Array<WasmI16>
                 br $label3
@@ -147,16 +147,16 @@
               local.get $var1
               struct.get $#Top $field0
               local.tee $var0
-              i32.const 48
+              i32.const 49
               i32.le_u
               if
                 local.get $var0
-                i32.const 46
+                i32.const 47
                 i32.le_u
                 if
                   i32.const 1
                   local.get $var0
-                  i32.const 35
+                  i32.const 36
                   i32.ge_u
                   br_if $label3
                   drop
@@ -164,19 +164,19 @@
                 end
                 i32.const 1
                 local.get $var0
-                i32.const 48
+                i32.const 49
                 i32.eq
                 br_if $label3
                 drop
                 br $label4
               end
               local.get $var0
-              i32.const 102
+              i32.const 103
               i32.le_u
               if
                 i32.const 1
                 local.get $var0
-                i32.const 102
+                i32.const 103
                 i32.eq
                 br_if $label3
                 drop
@@ -184,7 +184,7 @@
               end
               i32.const 1
               local.get $var0
-              i32.const 111
+              i32.const 112
               i32.eq
               br_if $label3
               drop

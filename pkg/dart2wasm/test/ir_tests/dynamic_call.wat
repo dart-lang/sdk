@@ -109,12 +109,12 @@
   (global $.a (import "" "a") (ref extern))
   (global $.toString (import "" "toString") (ref extern))
   (global $"SymbolConstant(#a)" (ref $Symbol)
-    (i32.const 113)
+    (i32.const 114)
     (i32.const 0)
     (global.get $"\"a\"")
     (struct.new $Symbol))
   (global $"SymbolConstant(#toString)" (ref $Symbol)
-    (i32.const 113)
+    (i32.const 114)
     (i32.const 0)
     (global.get $"\"toString\"")
     (struct.new $Symbol))
@@ -137,14 +137,14 @@
     (global.get $.toString)
     (struct.new $JSStringImpl))
   (global $"main tear-off" (ref $#Closure-0-0)
-    (i32.const 32)
+    (i32.const 33)
     (i32.const 0)
     (global.get $global0)
     (global.get $global2)
     (global.get $_FunctionType)
     (struct.new $#Closure-0-0))
   (global $1 (ref $BoxedInt)
-    (i32.const 117)
+    (i32.const 118)
     (i64.const 1)
     (struct.new $BoxedInt))
   (global $_FunctionType (ref $_FunctionType)
@@ -213,7 +213,7 @@
       block $label2
         block $label3
           local.get $var6
-          i32.const 118
+          i32.const 119
           i32.eq
           br_if $label3
           br $label2
@@ -229,7 +229,7 @@
       block $label4
         block $label5
           local.get $var6
-          i32.const 119
+          i32.const 120
           i32.eq
           br_if $label5
           br $label4

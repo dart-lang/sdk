@@ -396,6 +396,42 @@ class C {
 ''');
   }
 
+  test_dynamicParameterType_dynamicField() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  dynamic _x;
+
+  C({dynamic x}) : _x = x;
+}
+''',
+      [lint(44, 6)],
+    );
+  }
+
+  test_dynamicParameterType_nonTopTypeField() async {
+    await assertNoDiagnostics(r'''
+class C {
+  String? _x;
+
+  C({dynamic x}) : _x = x;
+}
+''');
+  }
+
+  test_dynamicParameterType_objectQuestionField() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  Object? _x;
+
+  C({dynamic x}) : _x = x;
+}
+''',
+      [lint(44, 6)],
+    );
+  }
+
   test_factoryConstructor() async {
     // https://github.com/dart-lang/linter/issues/2441
     await assertNoDiagnostics(r'''
@@ -427,6 +463,42 @@ class C {
   C(this.x, this.y);
 }
 ''');
+  }
+
+  test_implicitParameterType_dynamicField() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  dynamic _x;
+
+  C({x}) : _x = x;
+}
+''',
+      [lint(36, 6)],
+    );
+  }
+
+  test_implicitParameterType_nonTopTypeField() async {
+    await assertNoDiagnostics(r'''
+class C {
+  String? _x;
+
+  C({x}) : _x = x;
+}
+''');
+  }
+
+  test_implicitParameterType_objectQuestionField() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  Object? _x;
+
+  C({x}) : _x = x;
+}
+''',
+      [lint(36, 6)],
+    );
   }
 
   test_initializeFromOtherParameter() async {

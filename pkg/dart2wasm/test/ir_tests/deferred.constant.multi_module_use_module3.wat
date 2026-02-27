@@ -15,7 +15,7 @@
   (global $.h1-nonshared-const (import "" "h1-nonshared-const") (ref extern))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 3 funcref)
   (global $MyConstClass (ref $MyConstClass)
-    (i32.const 121)
+    (i32.const 122)
     (i32.const 0)
     (i32.const 4)
     (i32.const 0)

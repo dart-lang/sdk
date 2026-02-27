@@ -14,7 +14,7 @@
     (struct.new $JSStringImpl))
   (func $"useFooAsObject <noInline>" (result (ref null $#Top))
     (local $var0 (ref $Foo))
-    i32.const 119
+    i32.const 120
     i32.const 0
     i64.const 0
     struct.new $Foo

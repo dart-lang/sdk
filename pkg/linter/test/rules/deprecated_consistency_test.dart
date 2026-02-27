@@ -187,6 +187,22 @@ class A {
 ''');
   }
 
+  test_ignorePrivateFields() async {
+    // Private fields are not part of the public API, so it doesn't make sense
+    // to try to match up their deprecation status with that of the parameters
+    // that initialize them.
+    await assertNoDiagnostics(r'''
+class C {
+  @deprecated
+  int? _a;
+
+  int? _b;
+
+  C({this._a, @deprecated this._b});
+}
+''');
+  }
+
   test_primaryConstructor_thisParameter_deprecated() async {
     await assertNoDiagnostics(r'''
 class A({@deprecated this.a = 1}) {

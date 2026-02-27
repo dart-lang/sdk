@@ -60,6 +60,7 @@ class DeeplyImmutableValidator {
   // Can be null if ffi library is not available.
   final Class? structClass;
   final Class? unionClass;
+  final Class mapClass;
 
   DeeplyImmutableValidator(
     LibraryIndex index,
@@ -72,7 +73,8 @@ class DeeplyImmutableValidator {
         'NativeFieldWrapperClass1',
       ),
       structClass = index.tryGetClass('dart:ffi', 'Struct'),
-      unionClass = index.tryGetClass('dart:ffi', 'Union');
+      unionClass = index.tryGetClass('dart:ffi', 'Union'),
+      mapClass = coreTypes.mapClass;
 
   void visitLibrary(Library library) {
     for (final cls in library.classes) {
@@ -111,6 +113,11 @@ class DeeplyImmutableValidator {
     return node != null;
   }
 
+  bool _isConstMap(Class node) {
+    return node.name == "_ConstMap" &&
+        node.enclosingLibrary.name == "dart._compact_hash";
+  }
+
   void _validateDeeplyImmutable(Class node) {
     if (!_isDeeplyImmutableClass(node)) {
       // If class is not marked deeply immutable, check that none of the super
@@ -143,7 +150,11 @@ class DeeplyImmutableValidator {
         superClass != coreTypes.objectClass &&
         node != structClass &&
         node != unionClass &&
-        !_isOrExtendsNativeFieldWrapper1Class(superClass)) {
+        !_isOrExtendsNativeFieldWrapper1Class(superClass) &&
+        // ConstMap extends mutable class, but has all mutating functions
+        // disabled. Further, during construction the map is verified to have
+        // only deeply immutable values.
+        !_isConstMap(node)) {
       if (!_isDeeplyImmutableClass(superClass)) {
         diagnosticReporter.report(
           diag.ffiDeeplyImmutableSupertypeMustBeDeeplyImmutable,
@@ -207,6 +218,10 @@ class DeeplyImmutableValidator {
     }
     if (dartType is InterfaceType) {
       final classNode = dartType.classNode;
+      if (classNode == mapClass) {
+        // Relies on dynamic check of whether map is actually const map.
+        return _CheckResult(isImmutable: true, requiresRuntimeCheck: true);
+      }
       return _CheckResult(
         isImmutable: _isDeeplyImmutableClass(classNode),
         requiresRuntimeCheck: false,
