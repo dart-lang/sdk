@@ -142,6 +142,15 @@ class _ConstructorChecker {
     if (parameter is! FormalParameterElement) return;
     if (!_parameters.contains(parameter)) return;
 
+    // An initializing formal is required to have a type that's a subtype of the
+    // field type (assignability is not sufficient). If this requirement isn't
+    // met, don't lint, because the corresponding fix will lead to a
+    // compile-time error.
+    var library = parameter.library!;
+    if (!library.typeSystem.isSubtypeOf(parameter.type, field.type)) {
+      return;
+    }
+
     // Must be the same name (modulo privacy for private named parameters).
     if (field.isPrivate) {
       // Never lint on private names if the feature isn't supported.
