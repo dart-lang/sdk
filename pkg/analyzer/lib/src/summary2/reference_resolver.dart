@@ -16,7 +16,6 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Recursive visitor of LinkedNodes that resolves explicit type annotations
 /// in outlines.  This includes resolving element references in identifiers
@@ -172,35 +171,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    node.metadata.accept(this);
-
-    var fields = node.fields;
-    fields.type?.accept(this);
-    nodesToBuildType.addDeclaration(fields);
-
-    void bindVariables() {
-      for (var fieldNode in fields.variables) {
-        fieldNode.initializerScope = nameScope;
-      }
-    }
-
-    if (!node.isStatic && fields.lateKeyword == null) {
-      var primaryConstructor = node.parent?.parent
-          .tryCast<Declaration>()
-          ?.declaredFragment!
-          .element
-          .tryCast<InterfaceElementImpl>()
-          ?.primaryConstructor;
-      if (primaryConstructor != null) {
-        _scopeContext.withConstructorInitializerScope(
-          primaryConstructor,
-          bindVariables,
-        );
-        return;
-      }
-    }
-
-    bindVariables();
+    node.visitChildren(this);
   }
 
   @override
@@ -391,8 +362,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    node.metadata.accept(this);
-    node.variables.accept(this);
+    node.visitChildren(this);
   }
 
   @override
@@ -419,15 +389,16 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
+    node.initializerScope = nameScope;
+  }
+
+  @override
   void visitVariableDeclarationList(
     covariant VariableDeclarationListImpl node,
   ) {
-    node.type?.accept(this);
+    _scopeContext.visitVariableDeclarationList(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
-
-    for (var variable in node.variables) {
-      variable.initializerScope = nameScope;
-    }
   }
 
   @override

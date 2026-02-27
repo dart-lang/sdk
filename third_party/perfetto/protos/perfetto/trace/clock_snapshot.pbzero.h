@@ -23,18 +23,13 @@
 namespace perfetto {
 namespace protos {
 namespace pbzero {
+
 class ClockSnapshot_Clock;
 enum BuiltinClock : int32_t;
-}  // Namespace pbzero.
-}  // Namespace protos.
-}  // Namespace perfetto.
 
-namespace perfetto {
-namespace protos {
-namespace pbzero {
-
-class ClockSnapshot_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
+class ClockSnapshot_Decoder : public ::protozero::TypedProtoDecoder<
+                                  /*MAX_FIELD_ID=*/2,
+                                  /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
  public:
   ClockSnapshot_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -82,11 +77,11 @@ class ClockSnapshot : public ::protozero::Message {
           2,
           ::protozero::proto_utils::RepetitionType::kNotRepeated,
           ::protozero::proto_utils::ProtoSchemaType::kEnum,
-          BuiltinClock,
+          ::perfetto::protos::pbzero::BuiltinClock,
           ClockSnapshot>;
 
   static constexpr FieldMetadata_PrimaryTraceClock kPrimaryTraceClock{};
-  void set_primary_trace_clock(BuiltinClock value) {
+  void set_primary_trace_clock(::perfetto::protos::pbzero::BuiltinClock value) {
     static constexpr uint32_t field_id =
         FieldMetadata_PrimaryTraceClock::kFieldId;
     // Call the appropriate protozero::Message::Append(field_id, ...)
@@ -99,7 +94,9 @@ class ClockSnapshot : public ::protozero::Message {
 };
 
 class ClockSnapshot_Clock_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
+    : public ::protozero::TypedProtoDecoder<
+          /*MAX_FIELD_ID=*/2,
+          /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   ClockSnapshot_Clock_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}

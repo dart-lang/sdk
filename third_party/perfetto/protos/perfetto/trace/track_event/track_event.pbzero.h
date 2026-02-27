@@ -23,18 +23,12 @@
 namespace perfetto {
 namespace protos {
 namespace pbzero {
+
 class DebugAnnotation;
 namespace perfetto_pbzero_enum_TrackEvent {
 enum Type : int32_t;
 }  // namespace perfetto_pbzero_enum_TrackEvent
 using TrackEvent_Type = perfetto_pbzero_enum_TrackEvent::Type;
-}  // Namespace pbzero.
-}  // Namespace protos.
-}  // Namespace perfetto.
-
-namespace perfetto {
-namespace protos {
-namespace pbzero {
 
 namespace perfetto_pbzero_enum_TrackEvent {
 enum Type : int32_t {
@@ -69,8 +63,9 @@ const char* TrackEvent_Type_Name(
   return "PBZERO_UNKNOWN_ENUM_VALUE";
 }
 
-class EventName_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
+class EventName_Decoder : public ::protozero::TypedProtoDecoder<
+                              /*MAX_FIELD_ID=*/2,
+                              /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   EventName_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -139,8 +134,9 @@ class EventName : public ::protozero::Message {
   }
 };
 
-class EventCategory_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/2> {
+class EventCategory_Decoder : public ::protozero::TypedProtoDecoder<
+                                  /*MAX_FIELD_ID=*/2,
+                                  /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   EventCategory_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -209,8 +205,9 @@ class EventCategory : public ::protozero::Message {
   }
 };
 
-class TrackEvent_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/48> {
+class TrackEvent_Decoder : public ::protozero::TypedProtoDecoder<
+                               /*MAX_FIELD_ID=*/48,
+                               /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
  public:
   TrackEvent_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}
@@ -366,11 +363,11 @@ class TrackEvent : public ::protozero::Message {
       9,
       ::protozero::proto_utils::RepetitionType::kNotRepeated,
       ::protozero::proto_utils::ProtoSchemaType::kEnum,
-      TrackEvent_Type,
+      ::perfetto::protos::pbzero::TrackEvent_Type,
       TrackEvent>;
 
   static constexpr FieldMetadata_Type kType{};
-  void set_type(TrackEvent_Type value) {
+  void set_type(::perfetto::protos::pbzero::TrackEvent_Type value) {
     static constexpr uint32_t field_id = FieldMetadata_Type::kFieldId;
     // Call the appropriate protozero::Message::Append(field_id, ...)
     // method based on the type of the field.

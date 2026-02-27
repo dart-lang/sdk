@@ -841,29 +841,37 @@ StackTrace jsExceptionStackTrace(WasmExternRef? ref) => JavaScriptStack(
 class JavaScriptStack implements StackTrace {
   // May be null.
   final WasmExternRef? stack;
+  // Tracked the source so we only need remove frames if stack was generated
+  // from current.
+  final bool _fromCurrent;
 
-  // Note: We remove the first two frames to prevent including
-  // `StackTrace.current` and the JS interop function. On Chrome, the first line
-  // is not a frame but a line with just "Error", sometimes with details:
+  // Note: We remove the first four frames to prevent including
+  // `StackTrace.current`, other current helpers and the JS interop function.
+  // On Chrome, the first line is not a frame but a line with just "Error",
+  // sometimes with details:
   // "Error: ...". Also remove that line.
   late final String _stringified = stack.isNull
       ? ""
       : JSStringImpl.fromRefUnchecked(
-          JS<WasmExternRef?>(r"""(exn) => {
+          _fromCurrent
+              ? JS<WasmExternRef?>(r"""(exn) => {
             let stackString = exn.toString();
             let frames = stackString.split('\n');
-            let drop = 2;
+            let drop = 4;
             if (frames[0].startsWith('Error')) {
                 drop += 1;
             }
             return frames.slice(drop).join('\n');
-          }""", stack),
+          }""", stack)
+              : stack,
         );
 
-  JavaScriptStack(this.stack);
+  JavaScriptStack(this.stack) : _fromCurrent = false;
 
+  @pragma('wasm:never-inline')
   JavaScriptStack.current()
-    : stack = JS<WasmExternRef?>("() => new Error().stack");
+    : stack = JS<WasmExternRef?>("() => new Error().stack"),
+      _fromCurrent = true;
 
   @override
   String toString() => _stringified;

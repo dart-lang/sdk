@@ -24,8 +24,9 @@ namespace perfetto {
 namespace protos {
 namespace pbzero {
 
-class ProcessDescriptor_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/6> {
+class ProcessDescriptor_Decoder : public ::protozero::TypedProtoDecoder<
+                                      /*MAX_FIELD_ID=*/6,
+                                      /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   ProcessDescriptor_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}

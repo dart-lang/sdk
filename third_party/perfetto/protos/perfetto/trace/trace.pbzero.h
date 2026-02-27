@@ -23,17 +23,12 @@
 namespace perfetto {
 namespace protos {
 namespace pbzero {
+
 class TracePacket;
-}  // Namespace pbzero.
-}  // Namespace protos.
-}  // Namespace perfetto.
 
-namespace perfetto {
-namespace protos {
-namespace pbzero {
-
-class Trace_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/1> {
+class Trace_Decoder : public ::protozero::TypedProtoDecoder<
+                          /*MAX_FIELD_ID=*/1,
+                          /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
  public:
   Trace_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}

@@ -114,7 +114,7 @@ vars = {
   "libcxxabi_rev": "a4dda1589d37a7e4b4f7a81ebad01b1083f2e726",
   "libc_rev": "5af39a19a1ad51ce93972cdab206dcd3ff9b6afa",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "perfetto_rev": "49c59636465f2a32f4d83cff835538ba7bf8d732",
+  "perfetto_rev": "13ce0c9e13b0940d2476cd0cff2301708a9a2e2b",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "zlib_rev": "470d3a2ee4ef721688ce6961bc865a99fcb64070",

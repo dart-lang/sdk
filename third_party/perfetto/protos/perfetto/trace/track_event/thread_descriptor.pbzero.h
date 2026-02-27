@@ -24,8 +24,9 @@ namespace perfetto {
 namespace protos {
 namespace pbzero {
 
-class ThreadDescriptor_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/5> {
+class ThreadDescriptor_Decoder : public ::protozero::TypedProtoDecoder<
+                                     /*MAX_FIELD_ID=*/5,
+                                     /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   ThreadDescriptor_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}

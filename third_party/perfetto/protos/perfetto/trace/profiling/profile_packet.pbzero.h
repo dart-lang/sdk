@@ -24,8 +24,9 @@ namespace perfetto {
 namespace protos {
 namespace pbzero {
 
-class PerfSample_Decoder
-    : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/4> {
+class PerfSample_Decoder : public ::protozero::TypedProtoDecoder<
+                               /*MAX_FIELD_ID=*/4,
+                               /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   PerfSample_Decoder(const uint8_t* data, size_t len)
       : TypedProtoDecoder(data, len) {}

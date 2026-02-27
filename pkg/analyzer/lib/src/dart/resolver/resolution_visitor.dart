@@ -825,34 +825,26 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var initializerNode = node.initializer;
-    if (initializerNode != null) {
-      initializerNode.accept(this);
+    var element = node.declaredFragment!.element;
+
+    if (element is LocalVariableElementImpl) {
+      var varList = node.parent as VariableDeclarationListImpl;
+      if (varList.type case var typeNode?) {
+        element.type = typeNode.typeOrThrow;
+      } else {
+        // TODO(scheglov): review and improve resolution to not rely on dynamic.
+        element.type = _typeProvider.dynamicType;
+      }
     }
+
+    node.initializer?.accept(this);
   }
 
   @override
   void visitVariableDeclarationList(
     covariant VariableDeclarationListImpl node,
   ) {
-    node.visitChildren(this);
-
-    var variables = node.variables;
-    for (var i = 0; i < variables.length; i++) {
-      var variable = variables[i];
-      var fragment = variable.declaredFragment!;
-
-      var offset = (i == 0 ? node.parent! : variable).offset;
-      var length = variable.end - offset;
-      fragment.setCodeRange(offset, length);
-
-      if (node.type != null) {
-        fragment.element.type = node.type!.typeOrThrow;
-      } else if (fragment is LocalVariableFragmentImpl) {
-        // TODO(scheglov): review and improve resolution to not rely on dynamic.
-        fragment.element.type = _typeProvider.dynamicType;
-      }
-    }
+    _scopeContext.visitVariableDeclarationList(node, visitor: this);
   }
 
   @override

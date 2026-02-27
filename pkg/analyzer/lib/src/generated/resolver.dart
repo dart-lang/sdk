@@ -5216,21 +5216,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     node.metadata.accept(this);
     _scopeContext.visitDocumentationComment(node.documentationComment, this);
-
-    if (!node.isStatic && node.fields.lateKeyword == null) {
-      var primaryConstructor = node.parent?.parent
-          .tryCast<Declaration>()
-          ?.declaredFragment!
-          .element
-          .tryCast<InterfaceElementImpl>()
-          ?.primaryConstructor;
-      if (primaryConstructor != null) {
-        _scopeContext.withConstructorInitializerScope(primaryConstructor, () {
-          node.fields.accept(this);
-        });
-        return;
-      }
-    }
     node.fields.accept(this);
   }
 
@@ -5605,6 +5590,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.metadata.accept(this);
     _scopeContext.visitDocumentationComment(node.documentationComment, this);
     node.variables.accept(this);
+  }
+
+  @override
+  void visitVariableDeclarationList(
+    covariant VariableDeclarationListImpl node,
+  ) {
+    _scopeContext.visitVariableDeclarationList(node, visitor: this);
   }
 
   @override

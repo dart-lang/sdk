@@ -14,6 +14,7 @@
     (field $field1 (mut i32)))))
   (table $cross-module-funcs-0 (export "cross-module-funcs-0") 3 funcref)
   (global $"\"bad\"" (ref $JSStringImpl) <...>)
+  (func $Error._throwWithCurrentStackTrace <noInline> (param $var0 (ref $#Top)) <...>)
   (func $"mainImpl <noInline>" (param $var0 i32)
     (local $var1 (ref $MyConstClass))
     i64.const 0
@@ -30,10 +31,9 @@
     i32.eqz
     if
       global.get $"\"bad\""
-      call $Error._throwWithCurrentStackTrace
+      call $"Error._throwWithCurrentStackTrace <noInline>"
       unreachable
     end
   )
-  (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
   (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) <...>)
 )

@@ -9,6 +9,7 @@
   (elem $cross-module-funcs-0
     (set 1 (ref.func $JSStringImpl._interpolate2))
     (set 2 (ref.func $print)))
+  (func $Error._throwWithCurrentStackTrace <noInline> (param $var0 (ref $#Top)) <...>)
   (func $_loaded implicit getter (result (ref $_DefaultSet&_HashFieldBase&SetMixin)) <...>)
   (func $"useFoo <noInline>"
     call $"useFooAsType <noInline>"
@@ -21,7 +22,7 @@
       ref.null none
       i64.const 0
       struct.new $DeferredLoadIdNotLoadedError
-      call $Error._throwWithCurrentStackTrace
+      call $"Error._throwWithCurrentStackTrace <noInline>"
       unreachable
     end
     i32.const 0
@@ -33,7 +34,6 @@
     call $print
     drop
   )
-  (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
   (func $JSStringImpl._interpolate2 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (result (ref $JSStringImpl)) <...>)
   (func $_DefaultSet&_HashFieldBase&SetMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashSetMixin.contains (param $var0 (ref $_DefaultSet&_HashFieldBase&SetMixin)) (result i32) <...>)
   (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)

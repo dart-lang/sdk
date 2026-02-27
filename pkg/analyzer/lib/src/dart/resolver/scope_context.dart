@@ -368,6 +368,37 @@ class ScopeContext {
     });
   }
 
+  void visitVariableDeclarationList(
+    VariableDeclarationListImpl node, {
+    required AstVisitor visitor,
+  }) {
+    node.metadata.accept(visitor);
+    node.type?.accept(visitor);
+
+    var variablesScope = nameScope;
+
+    // Use different scope for instance non-late field initializers.
+    if (node.parent case FieldDeclarationImpl fieldDeclaration) {
+      if (!fieldDeclaration.isStatic) {
+        if (node.lateKeyword == null) {
+          var primaryConstructor = _enclosingInstanceElement
+              .tryCast<InterfaceElementImpl>()
+              ?.primaryConstructor;
+          if (primaryConstructor != null) {
+            variablesScope = ConstructorInitializerScope(
+              nameScope,
+              primaryConstructor,
+            );
+          }
+        }
+      }
+    }
+
+    withScope(variablesScope, () {
+      node.variables.accept(visitor);
+    });
+  }
+
   void withConstructorInitializerScope(
     ConstructorElementImpl element,
     void Function() operation,
