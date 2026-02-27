@@ -14,12 +14,17 @@ import 'dart:ffi' show Abi;
 /// Note: we don't search for the directory "sdk" because this may not be
 /// available when running this test in a shard.
 Uri repoRoot = (() {
+  var root = Platform.environment['REPO_ROOT'];
+  if (root != null) return Uri.base.resolve(root);
   Uri script = Platform.script;
   var segments = script.pathSegments;
   var index = segments.lastIndexOf('pkg');
   if (index == -1) {
-    exitCode = 1;
-    throw "error: cannot find the root of the Dart SDK";
+    index = segments.lastIndexOf(_outFolder); // running from snapshot
+    if (index == -1) {
+      exitCode = 1;
+      throw "error: cannot find the root of the Dart SDK";
+    }
   }
   return script.resolve("../" * (segments.length - index - 1));
 })();
