@@ -14,6 +14,7 @@ class C {
   final y = x;
   //        ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] Can't access 'this' in a field initializer to read 'x'.
 }
 
