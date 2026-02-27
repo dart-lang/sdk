@@ -5137,6 +5137,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitComment(covariant CommentImpl node) {
+    _scopeContext.visitDocumentationComment(node, this);
+  }
+
+  @override
   void visitCompilationUnit(covariant CompilationUnitImpl node) {
     node.nameScope = nameScope;
     super.visitCompilationUnit(node);
@@ -5153,7 +5158,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
     _scopeContext.withConstructorInitializerScope(element, () {
       node.initializers.accept(this);
-      _scopeContext.visitDocumentationComment(node.documentationComment, this);
+      node.documentationComment?.accept(this);
     });
 
     node.redirectedConstructor?.accept(this);
@@ -5185,7 +5190,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     covariant EnumConstantDeclarationImpl node,
   ) {
     node.metadata.accept(this);
-    _scopeContext.visitDocumentationComment(node.documentationComment, this);
+    node.documentationComment?.accept(this);
     node.arguments?.accept(this);
   }
 
@@ -5215,7 +5220,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     node.metadata.accept(this);
-    _scopeContext.visitDocumentationComment(node.documentationComment, this);
+    node.documentationComment?.accept(this);
     node.fields.accept(this);
   }
 
@@ -5373,7 +5378,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     node.metadata.accept(this);
-    _scopeContext.visitDocumentationComment(node.documentationComment, this);
+    node.documentationComment?.accept(this);
   }
 
   @override
@@ -5436,14 +5441,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
     if (element != null) {
       _scopeContext.withPrimaryParameterScope(element, () {
-        _scopeContext.visitDocumentationComment(
-          node.documentationComment,
-          this,
-        );
+        node.documentationComment?.accept(this);
         node.body.accept(this);
       });
     } else {
-      _scopeContext.visitDocumentationComment(node.documentationComment, this);
+      node.documentationComment?.accept(this);
       node.body.accept(this);
     }
   }
@@ -5588,7 +5590,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     covariant TopLevelVariableDeclarationImpl node,
   ) {
     node.metadata.accept(this);
-    _scopeContext.visitDocumentationComment(node.documentationComment, this);
+    node.documentationComment?.accept(this);
     node.variables.accept(this);
   }
 

@@ -54,7 +54,7 @@ class ScopeContext {
 
       withInstanceScope(element, () {
         node.bodyScope = nameScope;
-        visitDocumentationComment(node.documentationComment, visitor);
+        node.documentationComment?.accept(visitor);
         node.namePart
             .tryCast<PrimaryConstructorDeclarationImpl>()
             ?.formalParameters
@@ -81,23 +81,21 @@ class ScopeContext {
       node.implementsClause?.accept(visitor);
 
       withInstanceScope(element, () {
-        visitDocumentationComment(node.documentationComment, visitor);
+        node.documentationComment?.accept(visitor);
       });
     });
   }
 
-  void visitDocumentationComment(CommentImpl? node, AstVisitor visitor) {
-    if (node != null) {
-      var docImportInnerScope = _docImportScope.innerScope;
-      _docImportScope.innerScope = nameScope;
-      try {
-        withScope(_docImportScope, () {
-          node.nameScope = nameScope;
-          node.accept(visitor);
-        });
-      } finally {
-        _docImportScope.innerScope = docImportInnerScope;
-      }
+  void visitDocumentationComment(CommentImpl node, AstVisitor visitor) {
+    var docImportInnerScope = _docImportScope.innerScope;
+    _docImportScope.innerScope = nameScope;
+    try {
+      withScope(_docImportScope, () {
+        node.nameScope = nameScope;
+        node.visitChildren(visitor);
+      });
+    } finally {
+      _docImportScope.innerScope = docImportInnerScope;
     }
   }
 
@@ -117,7 +115,7 @@ class ScopeContext {
 
       withInstanceScope(element, () {
         node.bodyScope = nameScope;
-        visitDocumentationComment(node.documentationComment, visitor);
+        node.documentationComment?.accept(visitor);
         node.namePart
             .tryCast<PrimaryConstructorDeclarationImpl>()
             ?.formalParameters
@@ -142,7 +140,7 @@ class ScopeContext {
 
       withExtensionScope(element, () {
         node.bodyScope = nameScope;
-        visitDocumentationComment(node.documentationComment, visitor);
+        node.documentationComment?.accept(visitor);
         node.body.accept(visitor);
       });
     });
@@ -164,7 +162,7 @@ class ScopeContext {
       if (_featureSet.isEnabled(Feature.primary_constructors)) {
         withInstanceScope(element, () {
           node.bodyScope = nameScope;
-          visitDocumentationComment(node.documentationComment, visitor);
+          node.documentationComment?.accept(visitor);
           node.primaryConstructor.formalParameters.accept(visitor);
           node.body.accept(visitor);
         });
@@ -172,7 +170,7 @@ class ScopeContext {
         node.primaryConstructor.formalParameters.accept(visitor);
         withInstanceScope(element, () {
           node.bodyScope = nameScope;
-          visitDocumentationComment(node.documentationComment, visitor);
+          node.documentationComment?.accept(visitor);
           node.body.accept(visitor);
         });
       }
@@ -211,7 +209,7 @@ class ScopeContext {
       functionExpression.parameters?.accept(visitor);
 
       withFormalParameterScope(element.formalParameters, () {
-        visitDocumentationComment(node.documentationComment, visitor);
+        node.documentationComment?.accept(visitor);
         functionExpression.body.accept(visitor);
       });
     });
@@ -248,7 +246,7 @@ class ScopeContext {
 
       withLocalScope((scope) {
         scope.addFormalParameterList(node.parameters);
-        visitDocumentationComment(node.documentationComment, visitor);
+        node.documentationComment?.accept(visitor);
       });
     });
   }
@@ -300,11 +298,11 @@ class ScopeContext {
         withTypeParameterList(functionTypeNode.typeParameters, () {
           withLocalScope((scope) {
             scope.addFormalParameterList(functionTypeNode.parameters);
-            visitDocumentationComment(node.documentationComment, visitor);
+            node.documentationComment?.accept(visitor);
           });
         });
       } else {
-        visitDocumentationComment(node.documentationComment, visitor);
+        node.documentationComment?.accept(visitor);
       }
     });
   }
@@ -325,7 +323,7 @@ class ScopeContext {
       node.parameters?.accept(visitor);
 
       withFormalParameterScope(element.formalParameters, () {
-        visitDocumentationComment(node.documentationComment, visitor);
+        node.documentationComment?.accept(visitor);
         node.body.accept(visitor);
       });
     });
@@ -347,7 +345,7 @@ class ScopeContext {
 
       withInstanceScope(element, () {
         node.bodyScope = nameScope;
-        visitDocumentationComment(node.documentationComment, visitor);
+        node.documentationComment?.accept(visitor);
         node.body.accept(visitor);
       });
     });
