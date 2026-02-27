@@ -383,6 +383,16 @@ const simpleThrowingProgram = r'''
   }
 ''';
 
+/// A small script that throws an exception asynchronously two levels deep
+/// from main (main->outer->inner).
+const asyncExceptionProgram = r'''
+  Future<void> main() async => await outer();
+
+  Future<void> outer() async => await inner();
+
+  Future<void> inner() async => throw UnimplementedError('NYI');
+''';
+
 /// A simple Dart script that sends a `navigate` event to the `ToolEvent`
 /// stream.
 const simpleToolEventProgram = r'''
