@@ -320,7 +320,7 @@ class ExperimentalFlag {
     isExpired: false,
     enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentReleasedVersion: const Version(3, 12),
   );
 
   static const ExperimentalFlag privateNamedParameters = const ExperimentalFlag(
