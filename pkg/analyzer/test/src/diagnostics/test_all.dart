@@ -322,12 +322,12 @@ import 'extra_annotation_on_struct_field_test.dart'
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
 import 'extraneous_modifier_test.dart' as extraneous_modifier;
-import 'ffi_address_of_cast_test.dart' as ffi_addresss_of_cast_test;
-import 'ffi_array_test.dart' as ffi_array_test;
-import 'ffi_async_callback_test.dart' as ffi_async_callback_test;
+import 'ffi_address_of_cast_test.dart' as ffi_addresss_of_cast;
+import 'ffi_array_test.dart' as ffi_array;
+import 'ffi_async_callback_test.dart' as ffi_async_callback;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
-import 'ffi_native_test.dart' as ffi_native_test;
+import 'ffi_native_test.dart' as ffi_native;
 import 'field_initializer_factory_constructor_test.dart'
     as field_initializer_factory_constructor;
 import 'field_initializer_not_assignable_test.dart'
@@ -566,7 +566,7 @@ import 'mixin_inference_no_possible_substitution_test.dart'
     as mixin_inference_no_possible_substitution;
 import 'mixin_inherits_from_not_object_test.dart'
     as mixin_inherits_from_not_object;
-import 'mixin_instantiate_test.dart' as mixin_instantiate_test;
+import 'mixin_instantiate_test.dart' as mixin_instantiate;
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_of_type_alias_expands_to_type_parameter_test.dart'
@@ -839,7 +839,7 @@ import 'tearoff_with_must_be_const_parameter_test.dart'
     as tearoff_with_must_be_const_parameter;
 import 'text_direction_code_point_test.dart' as text_direction_code_point;
 import 'throw_of_invalid_type_test.dart' as throw_of_invalid_type;
-import 'todo_test.dart' as todo_test;
+import 'todo_test.dart' as todo;
 import 'top_level_cycle_test.dart' as top_level_cycle;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'type_alias_cannot_reference_itself_test.dart'
@@ -928,12 +928,14 @@ import 'uri_does_not_exist_in_doc_import_test.dart'
 import 'uri_does_not_exist_test.dart' as uri_does_not_exist;
 import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
 import 'use_of_native_extension_test.dart' as use_of_native_extension;
-import 'use_of_nullable_value_test.dart' as use_of_nullable_value_test;
+import 'use_of_nullable_value_test.dart' as use_of_nullable_value;
+import 'use_of_private_parameter_name_test.dart'
+    as use_of_private_parameter_name;
 import 'use_of_void_result_test.dart' as use_of_void_result;
 import 'values_declaration_in_enum_test.dart' as values_declaration_in_enum;
 import 'variable_not_initialized_test.dart' as variable_not_initialized;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
-import 'void_with_type_arguments_test.dart' as void_with_type_arguments_test;
+import 'void_with_type_arguments_test.dart' as void_with_type_arguments;
 import 'wrong_number_of_parameters_for_operator_test.dart'
     as wrong_number_of_parameters_for_operator;
 import 'wrong_number_of_type_arguments_enum_test.dart'
@@ -1159,11 +1161,11 @@ main() {
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
     extraneous_modifier.main();
-    ffi_addresss_of_cast_test.main();
-    ffi_array_test.main();
-    ffi_async_callback_test.main();
+    ffi_addresss_of_cast.main();
+    ffi_array.main();
+    ffi_async_callback.main();
     ffi_leaf_call_must_not_use_handle.main();
-    ffi_native_test.main();
+    ffi_native.main();
     field_initializer_factory_constructor.main();
     field_initializer_not_assignable.main();
     field_initializer_outside_constructor.main();
@@ -1309,7 +1311,7 @@ main() {
     mixin_deferred_class.main();
     mixin_inference_no_possible_substitution.main();
     mixin_inherits_from_not_object.main();
-    mixin_instantiate_test.main();
+    mixin_instantiate.main();
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
     mixin_of_type_alias_expands_to_type_parameter.main();
@@ -1485,7 +1487,7 @@ main() {
     tearoff_with_must_be_const_parameter.main();
     text_direction_code_point.main();
     throw_of_invalid_type.main();
-    todo_test.main();
+    todo.main();
     top_level_cycle.main();
     top_level_instance_getter.main();
     type_alias_cannot_reference_itself.main();
@@ -1556,12 +1558,13 @@ main() {
     uri_does_not_exist_in_doc_import.main();
     uri_with_interpolation.main();
     use_of_native_extension.main();
-    use_of_nullable_value_test.main();
+    use_of_nullable_value.main();
+    use_of_private_parameter_name.main();
     use_of_void_result.main();
     values_declaration_in_enum.main();
     variable_not_initialized.main();
     variable_type_mismatch.main();
-    void_with_type_arguments_test.main();
+    void_with_type_arguments.main();
     wrong_number_of_parameters_for_operator.main();
     wrong_number_of_type_arguments_enum.main();
     wrong_number_of_type_arguments_extension.main();

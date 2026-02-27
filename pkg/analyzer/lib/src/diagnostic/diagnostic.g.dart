@@ -17238,6 +17238,24 @@ useOfNativeExtension = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// Parameters:
+/// String name: the public name of the requested named parameter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+useOfPrivateParameterName = DiagnosticWithArguments(
+  name: 'undefined_named_parameter',
+  problemMessage:
+      "The named parameter '_{0}' should use the corresponding public name '{0}' "
+      "at the callsite.",
+  correctionMessage: "Try changing the name to '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'use_of_private_parameter_name',
+  withArguments: _withArgumentsUseOfPrivateParameterName,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments
 useOfVoidResult = DiagnosticWithoutArgumentsImpl(
@@ -21523,6 +21541,12 @@ LocatableDiagnostic _withArgumentsUriHasNotBeenGenerated({
   required String uriStr,
 }) {
   return LocatableDiagnosticImpl(diag.uriHasNotBeenGenerated, [uriStr]);
+}
+
+LocatableDiagnostic _withArgumentsUseOfPrivateParameterName({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.useOfPrivateParameterName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsVariableTypeMismatch({

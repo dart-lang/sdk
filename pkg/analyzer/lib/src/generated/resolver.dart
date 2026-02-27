@@ -4864,9 +4864,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         String name = nameNode.name;
         var element = namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
-          diagnosticReporter?.report(
-            diag.undefinedNamedParameter.withArguments(name: name).at(nameNode),
-          );
+          element =
+              namedParameters != null && name.startsWith('_') && name.length > 1
+              ? namedParameters[name.substring(1)]
+              : null;
+          if (element == null) {
+            diagnosticReporter?.report(
+              diag.undefinedNamedParameter
+                  .withArguments(name: name)
+                  .at(nameNode),
+            );
+          } else {
+            diagnosticReporter?.report(
+              diag.useOfPrivateParameterName
+                  .withArguments(name: name.substring(1))
+                  .at(nameNode),
+            );
+          }
         } else {
           resolvedParameters[i] = element;
           nameNode.element = element;

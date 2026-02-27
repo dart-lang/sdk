@@ -1656,6 +1656,8 @@ uri_with_interpolation:
 use_of_native_extension:
   status: noFix
   since: ~2.15
+use_of_private_parameter_name:
+  status: hasFix
 use_of_void_result:
   status: noFix
 values_declaration_in_enum:

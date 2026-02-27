@@ -852,6 +852,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     QualifyReference.new,
   ],
   diag.uriDoesNotExist: [CreateFile.new],
+  diag.useOfPrivateParameterName: [AddMissingParameterNamed.new],
   diag.variablePatternKeywordInDeclarationContext: [RemoveVar.new],
   diag.wrongNumberOfTypeArgumentsConstructor: [
     MoveTypeArgumentsToClass.new,
@@ -1186,6 +1187,7 @@ final _builtInNonLintMultiGenerators = {
     // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
     ImportLibrary.forExtensionMember,
   ],
+  diag.useOfPrivateParameterName: [ChangeArgumentName.new],
   diag.wrongNumberOfTypeArguments: [DataDriven.new],
   diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],
   diag.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],

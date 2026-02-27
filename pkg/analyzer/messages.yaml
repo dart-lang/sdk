@@ -19175,6 +19175,14 @@ CompileTimeErrorCode:
 
       Rewrite the code to use `dart:ffi` as a way of invoking the contents of the
       native library.
+  useOfPrivateParameterName:
+    type: compileTimeError
+    sharedName: undefinedNamedParameter
+    parameters:
+      String name: the public name of the requested named parameter
+    problemMessage: "The named parameter '_#name' should use the corresponding public name '#name' at the callsite."
+    correctionMessage: "Try changing the name to '#name'."
+    hasPublishedDocs: true
   useOfVoidResult:
     type: compileTimeError
     parameters: none
