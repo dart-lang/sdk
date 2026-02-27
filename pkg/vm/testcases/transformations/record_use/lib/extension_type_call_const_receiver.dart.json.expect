@@ -1,6 +1,10 @@
 {
   "constants": [
     {
+      "type": "int",
+      "value": 42
+    },
+    {
       "type": "string",
       "value": "arg"
     }
@@ -9,18 +13,18 @@
     {
       "path": [
         {
-          "kind": "extension",
-          "name": "StringUtils"
+          "kind": "extension_type",
+          "name": "ET"
         },
         {
           "disambiguators": [
-            "static"
+            "instance"
           ],
           "kind": "method",
-          "name": "printHello"
+          "name": "foo"
         }
       ],
-      "uri": "package:record_use_test/extension_static_call.dart"
+      "uri": "package:record_use_test/extension_type_call_const_receiver.dart"
     }
   ],
   "loading_units": [
@@ -42,8 +46,9 @@
               0
             ],
             "positional": [
-              0
+              1
             ],
+            "receiver": 0,
             "type": "with_arguments"
           }
         ]

@@ -1,0 +1,25 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension type ET(core::int i) {
+  static method staticMethod = self::ET|staticMethod;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=(i)->b]
+@#C1
+static extension-type-member method ET|staticMethod([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 123)] core::int x) → void {
+  core::print(x);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::ET|staticMethod(123);
+}
+constants  {
+  #C1 = meta::RecordUse {}
+}

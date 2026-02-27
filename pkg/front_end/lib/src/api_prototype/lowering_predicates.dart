@@ -986,6 +986,21 @@ String? extractQualifiedNameFromExtensionMember(Member member) {
 
 // Coverage-ignore(suite): Not run.
 extension ExtensionMemberExtension on Member {
+  Extension? get extension {
+    if (!isExtensionMember) return null;
+    for (Extension extension in enclosingLibrary.extensions) {
+      for (ExtensionMemberDescriptor descriptor
+          in extension.memberDescriptors) {
+        if (descriptor.memberReference == reference ||
+            descriptor.tearOffReference == reference) {
+          return extension;
+        }
+      }
+    }
+    assert(false, "Extension descriptor not found for $this");
+    return null;
+  }
+
   ExtensionMemberDescriptor? get extensionMemberDescriptor {
     if (!isExtensionMember) return null;
     for (Extension extension in enclosingLibrary.extensions) {
@@ -1004,6 +1019,22 @@ extension ExtensionMemberExtension on Member {
 
 // Coverage-ignore(suite): Not run.
 extension ExtensionTypeMemberExtension on Member {
+  ExtensionTypeDeclaration? get extensionTypeDeclaration {
+    if (!isExtensionTypeMember) return null;
+    for (ExtensionTypeDeclaration extensionTypeDeclaration
+        in enclosingLibrary.extensionTypeDeclarations) {
+      for (ExtensionTypeMemberDescriptor descriptor
+          in extensionTypeDeclaration.memberDescriptors) {
+        if (descriptor.memberReference == reference ||
+            descriptor.tearOffReference == reference) {
+          return extensionTypeDeclaration;
+        }
+      }
+    }
+    assert(false, "Extension type descriptor not found for $this");
+    return null;
+  }
+
   ExtensionTypeMemberDescriptor? get extensionTypeMemberDescriptor {
     if (!isExtensionTypeMember) return null;
     for (ExtensionTypeDeclaration extensionTypeDeclaration

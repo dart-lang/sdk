@@ -1,0 +1,36 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+import "dart:_internal" as _in;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension type ET(core::int i) {
+  method foo = self::ET|foo;
+  method tearoff foo = self::ET|get#foo;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=(i)->b]
+@#C1
+static extension-type-member method ET|foo([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::ET% /* erasure=core::int, declared=! */ #this) → void {
+  core::print(_in::unsafeCast<core::int>(#this));
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Closure (closure 1 in #lib::ET|get#foo)]
+[@vm.closure-id=1]
+[@vm.unboxing-info.metadata=(i)->b]
+static extension-type-member method ET|get#foo([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::ET% /* erasure=core::int, declared=! */ #this) → () → void
+  return [@vm.closure-id=1]() → void => [@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::ET|foo(#this);
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  const self::ET% /* erasure=core::int, declared=! */ et = #C2;
+  final () → void f = [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::ET|get#foo)] self::ET|get#foo(#C2);
+  core::print(f);
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = 42
+}

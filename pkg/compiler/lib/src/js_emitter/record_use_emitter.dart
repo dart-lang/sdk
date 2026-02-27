@@ -182,7 +182,9 @@ class RecordUseCollector {
       return Definition(libraryUri, [
         Name(
           hasUnnamedExtensionNamePrefix(name) ? '<unnamed>' : parts[0],
-          kind: DefinitionKind.extensionKind,
+          kind: (node is ir.Procedure && node.isExtensionTypeMember)
+              ? DefinitionKind.extensionTypeKind
+              : DefinitionKind.extensionKind,
         ),
         Name(
           parts[1],
