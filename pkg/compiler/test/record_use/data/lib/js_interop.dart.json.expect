@@ -25,17 +25,8 @@
     }
   ],
   "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
-    "version": "0.4.0",
-    "AppTag": "TBD",
-    "environment": {
-      "dart.web.assertions_enabled": "false",
-      "dart.tool.dart2js": "true",
-      "dart.tool.dart2js.minify": "false",
-      "dart.tool.dart2js.disable_rti_optimization": "false",
-      "dart.tool.dart2js.primitives:trust": "false",
-      "dart.tool.dart2js.types:trust": "false"
-    }
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
   },
   "uses": {
     "static_calls": [

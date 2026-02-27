@@ -106,7 +106,7 @@ class RecordUseCollector {
     }
   }
 
-  Map<String, dynamic> finish(Map<String, String> environment) {
+  Map<String, dynamic> finish() {
     final calls = <Definition, List<CallReference>>{};
     callMap.forEach((k, v) {
       final definition = _getDefinitionForFunction(k);
@@ -116,11 +116,6 @@ class RecordUseCollector {
       calls.putIfAbsent(definition, () => []).addAll(v);
     });
     return Recordings(
-      metadata: Metadata(
-        comment:
-            'Recorded usages of objects tagged with a `RecordUse` annotation',
-        extension: {'AppTag': 'TBD', 'environment': environment},
-      ),
       calls: calls,
       instances: instanceMap.map((key, value) {
         return MapEntry(
