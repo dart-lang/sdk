@@ -1,0 +1,28 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+abstract class SomeClass extends core::Object {
+
+  [@vm.inferred-return-type.metadata=int]
+  [@vm.unboxing-info.metadata=(i)->i]
+  @#C1
+  external static method someExternalStaticMethod([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 7)] core::int k) → core::int;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=int] self::someExternalFunction(6));
+  core::print([@vm.inferred-type.metadata=int] self::SomeClass::someExternalStaticMethod(7));
+}
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=(i)->i]
+@#C1
+external static method someExternalFunction([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 6)] core::int k) → core::int;
+constants  {
+  #C1 = meta::RecordUse {}
+}
