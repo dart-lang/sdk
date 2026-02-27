@@ -11510,12 +11510,12 @@ class BodyBuilderImpl extends StackListenerImpl
     );
   }
 
-  void _registerSingleTargetAnnotations(
-    Annotatable target, [
-    List<int>? indicesOfAnnotationsToBeInferred,
-  ]) {
+  void _registerSingleTargetAnnotations(Annotatable target) {
     (_singleTargetAnnotations ??= []).add(
-      new SingleTargetAnnotations(target, indicesOfAnnotationsToBeInferred),
+      new SingleTargetAnnotations(
+        target,
+        null /*indicesOfAnnotationsToBeInferred*/,
+      ),
     );
   }
 
