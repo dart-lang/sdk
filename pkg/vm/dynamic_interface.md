@@ -60,6 +60,18 @@ library. Public members of private classes are not included.
 
 Class item specifies given class and all _public_ members of this class.
 
+## Extension Type
+
+```
+  - library: '<library-uri>'
+    extension_type: '<extension-type-name>'
+```
+
+Extension Type item specifies given extension type and all _public_ members of such extension type.
+
+This item is only allowed in the `callable` section of the dynamic interface.
+
+
 ## Class list
 
 ```
@@ -68,6 +80,16 @@ Class item specifies given class and all _public_ members of this class.
 ```
 
 Class list item specifies given classes and all _public_ members of these classes.
+
+## Extension Type list
+
+```
+  - library: '<library-uri>'
+    extension_type: ['<extension-type-name-1>', ..., 'extension-type-name-N']
+```
+
+Extension type list item specifies given extension types and all _public_ members of these.
+
 
 ## Library member
 
@@ -88,8 +110,17 @@ Library member item specifies given top-level member in the given library.
 
 Class member item specifies given member of the given class.
 
-## Example
+## Extension Type member
 
+```
+  - library: '<library-uri>'
+    extension_type: '<extension-type-name>'
+    member: '<member-name>'
+```
+
+Extension type member item specifies given member of the given extension type.
+
+## Example
 ```
 callable:
   # All public classes and members in `dart:core`.
@@ -103,6 +134,11 @@ callable:
   - library: 'package:my_app/dyn_interface.dart'
     class: DynInterface
     member: 'bar'
+
+  # Only `EType.baz` in `package:my_app/dyn_interface.dart`.
+  - library: 'package:my_app/dyn_interface.dart'
+    extension_type: Etype
+    member: 'baz'
 
 extendable:
   # All public classes in `dart:core`.

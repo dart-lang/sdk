@@ -127,6 +127,7 @@ class DynamicInterfaceSpecification {
       baseUri,
       component,
       libraryIndex,
+      allowExtensionTypes: false,
       allowStaticMembers: false,
       allowInstanceMembers: false,
     );
@@ -137,6 +138,7 @@ class DynamicInterfaceSpecification {
       baseUri,
       component,
       libraryIndex,
+      allowExtensionTypes: false,
       allowStaticMembers: false,
       allowInstanceMembers: true,
     );
@@ -147,6 +149,7 @@ class DynamicInterfaceSpecification {
       baseUri,
       component,
       libraryIndex,
+      allowExtensionTypes: true,
       allowStaticMembers: true,
       allowInstanceMembers: true,
     );
@@ -158,6 +161,7 @@ class DynamicInterfaceSpecification {
     Uri baseUri,
     Component component,
     LibraryIndex libraryIndex, {
+    required bool allowExtensionTypes,
     required bool allowStaticMembers,
     required bool allowInstanceMembers,
   }) {
@@ -169,6 +173,7 @@ class DynamicInterfaceSpecification {
           baseUri,
           libraryIndex,
           component,
+          allowExtensionTypes: allowExtensionTypes,
           allowStaticMembers: allowStaticMembers,
           allowInstanceMembers: allowInstanceMembers,
         );
@@ -182,19 +187,57 @@ class DynamicInterfaceSpecification {
     Uri baseUri,
     LibraryIndex libraryIndex,
     Component component, {
+    required bool allowExtensionTypes,
     required bool allowStaticMembers,
     required bool allowInstanceMembers,
   }) {
     final YamlMap yamlMap = yamlNode as YamlMap;
     final bool allowMembers = allowStaticMembers || allowInstanceMembers;
-    if (allowMembers) {
-      yamlMap.verifyKeys(const {'library', 'class', 'member'});
+    final Set<String> keys;
+    if (allowExtensionTypes) {
+      assert(allowMembers);
+      keys = const {'library', 'class', 'extension_type', 'member'};
+    } else if (allowMembers) {
+      keys = const {'library', 'class', 'member'};
     } else {
-      yamlMap.verifyKeys(const {'library', 'class'});
+      keys = const {'library', 'class'};
     }
+    yamlMap.verifyKeys(keys);
 
     final String librarySpec = yamlMap['library'] as String;
     final String libraryUri = baseUri.resolve(librarySpec).toString();
+
+    if (yamlMap.containsKey('extension_type')) {
+      final dynamic yamlExtensionNode = yamlMap['extension_type'];
+      if (yamlExtensionNode is YamlList) {
+        yamlMap.verifyKeys(const {'library', 'extension_type'});
+        for (dynamic c in yamlExtensionNode) {
+          result.add(libraryIndex.getExtensionType(libraryUri, c as String));
+        }
+        return;
+      }
+
+      final String extensionSpec = yamlExtensionNode as String;
+
+      if (allowMembers && yamlMap.containsKey('member')) {
+        final String memberSpec = yamlMap['member'] as String;
+        final Member member = libraryIndex.getMember(
+          libraryUri,
+          extensionSpec,
+          memberSpec,
+        );
+        _validateSpecifiedMember(
+          member,
+          allowStaticMembers: allowStaticMembers,
+          allowInstanceMembers: allowInstanceMembers,
+        );
+        result.add(member);
+        return;
+      }
+
+      result.add(libraryIndex.getExtensionType(libraryUri, extensionSpec));
+      return;
+    }
 
     if (yamlMap.containsKey('class')) {
       final dynamic yamlClassNode = yamlMap['class'];

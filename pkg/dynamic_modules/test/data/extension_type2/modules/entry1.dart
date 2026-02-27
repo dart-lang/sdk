@@ -7,8 +7,12 @@ import '../shared/shared.dart';
 @pragma('dyn-module:entry-point')
 Object? dynamicModuleEntrypoint() => [
   method(value),
+  methodBB(valueBB),
   const C.foo42(),
   const C.foo43(),
+  const CC.foo42(),
+  const CC.foo43(),
 ];
 
 int method(B b) => b.foo();
+int methodBB(BB b) => b.foo();

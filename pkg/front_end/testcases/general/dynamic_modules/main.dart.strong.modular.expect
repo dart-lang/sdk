@@ -195,6 +195,16 @@
 //   print(42.isPositive);
 //            ^
 //
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:150:9: Error: Cannot use extension type 'ExtType5' in a dynamic module.
+// Try removing the reference to extension type 'ExtType5' or update the dynamic interface to list extension type 'ExtType5' as callable.
+//   print(ExtType5);
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:156:27: Error: Cannot invoke member 'ExtType5.isPositive' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'ExtType5.isPositive' as callable.
+//   print(ExtType5.plus1(3).isPositive);
+//                           ^
+//
 library;
 import self as self;
 import "main_lib1.dart" as mai;
@@ -351,6 +361,18 @@ static method test() → void {
   core::print(#C15);
   core::print(mai::ExtType1|constructor#(42));
   core::print(mai::Ext1|get#isPositive(42));
+  core::print(#C15);
+  core::print(mai::ExtType2|constructor#(42));
+  core::print(mai::ExtType2|get#isPositive(mai::ExtType2|constructor#(42)));
+  core::print(#C15);
+  core::print(mai::ExtType3|constructor#(42));
+  core::print(mai::ExtType3|get#isPositive(mai::ExtType3|constructor#(42)));
+  core::print(#C15);
+  core::print(mai::ExtType4|constructor#(42));
+  core::print(mai::ExtType4|get#isPositive(mai::ExtType4|constructor#(42)));
+  core::print(#C15);
+  core::print(mai::ExtType5|constructor#plus1(3));
+  core::print(mai::ExtType5|get#isPositive(mai::ExtType5|constructor#plus1(3)));
   core::print(new mai2::Lib3Class::•());
   mai2::lib3Method();
   mai2::lib3Field = 42;
