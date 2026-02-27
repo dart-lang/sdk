@@ -386,11 +386,17 @@ class ProcessStarter {
     // listen for exit-codes, now that we have a non detached child process
     // and also Register this child process.
     if (Process::ModeIsAttached(mode_)) {
-      ExitCodeHandler::ProcessStarted();
       err = RegisterProcess(pid);
       if (err != 0) {
+        // The child is blocked in read() waiting for the go signal that
+        // will never arrive.  Kill it and reap immediately.
+        // ProcessStarted() has not been called yet so the exit-code
+        // handler is not involved.
+        kill(pid, SIGKILL);
+        waitpid(pid, nullptr, 0);
         return err;
       }
+      ExitCodeHandler::ProcessStarted();
     }
 
     // Notify child process to start. This is done to delay the call to exec
@@ -490,6 +496,10 @@ class ProcessStarter {
   }
 
   void NewProcess() {
+    // Close the write end of the start-signal pipe so that read() below
+    // sees EOF if the parent closes its end (e.g. on error cleanup).
+    // Without this the child holds both ends open and blocks forever.
+    close(read_in_[1]);
     // Wait for parent process before setting up the child process.
     char msg;
     int bytes_read = FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
