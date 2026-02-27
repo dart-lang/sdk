@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--worker-thread-priority=-2
-// A priority of -2 means THREAD_PRIORITY_LOWEST on windows
+// VMOptions=--worker-thread-priority=-1
+// A priority of -1 means THREAD_PRIORITY_BELOW_NORMAL on windows
 
 import 'dart:ffi';
 import 'dart:io';
@@ -31,6 +31,6 @@ final getThreadPriority = kernel32
 
 main(args) {
   if (Platform.isWindows) {
-    Expect.equals(-2, getThreadPriority(getCurrentThread()));
+    Expect.equals(-1, getThreadPriority(getCurrentThread()));
   }
 }
