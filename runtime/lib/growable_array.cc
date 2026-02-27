@@ -82,4 +82,28 @@ DEFINE_NATIVE_ENTRY(Internal_makeFixedListUnmodifiable, 0, 1) {
   return array.ptr();
 }
 
+DEFINE_NATIVE_ENTRY(createConstMapFromMapOfDeeplyImmutables, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Map, map, arguments->NativeArgAt(0));
+  const Instance& instance =
+      Instance::Handle(zone, ConstMap::NewUninitialized());
+  const LinkedHashBase& const_map = LinkedHashBase::Cast(instance);
+
+  const_map.SetTypeArguments(
+      TypeArguments::Handle(zone, map.GetTypeArguments()));
+  intptr_t used_data = map.Length() << 1;
+  const_map.set_used_data(used_data);
+  const auto& data = Array::Handle(zone, map.data());
+  const auto& new_data = Array::Handle(zone, Array::New(used_data));
+  const_map.set_data(new_data);
+  const_map.set_deleted_keys(0);
+  const_map.ComputeAndSetHashMask();
+  Object& object = Object::Handle(zone);
+  for (intptr_t i = 0; i < used_data; i++) {
+    object = data.At(i);
+    object.EnsureDeeplyImmutable(zone);
+    new_data.SetAt(i, object);
+  }
+  return instance.ptr();
+}
+
 }  // namespace dart
