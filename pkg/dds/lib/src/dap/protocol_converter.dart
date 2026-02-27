@@ -124,7 +124,7 @@ class ProtocolConverter {
   Future<List<dap.Variable>> convertVmInstanceToVariablesList(
     ThreadInfo thread,
     vm.Instance instance, {
-    required String? evaluateName,
+    required EvaluateName? evaluateName,
     required bool allowCallingToString,
     int? startItem = 0,
     int? numItems,
@@ -156,11 +156,10 @@ class ProtocolConverter {
           final name = '[${start + index}]';
           final nameForEvaluation =
               instance.isSet ? '.elementAt(${start + index})' : name;
-          final itemEvaluateName =
-              _adapter.combineEvaluateName(evaluateName, nameForEvaluation);
-          if (response is vm.InstanceRef) {
-            _adapter.storeEvaluateName(response, itemEvaluateName);
-          }
+          final itemEvaluateName = response is vm.ObjRef
+              ? _adapter.storeEvaluateName(response,
+                  _adapter.combineEvaluateName(evaluateName, nameForEvaluation))
+              : null;
 
           return convertVmResponseToVariable(
             thread,
@@ -205,7 +204,8 @@ class ProtocolConverter {
             value is vm.InstanceRef &&
             evaluateName != null &&
             isSimpleKind(key.kind)) {
-          _adapter.storeEvaluateName(value, '$evaluateName[$keyDisplay]');
+          _adapter.storeEvaluateName(value,
+              _adapter.combineEvaluateName(evaluateName, '[$keyDisplay]'));
         }
 
         return dap.Variable(
@@ -244,13 +244,16 @@ class ProtocolConverter {
           } else {
             name ??= field.name;
           }
-          final fieldEvaluateName = name != null
+          final isNullable = isDeclaredNullable(field.decl?.declaredType);
+          final fieldEvaluateNameString = name != null
               ? _adapter.combineEvaluateName(evaluateName, '.$name')
               : null;
           final value = field.value;
-          if (fieldEvaluateName != null && value is vm.InstanceRef) {
-            _adapter.storeEvaluateName(value, fieldEvaluateName);
-          }
+          final fieldEvaluateName =
+              fieldEvaluateNameString != null && value is vm.ObjRef
+                  ? _adapter.storeEvaluateName(value, fieldEvaluateNameString,
+                      isNullable: isNullable)
+                  : null;
           return convertVmResponseToVariable(
             thread,
             field.value,
@@ -272,22 +275,22 @@ class ProtocolConverter {
       if (service != null && includeGetters) {
         /// Helper to create a Variable for a getter.
         Future<dap.Variable> createVariable(
-            int index, String getterName) async {
+            int index, GetterInfo getter) async {
           try {
             return lazyGetters
                 ? createVariableForLazyGetter(
                     thread,
                     instance,
-                    getterName,
-                    evaluateName,
-                    allowCallingToString,
-                    format,
+                    getter: getter,
+                    evaluateName: evaluateName,
+                    allowCallingToString: allowCallingToString,
+                    format: format,
                   )
                 : await createVariableForGetter(
                     service,
                     thread,
                     instance,
-                    getterName: getterName,
+                    getter: getter,
                     evaluateName: evaluateName,
                     allowCallingToString: allowCallingToString &&
                         index < maxToStringsPerEvaluation,
@@ -295,7 +298,7 @@ class ProtocolConverter {
                   );
           } catch (e) {
             return dap.Variable(
-              name: getterName,
+              name: getter.name,
               value: _adapter.extractEvaluationErrorMessage('$e'),
               variablesReference: 0,
             );
@@ -305,8 +308,9 @@ class ProtocolConverter {
         // Collect getter names for this instances class and its supers, but
         // remove any names that have already showed up as fields because
         // otherwise they will show up duplicated.
-        final getterNames =
-            await _getterNamesForClassHierarchy(thread, instance.classRef);
+        final getters =
+            await _gettersForClassHierarchy(thread, instance.classRef);
+        final getterNames = getters.map((getter) => getter.name).toSet();
 
         // Remove any existing field variables where there are getters, because
         // otherwise we'll have dupes, and the user will generally expected to
@@ -314,7 +318,7 @@ class ProtocolConverter {
         variables
             .removeWhere((variable) => getterNames.contains(variable.name));
 
-        final getterVariables = getterNames.mapIndexed(createVariable);
+        final getterVariables = getters.mapIndexed(createVariable);
         variables.addAll(await Future.wait(getterVariables));
       }
 
@@ -335,27 +339,29 @@ class ProtocolConverter {
     ThreadInfo thread,
     vm.Instance instance, {
     String? variableName,
-    required String getterName,
-    required String? evaluateName,
+    required GetterInfo getter,
+    required EvaluateName? evaluateName,
     required bool allowCallingToString,
     required VariableFormat? format,
   }) async {
     final response = await _adapter.vmEvaluate(
       thread,
       instance.id!,
-      getterName,
+      getter.name,
     );
-    final fieldEvaluateName =
-        _adapter.combineEvaluateName(evaluateName, '.$getterName');
-    if (response is vm.InstanceRef) {
-      _adapter.storeEvaluateName(response, fieldEvaluateName);
-    }
+    final name = getter.name;
+    final fieldEvaluateNameString =
+        _adapter.combineEvaluateName(evaluateName, '.$name');
+    final fieldEvaluateName = response is vm.ObjRef
+        ? _adapter.storeEvaluateName(response, fieldEvaluateNameString,
+            isNullable: getter.isNullable)
+        : null;
     // Convert results to variables.
     return convertVmResponseToVariable(
       thread,
       response,
-      name: variableName ?? getterName,
-      evaluateName: _adapter.combineEvaluateName(evaluateName, '.$getterName'),
+      name: variableName ?? name,
+      evaluateName: fieldEvaluateName,
       allowCallingToString: allowCallingToString,
       format: format,
     );
@@ -371,17 +377,17 @@ class ProtocolConverter {
   /// placeholder when clicked.
   Variable createVariableForLazyGetter(
     ThreadInfo thread,
-    vm.Instance instance,
-    String getterName,
-    String? evaluateName,
-    bool allowCallingToString,
-    VariableFormat? format,
-  ) {
+    vm.Instance instance, {
+    required GetterInfo getter,
+    required EvaluateName? evaluateName,
+    required bool allowCallingToString,
+    required VariableFormat? format,
+  }) {
     final variablesReference = thread.storeData(
       VariableData(
         VariableGetter(
           instance: instance,
-          getterName: getterName,
+          getter: getter,
           parentEvaluateName: evaluateName,
           allowCallingToString: allowCallingToString,
         ),
@@ -390,7 +396,7 @@ class ProtocolConverter {
     );
 
     return dap.Variable(
-      name: getterName,
+      name: getter.name,
       value: '',
       variablesReference: variablesReference,
       presentationHint: dap.VariablePresentationHint(lazy: true),
@@ -480,7 +486,7 @@ class ProtocolConverter {
     ThreadInfo thread,
     vm.Response? response, {
     required String? name,
-    required String? evaluateName,
+    required EvaluateName? evaluateName,
     required bool allowCallingToString,
     bool allowTruncatedValue = true,
     VariableFormat? format,
@@ -494,7 +500,7 @@ class ProtocolConverter {
 
       return dap.Variable(
         name: name ?? response.kind.toString(),
-        evaluateName: evaluateName,
+        evaluateName: evaluateName?.evaluateName,
         value: await convertVmResponseToDisplayString(
           thread,
           response,
@@ -721,21 +727,21 @@ class ProtocolConverter {
     }
   }
 
-  /// Collect a list of all getter names for [classRef] and its super classes.
+  /// Collect a list of all getters for [classRef] and its super classes.
   ///
   /// This is used to show/evaluate getters in debug views like hovers and
   /// variables/watch panes.
-  Future<Set<String>> _getterNamesForClassHierarchy(
+  Future<Set<GetterInfo>> _gettersForClassHierarchy(
     ThreadInfo thread,
     vm.ClassRef? classRef,
   ) async {
-    final getterNames = <String>{};
+    final isolateId = thread.isolate.id!;
+    final getters = <GetterInfo>{};
     final service = _adapter.vmService;
     while (service != null && classRef != null) {
       vm.Obj classResponse;
       try {
-        classResponse =
-            await service.getObject(thread.isolate.id!, classRef.id!);
+        classResponse = await service.getObject(isolateId, classRef.id!);
       } catch (e) {
         _adapter.logger?.call('Failed to fetch getter for class: $e');
         break;
@@ -749,15 +755,25 @@ class ProtocolConverter {
             (f.isGetter ?? false) &&
             !(f.isStatic ?? false) &&
             !(f.isConst ?? false));
-        getterNames.addAll(instanceFields
-            .map((f) => f.name!)
-            .where((name) => !name.startsWith('_')));
+        for (final field in instanceFields) {
+          final name = field.name;
+          if (name != null && !name.startsWith('_')) {
+            try {
+              final func = await service.getObject(isolateId, field.id!);
+              final isNullable = func is vm.Func && hasNullableReturnType(func);
+              getters.add((name: name, isNullable: isNullable));
+            } catch (e) {
+              _adapter.logger?.call('Failed to fetch getter function: $e');
+              continue;
+            }
+          }
+        }
       }
 
       classRef = classResponse.superClass;
     }
 
-    return getterNames;
+    return getters;
   }
 
   /// Gets the line/column for [location] in [thread].
@@ -794,6 +810,16 @@ class ProtocolConverter {
 
     return null;
   }
+
+  /// Returns whether [declaredType] is nullable.
+  bool isDeclaredNullable(vm.InstanceRef? declaredType) {
+    return declaredType?.name?.endsWith('?') ?? false;
+  }
+
+  /// Returns whether [func] has a nullable return type.
+  bool hasNullableReturnType(vm.Func func) {
+    return func.signature?.returnType?.name?.endsWith('?') ?? false;
+  }
 }
 
 extension on vm.InstanceRef {
@@ -809,3 +835,5 @@ extension on vm.InstanceRef {
   /// Whether this instance is a Set kind.
   bool get isSet => kind == 'Set';
 }
+
+typedef GetterInfo = ({String name, bool isNullable});
