@@ -23496,7 +23496,7 @@ library
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional final this.foo (nameOffset:60) (firstTokenOffset:36) (offset:60)
+                #F4 requiredPositional final this.foo (nameOffset:60) (firstTokenOffset:11) (offset:60)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
@@ -23657,7 +23657,7 @@ library
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional final this.foo (nameOffset:60) (firstTokenOffset:36) (offset:60)
+                #F4 requiredPositional final this.foo (nameOffset:60) (firstTokenOffset:11) (offset:60)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata

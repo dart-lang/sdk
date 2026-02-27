@@ -7822,7 +7822,7 @@ library
               typeName: A
               typeNameOffset: 5
               formalParameters
-                #F6 requiredPositional final this.foo (nameOffset:60) (firstTokenOffset:35) (offset:60)
+                #F6 requiredPositional final this.foo (nameOffset:60) (firstTokenOffset:10) (offset:60)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
@@ -7974,7 +7974,7 @@ library
               typeName: A
               typeNameOffset: 5
               formalParameters
-                #F6 requiredPositional final this.foo (nameOffset:59) (firstTokenOffset:35) (offset:59)
+                #F6 requiredPositional final this.foo (nameOffset:59) (firstTokenOffset:10) (offset:59)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
