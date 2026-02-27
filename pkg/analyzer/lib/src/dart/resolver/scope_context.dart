@@ -86,6 +86,35 @@ class ScopeContext {
     });
   }
 
+  void visitConstructorDeclaration(
+    ConstructorDeclarationImpl node, {
+    required AstVisitor visitor,
+    void Function(SimpleIdentifierImpl)? visitTypeName,
+    void Function(NodeList<ConstructorInitializer>)? visitInitializers,
+    void Function(ConstructorNameImpl)? visitRedirectedConstructor,
+  }) {
+    var element = node.declaredFragment!.element;
+
+    node.metadata.accept(visitor);
+    node.typeName?.visitWithOverride(visitor, visitTypeName);
+    node.parameters.accept(visitor);
+
+    withConstructorInitializerScope(element, () {
+      node.formalParameterInitializerScope = nameScope;
+      node.initializers.visitWithOverride(visitor, visitInitializers);
+      node.documentationComment?.accept(visitor);
+    });
+
+    node.redirectedConstructor?.visitWithOverride(
+      visitor,
+      visitRedirectedConstructor,
+    );
+
+    withFormalParameterScope(element.formalParameters, () {
+      node.body.accept(visitor);
+    });
+  }
+
   void visitDocumentationComment(CommentImpl node, AstVisitor visitor) {
     var docImportInnerScope = _docImportScope.innerScope;
     _docImportScope.innerScope = nameScope;
@@ -351,6 +380,32 @@ class ScopeContext {
     });
   }
 
+  void visitPrimaryConstructorBody(
+    PrimaryConstructorBodyImpl node, {
+    required AstVisitor visitor,
+    void Function(NodeList<ConstructorInitializer>)? visitInitializers,
+  }) {
+    var element = node.declaration?.declaredFragment!.element;
+
+    node.metadata.accept(visitor);
+
+    var constructorInitializerScope = element != null
+        ? ConstructorInitializerScope(nameScope, element)
+        : nameScope;
+    withScope(constructorInitializerScope, () {
+      node.formalParameterInitializerScope = nameScope;
+      node.initializers.visitWithOverride(visitor, visitInitializers);
+    });
+
+    var primaryParameterScope = element != null
+        ? PrimaryParameterScope(nameScope, element)
+        : nameScope;
+    withScope(primaryParameterScope, () {
+      node.documentationComment?.accept(visitor);
+      node.body.accept(visitor);
+    });
+  }
+
   void visitSuperFormalParameter(
     SuperFormalParameterImpl node, {
     required AstVisitor visitor,
@@ -494,6 +549,19 @@ class ScopeContext {
 
 extension<T extends AstNode> on T {
   void visitWithOverride(AstVisitor visitor, void Function(T)? visitOverride) {
+    if (visitOverride != null) {
+      visitOverride(this);
+    } else {
+      accept(visitor);
+    }
+  }
+}
+
+extension<E extends AstNode> on NodeList<E> {
+  void visitWithOverride(
+    AstVisitor visitor,
+    void Function(NodeList<E>)? visitOverride,
+  ) {
     if (visitOverride != null) {
       visitOverride(this);
     } else {

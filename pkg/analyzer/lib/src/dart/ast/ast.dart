@@ -6033,8 +6033,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   ConstructorFragmentImpl? declaredFragment;
 
-  // TODO(scheglov): store better scope
-  Scope? enclosingBodyScope;
+  Scope? formalParameterInitializerScope;
 
   /// The fields that are not initialized by the constructor.
   List<FieldElement>? notInitializedFields;
@@ -23683,8 +23682,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @generated
   FunctionBodyImpl _body;
 
-  // TODO(scheglov): store better scope
-  Scope? enclosingBodyScope;
+  Scope? formalParameterInitializerScope;
 
   @generated
   PrimaryConstructorBodyImpl({
