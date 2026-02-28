@@ -8,7 +8,8 @@ import "dart:_js_helper"
         JS,
         JSAnyToExternRef,
         jsStringFromDartString,
-        jsUint8ArrayFromDartUint8List;
+        jsUint8ArrayFromDartUint8List,
+        JSExternWrapperExt;
 import "dart:_js_types" show JSStringImpl;
 import 'dart:_string';
 import 'dart:js_interop'
@@ -161,7 +162,7 @@ String jsonEncode(String object) =>
     JSStringImpl.fromRef(
       JS<WasmExternRef>(
         "s => JSON.stringify(s)",
-        jsStringFromDartString(object).toExternRef,
+        jsStringFromDartString(object).wrappedExternRef,
       ),
     );
 

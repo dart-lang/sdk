@@ -2,25 +2,25 @@
   (type $#Top <...>)
   (type $Array<Object?> <...>)
   (type $BoxedInt <...>)
-  (type $JSStringImpl <...>)
+  (type $JSExternWrapper <...>)
   (type $Object <...>)
   (type $WasmListBase <...>)
   (type $_Future <...>)
   (type $_InterfaceType <...>)
   (type $_Type <...>)
   (global $".FooConst5(" (import "" "FooConst5(") (ref extern))
-  (global $"\")\"" (import "module0" "global4") (ref $JSStringImpl))
-  (global $"\"[]\"" (import "module0" "global6") (ref $JSStringImpl))
+  (global $"\")\"" (import "module0" "global4") (ref $JSExternWrapper))
+  (global $"\"[]\"" (import "module0" "global6") (ref $JSExternWrapper))
   (global $5 (import "module0" "global5") (ref $BoxedInt))
   (global $FooConst0 (import "module0" "global7") (ref $Object))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 34 funcref)
-  (table $module0.dispatch0 (import "module0" "dispatch0") 817 funcref)
-  (global $"\"FooConst5(\"" (ref $JSStringImpl)
-    (i32.const 4)
+  (table $module0.dispatch0 (import "module0" "dispatch0") 797 funcref)
+  (global $"\"FooConst5(\"" (ref $JSExternWrapper)
+    (i32.const 104)
     (i32.const 0)
     (global.get $".FooConst5(")
-    (struct.new $JSStringImpl))
-  (global $"\"foo5Code(\"" (ref $JSStringImpl) <...>)
+    (struct.new $JSExternWrapper))
+  (global $"\"foo5Code(\"" (ref $JSExternWrapper) <...>)
   (global $FooConst5 (ref $Object)
     (i32.const 127)
     (i32.const 0)
@@ -45,7 +45,7 @@
     local.get $var0
     global.get $"\")\""
     i32.const 15
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 14
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
@@ -106,7 +106,7 @@
       local.get $var3
       global.get $"\"[]\""
       i32.const 26
-      call_indirect $module0.cross-module-funcs-0 (param i64 i64 (ref null $JSStringImpl)) (result (ref none))
+      call_indirect $module0.cross-module-funcs-0 (param i64 i64 (ref null $JSExternWrapper)) (result (ref none))
       unreachable
     end
     local.get $var1
@@ -118,7 +118,7 @@
     call $"fooGlobal5 implicit getter"
     local.get $var2
     struct.get $Object $field0
-    i32.const 466
+    i32.const 427
     i32.add
     call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top)) (result (ref null $#Top))
     drop
@@ -129,7 +129,7 @@
     local.get $var1
     global.get $"\")\""
     i32.const 15
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 14
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop

@@ -3,16 +3,16 @@
   (type $Array<Object?> <...>)
   (type $Array<_Type> <...>)
   (type $Foo <...>)
-  (type $JSStringImpl <...>)
+  (type $JSExternWrapper <...>)
   (type $_Environment <...>)
   (type $_InterfaceType <...>)
   (type $_Type <...>)
-  (global $"\")\"_11" (import "$" "1") (ref $JSStringImpl))
+  (global $"\")\"_11" (import "$" "1") (ref $JSExternWrapper))
   (global $_InterfaceType (import "$" "/") (ref $_InterfaceType))
-  (table $$.$ (import "$" "$") 911 funcref)
+  (table $$.$ (import "$" "$") 925 funcref)
   (table $$.& (import "$" "&") 22 funcref)
-  (global $"\">.takeT(\"" (ref $JSStringImpl) <...>)
-  (global $"\"Foo<\"" (ref $JSStringImpl) <...>)
+  (global $"\">.takeT(\"" (ref $JSExternWrapper) <...>)
+  (global $"\"Foo<\"" (ref $JSExternWrapper) <...>)
   (elem $$.& <...>)
   (elem $$.$ <...>)
   (func $"Foo.takeT (body) <noInline>" (param $var0 (ref $Foo)) (param $var1 (ref $#Top))
@@ -26,7 +26,7 @@
     global.get $"\")\"_11"
     array.new_fixed $Array<Object?> 5
     i32.const 16
-    call_indirect $$.& (param (ref $Array<Object?>)) (result (ref $JSStringImpl))
+    call_indirect $$.& (param (ref $Array<Object?>)) (result (ref $JSExternWrapper))
     i32.const 20
     call_indirect $$.& (param (ref null $#Top)) (result (ref null $#Top))
     drop
@@ -83,19 +83,19 @@
         local.tee $var2
         struct.get $_Type $field0
         local.tee $var3
-        i32.const 10
+        i32.const 9
         i32.le_u
         if
           local.get $var3
-          i32.const 6
+          i32.const 5
           i32.le_u
           if
             local.get $var3
-            i32.const 5
+            i32.const 4
             i32.le_u
             if
               local.get $var3
-              i32.const 5
+              i32.const 4
               i32.eq
               if
                 local.get $var2
@@ -115,7 +115,7 @@
             br $label0
           end
           local.get $var3
-          i32.const 10
+          i32.const 9
           i32.eq
           if
             local.get $var2
@@ -128,11 +128,11 @@
           br $label1
         end
         local.get $var3
-        i32.const 12
+        i32.const 11
         i32.le_u
         if
           local.get $var3
-          i32.const 12
+          i32.const 11
           i32.eq
           if
             local.get $var2
@@ -145,7 +145,7 @@
           br $label1
         end
         local.get $var3
-        i32.const 14
+        i32.const 13
         i32.eq
         if
           local.get $var2
@@ -161,7 +161,7 @@
       local.get $var1
       local.get $var2
       struct.get $_Type $field0
-      i32.const 554
+      i32.const 570
       i32.add
       call_indirect $$.$ (param (ref $_Type) (ref $#Top)) (result i32)
     end $label0

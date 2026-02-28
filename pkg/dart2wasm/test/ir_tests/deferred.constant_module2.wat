@@ -10,7 +10,7 @@
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $fun (ref $#Closure-0-1)))))
-  (type $JSStringImpl <...>)
+  (type $JSExternWrapper <...>)
   (type $Object <...>)
   (type $_FunctionType <...>)
   (type $_TopType <...>)
@@ -21,11 +21,11 @@
   (global $_TopType (import "module0" "global2") (ref $_TopType))
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 9 funcref)
-  (global $"\"globalH0Foo\"" (ref $JSStringImpl)
-    (i32.const 4)
+  (global $"\"globalH0Foo\"" (ref $JSExternWrapper)
+    (i32.const 112)
     (i32.const 0)
     (global.get $.globalH0Foo)
-    (struct.new $JSStringImpl))
+    (struct.new $JSExternWrapper))
   (global $"globalH0Foo tear-off" (mut (ref null $#Closure-0-1))
     (ref.null none))
   (global $H0 (mut (ref null $H0))
@@ -40,12 +40,12 @@
     (local $var0 (ref $_FunctionType))
     (local $var1 (ref $#Closure-0-1))
     (local $var2 (ref $H0))
-    i32.const 120
+    i32.const 121
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
       global.get $"globalH0Foo tear-off"
       br_on_non_null $label0
-      i32.const 33
+      i32.const 32
       i32.const 0
       global.get $global0
       global.get $global2
@@ -54,7 +54,7 @@
         table.get $module0.constant-table0
         br_on_non_null $label1
         i32.const 0
-        i32.const 12
+        i32.const 11
         i32.const 0
         i32.const 0
         i64.const 0

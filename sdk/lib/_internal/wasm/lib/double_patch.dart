@@ -28,7 +28,7 @@ class double {
         return NaN;
       }
       return parseFloat(s);
-    }""", jsStringFromDartString(source).toExternRef);
+    }""", jsStringFromDartString(source).wrappedExternRef);
     if (result.isNaN) {
       String trimmed = source.trim();
       if (!(trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN')) {

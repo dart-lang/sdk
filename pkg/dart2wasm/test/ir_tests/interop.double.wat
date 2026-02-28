@@ -4,8 +4,8 @@
   (type $BoxedDouble (sub final $#Top (struct
     (field $field0 i32)
     (field $value f64))))
-  (func $"dart2wasm._298 (import)" (import "dart2wasm" "_298") (param f64) (result externref))
-  (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param externref) (result externref))
+  (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param f64) (result externref))
+  (func $"dart2wasm._300 (import)" (import "dart2wasm" "_300") (param externref) (result externref))
   (global $"doubleValueNullable initialized" (mut i32) <...>)
   (global $doubleValueNullable (mut (ref null $BoxedDouble)) <...>)
   (func $doubleValue implicit getter (result f64) <...>)
@@ -14,19 +14,19 @@
   (func $sinkDoubleNullable <noInline> (param $var0 (ref null $BoxedDouble)) <...>)
   (func $"testDoubleConstant <noInline>"
     f64.const 1.1
-    call $"dart2wasm._298 (import)"
+    call $"dart2wasm._299 (import)"
     call $toDartDouble
     call $"sinkDouble <noInline>"
   )
   (func $"testDoubleConstantNullable <noInline>"
     ref.null noextern
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._300 (import)"
     call $toDartNullableDouble
     call $"sinkDoubleNullable <noInline>"
   )
   (func $"testDoubleValue <noInline>"
     call $"doubleValue implicit getter"
-    call $"dart2wasm._298 (import)"
+    call $"dart2wasm._299 (import)"
     call $toDartDouble
     call $"sinkDouble <noInline>"
   )
@@ -38,7 +38,7 @@
     else
       call $"ktrue implicit getter"
       if (result (ref null $BoxedDouble))
-        i32.const 99
+        i32.const 105
         call $"doubleValue implicit getter"
         struct.new $BoxedDouble
       else
@@ -58,7 +58,7 @@
       local.get $var0
       call $jsifyRaw
     end
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._300 (import)"
     call $toDartNullableDouble
     call $"sinkDoubleNullable <noInline>"
   )

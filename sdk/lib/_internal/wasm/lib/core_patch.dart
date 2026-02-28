@@ -38,7 +38,8 @@ import 'dart:_js_helper'
         quoteStringForRegExp,
         jsStringFromDartString,
         stringify,
-        JavaScriptStack;
+        JavaScriptStack,
+        JSExternWrapperExt;
 
 import 'dart:_list';
 
