@@ -15,6 +15,62 @@ main() {
 
 @reflectiveTest
 class WorkspaceFieldTest extends PubspecDiagnosticTest {
+  test_workspaceGlob_baseMissing_error() {
+    assertErrors(
+      '''
+name: sample
+workspace:
+  - packages/*
+''',
+      [diag.pathDoesNotExist],
+    );
+  }
+
+  test_workspaceGlob_braces_baseExists_noError() {
+    newFolder('/sample/packages');
+    assertNoErrors('''
+name: sample
+workspace:
+  - packages/{a,b}
+''');
+  }
+
+  test_workspaceGlob_nestedBase_baseExists_noError() {
+    newFolder('/sample/apps/nested');
+    assertNoErrors('''
+name: sample
+workspace:
+  - apps/nested/*
+''');
+  }
+
+  test_workspaceGlob_noBase_noError() {
+    // Pattern starts with a glob character — no base directory to check.
+    assertNoErrors('''
+name: sample
+workspace:
+  - *
+''');
+  }
+
+  test_workspaceGlob_questionMark_baseExists_noError() {
+    newFolder('/sample/packages');
+    assertNoErrors('''
+name: sample
+workspace:
+  - packages/pkg?
+''');
+  }
+
+  test_workspaceGlob_star_baseExists_noError() {
+    newFolder('/sample/packages');
+    assertNoErrors('''
+name: sample
+workspace:
+  - packages/*
+''');
+  }
+
   test_workspaceIsList() {
     assertErrors(
       '''
