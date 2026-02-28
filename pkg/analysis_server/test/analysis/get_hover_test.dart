@@ -190,6 +190,24 @@ class A {
     }
   }
 
+  Future<void> test_class_constructor_new() async {
+    newFile(testFilePath, '''
+class C {
+  /// my doc
+  new (int x);
+}
+''');
+
+    var hover = await prepareHover('new');
+    // range
+    expect(hover.offset, findOffset('new'));
+    expect(hover.length, 'new'.length);
+    // element
+    expect(hover.dartdoc, 'my doc');
+    expect(hover.elementDescription, 'C(int x)');
+    expect(hover.elementKind, 'constructor');
+  }
+
   Future<void> test_class_constructor_noKeyword_const() async {
     newFile(testFilePath, '''
 class A {
@@ -390,6 +408,28 @@ void f() {
     expect(hover.parameter, isNull);
   }
 
+  Future<void> test_class_constructorReference_new() async {
+    newFile(testFilePath, '''
+class C {
+  /// my doc
+  new (int x);
+}
+
+void f() {
+  C.new;
+}
+''');
+
+    var hover = await prepareHover('new;');
+    // range
+    expect(hover.offset, findOffset('new;'));
+    expect(hover.length, 'new'.length);
+    // element
+    expect(hover.dartdoc, 'my doc');
+    expect(hover.elementDescription, 'C(int x)');
+    expect(hover.elementKind, 'constructor');
+  }
+
   Future<void> test_class_constructorReference_primary() async {
     newFile(testFilePath, '''
 class A(final int x, var int y){
@@ -418,22 +458,27 @@ void f() {
 
   Future<void> test_class_constructorReference_primary_named() async {
     newFile(testFilePath, '''
-class A.someName(var int x){
+class C.someName({required var int x, required this._y}){
+  int _y;
+
   /// doc aaa
   this;
 }
 
 void f() {
-  A.someName(3);
+  C.someName(x: 3, y: 4);
 }
 ''');
-    var hover = await prepareHover('A.someName(3)');
+    var hover = await prepareHover('C.someName(x');
     // element
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
-    expect(hover.containingClassDescription, 'A');
+    expect(hover.containingClassDescription, 'C');
     expect(hover.dartdoc, 'doc aaa');
-    expect(hover.elementDescription, '(new) A.someName(int x)');
+    expect(
+      hover.elementDescription,
+      '(new) C.someName({required int x, required int y})',
+    );
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);

@@ -285,20 +285,35 @@ extension on TypeSystem {
       return false;
     } else {
       var leftSuper = leftElement.supertype;
-      var sameSupertypes = leftSuper == rightElement.supertype;
+      if (leftSuper == null) return true;
+      if (leftSuper != rightElement.supertype) return true;
 
-      // Unrelated Enums have the same supertype, but they are not the same
-      // element, so they are unrelated. Mixins always have supertype null,
-      // and so do extension types, and they are both considered unrelated
-      // when their elements are not equal.
-      if (sameSupertypes && (leftElement is EnumElement || leftSuper == null)) {
-        return true;
-      }
+      // Unrelated enums (and subclassess of ProtobufEnum) have the same
+      // supertype, but they are not the same element, so they are unrelated.
+      // Mixins always have supertype null, and so do extension types, and they
+      // are both considered unrelated when their elements are not equal.
+      if (leftElement is EnumElement) return true;
 
-      return (leftElement.supertype?.isDartCoreObject ?? false) ||
-          !sameSupertypes;
+      // We include this special case, but it may be removed if generated
+      // protobuf enums become final classes. See
+      // https://github.com/google/protobuf.dart/issues/820.
+      if (leftSuper.isProtobufEnum) return true;
+
+      return leftElement.supertype?.isDartCoreObject ?? false;
     }
   }
+}
+
+extension on InterfaceType {
+  static final _protobufEnumLibraryUri = Uri.parse(
+    'package:protobuf/src/protobuf/protobuf_enum.dart',
+  );
+
+  /// Whether this interface is the ProtobufEnum class from the protobuf
+  /// package.
+  bool get isProtobufEnum =>
+      element.name == 'ProtobufEnum' &&
+      element.library.uri == _protobufEnumLibraryUri;
 }
 
 extension DartTypeExtensions on DartType {
