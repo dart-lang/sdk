@@ -1,19 +1,19 @@
 (module $module4
   (type $#Top <...>)
   (type $BoxedInt <...>)
-  (type $JSStringImpl <...>)
+  (type $JSExternWrapper <...>)
   (type $Object <...>)
   (type $_Future <...>)
   (global $".FooConst4(" (import "" "FooConst4(") (ref extern))
-  (global $"\")\"" (import "module0" "global4") (ref $JSStringImpl))
+  (global $"\")\"" (import "module0" "global4") (ref $JSExternWrapper))
   (global $4 (import "module0" "global10") (ref $BoxedInt))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 34 funcref)
-  (global $"\"FooConst4(\"" (ref $JSStringImpl)
-    (i32.const 4)
+  (global $"\"FooConst4(\"" (ref $JSExternWrapper)
+    (i32.const 104)
     (i32.const 0)
     (global.get $".FooConst4(")
-    (struct.new $JSStringImpl))
-  (global $"\"foo4Code(\"" (ref $JSStringImpl) <...>)
+    (struct.new $JSExternWrapper))
+  (global $"\"foo4Code(\"" (ref $JSExternWrapper) <...>)
   (global $FooConst4 (ref $Object)
     (i32.const 126)
     (i32.const 0)
@@ -34,7 +34,7 @@
     local.get $var0
     global.get $"\")\""
     i32.const 15
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 14
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
@@ -49,7 +49,7 @@
     local.get $var1
     global.get $"\")\""
     i32.const 15
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 14
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop

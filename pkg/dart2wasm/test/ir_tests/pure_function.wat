@@ -1,16 +1,16 @@
 (module $$
   (type $#Top <...>)
   (type $BoxedInt <...>)
-  (type $JSStringImpl <...>)
+  (type $JSExternWrapper <...>)
   (@binaryen.removable.if.unused)
   (func $"wasm:js-string.length (import)" (import "wasm:js-string" "length") (param externref) (result i32))
-  (global $"\")\"" (ref $JSStringImpl) <...>)
-  (global $"\"3\"" (ref $JSStringImpl) <...>)
-  (global $"\"4\"" (ref $JSStringImpl) <...>)
-  (global $"\"bar(\"" (ref $JSStringImpl) <...>)
-  (global $"\"foo(\"" (ref $JSStringImpl) <...>)
+  (global $"\")\"" (ref $JSExternWrapper) <...>)
+  (global $"\"3\"" (ref $JSExternWrapper) <...>)
+  (global $"\"4\"" (ref $JSExternWrapper) <...>)
+  (global $"\"bar(\"" (ref $JSExternWrapper) <...>)
+  (global $"\"foo(\"" (ref $JSExternWrapper) <...>)
   (@binaryen.removable.if.unused)
-  (func $"foo <noInline>" (param $var0 (ref $JSStringImpl)) (result (ref $BoxedInt))
+  (func $"foo <noInline>" (param $var0 (ref $JSExternWrapper)) (result (ref $BoxedInt))
     global.get $"\"foo(\""
     local.get $var0
     global.get $"\")\""
@@ -21,9 +21,9 @@
     global.get $"\")\""
     call $JSStringImpl._interpolate3
     drop
-    i32.const 69
+    i32.const 113
     local.get $var0
-    struct.get $JSStringImpl $_ref
+    struct.get $JSExternWrapper $_externRef
     call $"wasm:js-string.length (import)"
     i64.extend_i32_u
     struct.new $BoxedInt
@@ -36,6 +36,6 @@
     call $"foo <noInline>"
     call $print
   )
-  (func $JSStringImpl._interpolate3 (param $var0 (ref $JSStringImpl)) (param $var1 (ref $#Top)) (param $var2 (ref $JSStringImpl)) (result (ref $JSStringImpl)) <...>)
+  (func $JSStringImpl._interpolate3 (param $var0 (ref $JSExternWrapper)) (param $var1 (ref $#Top)) (param $var2 (ref $JSExternWrapper)) (result (ref $JSExternWrapper)) <...>)
   (func $print (param $var0 (ref $#Top)) <...>)
 )

@@ -1614,7 +1614,7 @@ class _InvalidAccessVerifier {
   ///   annotations, the access is valid (and no warning is produced) if it
   ///   conforms to the rules of at least one of the annotations.
   void verify(SimpleIdentifier identifier) {
-    if (identifier.inDeclarationContext() || _inCommentReference(identifier)) {
+    if (identifier.inDeclarationContext() || identifier.inCommentReference) {
       return;
     }
 
@@ -1922,11 +1922,6 @@ class _InvalidAccessVerifier {
       return true;
     }
     return false;
-  }
-
-  bool _inCommentReference(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
-    return parent is CommentReference || parent?.parent is CommentReference;
   }
 
   bool _inCurrentLibrary(Element element) => element.library == _library;

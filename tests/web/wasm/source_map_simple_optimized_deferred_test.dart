@@ -14,7 +14,7 @@ const List<(String?, int?, int?, String?)?> frameDetails = [
   ('source_map_simple_lib.dart', 18, 3, 'g'),
   ('source_map_simple_lib.dart', 14, 3, 'f'),
   ('source_map_simple_lib.dart', 43, 5, 'testMain'),
-  ('internal_patch.dart', 136, 17, '_invokeMain'),
+  ('internal_patch.dart', 137, 17, '_invokeMain'),
 ];
 
 /*

@@ -28,10 +28,10 @@
   (type $BoxedInt (sub final $#Top (struct
     (field $field0 i32)
     (field $value i64))))
-  (type $JSStringImpl (sub final $Object (struct
+  (type $JSExternWrapper (sub $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
-    (field $_ref externref))))
+    (field $_externRef externref))))
   (type $ListBase (sub $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
@@ -42,7 +42,7 @@
   (type $Symbol (sub final $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
-    (field $_name (ref $JSStringImpl)))))
+    (field $_name (ref $JSExternWrapper)))))
   (type $WasmListBase (sub final $ListBase (struct
     (field $field0 i32)
     (field $field1 (mut i32))
@@ -126,29 +126,29 @@
     (array.new_fixed $Array<_NamedParameter> 0))
   (global $"WasmArray<_Type>[0]" (ref $Array<_Type>)
     (array.new_fixed $Array<_Type> 0))
-  (global $"\"a\"" (ref $JSStringImpl)
-    (i32.const 4)
+  (global $"\"a\"" (ref $JSExternWrapper)
+    (i32.const 111)
     (i32.const 0)
     (global.get $.a)
-    (struct.new $JSStringImpl))
-  (global $"\"toString\"" (ref $JSStringImpl)
-    (i32.const 4)
+    (struct.new $JSExternWrapper))
+  (global $"\"toString\"" (ref $JSExternWrapper)
+    (i32.const 111)
     (i32.const 0)
     (global.get $.toString)
-    (struct.new $JSStringImpl))
+    (struct.new $JSExternWrapper))
   (global $"main tear-off" (ref $#Closure-0-0)
-    (i32.const 33)
+    (i32.const 32)
     (i32.const 0)
     (global.get $global0)
     (global.get $global2)
     (global.get $_FunctionType)
     (struct.new $#Closure-0-0))
   (global $1 (ref $BoxedInt)
-    (i32.const 118)
+    (i32.const 65)
     (i64.const 1)
     (struct.new $BoxedInt))
   (global $_FunctionType (ref $_FunctionType)
-    (i32.const 12)
+    (i32.const 11)
     (i32.const 0)
     (i32.const 0)
     (i64.const 0)
@@ -160,7 +160,7 @@
     (global.get $"WasmArray<_NamedParameter>[0]")
     (struct.new $_FunctionType))
   (global $_TopType (ref $_TopType)
-    (i32.const 6)
+    (i32.const 5)
     (i32.const 0)
     (i32.const 1)
     (i64.const 2)
@@ -223,7 +223,7 @@
         local.get $var3
         local.get $var1
         array.new_fixed $Array<Object?> 1
-        call $"Foo.toString invocation type checker"
+        call $"Bar.toString invocation type checker"
         return
       end $label2
       block $label4
@@ -239,7 +239,7 @@
         local.get $var3
         local.get $var1
         array.new_fixed $Array<Object?> 1
-        call $"Bar.toString invocation type checker"
+        call $"Foo.toString invocation type checker"
         return
       end $label4
     end

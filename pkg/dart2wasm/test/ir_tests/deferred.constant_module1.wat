@@ -14,7 +14,7 @@
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $fun (ref $#Closure-0-1)))))
-  (type $JSStringImpl <...>)
+  (type $JSExternWrapper <...>)
   (type $Object <...>)
   (type $_FunctionType <...>)
   (type $_InterfaceType <...>)
@@ -24,7 +24,7 @@
   (global $"WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
   (global $"WasmArray<_Type>[0]" (import "module0" "global1") (ref $Array<_Type>))
   (global $"WasmArray<_Type>[1]" (import "module0" "global3") (ref $Array<_Type>))
-  (global $"\")\"" (import "module0" "global0") (ref $JSStringImpl))
+  (global $"\")\"" (import "module0" "global0") (ref $JSExternWrapper))
   (global $.globalH1Bar< (import "" "globalH1Bar<") (ref extern))
   (global $_InterfaceType (import "module0" "global7") (ref $_InterfaceType))
   (global $_TopType (import "module0" "global2") (ref $_TopType))
@@ -32,12 +32,12 @@
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 9 funcref)
   (global $"InstantiationConstant(globalH1Foo<int>)" (mut (ref null $#Closure-0-1))
     (ref.null none))
-  (global $"\">(\"" (ref $JSStringImpl) <...>)
-  (global $"\"globalH1Bar<\"" (ref $JSStringImpl)
-    (i32.const 4)
+  (global $"\">(\"" (ref $JSExternWrapper) <...>)
+  (global $"\"globalH1Bar<\"" (ref $JSExternWrapper)
+    (i32.const 112)
     (i32.const 0)
     (global.get $.globalH1Bar<)
-    (struct.new $JSStringImpl))
+    (struct.new $JSExternWrapper))
   (global $"globalH1Foo tear-off" (mut (ref null $#Closure-1-1))
     (ref.null none))
   (global $H1 (mut (ref null $H1))
@@ -53,17 +53,17 @@
     (local $var1 (ref $_FunctionType))
     (local $var2 (ref $#Closure-0-1))
     (local $var3 (ref $H1))
-    i32.const 121
+    i32.const 120
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
       global.get $"InstantiationConstant(globalH1Foo<int>)"
       br_on_non_null $label0
-      i32.const 33
+      i32.const 32
       i32.const 0
       block $label1 (result (ref $#Closure-1-1))
         global.get $"globalH1Foo tear-off"
         br_on_non_null $label1
-        i32.const 33
+        i32.const 32
         i32.const 0
         global.get $global0
         global.get $global2
@@ -83,7 +83,7 @@
         table.get $module0.constant-table0
         br_on_non_null $label2
         i32.const 0
-        i32.const 12
+        i32.const 11
         i32.const 0
         i32.const 0
         i64.const 0
@@ -116,7 +116,7 @@
     global.get $"\")\""
     array.new_fixed $Array<Object?> 5
     i32.const 5
-    call_indirect $module0.cross-module-funcs-0 (param (ref $Array<Object?>)) (result (ref $JSStringImpl))
+    call_indirect $module0.cross-module-funcs-0 (param (ref $Array<Object?>)) (result (ref $JSExternWrapper))
     i32.const 4
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
   )
@@ -139,7 +139,7 @@
     struct.get $H1 $fun
     local.tee $var0
     struct.get $#Closure-0-1 $context
-    i32.const 119
+    i32.const 66
     i64.const 1
     struct.new $BoxedInt
     local.get $var0

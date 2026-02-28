@@ -23,13 +23,11 @@ part 'regexp_helper.dart';
 ///
 /// This is the type that all JS interop types (`JSAny`, `JSNumber` etc.) are an
 /// extension of.
-class JSValue {
+class JSValue extends JSExternWrapper {
   /// This reference is always non-null and it never points to a JS `undefined`.
   /// We currently don't make it non-nullable as that makes it impossible to
   /// dummy-initialize locals with `JSValue` type.
-  final WasmExternRef? _ref;
-
-  JSValue(this._ref) : assert(!isDartNull(_ref));
+  JSValue(WasmExternRef? ref) : assert(!isDartNull(ref)), super(ref);
 
   static JSValue? box(WasmExternRef? ref) =>
       isDartNull(ref) ? null : JSValue(ref);
@@ -38,11 +36,11 @@ class JSValue {
 
   @pragma('wasm:prefer-inline')
   static WasmExternRef? unbox(JSValue? v) =>
-      v == null ? WasmExternRef.nullRef : v._ref;
+      v == null ? WasmExternRef.nullRef : v.wrappedExternRef;
 
   @override
   bool operator ==(Object that) =>
-      that is JSValue && areEqualInJS(_ref, that._ref);
+      that is JSValue && areEqualInJS(wrappedExternRef, that.wrappedExternRef);
 
   // Because [JSValue] is a subtype of [Object] it can be used in Dart
   // collections. Unfortunately, JS does not expose an efficient hash code
@@ -57,9 +55,9 @@ class JSValue {
   int get hashCode => 0;
 
   @override
-  String toString() => stringify(_ref);
+  String toString() => stringify(wrappedExternRef);
 
-  bool get isExternalizedDartValue => isWasmGCStruct(_ref);
+  bool get isExternalizedDartValue => isWasmGCStruct(wrappedExternRef);
 }
 
 // Extension helpers to convert to an externref.
@@ -74,7 +72,7 @@ extension DoubleToExternRef on double? {
 extension StringToExternRef on String? {
   WasmExternRef? get toExternRef => this == null
       ? WasmExternRef.nullRef
-      : jsStringFromDartString(this!).toExternRef;
+      : jsStringFromDartString(this!).wrappedExternRef;
 }
 
 extension JSValueToExternRef on JSValue? {
@@ -504,11 +502,12 @@ WasmExternRef? jsifyJSFloat64ArrayImpl(js_types.JSFloat64ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSDataViewImpl(js_types.JSDataViewImpl o) => o.toExternRef;
+WasmExternRef? jsifyJSDataViewImpl(js_types.JSDataViewImpl o) =>
+    o.wrappedExternRef;
 
 @pragma('wasm:prefer-inline')
 WasmExternRef? jsifyJSArrayBufferImpl(js_types.JSArrayBufferImpl o) =>
-    o.toExternRef;
+    o.wrappedExternRef;
 
 @pragma('wasm:prefer-inline')
 WasmExternRef? jsifyByteData(ByteData o) =>
@@ -838,19 +837,17 @@ StackTrace jsExceptionStackTrace(WasmExternRef? ref) => JavaScriptStack(
     """, ref),
 );
 
-class JavaScriptStack implements StackTrace {
-  // May be null.
-  final WasmExternRef? stack;
-  // Tracked the source so we only need remove frames if stack was generated
-  // from current.
+class JavaScriptStack extends JSExternWrapper implements StackTrace {
   final bool _fromCurrent;
+
+  JavaScriptStack(WasmExternRef? ref) : _fromCurrent = false, super(ref);
 
   // Note: We remove the first four frames to prevent including
   // `StackTrace.current`, other current helpers and the JS interop function.
   // On Chrome, the first line is not a frame but a line with just "Error",
   // sometimes with details:
   // "Error: ...". Also remove that line.
-  late final String _stringified = stack.isNull
+  late final String _stringified = wrappedExternRef.isNull
       ? ""
       : JSStringImpl.fromRefUnchecked(
           _fromCurrent
@@ -862,17 +859,26 @@ class JavaScriptStack implements StackTrace {
                 drop += 1;
             }
             return frames.slice(drop).join('\n');
-          }""", stack)
-              : stack,
+          }""", wrappedExternRef)
+              : wrappedExternRef,
         );
 
-  JavaScriptStack(this.stack) : _fromCurrent = false;
-
-  @pragma('wasm:never-inline')
+  @pragma("wasm:never-inline")
   JavaScriptStack.current()
-    : stack = JS<WasmExternRef?>("() => new Error().stack"),
-      _fromCurrent = true;
+    : _fromCurrent = true,
+      super(JS<WasmExternRef?>("() => new Error().stack"));
 
   @override
   String toString() => _stringified;
+}
+
+base class JSExternWrapper {
+  final WasmExternRef? _externRef;
+
+  JSExternWrapper(this._externRef);
+}
+
+extension JSExternWrapperExt on JSExternWrapper {
+  @pragma("wasm:prefer-inline")
+  WasmExternRef? get wrappedExternRef => _externRef;
 }

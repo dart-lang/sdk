@@ -1,22 +1,22 @@
 (module $module1
   (type $#Top <...>)
   (type $BoxedInt <...>)
-  (type $JSStringImpl <...>)
+  (type $JSExternWrapper <...>)
   (type $Object <...>)
   (global $".Foo1.doitDevirt(" (import "" "Foo1.doitDevirt(") (ref extern))
-  (global $"\")\"" (import "module0" "global4") (ref $JSStringImpl))
-  (global $"\"FooBase(\"" (import "module0" "global5") (ref $JSStringImpl))
+  (global $"\")\"" (import "module0" "global4") (ref $JSExternWrapper))
+  (global $"\"FooBase(\"" (import "module0" "global5") (ref $JSExternWrapper))
   (global $1 (import "module0" "global1") (ref $BoxedInt))
   (global $2 (import "module0" "global3") (ref $BoxedInt))
   (global $baseObj (import "module0" "global0") (ref null $Object))
   (global $foo1Obj (import "module0" "global2") (ref null $Object))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 5 funcref)
-  (table $module0.dispatch0 (import "module0" "dispatch0") 801 funcref)
-  (global $"\"Foo1.doitDevirt(\"" (ref $JSStringImpl)
-    (i32.const 4)
+  (table $module0.dispatch0 (import "module0" "dispatch0") 781 funcref)
+  (global $"\"Foo1.doitDevirt(\"" (ref $JSExternWrapper)
+    (i32.const 104)
     (i32.const 0)
     (global.get $".Foo1.doitDevirt(")
-    (struct.new $JSStringImpl))
+    (struct.new $JSExternWrapper))
   (elem $module0.cross-module-funcs-0
     (set 0 (ref.func $"foo1 <noInline>")))
   (func $"foo1 <noInline>" (result (ref null $#Top))
@@ -31,7 +31,7 @@
       global.get $1
       local.get $var0
       struct.get $Object $field0
-      i32.const 453
+      i32.const 134
       i32.add
       call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top)) (result (ref null $#Top))
       drop
@@ -68,7 +68,7 @@
     global.get $1
     global.get $"\")\""
     i32.const 3
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 4
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
@@ -76,7 +76,7 @@
     global.get $1
     global.get $"\")\""
     i32.const 3
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 4
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop

@@ -1,20 +1,20 @@
 (module $module1
   (type $#Top (struct
     (field $field0 i32)))
-  (type $JSStringImpl (sub final $Object (struct
+  (type $JSExternWrapper (sub $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
-    (field $_ref externref))))
+    (field $_externRef externref))))
   (type $Object (sub $#Top (struct
     (field $field0 i32)
     (field $field1 (mut i32)))))
   (global $".hello world" (import "" "hello world") (ref extern))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 2 funcref)
-  (global $"\"hello world\"" (ref $JSStringImpl)
-    (i32.const 4)
+  (global $"\"hello world\"" (ref $JSExternWrapper)
+    (i32.const 106)
     (i32.const 0)
     (global.get $".hello world")
-    (struct.new $JSStringImpl))
+    (struct.new $JSExternWrapper))
   (elem $module0.cross-module-funcs-0
     (set 0 (ref.func $"deferredFoo <noInline>")))
   (func $"deferredFoo <noInline>" (result (ref null $#Top))

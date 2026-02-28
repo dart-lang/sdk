@@ -369,7 +369,7 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
           "`SharedArrayBuffer` from that JS typed array.",
         );
       }
-      return JSArrayBuffer._(JSArrayBufferType(JSValue(t.toExternRef)));
+      return JSArrayBuffer._(JSArrayBufferType(JSValue(t.wrappedExternRef)));
     } else {
       return JSArrayBuffer._(
         JSArrayBufferType(JSValue(jsArrayBufferFromDartByteBuffer(t))),
@@ -395,7 +395,7 @@ extension ByteDataToJSDataView on ByteData {
       JSDataViewType(
         JSValue(
           t is js_types.JSDataViewImpl
-              ? t.toExternRef
+              ? t.wrappedExternRef
               : jsDataViewFromDartByteData(t, lengthInBytes),
         ),
       ),
@@ -644,7 +644,7 @@ extension ListToJSArray<T extends JSAny?> on List<T> {
     return t is js_types.JSArrayImpl
         // Explicit cast to avoid using the extension method.
         ? JSArray<T>._(
-            JSArrayType(JSValue((t as js_types.JSArrayImpl).toExternRef)),
+            JSArrayType(JSValue((t as js_types.JSArrayImpl).wrappedExternRef)),
           )
         : null;
   }
@@ -949,6 +949,20 @@ JSPromise<JSObject> importModule(JSAny moduleName) => JSPromise<JSObject>._(
     ),
   ),
 );
+
+@patch
+bool jsIdentical(Object? a, Object? b) {
+  if (a is JSExternWrapper && b is JSExternWrapper) {
+    return js_helper
+        .JS<WasmI32>(
+          '(a, b) => a === b',
+          a.wrappedExternRef,
+          b.wrappedExternRef,
+        )
+        .toBool();
+  }
+  return identical(a, b);
+}
 
 @JS('Array')
 @staticInterop
