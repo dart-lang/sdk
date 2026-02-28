@@ -50,7 +50,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
     static synthetic get y2#offsetOf() → dart.core::int
       return #C21.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C11
-    static get #sizeOf() → dart.core::int
+    static synthetic get #sizeOf() → dart.core::int
       return #C23.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
 }
@@ -102,7 +102,7 @@ library from "org-dartlang-test:///main.dart" as main {
     static synthetic get x3#offsetOf() → dart.core::int
       return #C30.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C11
-    static get #sizeOf() → dart.core::int
+    static synthetic get #sizeOf() → dart.core::int
       return #C33.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
 }

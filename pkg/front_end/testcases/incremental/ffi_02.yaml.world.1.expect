@@ -48,7 +48,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
     static synthetic get next#offsetOf() → dart.core::int
       return #C18.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C11
-    static get #sizeOf() → dart.core::int
+    static synthetic get #sizeOf() → dart.core::int
       return #C21.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
 }

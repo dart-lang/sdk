@@ -13,7 +13,7 @@ final class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
     : super ffi::AbiSpecificInteger::•()
     ;
   @#C67
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C68.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C70
@@ -52,7 +52,7 @@ final class WCharStruct extends ffi::Struct {
   static synthetic get a1#offsetOf() → core::int
     return #C68.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C67
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C79.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C70
@@ -80,7 +80,7 @@ final class WCharArrayStruct extends ffi::Struct {
   static synthetic get a0#offsetOf() → core::int
     return #C77.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C67
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C90.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 class _DummyAllocator extends core::Object implements ffi::Allocator /*hasConstConstructor*/  {

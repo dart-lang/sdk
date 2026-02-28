@@ -13,7 +13,7 @@ final class Incomplete extends ffi::AbiSpecificInteger /*hasConstConstructor*/  
     : super ffi::AbiSpecificInteger::•()
     ;
   @#C29
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return ffi::_checkAbiSpecificIntegerMapping<core::int>(#C31.{core::List::[]}(ffi::_abi()){(core::int) → core::int?});
 }
 @#C33
@@ -52,7 +52,7 @@ final class IncompleteStruct extends ffi::Struct {
   static synthetic get a1#offsetOf() → core::int
     return ffi::_checkAbiSpecificIntegerMapping<core::int>(#C31.{core::List::[]}(ffi::_abi()){(core::int) → core::int?});
   @#C29
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return ffi::_checkAbiSpecificIntegerMapping<core::int>(#C42.{core::List::[]}(ffi::_abi()){(core::int) → core::int?});
 }
 @#C33
@@ -80,7 +80,7 @@ final class IncompleteArrayStruct extends ffi::Struct {
   static synthetic get a0#offsetOf() → core::int
     return #C40.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C29
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return ffi::_checkAbiSpecificIntegerMapping<core::int>(#C52.{core::List::[]}(ffi::_abi()){(core::int) → core::int?});
 }
 class _DummyAllocator extends core::Object implements ffi::Allocator /*hasConstConstructor*/  {
