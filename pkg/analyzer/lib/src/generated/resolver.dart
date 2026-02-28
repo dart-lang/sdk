@@ -5156,12 +5156,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitCompilationUnit(covariant CompilationUnitImpl node) {
-    node.nameScope = nameScope;
-    super.visitCompilationUnit(node);
-  }
-
-  @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     node.body.localVariableInfo = _localVariableInfo;
     _scopeContext.visitConstructorDeclaration(node, visitor: this);
@@ -5196,12 +5190,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     _scopeContext.visitEnumDeclaration(node, visitor: this);
-  }
-
-  @override
-  void visitExpressionFunctionBody(covariant ExpressionFunctionBodyImpl node) {
-    node.nameScope = nameScope;
-    super.visitExpressionFunctionBody(node);
   }
 
   @override
@@ -5250,7 +5238,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitForElement(covariant ForElementImpl node) {
     _scopeContext.withLocalScope((scope) {
-      node.nameScope = nameScope;
       _visitForLoopParts(scope, node.forLoopParts);
       node.body.accept(this);
     });
@@ -5262,7 +5249,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var outerImplicitScope = _implicitLabelScope;
       _implicitLabelScope = _implicitLabelScope.nest(node);
       try {
-        node.nameScope = nameScope;
         _visitForLoopParts(scope, node.forLoopParts);
         _visitStatementInScope(node.body);
       } finally {
@@ -5318,13 +5304,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    _scopeContext.visitGenericTypeAlias(
-      node,
-      visitor: this,
-      enterTypeParameterScope: () {
-        node.nameScope = nameScope;
-      },
-    );
+    _scopeContext.visitGenericTypeAlias(node, visitor: this);
   }
 
   @override
@@ -5509,7 +5489,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
     for (var case_ in node.cases) {
       _scopeContext.withLocalScope((scope) {
-        case_.nameScope = nameScope;
         var guardedPattern = case_.guardedPattern;
         var variables = guardedPattern.variables;
         scope.addAll(variables.values);
@@ -5703,7 +5682,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (caseClause != null) {
       var guardedPattern = caseClause.guardedPattern;
       _scopeContext.withLocalScope((scope) {
-        caseClause.nameScope = nameScope;
         var variables = guardedPattern.variables;
         scope.addAll(variables.values);
         guardedPattern.accept(this);
@@ -5757,8 +5735,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           enclosedScope.add(statement);
         }
       }
-
-      node.nameScope = enclosedScope;
 
       f(enclosedScope);
     });

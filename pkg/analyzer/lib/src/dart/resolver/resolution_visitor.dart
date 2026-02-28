@@ -169,7 +169,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitBlock(covariant BlockImpl node) {
-    _visitStatementsInScope(node.statements);
+    _scopeContext.withLocalScope((scope) {
+      node.nameScope = scope;
+      _defineLocalElements(scope, node.statements);
+      node.statements.accept(this);
+    });
   }
 
   @override
@@ -226,6 +230,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     );
 
     _namedTypeResolver.enclosingClass = null;
+  }
+
+  @override
+  void visitCompilationUnit(covariant CompilationUnitImpl node) {
+    node.nameScope = nameScope;
+    super.visitCompilationUnit(node);
   }
 
   @override
@@ -316,6 +326,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExpressionFunctionBody(covariant ExpressionFunctionBodyImpl node) {
+    node.nameScope = nameScope;
+    super.visitExpressionFunctionBody(node);
+  }
+
+  @override
   void visitExtendsClause(covariant ExtendsClauseImpl node) {
     _resolveType(
       declaration: node.parent as Declaration?,
@@ -363,6 +379,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitForElement(covariant ForElementImpl node) {
     _scopeContext.withLocalScope((scope) {
+      node.nameScope = scope;
       _visitForLoopParts(scope, node.forLoopParts);
       _scopeContext.withLocalScope((_) {
         node.body.accept(this);
@@ -378,6 +395,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitForStatement(covariant ForStatementImpl node) {
     _scopeContext.withLocalScope((scope) {
+      node.nameScope = scope;
       _visitForLoopParts(scope, node.forLoopParts);
       _visitStatementInScope(node.body);
     });
@@ -438,7 +456,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    _scopeContext.visitGenericTypeAlias(node, visitor: this);
+    _scopeContext.visitGenericTypeAlias(
+      node,
+      visitor: this,
+      enterTypeParameterScope: () {
+        node.nameScope = nameScope;
+      },
+    );
   }
 
   @override
@@ -448,6 +472,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _resolveGuardedPattern(
         caseClause.guardedPattern,
         then: () {
+          caseClause.nameScope = nameScope;
           node.ifTrue.accept(this);
         },
       );
@@ -464,6 +489,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _resolveGuardedPattern(
         caseClause.guardedPattern,
         then: () {
+          caseClause.nameScope = nameScope;
           _visitStatementInScope(node.ifTrue);
         },
       );
@@ -719,6 +745,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _resolveGuardedPattern(
         case_.guardedPattern,
         then: () {
+          case_.nameScope = nameScope;
           case_.expression.accept(this);
         },
       );
@@ -761,7 +788,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       group.variables = _patternVariables.switchStatementSharedCaseScopeFinish(
         group,
       );
-      _visitStatementsInScope(group.statements);
+
+      _scopeContext.withLocalScope((scope) {
+        group.members.lastOrNull?.nameScope = scope;
+        _defineLocalElements(scope, group.statements);
+        scope.addAll(group.variables.values);
+        group.statements.accept(this);
+      });
     }
   }
 
@@ -1125,15 +1158,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         });
       }
     }
-  }
-
-  void _visitStatementsInScope(List<StatementImpl> statements) {
-    _scopeContext.withLocalScope((scope) {
-      _defineLocalElements(scope, statements);
-      for (var statement in statements) {
-        statement.accept(this);
-      }
-    });
   }
 
   /// We always build local elements for [VariableDeclarationStatement]s and
