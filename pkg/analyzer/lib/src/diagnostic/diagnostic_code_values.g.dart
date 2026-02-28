@@ -1084,6 +1084,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.uriHasNotBeenGenerated,
   diag.uriWithInterpolation,
   diag.useOfNativeExtension,
+  diag.useOfPrivateParameterName,
   diag.useOfVoidResult,
   diag.valuesDeclarationInEnum,
   diag.varAndType,

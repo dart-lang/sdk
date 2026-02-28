@@ -2640,7 +2640,7 @@ library
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F4 requiredPositional final this.it (nameOffset:49) (firstTokenOffset:45) (offset:49)
+                #F4 requiredPositional final this.it (nameOffset:49) (firstTokenOffset:20) (offset:49)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   documentationComment: /// first\n/// second
           getters

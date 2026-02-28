@@ -302,10 +302,10 @@ class ConstantEvaluationEngine {
         for (var field in constant.enclosingElement.fields) {
           // Note: non-static const isn't allowed but we handle it anyway so
           // that we won't be confused by incorrect code.
-          if ((field.isFinal || field.isConst) &&
-              !field.isStatic &&
-              field.hasInitializer) {
-            callback(field);
+          if ((field.isFinal || field.isConst) && !field.isStatic) {
+            if (field.constantInitializer case var initializer?) {
+              initializer.accept(referenceFinder);
+            }
           }
         }
         for (var parameterElement in constant.formalParameters) {
@@ -3002,21 +3002,28 @@ class _InstanceCreationEvaluator {
     var fields = _constructor.baseElement.enclosingElement.fields;
     for (var field in fields) {
       if ((field.isFinal || field.isConst) && !field.isStatic) {
-        var fieldValue = field.evaluationResult;
-
-        // It is possible that the evaluation result is null.
-        // This happens for example when we have duplicate fields.
-        // `class Test {final x = 1; final x = 2; const Test();}`
-        if (fieldValue == null || fieldValue is! DartObjectImpl) {
+        var initializer = field.constantInitializer;
+        if (initializer == null) {
           continue;
         }
+
+        var fieldValue = field.evaluationResult;
+        fieldValue ??= _initializerVisitor.evaluateConstant(initializer);
+
+        if (fieldValue is InvalidConstant) {
+          return fieldValue;
+        }
+
+        if (fieldValue is! DartObjectImpl) {
+          continue;
+        }
+
         // Match the value and the type.
         var fieldType = substitution.substituteType(field.type);
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
           var isRuntimeException = hasTypeParameterReference(field.type);
-          var errorNode = field.constantInitializer ?? _errorNode;
           return InvalidConstant.forEntity(
-            entity: errorNode,
+            entity: initializer,
             locatableDiagnostic: diag.constConstructorFieldTypeMismatch
                 .withArguments(
                   valueType: fieldValue.type.getDisplayString(),

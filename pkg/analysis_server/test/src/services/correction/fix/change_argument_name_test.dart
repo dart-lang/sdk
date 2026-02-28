@@ -118,6 +118,27 @@ class A {
 ''');
   }
 
+  Future<void> test_constructor_privateNamed() async {
+    await resolveTestCode('''
+class C {
+  int? _x;
+  C({this._x});
+}
+void f() {
+  C(_x: 123);
+}
+''');
+    await assertHasFix('''
+class C {
+  int? _x;
+  C({this._x});
+}
+void f() {
+  C(x: 123);
+}
+''', filter: (diagnostic) => diagnostic.diagnosticCode != diag.unusedField);
+  }
+
   Future<void> test_default_annotation() async {
     await resolveTestCode('''
 @A(boot: 2)

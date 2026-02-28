@@ -1,6 +1,6 @@
 name: analyzer_testing
 description: Testing utilities related to the analyzer and analysis_server_plugin packages.
-version: 0.2.2-dev
+version: 0.2.2
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/analyzer_testing
 
 environment:
@@ -11,7 +11,7 @@ resolution: workspace
 dependencies:
   # See the release policy for managing this dependency at
   # pkg/analyzer/doc/implementation/releasing.md.
-  analyzer: ^11.0.0-0
+  analyzer: 11.0.0
   meta: ^1.10.0
   path: ^1.9.0
   test: ^1.25.0

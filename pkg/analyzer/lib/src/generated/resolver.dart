@@ -4864,9 +4864,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         String name = nameNode.name;
         var element = namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
-          diagnosticReporter?.report(
-            diag.undefinedNamedParameter.withArguments(name: name).at(nameNode),
-          );
+          element =
+              namedParameters != null && name.startsWith('_') && name.length > 1
+              ? namedParameters[name.substring(1)]
+              : null;
+          if (element == null) {
+            diagnosticReporter?.report(
+              diag.undefinedNamedParameter
+                  .withArguments(name: name)
+                  .at(nameNode),
+            );
+          } else {
+            diagnosticReporter?.report(
+              diag.useOfPrivateParameterName
+                  .withArguments(name: name.substring(1))
+                  .at(nameNode),
+            );
+          }
         } else {
           resolvedParameters[i] = element;
           nameNode.element = element;
@@ -5137,6 +5151,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitComment(covariant CommentImpl node) {
+    _scopeContext.visitDocumentationComment(node, this);
+  }
+
+  @override
   void visitCompilationUnit(covariant CompilationUnitImpl node) {
     node.nameScope = nameScope;
     super.visitCompilationUnit(node);
@@ -5145,22 +5164,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     node.body.localVariableInfo = _localVariableInfo;
-    var element = node.declaredFragment!.element;
-
-    node.metadata.accept(this);
-    node.typeName?.accept(this);
-    node.parameters.accept(this);
-
-    _scopeContext.withConstructorInitializerScope(element, () {
-      node.initializers.accept(this);
-      _scopeContext.visitDocumentationComment(node.documentationComment, this);
-    });
-
-    node.redirectedConstructor?.accept(this);
-
-    _scopeContext.withFormalParameterScope(element.formalParameters, () {
-      node.body.accept(this);
-    });
+    _scopeContext.visitConstructorDeclaration(node, visitor: this);
   }
 
   @override
@@ -5185,7 +5189,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     covariant EnumConstantDeclarationImpl node,
   ) {
     node.metadata.accept(this);
-    _scopeContext.visitDocumentationComment(node.documentationComment, this);
+    node.documentationComment?.accept(this);
     node.arguments?.accept(this);
   }
 
@@ -5215,7 +5219,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     node.metadata.accept(this);
-    _scopeContext.visitDocumentationComment(node.documentationComment, this);
+    node.documentationComment?.accept(this);
     node.fields.accept(this);
   }
 
@@ -5373,7 +5377,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     node.metadata.accept(this);
-    _scopeContext.visitDocumentationComment(node.documentationComment, this);
+    node.documentationComment?.accept(this);
   }
 
   @override
@@ -5421,31 +5425,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
-    var fragment = node.declaration?.declaredFragment;
-    var element = fragment?.element;
-
-    node.metadata.accept(this);
-
-    if (element != null) {
-      _scopeContext.withConstructorInitializerScope(element, () {
-        node.initializers.accept(this);
-      });
-    } else {
-      node.initializers.accept(this);
-    }
-
-    if (element != null) {
-      _scopeContext.withPrimaryParameterScope(element, () {
-        _scopeContext.visitDocumentationComment(
-          node.documentationComment,
-          this,
-        );
-        node.body.accept(this);
-      });
-    } else {
-      _scopeContext.visitDocumentationComment(node.documentationComment, this);
-      node.body.accept(this);
-    }
+    _scopeContext.visitPrimaryConstructorBody(node, visitor: this);
   }
 
   @override
@@ -5588,7 +5568,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     covariant TopLevelVariableDeclarationImpl node,
   ) {
     node.metadata.accept(this);
-    _scopeContext.visitDocumentationComment(node.documentationComment, this);
+    node.documentationComment?.accept(this);
     node.variables.accept(this);
   }
 

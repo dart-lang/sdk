@@ -1,4 +1,4 @@
-## 0.3.11-dev
+## 0.3.11
 
 - Files which are excluded in analysis options are no longer analyzed by
   analyzer plugins.

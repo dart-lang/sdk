@@ -2086,6 +2086,24 @@ CommentReference
 ''');
   }
 
+  test_onSimpleFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+void f(
+  /// [int]
+  int x,
+) {}
+''');
+
+    var node = findNode.commentReference('int]');
+    assertResolvedNodeText(node, r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: int
+    element: dart:core::@class::int
+    staticType: null
+''');
+  }
+
   test_parameter_functionTyped() async {
     await assertNoErrorsInCode(r'''
 /// [bar]

@@ -6317,6 +6317,71 @@ A
 ''');
   }
 
+  test_class_field_declarationInitializer_nonConstant() async {
+    await assertErrorsInCode(
+      r'''
+int x = 0;
+class A {
+  final int f = x;
+  const A();
+}
+const a = A();
+''',
+      [
+        error(diag.constInitializedWithNonConstantValue, 37, 1),
+        error(diag.invalidConstant, 37, 1),
+        error(diag.constConstructorWithFieldInitializedByNonConst, 42, 5),
+      ],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+<null>
+''');
+  }
+
+  test_class_field_declarationInitializer_thisReference_field() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  final int x = 0;
+  final int f = x;
+  const A();
+}
+const a = A();
+''',
+      [
+        error(diag.constInitializedWithNonConstantValue, 45, 1),
+        error(diag.invalidConstant, 45, 1),
+        error(diag.implicitThisReferenceInInitializer, 45, 1),
+        error(diag.constConstructorWithFieldInitializedByNonConst, 50, 5),
+      ],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+<null>
+''');
+  }
+
+  test_class_field_declarationInitializer_thisReference_getter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int get x => 0;
+  final int f = x;
+  const A();
+}
+const a = A();
+''',
+      [
+        error(diag.constInitializedWithNonConstantValue, 44, 1),
+        error(diag.invalidConstant, 44, 1),
+        error(diag.implicitThisReferenceInInitializer, 44, 1),
+        error(diag.constConstructorWithFieldInitializedByNonConst, 49, 5),
+      ],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+<null>
+''');
+  }
+
   test_class_primaryConstructor_duplicateDefinition_field() async {
     await assertErrorsInCode(
       r'''

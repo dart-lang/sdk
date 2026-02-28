@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
@@ -42,11 +41,7 @@ class ConstructorInitializerResolver {
       var node = _linker.getLinkingNode2(fragment);
       switch (node) {
         case ConstructorDeclarationImpl():
-          var initializerScope = ConstructorInitializerScope(
-            node.enclosingBodyScope!,
-            element,
-          );
-
+          var initializerScope = node.formalParameterInitializerScope!;
           var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
 
           var localElementsVisitor = ElementBindingVisitor(
@@ -91,11 +86,7 @@ class ConstructorInitializerResolver {
           }
         case PrimaryConstructorDeclarationImpl():
           if (node.body case var body?) {
-            var initializerScope = ConstructorInitializerScope(
-              body.enclosingBodyScope!,
-              element,
-            );
-
+            var initializerScope = body.formalParameterInitializerScope!;
             var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
             var astResolver = AstResolver(
               _linker,

@@ -51,10 +51,7 @@ class A {
   final m = const A();
 }
 ''',
-      [
-        error(diag.recursiveConstantConstructor, 18, 1),
-        error(diag.recursiveCompileTimeConstant, 31, 1),
-      ],
+      [error(diag.recursiveConstantConstructor, 18, 1)],
     );
   }
 

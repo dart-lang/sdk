@@ -215,24 +215,6 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
   }
 
   @override
-  Token get beginToken {
-    if (_documentationComment == null) {
-      if (_metadata.isEmpty) {
-        return firstTokenAfterCommentAndMetadata;
-      }
-      return _metadata.beginToken!;
-    } else if (_metadata.isEmpty) {
-      return _documentationComment!.beginToken;
-    }
-    Token commentToken = _documentationComment!.beginToken;
-    Token metadataToken = _metadata.beginToken!;
-    if (commentToken.offset < metadataToken.offset) {
-      return commentToken;
-    }
-    return metadataToken;
-  }
-
-  @override
   Iterable<SyntacticEntity> get childEntities {
     return <SyntacticEntity>[
       ?_documentationComment,
@@ -6033,8 +6015,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   ConstructorFragmentImpl? declaredFragment;
 
-  // TODO(scheglov): store better scope
-  Scope? enclosingBodyScope;
+  Scope? formalParameterInitializerScope;
 
   /// The fields that are not initialized by the constructor.
   List<FieldElement>? notInitializedFields;
@@ -21259,10 +21240,6 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
-  Token get beginToken =>
-      metadata.beginToken ?? firstTokenAfterCommentAndMetadata;
-
-  @override
   ParameterKind get kind {
     var parent = this.parent;
     if (parent is DefaultFormalParameterImpl) {
@@ -23683,8 +23660,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @generated
   FunctionBodyImpl _body;
 
-  // TODO(scheglov): store better scope
-  Scope? enclosingBodyScope;
+  Scope? formalParameterInitializerScope;
 
   @generated
   PrimaryConstructorBodyImpl({
@@ -31285,6 +31261,15 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   CommentImpl? _documentationComment;
 
   final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
+
+  @override
+  Token get beginToken {
+    return Token.lexicallyFirst(
+          _documentationComment?.beginToken,
+          _metadata.beginToken,
+        ) ??
+        firstTokenAfterCommentAndMetadata;
+  }
 
   @override
   CommentImpl? get documentationComment => _documentationComment;

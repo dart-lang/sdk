@@ -1,4 +1,4 @@
-## 11.0.0-dev
+## 11.0.0
 
 * Remove deprecated `ClassDeclaration.leftBracket`.
 * Remove deprecated `ClassDeclaration.members`.

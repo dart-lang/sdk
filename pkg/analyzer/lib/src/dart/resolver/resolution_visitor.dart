@@ -230,26 +230,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-
-    node.metadata.accept(this);
-
-    node.typeName?.accept(this);
-
-    node.parameters.accept(this);
-
-    _scopeContext.withConstructorInitializerScope(fragment.element, () {
-      node.initializers.accept(this);
-    });
-
-    node.redirectedConstructor?.accept(this);
-
-    _scopeContext.withFormalParameterScope(
-      fragment.element.formalParameters,
-      () {
-        node.body.accept(this);
-      },
-    );
+    _scopeContext.visitConstructorDeclaration(node, visitor: this);
   }
 
   @override
@@ -671,33 +652,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
-    if (node.declaration case var declaration?) {
-      var fragment = declaration.declaredFragment!;
-      var element = fragment.element;
-      node.visitChildrenWithHooks(
-        this,
-        visitInitializers: (initializers) {
-          _scopeContext.withConstructorInitializerScope(element, () {
-            initializers.accept(this);
-          });
-        },
-        visitBody: (body) {
-          _scopeContext.withPrimaryParameterScope(element, () {
-            body.accept(this);
-          });
-        },
-      );
-    } else {
-      super.visitPrimaryConstructorBody(node);
-    }
-  }
-
-  @override
-  void visitPrimaryConstructorDeclaration(
-    covariant PrimaryConstructorDeclarationImpl node,
-  ) {
-    node.typeParameters?.accept(this);
-    node.formalParameters.accept(this);
+    _scopeContext.visitPrimaryConstructorBody(node, visitor: this);
   }
 
   @override

@@ -100,9 +100,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    node.enclosingBodyScope = nameScope;
-    node.metadata.accept(this);
-    node.parameters.accept(this);
+    _scopeContext.visitConstructorDeclaration(
+      node,
+      visitor: this,
+      visitTypeName: (_) {},
+      visitInitializers: (_) {},
+      visitRedirectedConstructor: (_) {},
+    );
   }
 
   @override
@@ -306,15 +310,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
-    node.enclosingBodyScope = nameScope;
-  }
-
-  @override
-  void visitPrimaryConstructorDeclaration(
-    covariant PrimaryConstructorDeclarationImpl node,
-  ) {
-    node.typeParameters?.accept(this);
-    node.formalParameters.accept(this);
+    _scopeContext.visitPrimaryConstructorBody(
+      node,
+      visitor: this,
+      visitInitializers: (_) {},
+    );
   }
 
   @override
