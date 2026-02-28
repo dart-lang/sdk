@@ -5,6 +5,7 @@
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
@@ -36,6 +37,9 @@ void workspaceValidator(PubspecValidationContext ctx) {
 /// Validates that [pathValue] is a sub directory of the directory containing
 /// the pubspec.yaml file, and that it exists, reporting any error on
 /// [errorField].
+///
+/// For glob patterns, validates only that the base directory (prefix before
+/// the first wildcard segment) exists.
 void _validateDirectoryPath(
   PubspecValidationContext ctx,
   String pathValue,
@@ -46,12 +50,27 @@ void _validateDirectoryPath(
   var packageRootFolder = ctx.provider.getFolder(packageRoot);
   var normalizedEntry = context.joinAll(path.posix.split(pathValue));
   var dirPath = context.join(packageRoot, normalizedEntry);
-  // Check if given path is a sub directory of the package root.
   if (!packageRootFolder.contains(dirPath)) {
     ctx.reportErrorForNode(
       errorField,
       diag.workspaceValueNotSubdirectory.withArguments(path: packageRoot),
     );
+    return;
+  }
+  if (_isGlobPattern(pathValue)) {
+    var basePath = _globBasePath(pathValue);
+    if (basePath != null) {
+      var normalizedBase = context.joinAll(path.posix.split(basePath));
+      var baseDir = ctx.provider.getFolder(
+        context.join(packageRoot, normalizedBase),
+      );
+      if (!baseDir.exists) {
+        ctx.reportErrorForNode(
+          errorField,
+          diag.pathDoesNotExist.withArguments(path: basePath),
+        );
+      }
+    }
     return;
   }
   var subDirectory = ctx.provider.getFolder(dirPath);
@@ -61,4 +80,17 @@ void _validateDirectoryPath(
       diag.pathDoesNotExist.withArguments(path: pathValue),
     );
   }
+}
+
+bool _isGlobPattern(String pathValue) => Glob.quote(pathValue) != pathValue;
+
+String? _globBasePath(String pathValue) {
+  var parts = path.posix.split(pathValue);
+  var nonGlobParts = <String>[];
+  for (var part in parts) {
+    if (_isGlobPattern(part)) break;
+    nonGlobParts.add(part);
+  }
+  if (nonGlobParts.isEmpty) return null;
+  return path.posix.joinAll(nonGlobParts);
 }
