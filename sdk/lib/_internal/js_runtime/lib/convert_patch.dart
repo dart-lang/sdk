@@ -25,7 +25,7 @@ import 'dart:collection' show LinkedHashMap, MapBase;
 ///
 /// Throws [FormatException] if the input is not valid JSON text.
 @patch
-_parseJson(String source, reviver(key, value)?) {
+_parseJson(String source, reviver(key, value)?, JsonNumericMode numericMode) {
   if (source is! String) throw argumentErrorValue(source);
 
   var parsed;
@@ -39,10 +39,25 @@ _parseJson(String source, reviver(key, value)?) {
     throw FormatException(JS<String>('String', 'String(#)', e));
   }
 
-  if (reviver == null) {
+  bool allDouble = numericMode == JsonNumericMode.allDouble;
+
+  if (reviver == null && !allDouble) {
     return _convertJsonToDartLazy(parsed);
+  } else if (reviver == null && allDouble) {
+    // Use a synthetic reviver that converts ints to doubles.
+    return _convertJsonToDart(parsed, (key, value) {
+      if (value is int) return value.toDouble();
+      return value;
+    });
+  } else if (allDouble) {
+    // Wrap user reviver to also convert ints to doubles.
+    final userReviver = reviver!;
+    return _convertJsonToDart(parsed, (key, value) {
+      if (value is int) value = value.toDouble();
+      return userReviver(key, value);
+    });
   } else {
-    return _convertJsonToDart(parsed, reviver);
+    return _convertJsonToDart(parsed, reviver!);
   }
 }
 
@@ -357,7 +372,7 @@ class _JsonMapKeyIterable extends ListIterable<String> {
 class JsonDecoder {
   @patch
   StringConversionSink startChunkedConversion(Sink<Object?> sink) {
-    return _JsonDecoderSink(_reviver, sink);
+    return _JsonDecoderSink(_reviver, sink, _numericMode);
   }
 }
 
@@ -369,14 +384,16 @@ class JsonDecoder {
 class _JsonDecoderSink extends _StringSinkConversionSink<StringBuffer> {
   final Object? Function(Object? key, Object? value)? _reviver;
   final Sink<Object?> _sink;
+  final JsonNumericMode _numericMode;
 
-  _JsonDecoderSink(this._reviver, this._sink) : super(StringBuffer(''));
+  _JsonDecoderSink(this._reviver, this._sink, this._numericMode)
+    : super(StringBuffer(''));
 
   void close() {
     super.close();
     String accumulated = _stringSink.toString();
     _stringSink.clear();
-    Object? decoded = _parseJson(accumulated, _reviver);
+    Object? decoded = _parseJson(accumulated, _reviver, _numericMode);
     _sink.add(decoded);
     _sink.close();
   }

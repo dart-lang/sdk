@@ -24,8 +24,10 @@ import "dart:typed_data" show Uint8List;
 dynamic _parseJson(
   String source,
   Object? Function(Object? key, Object? value)? reviver,
+  JsonNumericMode numericMode,
 ) {
-  final listener = _JsonListener(reviver);
+  bool allDouble = numericMode == JsonNumericMode.allDouble;
+  final listener = _JsonListener(reviver, allDouble);
   final parser = _JSStringImplParser(listener);
   parser.setNewChunk(unsafeCast<JSStringImpl>(source), source.length);
   parser.parse(0);
@@ -41,6 +43,7 @@ class Utf8Decoder {
       return _JsonUtf8Decoder(
             (next as JsonDecoder)._reviver,
             this._allowMalformed,
+            (next as JsonDecoder)._numericMode == JsonNumericMode.allDouble,
           )
           as dynamic /*=Converter<List<int>, T>*/;
     }
@@ -51,18 +54,21 @@ class Utf8Decoder {
 class _JsonUtf8Decoder extends Converter<List<int>, Object?> {
   final Object? Function(Object? key, Object? value)? _reviver;
   final bool _allowMalformed;
+  final bool _allDouble;
 
-  _JsonUtf8Decoder(this._reviver, this._allowMalformed);
+  _JsonUtf8Decoder(this._reviver, this._allowMalformed, [this._allDouble = false]);
 
   Object? convert(List<int> input) {
-    var parser = _JsonUtf8DecoderSink._createParser(_reviver, _allowMalformed);
+    var parser = _JsonUtf8DecoderSink._createParser(
+      _reviver, _allowMalformed, _allDouble,
+    );
     parser.parseChunk(input, 0, input.length);
     parser.close();
     return parser.result;
   }
 
   ByteConversionSink startChunkedConversion(Sink<Object?> sink) =>
-      _JsonUtf8DecoderSink(_reviver, sink, _allowMalformed);
+      _JsonUtf8DecoderSink(_reviver, sink, _allowMalformed, _allDouble);
 }
 
 //// Implementation ///////////////////////////////////////////////////////////
@@ -76,9 +82,10 @@ class _JsonUtf8Decoder extends Converter<List<int>, Object?> {
  * seen value in a variable, and uses it depending on the following event.
  */
 class _JsonListener {
-  _JsonListener(this.reviver);
+  _JsonListener(this.reviver, [this.allDouble = false]);
 
   final Object? Function(Object? key, Object? value)? reviver;
+  final bool allDouble;
 
   /**
    * Stack used to handle nested containers.
@@ -159,6 +166,10 @@ class _JsonListener {
 
   @pragma('wasm:prefer-inline')
   void handleIntegerNumber(int value) {
+    if (allDouble) {
+      handleNumber(value.toDouble());
+      return;
+    }
     if (value.toWasmI64().leU(0xff.toWasmI64())) {
       handleNumber(_intBoxes256[value]);
       return;
@@ -167,7 +178,11 @@ class _JsonListener {
   }
 
   void handleNumber(num value) {
-    this.value = value;
+    if (allDouble && value is int) {
+      this.value = value.toDouble();
+    } else {
+      this.value = value;
+    }
   }
 
   void handleBool(bool value) {
@@ -1858,8 +1873,10 @@ JSStringImpl _internJSStringFromAsciiSlice(
 @patch
 class JsonDecoder {
   @patch
-  StringConversionSink startChunkedConversion(Sink<Object?> sink) =>
-      _JsonStringDecoderSink(this._reviver, sink);
+  StringConversionSink startChunkedConversion(Sink<Object?> sink) {
+    bool allDouble = this._numericMode == JsonNumericMode.allDouble;
+    return _JsonStringDecoderSink(this._reviver, sink, allDouble);
+  }
 }
 
 /**
@@ -1877,8 +1894,10 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
 
   final Sink<Object?> _sink;
 
-  _JsonStringDecoderSink(this._reviver, this._sink)
-    : _listener = _JsonListener(_reviver) {
+  final bool _allDouble;
+
+  _JsonStringDecoderSink(this._reviver, this._sink, this._allDouble)
+    : _listener = _JsonListener(_reviver, _allDouble) {
     _stringParser = _JSStringImplParser(_listener);
   }
 
@@ -1900,7 +1919,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   ByteConversionSink asUtf8Sink(bool allowMalformed) =>
-      _JsonUtf8DecoderSink(_reviver, _sink, allowMalformed);
+      _JsonUtf8DecoderSink(_reviver, _sink, allowMalformed, _allDouble);
 }
 
 /**
@@ -2073,13 +2092,18 @@ class _JsonUtf8DecoderSink extends ByteConversionSink {
   final _JsonUtf8Parser _parser;
   final Sink<Object?> _sink;
 
-  _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)
-    : _parser = _createParser(reviver, allowMalformed);
+  _JsonUtf8DecoderSink(
+    reviver,
+    this._sink,
+    bool allowMalformed, [
+    bool allDouble = false,
+  ]) : _parser = _createParser(reviver, allowMalformed, allDouble);
 
   static _JsonUtf8Parser _createParser(
     Object? Function(Object? key, Object? value)? reviver,
-    bool allowMalformed,
-  ) => _JsonUtf8Parser(_JsonListener(reviver), allowMalformed);
+    bool allowMalformed, [
+    bool allDouble = false,
+  ]) => _JsonUtf8Parser(_JsonListener(reviver, allDouble), allowMalformed);
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
     _addChunk(chunk, start, end);

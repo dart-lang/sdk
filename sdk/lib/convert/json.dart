@@ -53,6 +53,47 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
   String toString() => "Cyclic error in JSON stringify";
 }
 
+/// Controls how JSON numbers are parsed by [jsonDecode] and [JsonDecoder].
+///
+/// By default, JSON numbers without a decimal point or exponent (like `5`)
+/// are parsed as [int], while numbers with a decimal point or exponent
+/// (like `5.0` or `5e0`) are parsed as [double].
+///
+/// The JSON specification (ECMA-404) does not distinguish between integer
+/// and floating-point numbers — all are simply "number". This can cause
+/// `TypeError` when a server returns `5` for a field that Dart code expects
+/// as [double].
+///
+/// Use [JsonNumericMode.allDouble] to parse all JSON numbers as [double],
+/// which aligns with the JSON specification's single "number" type.
+enum JsonNumericMode {
+  /// Default behavior: preserves the distinction between [int] and [double].
+  ///
+  /// Numbers without a decimal point or exponent are parsed as [int].
+  /// Numbers with a decimal point or exponent are parsed as [double].
+  ///
+  /// This matches the behavior of [jsonDecode] prior to the introduction
+  /// of [JsonNumericMode].
+  preserveType,
+
+  /// All JSON numbers are parsed as [double].
+  ///
+  /// This mode aligns with the JSON specification (ECMA-404), which defines
+  /// a single "number" type without distinguishing integers from
+  /// floating-point values.
+  ///
+  /// Example:
+  /// ```dart
+  /// final data = jsonDecode(
+  ///   '{"price": 5, "quantity": 10}',
+  ///   numericMode: JsonNumericMode.allDouble,
+  /// );
+  /// print(data['price'] is double); // true
+  /// print(data['price']); // 5.0
+  /// ```
+  allDouble,
+}
+
 /// An instance of the default implementation of the [JsonCodec].
 ///
 /// This instance provides a convenient access to the most common JSON
@@ -126,6 +167,11 @@ String jsonEncode(
 ///
 /// The default [reviver] (when not provided) is the identity function.
 ///
+/// The optional [numericMode] parameter controls how JSON numbers are parsed.
+/// By default ([JsonNumericMode.preserveType]), numbers without a decimal
+/// point are parsed as [int] and numbers with a decimal point as [double].
+/// Use [JsonNumericMode.allDouble] to parse all numbers as [double].
+///
 /// Shorthand for `json.decode`. Useful if a local variable shadows the global
 /// [json] constant.
 ///
@@ -157,7 +203,8 @@ String jsonEncode(
 dynamic jsonDecode(
   String source, {
   Object? Function(Object? key, Object? value)? reviver,
-}) => json.decode(source, reviver: reviver);
+  JsonNumericMode numericMode = JsonNumericMode.preserveType,
+}) => json.decode(source, reviver: reviver, numericMode: numericMode);
 
 /// A [JsonCodec] encodes JSON objects to strings and decodes strings to
 /// JSON objects.
@@ -211,13 +258,19 @@ final class JsonCodec extends Codec<Object?, String> {
   /// properties, or `null` for the final result.
   ///
   /// The default [reviver] (when not provided) is the identity function.
+  ///
+  /// The optional [numericMode] parameter controls how JSON numbers are parsed.
+  /// See [JsonNumericMode] for details.
   dynamic decode(
     String source, {
     Object? Function(Object? key, Object? value)? reviver,
+    JsonNumericMode numericMode = JsonNumericMode.preserveType,
   }) {
     reviver ??= _reviver;
-    if (reviver == null) return decoder.convert(source);
-    return JsonDecoder(reviver).convert(source);
+    if (reviver == null && numericMode == JsonNumericMode.preserveType) {
+      return decoder.convert(source);
+    }
+    return JsonDecoder(reviver, numericMode).convert(source);
   }
 
   /// Converts [value] to a JSON string.
@@ -617,12 +670,19 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
 /// be a valid JSON encoding of a single JSON value.
 final class JsonDecoder extends Converter<String, Object?> {
   final Object? Function(Object? key, Object? value)? _reviver;
+  final JsonNumericMode _numericMode;
 
   /// Constructs a new JsonDecoder.
   ///
   /// The [reviver] may be `null`.
-  const JsonDecoder([Object? Function(Object? key, Object? value)? reviver])
-    : _reviver = reviver;
+  ///
+  /// The optional [numericMode] parameter controls how JSON numbers are parsed.
+  /// See [JsonNumericMode] for details.
+  const JsonDecoder([
+    Object? Function(Object? key, Object? value)? reviver,
+    JsonNumericMode numericMode = JsonNumericMode.preserveType,
+  ]) : _reviver = reviver,
+       _numericMode = numericMode;
 
   /// Converts the given JSON-string [input] to its corresponding object.
   ///
@@ -637,7 +697,7 @@ final class JsonDecoder extends Converter<String, Object?> {
   /// the value of that property instead the parsed value.
   ///
   /// Throws [FormatException] if the input is not valid JSON text.
-  dynamic convert(String input) => _parseJson(input, _reviver);
+  dynamic convert(String input) => _parseJson(input, _reviver, _numericMode);
 
   /// Starts a conversion from a chunked JSON string to its corresponding object.
   ///
@@ -652,6 +712,7 @@ final class JsonDecoder extends Converter<String, Object?> {
 external dynamic _parseJson(
   String source,
   Object? Function(Object? key, Object? value)? reviver,
+  JsonNumericMode numericMode,
 );
 
 // Implementation of encoder/stringifier.
