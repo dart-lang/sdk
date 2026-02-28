@@ -261,8 +261,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    _patternVariables.add(node.name.lexeme, element);
-
     node.type?.accept(this);
 
     if (node.type != null) {
@@ -586,11 +584,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLogicalOrPattern(covariant LogicalOrPatternImpl node) {
-    _patternVariables.logicalOrPatternStart();
     node.leftOperand.accept(this);
-    _patternVariables.logicalOrPatternFinishLeft();
     node.rightOperand.accept(this);
-    _patternVariables.logicalOrPatternFinish(node);
   }
 
   @override
@@ -647,6 +642,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _scopeContext.withLocalScope((scope) {
       var variables = _computeDeclaredPatternVariables(node.pattern);
       scope.addAll(variables);
+      node.pattern.accept(this);
       node.expression.accept(this);
     });
   }
@@ -656,6 +652,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     covariant PatternVariableDeclarationImpl node,
   ) {
     node.metadata.accept(this);
+    node.pattern.accept(this);
     node.expression.accept(this);
   }
 
@@ -860,7 +857,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     Object? sharedCaseScopeKey,
   }) {
     _patternVariables.casePatternStart();
-    pattern.accept(this);
+    pattern.accept(_PatternVariableBinderVisitor(_patternVariables));
     return _patternVariables.casePatternFinish(
       sharedCaseScopeKey: sharedCaseScopeKey,
     );
@@ -914,6 +911,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _scopeContext.withLocalScope((scope) {
       scope.addAll(variables.values);
       guardedPattern.variables = variables;
+      guardedPattern.pattern.accept(this);
       guardedPattern.whenClause?.accept(this);
       if (then != null) {
         then();
@@ -1123,6 +1121,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         var variables = _computeDeclaredPatternVariables(node.pattern);
         node.variables = variables;
         scope.addAll(variables);
+        node.pattern.accept(this);
         node.metadata.accept(this);
       case ForPartsWithDeclarationsImpl():
         scope.addAll(node.variables.declaredElements);
@@ -1181,6 +1180,102 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       nodes[i].elementAnnotation = annotations[i];
     }
   }
+}
+
+class _PatternVariableBinderVisitor extends ThrowingAstVisitor<void> {
+  final VariableBinder<DartPatternImpl, PatternVariableElementImpl> _binder;
+
+  _PatternVariableBinderVisitor(this._binder);
+
+  @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {}
+
+  @override
+  void visitCastPattern(CastPattern node) {
+    node.pattern.accept(this);
+  }
+
+  @override
+  void visitConstantPattern(ConstantPattern node) {}
+
+  @override
+  void visitDeclaredVariablePattern(
+    covariant DeclaredVariablePatternImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+    _binder.add(node.name.lexeme, element);
+  }
+
+  @override
+  void visitListPattern(ListPattern node) {
+    node.elements.accept(this);
+  }
+
+  @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    node.leftOperand.accept(this);
+    node.rightOperand.accept(this);
+  }
+
+  @override
+  void visitLogicalOrPattern(covariant LogicalOrPatternImpl node) {
+    _binder.logicalOrPatternStart();
+    node.leftOperand.accept(this);
+    _binder.logicalOrPatternFinishLeft();
+    node.rightOperand.accept(this);
+    _binder.logicalOrPatternFinish(node);
+  }
+
+  @override
+  void visitMapPattern(MapPattern node) {
+    node.elements.accept(this);
+  }
+
+  @override
+  void visitMapPatternEntry(MapPatternEntry node) {
+    node.value.accept(this);
+  }
+
+  @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    node.pattern.accept(this);
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    node.pattern.accept(this);
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    node.fields.accept(this);
+  }
+
+  @override
+  void visitParenthesizedPattern(ParenthesizedPattern node) {
+    node.pattern.accept(this);
+  }
+
+  @override
+  void visitPatternField(PatternField node) {
+    node.pattern.accept(this);
+  }
+
+  @override
+  void visitRecordPattern(RecordPattern node) {
+    node.fields.accept(this);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {}
+
+  @override
+  void visitRestPatternElement(RestPatternElement node) {
+    node.pattern?.accept(this);
+  }
+
+  @override
+  void visitWildcardPattern(WildcardPattern node) {}
 }
 
 class _VariableBinder
