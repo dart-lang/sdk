@@ -32,7 +32,7 @@ jobs:
       - name: "Extract deps, find commit hash, pass to osv-scanner"
         run: python .github/extract_deps.py --output osv-lockfile-${{github.sha}}.json
       - name: "Upload osv-scanner deps"
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           # Use github.ref in name to avoid duplicated artifacts.
           name: osv-lockfile-${{github.sha}}
