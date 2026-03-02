@@ -24,7 +24,7 @@ class FunctionPtr;
 // closure functions.
 //
 // The cache is currently implemented as a 2-level
-// Map<OutermostMemberFunction, Map<FunctionNodeKernelOffset, Function>>.
+// Map<OutermostMemberFunction, Map<LocalFunctionId, Function>>.
 //
 // The function is also added to the growable list in order to
 // satisfy the following requirements:
@@ -33,11 +33,13 @@ class FunctionPtr;
 //
 class ClosureFunctionsCache : public AllStatic {
  public:
+  static constexpr int kInvalidLocalFunctionId = -1;
+
   static FunctionPtr LookupClosureFunction(const Function& member_function,
-                                           intptr_t kernel_offset);
+                                           intptr_t local_function_id);
   static FunctionPtr LookupClosureFunctionLocked(
       const Function& member_function,
-      intptr_t kernel_offset);
+      intptr_t local_function_id);
 
   // Normally implicit closure functions are not added to this cache, however
   // during AOT compilation we might add those implicit closure functions
@@ -45,6 +47,7 @@ class ClosureFunctionsCache : public AllStatic {
   // discover them.
   static void AddClosureFunctionLocked(
       const Function& function,
+      intptr_t local_function_id,
       bool allow_implicit_closure_functions = false);
 
   static intptr_t FindClosureIndex(const Function& needle);

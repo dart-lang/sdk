@@ -213,6 +213,7 @@ class ScopeContext {
     var element = node.declaredFragment!.element;
 
     node.metadata.accept(visitor);
+    node.documentationComment?.accept(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       node.type?.accept(visitor);
@@ -287,6 +288,7 @@ class ScopeContext {
     var element = node.declaredFragment!.element;
 
     node.metadata.accept(visitor);
+    node.documentationComment?.accept(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       node.returnType?.accept(visitor);
@@ -413,6 +415,7 @@ class ScopeContext {
     var element = node.declaredFragment!.element;
 
     node.metadata.accept(visitor);
+    node.documentationComment?.accept(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       node.type?.accept(visitor);

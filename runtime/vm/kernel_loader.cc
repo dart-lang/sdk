@@ -2245,7 +2245,8 @@ FunctionPtr KernelLoader::LoadClosureFunction(const Function& parent_function,
     name = &Symbols::AnonymousClosure();
   }
 
-  helper_.ReadUInt();  // read id.
+  const intptr_t local_function_id = helper_.ReadUInt();  // read id.
+  ASSERT(local_function_id > 0);
 
   const intptr_t func_node_offset = helper_.ReaderOffset();
 
@@ -2310,19 +2311,28 @@ FunctionPtr KernelLoader::LoadClosureFunction(const Function& parent_function,
   signature ^= ClassFinalizer::FinalizeType(signature);
   function.SetSignature(signature);
 
-  ClosureFunctionsCache::AddClosureFunctionLocked(function);
+  ClosureFunctionsCache::AddClosureFunctionLocked(function, local_function_id);
 
   return function.ptr();
 }
 
 FunctionPtr KernelLoader::GetClosureFunction(Thread* thread,
+                                             intptr_t local_function_id,
                                              intptr_t func_decl_offset,
                                              const Function& member_function,
                                              const Function& parent_function,
                                              const Object& closure_owner) {
   Zone* zone = thread->zone();
   Function& function = Function::Handle(zone);
-  intptr_t func_node_offset = -1;
+
+  {
+    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+    function = ClosureFunctionsCache::LookupClosureFunctionLocked(
+        member_function, local_function_id);
+    if (!function.IsNull()) {
+      return function.ptr();
+    }
+  }
 
   const auto& kernel_info =
       KernelProgramInfo::Handle(zone, member_function.KernelProgramInfo());
@@ -2333,26 +2343,9 @@ FunctionPtr KernelLoader::GetClosureFunction(Thread* thread,
 
   KernelLoader kernel_loader(kernel_info, library_kernel_data,
                              library_kernel_offset);
-  {
-    // TODO(alexmarkov): Use func_decl_offset as a key in ClosureFunctionsCache
-    // instead of func_node_offset and avoid this reading.
-    kernel_loader.helper_.SetOffset(func_decl_offset);
-    kernel_loader.helper_.ReadUntilFunctionNode();
-    func_node_offset = kernel_loader.helper_.ReaderOffset();
-
-    {
-      SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-      function = ClosureFunctionsCache::LookupClosureFunctionLocked(
-          member_function, func_node_offset);
-      if (!function.IsNull()) {
-        return function.ptr();
-      }
-    }
-  }
-
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   function = ClosureFunctionsCache::LookupClosureFunctionLocked(
-      member_function, func_node_offset);
+      member_function, local_function_id);
   if (function.IsNull()) {
     ActiveClassScope active_class_scope(
         &kernel_loader.active_class_,

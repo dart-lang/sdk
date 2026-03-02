@@ -1451,6 +1451,27 @@ const LinterLintWithoutArguments invalidCasePatterns =
 
 /// Parameters:
 /// Object p0: undocumented
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType = LinterLintTemplate(
+  name: 'invalid_runtime_check_with_js_interop_types',
+  problemMessage:
+      "Catch clause with type '{0}' checks whether the caught value is a JS "
+      "interop type, which might not be platform-consistent.",
+  correctionMessage:
+      "Remove the type in the catch clause and try using 'isA' from "
+      "'dart:js_interop' within the catch block to check if the value is a "
+      "JS interop type.",
+  uniqueName:
+      'invalid_runtime_check_with_js_interop_types_catch_clause_js_interop_type',
+  withArguments:
+      _withArgumentsInvalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: undocumented
 /// Object p1: undocumented
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
@@ -1480,6 +1501,9 @@ invalidRuntimeCheckWithJsInteropTypesDartIsJs = LinterLintTemplate(
   problemMessage:
       "Runtime check between '{0}' and '{1}' checks whether a Dart value is a JS "
       "interop type, which might not be platform-consistent.",
+  correctionMessage:
+      "Try using 'isA' from 'dart:js_interop' to check if the Dart value is "
+      "a JS interop type.",
   uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_is_js',
   withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartIsJs,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
@@ -4076,6 +4100,16 @@ LocatableDiagnostic _withArgumentsImplicitReopen({
   required Object p3,
 }) {
   return LocatableDiagnosticImpl(diag.implicitReopen, [p0, p1, p2, p3]);
+}
+
+LocatableDiagnostic
+_withArgumentsInvalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType({
+  required Object p0,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
+    [p0],
+  );
 }
 
 LocatableDiagnostic

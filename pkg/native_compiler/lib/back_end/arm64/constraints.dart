@@ -233,13 +233,11 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitAllocateClosure(AllocateClosure instr) =>
-      InstructionConstraints(
-        anyCpuRegister,
-        List.generate(
-          instr.inputCount,
-          (int i) => anyLocationOrImmediate(instr.inputDefAt(i)),
-        ),
-      );
+      const InstructionConstraints(AllocationStub.resultReg, [], [
+        AllocationStub.tagsReg,
+        AllocationStub.scratch1Reg,
+        AllocationStub.scratch2Reg,
+      ]);
 
   @override
   InstructionConstraints? visitAllocateList(AllocateList instr) =>

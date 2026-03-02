@@ -1167,28 +1167,40 @@ class ClosureCode {
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasLocalVariablesFlag = 1 << 2;
   static const capturesOnlyFinalNotLateVarsFlag = 1 << 3;
+  static const hasLocalFunctionIdFlag = 1 << 4;
 
   final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions? sourcePositions;
   final LocalVariableTable? localVariables;
   final bool capturesOnlyFinalNotLateVars;
+  final int localFunctionId;
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions => sourcePositions?.isNotEmpty ?? false;
   bool get hasLocalVariables => localVariables?.isNotEmpty ?? false;
+  bool get hasLocalFunctionId => localFunctionId > 0;
 
   int get flags =>
       (hasExceptionsTable ? hasExceptionsTableFlag : 0) |
       (hasSourcePositions ? hasSourcePositionsFlag : 0) |
       (hasLocalVariables ? hasLocalVariablesFlag : 0) |
-      (capturesOnlyFinalNotLateVars ? capturesOnlyFinalNotLateVarsFlag : 0);
+      (capturesOnlyFinalNotLateVars ? capturesOnlyFinalNotLateVarsFlag : 0) |
+      (hasLocalFunctionId ? hasLocalFunctionIdFlag : 0);
 
-  ClosureCode(this.bytecodes, this.exceptionsTable, this.sourcePositions,
-      this.localVariables, this.capturesOnlyFinalNotLateVars);
+  ClosureCode(
+      this.bytecodes,
+      this.exceptionsTable,
+      this.sourcePositions,
+      this.localVariables,
+      this.capturesOnlyFinalNotLateVars,
+      this.localFunctionId);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
+    if (hasLocalFunctionId) {
+      writer.writePackedUInt30(localFunctionId);
+    }
     _writeBytecodeInstructions(writer, bytecodes);
     if (hasExceptionsTable) {
       exceptionsTable.write(writer);
@@ -1203,6 +1215,9 @@ class ClosureCode {
 
   factory ClosureCode.read(BufferedReader reader) {
     final int flags = reader.readPackedUInt30();
+    final localFunctionId = ((flags & hasLocalFunctionIdFlag) != 0)
+        ? reader.readPackedUInt30()
+        : -1;
     final Uint8List bytecodes = _readBytecodeInstructions(reader);
     final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
         ? new ExceptionsTable.read(reader)
@@ -1216,9 +1231,8 @@ class ClosureCode {
     final capturesOnlyFinalNotLateVars =
         (flags & capturesOnlyFinalNotLateVarsFlag) != 0;
 
-    return new ClosureCode(
-        bytecodes, exceptionsTable, sourcePositions, localVariables,
-        capturesOnlyFinalNotLateVars);
+    return new ClosureCode(bytecodes, exceptionsTable, sourcePositions,
+        localVariables, capturesOnlyFinalNotLateVars, localFunctionId);
   }
 
   @override

@@ -5350,11 +5350,11 @@ ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
-  function.set_kernel_offset(42);
   // Add closure function to class.
   {
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-    ClosureFunctionsCache::AddClosureFunctionLocked(function);
+    ClosureFunctionsCache::AddClosureFunctionLocked(function,
+                                                    /*local_function_id=*/42);
   }
 
   // The closure should return a valid index.

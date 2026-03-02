@@ -562,19 +562,24 @@ final class ClosureFunctionRefSerializationCluster
     extends SerializationCluster {
   final List<ClosureFunction> _objects = [];
 
+  CFunction _enclosingMemberFunction(
+    SnapshotSerializer serializer,
+    ClosureFunction function,
+  ) {
+    final member = function.member;
+    return serializer.functionRegistry.getFunction(
+      member,
+      isGetter: member is ast.Procedure && member.isGetter,
+      isSetter: member is ast.Procedure && member.isSetter,
+      isInitializer: member is ast.Field,
+    );
+  }
+
   @override
   void trace(SnapshotSerializer serializer, Object object) {
     final function = object as ClosureFunction;
     _objects.add(function);
-    switch (function) {
-      case TearOffFunction():
-        serializer.push(
-          serializer.functionRegistry.getFunction(function.member),
-        );
-      case LocalFunction():
-        break;
-    }
-    ;
+    serializer.push(_enclosingMemberFunction(serializer, function));
   }
 
   @override
@@ -583,15 +588,14 @@ final class ClosureFunctionRefSerializationCluster
     serializer.writeUint(_objects.length);
     for (final function in _objects) {
       serializer.assignRef(function);
-      serializer.writeUint(function is TearOffFunction ? 1 : 0);
+      serializer.writeRefId(_enclosingMemberFunction(serializer, function));
       switch (function) {
         case TearOffFunction():
-          serializer.writeRefId(
-            serializer.functionRegistry.getFunction(function.member),
-          );
+          serializer.writeUint(0);
         case LocalFunction():
-          // TODO: write closure info
-          throw 'Unimplemented: ClosureFunctionRefSerializationCluster for LocalFunction';
+          final id = function.localFunction.id.toInt();
+          assert(id > 0);
+          serializer.writeUint(id);
       }
     }
   }

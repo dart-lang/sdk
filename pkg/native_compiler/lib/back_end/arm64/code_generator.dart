@@ -5,6 +5,7 @@
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/functions.dart';
+import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/utils/misc.dart';
@@ -568,59 +569,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.b(done);
     });
 
-    final endReg = AllocationStub.scratch1Reg;
-    final newTopReg = AllocationStub.scratch2Reg;
-    // Load Thread.top_ and Thread.end_.
-    _asm.ldp(
-      resultReg,
-      endReg,
-      _asm.pairAddress(threadReg, vmOffsets.Thread_top_offset),
-    );
-    _asm.addImmediate(newTopReg, resultReg, instanceSize);
-    _asm.cmp(endReg, newTopReg);
-    _asm.b(slowPath, Condition.unsignedLessOrEqual);
-
-    // TLAB has enough space. Update top and initialize object.
     _asm.loadFromPool(tagsReg, NewObjectTags(cls));
-    _asm.str(newTopReg, _asm.address(threadReg, vmOffsets.Thread_top_offset));
-    _asm.str(tagsReg, _asm.address(resultReg, vmOffsets.Object_tags_offset));
-    // TODO: figure out if we need store-store barrier here.
-
-    // TODO: support compressed pointers.
-    const maxUnrolledSize = 16 * wordSize;
-    if (instanceSize <= maxUnrolledSize) {
-      int offset = vmOffsets.Instance_first_field_offset;
-      for (; offset + 2 * wordSize <= instanceSize; offset += 2 * wordSize) {
-        _asm.stp(nullReg, nullReg, _asm.pairAddress(resultReg, offset));
-      }
-      if (offset < instanceSize) {
-        _asm.str(nullReg, _asm.address(resultReg, offset));
-        offset += wordSize;
-      }
-      assert(offset == instanceSize);
-    } else {
-      final fieldReg = AllocationStub.scratch1Reg;
-      _asm.addImmediate(
-        fieldReg,
-        resultReg,
-        vmOffsets.Instance_first_field_offset,
-      );
-
-      final loop = Label();
-      _asm.bind(loop);
-      _asm.stp(
-        nullReg,
-        nullReg,
-        WritebackRegOffsetAddress(fieldReg, 2 * wordSize, isPostIndexed: true),
-      );
-      // There is at least two word (kAllocationRedZoneSize) gap at the end of page
-      // which makes it possible to initialize objects by two words at once and
-      // write slightly beyond the end.
-      _asm.cmp(fieldReg, newTopReg);
-      _asm.b(loop, Condition.unsignedLess);
-    }
-
-    _asm.addImmediate(resultReg, resultReg, heapObjectTag);
+    _asm.inlineAllocation(
+      resultReg,
+      tagsReg,
+      AllocationStub.scratch1Reg,
+      AllocationStub.scratch2Reg,
+      instanceSize,
+      slowPath,
+    );
 
     if (typeArgsField != null) {
       if (instr.hasTypeArguments) {
@@ -656,7 +613,39 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitAllocateClosure(AllocateClosure instr) {
-    _asm.unimplemented('Unimplemented: code generation for AllocateClosure');
+    final cls = GlobalContext.instance.coreTypes.index.getClass(
+      'dart:core',
+      '_Closure',
+    );
+    final instanceSize = objectLayout.getInstanceSize(cls);
+    final resultReg = AllocationStub.resultReg;
+    assert(outputReg(instr) == resultReg);
+
+    final initializeObject = Label();
+    Label slowPath = addSlowPath(() {
+      _asm.callStub(backEndState.stubFactory.getAllocationStub(cls));
+      _asm.b(initializeObject);
+    });
+
+    _asm.loadFromPool(AllocationStub.tagsReg, NewObjectTags(cls));
+    _asm.inlineAllocation(
+      resultReg,
+      AllocationStub.tagsReg,
+      AllocationStub.scratch1Reg,
+      AllocationStub.scratch2Reg,
+      instanceSize,
+      slowPath,
+    );
+
+    _asm.bind(initializeObject);
+    final fieldReg = AllocationStub.scratch1Reg;
+    _asm.loadFromPool(fieldReg, instr.function);
+    _asm.str(
+      fieldReg,
+      _asm.fieldAddress(resultReg, vmOffsets.Closure_function_offset),
+    );
+    // TODO: initialize the rest of the fields.
+    assert(instr.inputCount == 0);
   }
 
   @override

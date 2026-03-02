@@ -5545,6 +5545,14 @@ LinterLintCode:
         case three: ...
       }
       ```
+  invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType:
+    type: lint
+    parameters:
+      Object p0: undocumented
+    sharedName: invalidRuntimeCheckWithJsInteropTypes
+    problemMessage: "Catch clause with type '#p0' checks whether the caught value is a JS interop type, which might not be platform-consistent."
+    correctionMessage: "Remove the type in the catch clause and try using 'isA' from 'dart:js_interop' within the catch block to check if the value is a JS interop type."
+    hasPublishedDocs: false
   invalidRuntimeCheckWithJsInteropTypesDartAsJs:
     type: lint
     parameters:
@@ -5654,12 +5662,13 @@ LinterLintCode:
       extension type HTMLElement(JSObject o) implements JSObject {}
       extension type HTMLDivElement(JSObject o) implements HTMLElement {}
 
-      void compute(JSAny a, List<JSAny> l, JSObject o, HTMLElement e) {
+      void compute(JSAny a, List<JSAny> l, JSObject o, HTMLElement e, Object obj) {
         a.isA<JSString>; // OK, uses JS interop to check it is a JS string
         l[0].isA<JSString>; // OK, uses JS interop to check it is a JS string
         o.isA<HTMLElement>(); // OK, uses JS interop to check `o` is an HTMLElement
         e.isA<HTMLDivElement>(); // OK, uses JS interop to check `e` is an
                                  // HTMLDivElement
+        obj.isA<JSObject>(); // OK, uses JS interop to check `obj` is a JSObject
       }
       ```
 
@@ -5709,6 +5718,61 @@ LinterLintCode:
         la as List<JSString>; // OK, JSAny and JSString are compatible
         (o as Object) as JSObject; // OK, Object is a supertype of JSAny
       }
+
+      **DON'T** use a JS interop type in a catch clause. If the code in the try
+      block is expected to throw a JS value, don't use a type at all in the
+      catch clause.
+
+      **BAD:**
+      ```dart
+      @JS()
+      external void throwSomething();
+
+      extension type JSError(JSObject _) implements JSObject {}
+
+      void compute() {
+        try {
+          throwSomething();
+        } on JSString catch (e) { // LINT, checking that the caught value is a JS type
+          print('string $e');
+        } on JSError catch (e) { // LINT, checking that the caught value is a JS
+                                 // interop type
+          print('JSError: $e');
+        } on List<JSNumber> catch (e) { // LINT, type contains a JS interop type
+          print('List<JSNumber>: $e');
+        } on bool catch (e) { // NO LINT, but may be platform-dependent
+          print('bool: $e');
+        }
+      }
+      ```
+
+      Use `isA` from `dart:js_interop` to check if a value is a JS interop type
+      within the catch block. If the code in the try block is expected to throw
+      a JS value, leave the catch clause untyped and check for all JS interop
+      types first using `isA` before checking for Dart types.
+
+      **GOOD:**
+      ```dart
+      @JS()
+      external void throwSomething();
+
+      extension type JSError(JSObject _) implements JSObject {}
+
+      void compute() {
+        try {
+          throwSomething();
+        } catch (e) {
+          if (e.isA<JSString>()) { // OK, uses JS interop to check it is a JS string
+            print('string: $e');
+          } else if (e.isA<JSError>()) { // OK, uses JS interop to check it is a JSError
+            print('Error: $e');
+          } else if (e.isA<JSAny>()) { // OK, checks all interop types before Dart types
+            print('JSAny: $e');
+          } else if (e is bool) { // OK, `e` can't be a JS value
+            print('boolean: $e');
+          }
+        }
+      }
       ```
   invalidRuntimeCheckWithJsInteropTypesDartIsJs:
     type: lint
@@ -5717,6 +5781,7 @@ LinterLintCode:
       Object p1: undocumented
     sharedName: invalidRuntimeCheckWithJsInteropTypes
     problemMessage: "Runtime check between '#p0' and '#p1' checks whether a Dart value is a JS interop type, which might not be platform-consistent."
+    correctionMessage: "Try using 'isA' from 'dart:js_interop' to check if the Dart value is a JS interop type."
     hasPublishedDocs: false
   invalidRuntimeCheckWithJsInteropTypesJsAsDart:
     type: lint

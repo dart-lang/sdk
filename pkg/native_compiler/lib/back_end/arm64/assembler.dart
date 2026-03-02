@@ -678,6 +678,61 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     callRuntime(RuntimeEntry.FatalError, 1);
   }
 
+  /// Generate code for inline object allocation.
+  void inlineAllocation(
+    Register resultReg,
+    Register tagsReg,
+    Register scratch1Reg,
+    Register scratch2Reg,
+    int instanceSize,
+    Label slowPath,
+  ) {
+    final endReg = scratch1Reg;
+    final newTopReg = scratch2Reg;
+    // Load Thread.top_ and Thread.end_.
+    ldp(resultReg, endReg, pairAddress(threadReg, vmOffsets.Thread_top_offset));
+    addImmediate(newTopReg, resultReg, instanceSize);
+    cmp(endReg, newTopReg);
+    b(slowPath, .unsignedLessOrEqual);
+
+    // TLAB has enough space. Update top and initialize object.
+    str(newTopReg, address(threadReg, vmOffsets.Thread_top_offset));
+    str(tagsReg, address(resultReg, vmOffsets.Object_tags_offset));
+    // TODO: figure out if we need store-store barrier here.
+
+    // TODO: support compressed pointers.
+    const maxUnrolledSize = 16 * wordSize;
+    if (instanceSize <= maxUnrolledSize) {
+      int offset = vmOffsets.Instance_first_field_offset;
+      for (; offset + 2 * wordSize <= instanceSize; offset += 2 * wordSize) {
+        stp(nullReg, nullReg, pairAddress(resultReg, offset));
+      }
+      if (offset < instanceSize) {
+        str(nullReg, address(resultReg, offset));
+        offset += wordSize;
+      }
+      assert(offset == instanceSize);
+    } else {
+      final fieldReg = scratch1Reg;
+      addImmediate(fieldReg, resultReg, vmOffsets.Instance_first_field_offset);
+
+      final loop = Label();
+      bind(loop);
+      stp(
+        nullReg,
+        nullReg,
+        WritebackRegOffsetAddress(fieldReg, 2 * wordSize, isPostIndexed: true),
+      );
+      // There is at least two word (kAllocationRedZoneSize) gap at the end of page
+      // which makes it possible to initialize objects by two words at once and
+      // write slightly beyond the end.
+      cmp(fieldReg, newTopReg);
+      b(loop, Condition.unsignedLess);
+    }
+
+    addImmediate(resultReg, resultReg, heapObjectTag);
+  }
+
   // [rd] and [rn] can be SP if [o] is Immediate or ExtRegOperand.
   // For an unmodified rm in this case, use ExtRegOperand(rm, Extend.UXTX, 0).
   void add(

@@ -3043,14 +3043,13 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
     AlternativeReadingScope alt(
         &reader_, variable_kernel_position - data_program_offset_);
     SkipVariableDeclaration();
-    ReadUInt();  // read id.
-    // FunctionNode follows the variable declaration.
-    const intptr_t function_node_kernel_offset = ReaderOffset();
+    const intptr_t local_function_id = ReadUInt();  // read id.
+    ASSERT(local_function_id > 0);
 
     target_function = ClosureFunctionsCache::LookupClosureFunction(
         Function::Handle(Z,
                          parsed_function()->function().GetOutermostFunction()),
-        function_node_kernel_offset);
+        local_function_id);
     RELEASE_ASSERT(!target_function.IsNull());
   }
 
@@ -4311,10 +4310,11 @@ Fragment StreamingFlowGraphBuilder::BuildRecordFieldGet(TokenPosition* p,
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
-  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
-  ReadPosition();                              // read position.
-  ReadUInt();                                  // read id.
-  return BuildFunctionNode(offset);
+  const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
+  ReadPosition();                                 // read position.
+  const intptr_t local_function_id = ReadUInt();  // read id.
+  ASSERT(local_function_id > 0);
+  return BuildFunctionNode(local_function_id, offset);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* p) {
@@ -5939,23 +5939,25 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionDeclaration(
 
   const intptr_t variable_offset = ReaderOffset() + data_program_offset_;
   SkipVariableDeclaration();
-  ReadUInt();  // read id.
+  const intptr_t local_function_id = ReadUInt();  // read id.
+  ASSERT(local_function_id > 0);
 
   Fragment instructions = DebugStepCheck(pos);
-  instructions += BuildFunctionNode(offset);
+  instructions += BuildFunctionNode(local_function_id, offset);
   instructions += StoreLocal(pos, LookupVariable(variable_offset));
   instructions += Drop();
   return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
+    intptr_t local_function_id,
     intptr_t func_decl_offset) {
   const intptr_t func_node_offset = ReaderOffset();
   const auto& member_function =
       Function::Handle(Z, parsed_function()->function().GetOutermostFunction());
   const Function& function = Function::ZoneHandle(
       Z, KernelLoader::GetClosureFunction(
-             thread(), func_decl_offset, member_function,
+             thread(), local_function_id, func_decl_offset, member_function,
              parsed_function()->function(), closure_owner_));
 
   if (function.context_scope() == ContextScope::null()) {

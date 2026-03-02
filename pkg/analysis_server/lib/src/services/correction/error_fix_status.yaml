@@ -2124,6 +2124,8 @@ implicit_reopen:
   status: hasFix
 invalid_case_patterns:
   status: hasFix
+invalid_runtime_check_with_js_interop_types_catch_clause_js_interop_type:
+  status: needsEvaluation
 invalid_runtime_check_with_js_interop_types_dart_as_js:
   status: needsEvaluation
   notes: |-

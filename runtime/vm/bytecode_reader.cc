@@ -307,6 +307,12 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       const bool captures_only_final_not_late_vars =
           (flags & ClosureCode::kCapturesOnlyFinalNotLateVarsFlag) != 0;
 
+      intptr_t local_function_id = -1;
+      if ((flags & ClosureCode::kHasLocalFunctionIdFlag) != 0) {
+        local_function_id = reader_.ReadUInt();
+        ASSERT(local_function_id > 0);
+      }
+
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
 
@@ -326,7 +332,8 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
         }
       }
 
-      ClosureFunctionsCache::AddClosureFunctionLocked(closure);
+      ClosureFunctionsCache::AddClosureFunctionLocked(closure,
+                                                      local_function_id);
     }
   }
 }
