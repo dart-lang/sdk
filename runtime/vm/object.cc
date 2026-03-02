@@ -1832,17 +1832,23 @@ class WorkSet : public StackResource {
 };
 
 void Object::EnsureDeeplyImmutable(Zone* zone) const {
-  WorkSet workset(Thread::Current(), zone);
+  auto thread = Thread::Current();
+  WorkSet workset(thread, zone);
   workset.Add(*this);
 
   Object& current = Object::Handle(zone);
   Function& function = Function::Handle(zone);
   Object& obj = Object::Handle(zone);
 
+  ObjectStore* object_store = thread->isolate_group()->object_store();
+  const intptr_t bigint_cid =
+      Class::Handle(zone, object_store->bigint_impl_class()).id();
+
   while (workset.TakeAndPush(&current)) {
     if (current.IsSmi() || current.IsNull() || current.IsCanonical() ||
         current.IsDeeplyImmutable() ||
-        IsTypedDataBaseClassId(current.GetClassId())) {
+        IsTypedDataBaseClassId(current.GetClassId()) ||
+        current.GetClassId() == bigint_cid) {
       workset.PopAndProcessCompletedClosuresAndContexts(&obj);
       continue;
     }

@@ -804,39 +804,39 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Object_tags_offset => 0x0;
   @override
-  int get ObjectStore_double_type_offset => 0x1b0;
+  int get ObjectStore_double_type_offset => 0x1b8;
   @override
-  int get ObjectStore_int_type_offset => 0x160;
+  int get ObjectStore_int_type_offset => 0x168;
   @override
-  int get ObjectStore_record_field_names_offset => 0x428;
+  int get ObjectStore_record_field_names_offset => 0x430;
   @override
-  int get ObjectStore_string_type_offset => 0x1d8;
+  int get ObjectStore_string_type_offset => 0x1e0;
   @override
-  int get ObjectStore_type_type_offset => 0x138;
+  int get ObjectStore_type_type_offset => 0x140;
   @override
-  int get ObjectStore_ffi_callback_code_offset => 0x520;
+  int get ObjectStore_ffi_callback_code_offset => 0x528;
   @override
-  int get ObjectStore_suspend_state_await_offset => 0x478;
+  int get ObjectStore_suspend_state_await_offset => 0x480;
   @override
-  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x480;
+  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x488;
   @override
-  int get ObjectStore_suspend_state_handle_exception_offset => 0x4c0;
+  int get ObjectStore_suspend_state_handle_exception_offset => 0x4c8;
   @override
-  int get ObjectStore_suspend_state_init_async_offset => 0x470;
+  int get ObjectStore_suspend_state_init_async_offset => 0x478;
   @override
-  int get ObjectStore_suspend_state_init_async_star_offset => 0x498;
+  int get ObjectStore_suspend_state_init_async_star_offset => 0x4a0;
   @override
-  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4b0;
+  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4b8;
   @override
-  int get ObjectStore_suspend_state_return_async_offset => 0x488;
+  int get ObjectStore_suspend_state_return_async_offset => 0x490;
   @override
-  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x490;
+  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x498;
   @override
-  int get ObjectStore_suspend_state_return_async_star_offset => 0x4a8;
+  int get ObjectStore_suspend_state_return_async_star_offset => 0x4b0;
   @override
-  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4b8;
+  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4c0;
   @override
-  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4a0;
+  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4a8;
   @override
   int get OneByteString_data_offset => 0x10;
   @override
@@ -1715,39 +1715,39 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Object_tags_offset => 0x0;
   @override
-  int get ObjectStore_double_type_offset => 0x1b0;
+  int get ObjectStore_double_type_offset => 0x1b8;
   @override
-  int get ObjectStore_int_type_offset => 0x160;
+  int get ObjectStore_int_type_offset => 0x168;
   @override
-  int get ObjectStore_record_field_names_offset => 0x428;
+  int get ObjectStore_record_field_names_offset => 0x430;
   @override
-  int get ObjectStore_string_type_offset => 0x1d8;
+  int get ObjectStore_string_type_offset => 0x1e0;
   @override
-  int get ObjectStore_type_type_offset => 0x138;
+  int get ObjectStore_type_type_offset => 0x140;
   @override
-  int get ObjectStore_ffi_callback_code_offset => 0x520;
+  int get ObjectStore_ffi_callback_code_offset => 0x528;
   @override
-  int get ObjectStore_suspend_state_await_offset => 0x478;
+  int get ObjectStore_suspend_state_await_offset => 0x480;
   @override
-  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x480;
+  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x488;
   @override
-  int get ObjectStore_suspend_state_handle_exception_offset => 0x4c0;
+  int get ObjectStore_suspend_state_handle_exception_offset => 0x4c8;
   @override
-  int get ObjectStore_suspend_state_init_async_offset => 0x470;
+  int get ObjectStore_suspend_state_init_async_offset => 0x478;
   @override
-  int get ObjectStore_suspend_state_init_async_star_offset => 0x498;
+  int get ObjectStore_suspend_state_init_async_star_offset => 0x4a0;
   @override
-  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4b0;
+  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4b8;
   @override
-  int get ObjectStore_suspend_state_return_async_offset => 0x488;
+  int get ObjectStore_suspend_state_return_async_offset => 0x490;
   @override
-  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x490;
+  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x498;
   @override
-  int get ObjectStore_suspend_state_return_async_star_offset => 0x4a8;
+  int get ObjectStore_suspend_state_return_async_star_offset => 0x4b0;
   @override
-  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4b8;
+  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4c0;
   @override
-  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4a0;
+  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4a8;
   @override
   int get OneByteString_data_offset => 0x10;
   @override
