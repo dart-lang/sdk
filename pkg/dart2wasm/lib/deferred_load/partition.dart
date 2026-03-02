@@ -22,21 +22,12 @@ export 'import_set.dart' show Part;
 Partitioning partitionAppplication(CoreTypes coreTypes, Component component,
     DeferredModuleLoadingMap loadingMap, Set<Reference> roots,
     {ConstraintData? constraints}) {
-  final allDeferredImports = <LibraryDependency>[];
-  for (final lib in component.libraries) {
-    for (final dep in lib.dependencies) {
-      if (dep.isDeferred) {
-        allDeferredImports.add(dep);
-      }
-    }
-  }
   final classHierarchy =
       ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   final devirtualizionOracle = DevirtualizionOracle(component);
   final depsCollector = DependenciesCollector(
       coreTypes, classHierarchy, devirtualizionOracle, loadingMap);
-  final algorithm =
-      _Algorithm(component, depsCollector, allDeferredImports, constraints);
+  final algorithm = _Algorithm(component, depsCollector, constraints);
   return algorithm.run(roots);
 }
 
@@ -136,7 +127,6 @@ class Partitioning {
 class _Algorithm {
   final Component component;
   final DependenciesCollector depsCollector;
-  final List<LibraryDependency> allDeferredImports;
   final ConstraintData? userConstraints;
 
   final ImportSetLattice importSets = ImportSetLattice();
@@ -155,8 +145,7 @@ class _Algorithm {
   final Map<Reference, ImportSet> referenceToImportSet = {};
   final Map<Constant, ImportSet> constantToImportSet = {};
 
-  _Algorithm(this.component, this.depsCollector, this.allDeferredImports,
-      this.userConstraints);
+  _Algorithm(this.component, this.depsCollector, this.userConstraints);
 
   Partitioning run(Set<Reference> roots) {
     collectDependencies(roots);
@@ -166,28 +155,31 @@ class _Algorithm {
     final rootImport =
         LibraryDependency.import(Library(Uri(), fileUri: Uri()), name: r'$root')
           ..parent = rootLibrary;
-    final rootPart = Part(true, {});
-    importSets.buildRootSet(
-      rootImport,
-      rootPart,
-      allDeferredImports,
-    );
 
     final dominators = computeDominators(rootImport, roots,
         directReferenceDependencies, directConstantDependencies);
 
-    final transitions = computeConstraints(rootImport, dominators);
+    final allDeferredImportsIncludingRoot = <LibraryDependency>{};
+    dominators
+        .visitDFSPreorder((_, n) => allDeferredImportsIncludingRoot.add(n));
+    final rootPart = Part(true, allDeferredImportsIncludingRoot);
+    importSets.buildRootSet(rootImport, rootPart);
+
+    final transitions = computeConstraints(
+        rootImport, dominators, allDeferredImportsIncludingRoot);
     importSets.buildInitialSets(transitions.singletonTransitions);
     importSets.buildSetTransitions(transitions.setTransitions);
 
     enqueueRootsAndPropagate(roots);
     applySetTransitions();
 
-    return createParitition(rootPart, dominators);
+    return createParitition(rootPart, rootImport, dominators);
   }
 
   psc.ProgramSplitConstraints<LibraryDependency> computeConstraints(
-      LibraryDependency root, Dominators dominators) {
+      LibraryDependency root,
+      Dominators dominators,
+      Set<LibraryDependency> allDeferredImportsIncludingRoot) {
     final namedNodes = ProgramSplitBuilder();
     final orderNodes = <OrderNode>[];
 
@@ -207,7 +199,6 @@ class _Algorithm {
     }
 
     // Ensure we have named nodes for all deferred imports.
-    final allDeferredImportsIncludingRoot = [root, ...allDeferredImports];
     for (final deferredImport in allDeferredImportsIncludingRoot) {
       final name = deferredImport.uriPrefix;
       if (!existingNames.containsKey(name)) {
@@ -268,7 +259,8 @@ class _Algorithm {
 
   /// Creates a [Partitioning] that maps [Reference]s/[Constant]s to the [Part]
   /// they were assigned to.
-  Partitioning createParitition(Part rootPart, Dominators dominators) {
+  Partitioning createParitition(
+      Part rootPart, LibraryDependency rootImport, Dominators dominators) {
     // Map [Reference]s/[Constant]s to the [Part] they were assigned to.
     final referenceToPart = <Reference, Part>{};
     final constantToPart = <Constant, Part>{};
@@ -300,12 +292,14 @@ class _Algorithm {
     // Now we can prune the load lists: If a parent is guaranteed to have loaded
     // a part, then there's no need to include that part in a child's load list.
     final alreadyLoaded = <LibraryDependency, Set<Part>>{};
-    dominators.visitDFSPreorder((dominator, dependency) {
-      final parentAlreadyLoaded = alreadyLoaded[dominator] ?? {};
-      final loadList = deferredInputLoadingList[dependency] ?? {};
-      loadList.removeAll(parentAlreadyLoaded);
-      alreadyLoaded[dependency] = {...parentAlreadyLoaded, ...loadList};
+    dominators.visitDFSPreorder((dominatorPrefix, thisPrefix) {
+      final thisLoadList = deferredInputLoadingList[thisPrefix] ?? {};
+      final dominatorLoadList = alreadyLoaded[dominatorPrefix] ?? <Part>{};
+      alreadyLoaded[thisPrefix] = {...dominatorLoadList, ...thisLoadList};
+      thisLoadList.removeAll(dominatorLoadList);
     });
+
+    deferredInputLoadingList.remove(rootImport);
 
     return Partitioning(rootPart, parts, referenceToPart, constantToPart,
         deferredInputLoadingList);
