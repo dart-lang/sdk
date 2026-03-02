@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/element/type.dart'; // ignore: implementation_imports
 
 import '../ast.dart';
 import '../extensions.dart';
@@ -232,26 +231,6 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
 
 typedef AstNodePredicate = bool Function(AstNode node);
 
-class InterfaceTypeDefinition {
-  final String name;
-  final String library;
-
-  InterfaceTypeDefinition(this.name, this.library);
-
-  @override
-  int get hashCode => Object.hash(name, library);
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    return other is InterfaceTypeDefinition &&
-        name == other.name &&
-        library == other.library;
-  }
-}
-
 extension on TypeSystem {
   bool interfaceTypesAreUnrelated(
     InterfaceType leftType,
@@ -314,27 +293,4 @@ extension on InterfaceType {
   bool get isProtobufEnum =>
       element.name == 'ProtobufEnum' &&
       element.library.uri == _protobufEnumLibraryUri;
-}
-
-extension DartTypeExtensions on DartType {
-  /// Returns the type which should be used when conducting "interface checks"
-  /// on `this`.
-  ///
-  /// If `this` is a type variable, then the type-for-interface-check of its
-  /// promoted bound or bound is returned. Otherwise, `this` is returned.
-  // TODO(srawlins): Move to extensions.dart.
-  DartType get typeForInterfaceCheck {
-    var self = this;
-    if (self is TypeParameterType) {
-      if (self is TypeParameterTypeImpl) {
-        var promotedType = self.promotedBound;
-        if (promotedType != null) {
-          return promotedType.typeForInterfaceCheck;
-        }
-      }
-      return self.bound.typeForInterfaceCheck;
-    } else {
-      return self;
-    }
-  }
 }

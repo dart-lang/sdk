@@ -44,6 +44,30 @@ void f() {
 ''');
   }
 
+  test_extensionTypeWrapsError() async {
+    await assertDiagnostics(
+      r'''
+extension type E(Error e) implements Object {}
+void f() {
+  try {} on E catch (_) {}
+}
+''',
+      [lint(67, 17)],
+    );
+  }
+
+  test_extensionTypeWrapsSubclassOfError() async {
+    await assertDiagnostics(
+      r'''
+extension type E(ArgumentError e) implements Object {}
+void f() {
+  try {} on E catch (_) {}
+}
+''',
+      [lint(75, 17)],
+    );
+  }
+
   test_typeExtendsError() async {
     await assertDiagnostics(
       r'''
