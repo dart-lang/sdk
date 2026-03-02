@@ -910,7 +910,8 @@ class Resolver {
                     .backendTarget
                     .flags
                     .isClosureContextLoweringEnabled,
-              )..variable = formal;
+                variable: formal,
+              );
             },
             growable: false,
           );
@@ -925,7 +926,7 @@ class Resolver {
     Expression expression = result.expression;
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
-        VariableDeclaration variable = formals[i].variable!;
+        VariableDeclaration variable = formals[i].variable;
         context.typeInferrer.flowAnalysis.declare(
           variable,
           new SharedTypeView(variable.type),
@@ -952,7 +953,7 @@ class Resolver {
         : <VariableDeclaration>[
             for (FormalParameterBuilder formal
                 in bodyBuilderContext.formals ?? [])
-              formal.variable!,
+              formal.variable,
           ];
     InferredFunctionBody inferredFunctionBody = context.typeInferrer
         .inferFunctionBody(
@@ -1223,7 +1224,7 @@ class Resolver {
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
-        VariableDeclaration variable = parameter.variable!;
+        VariableDeclaration variable = parameter.variable;
         // TODO(62401): Remove the cast when the flow analysis uses
         // [InternalExpressionVariable]s.
         typeInferrer.flowAnalysis.declare(
@@ -1327,7 +1328,7 @@ class Resolver {
       int declaredParameterIndex = 0;
       for (FormalParameterBuilder parameter in bodyBuilderContext.formals!) {
         if (parameter.isExtensionThis) continue;
-        Expression? initializer = parameter.variable!.initializer;
+        Expression? initializer = parameter.variable.initializer;
         bool inferInitializer;
         if (parameter.isSuperInitializingFormal) {
           // Super-parameters can inherit the default value from the super
@@ -1346,7 +1347,7 @@ class Resolver {
               // https://github.com/dart-lang/sdk/issues/32289
               noLocation,
             );
-            VariableDeclaration originParameter = parameter.variable!;
+            VariableDeclaration originParameter = parameter.variable;
             initializer = context.typeInferrer.inferParameterInitializer(
               fileUri: fileUri,
               initializer: initializer,
@@ -1368,7 +1369,7 @@ class Resolver {
             tearOffParameter.initializer = tearOffInitializer
               ..parent = tearOffParameter;
             tearOffParameter.isErroneouslyInitialized =
-                parameter.variable!.isErroneouslyInitialized;
+                parameter.variable.isErroneouslyInitialized;
           }
         }
         declaredParameterIndex++;
@@ -1415,7 +1416,7 @@ class Resolver {
         parameters: <VariableDeclaration>[
           for (FormalParameterBuilder formal
               in bodyBuilderContext.formals ?? [])
-            formal.variable!,
+            formal.variable,
         ],
         internalThisVariable: internalThisVariable,
       );

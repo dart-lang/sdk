@@ -1,0 +1,304 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:7:7: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     ++x,
+//       ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:9:7: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     --x,
+//       ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:11:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     x++,
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:13:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     x--,
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:15:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     x = 2,
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:17:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     x += 2,
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:19:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     x -= 2,
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:21:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     (x) = 2,
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:23:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     [x] = [2],
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:25:12: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     {null: x} = {null: 2},
+//            ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:27:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     (x, name: _) = (2, name: true),
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:29:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     (x && z) = 2,
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:29:11: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     (x && z) = 2,
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:31:22: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     int(runtimeType: z) = 2,
+//                      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:38:7: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     ++x,
+//       ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:40:7: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     --x,
+//       ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:42:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     x++,
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:44:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     x--,
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:46:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     x = 2,
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:48:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     x += 2,
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:50:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     x -= 2,
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:52:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     (x) = 2,
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:54:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     [x] = [2],
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:56:12: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     {null: x} = {null: 2},
+//            ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:58:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     (x, name: _) = (2, name: true),
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:60:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     (x && z) = 2,
+//      ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:60:11: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     (x && z) = 2,
+//           ^
+//
+// pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:62:22: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//     int(runtimeType: z) = 2,
+//                      ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::Record y;
+  constructor •(final core::int x, final core::Object? z) → self::C1
+    : self::C1::y = (invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:7:7: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    ++x,
+      ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:9:7: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    --x,
+      ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:11:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    x++,
+    ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:13:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    x--,
+    ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:15:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    x = 2,
+    ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:17:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    x += 2,
+    ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:19:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    x -= 2,
+    ^", block {
+      final synthesized core::int #0#0 = 2;
+      if(!invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:21:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    (x) = 2,
+     ^")
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#0#0, block {
+      final synthesized core::List<core::int> #1#0 = <core::int>[2];
+      final const synthesized core::int #1#2 = #C1;
+      if(!(#1#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:23:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    [x] = [2],
+     ^"))
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#1#0, block {
+      final synthesized core::Map<Null, core::int> #2#0 = <Null, core::int>{null: 2};
+      synthesized core::int? #2#3;
+      synthesized core::bool #2#3#isSet = false;
+      final const synthesized has-declared-initializer Null #2#1 = #C2;
+      if(!((!((#2#3#isSet ?{core::int?} #2#3 : let final dynamic #t1 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C2){(core::Object?) → core::int?}) == null) || null is core::int && #2#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t2 = (#2#3#isSet ?{core::int?} #2#3 : let final dynamic #t3 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C2){(core::Object?) → core::int?}) as{Unchecked} core::int in invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:25:12: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    {null: x} = {null: 2},
+           ^")))
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#2#0, block {
+      final synthesized(core::int, {name: core::bool}) #3#0 = (2, {name: true});
+      if(!invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:27:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    (x, name: _) = (2, name: true),
+     ^")
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#3#0, block {
+      final synthesized core::int #4#0 = 2;
+      if(!(invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:29:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    (x && z) = 2,
+     ^" && invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:29:11: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    (x && z) = 2,
+          ^"))
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#4#0, block {
+      final synthesized core::int #5#0 = 2;
+      if(!(let final dynamic #t4 = #5#0.{core::Object::runtimeType}{core::Type} in invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:31:22: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    int(runtimeType: z) = 2,
+                     ^"))
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#5#0), super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  field core::Record y;
+  constructor •(final core::int x, final core::Object? z) → self::C2
+    : self::C2::y = (invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:38:7: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    ++x,
+      ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:40:7: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    --x,
+      ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:42:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    x++,
+    ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:44:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    x--,
+    ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:46:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    x = 2,
+    ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:48:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    x += 2,
+    ^", invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:50:5: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    x -= 2,
+    ^", block {
+      final synthesized core::int #0#0 = 2;
+      if(!invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:52:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    (x) = 2,
+     ^")
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#0#0, block {
+      final synthesized core::List<core::int> #1#0 = <core::int>[2];
+      final const synthesized core::int #1#2 = #C1;
+      if(!(#1#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:54:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    [x] = [2],
+     ^"))
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#1#0, block {
+      final synthesized core::Map<Null, core::int> #2#0 = <Null, core::int>{null: 2};
+      synthesized core::int? #2#3;
+      synthesized core::bool #2#3#isSet = false;
+      final const synthesized has-declared-initializer Null #2#1 = #C2;
+      if(!((!((#2#3#isSet ?{core::int?} #2#3 : let final dynamic #t5 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C2){(core::Object?) → core::int?}) == null) || null is core::int && #2#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t6 = (#2#3#isSet ?{core::int?} #2#3 : let final dynamic #t7 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C2){(core::Object?) → core::int?}) as{Unchecked} core::int in invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:56:12: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    {null: x} = {null: 2},
+           ^")))
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#2#0, block {
+      final synthesized(core::int, {name: core::bool}) #3#0 = (2, {name: true});
+      if(!invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:58:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    (x, name: _) = (2, name: true),
+     ^")
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#3#0, block {
+      final synthesized core::int #4#0 = 2;
+      if(!(invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:60:6: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    (x && z) = 2,
+     ^" && invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:60:11: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    (x && z) = 2,
+          ^"))
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#4#0, block {
+      final synthesized core::int #5#0 = 2;
+      if(!(let final dynamic #t8 = #5#0.{core::Object::runtimeType}{core::Type} in invalid-expression "pkg/front_end/testcases/primary_constructors/parameter_assignment.dart:62:22: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+    int(runtimeType: z) = 2,
+                     ^"))
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    } =>#5#0), super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = 1
+  #C2 = null
+}

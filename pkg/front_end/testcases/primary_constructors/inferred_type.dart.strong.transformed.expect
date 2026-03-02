@@ -101,7 +101,7 @@ class C1 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •(core::Object? a, core::Object? b, final core::Object? c) → self::C1
+  constructor •(final core::Object? a, core::Object? b, final core::Object? c) → self::C1
     : self::C1::d = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:6:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
  - 'Object' is from 'dart:core'.
   int d = a; // Error
@@ -120,7 +120,7 @@ class C2 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •([has-declared-initializer core::Object? a = #C1, has-declared-initializer core::Object? b = #C1, final has-declared-initializer core::Object? c = #C1]) → self::C2
+  constructor •([final has-declared-initializer core::Object? a = #C1, has-declared-initializer core::Object? b = #C1, final has-declared-initializer core::Object? c = #C1]) → self::C2
     : self::C2::d = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:12:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
  - 'Object' is from 'dart:core'.
   int d = a; // Error
@@ -139,7 +139,7 @@ class C3 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •({has-declared-initializer core::Object? a = #C1, has-declared-initializer core::Object? b = #C1, final has-declared-initializer core::Object? c = #C1}) → self::C3
+  constructor •({final has-declared-initializer core::Object? a = #C1, has-declared-initializer core::Object? b = #C1, final has-declared-initializer core::Object? c = #C1}) → self::C3
     : self::C3::d = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:18:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
  - 'Object' is from 'dart:core'.
   int d = a; // Error

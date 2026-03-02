@@ -16228,7 +16228,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           declaredVariables: node.declaredVariables,
         )..fileOffset = node.fileOffset;
       }
-    } else if (variable.isFinal && variable.hasDeclaredInitializer) {
+    } else if (variable.isFinal &&
+        // Coverage-ignore(suite): Not run.
+        variable.hasDeclaredInitializer) {
+      // Coverage-ignore-block(suite): Not run.
       replacement = new InvalidPattern(
         problemReporting.buildProblem(
           compilerContext: compilerContext,

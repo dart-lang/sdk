@@ -4,19 +4,19 @@ import "dart:core" as core;
 
 class C1 extends core::Object {
   static const field core::int m = 42;
-  constructor •([core::int x = self::C1::m]) → self::C1
+  constructor •([final core::int x = self::C1::m]) → self::C1
     ;
 }
 class C2 extends core::Object {
   static const field core::String int = "not a type";
-  constructor •(core::int x) → self::C2
+  constructor •(final core::int x) → self::C2
     ;
 }
 class E1 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E1 a = const self::E1::•(0, "a", 0);
   static const field core::int m = 42;
   static const field core::List<self::E1> values = const <self::E1>[self::E1::a];
-  const constructor •(core::int #index, core::String #name, [core::int x = self::E1::m]) → self::E1
+  const constructor •(core::int #index, core::String #name, [final core::int x = self::E1::m]) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -26,7 +26,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E2 a = const self::E2::•(0, "a", 0);
   static const field core::String int = "not a type";
   static const field core::List<self::E2> values = const <self::E2>[self::E2::a];
-  const constructor •(core::int #index, core::String #name, core::int x) → self::E2
+  const constructor •(core::int #index, core::String #name, final core::int x) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String

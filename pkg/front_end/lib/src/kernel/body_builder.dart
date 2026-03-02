@@ -1129,7 +1129,7 @@ class BodyBuilderImpl extends StackListenerImpl
                 formal.name,
                 formal.fileOffset,
                 formal.fileOffset,
-                new VariableGet(formal.variable!)
+                new VariableGet(formal.variable)
                   ..fileOffset = formal.fileOffset,
                 formal: formal,
               );
@@ -2682,28 +2682,28 @@ class BodyBuilderImpl extends StackListenerImpl
             diag.notAConstantExpression,
           );
         }
-        ExpressionVariable variable = getable.variable!;
-        // TODO(johnniwinther): The handling of for-in variables should be
-        //  done through the builder.
+        ExpressionVariable variable = getable.variable;
         if (forStatementScope &&
-            variable.isAssignable &&
-            variable.isLate &&
-            variable.isFinal) {
+            getable.isAssignable &&
+            getable.isLate &&
+            getable.isFinal) {
           return new ForInLateFinalVariableUseGenerator(
             this,
             nameToken,
             variable,
           );
         } else if (!getable.isAssignable ||
-            (variable.isFinal && forStatementScope)) {
+            (getable.isFinal && forStatementScope)) {
           return _createReadOnlyVariableAccess(
             variable,
             nameToken,
             nameOffset,
             name,
-            variable.isConst
-                ? ReadOnlyAccessKind.ConstVariable
-                : ReadOnlyAccessKind.FinalVariable,
+            getable.isPrimaryConstructorParameter
+                ? ReadOnlyAccessKind.PrimaryConstructorParameter
+                : (getable.isConst
+                      ? ReadOnlyAccessKind.ConstVariable
+                      : ReadOnlyAccessKind.FinalVariable),
           );
         } else {
           return new VariableUseGenerator(this, nameToken, variable);
@@ -3448,7 +3448,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (parameters != null) {
         Map<String, VariableBuilder> local = {};
         for (FormalParameterBuilder formal in parameters) {
-          assignedVariables.declare(formal.variable!);
+          assignedVariables.declare(formal.variable);
           local[formal.name] = formal;
         }
         _localScopes.push(
@@ -10000,7 +10000,7 @@ class BodyBuilderImpl extends StackListenerImpl
       } else {
         _context.registerInitializedField(builder);
         if (formal != null && formal.type is! OmittedTypeBuilder) {
-          DartType formalType = formal.variable!.type;
+          DartType formalType = formal.variable.type;
           DartType fieldType = _context.substituteFieldType(builder.fieldType);
           if (!typeEnvironment.isSubtypeOf(formalType, fieldType)) {
             return [
@@ -10850,28 +10850,8 @@ class BodyBuilderImpl extends StackListenerImpl
       variable.charCount,
     );
     assert(variable.lexeme != '_');
-    Pattern pattern;
-    Expression variableUse = scopeLookup(
-      _localScope,
-      variable,
-    ).buildSimpleRead();
-    if (variableUse is VariableGet) {
-      ExpressionVariable variableDeclaration = variableUse.variable;
-      pattern = forest.createAssignedVariablePattern(
-        variable.charOffset,
-        variableDeclaration,
-      );
-      registerVariableAssignment(variableDeclaration);
-    } else {
-      addProblem(
-        diag.patternAssignmentNotLocalVariable,
-        variable.charOffset,
-        variable.charCount,
-      );
-      // Recover by using [WildcardPattern] instead.
-      pattern = forest.createWildcardPattern(variable.charOffset, null);
-    }
-    push(pattern);
+    Generator generator = scopeLookup(_localScope, variable);
+    push(generator.buildPatternAssignment(variable));
   }
 
   @override
@@ -11302,7 +11282,7 @@ class BodyBuilderImpl extends StackListenerImpl
       for (FormalParameterBuilder formal in formals) {
         // We pass `ignoreDuplicates: true` because the variable might have been
         // previously passed to `declare` in the `BodyBuilder` constructor.
-        assignedVariables.declare(formal.variable!, ignoreDuplicates: true);
+        assignedVariables.declare(formal.variable, ignoreDuplicates: true);
       }
     }
     token = parser.parseInitializersOpt(token);
@@ -11448,7 +11428,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (formals != null) {
       for (FormalParameterBuilder formalParameterBuilder in formals) {
-        assignedVariables.declare(formalParameterBuilder.variable!);
+        assignedVariables.declare(formalParameterBuilder.variable);
       }
     }
 

@@ -334,7 +334,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       for (FormalParameterBuilder formal in formals) {
         if (formal.type is InferableTypeBuilder &&
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
-          formal.variable!.type = const UnknownType();
+          formal.variable.type = const UnknownType();
           needsInference = true;
         } else if (!formal.hasDeclaredInitializer &&
             formal.isSuperInitializingFormal) {
@@ -645,7 +645,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       for (FormalParameterBuilder formal in formals) {
         if (formal.type is InferableTypeBuilder &&
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
-          formal.variable!.type = const UnknownType();
+          formal.variable.type = const UnknownType();
           needsInference = true;
         } else if (!formal.hasDeclaredInitializer &&
             formal.isSuperInitializingFormal) {

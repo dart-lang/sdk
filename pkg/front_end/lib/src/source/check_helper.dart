@@ -737,18 +737,18 @@ extension CheckHelper on ProblemReporting {
         bool isOptionalNamed = !formal.isRequiredNamed && formal.isNamed;
         bool isOptional = isOptionalPositional || isOptionalNamed;
         if (isOptional &&
-            formal.variable!.type.isPotentiallyNonNullable &&
+            formal.variable.type.isPotentiallyNonNullable &&
             !formal.hasDeclaredInitializer) {
           addProblem(
             diag.optionalNonNullableWithoutInitializerError.withArguments(
               parameterName: formal.name,
-              parameterType: formal.variable!.type,
+              parameterType: formal.variable.type,
             ),
             formal.fileOffset,
             formal.name.length,
             formal.fileUri,
           );
-          formal.variable?.isErroneouslyInitialized = true;
+          formal.variable.isErroneouslyInitialized = true;
         }
       }
     }

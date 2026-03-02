@@ -514,7 +514,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       _clonedDeclarationTypeParameters != null ? function.typeParameters : null;
 
   @override
-  VariableDeclaration? get thisVariable => _thisFormal.variable!;
+  VariableDeclaration? get thisVariable => _thisFormal.variable;
 
   BuiltMemberKind get _builtMemberKind;
 
