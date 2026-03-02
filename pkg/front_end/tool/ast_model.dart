@@ -137,7 +137,12 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     'exceptionCatchVariable': FieldRule(isDeclaration: true),
     'stackTraceCatchVariable': FieldRule(isDeclaration: true),
   },
-  'FunctionDeclaration': {'variable': FieldRule(isDeclaration: true)},
+  'LocalFunctionIdGenerator': {'_counter': null},
+  'FunctionExpression': {'id': null},
+  'FunctionDeclaration': {
+    'variable': FieldRule(isDeclaration: true),
+    'id': null,
+  },
   'FunctionType': {'typeParameters': FieldRule(isDeclaration: true)},
   'TypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
   'StructuralParameterType': {'parameter': FieldRule(isDeclaration: false)},

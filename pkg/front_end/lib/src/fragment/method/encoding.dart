@@ -487,7 +487,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   Procedure? get readTarget => _extensionTearOff;
 
   @override
-  VariableDeclaration? get thisVariable => _thisFormal.variable!;
+  VariableDeclaration? get thisVariable => _thisFormal.variable;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -782,7 +782,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   VariableDeclaration? getTearOffParameter(int index) {
     return _extensionTearOffParameterMap?[_fragment
         .declaredFormals![index]
-        .variable!];
+        .variable];
   }
 
   @override

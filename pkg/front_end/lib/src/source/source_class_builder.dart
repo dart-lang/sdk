@@ -1272,7 +1272,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         if (!formal.isCovariantByDeclaration) {
           for (TypeParameter typeParameter in classTypeParameters) {
             Variance formalVariance = Variance.contravariant.combine(
-              computeVariance(typeParameter, formal.variable!.type),
+              computeVariance(typeParameter, formal.variable.type),
             );
             reportVariancePositionIfInvalid(
               formalVariance,

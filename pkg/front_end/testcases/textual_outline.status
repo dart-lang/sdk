@@ -18,6 +18,7 @@ general/issue48919: FormatterCrash
 inference/property_set_bad_setter: FormatterCrash
 nnbd/instance_duplicates: FormatterCrash
 nnbd/required: FormatterCrash
+patterns/pattern_variable_final: FormatterCrash
 primary_constructors/body_without_primary: FormatterCrash
 primary_constructors/class_primary_constructor: FormatterCrash
 primary_constructors/class_primary_declaring_parameters: FormatterCrash
@@ -31,6 +32,7 @@ primary_constructors/fields: FormatterCrash
 primary_constructors/generic_primary_constructor: FormatterCrash
 primary_constructors/inferred_type: FormatterCrash
 primary_constructors/mixin_class: FormatterCrash
+primary_constructors/parameter_assignment: FormatterCrash
 primary_constructors/parameter_scope: FormatterCrash
 primary_constructors/parameter_type_inference: FormatterCrash
 primary_constructors/parameters: FormatterCrash

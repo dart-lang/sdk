@@ -8,7 +8,7 @@ class C1 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •(core::Object? a, core::Object? b, final core::Object? c) → self::C1
+  constructor •(final core::Object? a, core::Object? b, final core::Object? c) → self::C1
     ;
 }
 class C2 extends core::Object {
@@ -17,7 +17,7 @@ class C2 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •([has-declared-initializer core::Object? a = null, has-declared-initializer core::Object? b = null, final has-declared-initializer core::Object? c = null]) → self::C2
+  constructor •([final has-declared-initializer core::Object? a = null, has-declared-initializer core::Object? b = null, final has-declared-initializer core::Object? c = null]) → self::C2
     ;
 }
 class C3 extends core::Object {
@@ -26,7 +26,7 @@ class C3 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •({has-declared-initializer core::Object? a = null, has-declared-initializer core::Object? b = null, final has-declared-initializer core::Object? c = null}) → self::C3
+  constructor •({final has-declared-initializer core::Object? a = null, has-declared-initializer core::Object? b = null, final has-declared-initializer core::Object? c = null}) → self::C3
     ;
 }
 extension type ET1(dynamic a) {

@@ -51,6 +51,8 @@ class _Lowering extends Transformer {
   Member? _currentMember;
   FunctionNode? _currentFunctionNode;
   StaticTypeContext? _cachedStaticTypeContext;
+  LocalFunctionIdGenerator? _localFunctionIdGenerator;
+  LocalFunctionIdGenerator? _constructorFunctionIdGenerator;
 
   _Lowering(
     CoreTypes coreTypes,
@@ -65,6 +67,17 @@ class _Lowering extends Transformer {
   StaticTypeContext get _staticTypeContext =>
       _cachedStaticTypeContext ??= StaticTypeContext(_currentMember!, env);
 
+  LocalFunctionIdGenerator get _currentLocalFunctionIdGenerator =>
+      _localFunctionIdGenerator ??= LocalFunctionIdGenerator();
+
+  @override
+  visitClass(Class node) {
+    _constructorFunctionIdGenerator = LocalFunctionIdGenerator();
+    final result = super.visitClass(node);
+    _constructorFunctionIdGenerator = null;
+    return result;
+  }
+
   @override
   defaultMember(Member node) {
     if (node is Procedure && node.isRedirectingFactory) {
@@ -76,11 +89,30 @@ class _Lowering extends Transformer {
     _currentMember = node;
     _cachedStaticTypeContext = null;
 
+    // Share the same ID generator for constructors and instance fields
+    // as VM includes instance field initializers into constructors.
+    if (node is Constructor || (node is Field && node.isInstanceMember)) {
+      _localFunctionIdGenerator = _constructorFunctionIdGenerator;
+    }
+
     final result = super.defaultMember(node);
 
     _currentMember = null;
     _cachedStaticTypeContext = null;
+    _localFunctionIdGenerator = null;
     return result;
+  }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    node.id = _currentLocalFunctionIdGenerator.allocateId();
+    return super.visitFunctionExpression(node);
+  }
+
+  @override
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    node.id = _currentLocalFunctionIdGenerator.allocateId();
+    return super.visitFunctionDeclaration(node);
   }
 
   @override
@@ -109,13 +141,19 @@ class _Lowering extends Transformer {
   @override
   visitBlock(Block node) {
     node.transformChildren(this);
-    return lateVarInitTransformer.transformBlock(node);
+    return lateVarInitTransformer.transformBlock(
+      node,
+      _currentLocalFunctionIdGenerator,
+    );
   }
 
   @override
   visitAssertBlock(AssertBlock node) {
     node.transformChildren(this);
-    return lateVarInitTransformer.transformAssertBlock(node);
+    return lateVarInitTransformer.transformAssertBlock(
+      node,
+      _currentLocalFunctionIdGenerator,
+    );
   }
 
   @override

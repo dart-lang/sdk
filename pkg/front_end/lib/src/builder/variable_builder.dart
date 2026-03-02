@@ -8,9 +8,15 @@ import '../base/lookup_result.dart';
 import '../builder/builder.dart';
 
 abstract class VariableBuilder implements Builder, LookupResult {
-  ExpressionVariable? get variable;
+  ExpressionVariable get variable;
 
   bool get isConst;
 
+  bool get isFinal;
+
+  bool get isLate;
+
   bool get isAssignable;
+
+  bool get isPrimaryConstructorParameter;
 }

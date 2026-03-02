@@ -625,6 +625,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     case kFunctionExpression:
       ReadPosition();                      // read position.
+      ReadUInt();                          // read id.
       CalculateFunctionNodeFingerprint();  // read function node.
       return;
     case kLet:
@@ -858,6 +859,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
     case kFunctionDeclaration:
       ReadPosition();                             // read position.
       CalculateVariableDeclarationFingerprint();  // read variable.
+      ReadUInt();                                 // read id.
       CalculateFunctionNodeFingerprint();         // read function node.
       return;
     case kForInStatement:

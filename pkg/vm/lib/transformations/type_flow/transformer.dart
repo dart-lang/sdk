@@ -1338,6 +1338,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   StaticTypeContext? _staticTypeContext;
   Member? _currentMember;
+  LocalFunctionIdGenerator? _localFunctionIdGenerator;
 
   StaticTypeContext get staticTypeContext =>
       _staticTypeContext ??= StaticTypeContext(currentMember, environment);
@@ -1346,6 +1347,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
   set currentMember(Member? m) {
     _currentMember = m;
     _staticTypeContext = null;
+    _localFunctionIdGenerator = null;
   }
 
   _TreeShakerPass1(this.shaker)
@@ -1613,6 +1615,26 @@ class _TreeShakerPass1 extends RemovingTransformer {
       );
     }
     return node;
+  }
+
+  @override
+  TreeNode visitFunctionExpression(
+    FunctionExpression node,
+    TreeNode? removalSentinel,
+  ) {
+    node.id =
+        (_localFunctionIdGenerator ??= LocalFunctionIdGenerator()).allocateId();
+    return super.visitFunctionExpression(node, removalSentinel);
+  }
+
+  @override
+  TreeNode visitFunctionDeclaration(
+    FunctionDeclaration node,
+    TreeNode? removalSentinel,
+  ) {
+    node.id =
+        (_localFunctionIdGenerator ??= LocalFunctionIdGenerator()).allocateId();
+    return super.visitFunctionDeclaration(node, removalSentinel);
   }
 
   @override

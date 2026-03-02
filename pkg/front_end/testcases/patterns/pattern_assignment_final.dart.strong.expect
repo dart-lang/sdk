@@ -6,7 +6,7 @@ library;
 //   (initializedFinal, // Error
 //    ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/pattern_assignment_final.dart:32:7: Error: Late final variable 'initializedLateFinal' definitely assigned.
+// pkg/front_end/testcases/patterns/pattern_assignment_final.dart:32:7: Error: Can't assign to the final variable 'initializedLateFinal'.
 //       initializedLateFinal, // Error
 //       ^^^^^^^^^^^^^^^^^^^^
 //
@@ -48,10 +48,10 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   definitelyAssignedFinal = 10;
   definitelyAssignedLateFinal = 20;
   {
-    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic} (core::int, core::int, dynamic);
+    final synthesized dynamic #0#0 = x as{TypeError,ForDynamic} (invalid-type, invalid-type, dynamic);
     if(!(#0#0 is (core::Object?, core::Object?, core::Object?) && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:31:4: Error: Can't assign to the final variable 'initializedFinal'.
   (initializedFinal, // Error
-   ^^^^^^^^^^^^^^^^" && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:32:7: Error: Late final variable 'initializedLateFinal' definitely assigned.
+   ^^^^^^^^^^^^^^^^" && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:32:7: Error: Can't assign to the final variable 'initializedLateFinal'.
       initializedLateFinal, // Error
       ^^^^^^^^^^^^^^^^^^^^" && (let final dynamic #t1 = definitelyUnassignedFinal = #0#0{(core::Object?, core::Object?, core::Object?)}.$3{core::Object?} in true)))
       throw{for-error-handling} new core::StateError::•("Pattern matching error");

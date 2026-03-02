@@ -28,7 +28,7 @@ class C3 extends core::Object {
     ;
 }
 class C4 extends core::Object {
-  constructor •(wildcard core::int _#wc4#formal, wildcard core::int _#wc5#formal) → self::C4
+  constructor •(final wildcard core::int _#wc4#formal, final wildcard core::int _#wc5#formal) → self::C4
     ;
 }
 class C5 extends core::Object {

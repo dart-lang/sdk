@@ -221,17 +221,14 @@ PRECOMPILER_WSR_FIELD_DEFINITION(Function, FunctionType, signature)
 
 #undef PRECOMPILER_WSR_FIELD_DEFINITION
 
-#if defined(_MSC_VER)
+// Suppress lint for the following definition because the whitespace/parens
+// check doesn't like __VA_OPT__(, ), which is what the formatter produces here.
+// NOLINTBEGIN
 #define TRACE_TYPE_CHECKS_VERBOSE(format, ...)                                 \
   if (FLAG_trace_type_checks_verbose) {                                        \
-    OS::PrintErr(format, __VA_ARGS__);                                         \
+    OS::PrintErr(format __VA_OPT__(, ) __VA_ARGS__);                           \
   }
-#else
-#define TRACE_TYPE_CHECKS_VERBOSE(format, ...)                                 \
-  if (FLAG_trace_type_checks_verbose) {                                        \
-    OS::PrintErr(format, ##__VA_ARGS__);                                       \
-  }
-#endif
+// NOLINTEND
 
 // Takes a vm internal name and makes it suitable for external user.
 //

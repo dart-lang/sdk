@@ -1956,8 +1956,11 @@ class OutlineBuilder extends StackListenerImpl {
                 ? formal.copyDefaultValueToken()
                 : null,
           );
-          formals[i] = formal.forPrimaryConstructor(_builderFactory);
         }
+        formals[i] = formal.forPrimaryConstructor(
+          _builderFactory,
+          isDeclaring: modifiers.isDeclaringParameter,
+        );
       }
       if (forExtensionType) {
         if (libraryFeatures.primaryConstructors.isEnabled) {

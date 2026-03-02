@@ -2245,6 +2245,8 @@ FunctionPtr KernelLoader::LoadClosureFunction(const Function& parent_function,
     name = &Symbols::AnonymousClosure();
   }
 
+  helper_.ReadUInt();  // read id.
+
   const intptr_t func_node_offset = helper_.ReaderOffset();
 
   FunctionNodeHelper function_node_helper(&helper_);

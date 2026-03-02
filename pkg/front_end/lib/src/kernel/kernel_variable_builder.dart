@@ -46,5 +46,14 @@ class VariableBuilderImpl extends NamedBuilderImpl
   String get fullNameForErrors => variable.cosmeticName ?? "<unnamed>";
 
   @override
+  bool get isPrimaryConstructorParameter => false;
+
+  @override
+  bool get isFinal => variable.isFinal;
+
+  @override
+  bool get isLate => variable.isLate;
+
+  @override
   String toString() => 'VariableBuilderImpl($fullNameForErrors)';
 }

@@ -47,7 +47,7 @@ class C3(final int _, final int _); // Error
     ;
 }
 class C4 extends core::Object {
-  constructor •(wildcard core::int _#wc4#formal, wildcard core::int _#wc5#formal) → self::C4
+  constructor •(final wildcard core::int _#wc4#formal, final wildcard core::int _#wc5#formal) → self::C4
     : super core::Object::•()
     ;
 }

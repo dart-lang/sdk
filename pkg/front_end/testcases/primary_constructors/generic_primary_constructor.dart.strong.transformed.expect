@@ -21,7 +21,7 @@ class C2<T extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field self::C2::T% e;
   covariant-by-class field self::C2::T% f;
   field core::Type g;
-  constructor •(self::C2::T% a, self::C2::T% b, final self::C2::T% c) → self::C2<self::C2::T%>
+  constructor •(final self::C2::T% a, self::C2::T% b, final self::C2::T% c) → self::C2<self::C2::T%>
     : self::C2::d = a, self::C2::e = b, self::C2::f = c, self::C2::g = self::C2::T%, self::C2::b = b, self::C2::c = c, super core::Object::•() {
     core::print(self::C2::T%);
   }
@@ -46,7 +46,7 @@ class E2<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   final field self::E2::T% e;
   final field core::Type f;
   static const field core::List<self::E2<dynamic>> values = #C8;
-  const constructor •(core::int #index, core::String #name, self::E2::T% a, final self::E2::T% b) → self::E2<self::E2::T%>
+  const constructor •(core::int #index, core::String #name, final self::E2::T% a, final self::E2::T% b) → self::E2<self::E2::T%>
     : self::E2::d = a, self::E2::e = b, self::E2::f = self::E2::T%, self::E2::b = b, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String

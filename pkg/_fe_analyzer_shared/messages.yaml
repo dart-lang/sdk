@@ -2554,4 +2554,16 @@ multiplePrimaryConstructorBodyDeclarations:
       this;
       this : assert(true);
     }
-    
+
+assignmentToPrimaryConstructorParameter:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "A primary constructor parameter can't be assigned to in an initializer."
+  correctionMessage: "Try removing the assignment."
+  hasPublishedDocs: false
+  analyzerCode: assignmentToPrimaryConstructorParameter
+  experiments: primary-constructors
+  script: |
+    class C(int x) {
+      int y = x++;
+    }

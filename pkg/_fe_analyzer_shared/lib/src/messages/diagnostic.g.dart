@@ -134,6 +134,15 @@ const MessageCode assertAsExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode assignmentToPrimaryConstructorParameter = const MessageCode(
+  "AssignmentToPrimaryConstructorParameter",
+  sharedCode: SharedCode.assignmentToPrimaryConstructorParameter,
+  problemMessage:
+      """A primary constructor parameter can't be assigned to in an initializer.""",
+  correctionMessage: """Try removing the assignment.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitAsIdentifier = const MessageCode(
   "AwaitAsIdentifier",
   pseudoSharedCode: PseudoSharedCode.asyncKeywordUsedAsIdentifier,
@@ -3003,6 +3012,7 @@ enum SharedCode {
   annotationWithTypeArguments,
   annotationWithTypeArgumentsUninstantiated,
   anonymousMethodWrongParameterList,
+  assignmentToPrimaryConstructorParameter,
   baseEnum,
   binaryOperatorWrittenOut,
   breakOutsideOfLoop,

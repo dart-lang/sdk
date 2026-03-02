@@ -2051,6 +2051,9 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   @override
   FunctionNode function;
 
+  @override
+  LocalFunctionId id = LocalFunctionId.invalid;
+
   FunctionDeclaration(this.variable, this.function) {
     variable.parent = this;
     function.parent = this;
