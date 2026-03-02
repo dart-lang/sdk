@@ -3043,6 +3043,7 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
     AlternativeReadingScope alt(
         &reader_, variable_kernel_position - data_program_offset_);
     SkipVariableDeclaration();
+    ReadUInt();  // read id.
     // FunctionNode follows the variable declaration.
     const intptr_t function_node_kernel_offset = ReaderOffset();
 
@@ -4312,6 +4313,7 @@ Fragment StreamingFlowGraphBuilder::BuildRecordFieldGet(TokenPosition* p,
 Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
   const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
   ReadPosition();                              // read position.
+  ReadUInt();                                  // read id.
   return BuildFunctionNode(offset);
 }
 
@@ -5937,6 +5939,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionDeclaration(
 
   const intptr_t variable_offset = ReaderOffset() + data_program_offset_;
   SkipVariableDeclaration();
+  ReadUInt();  // read id.
 
   Fragment instructions = DebugStepCheck(pos);
   instructions += BuildFunctionNode(offset);

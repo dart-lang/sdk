@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 128;
+  UInt32 formatVersion = 129;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1172,6 +1172,8 @@ type AwaitExpression extends Expression {
 type FunctionExpression extends Expression {
   Byte tag = 52;
   FileOffset fileOffset;
+  // Identifier of the local function within an enclosing member.
+  UInt id;
   FunctionNode function;
 }
 
@@ -1537,6 +1539,8 @@ type FunctionDeclaration extends Statement {
   // Some of the fields in the variable are redundant, but its presence here
   // simplifies the rule for variable indexing.
   VariableDeclarationPlain variable;
+  // Identifier of the local function within an enclosing member.
+  UInt id;
   FunctionNode function;
 }
 
