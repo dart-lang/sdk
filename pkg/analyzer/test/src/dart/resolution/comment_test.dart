@@ -2086,6 +2086,62 @@ CommentReference
 ''');
   }
 
+  test_onFieldFormalParameter() async {
+    // TODO(scheglov): add tests for references to nested formal parameters
+    await assertNoErrorsInCode(r'''
+class A {
+  final int f;
+  A({
+    /// [int]
+    required this.f,
+  });
+}
+''');
+
+    var node = findNode.commentReference('int]');
+    assertResolvedNodeText(node, r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: int
+    element: dart:core::@class::int
+    staticType: null
+''');
+  }
+
+  test_onFunctionTypedFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+void f(
+  /// [int]
+  void g(int a),
+) {}
+''');
+
+    var node = findNode.commentReference('int]');
+    assertResolvedNodeText(node, r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: int
+    element: dart:core::@class::int
+    staticType: null
+''');
+  }
+
+  test_onFunctionTypedFormalParameter_self() async {
+    // TODO(scheglov): add tests for references to nested formal parameters
+    await assertNoErrorsInCode(r'''
+/// [bar]
+void f(int bar()) {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('bar]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: bar
+    element: <testLibrary>::@function::f::@formalParameter::bar
+    staticType: null
+''');
+  }
+
   test_onSimpleFormalParameter() async {
     await assertNoErrorsInCode(r'''
 void f(
@@ -2104,17 +2160,27 @@ CommentReference
 ''');
   }
 
-  test_parameter_functionTyped() async {
+  test_onSuperFormalParameter() async {
+    // TODO(scheglov): add tests for references to nested formal parameters
     await assertNoErrorsInCode(r'''
-/// [bar]
-foo(int bar()) {}
+class A {
+  A({required int f});
+}
+
+class B extends A {
+  B({
+    /// [int]
+    required super.f,
+  });
+}
 ''');
 
-    assertResolvedNodeText(findNode.commentReference('bar]'), r'''
+    var node = findNode.commentReference('int]');
+    assertResolvedNodeText(node, r'''
 CommentReference
   expression: SimpleIdentifier
-    token: bar
-    element: <testLibrary>::@function::foo::@formalParameter::bar
+    token: int
+    element: dart:core::@class::int
     staticType: null
 ''');
   }
