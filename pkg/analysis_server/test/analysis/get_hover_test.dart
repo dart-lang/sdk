@@ -133,6 +133,25 @@ var a = A() + A(); // 1
     expect(hover.parameter, isNull);
   }
 
+  Future<void> test_class_constructor_factory() async {
+    newFile(testFilePath, '''
+class C {
+  new ();
+  /// my doc
+  factory (int x) => C();
+}
+''');
+
+    var hover = await prepareHover('factory');
+    // range
+    expect(hover.offset, findOffset('factory'));
+    expect(hover.length, 'factory'.length);
+    // element
+    expect(hover.dartdoc, 'my doc');
+    expect(hover.elementDescription, 'C(int x)');
+    expect(hover.elementKind, 'constructor');
+  }
+
   Future<void> test_class_constructor_named() async {
     newFile(testFilePath, '''
 class A {
