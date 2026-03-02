@@ -93,7 +93,7 @@ DEFINE_NATIVE_ENTRY(createConstMapFromMapOfDeeplyImmutables, 0, 1) {
   intptr_t used_data = map.Length() << 1;
   const_map.set_used_data(used_data);
   const auto& data = Array::Handle(zone, map.data());
-  const auto& new_data = Array::Handle(zone, Array::New(used_data));
+  const auto& new_data = Array::Handle(zone, ImmutableArray::New(used_data));
   const_map.set_data(new_data);
   const_map.set_deleted_keys(0);
   const_map.ComputeAndSetHashMask();
