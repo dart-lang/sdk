@@ -211,6 +211,7 @@ class KernelLoader : public ValueObject {
   // Get closure Function from cache or create it if it is not created yet.
   // [func_decl_offset] is an offset FunctionExpression or FunctionDeclaration.
   static FunctionPtr GetClosureFunction(Thread* thread,
+                                        intptr_t local_function_id,
                                         intptr_t func_decl_offset,
                                         const Function& member_function,
                                         const Function& parent_function,

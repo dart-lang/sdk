@@ -25,16 +25,16 @@ using FunctionHashMap = UnorderedHashMap<FunctionHashMapTraits>;
 
 FunctionPtr ClosureFunctionsCache::LookupClosureFunction(
     const Function& member_function,
-    intptr_t kernel_offset) {
+    intptr_t local_function_id) {
   ASSERT(!member_function.HasBytecode());
   auto thread = Thread::Current();
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-  return LookupClosureFunctionLocked(member_function, kernel_offset);
+  return LookupClosureFunctionLocked(member_function, local_function_id);
 }
 
 FunctionPtr ClosureFunctionsCache::LookupClosureFunctionLocked(
     const Function& member_function,
-    intptr_t kernel_offset) {
+    intptr_t local_function_id) {
   ASSERT(!member_function.HasBytecode());
   auto thread = Thread::Current();
   auto zone = thread->zone();
@@ -59,7 +59,7 @@ FunctionPtr ClosureFunctionsCache::LookupClosureFunctionLocked(
 
   auto& result = Function::Handle(zone);
   IntHashMap map2(zone, map_array.ptr());
-  result ^= map2.GetOrNull(Smi::Handle(zone, Smi::New(kernel_offset)));
+  result ^= map2.GetOrNull(Smi::Handle(zone, Smi::New(local_function_id)));
   map2.Release();
 
   return result.ptr();
@@ -67,6 +67,7 @@ FunctionPtr ClosureFunctionsCache::LookupClosureFunctionLocked(
 
 void ClosureFunctionsCache::AddClosureFunctionLocked(
     const Function& function,
+    intptr_t local_function_id,
     bool allow_implicit_closure_functions /* = false */) {
   ASSERT(!Compiler::IsBackgroundCompilation());
 
@@ -88,13 +89,12 @@ void ClosureFunctionsCache::AddClosureFunctionLocked(
          function.IsNonImplicitClosureFunction());
   closures.Add(function, Heap::kOld);
 
-  if (allow_implicit_closure_functions || function.HasBytecode()) {
+  if (local_function_id < 0) {
     return;
   }
 
   const Function& member_function =
       Function::Handle(zone, function.GetOutermostFunction());
-  ASSERT(function.kernel_offset() > 0);
 
   auto& map_array =
       Array::Handle(zone, object_store->closure_functions_table());
@@ -107,8 +107,7 @@ void ClosureFunctionsCache::AddClosureFunctionLocked(
     map_array = HashTables::New<IntHashMap>(4, Heap::kOld);
   }
   IntHashMap map2(zone, map_array.ptr());
-  map2.UpdateOrInsert(Smi::Handle(zone, Smi::New(function.kernel_offset())),
-                      function);
+  map2.UpdateOrInsert(Smi::Handle(zone, Smi::New(local_function_id)), function);
   map.UpdateOrInsert(member_function, map2.Release());
   object_store->set_closure_functions_table(map.Release());
 }

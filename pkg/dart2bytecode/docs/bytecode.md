@@ -681,7 +681,10 @@ type ClosureDeclaration {
 
 type ClosureCode {
   UInt flags = (hasExceptionsTable, hasSourcePositions, hasLocalVariables,
-                capturesOnlyFinalNotLateVars)
+                capturesOnlyFinalNotLateVars, hasLocalFunctionId)
+
+  if hasLocalFunctionId
+    UInt localFunctionId;
 
   UInt bytecodeSizeInBytes;
   Byte[bytecodeSizeInBytes] bytecodes;

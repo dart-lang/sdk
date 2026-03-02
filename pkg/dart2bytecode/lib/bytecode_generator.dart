@@ -2546,12 +2546,14 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     locals.leaveScope();
 
+    assert(node.id != LocalFunctionId.invalid);
     closure.code = new ClosureCode(
         asm.bytecode,
         asm.exceptionsTable,
         finalizeSourcePositions(),
         finalizeLocalVariables(),
-        capturesOnlyFinalNotLateVars);
+        capturesOnlyFinalNotLateVars,
+        node.id.toInt());
 
     _popAssemblerState();
 
