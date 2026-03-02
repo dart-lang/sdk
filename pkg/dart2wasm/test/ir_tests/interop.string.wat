@@ -58,12 +58,11 @@
       ref.null noextern
     else
       local.get $var1
-      call $jsifyRaw
+      struct.get $JSExternWrapper $_externRef
     end
     call $"dart2wasm._300 (import)"
     call $JSStringImpl.fromRefNullable
     call $"sinkStringNullable <noInline>"
   )
   (func $JSStringImpl.fromRefNullable (param $var0 externref) (result (ref null $JSExternWrapper)) <...>)
-  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
 )
