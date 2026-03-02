@@ -159,9 +159,8 @@ class _Algorithm {
     final dominators = computeDominators(rootImport, roots,
         directReferenceDependencies, directConstantDependencies);
 
-    final allDeferredImportsIncludingRoot = <LibraryDependency>{};
-    dominators
-        .visitDFSPreorder((_, n) => allDeferredImportsIncludingRoot.add(n));
+    final allDeferredImportsIncludingRoot =
+        dominators.allNodes.map((n) => n.prefix).toSet();
     final rootPart = Part(true, allDeferredImportsIncludingRoot);
     importSets.buildRootSet(rootImport, rootPart);
 
@@ -207,8 +206,12 @@ class _Algorithm {
     }
 
     // Then add ordering constraints based on dominator tree.
-    dominators.dominators.forEach((child, parent) {
-      orderNodes.add(namedNodes.orderNode(parent.uriPrefix, child.uriPrefix));
+    dominators.allNodes.forEach((node) {
+      final dominator = node.dominator?.prefix;
+      if (dominator != null) {
+        orderNodes.add(
+            namedNodes.orderNode(dominator.uriPrefix, node.prefix.uriPrefix));
+      }
     });
 
     // Now we can build the transitions.
@@ -292,8 +295,10 @@ class _Algorithm {
     // Now we can prune the load lists: If a parent is guaranteed to have loaded
     // a part, then there's no need to include that part in a child's load list.
     final alreadyLoaded = <LibraryDependency, Set<Part>>{};
-    dominators.visitDFSPreorder((dominatorPrefix, thisPrefix) {
+    dominators.root.visitDFS((node) {
+      final thisPrefix = node.prefix;
       final thisLoadList = deferredInputLoadingList[thisPrefix] ?? {};
+      final dominatorPrefix = node.dominator?.prefix;
       final dominatorLoadList = alreadyLoaded[dominatorPrefix] ?? <Part>{};
       alreadyLoaded[thisPrefix] = {...dominatorLoadList, ...thisLoadList};
       thisLoadList.removeAll(dominatorLoadList);
