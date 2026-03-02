@@ -195,7 +195,7 @@ mixin _ConstructorDeclarationMixin
       // variable in the initializer list.
       if (formal.isWildcard) continue;
 
-      list.add(formal.forFormalParameterInitializerScope());
+      list.add(formal);
     }
     return list;
   }

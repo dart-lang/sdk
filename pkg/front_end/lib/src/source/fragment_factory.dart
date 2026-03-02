@@ -483,7 +483,6 @@ abstract class FragmentFactory {
     required bool hasSuper,
     required int nameOffset,
     required Token? initializerToken,
-    bool lowerWildcard = false,
   });
 
   ConstructorReferenceBuilder addConstructorReference(

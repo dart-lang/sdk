@@ -29,12 +29,12 @@ extension type ET1(self::A1 _) implements self::A1 {
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(self::A1 _) → self::ET1 /* erasure=self::A1 */ {
-  lowered final self::ET1 /* erasure=self::A1 */ #this = _;
+static extension-type-member method ET1|constructor#(wildcard self::A1 _#wc0#formal) → self::ET1 /* erasure=self::A1 */ {
+  lowered final self::ET1 /* erasure=self::A1 */ #this = _#wc0#formal;
   return #this;
 }
-static extension-type-member synthetic method ET1|constructor#_#new#tearOff(self::A1 _) → self::ET1 /* erasure=self::A1 */
-  return self::ET1|constructor#(_);
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(self::A1 _#wc0#formal) → self::ET1 /* erasure=self::A1 */
+  return self::ET1|constructor#(_#wc0#formal);
 static method main() → void {
   core::Object o = #C4;
   core::print(new self::C1::•() =={self::C1::==}{(core::Object) → core::bool} #C2);

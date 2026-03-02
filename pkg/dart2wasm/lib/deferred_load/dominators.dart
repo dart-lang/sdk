@@ -18,8 +18,8 @@ Dominators computeDominators(
     Map<Constant, DirectConstantDependencies> directConstantDependencies) {
   // Step 1) Create nodes of the graph
   final root = Vertex(rootImport);
-  final veritices = <Object, Vertex>{};
-  final allDeferredImports = <LibraryDependency>{};
+  final veritices = <Object, Vertex>{rootImport: root};
+  final allDeferredImports = <LibraryDependency>{rootImport};
   directReferenceDependencies.forEach((reference, deps) {
     veritices[reference] = Vertex(reference);
     deps.deferredReferences
@@ -59,7 +59,7 @@ Dominators computeDominators(
       from.successors.add(veritices[constant]!);
     });
     deps.deferredConstants.forEach((constant, imports) {
-      final constantV = veritices[reference]!;
+      final constantV = veritices[constant]!;
       imports.forEach((import) {
         final importV = veritices[import]!;
         from.successors.add(importV);
@@ -68,13 +68,13 @@ Dominators computeDominators(
     });
   });
   directConstantDependencies.forEach((constant, deps) {
-    if (constant is TearOffConstant) {
-      final from = veritices[constant]!;
-      from.successors.add(veritices[constant.targetReference]!);
-      return;
-    }
     if (deps.isEmpty) return;
+
     final from = veritices[constant]!;
+    final reference = deps.reference;
+    if (reference != null) {
+      from.successors.add(veritices[reference]!);
+    }
     deps.constants.forEach((constant) {
       from.successors.add(veritices[constant]!);
     });
@@ -91,20 +91,33 @@ Dominators computeDominators(
   dom.computeDominators(root);
 
   // Step 5) Create [Dominators] object mapping prefixes to their dominator.
-  final doms = <LibraryDependency, LibraryDependency>{};
-  for (final import in allDeferredImports) {
+  final doms = <LibraryDependency, DominatorNode<LibraryDependency>>{};
+
+  LibraryDependency? dominatorOf(LibraryDependency import) {
     final importV = veritices[import]!;
     Vertex? dom = importV.dominator;
     while (dom != null && dom.object is! LibraryDependency) {
       dom = dom.dominator;
     }
     if (dom != null) {
-      doms[import] = dom.object as LibraryDependency;
+      return dom.object as LibraryDependency;
     } else {
-      assert(root == dom);
+      assert(import == rootImport);
+      return null;
     }
   }
-  return Dominators(rootImport, doms);
+
+  DominatorNode<LibraryDependency> dominatorNodeOf(LibraryDependency prefix) {
+    final existing = doms[prefix];
+    if (existing != null) return existing;
+
+    final dom = dominatorOf(prefix);
+    return doms[prefix] = DominatorNode<LibraryDependency>(
+        prefix, dom != null ? dominatorNodeOf(dom) : null);
+  }
+
+  allDeferredImports.forEach(dominatorNodeOf);
+  return Dominators(doms[rootImport]!, doms);
 }
 
 class Vertex extends dom.Vertex<Vertex> {
@@ -114,28 +127,76 @@ class Vertex extends dom.Vertex<Vertex> {
 }
 
 class Dominators {
-  final LibraryDependency root;
-  final Map<LibraryDependency, LibraryDependency> dominators;
-  final Map<LibraryDependency, List<LibraryDependency>> children = {};
+  late final DominatorNode<LibraryDependency> root;
+  final Map<LibraryDependency, DominatorNode<LibraryDependency>> _nodes;
 
-  Dominators(this.root, this.dominators) {
-    dominators.forEach((child, dom) {
-      (children[dom] ??= []).add(child);
-      if (dominators[dom] == null) {
-        if (dom != root) throw StateError('Unexpected root $root');
-      }
-    });
+  Dominators(this.root, this._nodes);
+
+  late final List<DominatorNode<LibraryDependency>> allNodes =
+      _nodes.values.toList();
+}
+
+class DominatorNode<T> {
+  final T prefix;
+  final DominatorNode<T>? dominator;
+  final List<DominatorNode<T>> children = [];
+  final int depth;
+
+  DominatorNode(this.prefix, this.dominator)
+      : depth = dominator == null ? 0 : 1 + dominator.depth {
+    dominator?.children.add(this);
   }
 
-  void visitDFSPreorder(
-      void Function(LibraryDependency?, LibraryDependency) fun) {
-    void visit(LibraryDependency? dominator, LibraryDependency node) {
-      fun(dominator, node);
-      for (final child in children[node] ?? const []) {
-        visit(node, child);
+  void visitDFS(void Function(DominatorNode<T>) pre,
+      [void Function(DominatorNode<T>)? post]) {
+    pre(this);
+    for (final child in children) {
+      child.visitDFS(pre, post);
+    }
+    if (post != null) post(this);
+  }
+
+  bool strictlyDominates(DominatorNode<T> other) {
+    if (this == other) return false;
+    if (depth >= other.depth) return false;
+
+    var dom = other.dominator;
+    while (dom != null) {
+      if (dom == this) return true;
+      if (dom.depth == depth) return false;
+      dom = dom.dominator;
+    }
+    return false;
+  }
+
+  DominatorNode<T> commonDominator(DominatorNode<T> right) {
+    var left = this;
+    if (left == right) return this;
+
+    final leftDepth = left.depth;
+    final rightDepth = right.depth;
+
+    if (leftDepth > rightDepth) {
+      for (int i = 0; i < (leftDepth - rightDepth); ++i) {
+        left = left.dominator!;
+      }
+    } else if (rightDepth > leftDepth) {
+      for (int i = 0; i < (rightDepth - leftDepth); ++i) {
+        right = right.dominator!;
       }
     }
 
-    visit(null, root);
+    while (left != right) {
+      left = left.dominator!;
+      right = right.dominator!;
+    }
+    return left;
+  }
+
+  void dump([int indent = 0]) {
+    print('${' ' * indent} $prefix');
+    for (final child in children) {
+      child.dump(indent + 2);
+    }
   }
 }

@@ -1,0 +1,70 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/wildcards.dart:9:33: Error: '_' is already declared in this scope.
+// class C3(final int _, final int _); // Error
+//                                 ^
+// pkg/front_end/testcases/primary_constructors/wildcards.dart:9:20: Context: Previous declaration of '_'.
+// class C3(final int _, final int _); // Error
+//                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  final field core::int _;
+  constructor •(final wildcard core::int _#wc0#formal) → self::C1
+    ;
+}
+class C2 extends core::Object {
+  field core::int _;
+  constructor •(wildcard core::int _#wc1#formal) → self::C2
+    ;
+}
+class C3 extends core::Object {
+  final field core::int _;
+  constructor •(final wildcard core::int _#wc2#formal, final wildcard core::int _#wc3#formal) → self::C3
+    ;
+}
+class C4 extends core::Object {
+  constructor •(wildcard core::int _#wc4#formal, wildcard core::int _#wc5#formal) → self::C4
+    ;
+}
+class C5 extends core::Object {
+  field core::int _;
+  field core::int x;
+  constructor •(wildcard core::int _#wc6#formal) → self::C5
+    ;
+}
+extension type ET1(core::int _) {
+  abstract extension-type-member representation-field get _() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int _) {
+  abstract extension-type-member representation-field get _() → core::int;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(core::int _) {
+  abstract extension-type-member representation-field get _() → core::int;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(wildcard core::int _#wc7#formal) → self::ET1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int _#wc7#formal) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(_#wc7#formal);
+static extension-type-member method ET2|constructor#(final wildcard core::int _#wc8#formal) → self::ET2% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int _#wc8#formal) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(_#wc8#formal);
+static extension-type-member method ET3|constructor#(wildcard core::int _#wc9#formal) → self::ET3% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int _#wc9#formal) → self::ET3% /* erasure=core::int, declared=! */
+  return self::ET3|constructor#(_#wc9#formal);
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

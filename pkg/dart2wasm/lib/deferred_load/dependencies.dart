@@ -27,9 +27,20 @@ class DependenciesCollector {
   /// Returns the set of constants referred to by the (possibly composed)
   /// [constant].
   DirectConstantDependencies directConstantDependencies(Constant constant) {
+    Reference? extraReference;
+    if (constant is InstanceConstant) {
+      extraReference = constant.classReference;
+    } else if (constant is TearOffConstant) {
+      extraReference = constant.targetReference;
+    } else {
+      // The classes needed for  {List,Map,Set,Record}Constants are
+      // marked as @pragma('wasm:entry-point') and do not have to be explicitly
+      // modeled as dependencies (they land in the root unit).
+    }
+
     final children = <Constant>{};
     constant.visitChildren(_ConstantDependenciesCollector._(children));
-    return DirectConstantDependencies(children);
+    return DirectConstantDependencies(children, extraReference);
   }
 
   DirectReferenceDependencies directReferenceDependencies(Reference reference) {
@@ -180,6 +191,11 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
       assert(guard == last);
     }
   }
+
+  // The references needed by the codegen to handle
+  // {List,Map,Set,Record}Literals are all marked with
+  // @pragma('wasm:entry-point') and do not have to be explicitly
+  // modeled as dependencies (they land in the root unit).
 
   @override
   void visitSuperPropertyGet(SuperPropertyGet node) {
@@ -366,8 +382,9 @@ class DirectReferenceDependencies {
 
 class DirectConstantDependencies {
   final Set<Constant> constants;
+  final Reference? reference;
 
-  DirectConstantDependencies(this.constants);
+  DirectConstantDependencies(this.constants, this.reference);
 
-  bool get isEmpty => constants.isEmpty;
+  bool get isEmpty => constants.isEmpty && reference == null;
 }

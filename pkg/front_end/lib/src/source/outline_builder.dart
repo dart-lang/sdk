@@ -3087,9 +3087,6 @@ class OutlineBuilder extends StackListenerImpl {
           hasSuper: superKeyword != null,
           nameOffset: identifier?.nameOffset ?? nameToken.charOffset,
           initializerToken: initializerStart,
-          // Extension type parameters should not have a lowered name for
-          // wildcard variables.
-          lowerWildcard: declarationContext != DeclarationContext.ExtensionType,
         ),
       );
     }

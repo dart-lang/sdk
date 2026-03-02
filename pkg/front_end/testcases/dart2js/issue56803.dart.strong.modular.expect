@@ -10,12 +10,12 @@ extension type Ext(core::String _) implements core::String {
   constructor tearoff • = self::Ext|constructor#_#new#tearOff;
 }
 static const field core::String? maybe = #C5;
-static extension-type-member const method Ext|constructor#_(core::String _) → self::Ext /* erasure=core::String */ {
-  lowered final self::Ext /* erasure=core::String */ #this = _;
+static extension-type-member const method Ext|constructor#_(wildcard core::String _#wc0#formal) → self::Ext /* erasure=core::String */ {
+  lowered final self::Ext /* erasure=core::String */ #this = _#wc0#formal;
   return #this;
 }
-static extension-type-member synthetic method Ext|constructor#_#_#tearOff(core::String _) → self::Ext /* erasure=core::String */
-  return self::Ext|constructor#_(_);
+static extension-type-member synthetic method Ext|constructor#_#_#tearOff(core::String _#wc0#formal) → self::Ext /* erasure=core::String */
+  return self::Ext|constructor#_(_#wc0#formal);
 static extension-type-member const method Ext|constructor#() → self::Ext /* erasure=core::String */ {
   lowered final self::Ext /* erasure=core::String */ #this = "OK";
   assert(!(#C5 == null), "Must not be null");
