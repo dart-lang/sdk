@@ -63,6 +63,9 @@ main() {
 
 - The analyzer now warns when a function which contains a parameter which is
   annotated with `@mustBeConst` is torn off.
+- The `invalid_runtime_check_with_js_interop_types` rule now checks for JS
+  interop types in the type in a catch clause and instructs users to use `isA`
+  for type checks instead.
 
 #### Pub
 

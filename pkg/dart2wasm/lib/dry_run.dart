@@ -49,7 +49,8 @@ enum _DryRunErrorCode {
   avoidDoubleAndIntChecks(13),
   noPackageJs(14),
   noDartJsUtil(15),
-  noDartFfiWithoutFlag(16);
+  noDartFfiWithoutFlag(16),
+  invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType(17);
 
   const _DryRunErrorCode(this.code);
 
@@ -221,6 +222,9 @@ class DryRunSummarizer {
 
   _DryRunErrorCode? _getDryRunErrorCodeFromDiagnostic(Diagnostic diagnostic) =>
       switch (diagnostic.diagnosticCode) {
+        diag.invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType =>
+          _DryRunErrorCode
+              .invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
         diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs =>
           _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesDartAsJs,
         diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs =>
