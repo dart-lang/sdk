@@ -327,15 +327,13 @@ class _Algorithm {
   void ensureConstantDependencies(Constant constant) {
     if (directConstantDependencies.containsKey(constant)) return;
 
-    if (constant is InstanceConstant) {
-      ensureReferenceDependencies(constant.classReference);
-    } else if (constant is TearOffConstant) {
-      ensureReferenceDependencies(constant.targetReference);
-    }
-
     final deps = depsCollector.directConstantDependencies(constant);
     directConstantDependencies[constant] = deps;
 
+    final reference = deps.reference;
+    if (reference != null) {
+      ensureReferenceDependencies(reference);
+    }
     deps.constants.forEach(ensureConstantDependencies);
   }
 
@@ -437,14 +435,13 @@ class _Algorithm {
 
   void _updateConstantDependencies(
       Constant constant, ImportSet oldSet, ImportSet newSet) {
-    if (constant is InstanceConstant) {
-      updateReference(constant.classReference, oldSet, newSet);
-    } else if (constant is TearOffConstant) {
-      updateReference(constant.targetReference, oldSet, newSet);
+    final deps = directConstantDependencies[constant]!;
+    final reference = deps.reference;
+    if (reference != null) {
+      updateReference(reference, oldSet, newSet);
     }
 
-    final childConstants = directConstantDependencies[constant]!;
-    for (final constant in childConstants.constants) {
+    for (final constant in deps.constants) {
       updateConstant(constant, oldSet, newSet);
     }
   }

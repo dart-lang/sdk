@@ -59,7 +59,7 @@ Dominators computeDominators(
       from.successors.add(veritices[constant]!);
     });
     deps.deferredConstants.forEach((constant, imports) {
-      final constantV = veritices[reference]!;
+      final constantV = veritices[constant]!;
       imports.forEach((import) {
         final importV = veritices[import]!;
         from.successors.add(importV);
@@ -68,13 +68,13 @@ Dominators computeDominators(
     });
   });
   directConstantDependencies.forEach((constant, deps) {
-    if (constant is TearOffConstant) {
-      final from = veritices[constant]!;
-      from.successors.add(veritices[constant.targetReference]!);
-      return;
-    }
     if (deps.isEmpty) return;
+
     final from = veritices[constant]!;
+    final reference = deps.reference;
+    if (reference != null) {
+      from.successors.add(veritices[reference]!);
+    }
     deps.constants.forEach((constant) {
       from.successors.add(veritices[constant]!);
     });
