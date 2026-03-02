@@ -26,7 +26,6 @@ using FunctionHashMap = UnorderedHashMap<FunctionHashMapTraits>;
 FunctionPtr ClosureFunctionsCache::LookupClosureFunction(
     const Function& member_function,
     intptr_t local_function_id) {
-  ASSERT(!member_function.HasBytecode());
   auto thread = Thread::Current();
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   return LookupClosureFunctionLocked(member_function, local_function_id);
@@ -35,7 +34,6 @@ FunctionPtr ClosureFunctionsCache::LookupClosureFunction(
 FunctionPtr ClosureFunctionsCache::LookupClosureFunctionLocked(
     const Function& member_function,
     intptr_t local_function_id) {
-  ASSERT(!member_function.HasBytecode());
   auto thread = Thread::Current();
   auto zone = thread->zone();
   auto object_store = thread->isolate_group()->object_store();

@@ -13,6 +13,7 @@
 #include "vm/bootstrap.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_id.h"
+#include "vm/closure_functions_cache.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/assembler/disassembler.h"
@@ -537,13 +538,14 @@ class ClosureFunctionRefDeserializationCluster : public DeserializationCluster {
   void PreLoad(Deserializer* d) override {
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      const bool is_tear_off = d->ReadUnsigned() != 0;
       function_ = static_cast<FunctionPtr>(d->ReadRef());
-      if (is_tear_off) {
+      const intptr_t local_function_id = d->ReadUnsigned();
+      if (local_function_id == 0) {
         function_ = function_.ImplicitClosureFunction();
       } else {
-        // TODO(alexmarkov): support local functions
-        UNIMPLEMENTED();
+        function_ = ClosureFunctionsCache::LookupClosureFunction(
+            function_, local_function_id);
+        RELEASE_ASSERT(!function_.IsNull());
       }
       d->AssignRefPreLoad(function_);
     }
