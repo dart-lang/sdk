@@ -335,6 +335,55 @@ void main() {
         'blr lr\n',
       );
     });
+    test('inlineAllocation - object size 16', () {
+      final slowPath = Label();
+      asm.inlineAllocation(R0, R1, R2, R3, 16, slowPath);
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'add r3, r0, #0x10\n'
+        'cmp r2, r3\n'
+        'bls +20\n'
+        'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'str null, [r0, #8]\n'
+        'add r0, r0, #0x1\n',
+      );
+    });
+    test('inlineAllocation - object size 32', () {
+      final slowPath = Label();
+      asm.inlineAllocation(R0, R1, R2, R3, 32, slowPath);
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'add r3, r0, #0x20\n'
+        'cmp r2, r3\n'
+        'bls +24\n'
+        'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'stp null, null, [r0, #8]\n'
+        'str null, [r0, #24]\n'
+        'add r0, r0, #0x1\n',
+      );
+    });
+    test('inlineAllocation - object size 160', () {
+      final slowPath = Label();
+      asm.inlineAllocation(R0, R1, R2, R3, 160, slowPath);
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'add r3, r0, #0xa0\n'
+        'cmp r2, r3\n'
+        'bls +32\n'
+        'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'add r2, r0, #0x8\n'
+        'stp null, null, [r2], #16 !\n'
+        'cmp r2, r3\n'
+        'bcc -8\n'
+        'add r0, r0, #0x1\n',
+      );
+    });
   });
 
   group('instruction', () {
