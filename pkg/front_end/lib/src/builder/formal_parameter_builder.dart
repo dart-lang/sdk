@@ -120,8 +120,9 @@ class FormalParameterBuilder extends NamedBuilderImpl
 
   final bool isExtensionThis;
 
-  /// Whether this formal parameter is a wildcard variable.
-  final bool isWildcard;
+  /// If this is a wildcard variable, this holds the index used to create a
+  /// uniquely named kernel variable for it.
+  final int? _wildcardIndex;
 
   final int? nameOffset;
 
@@ -137,12 +138,13 @@ class FormalParameterBuilder extends NamedBuilderImpl
     this.isExtensionThis = false,
     Token? defaultValueToken,
     required this.hasImmediatelyDeclaredInitializer,
-    this.isWildcard = false,
+    int? wildcardIndex,
     this.publicName,
     required this.nameOffset,
     required this.isClosureContextLoweringEnabled,
   }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
-       this._defaultValueToken = defaultValueToken {
+       this._defaultValueToken = defaultValueToken,
+       this._wildcardIndex = wildcardIndex {
     type.registerInferredTypeListener(this);
   }
 
@@ -177,6 +179,9 @@ class FormalParameterBuilder extends NamedBuilderImpl
   @override
   bool get isConst => modifiers.isConst;
 
+  /// Whether this formal parameter is a wildcard variable.
+  bool get isWildcard => _wildcardIndex != null;
+
   // An initializing formal parameter might be final without its
   // VariableDeclaration being final. See
   // [ProcedureBuilder.computeFormalParameterInitializerScope]..
@@ -206,6 +211,9 @@ class FormalParameterBuilder extends NamedBuilderImpl
         // If the parameter is a private named parameter, use the public name
         // for the corresponding variable.
         _ when publicName != null => publicName,
+        _ when _wildcardIndex != null => createWildcardFormalParameterName(
+          _wildcardIndex,
+        ),
         _ => name,
       };
 
@@ -275,6 +283,12 @@ class FormalParameterBuilder extends NamedBuilderImpl
     }
   }
 
+  /// Creates the [FormalParameterBuilder] for a declaring parameter used in the
+  /// formal parameters in a primary constructor.
+  ///
+  /// This parameter is marked as an initializing formal whose type is inferred
+  /// and replaces the original parameter in the primary constructor
+  /// declaration.
   FormalParameterBuilder forPrimaryConstructor(FragmentFactory builderFactory) {
     return new FormalParameterBuilder(
       kind: kind,
@@ -290,43 +304,9 @@ class FormalParameterBuilder extends NamedBuilderImpl
       defaultValueToken: copyDefaultValueToken(),
       hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
       publicName: publicName,
+      wildcardIndex: _wildcardIndex,
       isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     )..variable = variable;
-  }
-
-  FormalParameterBuilder forFormalParameterInitializerScope() {
-    if (isInitializingFormal) {
-      return new FormalParameterBuilder(
-        kind: kind,
-        modifiers: modifiers | Modifiers.Final | Modifiers.InitializingFormal,
-        type: type,
-        name: name,
-        fileOffset: fileOffset,
-        nameOffset: nameOffset,
-        fileUri: fileUri,
-        isExtensionThis: isExtensionThis,
-        hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
-        publicName: publicName,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-      )..variable = variable;
-    } else if (isSuperInitializingFormal) {
-      return new FormalParameterBuilder(
-        kind: kind,
-        modifiers:
-            modifiers | Modifiers.Final | Modifiers.SuperInitializingFormal,
-        type: type,
-        name: name,
-        fileOffset: fileOffset,
-        nameOffset: nameOffset,
-        fileUri: fileUri,
-        isExtensionThis: isExtensionThis,
-        hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
-        publicName: publicName,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-      )..variable = variable;
-    } else {
-      return this;
-    }
   }
 
   void finalizeInitializingFormal(

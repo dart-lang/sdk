@@ -5414,11 +5414,9 @@ class BodyBuilderImpl extends StackListenerImpl
       );
       bool isWildcard =
           libraryFeatures.wildcardVariables.isEnabled && parameterName == '_';
+      int? wildcardIndex;
       if (isWildcard) {
-        parameterName = createWildcardFormalParameterName(
-          wildcardVariableIndex,
-        );
-        wildcardVariableIndex++;
+        wildcardIndex = wildcardVariableIndex++;
       }
       if (memberKind.isFunctionType) {
         push(
@@ -5439,7 +5437,7 @@ class BodyBuilderImpl extends StackListenerImpl
         nameOffset: nameOffset,
         fileUri: uri,
         hasImmediatelyDeclaredInitializer: initializerStart != null,
-        isWildcard: isWildcard,
+        wildcardIndex: wildcardIndex,
         publicName: publicName,
         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );

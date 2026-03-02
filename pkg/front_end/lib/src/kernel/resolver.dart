@@ -15,7 +15,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
-import '../api_prototype/lowering_predicates.dart';
 import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/crash.dart';
@@ -891,11 +890,9 @@ class Resolver {
               bool isWildcard =
                   libraryFeatures.wildcardVariables.isEnabled &&
                   formalName == '_';
+              int? wildcardIndex;
               if (isWildcard) {
-                formalName = createWildcardFormalParameterName(
-                  wildcardVariableIndex,
-                );
-                wildcardVariableIndex++;
+                wildcardIndex = wildcardVariableIndex++;
               }
               return new FormalParameterBuilder(
                 kind: FormalParameterKind.requiredPositional,
@@ -906,7 +903,7 @@ class Resolver {
                 fileOffset: formal.fileOffset,
                 fileUri: fileUri,
                 hasImmediatelyDeclaredInitializer: false,
-                isWildcard: isWildcard,
+                wildcardIndex: wildcardIndex,
                 isClosureContextLoweringEnabled: libraryBuilder
                     .loader
                     .target

@@ -48,18 +48,18 @@ extension type F(asy::Future<core::int> _) implements asy::Future<core::int> {
   constructor • = self::F|constructor#;
   constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
-static extension-type-member method N|constructor#(asy::Future<core::int> _) → self::N% /* erasure=asy::Future<core::int>, declared=! */ {
-  lowered final self::N% /* erasure=asy::Future<core::int>, declared=! */ #this = _;
+static extension-type-member method N|constructor#(wildcard asy::Future<core::int> _#wc0#formal) → self::N% /* erasure=asy::Future<core::int>, declared=! */ {
+  lowered final self::N% /* erasure=asy::Future<core::int>, declared=! */ #this = _#wc0#formal;
   return #this;
 }
-static extension-type-member synthetic method N|constructor#_#new#tearOff(asy::Future<core::int> _) → self::N% /* erasure=asy::Future<core::int>, declared=! */
-  return self::N|constructor#(_);
-static extension-type-member method F|constructor#(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */ {
-  lowered final self::F /* erasure=asy::Future<core::int> */ #this = _;
+static extension-type-member synthetic method N|constructor#_#new#tearOff(asy::Future<core::int> _#wc0#formal) → self::N% /* erasure=asy::Future<core::int>, declared=! */
+  return self::N|constructor#(_#wc0#formal);
+static extension-type-member method F|constructor#(wildcard asy::Future<core::int> _#wc1#formal) → self::F /* erasure=asy::Future<core::int> */ {
+  lowered final self::F /* erasure=asy::Future<core::int> */ #this = _#wc1#formal;
   return #this;
 }
-static extension-type-member synthetic method F|constructor#_#new#tearOff(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
-  return self::F|constructor#(_);
+static extension-type-member synthetic method F|constructor#_#new#tearOff(asy::Future<core::int> _#wc1#formal) → self::F /* erasure=asy::Future<core::int> */
+  return self::F|constructor#(_#wc1#formal);
 static method test<X extends core::Object? = dynamic, XN extends self::N% /* erasure=asy::Future<core::int>, declared=! */, XF extends self::F /* erasure=asy::Future<core::int> */>(self::N% /* erasure=asy::Future<core::int>, declared=! */ n, self::F /* erasure=asy::Future<core::int> */ f, self::test::X% x, self::test::XN% xn, self::test::XF xf, self::N? /* erasure=asy::Future<core::int>? */ nq, self::F? /* erasure=asy::Future<core::int>? */ fq, self::test::XN? xnq, self::test::XF? xfq) → void async /* emittedValueType= void */ {
   await invalid-expression "pkg/front_end/testcases/extension_types/issue54649.dart:10:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await n; // Error.
