@@ -1739,12 +1739,6 @@ class VariableStatement extends Statement implements VariableDeclaration {
     throw new UnsupportedError("${this.runtimeType}.catchVariableName");
   }
 
-  @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  void set catchVariableName(String value) {
-    throw new UnsupportedError("${this.runtimeType}.catchVariableName=");
-  }
-
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
   static const int FlagHasDeclaredInitializer = 1 << 2;

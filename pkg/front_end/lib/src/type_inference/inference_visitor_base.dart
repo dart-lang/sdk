@@ -4320,11 +4320,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 compilerContext: compilerContext,
                 expression: resultExpression,
                 message: diag.finalNotAssignedError.withArguments(
-                  variableName: node.variable.name!,
+                  variableName: node.expressionVariable.cosmeticName!,
                 ),
                 fileUri: fileUri,
                 fileOffset: node.fileOffset,
-                length: node.variable.name!.length,
+                length: node.expressionVariable.cosmeticName!.length,
               ),
             );
           } else if (declaredOrInferredType.isPotentiallyNonNullable) {

@@ -13648,10 +13648,33 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void visitCatch(Catch node) {
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
         scopeProviderInfoKind: ScopeProviderInfoKind.Catch,
       );
+      if (node.exceptionCatchVariable
+          case CatchVariable exceptionCatchVariable?) {
+        // TODO(62401): Remove the casts when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        exceptionCatchVariable =
+            (exceptionCatchVariable as InternalExpressionVariable).astVariable
+                as CatchVariable;
+        _contextAllocationStrategy.handleDeclarationOfVariable(
+          exceptionCatchVariable,
+          captureKind: _captureKindForVariable(exceptionCatchVariable),
+        );
+      }
+      if (node.stackTraceCatchVariable
+          case CatchVariable stackTraceCatchVariable?) {
+        // TODO(62401): Remove the casts when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        stackTraceCatchVariable =
+            (stackTraceCatchVariable as InternalExpressionVariable).astVariable
+                as CatchVariable;
+        _contextAllocationStrategy.handleDeclarationOfVariable(
+          stackTraceCatchVariable,
+          captureKind: _captureKindForVariable(stackTraceCatchVariable),
+        );
+      }
     }
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
@@ -13659,7 +13682,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.body = bodyResult.statement..parent = node;
     }
     if (scopeProviderInfo != null) {
-      // Coverage-ignore-block(suite): Not run.
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       node.scope = scopeProviderInfo.scope;
     }
@@ -13681,9 +13703,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.catchBlocks.isNotEmpty) {
       flowAnalysis.tryCatchStatement_bodyEnd(tryBodyWithAssignedInfo);
       for (Catch catchBlock in node.catchBlocks) {
+        // TODO(62401): Remove the casts when the flow analysis uses
+        // [InternalExpressionVariable]s.
         flowAnalysis.tryCatchStatement_catchBegin(
-          catchBlock.exception,
-          catchBlock.stackTrace,
+          (catchBlock.exceptionCatchVariable as InternalExpressionVariable?)
+              ?.astVariable,
+          (catchBlock.stackTraceCatchVariable as InternalExpressionVariable?)
+              ?.astVariable,
         );
         visitCatch(catchBlock);
         flowAnalysis.tryCatchStatement_catchEnd();

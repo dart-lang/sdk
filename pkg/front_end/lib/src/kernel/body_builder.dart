@@ -5388,7 +5388,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Identifier? name = nameNode as Identifier?;
 
-    FormalParameterBuilder? parameter;
+    ParameterBuilder? parameter;
     int nameOffset = offsetForToken(nameToken);
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
@@ -5403,16 +5403,6 @@ class BodyBuilderImpl extends StackListenerImpl
       }
     } else {
       String parameterName = name?.name ?? '';
-      String? publicName = problemReporting.checkPublicName(
-        compilationUnit: libraryBuilder.compilationUnit,
-        kind: kind,
-        parameterName: parameterName,
-        nameToken: nameToken,
-        thisKeyword: thisKeyword,
-        isDeclaring: false,
-        libraryFeatures: libraryFeatures,
-        fileUri: uri,
-      );
       bool isWildcard =
           libraryFeatures.wildcardVariables.isEnabled && parameterName == '_';
       int? wildcardIndex;
@@ -5429,53 +5419,89 @@ class BodyBuilderImpl extends StackListenerImpl
         );
         return;
       }
-      parameter = new FormalParameterBuilder(
-        kind: kind,
-        modifiers: modifiers,
-        type: type ?? const ImplicitTypeBuilder(),
-        name: parameterName,
-        fileOffset: nameOffset,
-        nameOffset: nameOffset,
-        fileUri: uri,
-        hasImmediatelyDeclaredInitializer: initializerStart != null,
-        wildcardIndex: wildcardIndex,
-        publicName: publicName,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-      );
-    }
-    VariableDeclaration functionParameter = parameter.build(libraryBuilder);
-    Expression? initializer = name?.initializer;
-    if (initializer != null) {
-      if (_context.isRedirectingFactory) {
-        addProblem(
-          diag.defaultValueInRedirectingFactoryConstructor.withArguments(
-            redirectionTarget: _context.redirectingFactoryTargetName,
-          ),
-          initializer.fileOffset,
-          noLength,
+      if (memberKind == MemberKind.Catch) {
+        parameter = new CatchParameterBuilder(
+          modifiers: modifiers,
+          type: type ?? const ImplicitTypeBuilder(),
+          name: parameterName,
+          fileOffset: nameOffset,
+          nameOffset: nameOffset,
+          fileUri: uri,
+          wildcardIndex: wildcardIndex,
+          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         );
-        functionParameter.isErroneouslyInitialized = true;
       } else {
-        if (!parameter.initializerWasInferred) {
-          functionParameter.initializer = initializer
-            ..parent = functionParameter;
+        String? publicName = problemReporting.checkPublicName(
+          compilationUnit: libraryBuilder.compilationUnit,
+          kind: kind,
+          parameterName: parameterName,
+          nameToken: nameToken,
+          thisKeyword: thisKeyword,
+          isDeclaring: false,
+          libraryFeatures: libraryFeatures,
+          fileUri: uri,
+        );
+        parameter = new FormalParameterBuilder(
+          kind: kind,
+          modifiers: modifiers,
+          type: type ?? const ImplicitTypeBuilder(),
+          name: parameterName,
+          fileOffset: nameOffset,
+          nameOffset: nameOffset,
+          fileUri: uri,
+          hasImmediatelyDeclaredInitializer: initializerStart != null,
+          wildcardIndex: wildcardIndex,
+          publicName: publicName,
+          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+        );
+      }
+    }
+
+    ExpressionVariable functionParameter;
+    if (memberKind == MemberKind.Catch) {
+      functionParameter = (parameter as CatchParameterBuilder).build(
+        libraryBuilder,
+      );
+    } else {
+      functionParameter = (parameter as FormalParameterBuilder).build(
+        libraryBuilder,
+      );
+      Expression? initializer = name?.initializer;
+      if (initializer != null) {
+        if (_context.isRedirectingFactory) {
+          addProblem(
+            diag.defaultValueInRedirectingFactoryConstructor.withArguments(
+              redirectionTarget: _context.redirectingFactoryTargetName,
+            ),
+            initializer.fileOffset,
+            noLength,
+          );
+          functionParameter.isErroneouslyInitialized = true;
+        } else {
+          if (!parameter.initializerWasInferred) {
+            functionParameter.initializer = initializer
+              ..parent = functionParameter;
+          }
+        }
+      } else if (kind.isOptional) {
+        functionParameter.initializer ??= forest.createNullLiteral(noLocation)
+          ..parent = functionParameter;
+      }
+      if (annotations != null) {
+        if (functionParameter is VariableDeclaration) {
+          functionParameter.clearAnnotations();
+        }
+        for (Expression annotation in annotations) {
+          functionParameter.addAnnotation(annotation);
+        }
+        // TODO(johnniwinther): This seems wrong. If we add the annotations, we
+        //  should infer them.
+        if (functionNestingLevel == 0) {
+          _registerSingleTargetAnnotations(functionParameter);
         }
       }
-    } else if (kind.isOptional) {
-      functionParameter.initializer ??= forest.createNullLiteral(noLocation)
-        ..parent = functionParameter;
     }
-    if (annotations != null) {
-      functionParameter.clearAnnotations();
-      for (Expression annotation in annotations) {
-        functionParameter.addAnnotation(annotation);
-      }
-      // TODO(johnniwinther): This seems wrong. If we add the annotations, we
-      //  should infer them.
-      if (functionNestingLevel == 0) {
-        _registerSingleTargetAnnotations(functionParameter);
-      }
-    }
+
     push(parameter);
     // We pass `ignoreDuplicates: true` because the variable might have been
     // previously passed to `declare` in the `BodyBuilder` constructor.
@@ -5509,12 +5535,17 @@ class BodyBuilderImpl extends StackListenerImpl
         push(parameters);
       }
     } else {
-      List<FormalParameterBuilder>? parameters =
-          const FixedNullableList<FormalParameterBuilder>().popNonNullable(
-            stack,
-            count,
-            dummyFormalParameterBuilder,
-          );
+      List<ParameterBuilder>? parameters = inCatchClause
+          ? const FixedNullableList<CatchParameterBuilder>().popNonNullable(
+              stack,
+              count,
+              dummyCatchParameterBuilder,
+            )
+          : const FixedNullableList<FormalParameterBuilder>().popNonNullable(
+              stack,
+              count,
+              dummyFormalParameterBuilder,
+            );
       if (parameters == null) {
         push(new ParserRecovery(offsetForToken(beginToken)));
       } else {
@@ -5669,11 +5700,12 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       assert(
         checkState(beginToken, [
-          if (count > 0 && peek() is List<FormalParameterBuilder>) ...[
-            ValueKinds.FormalList,
+          if (count > 0 && peek() is List<ParameterVariableBuilder>) ...[
+            ValueKinds.ParameterList,
             ...repeatedKind(
               unionOfKinds([
                 ValueKinds.FormalParameterBuilder,
+                ValueKinds.CatchParameterBuilder,
                 ValueKinds.ParserRecovery,
               ]),
               count - 1,
@@ -5682,6 +5714,7 @@ class BodyBuilderImpl extends StackListenerImpl
             ...repeatedKind(
               unionOfKinds([
                 ValueKinds.FormalParameterBuilder,
+                ValueKinds.CatchParameterBuilder,
                 ValueKinds.ParserRecovery,
               ]),
               count,
@@ -5690,31 +5723,45 @@ class BodyBuilderImpl extends StackListenerImpl
           /* constantContext */ ValueKinds.ConstantContext,
         ]),
       );
-      List<FormalParameterBuilder>? optionals;
+      List<ParameterVariableBuilder>? optionals;
       int optionalsCount = 0;
-      if (count > 0 && peek() is List<FormalParameterBuilder>) {
-        optionals = pop() as List<FormalParameterBuilder>;
+      if (count > 0 && peek() is List<ParameterVariableBuilder>) {
+        optionals = pop() as List<ParameterVariableBuilder>;
         count--;
         optionalsCount = optionals.length;
       }
-      List<FormalParameterBuilder>? parameters =
-          const FixedNullableList<FormalParameterBuilder>()
-              .popPaddedNonNullable(
-                stack,
-                count,
-                optionalsCount,
-                dummyFormalParameterBuilder,
-              );
+      List<ParameterVariableBuilder>? parameters = inCatchClause
+          ? const FixedNullableList<CatchParameterBuilder>()
+                .popPaddedNonNullable(
+                  stack,
+                  count,
+                  optionalsCount,
+                  dummyCatchParameterBuilder,
+                )
+          : const FixedNullableList<FormalParameterBuilder>()
+                .popPaddedNonNullable(
+                  stack,
+                  count,
+                  optionalsCount,
+                  dummyFormalParameterBuilder,
+                );
       if (optionals != null && parameters != null) {
         parameters.setRange(count, count + optionalsCount, optionals);
       }
       assert(parameters?.isNotEmpty ?? true);
-      FormalParameters formals = new FormalParameters(
-        parameters,
-        offsetForToken(beginToken),
-        lengthOfSpan(beginToken, endToken),
-        uri,
-      );
+      Parameters formals = inCatchClause
+          ? new CatchParameters(
+              parameters as List<CatchParameterBuilder>?,
+              offsetForToken(beginToken),
+              lengthOfSpan(beginToken, endToken),
+              uri,
+            )
+          : new FormalParameters(
+              parameters as List<FormalParameterBuilder>?,
+              offsetForToken(beginToken),
+              lengthOfSpan(beginToken, endToken),
+              uri,
+            );
       inFormals = pop() as bool;
       constantContext = pop() as ConstantContext;
       push(formals);
@@ -5754,8 +5801,8 @@ class BodyBuilderImpl extends StackListenerImpl
     if (catchKeyword != null) {
       exitLocalScope();
     }
-    FormalParameters? catchParameters =
-        popIfNotNull(catchKeyword) as FormalParameters?;
+    CatchParameters? catchParameters =
+        popIfNotNull(catchKeyword) as CatchParameters?;
     TypeBuilder? unresolvedExceptionType =
         popIfNotNull(onKeyword) as TypeBuilder?;
     DartType exceptionType;
@@ -5768,8 +5815,8 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       exceptionType = coreTypes.objectNonNullableRawType;
     }
-    FormalParameterBuilder? exception;
-    FormalParameterBuilder? stackTrace;
+    CatchParameterBuilder? exception;
+    CatchParameterBuilder? stackTrace;
     List<Statement>? compileTimeErrors;
     if (catchParameters?.parameters != null) {
       int parameterCount = catchParameters!.parameters!.length;
@@ -5787,7 +5834,7 @@ class BodyBuilderImpl extends StackListenerImpl
         // If parameterCount is 0, the parser reported an error already.
         if (parameterCount != 0) {
           for (int i = 2; i < parameterCount; i++) {
-            FormalParameterBuilder parameter = catchParameters.parameters![i];
+            CatchParameterBuilder parameter = catchParameters.parameters![i];
             compileTimeErrors ??= <Statement>[];
             compileTimeErrors.add(
               buildProblemStatement(
@@ -5800,59 +5847,12 @@ class BodyBuilderImpl extends StackListenerImpl
         }
       }
     }
-    assert(
-      exception == null ||
-          exception.kind == FormalParameterKind.requiredPositional ||
-          // Coverage-ignore(suite): Not run.
-          exception.kind == FormalParameterKind.optionalPositional,
-    );
-    assert(
-      stackTrace == null ||
-          stackTrace.kind == FormalParameterKind.requiredPositional ||
-          // Coverage-ignore(suite): Not run.
-          stackTrace.kind == FormalParameterKind.optionalPositional,
-    );
-
-    CatchVariable? exceptionVariable;
-    if (exception?.variable
-        case VariableDeclaration exceptionVariableDeclaration) {
-      if (isClosureContextLoweringEnabled) {
-        // Coverage-ignore-block(suite): Not run.
-        // TODO(62743): Avoid the conversion when [FormalParameterBuilder]
-        // produces [CatchVariable]s directly.
-        exceptionVariable = new CatchVariable(
-          name: exceptionVariableDeclaration.name!,
-          type: exceptionVariableDeclaration.type,
-          isWildcard: exceptionVariableDeclaration.isWildcard,
-        );
-      } else {
-        exceptionVariable = exceptionVariableDeclaration;
-      }
-    }
-
-    CatchVariable? stackTraceVariable;
-    if (stackTrace?.variable
-        case VariableDeclaration stackTraceVariableDeclaration) {
-      if (isClosureContextLoweringEnabled) {
-        // Coverage-ignore-block(suite): Not run.
-        // TODO(62743): Avoid the conversion when [FormalParameterBuilder]
-        // produces [CatchVariable]s directly.
-        stackTraceVariable = new CatchVariable(
-          name: stackTraceVariableDeclaration.name!,
-          type: stackTraceVariableDeclaration.type,
-          isWildcard: stackTraceVariableDeclaration.isWildcard,
-        );
-      } else {
-        stackTraceVariable = stackTraceVariableDeclaration;
-      }
-    }
-
     push(
       forest.createCatch(
         offsetForToken(onKeyword ?? catchKeyword),
         exceptionType,
-        exceptionVariable,
-        stackTraceVariable,
+        exception?.variable,
+        stackTrace?.variable,
         coreTypes.stackTraceRawType(Nullability.nonNullable),
         body,
       ),

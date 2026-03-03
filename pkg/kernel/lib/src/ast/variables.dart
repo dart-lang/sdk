@@ -423,7 +423,7 @@ class LocalVariable extends ExpressionVariable {
 ///       bar();
 ///     }
 class CatchVariable extends ExpressionVariable {
-  String catchVariableName;
+  final String catchVariableName;
 
   @override
   DartType type;
@@ -445,7 +445,7 @@ class CatchVariable extends ExpressionVariable {
 
   @override
   void set cosmeticName(String? value) {
-    catchVariableName = value!;
+    throw new UnsupportedError("${this.runtimeType}.cosmeticName=");
   }
 
   @override
@@ -485,9 +485,7 @@ class CatchVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isConst {
-    throw new UnsupportedError("${this.runtimeType}.isConst");
-  }
+  bool get isConst => false;
 
   @override
   void set isConst(bool value) {
@@ -495,9 +493,7 @@ class CatchVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isLate {
-    throw new UnsupportedError("${this.runtimeType}.isLate");
-  }
+  bool get isLate => false;
 
   @override
   void set isLate(bool value) {
@@ -505,9 +501,7 @@ class CatchVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isLowered {
-    throw new UnsupportedError("${this.runtimeType}.isLowered");
-  }
+  bool get isLowered => false;
 
   @override
   void set isLowered(bool value) {
@@ -648,10 +642,10 @@ class CatchVariable extends ExpressionVariable {
   bool get hasIsFinal => false;
 
   @override
-  bool get hasIsConst => false;
+  bool get hasIsConst => true;
 
   @override
-  bool get hasIsLate => false;
+  bool get hasIsLate => true;
 
   @override
   bool get hasIsInitializingFormal => false;
@@ -675,7 +669,7 @@ class CatchVariable extends ExpressionVariable {
   bool get hasIsCovariantByDeclaration => false;
 
   @override
-  bool get hasIsLowered => false;
+  bool get hasIsLowered => true;
 
   @override
   bool get hasIsWildcard => false;
@@ -931,12 +925,6 @@ class PositionalParameter extends FunctionParameter {
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  void set catchVariableName(String value) {
-    throw new UnsupportedError("${this.runtimeType}.catchVariableName=");
-  }
-
-  @override
   void addAnnotation(Expression annotation) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];
@@ -1083,12 +1071,6 @@ class NamedParameter extends FunctionParameter {
   // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
   String get catchVariableName {
     throw new UnsupportedError("${this.runtimeType}.catchVariableName");
-  }
-
-  @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  void set catchVariableName(String value) {
-    throw new UnsupportedError("${this.runtimeType}.catchVariableName=");
   }
 
   @override
