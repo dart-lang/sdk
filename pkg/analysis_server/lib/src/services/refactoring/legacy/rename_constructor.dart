@@ -106,15 +106,10 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     // Update the declaration.
     if (element.isOriginImplicitDefault) {
       await _replaceSynthetic();
+    } else if (element.firstFragment.typeNameOffset != null) {
+      _replaceWhenTypeName();
     } else {
-      doSourceChange_addSourceEdit(
-        change,
-        element.firstFragment.libraryFragment.source,
-        newSourceEdit_range(
-          _declarationNameRange(),
-          newName.isNotEmpty ? '.$newName' : '',
-        ),
-      );
+      _replaceWhenKeyword();
     }
   }
 
@@ -177,21 +172,6 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     }
   }
 
-  SourceRange _declarationNameRange() {
-    var fragment = element.firstFragment;
-    var offset = fragment.periodOffset;
-    if (offset != null) {
-      var name = fragment.name;
-      var nameEnd = fragment.nameOffset! + name.length;
-      return range.startOffsetEndOffset(offset, nameEnd);
-    } else {
-      return SourceRange(
-        fragment.typeNameOffset! + fragment.typeName!.length,
-        0,
-      );
-    }
-  }
-
   Future<AstNode?> _nodeCoveringReference(SourceReference reference) async {
     var element = reference.element;
     var unitResult = await sessionHelper.getResolvedUnitByElement(element);
@@ -248,5 +228,60 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       return;
     }
     doSourceChange_addFragmentEdit(change, fragment, edit);
+  }
+
+  /// Adds a source edit for when the constructor is declared using the `new`
+  /// or `factory` keywords instead of a type name.
+  void _replaceWhenKeyword() {
+    // Compute the source range always including any space because we may
+    // need to remove it.
+    var fragment = element.firstFragment;
+    var offset = fragment.newKeywordOffset != null
+        ? fragment.newKeywordOffset! + 'new'.length
+        : fragment.factoryKeywordOffset! + 'factory'.length;
+    var end = fragment.nameOffset != null
+        ? fragment.nameOffset! + fragment.name.length
+        : offset;
+    var replacementRange = SourceRange(offset, end - offset);
+
+    doSourceChange_addSourceEdit(
+      change,
+      element.firstFragment.libraryFragment.source,
+      newSourceEdit_range(
+        replacementRange,
+        // Replace assuming any existing space is in the range.
+        newName.isNotEmpty ? ' $newName' : '',
+      ),
+    );
+  }
+
+  /// Adds a source edit for when the constructor is declared using the type
+  /// name.
+  void _replaceWhenTypeName() {
+    SourceRange replacementRange;
+
+    // Compute the source range always including the period because we may
+    // need to remove it.
+    var fragment = element.firstFragment;
+    var offset = fragment.periodOffset;
+    if (offset != null) {
+      var nameEnd = fragment.nameOffset! + fragment.name.length;
+      replacementRange = range.startOffsetEndOffset(offset, nameEnd);
+    } else {
+      replacementRange = SourceRange(
+        fragment.typeNameOffset! + fragment.typeName!.length,
+        0,
+      );
+    }
+
+    doSourceChange_addSourceEdit(
+      change,
+      element.firstFragment.libraryFragment.source,
+      newSourceEdit_range(
+        replacementRange,
+        // Replace assuming any existing period is in the range.
+        newName.isNotEmpty ? '.$newName' : '',
+      ),
+    );
   }
 }
