@@ -176,7 +176,7 @@ class AnalysisDriver {
   final _priorityFiles = <String>{};
 
   /// The file changes that should be applied before processing requests.
-  final List<_FileChange> _pendingFileChanges = [];
+  final List<FileChange> _pendingFileChanges = [];
 
   /// The completers to complete after [_pendingFileChanges] are applied.
   final _pendingFileChangesCompleters = <Completer<List<String>>>[];
@@ -551,7 +551,7 @@ class AnalysisDriver {
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
-      _pendingFileChanges.add(_FileChange(path, _FileChangeKind.add));
+      _pendingFileChanges.add(FileChange(path, FileChangeKind.add));
       _scheduler.notify();
     }
   }
@@ -653,7 +653,7 @@ class AnalysisDriver {
       _lastProducedDiagnosticIds.remove(file);
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
-      _pendingFileChanges.add(_FileChange(path, _FileChangeKind.change));
+      _pendingFileChanges.add(FileChange(path, FileChangeKind.change));
       _scheduler._fileUpdatesStatistics.changedFiles.add(path);
       _scheduler.notify();
     }
@@ -1261,7 +1261,7 @@ class AnalysisDriver {
       _lastProducedDiagnosticIds.remove(file);
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
-      _pendingFileChanges.add(_FileChange(path, _FileChangeKind.remove));
+      _pendingFileChanges.add(FileChange(path, FileChangeKind.remove));
       _scheduler._fileUpdatesStatistics.removedFiles.add(path);
       _scheduler.notify();
     }
@@ -1551,11 +1551,11 @@ class AnalysisDriver {
       var path = fileChange.path;
       _removePotentiallyAffectedLibraries(accumulatedAffected, path);
       switch (fileChange.kind) {
-        case _FileChangeKind.add:
+        case FileChangeKind.add:
           _fileTracker.addFile(path);
-        case _FileChangeKind.change:
+        case FileChangeKind.change:
           _fileTracker.changeFile(path);
-        case _FileChangeKind.remove:
+        case FileChangeKind.remove:
           _fileTracker.removeFile(path);
           // TODO(scheglov): We have to do this because we discard files.
           // But this is not right, we need to handle removing better.
@@ -2830,10 +2830,8 @@ class AnalysisDriverTestView {
 
   int get numberOfFilesToAnalyze => driver.numberOfFilesToAnalyze;
 
-  List<String> get pendingFileChanges {
-    return driver._pendingFileChanges.map((change) {
-      return '${change.kind.name} ${change.path}';
-    }).toList();
+  List<FileChange> get pendingFileChanges {
+    return driver._pendingFileChanges.toList();
   }
 
   Set<String> get priorityFiles => driver._priorityFiles;
@@ -2955,6 +2953,22 @@ class ExceptionResult {
   });
 }
 
+@visibleForTesting
+class FileChange {
+  final String path;
+  final FileChangeKind kind;
+
+  FileChange(this.path, this.kind);
+
+  @override
+  String toString() {
+    return '[path: $path][kind: $kind]';
+  }
+}
+
+@visibleForTesting
+enum FileChangeKind { add, change, remove }
+
 /// Container that keeps track of file owners.
 class OwnedFiles {
   /// Key: the absolute file URI.
@@ -2986,20 +3000,6 @@ abstract class SchedulerWorker {
   /// Perform a single chunk of work.
   Future<void> performWork();
 }
-
-class _FileChange {
-  final String path;
-  final _FileChangeKind kind;
-
-  _FileChange(this.path, this.kind);
-
-  @override
-  String toString() {
-    return '[path: $path][kind: $kind]';
-  }
-}
-
-enum _FileChangeKind { add, change, remove }
 
 class _GetFilesDefiningClassMemberNameRequest {
   final String name;

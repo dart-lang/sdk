@@ -347,21 +347,21 @@ class AnalyzerStatePrinter {
         'numberOfPendingFiles: ${fileTracker.numberOfPendingFiles}',
       );
 
-      _writeSortedStringSet('addedFiles', fileTracker.addedFiles);
-      _writeSortedStringSet('changedFiles', fileTrackerTestData.changedFiles);
-      _writeSortedStringSet(
+      _writeSortedPathSet('addedFiles', fileTracker.addedFiles);
+      _writeSortedPathSet('changedFiles', fileTrackerTestData.changedFiles);
+      _writeSortedPathSet(
         'pendingChangedFiles',
         fileTrackerTestData.pendingChangedFiles,
       );
-      _writeSortedStringSet(
+      _writeSortedPathSet(
         'pendingImportFiles',
         fileTrackerTestData.pendingImportFiles,
       );
-      _writeSortedStringSet(
+      _writeSortedPathSet(
         'pendingErrorFiles',
         fileTrackerTestData.pendingErrorFiles,
       );
-      _writeSortedStringSet('pendingFiles', fileTrackerTestData.pendingFiles);
+      _writeSortedPathSet('pendingFiles', fileTrackerTestData.pendingFiles);
     });
   }
 
@@ -628,8 +628,10 @@ class AnalyzerStatePrinter {
     }
   }
 
-  void _writeSortedStringSet(String name, Set<String> values) {
-    var sorted = values.sorted();
+  void _writeSortedPathSet(String name, Set<String> paths) {
+    var sorted = paths.map((path) {
+      return resourceProvider.getFile(path).posixPath;
+    }).sorted();
     sink.writeElements(name, sorted, (value) {
       sink.writelnWithIndent(value);
     });
@@ -679,8 +681,14 @@ class AnalyzerStatePrinter {
   void _writeWorkState(AnalysisDriverTestView testData) {
     sink.writelnWithIndent('workState');
     sink.withIndent(() {
-      _writeSortedStringSet('priorityFiles', testData.priorityFiles);
-      _writeStringList('pendingFileChanges', testData.pendingFileChanges);
+      _writeSortedPathSet('priorityFiles', testData.priorityFiles);
+      _writeStringList(
+        'pendingFileChanges',
+        testData.pendingFileChanges.map((change) {
+          var posixPath = resourceProvider.getFile(change.path).posixPath;
+          return '${change.kind.name} $posixPath';
+        }).toList(),
+      );
       _writeFileTracker(testData);
       expect(
         testData.numberOfFilesToAnalyze,
