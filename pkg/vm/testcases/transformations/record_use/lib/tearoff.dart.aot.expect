@@ -22,12 +22,15 @@ static method main() → void {
 
 [@vm.inferred-return-type.metadata=dart.core::_Closure (value: #lib::SomeClass.someStaticMethod) (closure 0 in #lib::SomeClass.someStaticMethod)]
 @#C4
+@#C6
 static method m() → core::Function
-  return #C5;
+  return #C7;
 constants  {
   #C1 = meta::RecordUse {}
   #C2 = "dart2js:never-inline"
   #C3 = null
   #C4 = core::pragma {name:#C2, options:#C3}
-  #C5 = static-tearoff self::SomeClass::someStaticMethod
+  #C5 = "wasm:never-inline"
+  #C6 = core::pragma {name:#C5, options:#C3}
+  #C7 = static-tearoff self::SomeClass::someStaticMethod
 }

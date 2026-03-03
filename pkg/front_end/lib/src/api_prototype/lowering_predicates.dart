@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/constructor_tearoff_lowering.dart'
+    show extractConstructorNameFromTearOff;
 
 import '../kernel/late_lowering.dart';
 import '../source/name_scheme.dart';
@@ -1147,3 +1149,50 @@ const String enumIndexFieldName = 'index';
 
 /// The name of the internal field in an enum that stores its name.
 const String enumNameFieldName = '_name';
+
+// Coverage-ignore(suite): Not run.
+/// Returns the target member for a lowered constructor or factory tear-off.
+Member? getConstructorTearOffLoweringTarget(Procedure node) {
+  final String? constructorName = extractConstructorNameFromTearOff(node.name);
+  if (constructorName != null) {
+    Member? target;
+    final Class? cls = node.enclosingClass;
+    if (cls != null) {
+      for (final Constructor constructor in cls.constructors) {
+        if (constructor.name.text == constructorName) {
+          target = constructor;
+          break;
+        }
+      }
+      if (target == null) {
+        for (final Procedure procedure in cls.procedures) {
+          if (procedure.isFactory && procedure.name.text == constructorName) {
+            target = procedure;
+            break;
+          }
+        }
+      }
+    } else {
+      final ExtensionTypeDeclaration? extensionTypeDeclaration =
+          node.extensionTypeDeclaration;
+      if (extensionTypeDeclaration != null) {
+        for (final ExtensionTypeMemberDescriptor descriptor
+            in extensionTypeDeclaration.memberDescriptors) {
+          if (descriptor.name.text == constructorName &&
+              (descriptor.kind == ExtensionTypeMemberKind.Constructor ||
+                  descriptor.kind == ExtensionTypeMemberKind.Factory ||
+                  descriptor.kind ==
+                      ExtensionTypeMemberKind.RedirectingFactory)) {
+            target = descriptor.memberReference?.asMember;
+            break;
+          }
+        }
+      }
+    }
+    while (target is Procedure && target.isRedirectingFactory) {
+      target = target.function.redirectingFactoryTarget?.target;
+    }
+    return target;
+  }
+  return null;
+}

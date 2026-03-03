@@ -67,9 +67,20 @@ class CallRecorder {
   }
 
   /// Will record a tear-off if the target is annotated with `@RecordUse`.
+  void recordStaticTearOff(ast.StaticTearOff node) {
+    if (isBeingRecorded(node.target)) {
+      _addToUsage(
+        node.target,
+        CallTearoff(loadingUnits: [_loadingUnitLookup(node)]),
+      );
+    }
+  }
+
+  /// Will record a tear-off if the target is annotated with `@RecordUse`.
   void recordConstantExpression(ast.ConstantExpression node) {
     final constant = node.constant;
     if (constant is ast.StaticTearOffConstant) {
+      if (isConstructorTearOffLowering(constant.target)) return;
       if (isBeingRecorded(constant.target)) {
         _addToUsage(
           constant.target,
