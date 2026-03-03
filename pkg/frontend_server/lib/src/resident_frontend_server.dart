@@ -27,27 +27,22 @@ import '../resident_frontend_server_utils.dart'
         CachedDillAndCompilerOptionsPaths,
         computeCachedDillAndCompilerOptionsPaths;
 
-/// Floor the system time by this amount in order to correctly detect modified
-/// source files on all platforms. This has no effect on correctness,
-/// but may result in more files being marked as modified than strictly
-/// required.
-const Duration _stateGranularity = const Duration(seconds: 1);
-
 /// Ensures the info file is removed if Ctrl-C is sent to the server.
 /// Mostly used when debugging.
 StreamSubscription<ProcessSignal>? _cleanupHandler;
 
 extension on DateTime {
-  /// Truncates by [amount].
+  /// Truncates by 1 second.
   ///
   /// This is needed because the 1 second granularity on DateTime objects
   /// returned by file stat on Windows is different than the system-times
   /// granularity. We must floor the system time
   /// by 1 second so that if a file is modified within the same second of
   /// the last compile time, it will be correctly detected as being modified.
-  DateTime floorTime({Duration amount = _stateGranularity}) {
+  DateTime floorTime() {
+    const Duration stateGranularity = const Duration(seconds: 1);
     return new DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch -
-        millisecondsSinceEpoch % amount.inMilliseconds);
+        millisecondsSinceEpoch % stateGranularity.inMilliseconds);
   }
 }
 
