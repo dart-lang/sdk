@@ -131,6 +131,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     Statement? assignment,
   }) async {
     assert(initializer == null || assignment == null);
+    if (parameter is SuperFormalParameter) return;
     var parameterName = parameter.name!.lexeme;
     var fieldName = field.displayName;
     var updateCommentReferences = false;

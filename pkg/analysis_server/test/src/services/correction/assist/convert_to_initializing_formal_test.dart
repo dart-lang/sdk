@@ -10,11 +10,11 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertToInitializingFormalLocationTest);
-    defineReflectiveTests(ConvertToInitializingFormalRenameTest);
     defineReflectiveTests(ConvertToInitializingFormalDifferentTypesTest);
-    defineReflectiveTests(ConvertToInitializingFormalPrivateTest);
+    defineReflectiveTests(ConvertToInitializingFormalLocationTest);
     defineReflectiveTests(ConvertToInitializingFormalOtherTest);
+    defineReflectiveTests(ConvertToInitializingFormalPrivateTest);
+    defineReflectiveTests(ConvertToInitializingFormalRenameTest);
   });
 }
 
@@ -408,6 +408,20 @@ class C {
   C({required this.foo});
 }
 ''');
+  }
+
+  Future<void> test_superParameter() async {
+    await resolveTestCode(r'''
+class B {
+  B({int? i});
+}
+
+class C extends B {
+  final int? _i;
+  C({super.^i}) : _i = i;
+}
+''');
+    await assertNoAssist();
   }
 }
 

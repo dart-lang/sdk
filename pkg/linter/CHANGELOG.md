@@ -1,5 +1,11 @@
 # 3.12.0-wip
 
+- new lint: `var_with_no_type_annotation`
+- stable: `omit_obvious_local_variable_types`
+- stable: `omit_obvious_property_types`
+- stable: `specify_nonobvious_property_types`
+- stable: `specify_nonobvious_property_types`
+
 # 3.11.0
 
 - new lint: `simplify_variable_pattern`

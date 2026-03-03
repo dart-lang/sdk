@@ -175,7 +175,7 @@ class InterpreterRegisters {
   InterpreterRegisters(int total_register_count,
                        RegisterT* output_registers,
                        int output_register_count)
-      : registers_(total_register_count),
+      : registers_(total_register_count, 0),
         output_registers_(output_registers),
         total_register_count_(total_register_count),
         output_register_count_(output_register_count) {

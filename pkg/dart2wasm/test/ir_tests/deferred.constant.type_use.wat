@@ -5,7 +5,7 @@
   (type $_DefaultSet&_HashFieldBase&SetMixin <...>)
   (type $_InterfaceType <...>)
   (table $cross-module-funcs-0 (export "cross-module-funcs-0") 3 funcref)
-  (global $_InterfaceType_432 (ref $_InterfaceType) <...>)
+  (global $_InterfaceType_429 (ref $_InterfaceType) <...>)
   (elem $cross-module-funcs-0
     (set 1 (ref.func $JSStringImpl._interpolate2))
     (set 2 (ref.func $print)))
@@ -30,7 +30,7 @@
     drop
   )
   (func $"useFooAsType <noInline>"
-    global.get $_InterfaceType_432
+    global.get $_InterfaceType_429
     call $print
     drop
   )

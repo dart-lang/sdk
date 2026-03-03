@@ -1602,8 +1602,6 @@ abstract class AstCodeGenerator
       return expectedType;
     }
 
-    translator.functions.recordClassAllocation(info.classId);
-
     return call(target).single;
   }
 
@@ -3911,6 +3909,10 @@ class ConstructorAllocatorCodeGenerator extends AstCodeGenerator {
     w.Local temp = addLocal(info.nonNullableType);
     b.struct_new(info.struct);
     b.local_tee(temp);
+
+    // Mark the class as allocated now, which enqueues those methods of the
+    // class that could be targeted by already emitted instance calls.
+    translator.functions.recordClassAllocation(info.classId);
 
     // Push context local if it is present
     if (contextLocal != null) {

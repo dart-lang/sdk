@@ -22,7 +22,7 @@
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 9 funcref)
   (global $"\"globalH0Foo\"" (ref $JSExternWrapper)
-    (i32.const 108)
+    (i32.const 107)
     (i32.const 0)
     (global.get $.globalH0Foo)
     (struct.new $JSExternWrapper))
@@ -40,12 +40,12 @@
     (local $var0 (ref $_FunctionType))
     (local $var1 (ref $#Closure-0-1))
     (local $var2 (ref $H0))
-    i32.const 112
+    i32.const 110
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
       global.get $"globalH0Foo tear-off"
       br_on_non_null $label0
-      i32.const 52
+      i32.const 53
       i32.const 0
       global.get $global0
       global.get $global2

@@ -2776,6 +2776,7 @@ simplifyVariablePattern = LinterLintTemplate(
   problemMessage:
       "The {1} identification '{0}:' is redundant and can be removed.",
   correctionMessage: "Try removing the redundant {1} identification.",
+  hasPublishedDocs: true,
   uniqueName: 'simplify_variable_pattern',
   withArguments: _withArgumentsSimplifyVariablePattern,
   expectedTypes: [ExpectedType.string, ExpectedType.string],

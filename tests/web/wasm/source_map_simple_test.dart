@@ -16,14 +16,18 @@ const List<(String?, int?, int?, String?)?> frameDetails = [
   ('source_map_simple_lib.dart', 14, 3, 'f'),
   ('source_map_simple_lib.dart', 43, 5, 'testMain'),
   ('source_map_simple_test.dart', 10, 7, 'main'),
-  ('internal_patch.dart', 137, 17, '_invokeMain'),
+  ('internal_patch.dart', 126, 13, '_invokeMainArg0'),
+  null,
+  ('internal_patch.dart', 160, 5, '_invokeMain'),
 ];
 
 /*
-at module0.Error._throwWithCurrentStackTrace (wasm://wasm/module0-0012402a:wasm-function[132]:0x11274)
-at module0.g (wasm://wasm/module0-0012402a:wasm-function[473]:0x15b7f)
-at module0.f (wasm://wasm/module0-0012402a:wasm-function[471]:0x15b6d)
-at module0.testMain (wasm://wasm/module0-0012402a:wasm-function[470]:0x158aa)
-at module0.main (wasm://wasm/module0-0012402a:wasm-function[131]:0x11269)
-at module0._invokeMain (wasm://wasm/module0-0012402a:wasm-function[124]:0x111bc)
+    at module0.Error._throwWithCurrentStackTrace <noInline> (wasm://wasm/module0-00110126:wasm-function[108]:0xfd1c)
+    at module0.g (wasm://wasm/module0-00110126:wasm-function[254]:0x11a8e)
+    at module0.f (wasm://wasm/module0-00110126:wasm-function[251]:0x11a64)
+    at module0.testMain (wasm://wasm/module0-00110126:wasm-function[249]:0x115d0)
+    at module0.main (wasm://wasm/module0-00110126:wasm-function[248]:0x1154b)
+    at module0._invokeMainArg0 (wasm://wasm/module0-00110126:wasm-function[247]:0x11541)
+    at module0._invokeMainInternal (wasm://wasm/module0-00110126:wasm-function[82]:0xf8b2)
+    at module0._invokeMain (wasm://wasm/module0-00110126:wasm-function[77]:0xf815)
 */

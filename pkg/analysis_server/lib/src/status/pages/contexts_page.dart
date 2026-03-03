@@ -213,6 +213,17 @@ class ContextsPage extends DiagnosticPageWithNav {
           ..sort((first, second) => second.size - first.size);
     var cyclesToDisplay = math.min(sortedMultiLibraryCycles.length, 10);
     var initialPathLength = contextRoot.root.path.length + 1;
+    buf.write(
+      'A library cycle is a '
+      '<a href="https://en.wikipedia.org/wiki/Cycle_(graph_theory)">cycle</a> '
+      'in the import/export graph. If library <em>a</em> imports library '
+      '<em>b</em> and library <em>b</em> imports library <em>a</em>, they are '
+      'in the same cycle. If library <em>a</em> imports library <em>b</em> and '
+      'exports library <em>c</em>, and library <em>b</em> imports library '
+      '<em>a</em>, then all three are in the same cycle. In some cases, '
+      'library cycles are statically analyzed as a unit; reducing the size of '
+      'the largest library cycles may result in faster incremental analysis.',
+    );
     buf.write('<p>There are ${cycles.length} library cycles. ');
     if (cyclesToDisplay < 10) {
       buf.write(
