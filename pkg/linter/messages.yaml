@@ -11389,7 +11389,7 @@ LinterLintCode:
     state:
       stable: "3.11"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

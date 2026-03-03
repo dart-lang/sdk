@@ -24244,8 +24244,7 @@ PubspecWarningCode:
       String path: the path of the directory that contains the pubspec.yaml file.
     problemMessage: Workspace values must be a relative path of a subdirectory of '#path'.
     correctionMessage: Try using a subdirectory of the directory containing the 'pubspec.yaml' file.
-    hasPublishedDocs: false
-
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -25358,7 +25357,7 @@ WarningCode:
     parameters: none
     problemMessage: Methods named 'factory' will become constructors when the primary_constructors feature is enabled.
     correctionMessage: Try adding a return type or modifier before the method's name, or change the name of the method.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -26439,7 +26438,7 @@ WarningCode:
       String parameter: the name of the parameter
     problemMessage: "The type of '#parameter' can't be inferred; a type must be explicitly provided."
     correctionMessage: Try specifying the type of the parameter.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       When "strict-inference" in enabled, function parameters must be
       declared with a specific type, or inherit a type.
@@ -30601,7 +30600,7 @@ WarningCode:
       String keyword: the keyword to remove
     problemMessage: "The value of the field '#fieldName' isn't used."
     correctionMessage: Try removing the '#keyword' keyword to avoid declaring a field, or try using the field, or removing it.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

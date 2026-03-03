@@ -3328,6 +3328,7 @@ const DiagnosticWithoutArguments deprecatedFactoryMethod =
       correctionMessage:
           "Try adding a return type or modifier before the method's name, or "
           "change the name of the method.",
+      hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
       uniqueName: 'deprecated_factory_method',
       expectedTypes: [],
@@ -7372,6 +7373,7 @@ inferenceFailureOnUntypedParameter = DiagnosticWithArguments(
   problemMessage:
       "The type of '{0}' can't be inferred; a type must be explicitly provided.",
   correctionMessage: "Try specifying the type of the parameter.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'inference_failure_on_untyped_parameter',
   withArguments: _withArgumentsInferenceFailureOnUntypedParameter,
@@ -17047,6 +17049,7 @@ unusedFieldFromPrimaryConstructor = DiagnosticWithArguments(
   correctionMessage:
       "Try removing the '{1}' keyword to avoid declaring a field, or try "
       "using the field, or removing it.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unused_field_from_primary_constructor',
   withArguments: _withArgumentsUnusedFieldFromPrimaryConstructor,
@@ -17463,6 +17466,7 @@ workspaceValueNotSubdirectory = DiagnosticWithArguments(
   correctionMessage:
       "Try using a subdirectory of the directory containing the "
       "'pubspec.yaml' file.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'workspace_value_not_subdirectory',
   withArguments: _withArgumentsWorkspaceValueNotSubdirectory,
