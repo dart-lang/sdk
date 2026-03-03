@@ -26,6 +26,7 @@ import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
 import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart';
+import '../util/helpers.dart';
 import '../util/reference_map.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
@@ -89,7 +90,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners = [];
 
-  Set<SourcePropertyBuilder>? _initializedFields;
+  Map<SourcePropertyBuilder, FieldInitialization>? _initializedFields;
 
   late final Substitution _fieldTypeSubstitution = _introductory
       .computeFieldTypeSubstitution(declarationBuilder);
@@ -445,10 +446,14 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   /// Registers field as being initialized by this constructor.
   ///
-  /// The field can be initialized either via an initializing formal or via an
-  /// entry in the constructor initializer list.
-  void registerInitializedField(SourcePropertyBuilder fieldBuilder) {
-    (_initializedFields ??= {}).add(fieldBuilder);
+  /// The [fieldInitialization] contains information about whether the field
+  /// was initialized via an initializing formal or via an entry in the
+  /// constructor initializer list.
+  void registerInitializedField(
+    SourcePropertyBuilder fieldBuilder,
+    FieldInitialization fieldInitialization,
+  ) {
+    (_initializedFields ??= {})[fieldBuilder] = fieldInitialization;
   }
 
   /// Substitute [fieldType] from the context of the enclosing class or
@@ -466,8 +471,9 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   /// Returns the set of fields previously registered via
   /// [registerInitializedField] and passes on the ownership of the collection
   /// to the caller.
-  Set<SourcePropertyBuilder>? takeInitializedFields() {
-    Set<SourcePropertyBuilder>? result = _initializedFields;
+  Map<SourcePropertyBuilder, FieldInitialization>? takeInitializedFields() {
+    Map<SourcePropertyBuilder, FieldInitialization>? result =
+        _initializedFields;
     _initializedFields = null;
     return result;
   }
