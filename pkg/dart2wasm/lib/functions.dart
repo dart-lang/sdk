@@ -599,9 +599,10 @@ w.FunctionType makeFunctionTypeForBody(Translator translator, Member member) {
       translator.translateType(translator.typeOfCheckedParameterVariable(p)),
   ];
 
-  final isSetter = member is Procedure && member.isSetter;
+  final hasNoReturnValue =
+      member is Procedure && (member.isSetter || member.name.text == '[]=');
   final outputs = [
-    if (!isSetter)
+    if (!hasNoReturnValue)
       translator.translateReturnType(translator.typeOfReturnValue(member)),
   ];
 
@@ -641,9 +642,10 @@ w.FunctionType _makeFunctionType(
       (t is InterfaceType && t.classNode == translator.wasmVoidClass);
 
   final List<w.ValueType> outputs;
-  if (target.isSetter) {
-    // Setters are the only functions without any returned values. All other
-    // functions can either return values (even `void` returning functions)
+  final hasNoReturnValue = target.isSetter || member.name.text == '[]=';
+  if (hasNoReturnValue) {
+    // Setters and []= are the only functions without any returned values. All
+    // other functions can return values (even `void` returning functions).
     outputs = const [];
   } else {
     final DartType returnType = translator.typeOfReturnValue(member);
