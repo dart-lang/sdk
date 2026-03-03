@@ -1,26 +1,8 @@
 (module $module0
-  (type $"dummy struct" (struct))
-  (type $#Closure-0-0 (sub $#ClosureBase (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
-    (field $context (ref struct))
-    (field $vtable (ref $#Vtable-0-0))
-    (field $functionType (ref $_FunctionType)))))
-  (type $#ClosureBase (sub $_Closure (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
-    (field $context (ref struct))
-    (field $vtable (ref $#VtableBase))
-    (field $functionType (ref $_FunctionType)))))
-  (type $#NonGenericVtableBase (sub $#VtableBase (struct)))
   (type $#Top (struct
     (field $field0 i32)))
-  (type $#Vtable-0-0 (sub $#NonGenericVtableBase (struct
-    (field $closureCallEntry-0-0 (ref $type0)))))
-  (type $#VtableBase (struct))
   (type $Array<Object?> (array (field (mut (ref null $#Top)))))
   (type $Array<WasmI32> (array (field (mut i32))))
-  (type $Array<_NamedParameter> (array (field (mut (ref $_NamedParameter)))))
   (type $Array<_Type> (array (field (mut (ref $_Type)))))
   (type $BoxedBool (sub final $#Top (struct
     (field $field0 i32)
@@ -49,10 +31,6 @@
     (field $field2 (ref $_Type))
     (field $_length (mut i64))
     (field $_data (mut (ref $Array<Object?>))))))
-  (type $_Closure (sub $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
-    (field $context (ref struct)))))
   (type $_DefaultMap&_HashFieldBase&MapMixin (sub final $_HashFieldBase (struct
     (field $field0 i32)
     (field $field1 (mut i32))
@@ -63,17 +41,6 @@
     (field $_deletedKeys (mut i64))
     (field $field7 (ref $_Type))
     (field $field8 (ref $_Type)))))
-  (type $_FunctionType (sub final $_Type (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
-    (field $isDeclaredNullable i32)
-    (field $typeParameterOffset i64)
-    (field $typeParameterBounds (ref $Array<_Type>))
-    (field $typeParameterDefaults (ref $Array<_Type>))
-    (field $returnType (ref $_Type))
-    (field $positionalParameters (ref $Array<_Type>))
-    (field $requiredParameterCount i64)
-    (field $namedParameters (ref $Array<_NamedParameter>)))))
   (type $_HashFieldBase (sub $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
@@ -88,33 +55,19 @@
     (field $memberName (ref $Symbol))
     (field $_positional (ref null $WasmListBase))
     (field $_named (ref null $Object)))))
-  (type $_NamedParameter (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
-    (field $name (ref $Symbol))
-    (field $type (ref $_Type))
-    (field $isRequired i32))))
-  (type $_TopType (sub final $_Type (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
-    (field $isDeclaredNullable i32)
-    (field $_kind i64))))
   (type $_Type (sub $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $isDeclaredNullable i32))))
-  (type $type0 (func 
-    (param $var0 (ref struct))
-    (result (ref null $#Top))))
   (global $.a (import "" "a") (ref extern))
   (global $.toString (import "" "toString") (ref extern))
   (global $"SymbolConstant(#a)" (ref $Symbol)
-    (i32.const 71)
+    (i32.const 70)
     (i32.const 0)
     (global.get $"\"a\"")
     (struct.new $Symbol))
   (global $"SymbolConstant(#toString)" (ref $Symbol)
-    (i32.const 71)
+    (i32.const 70)
     (i32.const 0)
     (global.get $"\"toString\"")
     (struct.new $Symbol))
@@ -122,54 +75,20 @@
     (array.new_fixed $Array<Object?> 0))
   (global $"WasmArray<Type>[0]" (ref $Array<_Type>)
     (array.new_fixed $Array<_Type> 0))
-  (global $"WasmArray<_NamedParameter>[0]" (ref $Array<_NamedParameter>)
-    (array.new_fixed $Array<_NamedParameter> 0))
-  (global $"WasmArray<_Type>[0]" (ref $Array<_Type>)
-    (array.new_fixed $Array<_Type> 0))
   (global $"\"a\"" (ref $JSExternWrapper)
-    (i32.const 107)
+    (i32.const 106)
     (i32.const 0)
     (global.get $.a)
     (struct.new $JSExternWrapper))
   (global $"\"toString\"" (ref $JSExternWrapper)
-    (i32.const 107)
+    (i32.const 106)
     (i32.const 0)
     (global.get $.toString)
     (struct.new $JSExternWrapper))
-  (global $"main tear-off" (ref $#Closure-0-0)
-    (i32.const 51)
-    (i32.const 0)
-    (global.get $global0)
-    (global.get $global2)
-    (global.get $_FunctionType)
-    (struct.new $#Closure-0-0))
   (global $1 (ref $BoxedInt)
-    (i32.const 67)
+    (i32.const 66)
     (i64.const 1)
     (struct.new $BoxedInt))
-  (global $_FunctionType (ref $_FunctionType)
-    (i32.const 11)
-    (i32.const 0)
-    (i32.const 0)
-    (i64.const 0)
-    (global.get $"WasmArray<_Type>[0]")
-    (global.get $"WasmArray<_Type>[0]")
-    (global.get $_TopType)
-    (global.get $"WasmArray<_Type>[0]")
-    (i64.const 0)
-    (global.get $"WasmArray<_NamedParameter>[0]")
-    (struct.new $_FunctionType))
-  (global $_TopType (ref $_TopType)
-    (i32.const 5)
-    (i32.const 0)
-    (i32.const 1)
-    (i64.const 2)
-    (struct.new $_TopType))
-  (global $global0 (ref struct)
-    (struct.new $"dummy struct"))
-  (global $global2 (ref $#Vtable-0-0)
-    (ref.func $"main tear-off trampoline")
-    (struct.new $#Vtable-0-0))
   (global $true (ref $BoxedBool)
     (i32.const 3)
     (i32.const 1)
@@ -213,7 +132,7 @@
       block $label2
         block $label3
           local.get $var6
-          i32.const 110
+          i32.const 108
           i32.eq
           br_if $label3
           br $label2
@@ -229,7 +148,7 @@
       block $label4
         block $label5
           local.get $var6
-          i32.const 111
+          i32.const 109
           i32.eq
           br_if $label5
           br $label4
@@ -255,7 +174,6 @@
     call $Object.noSuchMethod
   )
   (func $Foo.toString invocation type checker (param $this (ref $#Top)) (param $var0 (ref $Array<_Type>)) (param $var1 (ref $Array<Object?>)) (param $var2 (ref $Array<Object?>)) (result (ref null $#Top)) <...>)
-  (func $main tear-off trampoline (param $var0 (ref struct)) (result (ref null $#Top)) <...>)
   (func $new Invocation.genericMethod (param $memberName (ref $Symbol)) (param $typeArguments (ref null $Object)) (param $positionalArguments (ref null $Object)) (param $namedArguments (ref null $Object)) (result (ref $_Invocation)) <...>)
   (func $Bar (result (ref $Object)) <...>)
   (func $Foo (result (ref $Object)) <...>)
@@ -285,10 +203,6 @@
     call $print
     drop
     ref.null none
-  )
-  (func $mainTearOffArg0 (result (ref null $#Closure-0-0))
-    global.get $"main tear-off"
-    return
   )
   (func $print (param $object (ref null $#Top)) (result (ref null $#Top)) <...>)
 )

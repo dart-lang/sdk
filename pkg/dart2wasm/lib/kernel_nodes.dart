@@ -43,10 +43,6 @@ mixin KernelNodes {
       index.getField("dart:_list", "WasmListBase", "_data");
   late final Procedure listBaseIndexOperator =
       index.getProcedure("dart:_list", "WasmListBase", "[]");
-  late final Class fixedLengthListClass =
-      index.getClass("dart:_list", "ModifiableFixedLengthList");
-  late final Class growableListClass =
-      index.getClass("dart:_list", "GrowableList");
   late final Class immutableListClass =
       index.getClass("dart:_list", "ImmutableList");
   late final Class invocationClass = index.getClass("dart:core", 'Invocation');

@@ -8,17 +8,17 @@
   (table $cross-module-funcs-0 (export "cross-module-funcs-0") 5 funcref)
   (global $"\")\"" (ref $JSExternWrapper) <...>)
   (global $"\"Foo0.doitDispatch(\"" (ref $JSExternWrapper)
-    (i32.const 110)
+    (i32.const 108)
     (i32.const 0)
     (global.get $".Foo0.doitDispatch(")
     (struct.new $JSExternWrapper))
   (global $"\"Foo1.doitDispatch(\"" (ref $JSExternWrapper)
-    (i32.const 110)
+    (i32.const 108)
     (i32.const 0)
     (global.get $".Foo1.doitDispatch(")
     (struct.new $JSExternWrapper))
   (global $"\"FooBase(\"" (ref $JSExternWrapper)
-    (i32.const 110)
+    (i32.const 108)
     (i32.const 0)
     (global.get $".FooBase(")
     (struct.new $JSExternWrapper))
@@ -33,7 +33,7 @@
   (func $"foo0 <noInline>"
     call $"runtimeTrue implicit getter"
     if (result (ref $Object))
-      i32.const 113
+      i32.const 111
       i32.const 0
       struct.new $Object
     else

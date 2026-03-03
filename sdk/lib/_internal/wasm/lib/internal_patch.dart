@@ -121,35 +121,43 @@ external int doubleToIntBits(double value);
 @pragma("wasm:intrinsic")
 external double intBitsToDouble(int value);
 
+@pragma("wasm:prefer-inline")
+void _invokeMainArg0(WasmExternRef jsArrayRef, Function() mainMethod) {
+  mainMethod();
+  return;
+}
+
+@pragma("wasm:prefer-inline")
+void _invokeMainArg1(
+  WasmExternRef jsArrayRef,
+  Function(List<String>) mainMethod,
+) {
+  final jsArray = (JSValue(jsArrayRef) as JSArray<JSString>).toDart;
+  final args = <String>[for (final jsValue in jsArray) jsValue.toDart];
+  mainMethod(List.unmodifiable(args));
+  return;
+}
+
+@pragma("wasm:prefer-inline")
+void _invokeMainArg2(
+  WasmExternRef jsArrayRef,
+  Function(List<String>, Null) mainMethod,
+) {
+  final jsArray = (JSValue(jsArrayRef) as JSArray<JSString>).toDart;
+  final args = <String>[for (final jsValue in jsArray) jsValue.toDart];
+  mainMethod(List.unmodifiable(args), null);
+  return;
+}
+
 // Will be patched in `pkg/dart2wasm/lib/compile.dart` right before TFA.
-external void Function()? get mainTearOffArg0;
-external void Function(List<String>)? get mainTearOffArg1;
-external void Function(List<String>, Null)? get mainTearOffArg2;
+external void _invokeMainInternal(WasmExternRef jsArray);
 
 /// Used to invoke the `main` function from JS, printing any exceptions that
 /// escape.
 @pragma("wasm:export", "\$invokeMain")
 void _invokeMain(WasmExternRef jsArrayRef) {
   try {
-    // We will only compile one of these cases, the remaining cases will be
-    // eliminated by the compiler.
-    if (mainTearOffArg0 case final mainMethod?) {
-      mainMethod();
-      return;
-    }
-    if (mainTearOffArg1 case final mainMethod?) {
-      final jsArray = (JSValue(jsArrayRef) as JSArray<JSString>).toDart;
-      final args = <String>[for (final jsValue in jsArray) jsValue.toDart];
-      mainMethod(List.unmodifiable(args));
-      return;
-    }
-    if (mainTearOffArg2 case final mainMethod?) {
-      final jsArray = (JSValue(jsArrayRef) as JSArray<JSString>).toDart;
-      final args = <String>[for (final jsValue in jsArray) jsValue.toDart];
-      mainMethod(List.unmodifiable(args), null);
-      return;
-    }
-    throw "Could not call main";
+    _invokeMainInternal(jsArrayRef);
   } catch (e, s) {
     print(e);
     print(s);
