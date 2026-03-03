@@ -514,14 +514,21 @@ class CoreTypesUtil {
   /// to the interop function directly.
   ///
   /// The argument passed to the returned conversion function needs to be
-  /// non-nullable. This function does not check the nullability of [valueType]
-  /// and assume that the argument passed to the conversion function won't be
-  /// `null`.
+  /// non-nullable. This function asserts that [valueType] is non-nullable
+  /// so that the argument passed to the conversion function won't be `null`.
   Procedure? _jsConversionProcedure(
       DartType valueType, DartType expectedType, TypeEnvironment typeEnv) {
+    assert(
+        valueType is DynamicType ||
+            valueType.nullability == Nullability.nonNullable,
+        'valueType: $valueType');
     if (expectedType == coreTypes.doubleNonNullableRawType) {
       assert(valueType is InterfaceType &&
           valueType.classNode == coreTypes.doubleClass);
+      return null;
+    }
+
+    if (coreTypes.isNull(valueType)) {
       return null;
     }
 
@@ -572,20 +579,28 @@ bool parametersNeedParens(List<String> parameters) =>
 
 Expression jsifyValue(VariableDeclaration variable, DartType expectedType,
     CoreTypesUtil coreTypes, TypeEnvironment typeEnv) {
-  final Procedure? conversionProcedure;
+  Expression? conversion;
 
   if (coreTypes.extensionIndex.isStaticInteropType(variable.type) ||
       coreTypes.extensionIndex.isExternalDartReferenceType(variable.type)) {
-    conversionProcedure = coreTypes.jsValueUnboxTarget;
+    conversion =
+        invokeOneArg(coreTypes.jsValueUnboxTarget, VariableGet(variable));
+  } else if (variable.type is VoidType ||
+      coreTypes.coreTypes.isNull(variable.type)) {
+    conversion = StaticGet(coreTypes.wasmExternRefNullRef);
   } else {
-    conversionProcedure =
-        coreTypes._jsConversionProcedure(variable.type, expectedType, typeEnv);
+    final conversionProcedure = coreTypes._jsConversionProcedure(
+        // We check for null before invoking the conversion procedure.
+        variable.type.extensionTypeErasure
+            .withDeclaredNullability(Nullability.nonNullable),
+        expectedType,
+        typeEnv);
+    if (conversionProcedure != null) {
+      conversion = invokeOneArg(conversionProcedure, VariableGet(variable));
+    }
   }
 
-  final conversion = conversionProcedure == null
-      ? VariableGet(variable)
-      : StaticInvocation(
-          conversionProcedure, Arguments([VariableGet(variable)]));
+  conversion ??= VariableGet(variable);
 
   if (variable.type.isPotentiallyNullable) {
     return ConditionalExpression(

@@ -11,9 +11,9 @@
   (global $baseObj (import "module0" "global0") (ref null $Object))
   (global $foo1Obj (import "module0" "global2") (ref null $Object))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 5 funcref)
-  (table $module0.dispatch0 (import "module0" "dispatch0") 781 funcref)
+  (table $module0.dispatch0 (import "module0" "dispatch0") 681 funcref)
   (global $"\"Foo1.doitDevirt(\"" (ref $JSExternWrapper)
-    (i32.const 104)
+    (i32.const 110)
     (i32.const 0)
     (global.get $".Foo1.doitDevirt(")
     (struct.new $JSExternWrapper))
@@ -31,7 +31,7 @@
       global.get $1
       local.get $var0
       struct.get $Object $field0
-      i32.const 134
+      i32.const 376
       i32.add
       call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top)) (result (ref null $#Top))
       drop

@@ -194,12 +194,17 @@ class DeeplyImmutableValidator {
         continue;
       }
       if (!checkResult.isImmutable) {
-        diagnosticReporter.report(
-          diag.ffiDeeplyImmutableFieldsMustBeDeeplyImmutable,
-          field.fileOffset,
-          field.name.text.length,
-          field.location!.file,
-        );
+        // Allow BigIntImpl since it's only violating "final Uint32List _digits"
+        // is actually never modified.
+        if (node.name != '_BigIntImpl' &&
+            node.enclosingLibrary.name != 'dart:core') {
+          diagnosticReporter.report(
+            diag.ffiDeeplyImmutableFieldsMustBeDeeplyImmutable,
+            field.fileOffset,
+            field.name.text.length,
+            field.location!.file,
+          );
+        }
       }
       if (!field.isFinal || field.isLate) {
         diagnosticReporter.report(

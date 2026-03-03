@@ -14,7 +14,6 @@
   (func $sinkNum <noInline> (param $var0 f64) <...>)
   (func $sinkNumNullable <noInline> (param $var0 (ref null $BoxedDouble)) <...>)
   (func $"testNumConstant <noInline>"
-    i64.const 1
     call $jsifyInt
     call $"dart2wasm._299 (import)"
     call $toDartDouble
@@ -64,15 +63,15 @@
       ref.null noextern
     else
       local.get $var0
-      call $jsifyRaw
+      ref.as_non_null
+      call $jsifyNum
     end
     call $"dart2wasm._300 (import)"
     call $toDartNullableDouble
     call $"sinkNumNullable <noInline>"
   )
-  (func $jsifyInt (param $var0 i64) (result externref) <...>)
+  (func $jsifyInt (result (ref extern)) <...>)
   (func $jsifyNum (param $var0 (ref $#Top)) (result externref) <...>)
-  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
   (func $toDartDouble (param $var0 externref) (result f64) <...>)
   (func $toDartNullableDouble (param $var0 externref) (result (ref null $BoxedDouble)) <...>)
 )

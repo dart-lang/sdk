@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'method_collector.dart';
@@ -46,7 +47,10 @@ class CallbackSpecializer {
 
     final callExpr = FunctionInvocation(FunctionAccessKind.FunctionType,
         VariableGet(callbackVariable), Arguments(callbackArguments),
-        functionType: null);
+        // Instantiate any type parameters to bounds as they would otherwise
+        // be free type variables in this context.
+        functionType: const _InstantiateToBounds().substituteType(function)
+            as FunctionType);
 
     final temp = VariableDeclaration(null,
         initializer: callExpr,
@@ -366,5 +370,15 @@ class CallbackSpecializer {
                 StaticInvocation(_util.jsObjectFromDartObjectTarget,
                     Arguments([castClosure]))
             ]))));
+  }
+}
+
+class _InstantiateToBounds extends Substitution {
+  const _InstantiateToBounds();
+  @override
+  DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
+    // Substitute to bound recursively in case a bound is itself a type
+    // parameter.
+    return substituteType(parameter.bound);
   }
 }

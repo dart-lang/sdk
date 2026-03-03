@@ -59,13 +59,15 @@
       ref.null noextern
     else
       local.get $var0
-      call $jsifyRaw
+      global.get $false
+      ref.eq
+      i32.eqz
+      call $"dart2wasm._174 (import)"
     end
     call $"dart2wasm._300 (import)"
     call $toDartNullableBool
     call $"sinkBoolNullable <noInline>"
   )
-  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
   (func $toDartBool (param $var0 externref) (result i32) <...>)
   (func $toDartNullableBool (param $var0 externref) (result (ref null $#Top)) <...>)
 )

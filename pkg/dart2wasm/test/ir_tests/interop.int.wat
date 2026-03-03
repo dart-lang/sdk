@@ -40,7 +40,7 @@
     else
       call $"ktrue implicit getter"
       if (result (ref null $BoxedInt))
-        i32.const 88
+        i32.const 62
         call $"intValue implicit getter"
         struct.new $BoxedInt
       else
@@ -58,14 +58,14 @@
       ref.null noextern
     else
       local.get $var0
-      call $jsifyRaw
+      struct.get $BoxedInt $value
+      call $jsifyInt
     end
     call $"dart2wasm._300 (import)"
     call $toDartNullableInt
     call $"sinkIntNullable <noInline>"
   )
   (func $jsifyInt (param $var0 i64) (result externref) <...>)
-  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
   (func $toDartInt (param $var0 externref) (result i64) <...>)
   (func $toDartNullableInt (param $var0 externref) (result (ref null $BoxedInt)) <...>)
 )
