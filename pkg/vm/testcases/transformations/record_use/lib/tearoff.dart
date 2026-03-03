@@ -10,6 +10,7 @@ void main() {
 
 // Prevent the tearoff becoming a static call.
 @pragma('dart2js:never-inline')
+@pragma('wasm:never-inline')
 Function m(Function f) => f;
 
 class SomeClass {

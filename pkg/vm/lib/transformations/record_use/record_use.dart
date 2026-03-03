@@ -79,7 +79,7 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
     // Extension member tear-offs call the implementation. We skip them here
     // to avoid recording the implementation call as a usage, as the usage is
     // already recorded by the call to the extension member tear-off itself.
-    if (isExtensionMemberTearOff(node)) {
+    if (isExtensionMemberTearOff(node) || isTearOffLowering(node)) {
       return;
     }
     super.visitProcedure(node);
@@ -104,12 +104,43 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   }
 
   @override
+  void visitStaticTearOff(ast.StaticTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    if (isConstructorTearOffLowering(node.target)) {
+      instanceUseRecorder.recordLoweredConstructorTearOff(node);
+    } else {
+      staticCallRecorder.recordStaticTearOff(node);
+    }
+
+    super.visitStaticTearOff(node);
+  }
+
+  @override
   void visitStaticSet(ast.StaticSet node) {
     if (_isAnnotation(node)) return;
 
     staticCallRecorder.recordStaticSet(node);
 
     super.visitStaticSet(node);
+  }
+
+  @override
+  void visitConstructorInvocation(ast.ConstructorInvocation node) {
+    if (_isAnnotation(node)) return;
+
+    instanceUseRecorder.recordConstructorInvocation(node);
+
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitConstructorTearOff(ast.ConstructorTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    instanceUseRecorder.recordConstructorTearOff(node);
+
+    super.visitConstructorTearOff(node);
   }
 
   @override
@@ -147,6 +178,19 @@ Recordings _usages(
   Map<Definition, List<InstanceReference>> instances,
 ) {
   return Recordings(calls: calls, instances: instances);
+}
+
+MaybeConstant evaluateExpression(ast.Expression expression) {
+  if (expression is ast.BasicLiteral) {
+    return evaluateLiteral(expression);
+  } else if (expression is ast.ConstantExpression) {
+    return evaluateConstant(expression.constant);
+  } else if (expression is ast.VariableGet &&
+      expression.variable.initializer != null) {
+    return evaluateExpression(expression.variable.initializer!);
+  } else {
+    return const NonConstant();
+  }
 }
 
 Constant evaluateConstant(ast.Constant constant) => switch (constant) {

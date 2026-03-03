@@ -1,0 +1,36 @@
+library #lib;
+import self as self;
+import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
+
+import "package:meta/meta.dart" show RecordUse;
+
+@#C1
+final class A extends core::Object {
+
+  [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=()->i]
+  final field core::int i;
+
+  [@vm.unboxing-info.metadata=(i)->b]
+  @#C4
+  @#C6
+  constructor •([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → self::A
+    : self::A::i = i, super core::Object::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final self::A a = new self::A::•(42);
+  core::print([@vm.direct-call.metadata=#lib::A.i] [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] a.{self::A::i}{core::int});
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = "vm:never-inline"
+  #C3 = null
+  #C4 = core::pragma {name:#C2, options:#C3}
+  #C5 = "dart2js:noInline"
+  #C6 = core::pragma {name:#C5, options:#C3}
+}

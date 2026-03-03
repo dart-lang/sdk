@@ -4216,6 +4216,14 @@ Message _withArgumentsFieldAlreadyInitializedAtDeclarationCause({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode fieldInitializedPrimaryConstructorDuplicateContext =
+    const MessageCode(
+      "FieldInitializedPrimaryConstructorDuplicateContext",
+      severity: CfeSeverity.context,
+      problemMessage: """This is the field declaration.""",
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function({required String fieldName, required DartType fieldType})
 >

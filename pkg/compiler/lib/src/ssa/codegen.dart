@@ -12,6 +12,8 @@ import 'package:front_end/src/api_prototype/lowering_predicates.dart'
         isExtensionMemberTearOff,
         getExtensionMemberImplementation,
         isExtensionThisName;
+import 'package:kernel/constructor_tearoff_lowering.dart'
+    show isConstructorTearOffLowering;
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
@@ -179,6 +181,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         codegen.tracer,
         closedWorld,
         registry,
+        field,
         _recordedConstantUsesVisited,
       );
       codeGenerator.visitGraph(graph);
@@ -214,6 +217,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         codegen.tracer,
         closedWorld,
         registry,
+        method,
         _recordedConstantUsesVisited,
       );
       codeGenerator.visitGraph(graph);
@@ -304,6 +308,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   final JClosedWorld _closedWorld;
   final CodegenRegistry _registry;
   final CodegenMetrics _metrics;
+  final MemberEntity _member;
 
   /// Set of constants that have already been recorded for uses. Shard-global.
   ///
@@ -369,6 +374,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     this._tracer,
     this._closedWorld,
     this._registry,
+    this._member,
     this._recordedConstantUsesVisited,
   );
 
@@ -2371,13 +2377,20 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       );
     } else {
       StaticUse staticUse;
-      Object? recordedMethodUses;
+      RecordedUse? recordedMethodUses;
       if (element is ConstructorEntity) {
         CallStructure callStructure = CallStructure.unnamed(
           arguments.length,
           node.typeArguments.length,
         );
         staticUse = StaticUse.constructorInvoke(element, callStructure);
+        if (_shouldRecordConstructor(element)) {
+          recordedMethodUses = _recordConstructorUses(
+            element,
+            node.inputs,
+            node.sourceInformation!,
+          );
+        }
       } else if (element.isGetter) {
         staticUse = StaticUse.staticGet(element);
         if (_shouldRecordMethodUses(element)) {
@@ -2488,6 +2501,72 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       }
     }
     return false;
+  }
+
+  bool _shouldRecordConstructor(MemberEntity element) {
+    final cls = element.enclosingClass;
+    if (cls == null) return false; // Not a tearoff lowering or constructor.
+    if (!_closedWorld.annotationsData.shouldRecordConstInstances(cls)) {
+      return false;
+    }
+
+    if (element is ConstructorEntity) {
+      // If we are currently compiling a constructor tear-off lowering, we don't
+      // want to record the generative constructor calls inside it.
+      final node = _closedWorld.elementMap.getMemberDefinition(_member).node;
+      if (node is ir.Procedure && isConstructorTearOffLowering(node)) {
+        return false;
+      }
+      return element.isGenerativeConstructor || element.isFactoryConstructor;
+    }
+
+    if (element is FunctionEntity) {
+      final node = _closedWorld.elementMap.getMemberDefinition(element).node;
+      return node is ir.Procedure && isConstructorTearOffLowering(node);
+    }
+
+    return false;
+  }
+
+  RecordedUse _recordConstructorUses(
+    ConstructorEntity element,
+    List<HInstruction> arguments,
+    SourceInformation sourceInformation,
+  ) {
+    final positionalArguments = <ConstantValue?>[];
+    final namedArguments = <String, ConstantValue?>{};
+    var argumentIndex = 0;
+    _closedWorld.elementEnvironment.forEachParameter(element, (
+      DartType type,
+      String? name,
+      ConstantValue? defaultValue,
+    ) {
+      if (argumentIndex < arguments.length) {
+        final value = _findConstant(arguments[argumentIndex++]);
+        if (argumentIndex <= element.parameterStructure.positionalParameters) {
+          positionalArguments.add(value);
+        } else {
+          namedArguments[name!] = value;
+        }
+      }
+    });
+
+    return RecordedInstanceCreation(
+      cls: element.enclosingClass,
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
+      sourceInformation: sourceInformation,
+    );
+  }
+
+  RecordedUse _recordConstructorTearOff(
+    FunctionEntity element,
+    SourceInformation sourceInformation,
+  ) {
+    return RecordedConstructorTearOff(
+      cls: element.enclosingClass!,
+      sourceInformation: sourceInformation,
+    );
   }
 
   RecordedUse _recordMethodUses(
@@ -3052,6 +3131,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         if (_shouldRecordMethodUses(element)) {
           yield _recordTearOff(element, sourceInformation!);
         }
+        if (_shouldRecordConstructor(element)) {
+          yield _recordConstructorTearOff(element, sourceInformation!);
+        }
       case ConstructedConstantValue():
         final element = constant.type.element;
         if (_closedWorld.annotationsData.shouldRecordConstInstances(element)) {
@@ -3433,11 +3515,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     MemberEntity element = node.element;
     if (element is FunctionEntity) {
       // TODO(sra): Static tear-offs should be constants.
-      push(
-        _emitter
-            .staticClosureAccess(element)
-            .withSourceInformation(node.sourceInformation),
-      );
+      js.Expression expression = _emitter
+          .staticClosureAccess(element)
+          .withSourceInformation(node.sourceInformation);
+      if (_shouldRecordConstructor(element)) {
+        expression = expression.withAnnotation(
+          _recordConstructorTearOff(element, node.sourceInformation!),
+        );
+      }
+      push(expression);
       _registry.registerStaticUse(StaticUse.staticTearOff(element));
     } else if (element is FieldEntity) {
       push(

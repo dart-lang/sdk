@@ -7702,3 +7702,8 @@ partWithLibraryDirective:
     lib.dart: |
       library;
       part of 'main.dart';
+
+fieldInitializedPrimaryConstructorDuplicateContext:
+  parameters: none
+  problemMessage: "This is the field declaration."
+  severity: CONTEXT

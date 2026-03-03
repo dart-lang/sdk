@@ -74,6 +74,7 @@ guides
 h
 https
 import.memory
+initializations
 int32x
 interact
 interop
@@ -160,7 +161,7 @@ unavailable
 unsound
 unsupportederror
 v
-webassembly
 wasm:export
 wasm:import
+webassembly
 x

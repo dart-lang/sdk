@@ -65,6 +65,7 @@ import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart'
     show internalProblem, unhandled, unsupported, DebugAbort;
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -9906,7 +9907,13 @@ class BodyBuilderImpl extends StackListenerImpl
       MemberBuilder firstBuilder = result.declarations.first;
       if (firstBuilder is SourcePropertyBuilder && firstBuilder.hasField) {
         // Assume the first field has been initialized.
-        _context.registerInitializedField(firstBuilder);
+        _context.registerInitializedField(
+          firstBuilder,
+          new FieldInitialization(
+            new UriOffsetLength(uri, fieldNameOffset, name.length),
+            fromInitializingFormal: formal != null,
+          ),
+        );
       }
       return <Initializer>[
         createInvalidInitializer(
@@ -9998,7 +10005,13 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
         ];
       } else {
-        _context.registerInitializedField(builder);
+        _context.registerInitializedField(
+          builder,
+          new FieldInitialization(
+            new UriOffsetLength(uri, fieldNameOffset, name.length),
+            fromInitializingFormal: formal != null,
+          ),
+        );
         if (formal != null && formal.type is! OmittedTypeBuilder) {
           DartType formalType = formal.variable.type;
           DartType fieldType = _context.substituteFieldType(builder.fieldType);

@@ -30,6 +30,7 @@ import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
+import '../util/helpers.dart';
 import 'internal_ast.dart';
 
 /// Interface that defines the interface between the [BodyBuilder] and the
@@ -276,8 +277,13 @@ abstract class BodyBuilderContext {
   }
 
   /// Registers that the field [builder] has been initialized in generative
-  /// constructor whose body is being built.
-  void registerInitializedField(SourcePropertyBuilder builder) {
+  /// constructor whose body is being built with [fromInitializingFormal]
+  /// whether the field was initialized through an initializing formal, or from
+  /// and explicit field initializer in the initializer list.
+  void registerInitializedField(
+    SourcePropertyBuilder builder,
+    FieldInitialization fieldInitialization,
+  ) {
     throw new UnsupportedError('${runtimeType}.registerInitializedField');
   }
 

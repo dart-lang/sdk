@@ -76,6 +76,32 @@ bool isBeingRecorded(Annotatable node) {
     if (extensionTypeDeclaration != null) {
       if (isBeingRecorded(extensionTypeDeclaration)) return true;
     }
+
+    if (node.isFactory) {
+      final Class? cls = node.enclosingClass;
+      if (cls != null && isBeingRecorded(cls)) return true;
+    }
+
+    if (isConstructorTearOffLowering(node)) {
+      final Member? target = getConstructorTearOffLoweringTarget(node);
+      if (target != null) {
+        return isBeingRecorded(target);
+      }
+    }
+  }
+
+  if (node is Constructor) {
+    // Coverage-ignore-block(suite): Not run.
+    final Class? cls = node.enclosingClass;
+    if (cls != null && isBeingRecorded(cls)) return true;
+  }
+
+  if (node is Procedure &&
+      // Coverage-ignore(suite): Not run.
+      node.isRedirectingFactory) {
+    // Coverage-ignore-block(suite): Not run.
+    final Member? target = node.function.redirectingFactoryTarget?.target;
+    if (target != null) return isBeingRecorded(target);
   }
 
   return false;
@@ -157,13 +183,19 @@ void _validateRecordUseDeclaration(
     );
   }
 
-  final bool onStaticMethod =
-      node is Procedure && node.isStatic && node.kind != ProcedureKind.Factory;
+  // Non-generative, non-redirecting constructors are treated as static calls.
+  final bool onFactory =
+      node is Procedure && node.isFactory && !node.isRedirectingFactory;
 
-  final bool onClassWithoutConstConstructor =
-      node is! Class ||
-      !node.constructors.any((constructor) => constructor.isConst);
-  if (!onStaticMethod && onClassWithoutConstConstructor) {
+  final bool onStaticMethod =
+      (node is Procedure &&
+          node.isStatic &&
+          node.kind != ProcedureKind.Factory) ||
+      onFactory;
+
+  final bool onClass = node is Class;
+
+  if (!onStaticMethod && !onClass) {
     errorReporter.report(
       diag.recordUseCannotBePlacedHere.withLocation(
         fileUri,

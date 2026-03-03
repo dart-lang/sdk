@@ -1290,6 +1290,28 @@ Message _withArgumentsFastaCLIArgumentRequired({required String argumentName}) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor = const MessageCode(
+  "FieldInitializedInDeclarationAndInitializerOfPrimaryConstructor",
+  sharedCode: SharedCode
+      .fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
+  problemMessage:
+      """Fields can't be initialized in both the primary constructor and at their declaration.""",
+  correctionMessage: """Try removing one of the initializations.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+fieldInitializedInDeclarationAndParameterOfPrimaryConstructor = const MessageCode(
+  "FieldInitializedInDeclarationAndParameterOfPrimaryConstructor",
+  sharedCode:
+      SharedCode.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
+  problemMessage:
+      """Fields can't be initialized in both the primary constructor parameter list and at their declaration.""",
+  correctionMessage: """Try removing one of the initializations.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode fieldInitializedOutsideDeclaringClass = const MessageCode(
   "FieldInitializedOutsideDeclaringClass",
   sharedCode: SharedCode.fieldInitializedOutsideDeclaringClass,
@@ -3078,6 +3100,8 @@ enum SharedCode {
   extraneousModifierInPrimaryConstructor,
   factoryConstructorNewName,
   factoryTopLevelDeclaration,
+  fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
+  fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
   fieldInitializedOutsideDeclaringClass,
   fieldInitializerOutsideConstructor,
   finalAndCovariant,

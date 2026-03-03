@@ -30,6 +30,8 @@ enum RecordedUseKind {
   constInstance,
   staticCallTearOff,
   staticCallWithArguments,
+  instanceCreation,
+  constructorTearOff,
 }
 
 /// Dart2js version of `record_use.Reference`, with [sourceInformation].
@@ -62,6 +64,18 @@ sealed class RecordedUse {
         break;
       case RecordedUseKind.constInstance:
         result = RecordedConstInstance._readFromDataSource(
+          sourceInformation,
+          source,
+        );
+        break;
+      case RecordedUseKind.instanceCreation:
+        result = RecordedInstanceCreation._readFromDataSource(
+          sourceInformation,
+          source,
+        );
+        break;
+      case RecordedUseKind.constructorTearOff:
+        result = RecordedConstructorTearOff._readFromDataSource(
           sourceInformation,
           source,
         );
@@ -284,6 +298,113 @@ class RecordedConstInstance extends RecordedUse {
 
   @override
   int get hashCode => Object.hash(constant, sourceInformation);
+}
+
+/// Dart2js version of [record_use.InstanceCreationReference], with
+/// [ConstantValue]s instead of [record_use.Constant]s.
+class RecordedInstanceCreation extends RecordedUse {
+  final ClassEntity cls;
+  final List<ConstantValue?> positionalArguments;
+  final Map<String, ConstantValue?> namedArguments;
+
+  RecordedInstanceCreation({
+    required this.cls,
+    required this.positionalArguments,
+    required this.namedArguments,
+    required super.sourceInformation,
+  });
+
+  @override
+  RecordedUseKind get kind => RecordedUseKind.instanceCreation;
+
+  static RecordedInstanceCreation _readFromDataSource(
+    SourceInformation sourceInformation,
+    DataSourceReader source,
+  ) {
+    final cls = source.readClass();
+    final positionalArguments = source.readList(source.readConstantOrNull);
+    final namedArguments = source.readStringMap(source.readConstantOrNull);
+    return RecordedInstanceCreation(
+      cls: cls,
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
+      sourceInformation: sourceInformation,
+    );
+  }
+
+  @override
+  void _writeFieldsForKind(DataSinkWriter sink) {
+    sink.writeClass(cls);
+    sink.writeList(positionalArguments, sink.writeConstantOrNull);
+    sink.writeStringMap(namedArguments, sink.writeConstantOrNull);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! RecordedInstanceCreation) return false;
+    if (cls != other.cls) return false;
+    if (positionalArguments.length != other.positionalArguments.length) {
+      return false;
+    }
+    for (var i = 0; i < positionalArguments.length; i++) {
+      if (positionalArguments[i] != other.positionalArguments[i]) return false;
+    }
+    if (namedArguments.length != other.namedArguments.length) return false;
+    for (final name in namedArguments.keys) {
+      if (!other.namedArguments.containsKey(name) ||
+          namedArguments[name] != other.namedArguments[name]) {
+        return false;
+      }
+    }
+    return sourceInformation == other.sourceInformation;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    cls,
+    Object.hashAll(positionalArguments),
+    Object.hashAll(namedArguments.keys),
+    Object.hashAll(namedArguments.values),
+    sourceInformation,
+  );
+}
+
+/// Dart2js version of [record_use.ConstructorTearoffReference].
+class RecordedConstructorTearOff extends RecordedUse {
+  final ClassEntity cls;
+
+  RecordedConstructorTearOff({
+    required this.cls,
+    required super.sourceInformation,
+  });
+
+  @override
+  RecordedUseKind get kind => RecordedUseKind.constructorTearOff;
+
+  static RecordedConstructorTearOff _readFromDataSource(
+    SourceInformation sourceInformation,
+    DataSourceReader source,
+  ) {
+    final cls = source.readClass();
+    return RecordedConstructorTearOff(
+      cls: cls,
+      sourceInformation: sourceInformation,
+    );
+  }
+
+  @override
+  void _writeFieldsForKind(DataSinkWriter sink) {
+    sink.writeClass(cls);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! RecordedConstructorTearOff) return false;
+    return cls == other.cls && sourceInformation == other.sourceInformation;
+  }
+
+  @override
+  int get hashCode => Object.hash(cls, sourceInformation);
 }
 
 /// [RecordUseValueConverter] transforms dart2js [ConstantValue] objects into the

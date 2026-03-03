@@ -27,6 +27,8 @@ import '../universe/recorded_use.dart'
         RecordUseValueConverter,
         RecordedCallWithArguments,
         RecordedConstInstance,
+        RecordedInstanceCreation,
+        RecordedConstructorTearOff,
         RecordedTearOff,
         RecordedUse;
 
@@ -102,6 +104,24 @@ class RecordUseCollector {
         instanceMap
             .putIfAbsent(recordedUse.constantClass, () => [])
             .add(reference);
+        break;
+      case RecordedInstanceCreation():
+        final reference = InstanceCreationReference(
+          loadingUnits: [LoadingUnit(loadingUnit)],
+          namedArguments: recordedUse.namedArguments.map(
+            (k, v) => MapEntry(k, _converter.findValueOrNonConst(v)),
+          ),
+          positionalArguments: recordedUse.positionalArguments
+              .map((v) => _converter.findValueOrNonConst(v))
+              .toList(),
+        );
+        instanceMap.putIfAbsent(recordedUse.cls, () => []).add(reference);
+        break;
+      case RecordedConstructorTearOff():
+        final reference = ConstructorTearoffReference(
+          loadingUnits: [LoadingUnit(loadingUnit)],
+        );
+        instanceMap.putIfAbsent(recordedUse.cls, () => []).add(reference);
         break;
     }
   }

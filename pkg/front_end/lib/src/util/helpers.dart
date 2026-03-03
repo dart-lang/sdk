@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/uri_offset.dart';
 import '../source/source_library_builder.dart';
 
 /// Returns `true` if access to `Record` from `dart:core` is allowed.
@@ -75,4 +76,16 @@ enum InferenceDefaultType {
 
   /// Use `dynamic` as the inferred type.
   Dynamic,
+}
+
+/// Information about a field initialization occurring within a constructor.
+class FieldInitialization {
+  /// The uri and offset of the initialization.
+  final UriOffsetLength uriOffset;
+
+  /// Whether the initialization is through an initializing formal. Otherwise
+  /// it is through an explicit initializer.
+  final bool fromInitializingFormal;
+
+  FieldInitialization(this.uriOffset, {required this.fromInitializingFormal});
 }

@@ -2567,3 +2567,30 @@ assignmentToPrimaryConstructorParameter:
     class C(int x) {
       int y = x++;
     }
+
+fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Fields can't be initialized in both the primary constructor and at their declaration."
+  correctionMessage: Try removing one of the initializations.
+  hasPublishedDocs: false
+  analyzerCode: fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor
+  experiments: primary-constructors
+  script: |
+    class C() {
+      int x = 0;
+      this : x = 1;
+    }
+
+fieldInitializedInDeclarationAndParameterOfPrimaryConstructor:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Fields can't be initialized in both the primary constructor parameter list and at their declaration."
+  correctionMessage: Try removing one of the initializations.
+  hasPublishedDocs: false
+  analyzerCode: fieldInitializedInDeclarationAndParameterOfPrimaryConstructor
+  experiments: primary-constructors
+  script: |
+    class C(this.x) {
+      int x = 0;
+    }

@@ -1200,6 +1200,8 @@ final sharedAnalyzerCodes = <DiagnosticCode>[
   diag.extraneousModifierInPrimaryConstructor,
   diag.factoryConstructorNewName,
   diag.factoryTopLevelDeclaration,
+  diag.fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
+  diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
   diag.fieldInitializedOutsideDeclaringClass,
   diag.fieldInitializerOutsideConstructor,
   diag.finalAndCovariant,
