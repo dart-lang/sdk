@@ -21,17 +21,15 @@ namespace dart {
 // as non-negative values which are equal to that offset.
 //
 // Synthetically created functions that correspond to user code are given
-// starting token positions unique from other synthetic functions. The value for
-// these token positions encode a unique non-negative value as a negative number
-// within [kSmiMin32, -1 - N).
+// token positions less than the smallest sentinel value. The value for these
+// token positions encodes a non-negative value within [kSmiMin32, -1 - N].
 //
 // For example:
 // A synthetic token with value 0 is encoded as ((-1 - N) - (0 + 1)) = -2 - N.
 // A synthetic token with value 1 is encoded as ((-1 - N) - (1 + 1)) = -3 - N.
 //
-// Note that the encoded value is _not_ related to any possible real token
-// position, as two real token positions for different scripts can have the same
-// value and thus cannot serve as a unique nonce for a synthetic node.
+// In most cases, the encoded value of a synthetic token position is the source
+// offset of the code element that caused it to be generated.
 //
 // All other nodes read from user code, such as non-synthetic functions, fields,
 // etc., are given real starting token positions. All nodes coming from user
@@ -169,6 +167,19 @@ class TokenPosition {
     return TokenPosition(value_ + 1);
   }
 
+  // If synthetic, returns a real token position encoding the same
+  // underlying value, otherwise returns the original token position.
+  //
+  // Used to write wrappers that also accept synthetic tokens around
+  // methods that originally only worked with real token positions.
+  // This is done instead of changing the wrapped method to take them
+  // since that might cause issues in callers of the wrapped method
+  // that assume the method only works with real token positions.
+  TokenPosition ToRealIfSynthetic() const {
+    if (!IsSynthetic()) return *this;
+    return TokenPosition(ConvertSynthetic(value_));
+  }
+
   // Return the source position for real token positions.
   inline intptr_t Pos() const {
     ASSERT(IsReal());
@@ -199,7 +210,7 @@ class TokenPosition {
   // Creates a synthetic source position from a non-negative value.
   static TokenPosition Synthetic(intptr_t value) {
     ASSERT(value >= 0 && value <= kMaxSourcePos);
-    return TokenPosition((kLastPos - 1) - value);
+    return TokenPosition(ConvertSynthetic(value));
   }
 
   // Encode the token position for storage in the coverage array.
@@ -213,6 +224,15 @@ class TokenPosition {
 
  private:
   explicit TokenPosition(intptr_t value) : value_(value) {}
+
+  // Used both for encoding and decoding the value of synthetic source
+  // locations.
+  DART_FORCE_INLINE static intptr_t ConvertSynthetic(intptr_t value) {
+    const intptr_t encoded = (kLastPos - 1) - value;
+    // Check that the value still fits in an int32.
+    ASSERT(Utils::IsInt(32, encoded));
+    return encoded;
+  }
 
   // The raw value of this TokenPosition.
   intptr_t value() const { return value_; }

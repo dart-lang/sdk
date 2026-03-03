@@ -5113,6 +5113,26 @@ class Script : public Object {
                         intptr_t* line,
                         intptr_t* column = nullptr) const;
 
+  // For real or synthetic token positions when line starts are available,
+  // returns whether a GetTokenLocation call for that token would succeed.
+  // Returns true for sentinel token positions or if there is no line starts
+  // information.
+  bool IsValidRealOrSyntheticTokenPosition(TokenPosition token_pos) const {
+    return IsValidTokenPosition(token_pos.ToRealIfSynthetic());
+  }
+
+  // Returns whether a line and column could be computed for the given token
+  // position and, if so, sets *line and *column (if not nullptr).
+  //
+  // Unlike GetTokenLocation, which only returns lines and columns of real
+  // token positions, lines and columns are also returned for synthetic
+  // token positions.
+  bool GetRealOrSyntheticTokenLocation(const TokenPosition& token_pos,
+                                       intptr_t* line,
+                                       intptr_t* column = nullptr) const {
+    return GetTokenLocation(token_pos.ToRealIfSynthetic(), line, column);
+  }
+
   // Returns the length of the token at the given position. If the length cannot
   // be determined, returns a negative value.
   intptr_t GetTokenLength(const TokenPosition& token_pos) const;
