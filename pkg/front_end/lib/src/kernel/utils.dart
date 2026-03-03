@@ -293,6 +293,16 @@ final TypeBuilder dummyTypeBuilder = new FixedTypeBuilderImpl(
   dummyUri,
   -1,
 );
+final CatchParameterBuilder dummyCatchParameterBuilder =
+    new CatchParameterBuilder(
+      modifiers: Modifiers.empty,
+      type: const ImplicitTypeBuilder(),
+      name: '',
+      fileOffset: -1,
+      nameOffset: null,
+      fileUri: dummyUri,
+      isClosureContextLoweringEnabled: false,
+    );
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(
       kind: FormalParameterKind.requiredPositional,

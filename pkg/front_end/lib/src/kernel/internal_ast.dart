@@ -1101,12 +1101,6 @@ class InternalPositionalParameter extends TreeNode
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  void set catchVariableName(String value) {
-    throw new UnsupportedError("${this.runtimeType}.catchVariableName=");
-  }
-
-  @override
   R accept<R>(StatementVisitor<R> v) => v.visitPositionalParameter(astVariable);
 
   @override
@@ -1216,12 +1210,6 @@ class InternalNamedParameter extends TreeNode
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  void set catchVariableName(String value) {
-    throw new UnsupportedError("${this.runtimeType}.catchVariableName=");
-  }
-
-  @override
   R accept<R>(StatementVisitor<R> v) => v.visitNamedParameter(astVariable);
 
   @override
@@ -1298,6 +1286,52 @@ class InternalNamedParameter extends TreeNode
   void set variable(ExpressionVariable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
+}
+
+class InternalCatchVariable extends TreeNode
+    with InternalExpressionVariableMixin, DelegatingVariableMixin
+    implements CatchVariable, InternalExpressionVariable {
+  @override
+  CatchVariable astVariable;
+
+  @override
+  final bool forSyntheticToken;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  @override
+  final bool isLocalFunction;
+
+  InternalCatchVariable({
+    required this.astVariable,
+    required this.isImplicitlyTyped,
+    this.forSyntheticToken = false,
+    this.isLocalFunction = false,
+  });
+
+  @override
+  String toString() {
+    return "InternalCatchVariable(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(astVariable);
+    List<String> modifiers = [
+      if (forSyntheticToken) "forSyntheticToken",
+      if (isImplicitlyTyped) "isImplicitlyTyped",
+      if (isLocalFunction) "isLocalFunction",
+    ];
+    if (modifiers.isNotEmpty) {
+      printer.write("[${modifiers.join(",")}]");
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String get catchVariableName => astVariable.catchVariableName;
 }
 
 mixin DelegatingVariableMixin on InternalExpressionVariableMixin
@@ -1477,7 +1511,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   DartType get type => astVariable.type;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set type(DartType value) {
     astVariable.type = type;
   }
@@ -1565,7 +1598,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
     return astVariable.accept1(v, arg);
   }
