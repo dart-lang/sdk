@@ -10,6 +10,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -61,7 +63,8 @@ class _ConstructorChecker {
     this._constructor, {
     required bool privateNamedParametersEnabled,
   }) : _parameters = _constructor.parameters.parameters
-           .map((e) => e.declaredFragment?.element)
+           .where((param) => param.notDefault is! SuperFormalParameter)
+           .map((param) => param.declaredFragment?.element)
            .toList(),
        _privateNamedParametersEnabled = privateNamedParametersEnabled;
 

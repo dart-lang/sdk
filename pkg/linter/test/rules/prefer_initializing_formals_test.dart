@@ -564,6 +564,19 @@ class C {
 }
 ''');
   }
+
+  test_superParameter() async {
+    await assertNoDiagnostics(r'''
+class B {
+  B({int? i});
+}
+
+class C extends B {
+  final int? _i;
+  C({super.i}) : _i = i;
+}
+''');
+  }
 }
 
 @reflectiveTest
