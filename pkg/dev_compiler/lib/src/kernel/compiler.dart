@@ -3161,9 +3161,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return body;
   }
 
-  js_ast.PropertyAccess _emitTopLevelName(NamedNode n, {String suffix = ''}) {
+  js_ast.PropertyAccess _emitTopLevelName(NamedNode n) {
     return _emitJSInterop(n) ??
-        _emitTopLevelNameNoExternalInterop(n, suffix: suffix);
+        _emitTopLevelNameNoExternalInterop(n, suffix: '');
   }
 
   /// Like [_emitMemberName], but for declaration sites.
