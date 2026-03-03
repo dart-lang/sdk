@@ -101,7 +101,7 @@ class FunctionCollector {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       final member = target.asMember;
-      final isPure =
+      final hasPureAnnotation =
           util.hasWasmPureFunctionPragma(translator.coreTypes, member);
 
       // If this function is a `@pragma('wasm:import', '<module>.<name>')` we
@@ -118,7 +118,7 @@ class FunctionCollector {
               .functions
               .import(importName.moduleName, importName.itemName, ftype,
                   "$importName (import)")
-            ..isPure = isPure;
+            ..isPure = hasPureAnnotation;
         }
       }
 
@@ -143,7 +143,9 @@ class FunctionCollector {
           : translator.signatureForDirectCall(target);
 
       final function = module.functions.define(ftype, getFunctionName(target))
-        ..isPure = isPure;
+        ..isPure = hasPureAnnotation &&
+            !target.isTypeCheckerReference &&
+            !target.isCheckedEntryReference;
       if (exportName != null) module.exports.export(exportName, function);
 
       // Export the function from the main module if it is callable from
