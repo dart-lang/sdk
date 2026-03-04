@@ -109,6 +109,7 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
     if (_isAnnotation(node)) return;
 
     staticCallRecorder.recordStaticGet(node);
+    instanceUseRecorder.recordStaticGet(node);
 
     super.visitStaticGet(node);
   }

@@ -67,6 +67,14 @@ bool isBeingRecorded(Annotatable node) {
     if (cls != null && isBeingRecorded(cls)) return true;
   }
 
+  if (node is Field &&
+      // Coverage-ignore(suite): Not run.
+      node.isEnumElement) {
+    // Coverage-ignore-block(suite): Not run.
+    final Class? cls = node.enclosingClass;
+    if (cls != null && isBeingRecorded(cls)) return true;
+  }
+
   if (node is Procedure) {
     // Coverage-ignore-block(suite): Not run.
     Procedure? implementation = getExtensionMemberImplementation(node);

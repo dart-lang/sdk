@@ -89,16 +89,11 @@ class RecordUseCollector {
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
         break;
       case RecordedConstInstance():
-        if (_elementEnvironment.isEnumClass(recordedUse.constantClass)) {
-          // TODO(https://github.com/dart-lang/native/issues/2908): Support enum
-          // constant instances.
-          break;
-        }
         final instanceValue = _converter.findInstanceValue(
           recordedUse.constant,
         );
         final reference = InstanceConstantReference(
-          instanceConstant: instanceValue as InstanceConstant,
+          instanceConstant: instanceValue,
           loadingUnits: [LoadingUnit(loadingUnit)],
         );
         instanceMap

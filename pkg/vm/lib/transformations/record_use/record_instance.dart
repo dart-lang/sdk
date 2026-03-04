@@ -157,6 +157,24 @@ class InstanceRecorder {
     }
   }
 
+  void recordStaticGet(ast.StaticGet node) {
+    final target = node.target;
+    // Record enum const instance field accesses.
+    if (target is ast.Field && isBeingRecorded(target)) {
+      final initializer = target.initializer;
+      if (initializer is ast.ConstantExpression) {
+        final constant = initializer.constant;
+        if (constant is ast.InstanceConstant) {
+          final instance = InstanceConstantReference(
+            instanceConstant: evaluateConstant(constant),
+            loadingUnits: [_loadingUnitLookup(node)],
+          );
+          _addToUsage(constant.classNode, instance);
+        }
+      }
+    }
+  }
+
   void _collectInstance(
     ast.ConstantExpression expression,
     ast.InstanceConstant constant,
@@ -180,7 +198,7 @@ class InstanceRecorder {
     ast.ConstantExpression expression,
     ast.InstanceConstant constant,
   ) => InstanceConstantReference(
-    instanceConstant: evaluateInstanceConstant(constant),
+    instanceConstant: evaluateConstant(constant),
     loadingUnits: [_loadingUnitLookup(expression)],
   );
 
@@ -189,7 +207,10 @@ class InstanceRecorder {
     final importUri = enclosingLibrary.importUri.toString();
 
     return Definition(importUri, [
-      Name(cls.name, kind: DefinitionKind.classKind),
+      Name(
+        cls.name,
+        kind: cls.isEnum ? DefinitionKind.enumKind : DefinitionKind.classKind,
+      ),
     ]);
   }
 }
