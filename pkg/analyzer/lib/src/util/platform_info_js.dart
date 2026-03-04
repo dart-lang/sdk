@@ -48,5 +48,5 @@ final class PlatformInfoImpl extends PlatformInfo {
   // but it has been proposed in: https://dartbug.com/54785
   // For now users compiling compiling analyzer for web, will have to manually
   // specify -Ddart.sdk.version=<version> when building their code.
-  String get version => String.fromEnvironment('dart.sdk.version');
+  String get version => const String.fromEnvironment('dart.sdk.version');
 }
