@@ -51,11 +51,23 @@ def CheckSorted(input_api, output_api):
     ] + sourceArgs,
                             capture_output=True)
     if result.returncode != 0:
+        unsorted_file_details = [
+            line for line in result.stdout.decode('utf-8').splitlines()
+            if 'Unsorted file' in line
+        ]
+        if len(unsorted_file_details) == 0:
+            return [
+                output_api.PresubmitError('\n'.join([
+                    'CheckSorted: could not parse output of verify_sorted_test.dart',
+                    'Stdout:',
+                    result.stdout.decode('utf-8'),
+                    '',
+                    'Stderr:',
+                    result.stderr.decode('utf-8')
+                ]))
+            ]
         return [
-            output_api.PresubmitError('\n'.join([
-                line for line in result.stdout.decode('utf-8').splitlines()
-                if 'Unsorted file' in line
-            ]))
+            output_api.PresubmitError('\n'.join(unsorted_file_details))
         ]
     return []
 
