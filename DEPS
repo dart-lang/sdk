@@ -166,9 +166,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "145.0.7632.45",
+  "chrome_tag": "146.0.7680.31",
   "download_firefox": False,
-  "firefox_tag": "147.0.3",
+  "firefox_tag": "148.0",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
