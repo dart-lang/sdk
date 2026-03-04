@@ -270,7 +270,7 @@ class _MyClass {
     const expectedContent = '''
 class _MyClass {
   int? param;
-  _MyClass();
+  _MyClass() : param = null;
 }
 ''';
 
