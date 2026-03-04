@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.60 Adjust augmentation and primary constructor related rules to match
+// recent updates.
+//
 // v0.59 Gather some occurrences of `AUGMENT` in a single location. Rename
 // `topLevelDefinition` to `topLevelDeclaration` (as in the specification).
 //
@@ -324,9 +327,17 @@ topLevelDeclaration
     |    AUGMENT? getterSignature (functionBody | ';')
     |    AUGMENT? setterSignature (functionBody | ';')
     |    AUGMENT? functionSignature (functionBody | ';')
-    |    AUGMENT? (FINAL | CONST) type? initializedIdentifierList ';'
+    |    AUGMENT? (FINAL | CONST) type? staticFinalDeclarationList ';'
     |    AUGMENT? LATE FINAL type? initializedIdentifierList ';'
     |    AUGMENT? LATE? varOrType initializedIdentifierList ';'
+    ;
+
+staticFinalDeclarationList
+    :    staticFinalDeclaration (',' staticFinalDeclaration)*
+    ;
+
+staticFinalDeclaration
+    :    identifier '=' expression
     ;
 
 declaredIdentifier
@@ -719,12 +730,14 @@ mixinApplication
 
 enumType
     :    AUGMENT? ENUM classNameMaybePrimary mixins? interfaces?
-         LBRACE enumBody? RBRACE
+         enumBody
     ;
 
 enumBody
-    :    enumEntry (',' enumEntry)* ','? (';' memberDeclarations)?
-    |    ';' memberDeclarations
+    :    LBRACE
+         (enumEntry (',' enumEntry)* ','?)? (';' memberDeclarations)?
+         RBRACE
+    |    ';'
     ;
 
 enumEntry
