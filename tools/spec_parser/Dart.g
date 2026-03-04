@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.60 Adjust the `static final` and `static const` variable declarations
+// to require an initializing expression.
+//
 // v0.59 Adjust augmentation and primary constructor related rules to match
 // recent updates.
 //
@@ -535,7 +538,8 @@ declaration
     |    EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
     |    EXTERNAL? operatorSignature
     |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
-    |    STATIC (FINAL | CONST) type? initializedIdentifierList
+    |    STATIC ABSTRACT finalVarOrType identifierList
+    |    STATIC (FINAL | CONST) type? staticFinalDeclarationList
     |    STATIC LATE FINAL type? initializedIdentifierList
     |    STATIC LATE? varOrType initializedIdentifierList
     |    COVARIANT LATE FINAL type? identifierList
