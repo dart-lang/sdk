@@ -31,7 +31,7 @@ final class version extends ffi::Struct {
   static synthetic get major#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → void {
