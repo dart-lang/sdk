@@ -145,10 +145,15 @@ class DeclarationHelper {
     required this.excludedNodes,
   });
 
+  bool get _addTypeName => suggestingDotShorthand && !_isDotShorthandEnabled;
+
   /// Return the suggestion kind that should be used for executable elements.
   CompletionSuggestionKind get _executableSuggestionKind => preferNonInvocation
       ? CompletionSuggestionKind.IDENTIFIER
       : CompletionSuggestionKind.INVOCATION;
+
+  bool get _isDotShorthandEnabled =>
+      request.featureSet.isEnabled(.dot_shorthands);
 
   /// Add any constructors that are visible within the current library.
   void addConstructorInvocations() {
@@ -1891,23 +1896,27 @@ class DeclarationHelper {
     var matcherName = suggestingDotShorthand && elementName != null
         ? elementName
         : element.displayName;
+
     // TODO(keertip): Compute the completion string.
     var matcherScore = state.matcher.score(matcherName);
     if (matcherScore != -1) {
       if (_matchesContextType(element) && !preferNonInvocation) {
         var suggestion = ConstructorSuggestion(
+          replacementRange: request.replacementRange,
           importData: importData,
           element: element,
           hasClassName: hasClassName,
           isTearOff: true,
           isRedirect: isConstructorRedirect,
-          suggestUnnamedAsNew: true,
+          suggestUnnamedAsNew: false,
           matcherScore: matcherScore,
+          addTypeName: _addTypeName,
         );
         collector.addSuggestion(suggestion);
       }
 
       var suggestion = ConstructorSuggestion(
+        replacementRange: request.replacementRange,
         importData: importData,
         element: element,
         hasClassName: hasClassName,
@@ -1915,6 +1924,7 @@ class DeclarationHelper {
         isRedirect: isConstructorRedirect,
         suggestUnnamedAsNew: suggestUnnamedAsNew || preferNonInvocation,
         matcherScore: matcherScore,
+        addTypeName: _addTypeName,
       );
       collector.addSuggestion(suggestion);
     }
@@ -2045,6 +2055,7 @@ class DeclarationHelper {
           matcherScore: matcherScore,
           referencingInterface: referencingInterface,
           isInDeclaration: isInDeclaration,
+          addTypeName: _addTypeName,
         );
         collector.addSuggestion(suggestion);
       }
@@ -2183,6 +2194,7 @@ class DeclarationHelper {
             importData: importData,
             matcherScore: matcherScore,
             referencingInterface: referencingInterface,
+            addTypeName: _addTypeName,
             addTypeAnnotation: addTypeAnnotation,
             keyword: keyword,
           );
@@ -2198,6 +2210,7 @@ class DeclarationHelper {
           importData: importData,
           matcherScore: matcherScore,
           referencingInterface: referencingInterface,
+          addTypeName: _addTypeName,
           addTypeAnnotation: addTypeAnnotation,
           keyword: keyword,
         );
@@ -2304,8 +2317,9 @@ class DeclarationHelper {
                 matcherScore: matcherScore,
                 referencingInterface: referencingInterface,
                 isInDeclaration: isInDeclaration,
-                addTypeAnnotation: addTypeAnnotation,
+                addTypeName: _addTypeName,
                 replacementRange: state.request.replacementRange,
+                addTypeAnnotation: addTypeAnnotation,
                 keyword: keyword,
               );
               collector.addSuggestion(suggestion);
@@ -2319,6 +2333,7 @@ class DeclarationHelper {
               importData: importData,
               matcherScore: matcherScore,
               referencingInterface: referencingInterface,
+              addTypeName: _addTypeName,
               addTypeAnnotation: addTypeAnnotation,
               keyword: keyword,
             );
@@ -2409,6 +2424,7 @@ class DeclarationHelper {
                     matcherScore: matcherScore,
                     referencingInterface: null,
                     isInDeclaration: false,
+                    addTypeName: _addTypeName,
                     replacementRange: state.request.replacementRange,
                   );
                   collector.addSuggestion(suggestion);
@@ -2420,6 +2436,7 @@ class DeclarationHelper {
                   referencingInterface: null,
                   matcherScore: matcherScore,
                   withEnclosingName: true,
+                  addTypeName: _addTypeName,
                   replacementRange: state.request.replacementRange,
                 );
                 collector.addSuggestion(suggestion);

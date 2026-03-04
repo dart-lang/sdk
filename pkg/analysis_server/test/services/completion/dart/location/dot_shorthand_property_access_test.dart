@@ -636,6 +636,98 @@ suggestions
 ''');
   }
 
+  Future<void> test_method_noDotShorthands() async {
+    // We still added `named` so we can be sure we are replacing it correctly.
+    allowedIdentifiers = {'named', 'C'};
+    await computeSuggestions('''
+// @dart=3.9
+class C {
+  static C named() => C();
+}
+void f() {
+  C c = .^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  C
+    kind: constructorInvocation
+  C.named
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_replace_noDotShorthands() async {
+    // We still added `named` so we can be sure we are replacing it correctly.
+    allowedIdentifiers = {'named', 'C'};
+    await computeSuggestions('''
+// @dart=3.9
+class C {
+  static C named() => C();
+}
+void f() {
+  C c = .n^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  C.named
+    kind: methodInvocation
+  C.new
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_property_noDotShorthands() async {
+    // We still added `named` so we can be sure we are replacing it correctly.
+    allowedIdentifiers = {'named', 'C'};
+    await computeSuggestions('''
+// @dart=3.9
+class C {
+  static C named = C();
+}
+void f() {
+  C c = .^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  C
+    kind: constructorInvocation
+  C.named
+    kind: field
+''');
+  }
+
+  Future<void> test_property_replace_noDotShorthands() async {
+    // We still added `named` so we can be sure we are replacing it correctly.
+    allowedIdentifiers = {'named', 'C'};
+    await computeSuggestions('''
+// @dart=3.9
+class C {
+  static C named = C();
+}
+void f() {
+  C c = .n^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  C.named
+    kind: field
+  C.new
+    kind: constructorInvocation
+''');
+  }
+
   Future<void> test_record() async {
     await computeSuggestions('''
 enum E { e01, e02 }

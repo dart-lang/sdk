@@ -227,6 +227,38 @@ void f() {
     expectDocumentation(resolved, contains('Named Constructor.'));
   }
 
+  Future<void> test_dotShorthand_disabledFeature() async {
+    content = '''
+// @dart=3.9
+class C {
+  const C.named();
+}
+void f() {
+  C c = const .n^();
+}
+''';
+    // Here to make sure both insertion and completion actually replace `.`.
+    setCompletionItemInsertReplaceSupport();
+    await initializeServer();
+    var item = await getCompletionItem('named()');
+    // Usually, with `setCompletionItemInsertReplaceSupport`, we would get an
+    // InsertReplaceEdit, but since dot-shorthand is disabled, we get a normal
+    // TextEdit that replaces the `.` too.
+    var newContent = applyTextEdits(code.code, [toTextEdit(item.textEdit!)]);
+    expect(
+      newContent,
+      equalsNormalized('''
+// @dart=3.9
+class C {
+  const C.named();
+}
+void f() {
+  C c = const C.named();
+}
+'''),
+    );
+  }
+
   Future<void> test_enum() async {
     newFile(join(projectFolderPath, 'my_enum.dart'), '''
 /// Enum.

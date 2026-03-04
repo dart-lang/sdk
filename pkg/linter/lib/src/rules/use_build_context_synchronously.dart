@@ -651,14 +651,20 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   @override
   AsyncState? visitVariableDeclaration(VariableDeclaration node) =>
-      node.initializer?.accept(this)?.asynchronousOrNull;
+      node.initializer == _reference
+      ? null
+      : node.initializer?.accept(this)?.asynchronousOrNull;
+
+  @override
+  AsyncState? visitVariableDeclarationList(VariableDeclarationList node) =>
+      _asynchronousIfAnyIsAsync(node.variables);
 
   @override
   AsyncState? visitVariableDeclarationStatement(
     VariableDeclarationStatement node,
-  ) => _asynchronousIfAnyIsAsync([
-    for (var variable in node.variables.variables) variable.initializer,
-  ]);
+  ) => node.variables == _reference
+      ? null
+      : node.variables.accept(this)?.asynchronousOrNull;
 
   @override
   AsyncState? visitWhenClause(WhenClause node) => node.expression.accept(this);
