@@ -25,6 +25,15 @@ abstract class AstVisitor<R> {
 
   R? visitAnnotation(Annotation node);
 
+  @experimental
+  R? visitAnonymousBlockBody(AnonymousBlockBody node);
+
+  @experimental
+  R? visitAnonymousExpressionBody(AnonymousExpressionBody node);
+
+  @experimental
+  R? visitAnonymousMethodInvocation(AnonymousMethodInvocation node);
+
   R? visitArgumentList(ArgumentList node);
 
   R? visitAsExpression(AsExpression node);
@@ -310,12 +319,6 @@ abstract class AstVisitor<R> {
   );
 
   R? visitRelationalPattern(RelationalPattern node);
-
-  // ignore: deprecated_member_use_from_same_package
-  R? visitRepresentationConstructorName(RepresentationConstructorName node);
-
-  // ignore: deprecated_member_use_from_same_package
-  R? visitRepresentationDeclaration(RepresentationDeclaration node);
 
   R? visitRestPatternElement(RestPatternElement node);
 

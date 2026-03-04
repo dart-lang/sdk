@@ -1,0 +1,52 @@
+class C1() {
+  C1.other();
+}
+
+class C2() {
+  new other1();
+  new other2();
+}
+
+class C3() {
+  new other() : this();
+}
+
+class C4() {
+  new other() : this();
+}
+
+class C5.primary() {
+  new();
+}
+
+class C6.primary() {
+  new() : this.primary();
+}
+
+enum E1() { a(), b.other(); const E1.other(); }
+
+enum E2() { a(), b.other1(), c.other2(); const new other1(); const new other2(); }
+
+enum E3() { a(), b.other(); const new other() : this(); }
+
+enum E4() { a(), b.other(); const new other() : this(); }
+
+enum E5.primary() { a(), b.primary(); const new(); }
+
+enum E6.primary() { a(), b.primary(); const new() : this.primary(); }
+
+extension type ET1(int i) {
+  ET1.other(this.i);
+}
+
+extension type E2T(int i) {
+  new other(int i) : this(i);
+}
+
+extension type ET3.primary(int i) {
+  new(this.i);
+}
+
+extension type ET4.primary(int i) {
+  new(int i) : this.primary(i);
+}

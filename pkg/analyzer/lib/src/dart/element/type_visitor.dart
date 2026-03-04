@@ -57,32 +57,30 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
 
   @override
   bool visitFunctionType(FunctionType type) {
-    return visitChildren([
-      ..._maybeTypeAliasArguments(type),
-      type.returnType,
-      ...type.typeParameters
-          .map((typeParameter) => typeParameter.bound)
-          .where((type) => type != null)
-          .map((type) => type!),
-      ...type.formalParameters.map((formalParameter) => formalParameter.type),
-    ]);
+    return visitChildren(_maybeTypeAliasArguments(type)) &&
+        type.returnType.accept(this) &&
+        visitChildren(
+          type.typeParameters
+              .map((typeParameter) => typeParameter.bound)
+              .where((type) => type != null)
+              .map((type) => type!),
+        ) &&
+        visitChildren(
+          type.formalParameters.map((formalParameter) => formalParameter.type),
+        );
   }
 
   @override
   bool visitInterfaceType(InterfaceType type) {
-    return visitChildren([
-      ..._maybeTypeAliasArguments(type),
-      ...type.typeArguments,
-    ]);
+    return visitChildren(_maybeTypeAliasArguments(type)) &&
+        visitChildren(type.typeArguments);
   }
 
   @override
   bool visitRecordType(covariant RecordTypeImpl type) {
-    return visitChildren([
-      ..._maybeTypeAliasArguments(type),
-      ...type.positionalFields.map((field) => field.type),
-      ...type.namedFields.map((field) => field.type),
-    ]);
+    return visitChildren(_maybeTypeAliasArguments(type)) &&
+        visitChildren(type.positionalFields.map((field) => field.type)) &&
+        visitChildren(type.namedFields.map((field) => field.type));
   }
 
   @override

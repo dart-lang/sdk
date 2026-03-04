@@ -32,9 +32,19 @@ class ObjectLayout {
     required this.compressedWordSize,
   });
 
-  int getInstanceSize(ast.Class cls) {
+  /// Return true if [value] can be represented as a Smi (small integer).
+  bool isSmi(int value) {
+    final shiftedOut = value >> smiBits(compressedWordSize);
+    return shiftedOut == 0 || shiftedOut == -1;
+  }
+
+  int getUnalignedInstanceSize(ast.Class cls) {
     _ensureComputed(cls);
-    return roundUp(_instanceSize[cls]!, objectAlignment(wordSize));
+    return _instanceSize[cls]!;
+  }
+
+  int getInstanceSize(ast.Class cls) {
+    return roundUp(getUnalignedInstanceSize(cls), objectAlignment(wordSize));
   }
 
   int getFieldOffset(CField field) {

@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         })) {
       // TODO(scheglov): support primary constructors
       var errorNode = node.name ?? node.typeName!;
-      rule.reportAtOffset(errorNode.offset, errorNode.length);
+      rule.reportAtSourceRange(errorNode.sourceRange);
     }
     super.visitConstructorDeclaration(node);
   }

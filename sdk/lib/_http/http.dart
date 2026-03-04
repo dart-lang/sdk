@@ -710,21 +710,25 @@ abstract interface class ContentType implements HeaderValue {
   /// Content type for plain text using UTF-8 encoding.
   ///
   ///     text/plain; charset=utf-8
+  @pragma('vm:shared')
   static final text = ContentType("text", "plain", charset: "utf-8");
 
   /// Content type for HTML using UTF-8 encoding.
   ///
   ///    text/html; charset=utf-8
+  @pragma('vm:shared')
   static final html = ContentType("text", "html", charset: "utf-8");
 
   /// Content type for JSON using UTF-8 encoding.
   ///
   ///    application/json; charset=utf-8
+  @pragma('vm:shared')
   static final json = ContentType("application", "json", charset: "utf-8");
 
   /// Content type for binary data.
   ///
   ///    application/octet-stream
+  @pragma('vm:shared')
   static final binary = ContentType("application", "octet-stream");
 
   /// Creates a new content type object setting the primary type and

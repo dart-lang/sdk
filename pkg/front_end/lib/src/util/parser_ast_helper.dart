@@ -1218,10 +1218,15 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
+  void handleFunctionBodySkipped(
+    Token beginToken,
+    Token endToken,
+    bool isExpressionBody,
+  ) {
     FunctionBodySkippedHandle data = new FunctionBodySkippedHandle(
       ParserAstType.HANDLE,
-      token: token,
+      beginToken: beginToken,
+      endToken: endToken,
       isExpressionBody: isExpressionBody,
     );
     seen(data);
@@ -5979,19 +5984,25 @@ class NoFunctionBodyHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitNoFunctionBodyHandle(this);
 }
 
-class FunctionBodySkippedHandle extends ParserAstNode {
-  final Token token;
+class FunctionBodySkippedHandle extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
+  @override
+  final Token endToken;
   final bool isExpressionBody;
 
   FunctionBodySkippedHandle(
     ParserAstType type, {
-    required this.token,
+    required this.beginToken,
+    required this.endToken,
     required this.isExpressionBody,
   }) : super("FunctionBodySkipped", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-    "token": token,
+    "beginToken": beginToken,
+    "endToken": endToken,
     "isExpressionBody": isExpressionBody,
   };
 

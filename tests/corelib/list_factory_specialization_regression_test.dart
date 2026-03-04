@@ -12,5 +12,4 @@ void main() {
   l2.clear();
 }
 
-List foo({final bool growable = true}) =>
-    List<dynamic>.empty(growable: growable);
+List foo({bool growable = true}) => List<dynamic>.empty(growable: growable);

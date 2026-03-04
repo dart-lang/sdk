@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
+import 'package:analysis_server/src/computer/computer_document_highlights.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
-import 'package:analyzer/dart/ast/token.dart';
 
 typedef StaticOptions = Either2<bool, DocumentHighlightOptions>;
 
@@ -45,33 +44,12 @@ class DocumentHighlightsHandler
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
     return (unit, offset).mapResults((unit, requestedOffset) async {
-      var occurrences = getAllOccurrences(unit.unit);
-
-      /// Checks whether an Occurrence token spans the requested
-      /// offset.
-      ///
-      /// It's possible multiple occurrences might match because some nodes
-      /// such as object destructuring might match multiple elements (for
-      /// example the object getter and a declared variable).
-      bool spansRequestedPosition(Token token) {
-        return token.offset <= requestedOffset && token.end >= requestedOffset;
-      }
-
-      // Find the groups of tokens that contains an
-      // offset/length that spans the requested range. There may be multiple
-      // matches here if the source element is in multiple groups.
-      var matchingSet = <Token>{};
-
-      for (var occurrence in occurrences) {
-        var tokens = occurrence.tokens;
-        if (tokens.any(spansRequestedPosition)) {
-          matchingSet.addAll(tokens);
-        }
-      }
+      var computer = DartDocumentHighlightsComputer(unit.unit);
+      var matchingTokens = computer.compute(requestedOffset);
 
       // No matches will return an empty list (not null) because that prevents
       // the editor falling back to a text search.
-      var highlights = matchingSet
+      var highlights = matchingTokens
           .map(
             (token) => DocumentHighlight(
               range: toRange(unit.lineInfo, token.offset, token.length),

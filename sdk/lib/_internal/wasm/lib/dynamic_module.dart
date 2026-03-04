@@ -156,6 +156,36 @@ class WasmArrayConstCache {
   }
 }
 
+class DummyValueConstCache {
+  static WasmArray<WasmAnyRef> _dummyValueConstCache =
+      WasmArray<WasmAnyRef>.literal([WasmAnyRef.fromObject(Object())]);
+  static int _nextDummyValueConstCacheIndex = 0;
+
+  @pragma('dyn-module:callable')
+  static WasmAnyRef canonicalizeDummyValue(
+    WasmAnyRef value,
+    // Only takes one argument since we only check these types against a static
+    // type test and not against the new value.
+    WasmFunction<bool Function(WasmAnyRef val2)> check,
+  ) {
+    for (int i = 0; i < _nextDummyValueConstCacheIndex; i++) {
+      if (check.call(_dummyValueConstCache[i])) {
+        return value;
+      }
+    }
+    if (_nextDummyValueConstCacheIndex == _dummyValueConstCache.length) {
+      final newCache = WasmArray<WasmAnyRef>.filled(
+        _dummyValueConstCache.length * 2,
+        _dummyValueConstCache[0],
+      );
+      newCache.copy(0, _dummyValueConstCache, 0, _dummyValueConstCache.length);
+      _dummyValueConstCache = newCache;
+    }
+    _dummyValueConstCache[_nextDummyValueConstCacheIndex++] = value;
+    return value;
+  }
+}
+
 /// A table where there is one row per module and each column represents the
 /// updateable function for the corresponding allocated key index. The compiler
 /// tracks updateable functions via a unique string key which is converted to an

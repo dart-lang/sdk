@@ -407,8 +407,9 @@ base class _Map<K, V> extends _HashVMBase
 // This is essentially the same class as _Map, but it does
 // not permit any modification of map entries from Dart code. We use
 // this class for maps constructed from Dart constant maps.
+@pragma("vm:deeply-immutable")
 @pragma("vm:entry-point")
-base class _ConstMap<K, V> extends _HashVMImmutableBase
+final class _ConstMap<K, V> extends _HashVMImmutableBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -421,6 +422,12 @@ base class _ConstMap<K, V> extends _HashVMImmutableBase
     throw UnsupportedError("_ConstMap can only be allocated by the VM");
   }
 }
+
+@pragma("vm:entry-point")
+@pragma("vm:external-name", "createConstMapFromMapOfDeeplyImmutables")
+external _ConstMap<K, V> createConstMapFromMapOfDeeplyImmutables<K, V>(
+  Map<K, V> map,
+);
 
 mixin _ImmutableLinkedHashMapMixin<K, V>
     on _LinkedHashMapMixin<K, V>, _HashAbstractImmutableBase {

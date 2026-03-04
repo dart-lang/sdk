@@ -159,6 +159,18 @@ class _A {}
 ''');
   }
 
+  test_class_isUsed_native() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+final class _A extends Struct {
+  @Int32() external int x;
+}
+
+final List<_A> x = [];
+''');
+  }
+
   test_class_isUsed_staticFieldAccess() async {
     await assertNoErrorsInCode(r'''
 class _A {
@@ -187,6 +199,26 @@ class _A {}
 main() {
   var v = new List<_A>.empty();
   print(v);
+}
+''');
+  }
+
+  test_class_isUsed_variableDeclaration() async {
+    await assertNoErrorsInCode('''
+class _A {}
+void f() {
+  // ignore: unused_local_variable
+  _A? v;
+}
+''');
+  }
+
+  test_class_isUsed_variableDeclaration_typeArgument() async {
+    await assertNoErrorsInCode('''
+class _A {}
+void f() {
+  // ignore: unused_local_variable
+  List<_A>? v;
 }
 ''');
   }
@@ -284,34 +316,6 @@ void f(Object p) {
 class _A {}
 main() {
 }
-''',
-      [error(diag.unusedElement, 6, 2)],
-    );
-  }
-
-  test_class_notUsed_variableDeclaration() async {
-    await assertErrorsInCode(
-      '''
-class _A {}
-void f() {
-  _A? v;
-  print(v);
-}
-print(x) {}
-''',
-      [error(diag.unusedElement, 6, 2)],
-    );
-  }
-
-  test_class_notUsed_variableDeclaration_typeArgument() async {
-    await assertErrorsInCode(
-      '''
-class _A {}
-main() {
-  List<_A>? v;
-  print(v);
-}
-print(x) {}
 ''',
       [error(diag.unusedElement, 6, 2)],
     );
@@ -476,6 +480,415 @@ var a = _A();
     );
   }
 
+  test_dotShorthand_parameter_fieldFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+void main() {
+  _A a;
+  a = .new(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_fieldFormal_factory() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named([int? a]) = _A;
+}
+void main() {
+  _A a;
+  a = .named(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_generic() async {
+    await assertNoErrorsInCode(r'''
+class _A<T> {
+  _A(T a);
+}
+void main() {
+  _A<int> a;
+  a = .new(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_named() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A({int a = 0});
+}
+void main() {
+  _A a;
+  a = .new(a: 0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_optional() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A([int a = 0]);
+}
+void main() {
+  _A a;
+  a = .new(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_positional() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A(int a);
+}
+void main() {
+  _A a;
+  a = .new(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_public_constructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A([int a = 0]);
+}
+void main() {
+  A a;
+  a = .new(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_public_factory() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int? f;
+  A([this.f]);
+  factory A.named([int? a]) = A;
+}
+void main() {
+  A a;
+  a = .named(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_public_fieldFormal() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int? f;
+  A([this.f]);
+}
+void main() {
+  A a;
+  a = .new(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_public_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A(T a);
+}
+void main() {
+  A<int> a;
+  a = .new(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_public_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A({int a = 0});
+}
+void main() {
+  A a;
+  a = .new(a: 0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_public_optional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A([int a = 0]);
+}
+void main() {
+  A a;
+  a = .new(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_parameter_public_positional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int a);
+}
+void main() {
+  A a;
+  a = .new(0);
+  print(a);
+}
+''');
+  }
+
+  test_dotShorthand_private_constConstructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _C {
+  const _C.named();
+}
+
+void main() {
+  _C c;
+  c = const .named();
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_private_constConstructorInvocation_argument() async {
+    await assertNoErrorsInCode(r'''
+class _C {
+  const _C.named({int? p});
+}
+void main() {
+  _C c;
+  c = const .named(p: 0);
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_private_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _C {}
+
+void main() {
+  _C c;
+  c = .new();
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_private_constructorInvocation_argument() async {
+    await assertNoErrorsInCode(r'''
+class _C {
+  _C.named({int? p});
+}
+void main() {
+  _C c;
+  c = .named(p: 0);
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_private_enum() async {
+    await assertNoErrorsInCode(r'''
+enum _E { v }
+
+void main() {
+  _E e;
+  e = .v;
+  print(e);
+}
+''');
+  }
+
+  test_dotShorthand_private_extensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type _E(int i) {}
+
+void main() {
+  _E e;
+  e = .new(0);
+  print(e);
+}
+''');
+  }
+
+  test_dotShorthand_private_methodInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _C {
+  static _C foo() => _C();
+}
+
+void main() {
+  _C c;
+  c = .foo();
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_private_methodInvocation_argument() async {
+    await assertNoErrorsInCode(r'''
+class _C {
+  static _C foo({int? p}) => _C();
+}
+void main() {
+  _C c;
+  c = .foo(p: 0);
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_private_propertyAccess() async {
+    await assertNoErrorsInCode(r'''
+class _C {
+  static _C a = _C();
+}
+
+void main() {
+  _C c;
+  c = .a;
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_public_constConstructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  const C.named();
+}
+
+void main() {
+  C c;
+  c = const .named();
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_public_constConstructorInvocation_argument() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  const C.named({int? p});
+}
+void main() {
+  C c;
+  c = const .named(p: 0);
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_public_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class C {}
+
+void main() {
+  C c;
+  c = .new();
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_public_constructorInvocation_argument() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C.named({int? p});
+}
+void main() {
+  C c;
+  c = .named(p: 0);
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_public_enum() async {
+    await assertNoErrorsInCode(r'''
+enum E { v }
+
+void main() {
+  E e;
+  e = .v;
+  print(e);
+}
+''');
+  }
+
+  test_dotShorthand_public_extensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type E(int i) {}
+
+void main() {
+  E e;
+  e = .new(0);
+  print(e);
+}
+''');
+  }
+
+  test_dotShorthand_public_methodInvocation() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C foo() => C();
+}
+
+void main() {
+  C c;
+  c = .foo();
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_public_methodInvocation_argument() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C foo({int? p}) => C();
+}
+void main() {
+  C c;
+  c = .foo(p: 0);
+  print(c);
+}
+''');
+  }
+
+  test_dotShorthand_public_propertyAccess() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C a = C();
+}
+
+void main() {
+  C c;
+  c = .a;
+  print(c);
+}
+''');
+  }
+
   test_enum_constructor_parameter_optionalNamed_isUsed() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -590,6 +1003,28 @@ void f() {
 ''');
   }
 
+  test_extensionType_isUsed_variableDeclaration() async {
+    await assertNoErrorsInCode('''
+extension type _E(int i) {}
+
+void f() {
+  _E? v;
+  print(v);
+}
+''');
+  }
+
+  test_extensionType_isUsed_variableDeclaration_typeArgument() async {
+    await assertNoErrorsInCode('''
+extension type _E(int i) {}
+
+void f() {
+  // ignore: unused_local_variable
+  List<_E>? v;
+}
+''');
+  }
+
   test_extensionType_member_notUsed() async {
     await assertErrorsInCode(
       '''
@@ -605,34 +1040,6 @@ extension type E(int i) {
     await assertErrorsInCode(
       r'''
 extension type _E(int i) {}
-''',
-      [error(diag.unusedElement, 15, 2)],
-    );
-  }
-
-  test_extensionType_notUsed_variableDeclaration() async {
-    await assertErrorsInCode(
-      '''
-extension type _E(int i) {}
-
-void f() {
-  _E? v;
-  print(v);
-}
-''',
-      [error(diag.unusedElement, 15, 2)],
-    );
-  }
-
-  test_extensionType_notUsed_variableDeclaration_typeArgument() async {
-    await assertErrorsInCode(
-      '''
-extension type _E(int i) {}
-
-void f() {
-  List<_E>? v;
-  print(v);
-}
 ''',
       [error(diag.unusedElement, 15, 2)],
     );

@@ -7,7 +7,7 @@
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $fun (ref $#Closure-0-1)))))
-  (type $JSStringImpl <...>)
+  (type $JSExternWrapper <...>)
   (type $Object <...>)
   (type $_FunctionType <...>)
   (table $cross-module-funcs-0 (export "cross-module-funcs-0") 9 funcref)
@@ -45,7 +45,7 @@
     call_indirect $cross-module-funcs-0 (param i64) (result (ref null $#Top))
     drop
   )
-  (func $JSStringImpl._interpolate (param $var0 (ref $Array<Object?>)) (result (ref $JSStringImpl)) <...>)
+  (func $JSStringImpl._interpolate (param $var0 (ref $Array<Object?>)) (result (ref $JSExternWrapper)) <...>)
   (func $SystemHash.combine (param $var0 i64) (param $var1 i64) (result i64) <...>)
   (func $_TypeUniverse.substituteFunctionTypeArgument (param $var0 (ref $_FunctionType)) (param $var1 (ref $Array<_Type>)) (result (ref $_FunctionType)) <...>)
   (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) <...>)

@@ -911,7 +911,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           if (positionalIndex >= node.requiredParameterCount) {
             VariableDeclaration positionalParameter =
                 node.positionalParameters[positionalIndex];
-            if (positionalParameter.initializer == null) {
+            if (positionalParameter.initializer == null &&
+                // Global transformations like TFA may not maintain this
+                // invariant.
+                stage != VerificationStage.afterGlobalTransformations) {
               problem(
                   positionalParameter,
                   "An optional positional parameter is expected to have a "
@@ -921,7 +924,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         }
         for (VariableDeclaration namedParameter in node.namedParameters) {
           if (!namedParameter.isRequired &&
-              namedParameter.initializer == null) {
+              namedParameter.initializer == null &&
+              // Global transformations like TFA may not maintain this
+              // invariant.
+              stage != VerificationStage.afterGlobalTransformations) {
             problem(
                 namedParameter,
                 "An optional named parameter is expected to have a default "

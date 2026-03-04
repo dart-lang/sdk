@@ -112,3 +112,20 @@ extension type ExtType1(int raw) {}
 extension Ext1 on int {
   bool get isPositive => this > 0;
 }
+
+extension type ExtType2(int raw) {
+  bool get isPositive => raw > 0;
+}
+
+extension type ExtType3(int raw) {
+  bool get isPositive => raw > 0;
+}
+
+extension type ExtType4(int raw) {
+  bool get isPositive => raw > 0;
+}
+
+extension type ExtType5._(int raw) {
+  ExtType5.plus1(int n) : this._(n + 1);
+  bool get isPositive => raw > 0;
+}

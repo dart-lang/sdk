@@ -135,6 +135,26 @@ void test() {
   print(ExtType1(42));
   print(42.isPositive);
 
+  // Allowed - all three extension types are exposed as callable.
+  print(ExtType2);
+  print(ExtType2(42));
+  print(ExtType2(42).isPositive);
+  print(ExtType3);
+  print(ExtType3(42));
+  print(ExtType3(42).isPositive);
+  print(ExtType4);
+  print(ExtType4(42));
+  print(ExtType4(42).isPositive);
+
+  // Not allowed - ExtType5 is not exposed as a whole.
+  print(ExtType5);
+
+  // ExtType5.plus1 is callable and can be used from a dynamic module.
+  print(ExtType5.plus1(3));
+
+  // Not allowed - member not exposed.
+  print(ExtType5.plus1(3).isPositive);
+
   // Allowed - re-exported through main_lib2.dart
   print(Lib3Class());
   lib3Method();

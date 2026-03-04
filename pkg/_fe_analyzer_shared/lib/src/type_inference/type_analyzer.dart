@@ -450,12 +450,13 @@ mixin TypeAnalyzer<
             context: irrefutableContext,
           );
     }
-    SharedTypeView expressionType = analyzeExpression(
+    ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.typeToSchema(matchedValueType),
-    ).type;
+    );
+    SharedTypeView expressionType = expressionAnalysisResult.type;
     flow.constantPattern_end(
-      flow.getExpressionInfo(expression),
+      expressionAnalysisResult.flowAnalysisInfo,
       expressionType,
       patternsEnabled: typeAnalyzerOptions.patternsEnabled,
       matchedValueType: matchedValueType,
@@ -661,13 +662,14 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     flow.ifCaseStatement_begin();
-    SharedTypeView initializerType = analyzeExpression(
+    ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.unknownType,
-    ).type;
+    );
+    SharedTypeView expressionType = expressionAnalysisResult.type;
     flow.ifCaseStatement_afterExpression(
-      flow.getExpressionInfo(expression),
-      initializerType,
+      expressionAnalysisResult.flowAnalysisInfo,
+      expressionType,
     );
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
@@ -692,12 +694,13 @@ mixin TypeAnalyzer<
     SharedTypeView? guardType;
     ExpressionInfo? guardInfo;
     if (guard != null) {
-      guardType = analyzeExpression(
+      ExpressionTypeAnalysisResult guardAnalysisResult = analyzeExpression(
         guard,
         operations.typeToSchema(operations.boolType),
-      ).type;
+      );
+      guardType = guardAnalysisResult.type;
       nonBooleanGuardError = _checkGuardType(guard, guardType);
-      guardInfo = flow.getExpressionInfo(guard);
+      guardInfo = guardAnalysisResult.flowAnalysisInfo;
     } else {
       handleNoGuard(node, 0);
       guardInfo = flow.booleanLiteral(true);
@@ -706,7 +709,7 @@ mixin TypeAnalyzer<
     flow.ifCaseStatement_thenBegin(guardInfo);
     _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
     return new IfCaseStatementResult(
-      matchedExpressionType: initializerType,
+      matchedExpressionType: expressionType,
       nonBooleanGuardError: nonBooleanGuardError,
       guardType: guardType,
     );
@@ -738,13 +741,14 @@ mixin TypeAnalyzer<
   ) {
     // Stack: ()
     flow.ifCaseStatement_begin();
-    SharedTypeView initializerType = analyzeExpression(
+    ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.unknownType,
-    ).type;
+    );
+    SharedTypeView expressionType = expressionAnalysisResult.type;
     flow.ifCaseStatement_afterExpression(
-      flow.getExpressionInfo(expression),
-      initializerType,
+      expressionAnalysisResult.flowAnalysisInfo,
+      expressionType,
     );
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
@@ -772,12 +776,13 @@ mixin TypeAnalyzer<
     SharedTypeView? guardType;
     ExpressionInfo? guardInfo;
     if (guard != null) {
-      guardType = analyzeExpression(
+      ExpressionTypeAnalysisResult guardAnalysisResult = analyzeExpression(
         guard,
         operations.typeToSchema(operations.boolType),
-      ).type;
+      );
+      guardType = guardAnalysisResult.type;
       nonBooleanGuardError = _checkGuardType(guard, guardType);
-      guardInfo = flow.getExpressionInfo(guard);
+      guardInfo = guardAnalysisResult.flowAnalysisInfo;
     } else {
       handleNoGuard(node, 0);
       guardInfo = flow.booleanLiteral(true);
@@ -786,7 +791,7 @@ mixin TypeAnalyzer<
     flow.ifCaseStatement_thenBegin(guardInfo);
     _analyzeIfCommon(node, ifTrue, ifFalse);
     return new IfCaseStatementResult(
-      matchedExpressionType: initializerType,
+      matchedExpressionType: expressionType,
       nonBooleanGuardError: nonBooleanGuardError,
       guardType: guardType,
     );
@@ -812,10 +817,13 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     flow.ifStatement_conditionBegin();
-    analyzeExpression(condition, operations.typeToSchema(operations.boolType));
+    ExpressionTypeAnalysisResult conditionAnalysisResult = analyzeExpression(
+      condition,
+      operations.typeToSchema(operations.boolType),
+    );
     handle_ifElement_conditionEnd(node);
     // Stack: (Expression condition)
-    flow.ifStatement_thenBegin(flow.getExpressionInfo(condition), node);
+    flow.ifStatement_thenBegin(conditionAnalysisResult.flowAnalysisInfo, node);
     _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
   }
 
@@ -837,10 +845,13 @@ mixin TypeAnalyzer<
   ) {
     // Stack: ()
     flow.ifStatement_conditionBegin();
-    analyzeExpression(condition, operations.typeToSchema(operations.boolType));
+    ExpressionTypeAnalysisResult conditionAnalysisResult = analyzeExpression(
+      condition,
+      operations.typeToSchema(operations.boolType),
+    );
     handle_ifStatement_conditionEnd(node);
     // Stack: (Expression condition)
-    flow.ifStatement_thenBegin(flow.getExpressionInfo(condition), node);
+    flow.ifStatement_thenBegin(conditionAnalysisResult.flowAnalysisInfo, node);
     _analyzeIfCommon(node, ifTrue, ifFalse);
   }
 
@@ -1488,9 +1499,16 @@ mixin TypeAnalyzer<
   ) {
     // Stack: ()
     SharedTypeSchemaView patternSchema = dispatchPatternSchema(pattern);
-    SharedTypeView rhsType = analyzeExpression(rhs, patternSchema).type;
+    ExpressionTypeAnalysisResult rhsAnalysisResult = analyzeExpression(
+      rhs,
+      patternSchema,
+    );
+    SharedTypeView rhsType = rhsAnalysisResult.type;
     // Stack: (Expression)
-    flow.patternAssignment_afterRhs(flow.getExpressionInfo(rhs), rhsType);
+    flow.patternAssignment_afterRhs(
+      rhsAnalysisResult.flowAnalysisInfo,
+      rhsType,
+    );
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
@@ -1614,13 +1632,14 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     SharedTypeSchemaView patternSchema = dispatchPatternSchema(pattern);
-    SharedTypeView initializerType = analyzeExpression(
+    ExpressionTypeAnalysisResult initializerAnalysisResult = analyzeExpression(
       initializer,
       patternSchema,
-    ).type;
+    );
+    SharedTypeView initializerType = initializerAnalysisResult.type;
     // Stack: (Expression)
     flow.patternVariableDeclaration_afterInitializer(
-      flow.getExpressionInfo(initializer),
+      initializerAnalysisResult.flowAnalysisInfo,
       initializerType,
     );
     Map<String, List<Variable>> componentVariables = {};
@@ -1840,10 +1859,14 @@ mixin TypeAnalyzer<
     } else {
       operandSchema = operations.unknownType;
     }
-    SharedTypeView operandType = analyzeExpression(operand, operandSchema).type;
+    ExpressionTypeAnalysisResult operandAnalysisResult = analyzeExpression(
+      operand,
+      operandSchema,
+    );
+    SharedTypeView operandType = operandAnalysisResult.type;
     if (isEquality) {
       flow.equalityRelationalPattern_end(
-        flow.getExpressionInfo(operand),
+        operandAnalysisResult.flowAnalysisInfo,
         operandType,
         notEqual: operator?.kind == RelationalOperatorKind.notEquals,
         matchedValueType: matchedValueType,
@@ -1917,15 +1940,16 @@ mixin TypeAnalyzer<
     // follows:
     //
     // - The scrutinee (`e0`) is first analyzed with context type `_`.
-    SharedTypeView expressionType = analyzeExpression(
+    ExpressionTypeAnalysisResult scrutineeAnalysisResult = analyzeExpression(
       scrutinee,
       operations.unknownType,
-    ).type;
+    );
+    SharedTypeView expressionType = scrutineeAnalysisResult.type;
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
     flow.switchStatement_expressionEnd(
       null,
-      flow.getExpressionInfo(scrutinee),
+      scrutineeAnalysisResult.flowAnalysisInfo,
       expressionType,
     );
 
@@ -1981,16 +2005,18 @@ mixin TypeAnalyzer<
           // Stack: (Expression, i * ExpressionCase, Pattern)
           Expression? guard = memberInfo.head.guard;
           if (guard != null) {
-            SharedTypeView guardType = analyzeExpression(
-              guard,
-              operations.typeToSchema(operations.boolType),
-            ).type;
+            ExpressionTypeAnalysisResult guardAnalysisResult =
+                analyzeExpression(
+                  guard,
+                  operations.typeToSchema(operations.boolType),
+                );
+            SharedTypeView guardType = guardAnalysisResult.type;
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             (guardTypes ??= {})[i] = guardType;
             if (nonBooleanGuardError != null) {
               (nonBooleanGuardErrors ??= {})[i] = nonBooleanGuardError;
             }
-            guardInfo = flow.getExpressionInfo(guard);
+            guardInfo = guardAnalysisResult.flowAnalysisInfo;
             // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
           } else {
             handleNoGuard(node, i);
@@ -2058,15 +2084,16 @@ mixin TypeAnalyzer<
     final int numCases,
   ) {
     // Stack: ()
-    SharedTypeView scrutineeType = analyzeExpression(
+    ExpressionTypeAnalysisResult scrutineeAnalysisResult = analyzeExpression(
       scrutinee,
       operations.unknownType,
-    ).type;
+    );
+    SharedTypeView scrutineeType = scrutineeAnalysisResult.type;
     // Stack: (Expression)
     handleSwitchScrutinee(scrutineeType);
     flow.switchStatement_expressionEnd(
       node,
-      flow.getExpressionInfo(scrutinee),
+      scrutineeAnalysisResult.flowAnalysisInfo,
       scrutineeType,
     );
     bool hasDefault = false;
@@ -2116,17 +2143,19 @@ mixin TypeAnalyzer<
           //         numHeads * CaseHead, Pattern),
           Expression? guard = head.guard;
           if (guard != null) {
-            SharedTypeView guardType = analyzeExpression(
-              guard,
-              operations.typeToSchema(operations.boolType),
-            ).type;
+            ExpressionTypeAnalysisResult guardAnalysisResult =
+                analyzeExpression(
+                  guard,
+                  operations.typeToSchema(operations.boolType),
+                );
+            SharedTypeView guardType = guardAnalysisResult.type;
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             ((guardTypes ??= {})[caseIndex] ??= {})[headIndex] = guardType;
             if (nonBooleanGuardError != null) {
               ((nonBooleanGuardErrors ??= {})[caseIndex] ??= {})[headIndex] =
                   nonBooleanGuardError;
             }
-            guardInfo = flow.getExpressionInfo(guard);
+            guardInfo = guardAnalysisResult.flowAnalysisInfo;
             // Stack: (Expression, numExecutionPaths * StatementCase,
             //         numHeads * CaseHead, Pattern, Expression),
           } else {

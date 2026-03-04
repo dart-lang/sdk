@@ -8,10 +8,11 @@ import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -74,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   void check(
-    Token errorToken,
+    SourceRange errorRange,
     SuperConstructorInvocation superInvocation,
     FormalParameterList parameters,
     FunctionBody? body,
@@ -117,19 +118,30 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    _reportLint(errorToken, identifiers);
+    if (identifiers.isEmpty) return;
+    if (identifiers.length > 1) {
+      var msg = identifiers.quotedAndCommaSeparatedWithAnd;
+      rule.reportAtOffset(
+        errorRange.offset,
+        errorRange.length,
+        diagnosticCode: diag.useSuperParametersMultiple,
+        arguments: [msg],
+      );
+    } else {
+      rule.reportAtOffset(
+        errorRange.offset,
+        errorRange.length,
+        diagnosticCode: diag.useSuperParametersSingle,
+        arguments: [identifiers.first],
+      );
+    }
   }
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
     for (var initializer in node.initializers.reversed) {
       if (initializer is SuperConstructorInvocation) {
-        check(
-          node.name ?? node.typeName!.token,
-          initializer,
-          node.parameters,
-          node.body,
-        );
+        check(node.errorRange, initializer, node.parameters, node.body);
         return;
       }
     }
@@ -140,12 +152,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.body case var body?) {
       for (var initializer in body.initializers.reversed) {
         if (initializer is SuperConstructorInvocation) {
-          check(
-            node.constructorName?.name ?? node.typeName,
-            initializer,
-            node.formalParameters,
-            body.body,
-          );
+          check(node.errorRange, initializer, node.formalParameters, body.body);
           return;
         }
       }
@@ -275,23 +282,5 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
     return null;
-  }
-
-  void _reportLint(Token errorToken, List<String> identifiers) {
-    if (identifiers.isEmpty) return;
-    if (identifiers.length > 1) {
-      var msg = identifiers.quotedAndCommaSeparatedWithAnd;
-      rule.reportAtToken(
-        errorToken,
-        diagnosticCode: diag.useSuperParametersMultiple,
-        arguments: [msg],
-      );
-    } else {
-      rule.reportAtToken(
-        errorToken,
-        diagnosticCode: diag.useSuperParametersSingle,
-        arguments: [identifiers.first],
-      );
-    }
   }
 }

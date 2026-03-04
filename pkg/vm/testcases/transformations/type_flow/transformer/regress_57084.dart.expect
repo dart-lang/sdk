@@ -5,21 +5,16 @@ import "dart:core" as core;
 abstract class A<T extends core::Object? = dynamic> extends core::Object {
 }
 class C<T extends core::Object? = dynamic> extends core::Object implements self::A<self::C::T%> /*hasConstConstructor*/  {
-
-  [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "")]
-  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
-  final field self::C::T% field;
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method main() → void {
-  core::print(#C2);
+  core::print(#C1);
   [@vm.direct-call.metadata=closure 1 in #lib::main] [@vm.inferred-type.metadata=? (receiver not int)]([@vm.closure-id=1]() → Null {
-    core::print(#C2);
+    core::print(#C1);
   })(){() → Null};
 }
 constants  {
-  #C1 = ""
-  #C2 = self::C<core::String> {field:#C1}
+  #C1 = self::C<core::String> {}
 }

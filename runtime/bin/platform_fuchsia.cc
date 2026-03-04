@@ -29,7 +29,7 @@ const char* Platform::executable_name_ = nullptr;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = nullptr;
 
-bool Platform::Initialize() {
+bool Platform::Initialize(bool install_crash_handler /* = true */) {
   return true;
 }
 

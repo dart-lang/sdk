@@ -549,6 +549,7 @@ abstract mixin class Instruction implements Serializable {
           final instruction = V128Instruction.fromOpcode(opcode);
           if (instruction != null) return instruction;
           return switch (opcode) {
+            0x0D => I8x16Shuffle.deserialize(d),
             0x15 => I8x16ExtractLaneS.deserialize(d),
             0x16 => I8x16ExtractLaneU.deserialize(d),
             0x17 => I8x16ReplaceLane.deserialize(d),
@@ -4361,30 +4362,75 @@ enum V128Instruction with Instruction {
   i16x8Eq(0x2D, 'i16x8.eq'),
   i32x4Eq(0x37, 'i32x4.eq'),
   f32x4Eq(0x41, 'f32x4.eq'),
+  f32x4Ne(0x42, 'f32x4.ne'),
+  f32x4Lt(0x43, 'f32x4.lt'),
+  f32x4Gt(0x44, 'f32x4.gt'),
+  f32x4Le(0x45, 'f32x4.le'),
+  f32x4Ge(0x46, 'f32x4.ge'),
   f64x2Eq(0x47, 'f64x2.eq'),
+  f64x2Ne(0x48, 'f64x2.ne'),
+  f64x2Lt(0x49, 'f64x2.lt'),
+  f64x2Gt(0x4A, 'f64x2.gt'),
+  f64x2Le(0x4B, 'f64x2.le'),
+  f64x2Ge(0x4C, 'f64x2.ge'),
   v128Not(0x4D, 'v128.not'),
   v128And(0x4E, 'v128.and'),
   v128AndNot(0x4F, 'v128.andnot'),
   v128Or(0x50, 'v128.or'),
   v128Xor(0x51, 'v128.xor'),
   v128BitSelect(0x52, 'v128.bitselect'),
+  v128AnyTrue(0x53, 'v128.any_true'),
   i8x16Neg(0x61, 'i8x16.neg'),
+  i8x16AllTrue(0x63, 'i8x16.all_true'),
+  f32x4Ceil(0x67, 'f32x4.ceil'),
+  f32x4Floor(0x68, 'f32x4.floor'),
+  f32x4Trunc(0x69, 'f32x4.trunc'),
+  f32x4Nearest(0x6A, 'f32x4.nearest'),
   i8x16Add(0x6E, 'i8x16.add'),
   i8x16Sub(0x71, 'i8x16.sub'),
+  f64x2Ceil(0x74, 'f64x2.ceil'),
+  f64x2Floor(0x75, 'f64x2.floor'),
+  f64x2Trunc(0x7A, 'f64x2.trunc'),
+  f64x2Nearest(0x94, 'f64x2.nearest'),
   i16x8Neg(0x81, 'i16x8.neg'),
+  i16x8AllTrue(0x83, 'i16x8.all_true'),
   i16x8Add(0x8E, 'i16x8.add'),
   i16x8Sub(0x91, 'i16x8.sub'),
   i16x8Mul(0x95, 'i16x8.mul'),
   i32x4Neg(0xA1, 'i32x4.neg'),
+  i32x4AllTrue(0xA3, 'i32x4.all_true'),
   i32x4Add(0xAE, 'i32x4.add'),
   i32x4Sub(0xB1, 'i32x4.sub'),
   i32x4Mul(0xB5, 'i32x4.mul'),
   i32x4DotI16x8(0xBA, 'i32x4.dot_i16x8_s'),
   i64x2Neg(0xC1, 'i64x2.neg'),
+  i64x2AllTrue(0xC3, 'i64x2.all_true'),
   i64x2Add(0xCE, 'i64x2.add'),
   i64x2Sub(0xD1, 'i64x2.sub'),
   i64x2Mul(0xD5, 'i64x2.mul'),
-  i64x2Eq(0xD6, 'i64x2.eq');
+  i64x2Eq(0xD6, 'i64x2.eq'),
+  f32x4Abs(0xE0, 'f32x4.abs'),
+  f32x4Neg(0xE1, 'f32x4.neg'),
+  f32x4Sqrt(0xE3, 'f32x4.sqrt'),
+  f32x4Add(0xE4, 'f32x4.add'),
+  f32x4Sub(0xE5, 'f32x4.sub'),
+  f32x4Mul(0xE6, 'f32x4.mul'),
+  f32x4Div(0xE7, 'f32x4.div'),
+  f32x4Min(0xE8, 'f32x4.min'),
+  f32x4Max(0xE9, 'f32x4.max'),
+  f32x4PMin(0xEA, 'f32x4.pmin'),
+  f32x4PMax(0xEB, 'f32x4.pmax'),
+  f64x2Abs(0xEC, 'f64x2.abs'),
+  f64x2Neg(0xED, 'f64x2.neg'),
+  f64x2Sqrt(0xEF, 'f64x2.sqrt'),
+  f64x2Add(0xF0, 'f64x2.add'),
+  f64x2Sub(0xF1, 'f64x2.sub'),
+  f64x2Mul(0xF2, 'f64x2.mul'),
+  f64x2Div(0xF3, 'f64x2.div'),
+  f64x2Min(0xF4, 'f64x2.min'),
+  f64x2Max(0xF5, 'f64x2.max'),
+  f64x2PMin(0xF6, 'f64x2.pmin'),
+  f64x2PMax(0xF7, 'f64x2.pmax');
 
   final int opcode;
   @override
@@ -4407,6 +4453,30 @@ enum V128Instruction with Instruction {
     s.writeByte(0xFD);
     s.writeUnsigned(opcode);
   }
+}
+
+class I8x16Shuffle extends Instruction {
+  const I8x16Shuffle(this.lanes);
+
+  final List<int> lanes;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x0D);
+    for (var lane in lanes) {
+      s.writeByte(lane);
+    }
+  }
+
+  static I8x16Shuffle deserialize(Deserializer d) =>
+      I8x16Shuffle(List.generate(16, (_) => d.readByte()));
+
+  @override
+  String get name => 'i8x16.shuffle';
+
+  @override
+  String toString() => '$name ${lanes.join(' ')}';
 }
 
 class I8x16ExtractLaneS extends Instruction {

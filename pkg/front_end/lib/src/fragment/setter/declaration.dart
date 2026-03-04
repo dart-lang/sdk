@@ -324,7 +324,7 @@ class RegularSetterDeclaration
         // Add them as local variable to put them in scope of the body.
         List<Statement> statements = <Statement>[];
         for (FormalParameterBuilder parameter in declaredFormals) {
-          statements.add(parameter.variable!);
+          statements.add(parameter.variable);
         }
         statements.add(body);
         body = createBlock(statements, fileOffset: fileOffset);

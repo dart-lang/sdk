@@ -13,8 +13,8 @@ class C {
 
   C({required this._foo});
   //               ^^^^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT
-  // [cfe] This requires the experimental 'private-named-parameters' language feature to be enabled.
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] The 'private-named-parameters' language feature is disabled for this library.
 }
 
 void main() {}

@@ -139,24 +139,6 @@ SimpleIdentifier
 ''');
   }
 
-  test_asPrefix_prefixedIdentifier() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:async' as p;
-
-main() {
-  p.Future;
-}
-''');
-
-    var node = findNode.simple('p.Future');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: p
-  element: <testLibraryFragment>::@prefix2::p
-  staticType: null
-''');
-  }
-
   test_wildcardResolution() async {
     newFile('$testPackageLibPath/a.dart', r'''
 extension ExtendedString on String {

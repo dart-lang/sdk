@@ -20,7 +20,7 @@ static method callClosure(positional-parameter func) → void/* scope=[
 }
 static method foo48() → void {
   if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)/* scope=[
-    #ctx2: captured VariableContext([
+    #ctx2: direct-captured VariableContext([
       local-variable a;
     ]),
   ] */ {
@@ -30,7 +30,7 @@ static method foo48() → void {
     });
   }
   if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)/* scope=[
-    #ctx3: captured VariableContext([
+    #ctx3: direct-captured VariableContext([
       local-variable b;
     ]),
   ] */ {

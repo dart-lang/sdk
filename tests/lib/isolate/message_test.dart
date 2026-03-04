@@ -56,7 +56,7 @@ class MessageTest {
     }
   }
 
-  static void VerifyObject(int index, var actual) {
+  static void VerifyObject(int index, actual) {
     var expected = elms[index];
     Expect.type<List>(expected);
     Expect.type<List>(actual);
@@ -119,7 +119,7 @@ void main([args, port]) {
     sendObject[2] = local_list2;
     sendObject[3] = sendObject;
     sendObject[4] = local_list3;
-    remoteCall(remote, sendObject).then((var replyObject) {
+    remoteCall(remote, sendObject).then((replyObject) {
       Expect.type<List>(sendObject);
       Expect.type<List>(replyObject);
       Expect.equals(sendObject.length, replyObject.length);

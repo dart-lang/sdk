@@ -250,7 +250,7 @@ class Page {
     ASSERT(owner_ == nullptr);
     uword result = top_;
     uword new_top = result + size;
-    if (LIKELY(new_top <= end_)) {
+    if (new_top <= end_) [[likely]] {
       top_ = new_top;
       return result;
     }

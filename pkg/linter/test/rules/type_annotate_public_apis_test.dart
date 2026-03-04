@@ -174,6 +174,30 @@ enum E {
 ''');
   }
 
+  test_enumConstructor_primary_parameterHasType() async {
+    await assertNoDiagnostics(r'''
+enum E(int p) {
+  one(0)
+}
+''');
+  }
+
+  test_enumConstructor_primary_parameterMissingType() async {
+    await assertNoDiagnostics(r'''
+enum E(p) {
+  one(0)
+}
+''');
+  }
+
+  test_enumConstructor_primary_parameterMissingType_declaring() async {
+    await assertNoDiagnostics(r'''
+enum E(final p) {
+  one(0)
+}
+''');
+  }
+
   test_instanceConstructor_namedParameterHasType() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -228,6 +252,28 @@ class A {
 class A {
   A(int p);
 }
+''');
+  }
+
+  test_instanceConstructor_primary_parameterHasType() async {
+    await assertNoDiagnostics(r'''
+class A({int? p});
+''');
+  }
+
+  test_instanceConstructor_primary_parameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A({p});
+''',
+      [lint(9, 1)],
+    );
+  }
+
+  test_instanceConstructor_primary_private_parameterMissingType() async {
+    await assertNoDiagnostics(r'''
+// ignore: unused_element_parameter
+class A._({p});
 ''');
   }
 
@@ -313,6 +359,21 @@ class A {
 }
 ''',
       [lint(18, 1)],
+    );
+  }
+
+  test_instanceField_onClass_originPrimaryConstructor_typed() async {
+    await assertNoDiagnostics(r'''
+class A(var int x);
+''');
+  }
+
+  test_instanceField_onClass_originPrimaryConstructor_untyped() async {
+    await assertDiagnostics(
+      r'''
+class A(var x);
+''',
+      [lint(8, 5)],
     );
   }
 
@@ -465,6 +526,17 @@ void f() {
   void g(x) {}
 }
 ''');
+  }
+
+  test_newSyntax_parameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  new(p);
+}
+''',
+      [lint(16, 1)],
+    );
   }
 
   test_staticConstField_hasInitializer() async {

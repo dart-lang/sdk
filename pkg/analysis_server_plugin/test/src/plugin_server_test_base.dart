@@ -96,5 +96,8 @@ class PluginServerTestBase with ResourceProviderMixin {
     );
   }
 
-  void tearDown() => registeredFixGenerators.clearLintProducers();
+  void tearDown() {
+    registeredFixGenerators.clearLintProducers();
+    registeredFixGenerators.clearWarningProducers();
+  }
 }

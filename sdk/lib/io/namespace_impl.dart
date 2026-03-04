@@ -20,5 +20,5 @@ abstract class _Namespace {
   // relative to the process's current working directory and absolute paths will
   // be left relative to the file system root.
   @pragma("vm:entry-point")
-  external static void _setupNamespace(var namespace);
+  external static void _setupNamespace(namespace);
 }

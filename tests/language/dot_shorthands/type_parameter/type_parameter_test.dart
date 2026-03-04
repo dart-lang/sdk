@@ -4,8 +4,6 @@
 
 // Testing `id<type>()` uses the correct type parameters.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 import "package:expect/expect.dart";

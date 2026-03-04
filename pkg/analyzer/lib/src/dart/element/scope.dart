@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -106,14 +105,21 @@ class ExtensionScope extends EnclosedScope {
 }
 
 class FormalParameterScope extends EnclosedScope {
-  FormalParameterScope(super.parent, List<FormalParameterElement> elements) {
-    for (var parameter in elements) {
-      if (parameter is! FieldFormalParameterElement &&
-          parameter is! SuperFormalParameterElement) {
-        if (!parameter.isWildcardVariable) {
-          _addGetter(parameter);
-        }
+  FormalParameterScope(
+    super.parent,
+    List<FormalParameterElement> elements, {
+    required FeatureSet featureSet,
+  }) {
+    for (var element in elements) {
+      if (element is FieldFormalParameterElement ||
+          element is SuperFormalParameterElement) {
+        continue;
       }
+      if (featureSet.isEnabled(Feature.wildcard_variables) &&
+          element.name == '_') {
+        continue;
+      }
+      _addGetter(element);
     }
   }
 }
@@ -532,11 +538,28 @@ class LibraryFragmentScope implements Scope {
 }
 
 class LocalScope extends EnclosedScope {
-  LocalScope(super.parent);
+  final FeatureSet _featureSet;
+
+  LocalScope(super.parent, {required FeatureSet featureSet})
+    : _featureSet = featureSet;
 
   void add(Element element) {
-    if (!element.isWildcardVariable) {
-      _addGetter(element);
+    assert(() {
+      return element is LocalVariableElement ||
+          element is LocalFunctionElement ||
+          // TODO(scheglov): why not FormalParameterScope?
+          element is FormalParameterElement;
+    }());
+    if (_featureSet.isEnabled(Feature.wildcard_variables) &&
+        element.name == '_') {
+      return;
+    }
+    _addGetter(element);
+  }
+
+  void addAll(Iterable<Element> elements) {
+    for (var element in elements) {
+      add(element);
     }
   }
 }
@@ -838,11 +861,19 @@ class ScopeLookupResultImpl extends ScopeLookupResult {
 }
 
 class TypeParameterScope extends EnclosedScope {
-  TypeParameterScope(super.parent, List<TypeParameterElement> elements) {
+  TypeParameterScope(
+    super.parent,
+    List<TypeParameterElement> elements, {
+    required FeatureSet featureSet,
+  }) {
+    var wildcardVariablesEnabled = featureSet.isEnabled(
+      Feature.wildcard_variables,
+    );
     for (var element in elements) {
-      if (!element.isWildcardVariable) {
-        _addGetter(element);
+      if (wildcardVariablesEnabled && element.name == '_') {
+        continue;
       }
+      _addGetter(element);
     }
   }
 }

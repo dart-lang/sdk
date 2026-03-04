@@ -536,7 +536,6 @@ class MatchExpectation
     Iterable<Library> libraries = componentToText.libraries.where(
       result.isUserLibrary,
     );
-    Uri base = uri.resolve(".");
 
     StringBuffer buffer = new StringBuffer();
 
@@ -611,25 +610,10 @@ class MatchExpectation
           !result.isUserLibraryImportUri(importUri),
     );
 
-    String actual = "$buffer";
-    String binariesPath = relativizeUri(
-      Uri.base,
-      platformBinariesLocation,
-      isWindows,
+    String actual = replacePathsInExpectText(
+      buffer.toString(),
+      uri.resolve("."),
     );
-    if (binariesPath.endsWith("/dart-sdk/lib/_internal/")) {
-      // We are running from something like out/ReleaseX64/dart-sdk/bin/dart
-      String search = binariesPath.substring(
-        0,
-        binariesPath.length - "lib/_internal/".length,
-      );
-      actual = _replaceSdkLocation(actual, search, "sdk/");
-    } else {
-      // We are running from something like out/ReleaseX64/dart
-    }
-    actual = _replaceSdkLocation(actual, "sdk/", "sdk/");
-    actual = actual.replaceAll("$base", "org-dartlang-testcase:///");
-    actual = actual.replaceAll("\\n", "\n");
     return context.match<ComponentResult>(
       suffix,
       actual,
@@ -640,33 +624,6 @@ class MatchExpectation
           : context.expectationFileMismatch,
       overwriteUpdateExpectationsWith: serializeFirst ? false : null,
     );
-  }
-
-  /// Replace SDK locations starting with [path] with [replacement] and '*'
-  /// instead of the line/column.
-  ///
-  /// For instance replacing
-  ///
-  ///     out/ReleaseX64/dart-sdk/lib/core/enum.dart:101:13
-  ///
-  /// with
-  ///
-  ///     sdk/lib/core/enum.dart:*
-  ///
-  /// This is done to avoid expectations to depend on the actual location
-  /// of the SDK or the position within the SDK file.
-  String _replaceSdkLocation(String text, String path, String replacement) {
-    // Replace path with line/column.
-    RegExp regExp = new RegExp(
-      '^// ${RegExp.escape(path)}([^:\r\n]*):\\d+:\\d+:',
-      multiLine: true,
-    );
-    text = text.replaceAllMapped(
-      regExp,
-      (Match match) => '// $replacement${match[1]}:*:',
-    );
-    // Replace path with no line/column.
-    return text.replaceAll(path, replacement);
   }
 }
 
@@ -856,4 +813,53 @@ class ComponentResult {
   }
 
   ProcessedOptions get options => compilationSetup.options;
+}
+
+/// Replace SDK locations starting with [path] with [replacement] and '*'
+/// instead of the line/column.
+///
+/// For instance replacing
+///
+///     out/ReleaseX64/dart-sdk/lib/core/enum.dart:101:13
+///
+/// with
+///
+///     sdk/lib/core/enum.dart:*
+///
+/// This is done to avoid expectations to depend on the actual location
+/// of the SDK or the position within the SDK file.
+String _replaceSdkLocation(String text, String path, String replacement) {
+  // Replace path with line/column.
+  RegExp regExp = new RegExp(
+    '^// ${RegExp.escape(path)}([^:\r\n]*):\\d+:\\d+:',
+    multiLine: true,
+  );
+  text = text.replaceAllMapped(
+    regExp,
+    (Match match) => '// $replacement${match[1]}:*:',
+  );
+  // Replace path with no line/column.
+  return text.replaceAll(path, replacement);
+}
+
+String replacePathsInExpectText(String actual, Uri base) {
+  String binariesPath = relativizeUri(
+    Uri.base,
+    platformBinariesLocation,
+    isWindows,
+  );
+  if (binariesPath.endsWith("/dart-sdk/lib/_internal/")) {
+    // We are running from something like out/ReleaseX64/dart-sdk/bin/dart
+    String search = binariesPath.substring(
+      0,
+      binariesPath.length - "lib/_internal/".length,
+    );
+    actual = _replaceSdkLocation(actual, search, "sdk/");
+  } else {
+    // We are running from something like out/ReleaseX64/dart
+  }
+  actual = _replaceSdkLocation(actual, "sdk/", "sdk/");
+  actual = actual.replaceAll("$base", "org-dartlang-testcase:///");
+  actual = actual.replaceAll("\\n", "\n");
+  return actual;
 }

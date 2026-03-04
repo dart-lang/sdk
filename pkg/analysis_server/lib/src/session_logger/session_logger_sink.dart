@@ -61,9 +61,8 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// requested.
   final List<LogEntry> _configurationBuffer = [];
 
-  /// A set of buffers, indexed by text document URI, for entries related to
-  /// that text document.
-  final Map<String, List<LogEntry>> _textDocumentBuffers = {};
+  /// The buffer in which text document related entries are stored.
+  final List<LogEntry> _textDocumentBuffer = [];
 
   /// The buffer in which normal entries are stored.
   final List<LogEntry> _sessionBuffer = [];
@@ -79,7 +78,7 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
     return [
       ..._initializationBuffer,
       ..._configurationBuffer,
-      ..._textDocumentBuffers.values.expand((buffer) => buffer),
+      ..._textDocumentBuffer,
       ..._sessionBuffer,
     ];
   }
@@ -118,29 +117,9 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
       _sessionBuffer.add(logEntry);
     } else {
       if (_isConfigurationEntry(logEntry)) {
-        if (_configurationBuffer.length > 1) {
-          // We only need to keep the last request/response pair.
-          _configurationBuffer.clear();
-        }
         _configurationBuffer.add(logEntry);
       } else if (_isTextDocumentEntry(logEntry)) {
-        var message = logEntry.message;
-        var textDocumentUri = message.textDocument;
-        if (textDocumentUri != null) {
-          // This could also provide special handling for `textDocument/didSave`
-          // notifications. When the file is saved the player no longer needs to
-          // apply any previous edits, so those notifications (and the `didSave`
-          // notification itself) could be discarded.
-          if (message.isDidClose) {
-            _textDocumentBuffers.remove(textDocumentUri);
-          } else {
-            var buffer = _textDocumentBuffers.putIfAbsent(
-              textDocumentUri,
-              () => [],
-            );
-            buffer.add(logEntry);
-          }
-        }
+        _textDocumentBuffer.add(logEntry);
       }
     }
   }

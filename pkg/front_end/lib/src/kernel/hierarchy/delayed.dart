@@ -145,7 +145,6 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
           );
         } else if (getterIsDeclared) {
           Template<
-            Function,
             Message Function({
               required DartType getterType,
               required String getterName,
@@ -175,7 +174,6 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
           );
         } else if (setterIsDeclared) {
           Template<
-            Function,
             Message Function({
               required DartType getterType,
               required String getterName,
@@ -184,8 +182,8 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             })
           >
           template = diag.invalidGetterSetterTypeGetterInherited;
-          Template<Function, Message Function({required String getterName})>
-          context = diag.invalidGetterSetterTypeGetterContext;
+          Template<Message Function({required String getterName})> context =
+              diag.invalidGetterSetterTypeGetterContext;
           if (getterIsField) {
             template = diag.invalidGetterSetterTypeFieldInherited;
             context = diag.invalidGetterSetterTypeFieldContext;
@@ -208,7 +206,6 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
           );
         } else {
           Template<
-            Function,
             Message Function({
               required DartType getterType,
               required String getterName,
@@ -217,8 +214,8 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             })
           >
           template = diag.invalidGetterSetterTypeBothInheritedGetter;
-          Template<Function, Message Function({required String getterName})>
-          context = diag.invalidGetterSetterTypeGetterContext;
+          Template<Message Function({required String getterName})> context =
+              diag.invalidGetterSetterTypeGetterContext;
           if (getterIsField) {
             template = diag.invalidGetterSetterTypeBothInheritedField;
             context = diag.invalidGetterSetterTypeFieldContext;

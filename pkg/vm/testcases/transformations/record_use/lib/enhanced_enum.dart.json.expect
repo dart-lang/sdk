@@ -1,0 +1,96 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 10
+    },
+    {
+      "type": "int",
+      "value": 20
+    },
+    {
+      "definition_index": 1,
+      "index": 0,
+      "name": "a",
+      "type": "enum",
+      "value": {
+        "customField": 0
+      }
+    },
+    {
+      "definition_index": 1,
+      "index": 1,
+      "name": "b",
+      "type": "enum",
+      "value": {
+        "customField": 1
+      }
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "a": 2
+      }
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "a": 3
+      }
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "MyClass"
+        }
+      ],
+      "uri": "package:record_use_test/enhanced_enum.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "enum",
+          "name": "A"
+        }
+      ],
+      "uri": "package:record_use_test/enhanced_enum.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "constant_index": 4,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
+          },
+          {
+            "constant_index": 5,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -63,6 +63,7 @@ import '../source/source_type_parameter_builder.dart';
 import '../source/type_parameter_factory.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
+import '../util/helpers.dart';
 import 'constructor/declaration.dart';
 import 'factory/declaration.dart';
 import 'field/declaration.dart';
@@ -145,4 +146,7 @@ abstract interface class DeclarationFragment {
 
   /// Type parameters declared on this declaration.
   List<TypeParameterFragment>? get typeParameters;
+
+  /// Returns the body scope for this declaration.
+  LookupScope get bodyScope;
 }

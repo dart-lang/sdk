@@ -647,6 +647,9 @@ abstract final class LintNames {
 
   static const String valid_regexps = 'valid_regexps';
 
+  static const String var_with_no_type_annotation =
+      'var_with_no_type_annotation';
+
   static const String visit_registered_nodes = 'visit_registered_nodes';
 
   static const String void_checks = 'void_checks';

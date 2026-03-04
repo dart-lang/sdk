@@ -72,7 +72,7 @@ static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
   abort();
 }
 
-bool Platform::Initialize() {
+bool Platform::Initialize(bool install_crash_handler /*= true */) {
   // Turn off the signal handler for SIGPIPE as it causes the process
   // to terminate on writing to a closed pipe. Without the signal
   // handler error EPIPE is set instead.
@@ -94,31 +94,34 @@ bool Platform::Initialize() {
     return false;
   }
 
-  act.sa_flags = SA_SIGINFO;
-  act.sa_sigaction = &segv_handler;
-  if (sigemptyset(&act.sa_mask) != 0) {
-    perror("sigemptyset() failed.");
-    return false;
-  }
-  if (sigaddset(&act.sa_mask, SIGPROF) != 0) {
-    perror("sigaddset() failed");
-    return false;
-  }
-  if (sigaction(SIGSEGV, &act, nullptr) != 0) {
-    perror("sigaction() failed.");
-    return false;
-  }
-  if (sigaction(SIGBUS, &act, nullptr) != 0) {
-    perror("sigaction() failed.");
-    return false;
-  }
-  if (sigaction(SIGTRAP, &act, nullptr) != 0) {
-    perror("sigaction() failed.");
-    return false;
-  }
-  if (sigaction(SIGILL, &act, nullptr) != 0) {
-    perror("sigaction() failed.");
-    return false;
+  if (install_crash_handler) {
+    act = {};
+    act.sa_flags = SA_SIGINFO;
+    act.sa_sigaction = &segv_handler;
+    if (sigemptyset(&act.sa_mask) != 0) {
+      perror("sigemptyset() failed.");
+      return false;
+    }
+    if (sigaddset(&act.sa_mask, SIGPROF) != 0) {
+      perror("sigaddset() failed");
+      return false;
+    }
+    if (sigaction(SIGSEGV, &act, nullptr) != 0) {
+      perror("sigaction() failed.");
+      return false;
+    }
+    if (sigaction(SIGBUS, &act, nullptr) != 0) {
+      perror("sigaction() failed.");
+      return false;
+    }
+    if (sigaction(SIGTRAP, &act, nullptr) != 0) {
+      perror("sigaction() failed.");
+      return false;
+    }
+    if (sigaction(SIGILL, &act, nullptr) != 0) {
+      perror("sigaction() failed.");
+      return false;
+    }
   }
   return true;
 }

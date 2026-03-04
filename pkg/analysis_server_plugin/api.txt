@@ -1,12 +1,12 @@
 package:analysis_server_plugin/edit/assist/assist.dart:
-  Assist (class extends Object):
+  Assist (class extends Object, final):
     compareAssists (static method: int Function(Assist, Assist))
     new (constructor: Assist Function(AssistKind, SourceChange))
     change (getter: SourceChange)
     kind (getter: AssistKind)
     toString (method: String Function())
 package:analysis_server_plugin/edit/assist/dart_assist_context.dart:
-  DartAssistContext (class extends Object):
+  DartAssistContext (class extends Object, final):
     new (constructor: DartAssistContext Function(InstrumentationService, ChangeWorkspace, ResolvedLibraryResult, ResolvedUnitResult, int, int))
     instrumentationService (getter: InstrumentationService)
     libraryResult (getter: ResolvedLibraryResult)
@@ -15,9 +15,9 @@ package:analysis_server_plugin/edit/assist/dart_assist_context.dart:
     unitResult (getter: ResolvedUnitResult)
     workspace (getter: ChangeWorkspace)
 package:analysis_server_plugin/edit/correction_utils.dart:
-  CorrectionUtils (class extends Object):
-    fromUnitAndContent (constructor: CorrectionUtils Function(CompilationUnit, String))
+  CorrectionUtils (class extends Object, final):
     new (constructor: CorrectionUtils Function(ParsedUnitResult))
+    fromUnitAndContent (constructor: CorrectionUtils Function(CompilationUnit, String))
     endOfLine (getter: String)
     oneIndent (getter: String)
     twoIndents (getter: String)
@@ -66,25 +66,25 @@ package:analysis_server_plugin/edit/dart/correction_producer.dart:
     multiFixArguments (getter: List<String>?)
     multiFixKind (getter: FixKind?)
     compute (method: Future<void> Function(ChangeBuilder))
-  CorrectionProducerContext (class extends Object):
+  CorrectionProducerContext (class extends Object, final):
     createParsed (static method: CorrectionProducerContext Function({bool applyingBulkFixes, DartFixContext? dartFixContext, Diagnostic? diagnostic, required ParsedLibraryResult libraryResult, int selectionLength, int selectionOffset, required ParsedUnitResult unitResult}))
     createResolved (static method: CorrectionProducerContext Function({bool applyingBulkFixes, DartFixContext? dartFixContext, Diagnostic? diagnostic, required ResolvedLibraryResult libraryResult, int selectionLength, int selectionOffset, required ResolvedUnitResult unitResult}))
     dartFixContext (getter: DartFixContext?)
     node (getter: AstNode)
     path (getter: String)
-  CorrectionProducerWithDiagnostic (class extends ResolvedCorrectionProducer):
+  CorrectionProducerWithDiagnostic (class extends ResolvedCorrectionProducer, abstract):
     new (constructor: CorrectionProducerWithDiagnostic Function({required CorrectionProducerContext context}))
     diagnostic (getter: Diagnostic)
-  MultiCorrectionProducer (class extends _AbstractCorrectionProducer<ResolvedUnitResult>):
+  MultiCorrectionProducer (class extends _AbstractCorrectionProducer<ResolvedUnitResult>, abstract):
     new (constructor: MultiCorrectionProducer Function({required CorrectionProducerContext context}))
     context (getter: CorrectionProducerContext)
     libraryElement2 (getter: LibraryElement)
     libraryResult (getter: ResolvedLibraryResult)
     producers (getter: Future<List<ResolvedCorrectionProducer>>)
     unitResult (getter: ResolvedUnitResult)
-  ParsedCorrectionProducer (class extends CorrectionProducer<ParsedUnitResult>):
+  ParsedCorrectionProducer (class extends CorrectionProducer<ParsedUnitResult>, abstract):
     new (constructor: ParsedCorrectionProducer Function({required CorrectionProducerContext context}))
-  ResolvedCorrectionProducer (class extends CorrectionProducer<ResolvedUnitResult>):
+  ResolvedCorrectionProducer (class extends CorrectionProducer<ResolvedUnitResult>, abstract):
     new (constructor: ResolvedCorrectionProducer Function({required CorrectionProducerContext context}))
     analysisOptions (getter: AnalysisOptions)
     inStaticContext (getter: bool)
@@ -103,12 +103,12 @@ package:analysis_server_plugin/edit/dart/correction_producer.dart:
     getTargetInterfaceElement (method: InterfaceElement? Function(Expression))
     inferUndefinedExpressionType (method: DartType? Function(Expression))
     isEnabled (method: bool Function(Feature))
-  StubCorrectionProducerContext (class extends Object implements CorrectionProducerContext):
+  StubCorrectionProducerContext (class extends Object implements CorrectionProducerContext, final):
     instance (static getter: StubCorrectionProducerContext)
     noSuchMethod (method: dynamic Function(Invocation))
   _AbstractCorrectionProducer (non-public)
 package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart:
-  DartFixKindPriority (class extends Object):
+  DartFixKindPriority (class extends Object, abstract, final):
     ignore (static getter: int)
     inFile (static getter: int)
     standard (static getter: int)
@@ -126,25 +126,25 @@ package:analysis_server_plugin/edit/fix/dart_fix_context.dart:
     getTopLevelDeclarations (method: Future<Map<LibraryElement, Element>> Function(String))
     librariesWithExtensions (method: Stream<LibraryElement> Function(Name))
 package:analysis_server_plugin/edit/fix/fix.dart:
-  Fix (class extends Object):
+  Fix (class extends Object, final):
     compareFixes (static method: int Function(Fix, Fix))
     new (constructor: Fix Function({required SourceChange change, required FixKind kind}))
     change (getter: SourceChange)
     kind (getter: FixKind)
     toString (method: String Function())
 package:analysis_server_plugin/edit/fix/fix_context.dart:
-  FixContext (class extends Object):
+  FixContext (class extends Object, abstract, interface):
     diagnostic (getter: Diagnostic)
     error (getter: Diagnostic, deprecated)
 package:analysis_server_plugin/plugin.dart:
-  Plugin (class extends Object):
+  Plugin (class extends Object, abstract):
     new (constructor: Plugin Function())
     name (getter: String)
     register (method: FutureOr<void> Function(PluginRegistry))
     shutDown (method: FutureOr<void> Function())
     start (method: FutureOr<void> Function())
 package:analysis_server_plugin/registry.dart:
-  PluginRegistry (class extends RegistryBase):
+  PluginRegistry (class extends RegistryBase, abstract):
     new (constructor: PluginRegistry Function())
     registerAssist (method: void Function(CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
     registerFixForRule (method: void Function(DiagnosticCode, CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))

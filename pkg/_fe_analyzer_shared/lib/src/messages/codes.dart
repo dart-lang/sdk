@@ -121,16 +121,16 @@ class MessageCode extends Code implements Message {
   }
 }
 
-class Template<TOld extends Function, T extends Function> extends Code {
+/// Note: the type argument `T` should be instantiated with a function type. But
+/// it is typed as `extends Object` in order to reduce the risk of accidental
+/// dynamic invocation of [withArguments].
+class Template<T extends Object> extends Code {
   String get messageCode => name;
-
-  final TOld withArgumentsOld;
 
   final T withArguments;
 
   const Template(
     super.name, {
-    required this.withArgumentsOld,
     required this.withArguments,
     super.pseudoSharedCode,
     super.severity = CfeSeverity.error,

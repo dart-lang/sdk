@@ -59,7 +59,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
@@ -260,15 +259,7 @@ abstract class ConstructorElement implements ExecutableElement {
   bool get isOriginMixinApplication;
 
   /// Whether this is a primary constructor.
-  @experimental
   bool get isPrimary;
-
-  @Deprecated(
-    'Use isOriginDeclaration / isOriginImplicitDefault / '
-    'isOriginMixinApplication instead, depending on intent.',
-  )
-  @override
-  bool get isSynthetic;
 
   /// The name of this constructor.
   ///
@@ -306,13 +297,6 @@ abstract class ConstructorFragment implements ExecutableFragment {
   ///
   /// It is `null` if the fragment is synthetic, or does not have the keyword.
   int? get factoryKeywordOffset;
-
-  @Deprecated(
-    'Use isOriginDeclaration / isOriginImplicitDefault / '
-    'isOriginMixinApplication instead, depending on intent.',
-  )
-  @override
-  bool get isSynthetic;
 
   @override
   String get name;
@@ -500,14 +484,6 @@ abstract class Element {
   /// Public elements are visible within any library that imports the library
   /// in which they are declared.
   bool get isPublic;
-
-  /// Whether this element is synthetic.
-  ///
-  /// A synthetic element is an element that is not represented in the source
-  /// code explicitly, but is implied by the source code, such as the default
-  /// constructor for a class that does not explicitly define any constructors.
-  @Deprecated('Use isOriginX instead')
-  bool get isSynthetic;
 
   /// The kind of this element.
   ElementKind get kind;
@@ -1150,14 +1126,6 @@ abstract class ExecutableFragment implements FunctionTypedFragment {
   /// Whether the body is marked as being synchronous.
   bool get isSynchronous;
 
-  /// Whether this fragment is synthetic.
-  ///
-  /// A synthetic fragment is a fragment that is not represented in the source
-  /// code explicitly, but is implied by the source code, such as the default
-  /// constructor for a class that does not explicitly define any constructors.
-  @Deprecated('Use isOriginX instead')
-  bool get isSynthetic;
-
   @override
   LibraryFragment get libraryFragment;
 
@@ -1249,7 +1217,6 @@ abstract class FieldElement implements PropertyInducingElement {
   FieldElement get baseElement;
 
   /// The declaring formal parameter, if created from one.
-  @experimental
   FieldFormalParameterElement? get declaringFormalParameter;
 
   @override
@@ -1312,7 +1279,6 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   List<FieldFormalParameterFragment> get fragments;
 
   /// Whether this is a declaring formal parameter.
-  @experimental
   bool get isDeclaring;
 
   /// If this field formal parameter is a named parameter with a private name,
@@ -1330,7 +1296,6 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   /// * Finding the corresponding instance variable.
   ///
   /// * Referring to the parameter in the constructor's doc comment.
-  @experimental
   String? get privateName;
 }
 
@@ -1352,7 +1317,6 @@ abstract class FieldFormalParameterFragment implements FormalParameterFragment {
   /// the original private name.
   ///
   /// In that case, [name] is the corresponding public name for the parameter.
-  @experimental
   String? get privateName;
 }
 
@@ -2391,6 +2355,9 @@ abstract class LibraryFragment implements Fragment {
   /// those that are imported without a prefix.
   List<LibraryElement> get importedLibraries;
 
+  /// Whether the library fragment is created from a file that does not exist.
+  bool get isOriginNotExistingFile;
+
   /// The libraries exported by this unit.
   List<LibraryExport> get libraryExports;
 
@@ -2972,10 +2939,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   /// `false`.
   bool get isOriginVariable;
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic;
-
   /// The field or top-level variable associated with this getter.
   ///
   /// If this getter was explicitly defined (is not synthetic) then the variable
@@ -3041,10 +3004,6 @@ abstract class PropertyInducingElement implements VariableElement {
   /// When this is `true`, [isOriginDeclaration] is `false`.
   bool get isOriginGetterSetter;
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic;
-
   @override
   LibraryElement get library;
 
@@ -3077,14 +3036,6 @@ abstract class PropertyInducingFragment implements VariableFragment {
   /// Property inducing fragments are augmentations if they are explicitly
   /// marked as such using the 'augment' modifier.
   bool get isAugmentation;
-
-  /// Whether this fragment is synthetic.
-  ///
-  /// A synthetic fragment is a fragment that is not represented in the source
-  /// code explicitly, but is implied by the source code, such as the default
-  /// constructor for a class that does not explicitly define any constructors.
-  @Deprecated('Use isOriginX instead')
-  bool get isSynthetic;
 
   @override
   LibraryFragment get libraryFragment;

@@ -2,17 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' show patch;
+import 'dart:_internal' show patch, unsafeCast;
 import 'dart:_js_helper' as js_helper;
 import 'dart:_js_helper' hide JS;
 import 'dart:_js_types' as js_types;
 import 'dart:_string';
 import 'dart:_wasm';
-import 'dart:async' show Completer;
 import 'dart:collection';
-import 'dart:js_interop';
-import 'dart:js_interop_unsafe' as unsafe;
-import 'dart:js_interop_unsafe' show JSObjectUnsafeUtilExtension;
 import 'dart:typed_data';
 
 @patch
@@ -64,12 +60,6 @@ extension JSAnyUtilityExtension on JSAny? {
         constructor.toExternRef,
       )
       .toBool();
-
-  @patch
-  bool isA<T>() => throw UnimplementedError(
-    "This should never be called. Calls to 'isA' should have been "
-    'transformed by the interop transformer.',
-  );
 
   @patch
   Object? dartify() {
@@ -133,17 +123,22 @@ extension JSAnyUtilityExtension on JSAny? {
 extension NullableObjectUtilExtension on Object? {
   @patch
   JSAny? jsify() {
+    // Converted values are always `JSAny?`, but use `Object?` in the map type
+    // to make type checks in the methods faster.
     final convertedObjects = HashMap<Object?, Object?>.identity();
-    Object? convert(Object? o) {
+    JSValue? convert(Object? o) {
+      if (o == null) {
+        return null;
+      }
+
       if (convertedObjects.containsKey(o)) {
-        return convertedObjects[o];
+        return unsafeCast<JSValue?>(convertedObjects[o]);
       }
 
       // TODO(srujzs): We do these checks again in `jsifyRaw`. We should
       // refactor this code so we don't have to, but we have to be careful about
       // the `Iterable` check below.
-      if (o == null ||
-          o is num ||
+      if (o is num ||
           o is bool ||
           o is JSValue ||
           o is String ||
@@ -163,27 +158,26 @@ extension NullableObjectUtilExtension on Object? {
       }
 
       if (o is Map<Object?, Object?>) {
-        final convertedMap = JSValue(newObjectRaw());
-        convertedObjects[o] = convertedMap;
+        final convertedMap = newObjectRaw();
+        final convertedMapBox = JSValue(convertedMap);
+        convertedObjects[o] = convertedMapBox;
         for (final key in o.keys) {
-          final convertedKey = convert(key) as JSValue?;
+          final convertedKey = convert(key);
           setPropertyRaw(
-            convertedMap.toExternRef,
+            convertedMap,
             convertedKey.toExternRef,
-            (convert(o[key]) as JSValue?).toExternRef,
+            convert(o[key]).toExternRef,
           );
         }
-        return convertedMap;
+        return convertedMapBox;
       } else if (o is Iterable<Object?>) {
-        final convertedIterable = JSValue(newArrayRaw());
-        convertedObjects[o] = convertedIterable;
+        final convertedIterable = newArrayRaw();
+        final convertedIterableBox = JSValue(convertedIterable);
+        convertedObjects[o] = convertedIterableBox;
         for (final item in o) {
-          (convertedIterable as JSObject).callMethod(
-            'push'.toJS,
-            convert(item) as JSAny?,
-          );
+          js_types.arrayPush(convertedIterable, JSValue.unbox(convert(item)));
         }
-        return convertedIterable;
+        return convertedIterableBox;
       } else {
         // None of the objects left will require recursive conversions.
         return JSValue(jsifyRaw(o));
@@ -192,6 +186,12 @@ extension NullableObjectUtilExtension on Object? {
 
     return convert(this) as JSAny?;
   }
+
+  @patch
+  bool isA<T>() => throw UnimplementedError(
+    "This should never be called. Calls to 'isA' should have been "
+    'transformed by the interop transformer.',
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -242,9 +242,36 @@ WasmExternRef? _getJSBoxedDartObjectPropertyValue(JSAny any) =>
       _jsBoxedDartObjectPropertyExternRef,
     );
 
-// Used in the `isA` transform.
-bool _isJSBoxedDartObject(JSAny any) =>
-    !isDartNull(_getJSBoxedDartObjectPropertyValue(any));
+// Following are used in the `isA` transform.
+bool _isJSAny(Object? any) => any is JSValue && !any.isExternalizedDartValue;
+
+bool _isNullableJSAny(Object? any) => any == null || _isJSAny(any);
+
+bool _isJSBoxedDartObject(Object? any) =>
+    _isJSAny(any) &&
+    !isDartNull(_getJSBoxedDartObjectPropertyValue(unsafeCast<JSAny>(any)));
+
+bool _isNullableJSBoxedDartObject(Object? any) =>
+    any == null || _isJSBoxedDartObject(any);
+
+bool _isJSObject(Object? any) =>
+    _isJSAny(any) &&
+    // No need to check for null when doing typeof check since that's handled
+    // already by _isJSAny.
+    js_helper.JS<WasmI32>("""(o) => {
+          const typeofValue = typeof o;
+          return (typeofValue === 'object') ||
+              typeofValue === 'function';
+        }""", unsafeCast<JSAny>(any).toExternRef).toBool();
+
+bool _isNullableJSObject(Object? any) => any == null || _isJSObject(any);
+
+bool _isJSExportedDartFunction(Object? any) =>
+    _isJSAny(any) &&
+    js_helper.isJSWrappedDartFunction(unsafeCast<JSAny>(any).toExternRef);
+
+bool _isNullableJSExportedDartFunction(Object? any) =>
+    any == null || _isJSExportedDartFunction(any);
 
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
@@ -294,7 +321,9 @@ extension ExternalDartReferenceToObject<T extends Object?>
     // ExternalDartReference<int>` since `JSValue<Object>` is not a subtype of
     // `JSValue<int>`, even though it may be valid to do such a cast.
     final t = this._externalDartReference;
-    return (t == null ? null : jsObjectToDartObject(t.toExternRef)) as T;
+    if (t == null) return null as T;
+    assert(t.isExternalizedDartValue);
+    return jsObjectToDartObject(t.toExternRef) as T;
   }
 }
 
@@ -340,7 +369,7 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
           "`SharedArrayBuffer` from that JS typed array.",
         );
       }
-      return JSArrayBuffer._(JSArrayBufferType(JSValue(t.toExternRef)));
+      return JSArrayBuffer._(JSArrayBufferType(JSValue(t.wrappedExternRef)));
     } else {
       return JSArrayBuffer._(
         JSArrayBufferType(JSValue(jsArrayBufferFromDartByteBuffer(t))),
@@ -366,7 +395,7 @@ extension ByteDataToJSDataView on ByteData {
       JSDataViewType(
         JSValue(
           t is js_types.JSDataViewImpl
-              ? t.toExternRef
+              ? t.wrappedExternRef
               : jsDataViewFromDartByteData(t, lengthInBytes),
         ),
       ),
@@ -615,7 +644,7 @@ extension ListToJSArray<T extends JSAny?> on List<T> {
     return t is js_types.JSArrayImpl
         // Explicit cast to avoid using the extension method.
         ? JSArray<T>._(
-            JSArrayType(JSValue((t as js_types.JSArrayImpl).toExternRef)),
+            JSArrayType(JSValue((t as js_types.JSArrayImpl).wrappedExternRef)),
           )
         : null;
   }
@@ -921,6 +950,20 @@ JSPromise<JSObject> importModule(JSAny moduleName) => JSPromise<JSObject>._(
   ),
 );
 
+@patch
+bool jsIdentical(Object? a, Object? b) {
+  if (a is JSExternWrapper && b is JSExternWrapper) {
+    return js_helper
+        .JS<WasmI32>(
+          '(a, b) => a === b',
+          a.wrappedExternRef,
+          b.wrappedExternRef,
+        )
+        .toBool();
+  }
+  return identical(a, b);
+}
+
 @JS('Array')
 @staticInterop
 class _Array {
@@ -932,11 +975,6 @@ class _Array {
 class _Symbol {
   external static JSSymbol get isConcatSpreadable;
 }
-
-// Used only so we can use `createStaticInteropMock`'s prototype-setting.
-@JS()
-@staticInterop
-class __ListBackedJSArray {}
 
 // Implementation of indexing, `length`, and core handler methods.
 //

@@ -54,6 +54,19 @@ final List<Scenario> scenarios = () {
   var fileSystem = PhysicalResourceProvider.INSTANCE;
   return [
     Scenario(
+      name: 'project_pigeon_format_generated_file',
+      logFile: fileSystem.getFile(
+        logsRoot
+            .resolve('project_pigeon_format_generated_file.json')
+            .toFilePath(),
+      ),
+      project: GitCloneProjectGenerator(
+        'https://github.com/flutter/packages.git',
+        '3c06856b09811617ee2d159953d980c286f8529b',
+        openSubdirs: ['packages/pigeon'],
+      ),
+    ),
+    Scenario(
       name: 'sdk_rename_driver_class',
       logFile: fileSystem.getFile(
         logsRoot.resolve('sdk_rename_driver_class.json').toFilePath(),

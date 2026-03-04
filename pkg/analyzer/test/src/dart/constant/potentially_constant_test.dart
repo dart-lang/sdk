@@ -1110,6 +1110,22 @@ var x = ~a;
 ''', () => _xInitializer());
   }
 
+  test_propertyAccess_instanceMethod_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void m() {}
+}
+''');
+    await _assertNotConst(
+      r'''
+import 'a.dart' as p;
+var x = p.A.m;
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('m;')],
+    );
+  }
+
   test_propertyAccess_length_final() async {
     await _assertNotConst(
       r'''
@@ -1168,6 +1184,34 @@ var x = p.A.a + 1;
 ''',
       () => _xInitializer(),
       () => [findNode.simple('a + 1')],
+    );
+  }
+
+  test_propertyAccess_staticMethod_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static void m() {}
+}
+''');
+    await _assertConst(r'''
+import 'a.dart' as p;
+var x = p.A.m;
+''', () => _xInitializer());
+  }
+
+  test_propertyAccess_staticMethod_withPrefix_deferred() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static void m() {}
+}
+''');
+    await _assertNotConst(
+      r'''
+import 'a.dart' deferred as p;
+var x = p.A.m;
+''',
+      () => _xInitializer(),
+      () => [findNode.propertyAccess('p.A.m')],
     );
   }
 
@@ -1403,29 +1447,6 @@ var x = A;
 ''', () => _xInitializer());
   }
 
-  test_simpleIdentifier_typeParameter_class() async {
-    await _assertConst(r'''
-class A<T> {
-  final Object f;
-  A() : f = T;
-}
-''', () => findNode.simple('T;'));
-  }
-
-  test_simpleIdentifier_typeParameter_class_214() async {
-    await _assertNotConst(
-      r'''
-// @dart = 2.14
-class A<T> {
-  final Object f;
-  A() : f = T;
-}
-''',
-      () => findNode.simple('T;'),
-      () => [findNode.simple('T;')],
-    );
-  }
-
   test_spreadElement() async {
     await _assertConst(r'''
 const a = [0, 1, 2];
@@ -1488,6 +1509,29 @@ class A {
 ''',
       () => findNode.typeLiteral('List<self.A>'),
       () => [findNode.typeAnnotation('self.A')],
+    );
+  }
+
+  test_typeLiteral_typeParameter_class() async {
+    await _assertConst(r'''
+class A<T> {
+  final Object f;
+  A() : f = T;
+}
+''', () => findNode.typeLiteral('T;'));
+  }
+
+  test_typeLiteral_typeParameter_class_214() async {
+    await _assertNotConst(
+      r'''
+// @dart = 2.14
+class A<T> {
+  final Object f;
+  A() : f = T;
+}
+''',
+      () => findNode.typeLiteral('T;'),
+      () => [findNode.typeLiteral('T;')],
     );
   }
 

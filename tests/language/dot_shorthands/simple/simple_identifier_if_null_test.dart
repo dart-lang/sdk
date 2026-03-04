@@ -4,8 +4,6 @@
 
 // Context type is propagated down in an if-null `??` expression.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 import 'package:expect/expect.dart';
 

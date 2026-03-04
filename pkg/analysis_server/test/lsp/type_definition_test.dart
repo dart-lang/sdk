@@ -307,6 +307,33 @@ void foo() {
     _expectSdkCoreType(result, 'String');
   }
 
+  Future<void> test_parameter_privateNamed() async {
+    var code = TestCode.parse('''
+void f() {
+  A(/*[0*/thi^ng/*0]*/: B());
+}
+
+class A {
+  B _thing;
+  A({required this._thing});
+}
+
+class /*[1*/B/*1]*/ {}
+  ''');
+
+    var ranges = code.ranges.ranges;
+    var originRange = ranges[0];
+    var targetRange = ranges[1];
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, originRange);
+    expect(result.targetUri, mainFileUri);
+    expect(result.targetSelectionRange, targetRange);
+    expect(
+      result.targetRange,
+      rangeOfPattern(code, RegExp(r'class B \{.*\}', dotAll: true)),
+    );
+  }
+
   Future<void> test_parameter_wildcard() async {
     var code = TestCode.parse('''
 void f(String _) {

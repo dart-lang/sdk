@@ -309,6 +309,7 @@ class BytecodeReaderHelper : public ValueObject {
     static const int kHasSourcePositionsFlag = 1 << 1;
     static const int kHasLocalVariablesFlag = 1 << 2;
     static const int kCapturesOnlyFinalNotLateVarsFlag = 1 << 3;
+    static const int kHasLocalFunctionIdFlag = 1 << 4;
   };
 
   // Parameter flags, must be in sync with ParameterFlags constants in

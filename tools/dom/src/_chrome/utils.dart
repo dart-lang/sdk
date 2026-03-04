@@ -70,7 +70,7 @@ List _convertListArgument(List argument) {
  *
  * Cannot be used for functions.
  */
-Object convertArgument(var argument) {
+Object convertArgument(argument) {
   if (argument == null) return argument;
 
   if (argument is num || argument is String || argument is bool)

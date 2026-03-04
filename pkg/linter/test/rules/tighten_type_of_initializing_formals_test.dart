@@ -51,6 +51,18 @@ class A {
     );
   }
 
+  test_thisInit_asserts_newSyntax() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  String? p;
+  new(this.p) : assert(p != null);
+}
+''',
+      [lint(29, 6)],
+    );
+  }
+
   test_thisInit_asserts_positionalParams() async {
     await assertDiagnostics(
       r'''

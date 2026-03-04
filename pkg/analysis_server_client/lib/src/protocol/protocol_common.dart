@@ -1906,6 +1906,7 @@ class HighlightRegion implements HasToJson {
 enum HighlightRegionType {
   ANNOTATION,
 
+  /// Deprecated - no longer sent, KEYWORD used instead.
   BUILT_IN,
 
   CLASS,

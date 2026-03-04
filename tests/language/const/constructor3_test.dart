@@ -8,7 +8,7 @@ class C {
 }
 
 class D extends C {
-  const D(var d) : super(d);
+  const D(d) : super(d);
 }
 
 const intValue = 0;

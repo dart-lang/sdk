@@ -268,6 +268,35 @@ void main() {
         'add csp, fp, tmp uxtx 0\n',
       );
     });
+    test('subImmediate', () {
+      asm.subImmediate(R3, R3, 0);
+      asm.subImmediate(SP, FP, 0);
+      asm.subImmediate(R1, R2, 0, .u32);
+      asm.subImmediate(R1, R2, 0xabc);
+      asm.subImmediate(R1, R2, -0xabc);
+      asm.subImmediate(R1, R2, 0xabc000);
+      asm.subImmediate(R1, R2, -0xabc000);
+      asm.subImmediate(R1, R2, 0x11223344_55667788);
+      asm.subImmediate(SP, FP, 0x11223344_55667788);
+      expectDisassembly(
+        'mov csp, fp\n'
+        'movw r1, r2\n'
+        'sub r1, r2, #0xabc\n'
+        'add r1, r2, #0xabc\n'
+        'sub r1, r2, #0xabc000\n'
+        'add r1, r2, #0xabc000\n'
+        'movz tmp, #0x7788\n'
+        'movk tmp, #0x5566 lsl 16\n'
+        'movk tmp, #0x3344 lsl 32\n'
+        'movk tmp, #0x1122 lsl 48\n'
+        'sub r1, r2, tmp\n'
+        'movz tmp, #0x7788\n'
+        'movk tmp, #0x5566 lsl 16\n'
+        'movk tmp, #0x3344 lsl 32\n'
+        'movk tmp, #0x1122 lsl 48\n'
+        'sub csp, fp, tmp uxtx 0\n',
+      );
+    });
     test('andImmediate', () {
       asm.andImmediate(R1, R2, 0);
       asm.andImmediate(R1, R2, 0, .u32);
@@ -298,12 +327,61 @@ void main() {
       );
     });
     test('callStub', () {
-      final stub = Code(null, Uint8List(0), ObjectPool());
+      final stub = Code('<stub>', null, Uint8List(0), ObjectPool());
       asm.callStub(stub);
       expectDisassembly(
         'ldr code, [pp, #${objectPoolBase}]\n'
         'ldr lr, [code, #${vmOffsets.Code_entry_point_offset.first - heapObjectTag}]\n'
         'blr lr\n',
+      );
+    });
+    test('inlineAllocation - object size 16', () {
+      final slowPath = Label();
+      asm.inlineAllocation(R0, R1, R2, R3, 16, slowPath);
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'add r3, r0, #0x10\n'
+        'cmp r2, r3\n'
+        'bls +20\n'
+        'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'str null, [r0, #8]\n'
+        'add r0, r0, #0x1\n',
+      );
+    });
+    test('inlineAllocation - object size 32', () {
+      final slowPath = Label();
+      asm.inlineAllocation(R0, R1, R2, R3, 32, slowPath);
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'add r3, r0, #0x20\n'
+        'cmp r2, r3\n'
+        'bls +24\n'
+        'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'stp null, null, [r0, #8]\n'
+        'str null, [r0, #24]\n'
+        'add r0, r0, #0x1\n',
+      );
+    });
+    test('inlineAllocation - object size 160', () {
+      final slowPath = Label();
+      asm.inlineAllocation(R0, R1, R2, R3, 160, slowPath);
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'add r3, r0, #0xa0\n'
+        'cmp r2, r3\n'
+        'bls +32\n'
+        'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'add r2, r0, #0x8\n'
+        'stp null, null, [r2], #16 !\n'
+        'cmp r2, r3\n'
+        'bcc -8\n'
+        'add r0, r0, #0x1\n',
       );
     });
   });

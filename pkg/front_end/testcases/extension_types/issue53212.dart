@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by b
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=3.10
+
 extension type E1(int foo) {
   E1.named(this.foo, super.bar); // Error.
 }

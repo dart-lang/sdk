@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/util/platform_info.dart';
+
 /// A class that can return memory and cpu usage information for a given
 /// process.
 abstract class ProcessProfiler {
@@ -16,11 +18,11 @@ abstract class ProcessProfiler {
   /// platform. This can return `null` if we're not able to gather memory and
   /// cpu information for the current platform.
   static ProcessProfiler? getProfilerForPlatform() {
-    if (Platform.isLinux || Platform.isMacOS) {
+    if (platform.isLinux || platform.isMacOS) {
       return _PosixProcessProfiler();
     }
 
-    if (Platform.isWindows) {
+    if (platform.isWindows) {
       return _WindowsProcessProfiler();
     }
 

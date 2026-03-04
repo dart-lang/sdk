@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 
 class EnvironmentVariablesPage extends DiagnosticPageWithNav {
   EnvironmentVariablesPage(DiagnosticsSite site)
@@ -22,8 +22,8 @@ class EnvironmentVariablesPage extends DiagnosticPageWithNav {
   Future<void> generateContent(Map<String, String> params) async {
     buf.writeln('<table>');
     buf.writeln('<tr><th>Variable</th><th>Value</th></tr>');
-    for (var key in Platform.environment.keys.toList()..sort()) {
-      var value = Platform.environment[key];
+    for (var key in platform.environment.keys.toList()..sort()) {
+      var value = platform.environment[key];
       buf.writeln('<tr><td>${escape(key)}</td><td>${escape(value)}</td></tr>');
     }
     buf.writeln('</table>');

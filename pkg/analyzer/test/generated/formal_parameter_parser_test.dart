@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../util/ast_type_matchers.dart';
-import 'parser_test_base.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
+import '../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,1422 +21,2517 @@ main() {
 /// The class [FormalParameterParserTest] defines parser tests that test
 /// the parsing of formal parameters.
 @reflectiveTest
-class FormalParameterParserTest extends FastaParserTestCase {
-  FormalParameter parseNNBDFormalParameter(
-    String code,
-    ParameterKind kind, {
-    List<ExpectedDiagnostic>? diagnostics,
-  }) {
-    String parametersCode;
-    if (kind == ParameterKind.REQUIRED) {
-      parametersCode = '($code)';
-    } else if (kind == ParameterKind.POSITIONAL) {
-      parametersCode = '([$code])';
-    } else if (kind == ParameterKind.NAMED) {
-      parametersCode = '({$code})';
-    } else {
-      fail('$kind');
-    }
-    createParser(parametersCode);
-    FormalParameterList list = parserProxy.parseFormalParameterList();
-    assertErrors(diagnostics: diagnostics);
-    return list.parameters.single;
-  }
-
-  void test_fieldFormalParameter_function_nullable() {
-    var parameter = parseNNBDFormalParameter(
-      'void this.a()?',
-      ParameterKind.REQUIRED,
+class FormalParameterParserTest extends ParserDiagnosticsTest {
+  @override
+  ParseStringResult parseStringWithErrors(String content) {
+    return parseString(
+      content: content,
+      featureSet: FeatureSets.latestWithExperiments,
+      throwIfDiagnostics: false,
     );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFieldFormalParameter);
-    var functionParameter = parameter as FieldFormalParameter;
-    expect(functionParameter.type, isNotNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-    expect(functionParameter.endToken, functionParameter.question);
   }
 
-  void test_functionTyped_named_nullable() {
-    ParameterKind kind = ParameterKind.NAMED;
-    var defaultParameter =
-        parseNNBDFormalParameter('a()? : null', kind) as DefaultFormalParameter;
-    var functionParameter =
-        defaultParameter.parameter as FunctionTypedFormalParameter;
-    assertNoErrors();
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.isNamed, isTrue);
-    expect(functionParameter.question, isNotNull);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
+  void test_fieldFormalParameter_optionalPositional_type_namedType_int() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  int a;
+  A([int this.a = 0]);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: FieldFormalParameter
+      type: NamedType
+        name: int
+      thisKeyword: this
+      period: .
+      name: a
+    separator: =
+    defaultValue: IntegerLiteral
+      literal: 0
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
   }
 
-  void test_parseConstructorParameter_this() {
-    parseCompilationUnit('''
-class C {
-  final int field;
-  C(this.field);
-}''');
+  void test_fieldFormalParameter_requiredNamed_noType() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A({required this.a});
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: FieldFormalParameter
+      requiredKeyword: required
+      thisKeyword: this
+      period: .
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
   }
 
-  void test_parseConstructorParameter_this_Function() {
-    parseCompilationUnit('''
+  void test_fieldFormalParameter_requiredNamed_type_namedType_int() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  int a;
+  A({required int this.a});
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: FieldFormalParameter
+      requiredKeyword: required
+      type: NamedType
+        name: int
+      thisKeyword: this
+      period: .
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_fieldFormalParameter_requiredNamed_type_namedType_int_defaultValue() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  int a;
+  A({required int this.a = 0});
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: FieldFormalParameter
+      requiredKeyword: required
+      type: NamedType
+        name: int
+      thisKeyword: this
+      period: .
+      name: a
+    separator: =
+    defaultValue: IntegerLiteral
+      literal: 0
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_const_noType() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(const this.a);
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 23, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  keyword: const
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_const_type() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(const int this.a);
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 23, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  keyword: const
+  type: NamedType
+    name: int
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_covariant_noType() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(covariant this.a);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  covariantKeyword: covariant
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_covariant_type() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(covariant int this.a);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  covariantKeyword: covariant
+  type: NamedType
+    name: int
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_final_noType() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(final this.a);
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 23, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  keyword: final
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_final_type() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(final int this.a);
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 23, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  keyword: final
+  type: NamedType
+    name: int
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_functionTyped_nested() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(this.a(int b));
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  thisKeyword: this
+  period: .
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: b
+    rightParenthesis: )
+''');
+  }
+
+  void
+  test_fieldFormalParameter_requiredPositional_functionTyped_noParameters() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(this.a());
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  thisKeyword: this
+  period: .
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_functionTyped_nullable() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(void this.a()?);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  type: NamedType
+    name: void
+  thisKeyword: this
+  period: .
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  question: ?
+''');
+  }
+
+  void
+  test_fieldFormalParameter_requiredPositional_functionTyped_withDocComment() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var f;
+  A(
+    /// Doc
+    this.f(),
+  );
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  documentationComment: Comment
+    tokens
+      /// Doc
+  thisKeyword: this
+  period: .
+  name: f
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_noType() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(this.a);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_type() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(int this.a);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  type: NamedType
+    name: int
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_type_functionType() {
+    var parseResult = parseStringWithErrors(r'''
 class C {
   final Object Function(int, double) field;
   C(String Function(num, Object) this.field);
 }''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.fieldFormalParameter('this.field');
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  type: GenericFunctionType
+    returnType: NamedType
+      name: String
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: num
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: Object
+      rightParenthesis: )
+  thisKeyword: this
+  period: .
+  name: field
+''');
   }
 
-  void test_parseConstructorParameter_this_int() {
-    parseCompilationUnit('''
+  void test_fieldFormalParameter_requiredPositional_var() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(var this.a);
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 23, 3)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  keyword: var
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void test_fieldFormalParameter_requiredPositional_withDocComment() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  var a;
+  A(
+    /// Doc
+    this.a,
+  );
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  documentationComment: Comment
+    tokens
+      /// Doc
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void test_fieldFormalParameter_topLevelFunction() {
+    var parseResult = parseStringWithErrors(r'''
+void f(this.a) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  thisKeyword: this
+  period: .
+  name: a
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_optionalNamed_multiple() {
+    var parseResult = parseStringWithErrors(r'''
+void f({A a : 1, B b, C c : 3}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: A
+      name: a
+    separator: :
+    defaultValue: IntegerLiteral
+      literal: 1
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: B
+      name: b
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: C
+      name: c
+    separator: :
+    defaultValue: IntegerLiteral
+      literal: 3
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_optionalNamed_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+void f(A a, {B b,}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: A
+    name: a
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: B
+      name: b
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_optionalPositional_multiple() {
+    var parseResult = parseStringWithErrors(r'''
+void f([A a = null, B b, C c = null]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: A
+      name: a
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: B
+      name: b
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: C
+      name: c
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_optionalPositional_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+void f(A a, [B b,]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: A
+    name: a
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: B
+      name: b
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_requiredPositional_empty() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_requiredPositional_multiple() {
+    var parseResult = parseStringWithErrors(r'''
+void f(A a, B b, C c) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: A
+    name: a
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: B
+    name: b
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: C
+    name: c
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_requiredPositional_optionalNamed() {
+    var parseResult = parseStringWithErrors(r'''
+void f(A a, {B b}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: A
+    name: a
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: B
+      name: b
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_requiredPositional_optionalNamed_inFunctionType() {
+    var parseResult = parseStringWithErrors(r'''
+typedef F = void Function(A, {B b});
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: A
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: B
+      name: b
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_requiredPositional_optionalPositional() {
+    var parseResult = parseStringWithErrors(r'''
+void f(A a, [B b]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: A
+    name: a
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: B
+      name: b
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_requiredPositional_single_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+void f(A a,) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: A
+    name: a
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_formalParameterList_regularFormalParameter_requiredPositional_type_prefixed_partial_withFollowingParameter() {
+    var parseResult = parseStringWithErrors(r'''
+void f(io.,a) {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedTypeName, 10, 1),
+      error(diag.missingIdentifier, 10, 1),
+    ]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: io
+        period: .
+      name: <empty> <synthetic>
+    name: <empty> <synthetic>
+  parameter: SimpleFormalParameter
+    name: a
+  rightParenthesis: )
+''');
+  }
+
+  void test_formalParameterList_separator_missing_optionalNamed() {
+    var parseResult = parseStringWithErrors(r'''
+void f({int a int b}) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 14, 3)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_formalParameterList_separator_missing_requiredPositional() {
+    var parseResult = parseStringWithErrors(r'''
+void f(int a int b) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 13, 3)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: int
+    name: a
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: int
+    name: b
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_metadata_noType() {
+    var parseResult = parseStringWithErrors(r'''
+void f(@deprecated a) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: deprecated
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_metadata_type() {
+    var parseResult = parseStringWithErrors(r'''
+void f(@deprecated int a) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: deprecated
+  type: NamedType
+    name: int
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_covariant_final() {
+    var parseResult = parseStringWithErrors(r'''
 class C {
-  final int field;
-  C(int this.field);
-}''');
-  }
-
-  void test_parseFormalParameter_covariant_final_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant final a : null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_final_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter = parseFormalParameter('covariant final a', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isRequired, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_final_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant final a = null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isOptionalPositional, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isOptionalPositional, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_final_type_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant final A a : null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_final_type_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant final A a',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isRequired, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_final_type_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant final A a = null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isOptionalPositional, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isOptionalPositional, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_required_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseNNBDFormalParameter(
-      'covariant required A a : null',
-      kind,
-      diagnostics: [expectedError(diag.modifierOutOfOrder, 12, 8)],
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNotNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_type_function() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant String Function(int) a',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isGenericFunctionType);
-    expect(simpleParameter.isRequired, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_type_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant A a : null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_type_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant A<B<C>> a',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isRequired, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_type_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant A a = null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isOptionalPositional, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isOptionalPositional, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_var_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant var a : null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_var_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter = parseFormalParameter('covariant var a', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isRequired, isTrue);
-  }
-
-  void test_parseFormalParameter_covariant_var_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter = parseFormalParameter(
-      'covariant var a = null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isOptionalPositional, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isOptionalPositional, isTrue);
-  }
-
-  void test_parseFormalParameter_external() {
-    parseNNBDFormalParameter(
-      'external int i',
-      ParameterKind.REQUIRED,
-      diagnostics: [expectedError(diag.extraneousModifier, 1, 8)],
-    );
-  }
-
-  void test_parseFormalParameter_final_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseFormalParameter('final a : null', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_final_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter = parseFormalParameter('final a', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isRequired, isTrue);
-  }
-
-  void test_parseFormalParameter_final_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter = parseFormalParameter('final a = null', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isOptionalPositional, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isOptionalPositional, isTrue);
-  }
-
-  void test_parseFormalParameter_final_required_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseNNBDFormalParameter(
-      'final required a : null',
-      kind,
-      diagnostics: [expectedError(diag.modifierOutOfOrder, 8, 8)],
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNotNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_final_type_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseFormalParameter('final A a : null', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_final_type_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter = parseFormalParameter('final A a', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isRequired, isTrue);
-  }
-
-  void test_parseFormalParameter_final_type_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter = parseFormalParameter('final A a = null', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isOptionalPositional, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isOptionalPositional, isTrue);
-  }
-
-  void test_parseFormalParameter_required_covariant_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseNNBDFormalParameter(
-      'required covariant A a : null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.requiredKeyword, isNotNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_required_final_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseNNBDFormalParameter(
-      'required final a : null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNotNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_required_type_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseNNBDFormalParameter(
-      'required A a : null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNotNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_required_var_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseNNBDFormalParameter(
-      'required var a : null',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNotNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_type_function() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter = parseFormalParameter(
-      'String Function(int) a',
-      kind,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isGenericFunctionType);
-    expect(simpleParameter.isRequired, isTrue);
-  }
-
-  void test_parseFormalParameter_type_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseFormalParameter('A a : null', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_type_named_noDefault() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseFormalParameter('A a', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNull);
-    expect(defaultParameter.defaultValue, isNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_type_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter = parseFormalParameter('A a', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isRequired, isTrue);
-  }
-
-  void test_parseFormalParameter_type_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter = parseFormalParameter('A a = null', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isOptionalPositional, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isOptionalPositional, isTrue);
-  }
-
-  void test_parseFormalParameter_type_positional_noDefault() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter = parseFormalParameter('A a', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.isOptionalPositional, isTrue);
-    expect(defaultParameter.separator, isNull);
-    expect(defaultParameter.defaultValue, isNull);
-    expect(defaultParameter.isOptionalPositional, isTrue);
-  }
-
-  void test_parseFormalParameter_var_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseFormalParameter('var a : null', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameter_var_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    FormalParameter parameter = parseFormalParameter('var a', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isRequired, isTrue);
-  }
-
-  void test_parseFormalParameter_var_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    FormalParameter parameter = parseFormalParameter('var a = null', kind);
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isOptionalPositional, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isOptionalPositional, isTrue);
-  }
-
-  void test_parseFormalParameter_var_required_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    FormalParameter parameter = parseNNBDFormalParameter(
-      'var required a : null',
-      kind,
-      diagnostics: [expectedError(diag.modifierOutOfOrder, 6, 8)],
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isDefaultFormalParameter);
-    var defaultParameter = parameter as DefaultFormalParameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.requiredKeyword, isNotNull);
-    expect(simpleParameter.name, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseFormalParameterList_empty() {
-    FormalParameterList list = parseFormalParameterList('()');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(0));
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_named_multiple() {
-    FormalParameterList list = parseFormalParameterList(
-      '({A a : 1, B b, C c : 3})',
-    );
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(3));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_named_single() {
-    FormalParameterList list = parseFormalParameterList('({A a})');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_named_trailing_comma() {
-    FormalParameterList list = parseFormalParameterList('(A a, {B b,})');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(2));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_multiple() {
-    FormalParameterList list = parseFormalParameterList('(A a, B b, C c)');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(3));
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_named() {
-    FormalParameterList list = parseFormalParameterList('(A a, {B b})');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(2));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_named_inFunctionType() {
-    FormalParameterList list = parseFormalParameterList(
-      '(A, {B b})',
-      inFunctionType: true,
-    );
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-    NodeList<FormalParameter> parameters = list.parameters;
-    expect(parameters, hasLength(2));
-
-    expect(parameters[0], isSimpleFormalParameter);
-    var required = parameters[0] as SimpleFormalParameter;
-    expect(required.name, isNull);
-    expect(required.type, isNamedType);
-    expect((required.type as NamedType).name.lexeme, 'A');
-
-    expect(parameters[1], isDefaultFormalParameter);
-    var named = parameters[1] as DefaultFormalParameter;
-    expect(named.name, isNotNull);
-    expect(named.parameter, isSimpleFormalParameter);
-    var simple = named.parameter as SimpleFormalParameter;
-    expect(simple.type, isNamedType);
-    expect((simple.type as NamedType).name.lexeme, 'B');
-  }
-
-  void test_parseFormalParameterList_normal_positional() {
-    FormalParameterList list = parseFormalParameterList('(A a, [B b])');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(2));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_single() {
-    FormalParameterList list = parseFormalParameterList('(A a)');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_single_Function() {
-    FormalParameterList list = parseFormalParameterList('(Function f)');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_single_trailing_comma() {
-    FormalParameterList list = parseFormalParameterList('(A a,)');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_positional_multiple() {
-    FormalParameterList list = parseFormalParameterList(
-      '([A a = null, B b, C c = null])',
-    );
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(3));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_positional_single() {
-    FormalParameterList list = parseFormalParameterList('([A a = null])');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_positional_trailing_comma() {
-    FormalParameterList list = parseFormalParameterList('(A a, [B b,])');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(2));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_prefixedType() {
-    FormalParameterList list = parseFormalParameterList('(io.File f)');
-    expect(list, isNotNull);
-    assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.parameters[0].toSource(), 'io.File f');
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_prefixedType_missingName() {
-    FormalParameterList list = parseFormalParameterList(
-      '(io.File)',
-      diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
-    );
-    expect(list, isNotNull);
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    // TODO(danrubel): Investigate and improve recovery of parameter type/name.
-    var parameter = list.parameters[0] as SimpleFormalParameter;
-    expect(parameter.toSource(), 'io.File ');
-    expect(parameter.name!.isSynthetic, isTrue);
-    var type = parameter.type as NamedType;
-    expect(type.importPrefix!.name.isSynthetic, isFalse);
-    expect(type.name.isSynthetic, isFalse);
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_prefixedType_partial() {
-    FormalParameterList list = parseFormalParameterList(
-      '(io.)',
-      diagnostics: [
-        expectedError(diag.expectedTypeName, 4, 1),
-        expectedError(diag.missingIdentifier, 4, 1),
-      ],
-    );
-    expect(list, isNotNull);
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    // TODO(danrubel): Investigate and improve recovery of parameter type/name.
-    var parameter = list.parameters[0] as SimpleFormalParameter;
-    expect(parameter.toSource(), 'io. ');
-    expect(parameter.name!.isSynthetic, isTrue);
-    var type = parameter.type as NamedType;
-    expect(type.importPrefix!.name.isSynthetic, isFalse);
-    expect(type.name.isSynthetic, isTrue);
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_prefixedType_partial2() {
-    FormalParameterList list = parseFormalParameterList(
-      '(io.,a)',
-      diagnostics: [
-        expectedError(diag.expectedTypeName, 4, 1),
-        expectedError(diag.missingIdentifier, 4, 1),
-      ],
-    );
-    expect(list, isNotNull);
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(2));
-    expect(list.parameters[0].toSource(), 'io. ');
-    expect(list.parameters[1].toSource(), 'a');
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_field_const_noType() {
-    NormalFormalParameter parameter = parseNormalFormalParameter(
-      'const this.a',
-      diagnosticCodes: [diag.extraneousModifier],
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isFieldFormalParameter);
-    var fieldParameter = parameter as FieldFormalParameter;
-    expect(fieldParameter.keyword, isNotNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.name, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_const_type() {
-    NormalFormalParameter parameter = parseNormalFormalParameter(
-      'const A this.a',
-      diagnosticCodes: [diag.extraneousModifier],
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isFieldFormalParameter);
-    var fieldParameter = parameter as FieldFormalParameter;
-    expect(fieldParameter.keyword, isNotNull);
-    expect(fieldParameter.type, isNotNull);
-    expect(fieldParameter.name, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_final_noType() {
-    NormalFormalParameter parameter = parseNormalFormalParameter(
-      'final this.a',
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFieldFormalParameter);
-    var fieldParameter = parameter as FieldFormalParameter;
-    expect(fieldParameter.keyword, isNotNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.name, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_final_type() {
-    NormalFormalParameter parameter = parseNormalFormalParameter(
-      'final A this.a',
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFieldFormalParameter);
-    var fieldParameter = parameter as FieldFormalParameter;
-    expect(fieldParameter.keyword, isNotNull);
-    expect(fieldParameter.type, isNotNull);
-    expect(fieldParameter.name, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_function_nested() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('this.a(B b)');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFieldFormalParameter);
-    var fieldParameter = parameter as FieldFormalParameter;
-    expect(fieldParameter.keyword, isNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.name, isNotNull);
-    FormalParameterList parameterList = fieldParameter.parameters!;
-    expect(parameterList, isNotNull);
-    expect(parameterList.parameters, hasLength(1));
-  }
-
-  void test_parseNormalFormalParameter_field_function_noNested() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('this.a()');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFieldFormalParameter);
-    var fieldParameter = parameter as FieldFormalParameter;
-    expect(fieldParameter.keyword, isNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.name, isNotNull);
-    FormalParameterList parameterList = fieldParameter.parameters!;
-    expect(parameterList, isNotNull);
-    expect(parameterList.parameters, hasLength(0));
-  }
-
-  void test_parseNormalFormalParameter_field_function_withDocComment() {
-    var parameter = parseNormalFormalParameter('/// Doc\nthis.f()');
-    expectCommentText(parameter.documentationComment, '/// Doc');
-  }
-
-  void test_parseNormalFormalParameter_field_noType() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('this.a');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFieldFormalParameter);
-    var fieldParameter = parameter as FieldFormalParameter;
-    expect(fieldParameter.keyword, isNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.name, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_type() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('A this.a');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFieldFormalParameter);
-    var fieldParameter = parameter as FieldFormalParameter;
-    expect(fieldParameter.keyword, isNull);
-    expect(fieldParameter.type, isNotNull);
-    expect(fieldParameter.name, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_var() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('var this.a');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFieldFormalParameter);
-    var fieldParameter = parameter as FieldFormalParameter;
-    expect(fieldParameter.keyword, isNotNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.name, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_withDocComment() {
-    var parameter = parseNormalFormalParameter('/// Doc\nthis.a');
-    expectCommentText(parameter.documentationComment, '/// Doc');
-  }
-
-  void test_parseNormalFormalParameter_function_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    var defaultParameter =
-        parseFormalParameter('a() : null', kind) as DefaultFormalParameter;
-    var functionParameter =
-        defaultParameter.parameter as FunctionTypedFormalParameter;
-    assertNoErrors();
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.isNamed, isTrue);
-    expect(functionParameter.question, isNull);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseNormalFormalParameter_function_noType() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('a()');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFunctionTypedFormalParameter);
-    var functionParameter = parameter as FunctionTypedFormalParameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_noType_covariant() {
-    NormalFormalParameter parameter = parseNormalFormalParameter(
-      'covariant a()',
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFunctionTypedFormalParameter);
-    var functionParameter = parameter as FunctionTypedFormalParameter;
-    expect(functionParameter.covariantKeyword, isNotNull);
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_noType_nullable() {
-    var parameter =
-        parseNNBDFormalParameter('a()?', ParameterKind.REQUIRED)
-            as NormalFormalParameter;
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFunctionTypedFormalParameter);
-    var functionParameter = parameter as FunctionTypedFormalParameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-    expect(functionParameter.endToken, functionParameter.question);
-  }
-
-  void test_parseNormalFormalParameter_function_noType_typeParameters() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('a<E>()');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFunctionTypedFormalParameter);
-    var functionParameter = parameter as FunctionTypedFormalParameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_type() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('A a()');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFunctionTypedFormalParameter);
-    var functionParameter = parameter as FunctionTypedFormalParameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_type_typeParameters() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('A a<E>()');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFunctionTypedFormalParameter);
-    var functionParameter = parameter as FunctionTypedFormalParameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_typeVoid_covariant() {
-    NormalFormalParameter parameter = parseNormalFormalParameter(
-      'covariant void a()',
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFunctionTypedFormalParameter);
-    var functionParameter = parameter as FunctionTypedFormalParameter;
-    expect(functionParameter.covariantKeyword, isNotNull);
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_void() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('void a()');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFunctionTypedFormalParameter);
-    var functionParameter = parameter as FunctionTypedFormalParameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_void_typeParameters() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('void a<E>()');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isFunctionTypedFormalParameter);
-    var functionParameter = parameter as FunctionTypedFormalParameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.name, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
+  void f({covariant final a : null}) {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 30, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      covariantKeyword: covariant
+      keyword: final
+      name: a
+    separator: :
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_covariant_final_type() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f({covariant final A a : null}) {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 30, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      covariantKeyword: covariant
+      keyword: final
+      type: NamedType
+        name: A
+      name: a
+    separator: :
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_covariant_type() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f({covariant A a : null}) {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      covariantKeyword: covariant
+      type: NamedType
+        name: A
+      name: a
+    separator: :
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_covariant_var() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f({covariant var a : null}) {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 30, 3)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      covariantKeyword: covariant
+      keyword: var
+      name: a
+    separator: :
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_final() {
+    var parseResult = parseStringWithErrors(r'''
+void f({final a : null}) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 8, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      keyword: final
+      name: a
+    separator: :
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_final_type() {
+    var parseResult = parseStringWithErrors(r'''
+void f({final A a = null}) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 8, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      keyword: final
+      type: NamedType
+        name: A
+      name: a
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_functionTyped() {
+    var parseResult = parseStringWithErrors(r'''
+void f({a() = null}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var f = parseResult.findNode.singleFunctionDeclaration;
+    var node = f.functionExpression.parameters!;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: FunctionTypedFormalParameter
+      name: a
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_functionTyped_nullable() {
+    var parseResult = parseStringWithErrors(r'''
+void f({a()? : null}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult
+        .findNode
+        .singleFunctionDeclaration
+        .functionExpression
+        .parameters!;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: FunctionTypedFormalParameter
+      name: a
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      question: ?
+    separator: :
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_optionalNamed_functionTyped_nullable_typeParameters() {
+    var parseResult = parseStringWithErrors(r'''
+void f({a<T>()? : null}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult
+        .findNode
+        .singleFunctionDeclaration
+        .functionExpression
+        .parameters!;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: FunctionTypedFormalParameter
+      name: a
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      question: ?
+    separator: :
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_type() {
+    var parseResult = parseStringWithErrors(r'''
+void f({A a : null}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: A
+      name: a
+    separator: :
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_type_noDefault() {
+    var parseResult = parseStringWithErrors(r'''
+void f({A a}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: A
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalNamed_var() {
+    var parseResult = parseStringWithErrors(r'''
+void f({var a : null}) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 8, 3)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      keyword: var
+      name: a
+    separator: :
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalPositional_covariant_final() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f([covariant final a = null]) {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 30, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      covariantKeyword: covariant
+      keyword: final
+      name: a
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalPositional_covariant_final_type() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f([covariant final A a = null]) {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 30, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      covariantKeyword: covariant
+      keyword: final
+      type: NamedType
+        name: A
+      name: a
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalPositional_covariant_type() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f([covariant A a = null]) {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      covariantKeyword: covariant
+      type: NamedType
+        name: A
+      name: a
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalPositional_covariant_var() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f([covariant var a = null]) {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 30, 3)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      covariantKeyword: covariant
+      keyword: var
+      name: a
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalPositional_final() {
+    var parseResult = parseStringWithErrors(r'''
+void f([final a = null]) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 8, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      keyword: final
+      name: a
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalPositional_final_type() {
+    var parseResult = parseStringWithErrors(r'''
+void f([final A a = null]) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 8, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      keyword: final
+      type: NamedType
+        name: A
+      name: a
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalPositional_type() {
+    var parseResult = parseStringWithErrors(r'''
+void f([A a = null]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: A
+      name: a
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalPositional_type_noDefault() {
+    var parseResult = parseStringWithErrors(r'''
+void f([A a]) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: A
+      name: a
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_optionalPositional_var() {
+    var parseResult = parseStringWithErrors(r'''
+void f([var a = null]) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 8, 3)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      keyword: var
+      name: a
+    separator: =
+    defaultValue: NullLiteral
+      literal: null
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_requiredNamed_covariant_type() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f({required covariant A a}) {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      covariantKeyword: covariant
+      requiredKeyword: required
+      type: NamedType
+        name: A
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_requiredNamed_covariant_type_ordering() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f({covariant required A a}) {}
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 30, 8)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      covariantKeyword: covariant
+      requiredKeyword: required
+      type: NamedType
+        name: A
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_requiredNamed_final() {
+    var parseResult = parseStringWithErrors(r'''
+void f({required final a}) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 17, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      requiredKeyword: required
+      keyword: final
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_requiredNamed_final_ordering() {
+    var parseResult = parseStringWithErrors(r'''
+void f({final required a}) {}
+''');
+    parseResult.assertErrors([
+      error(diag.extraneousModifier, 8, 5),
+      error(diag.modifierOutOfOrder, 14, 8),
+    ]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      requiredKeyword: required
+      keyword: final
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_requiredNamed_type() {
+    var parseResult = parseStringWithErrors(r'''
+void f({required A a}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      requiredKeyword: required
+      type: NamedType
+        name: A
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredNamed_type_namedType_int_defaultValue() {
+    var parseResult = parseStringWithErrors(r'''
+void f({required int a = 0}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      requiredKeyword: required
+      type: NamedType
+        name: int
+      name: a
+    separator: =
+    defaultValue: IntegerLiteral
+      literal: 0
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredNamed_type_namedType_int_noDefault() {
+    var parseResult = parseStringWithErrors(r'''
+void f({required int a}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      requiredKeyword: required
+      type: NamedType
+        name: int
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_requiredNamed_var() {
+    var parseResult = parseStringWithErrors(r'''
+void f({required var a}) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 17, 3)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      requiredKeyword: required
+      keyword: var
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_requiredNamed_var_ordering() {
+    var parseResult = parseStringWithErrors(r'''
+void f({var required a}) {}
+''');
+    parseResult.assertErrors([
+      error(diag.extraneousModifier, 8, 3),
+      error(diag.modifierOutOfOrder, 12, 8),
+    ]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      requiredKeyword: required
+      keyword: var
+      name: a
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_const_noType() {
+    var parseResult = parseStringWithErrors(r'''
+void f(const a) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 7, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  keyword: const
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_const_type() {
+    var parseResult = parseStringWithErrors(r'''
+void f(const A a) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 7, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  keyword: const
+  type: NamedType
+    name: A
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_covariant_final() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f(covariant final a) {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 29, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  covariantKeyword: covariant
+  keyword: final
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_covariant_final_type() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f(covariant final A a) {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 29, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  covariantKeyword: covariant
+  keyword: final
+  type: NamedType
+    name: A
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_covariant_type() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f(covariant A<B<C>> a) {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  covariantKeyword: covariant
+  type: NamedType
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: B
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: C
+            rightBracket: >
+      rightBracket: >
+  name: a
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_covariant_type_functionType() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f(covariant String Function(int) a) {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleMethodDeclaration.parameters!;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    covariantKeyword: covariant
+    type: GenericFunctionType
+      returnType: NamedType
+        name: String
+      functionKeyword: Function
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+        rightParenthesis: )
+    name: a
+  rightParenthesis: )
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_covariant_var() {
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f(covariant var a) {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 29, 3)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  covariantKeyword: covariant
+  keyword: var
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_external() {
+    var parseResult = parseStringWithErrors(r'''
+void f(external int i) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 7, 8)]);
+  }
+
+  void test_regularFormalParameter_requiredPositional_final_noType() {
+    var parseResult = parseStringWithErrors(r'''
+void f(final a) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 7, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  keyword: final
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_final_type() {
+    var parseResult = parseStringWithErrors(r'''
+void f(final A a) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 7, 5)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  keyword: final
+  type: NamedType
+    name: A
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_functionTyped_noType() {
+    var parseResult = parseStringWithErrors(r'''
+void f(a()) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FunctionTypedFormalParameter
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_noType_covariant() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f(covariant a()) {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult
+        .findNode
+        .singleMethodDeclaration
+        .parameters!
+        .parameters
+        .single;
+    assertParsedNodeText(node, r'''
+FunctionTypedFormalParameter
+  covariantKeyword: covariant
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_noType_nullable() {
+    var parseResult = parseStringWithErrors(r'''
+void f(a()?) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FunctionTypedFormalParameter
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  question: ?
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_noType_typeParameters() {
+    var parseResult = parseStringWithErrors(r'''
+void f(a<E>()) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FunctionTypedFormalParameter
+  name: a
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: E
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_parameter_covariant() {
+    var parseResult = parseStringWithErrors(r'''
+void f(void g(covariant int a)) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.simpleFormalParameter('a)');
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  covariantKeyword: covariant
+  type: NamedType
+    name: int
+  name: a
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_parameter_required_covariant() {
+    var parseResult = parseStringWithErrors(r'''
+void f(void g({required covariant int a})) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.simpleFormalParameter('a}');
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  covariantKeyword: covariant
+  requiredKeyword: required
+  type: NamedType
+    name: int
+  name: a
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_returnType() {
+    var parseResult = parseStringWithErrors(r'''
+void f(A a()) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FunctionTypedFormalParameter
+  returnType: NamedType
+    name: A
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_returnType_typeParameters() {
+    var parseResult = parseStringWithErrors(r'''
+void f(A a<E>()) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FunctionTypedFormalParameter
+  returnType: NamedType
+    name: A
+  name: a
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: E
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_returnType_void() {
+    var parseResult = parseStringWithErrors(r'''
+void f(void a()) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FunctionTypedFormalParameter
+  returnType: NamedType
+    name: void
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_returnType_void_covariant() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  void f(covariant void a()) {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FunctionTypedFormalParameter
+  covariantKeyword: covariant
+  returnType: NamedType
+    name: void
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_returnType_void_typeParameters() {
+    var parseResult = parseStringWithErrors(r'''
+void f(void a<E>()) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FunctionTypedFormalParameter
+  returnType: NamedType
+    name: void
+  name: a
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: E
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
-  void test_parseNormalFormalParameter_function_withDocComment() {
-    var parameter =
-        parseFormalParameter('/// Doc\nf()', ParameterKind.REQUIRED)
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_withDocComment() {
+    var parseResult = parseStringWithErrors(r'''
+void f(
+  /// Doc
+  g(),
+) {}
+''');
+    parseResult.assertNoErrors();
+    // TODO(scheglov): assert AST
+    fail('Incomplete');
+  }
+
+  void test_regularFormalParameter_requiredPositional_noType() {
+    var parseResult = parseStringWithErrors(r'''
+void f(a) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_noType_inFunctionTyped() {
+    var parseResult = parseStringWithErrors(r'''
+void f(void g(a)) {}
+''');
+    parseResult.assertNoErrors();
+
+    var f = parseResult.findNode.functionDeclaration('f');
+    var g =
+        f.functionExpression.parameters!.parameters.single
             as FunctionTypedFormalParameter;
-    expectCommentText(parameter.documentationComment, '/// Doc');
+    var node = g.parameters.parameters.single;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  name: a
+''');
   }
 
-  void test_parseNormalFormalParameter_simple_const_noType() {
-    NormalFormalParameter parameter = parseNormalFormalParameter(
-      'const a',
-      diagnosticCodes: [diag.extraneousModifier],
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.name, isNotNull);
+  void test_regularFormalParameter_requiredPositional_noType_nameCovariant() {
+    var parseResult = parseStringWithErrors(r'''
+void f(covariant) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  name: covariant
+''');
   }
 
-  void test_parseNormalFormalParameter_simple_const_type() {
-    NormalFormalParameter parameter = parseNormalFormalParameter(
-      'const A a',
-      diagnosticCodes: [diag.extraneousModifier],
-    );
-    expect(parameter, isNotNull);
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.name, isNotNull);
+  void test_regularFormalParameter_requiredPositional_noType_nameRequired() {
+    var parseResult = parseStringWithErrors(r'''
+void f(required) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  name: required
+''');
   }
 
-  void test_parseNormalFormalParameter_simple_final_noType() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('final a');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.name, isNotNull);
+  void test_regularFormalParameter_requiredPositional_noType_nameUnderscore() {
+    var parseResult = parseStringWithErrors(r'''
+void f(_) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  name: _
+''');
   }
 
-  void test_parseNormalFormalParameter_simple_final_type() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('final A a');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.name, isNotNull);
+  void
+  test_regularFormalParameter_requiredPositional_single_type_namedType_Function() {
+    var parseResult = parseStringWithErrors(r'''
+void f(Function f) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      name: Function
+    name: f
+  rightParenthesis: )
+''');
   }
 
-  void test_parseNormalFormalParameter_simple_noName() {
-    NormalFormalParameter parameter = parseNormalFormalParameter(
-      'a',
-      inFunctionType: true,
-    );
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.name, isNull);
+  void test_regularFormalParameter_requiredPositional_single_type_prefixed() {
+    var parseResult = parseStringWithErrors(r'''
+void f(io.File f) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: io
+        period: .
+      name: File
+    name: f
+  rightParenthesis: )
+''');
   }
 
-  void test_parseNormalFormalParameter_simple_noType() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('a');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.name, isNotNull);
+  void
+  test_regularFormalParameter_requiredPositional_single_type_prefixed_missingName() {
+    var parseResult = parseStringWithErrors(r'''
+void f(io.File) {}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 14, 1)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: io
+        period: .
+      name: File
+    name: <empty> <synthetic>
+  rightParenthesis: )
+''');
   }
 
-  void test_parseNormalFormalParameter_simple_noType_namedCovariant() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('covariant');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.name, isNotNull);
+  void
+  test_regularFormalParameter_requiredPositional_single_type_prefixed_partial() {
+    var parseResult = parseStringWithErrors(r'''
+void f(io.) {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedTypeName, 10, 1),
+      error(diag.missingIdentifier, 10, 1),
+    ]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: io
+        period: .
+      name: <empty> <synthetic>
+    name: <empty> <synthetic>
+  rightParenthesis: )
+''');
   }
 
-  void test_parseNormalFormalParameter_simple_type() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('A a');
-    expect(parameter, isNotNull);
-    assertNoErrors();
-    expect(parameter, isSimpleFormalParameter);
-    var simpleParameter = parameter as SimpleFormalParameter;
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.name, isNotNull);
+  void test_regularFormalParameter_requiredPositional_type() {
+    var parseResult = parseStringWithErrors(r'''
+void f(A a) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: A
+  name: a
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_type_functionType() {
+    var parseResult = parseStringWithErrors(r'''
+void f(String Function(int) a) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult
+        .findNode
+        .singleFunctionDeclaration
+        .functionExpression
+        .parameters!;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    type: GenericFunctionType
+      returnType: NamedType
+        name: String
+      functionKeyword: Function
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+        rightParenthesis: )
+    name: a
+  rightParenthesis: )
+''');
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_type_namedType_int_nameUnderscore() {
+    var parseResult = parseStringWithErrors(r'''
+void f(int _) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: int
+  name: _
+''');
+  }
+
+  void test_regularFormalParameter_requiredPositional_var() {
+    var parseResult = parseStringWithErrors(r'''
+void f(var a) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 7, 3)]);
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  keyword: var
+  name: a
+''');
+  }
+
+  void
+  test_superFormalParameter_optionalPositional_type_namedType_int_defaultValue() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  final int a;
+  A([this.a = 0]);
+}
+class B extends A {
+  B([int super.a = 0]);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node =
+        parseResult.findNode.superFormalParameter('super.a').parent
+            as DefaultFormalParameter;
+    assertParsedNodeText(node, r'''
+DefaultFormalParameter
+  parameter: SuperFormalParameter
+    type: NamedType
+      name: int
+    superKeyword: super
+    period: .
+    name: a
+  separator: =
+  defaultValue: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  void test_superFormalParameter_requiredNamed_type_namedType_int() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  final int a;
+  A({required this.a});
+}
+class B extends A {
+  B({required int super.a});
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.superFormalParameter('super.a');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  requiredKeyword: required
+  type: NamedType
+    name: int
+  superKeyword: super
+  period: .
+  name: a
+''');
+  }
+
+  void
+  test_superFormalParameter_requiredNamed_type_namedType_int_defaultValue() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  final int a;
+  A({required this.a});
+}
+class B extends A {
+  B({required int super.a = 0});
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node =
+        parseResult.findNode.superFormalParameter('super.a').parent
+            as DefaultFormalParameter;
+    assertParsedNodeText(node, r'''
+DefaultFormalParameter
+  parameter: SuperFormalParameter
+    requiredKeyword: required
+    type: NamedType
+      name: int
+    superKeyword: super
+    period: .
+    name: a
+  separator: =
+  defaultValue: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  void test_superFormalParameter_requiredPositional_const_noType() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+class B extends A {
+  B(const super.a);
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 64, 5)]);
+
+    var node = parseResult.findNode.superFormalParameter('super.a');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  keyword: const
+  superKeyword: super
+  period: .
+  name: a
+''');
+  }
+
+  void test_superFormalParameter_requiredPositional_covariant_noType() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+class B extends A {
+  B(covariant super.a);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.superFormalParameter('super.a');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  covariantKeyword: covariant
+  superKeyword: super
+  period: .
+  name: a
+''');
+  }
+
+  void test_superFormalParameter_requiredPositional_covariant_type() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+class B extends A {
+  B(covariant int super.a);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.superFormalParameter('super.a');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  covariantKeyword: covariant
+  type: NamedType
+    name: int
+  superKeyword: super
+  period: .
+  name: a
+''');
+  }
+
+  void
+  test_superFormalParameter_requiredPositional_functionTyped_nullable_typeParameters() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  final dynamic f;
+  A(this.f);
+}
+class B extends A {
+  B(super.f<T>()?);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.superFormalParameter('super.f');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  superKeyword: super
+  period: .
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  question: ?
+''');
+  }
+
+  void
+  test_superFormalParameter_requiredPositional_functionTyped_returnType_void() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  final void Function() f;
+  A(this.f);
+}
+class B extends A {
+  B(void super.f());
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.superFormalParameter('super.f');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  type: NamedType
+    name: void
+  superKeyword: super
+  period: .
+  name: f
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void test_superFormalParameter_requiredPositional_noType() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+class B extends A {
+  B(super.a);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.superFormalParameter('super.a');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  superKeyword: super
+  period: .
+  name: a
+''');
+  }
+
+  void test_superFormalParameter_requiredPositional_type_namedType_int() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+class B extends A {
+  B(int super.a);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.superFormalParameter('super.a');
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  type: NamedType
+    name: int
+  superKeyword: super
+  period: .
+  name: a
+''');
+  }
+
+  void test_superFormalParameter_topLevelFunction() {
+    var parseResult = parseStringWithErrors(r'''
+void f(super.a) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  superKeyword: super
+  period: .
+  name: a
+''');
   }
 }

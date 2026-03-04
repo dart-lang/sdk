@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -37,17 +36,7 @@ class ReplaceWithIs extends ResolvedCorrectionProducer {
     var operator = node.operator;
     operatorText = operator.type.lexeme;
     exclamationText = operator.type == .BANG_EQ ? '!' : '';
-    if (node.leftOperand
-        case SimpleIdentifier(
-              element: InterfaceElement() ||
-                  TypeParameterElement() ||
-                  TypeAliasElement(),
-            ) ||
-            PrefixedIdentifier(
-              element: InterfaceElement() ||
-                  TypeParameterElement() ||
-                  TypeAliasElement(),
-            )) {
+    if (node.leftOperand case TypeLiteral()) {
       var type = node.leftOperand;
       var other = node.rightOperand;
       await builder.addDartFileEdit(file, (builder) {
@@ -57,17 +46,7 @@ class ReplaceWithIs extends ResolvedCorrectionProducer {
           builder.write(type.toSource());
         });
       });
-    } else if (node.rightOperand
-        case SimpleIdentifier(
-              element: InterfaceElement() ||
-                  TypeParameterElement() ||
-                  TypeAliasElement(),
-            ) ||
-            PrefixedIdentifier(
-              element: InterfaceElement() ||
-                  TypeParameterElement() ||
-                  TypeAliasElement(),
-            )) {
+    } else if (node.rightOperand case TypeLiteral()) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
           range.token(operator),

@@ -1,0 +1,46 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 42
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "A"
+        }
+      ],
+      "uri": "package:record_use_test/non_const_constructor.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              0
+            ],
+            "type": "creation"
+          }
+        ]
+      }
+    ]
+  }
+}

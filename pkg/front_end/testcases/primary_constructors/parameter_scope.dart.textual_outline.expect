@@ -1,0 +1,19 @@
+class C1([@m int x = m]) {
+  static const int m = 42;
+}
+
+class C2(int x) {
+  static const String int = 'not a type';
+}
+
+enum E1([@a int x = m]) { a(0); static const int m = 42; }
+
+enum E2(int x) { a(0); static const String int = 'not a type'; }
+
+extension type ET1([@m int x = m]) {
+  static const int m = 42;
+}
+
+extension type ET2(int x) {
+  static const String int = 'not a type';
+}

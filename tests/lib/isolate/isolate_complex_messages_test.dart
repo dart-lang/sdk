@@ -50,7 +50,7 @@ void logMessages(mainPort) {
   int count = 0;
   ReceivePort port = new ReceivePort();
   mainPort.send(["init", port.sendPort]);
-  port.forEach((var message) {
+  port.forEach((message) {
     if (message == -1) {
       port.close();
       mainPort.send(["done", count]);

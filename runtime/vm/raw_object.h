@@ -49,8 +49,15 @@ class StackFrame;
 namespace module_snapshot {
 class CodeDeserializationCluster;
 class Deserializer;
+class DoubleDeserializationCluster;
+class FunctionTypeDeserializationCluster;
+class ICDataDeserializationCluster;
+class IntDeserializationCluster;
 class InterfaceTypeDeserializationCluster;
+class ListDeserializationCluster;
+class MapDeserializationCluster;
 class ObjectPoolDeserializationCluster;
+class SetDeserializationCluster;
 class TypeArgumentsDeserializationCluster;
 }  // namespace module_snapshot
 
@@ -2715,6 +2722,8 @@ class UntaggedCallSiteData : public UntaggedObject {
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(CallSiteData)
+
+  friend class module_snapshot::ICDataDeserializationCluster;
 };
 
 class UntaggedUnlinkedCall : public UntaggedCallSiteData {
@@ -2750,6 +2759,8 @@ class UntaggedICData : public UntaggedCallSiteData {
   NOT_IN_PRECOMPILED(int32_t deopt_id_);
   // Number of arguments tested in IC, deopt reasons.
   AtomicBitFieldContainer<uint32_t> state_bits_;
+
+  friend class module_snapshot::ICDataDeserializationCluster;
 };
 
 class UntaggedMegamorphicCache : public UntaggedCallSiteData {
@@ -3045,6 +3056,7 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Function;
+  friend class module_snapshot::FunctionTypeDeserializationCluster;
 };
 
 class UntaggedRecordType : public UntaggedAbstractType {
@@ -3153,6 +3165,7 @@ class UntaggedMint : public UntaggedInteger {
   friend class Class;
   friend class Integer;
   friend class Interpreter;
+  friend class module_snapshot::IntDeserializationCluster;
 };
 COMPILE_ASSERT(sizeof(UntaggedMint) == 16);
 
@@ -3165,6 +3178,7 @@ class UntaggedDouble : public UntaggedNumber {
   friend class Api;
   friend class Class;
   friend class Interpreter;
+  friend class module_snapshot::DoubleDeserializationCluster;
 };
 COMPILE_ASSERT(sizeof(UntaggedDouble) == 16);
 
@@ -3419,6 +3433,7 @@ class UntaggedArray : public UntaggedInstance {
   friend class MarkingVisitor;
   friend class FastObjectCopy;  // For initializing fields.
   friend class module_snapshot::Deserializer;
+  friend class module_snapshot::ListDeserializationCluster;
   friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };
 
@@ -3455,6 +3470,9 @@ class UntaggedLinkedHashBase : public UntaggedInstance {
     // Do not serialize index.
     return reinterpret_cast<CompressedObjectPtr*>(&deleted_keys_);
   }
+
+  friend class module_snapshot::MapDeserializationCluster;
+  friend class module_snapshot::SetDeserializationCluster;
 };
 
 class UntaggedMap : public UntaggedLinkedHashBase {
@@ -3701,19 +3719,22 @@ class UntaggedRegExp : public UntaggedInstance {
   VISIT_FROM(capture_name_map)
   // Pattern to be used for matching.
   COMPRESSED_POINTER_FIELD(StringPtr, pattern)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte)  // FunctionPtr or TypedDataPtr
-  COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte_sticky)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte_sticky)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, one_byte)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, two_byte)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, one_byte_sticky)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, two_byte_sticky)
   VISIT_TO(two_byte_sticky)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   std::atomic<intptr_t> num_bracket_expressions_;
+
+  template <std::memory_order order = std::memory_order_relaxed>
   intptr_t num_bracket_expressions() {
-    return num_bracket_expressions_.load(std::memory_order_relaxed);
+    return num_bracket_expressions_.load(order);
   }
+  template <std::memory_order order = std::memory_order_relaxed>
   void set_num_bracket_expressions(intptr_t value) {
-    num_bracket_expressions_.store(value, std::memory_order_relaxed);
+    num_bracket_expressions_.store(value, order);
   }
 
   // The same pattern may use different amount of registers if compiled
@@ -3723,13 +3744,8 @@ class UntaggedRegExp : public UntaggedInstance {
   intptr_t num_one_byte_registers_;
   intptr_t num_two_byte_registers_;
 
-  // A bitfield with two fields:
-  // type: Uninitialized, simple or complex.
-  // flags: Represents global/local, case insensitive, multiline, unicode,
-  //        dotAll.
-  // It is possible multiple compilers race to update the flags concurrently.
-  // That should be safe since all updates update to the same values..
-  AtomicBitFieldContainer<int8_t> type_flags_;
+  // RegExpFlags
+  uint32_t flags_;
 };
 
 class UntaggedWeakProperty : public UntaggedInstance {

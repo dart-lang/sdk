@@ -403,7 +403,16 @@ class ClientName extends Response {
 
   ClientName._fromJson(Map<String, dynamic> json) : name = json['name'];
 
+  @override
+  String get type => 'ClientName';
+
   final String name;
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+        'name': name,
+      };
 }
 
 /// A simple object representing a size response.

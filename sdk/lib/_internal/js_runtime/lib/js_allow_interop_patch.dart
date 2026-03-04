@@ -5,7 +5,11 @@
 // Patch file for dart:js_util library.
 
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
-import 'dart:_interceptors' show DART_CLOSURE_PROPERTY_NAME, JavaScriptFunction;
+import 'dart:_interceptors'
+    show
+        DART_CLOSURE_PROPERTY_NAME,
+        DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME,
+        JavaScriptFunction;
 import 'dart:_internal' show patch;
 import 'dart:_js_helper'
     show
@@ -103,7 +107,7 @@ JavaScriptFunction _functionToJS0(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast0),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -123,7 +127,7 @@ JavaScriptFunction _functionToJSCaptureThis0(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast1),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -143,7 +147,7 @@ JavaScriptFunction _functionToJS1(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast1),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -163,7 +167,7 @@ JavaScriptFunction _functionToJSCaptureThis1(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast2),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -183,7 +187,7 @@ JavaScriptFunction _functionToJS2(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast2),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -203,7 +207,7 @@ JavaScriptFunction _functionToJSCaptureThis2(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast3),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -223,7 +227,7 @@ JavaScriptFunction _functionToJS3(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast3),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -243,7 +247,7 @@ JavaScriptFunction _functionToJSCaptureThis3(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast4),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -263,7 +267,7 @@ JavaScriptFunction _functionToJS4(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast4),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -283,7 +287,7 @@ JavaScriptFunction _functionToJSCaptureThis4(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast5),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -303,7 +307,7 @@ JavaScriptFunction _functionToJS5(Function f) {
     DART_CLOSURE_TO_JS(_callDartFunctionFast5),
     f,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -325,7 +329,7 @@ JavaScriptFunction _functionToJSN(Function f, int maxLength) {
     f,
     maxLength,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -353,7 +357,7 @@ JavaScriptFunction _functionToJSCaptureThisN(Function f, int maxLength) {
     f,
     maxLength,
   );
-  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
   return result;
 }
 
@@ -407,5 +411,5 @@ _callDartFunctionFastN(Function callback, List arguments) {
 }
 
 Function _jsFunctionToDart(JavaScriptFunction f) {
-  return JS('Function', '#.#', f, DART_CLOSURE_PROPERTY_NAME);
+  return JS('Function', '#.#', f, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME);
 }

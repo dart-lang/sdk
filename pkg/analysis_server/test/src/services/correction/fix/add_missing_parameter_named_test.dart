@@ -114,6 +114,25 @@ void f() {
 ''');
   }
 
+  Future<void> test_constructor_privateNamed() async {
+    await resolveTestCode('''
+class C {
+  C();
+}
+void f() {
+  C(_x: 123);
+}
+''');
+    await assertHasFix('''
+class C {
+  C({required int _x});
+}
+void f() {
+  C(_x: 123);
+}
+''');
+  }
+
   Future<void> test_constructor_superParameter_differentConstructor() async {
     await resolveTestCode('''
 class A {

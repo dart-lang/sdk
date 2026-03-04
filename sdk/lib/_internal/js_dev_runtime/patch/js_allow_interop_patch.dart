@@ -4,7 +4,7 @@
 
 // Patch file for dart:js_util library.
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show JavaScriptFunction;
+import 'dart:_interceptors' show functionToJSProperty, JavaScriptFunction;
 import 'dart:_internal' show patch;
 import 'dart:_runtime' as dart;
 
@@ -50,12 +50,6 @@ Function allowInteropCaptureThis(Function f) {
   return ret;
 }
 
-// TODO(srujzs): In dart2js, this is guaranteed to be unique per isolate. DDC
-// doesn't have a mechanism to guarantee that, so use a Symbol instead to match
-// the unique-per-runtime semantics of [allowInterop].
-final _functionToJSPropertyName = r'_$dart_dartClosure';
-final _functionToJSProperty = JS('!', "Symbol($_functionToJSPropertyName)");
-
 JavaScriptFunction _functionToJS0(Function f) {
   // This can only happen if a user casted a JavaScriptFunction to Function.
   // Such a cast is an error in dart2wasm, so we should make this behavior an
@@ -73,7 +67,7 @@ JavaScriptFunction _functionToJS0(Function f) {
     _callDartFunctionFast0,
     f,
   );
-  JS('', '#[#] = #', ret, _functionToJSProperty, f);
+  JS('', '#[#] = #', ret, functionToJSProperty, f);
   return ret;
 }
 
@@ -91,7 +85,7 @@ JavaScriptFunction _functionToJS1(Function f) {
     _callDartFunctionFast1,
     f,
   );
-  JS('', '#[#] = #', ret, _functionToJSProperty, f);
+  JS('', '#[#] = #', ret, functionToJSProperty, f);
   return ret;
 }
 
@@ -109,7 +103,7 @@ JavaScriptFunction _functionToJS2(Function f) {
     _callDartFunctionFast2,
     f,
   );
-  JS('', '#[#] = #', ret, _functionToJSProperty, f);
+  JS('', '#[#] = #', ret, functionToJSProperty, f);
   return ret;
 }
 
@@ -127,7 +121,7 @@ JavaScriptFunction _functionToJS3(Function f) {
     _callDartFunctionFast3,
     f,
   );
-  JS('', '#[#] = #', ret, _functionToJSProperty, f);
+  JS('', '#[#] = #', ret, functionToJSProperty, f);
   return ret;
 }
 
@@ -145,7 +139,7 @@ JavaScriptFunction _functionToJS4(Function f) {
     _callDartFunctionFast4,
     f,
   );
-  JS('', '#[#] = #', ret, _functionToJSProperty, f);
+  JS('', '#[#] = #', ret, functionToJSProperty, f);
   return ret;
 }
 
@@ -163,7 +157,7 @@ JavaScriptFunction _functionToJS5(Function f) {
     _callDartFunctionFast5,
     f,
   );
-  JS('', '#[#] = #', ret, _functionToJSProperty, f);
+  JS('', '#[#] = #', ret, functionToJSProperty, f);
   return ret;
 }
 
@@ -183,7 +177,7 @@ JavaScriptFunction _functionToJSN(Function f, int maxLength) {
     f,
     maxLength,
   );
-  JS('', '#[#] = #', ret, _functionToJSProperty, f);
+  JS('', '#[#] = #', ret, functionToJSProperty, f);
   return ret;
 }
 
@@ -208,7 +202,7 @@ JavaScriptFunction _functionToJSCaptureThisN(Function f, int maxLength) {
     f,
     maxLength,
   );
-  JS('', '#[#] = #', ret, _functionToJSProperty, f);
+  JS('', '#[#] = #', ret, functionToJSProperty, f);
   return ret;
 }
 
@@ -360,5 +354,5 @@ _callDartFunctionFast5(callback, arg1, arg2, arg3, arg4, arg5, int length) {
 }
 
 Function _jsFunctionToDart(JavaScriptFunction f) {
-  return JS('Function', '#[#]', f, _functionToJSProperty);
+  return JS('Function', '#[#]', f, functionToJSProperty);
 }

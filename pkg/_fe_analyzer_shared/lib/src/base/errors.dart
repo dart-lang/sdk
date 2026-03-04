@@ -532,7 +532,11 @@ class DiagnosticType implements Comparable<DiagnosticType> {
 ///
 /// This class provides a [withArguments] getter, which can be used to supply
 /// arguments and produce a [LocatableDiagnostic].
-class DiagnosticWithArguments<T extends Function>
+///
+/// Note: the type argument `T` should be instantiated with a function type. But
+/// it is typed as `extends Object` in order to reduce the risk of accidental
+/// dynamic invocation of [withArguments].
+class DiagnosticWithArguments<T extends Object>
     extends DiagnosticCodeWithExpectedTypes {
   /// Function accepting named arguments and returning [LocatableDiagnostic].
   ///

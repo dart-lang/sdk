@@ -11,6 +11,7 @@ import 'package:cfg/ir/visitor.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
+import 'package:native_compiler/runtime/object_layout.dart';
 
 /// IR lowering for native back-end.
 ///
@@ -21,8 +22,9 @@ import 'package:kernel/ast.dart' as ast;
 /// TODO: insert boxing/unboxing
 final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   final FunctionRegistry functionRegistry;
+  final ObjectLayout objectLayout;
 
-  Lowering(this.functionRegistry) : super('Lowering');
+  Lowering(this.functionRegistry, this.objectLayout) : super('Lowering');
 
   late final CFunction _growableListLiteral = functionRegistry.getFunction(
     GlobalContext.instance.coreTypes.index.getProcedure(
@@ -140,6 +142,35 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   }
 
   @override
+  void visitTypeParameters(TypeParameters instr) {
+    switch (instr.kind) {
+      case .classTypeParameters:
+        final receiver = instr.inputDefAt(0);
+        final receiverClass =
+            (receiver.type.dartType as ast.InterfaceType).classNode;
+        final typeArgsField = objectLayout.getTypeArgumentsField(
+          receiverClass,
+        )!;
+        for (final use in instr.inputUses) {
+          final user = use.getInstruction(graph);
+          final load = LoadInstanceField(
+            graph,
+            user.sourcePosition,
+            typeArgsField,
+            receiver,
+          );
+          load.insertBefore(user);
+          user.replaceInputAt(user.getInputIndex(use), load);
+        }
+      case .functionTypeParameters:
+        final replacement = instr.inputDefAt(0);
+        instr.replaceUsesWith(replacement);
+        break;
+    }
+    instr.removeFromGraph();
+  }
+
+  @override
   void visitAllocateListLiteral(AllocateListLiteral instr) {
     // List literals up to 8 elements are lowered in the front-end
     // (pkg/vm/lib/transformations/list_literals_lowering.dart)
@@ -166,6 +197,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
       _growableListLiteral,
       instr.type,
       inputCount: 2,
+      argumentsShape: functionRegistry.getArgumentsShape(1, types: 1),
     );
     replacement.setInputAt(0, instr.typeArguments);
     replacement.setInputAt(1, argument);
@@ -211,6 +243,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
       _mapFromLiteral,
       instr.type,
       inputCount: 2,
+      argumentsShape: functionRegistry.getArgumentsShape(1, types: 2),
     );
     replacement.setInputAt(0, instr.typeArguments);
     replacement.setInputAt(1, argument);
@@ -251,6 +284,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
       target,
       const StringType(),
       inputCount: 1,
+      argumentsShape: functionRegistry.getArgumentsShape(1),
     );
     replacement.setInputAt(0, argument);
     replacement.insertBefore(instr);

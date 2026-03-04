@@ -316,19 +316,14 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitTypeParameters(TypeParameters instr) {
+    assert(instr.block is EntryBlock);
     // TypeParameters can only be used in TypeCast, TypeTest,
     // TypeArguments and TypeLiteral.
     for (final use in instr.inputUses) {
       final user = use.getInstruction(graph);
       switch (user) {
-        case TypeCast():
-          assert(instr == user.typeParameters);
-        case TypeTest():
-          assert(instr == user.typeParameters);
-        case TypeArguments():
-          assert(instr == user.typeParameters);
-        case TypeLiteral():
-          assert(instr == user.typeParameters);
+        case TypeCast() || TypeTest() || TypeArguments() || TypeLiteral():
+          break;
         default:
           throw 'Unexpected user ${IrToText.instruction(user)} of TypeParameters';
       }

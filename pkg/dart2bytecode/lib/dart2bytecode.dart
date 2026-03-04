@@ -15,7 +15,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         parseExperimentalArguments,
         parseExperimentalFlags,
         resolveInputUri;
-import 'package:kernel/ast.dart' show Component;
+import 'package:kernel/ast.dart' show Component, Library, Source;
 import 'package:vm/kernel_front_end.dart'
     show
         badUsageExitCode,
@@ -86,7 +86,10 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('verbosity',
       help: 'Sets the verbosity level used for filtering messages during '
           'compilation.',
-      defaultsTo: Verbosity.defaultValue);
+      defaultsTo: Verbosity.defaultValue)
+  ..addOption('prefix-library-uris',
+      help: 'Slash-separated prefix to add to all library uris',
+      defaultsTo: '');
 
 final String _usage = '''
 Usage: dart2bytecode --platform vm_platform.dill [--import-dill host_app.dill] [--validate dynamic_interface.yaml] [options] input.dart
@@ -138,6 +141,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final String cfeInvocationModes = options['invocation-modes'];
   final bool trackWidgetCreation = options['track-widget-creation'];
   final List<String>? bytecodeGeneratorOptions = options['bytecode-options'];
+  final String libraryUrisPrefix = options['prefix-library-uris']!;
 
   return await runCompilerWithOptions(
     input: input,
@@ -158,6 +162,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     bytecodeGeneratorOptions: bytecodeGeneratorOptions,
     depfile: depfile,
     depfileTarget: depfileTarget,
+    libraryUrisPrefix: libraryUrisPrefix,
   );
 }
 
@@ -183,6 +188,7 @@ Future<int> runCompilerWithOptions({
   List<String>? bytecodeGeneratorOptions,
   String? depfile,
   String? depfileTarget,
+  required String libraryUrisPrefix,
 }) async {
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
@@ -250,11 +256,12 @@ Future<int> runCompilerWithOptions({
 
   errorPrinter.printCompilationMessages();
 
-  final Component? component = results.component;
+  Component? component = results.component;
   if (errorDetector.hasCompilationErrors || component == null) {
     return compileTimeErrorExitCode;
   }
-
+  component =
+      prefixLibraryUris(component, results.loadedLibraries, libraryUrisPrefix);
   if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.reset();
   }
@@ -266,7 +273,8 @@ Future<int> runCompilerWithOptions({
       hierarchy: results.classHierarchy!,
       coreTypes: results.coreTypes!,
       options: bytecodeOptions,
-      target: compilerOptions.target!);
+      target: compilerOptions.target!,
+      extraLoadedLibraries: results.loadedLibraries);
   await sink.close();
   if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.dump();
@@ -282,4 +290,58 @@ Future<int> runCompilerWithOptions({
   }
 
   return successExitCode;
+}
+
+Component prefixLibraryUris(Component component, Set<Library> loadedLibraries,
+    String libraryUrisPrefix) {
+  if (libraryUrisPrefix.isEmpty) {
+    return component;
+  }
+  final prefixSegments = libraryUrisPrefix.split('/');
+  final importUriReplacements = <Uri, Uri>{};
+
+  for (final lib in component.libraries) {
+    // Skip libraries that come from the host app or the SDK.
+    if (loadedLibraries.contains(lib)) {
+      continue;
+    }
+    final newImportUri = prefixUri(lib.importUri, prefixSegments);
+    importUriReplacements[lib.importUri] = newImportUri;
+    lib.importUri = newImportUri;
+  }
+
+  // Update import uris in sources.
+  final allSourceFileUris = component.uriToSource.keys.toSet();
+  for (final fileUri in allSourceFileUris) {
+    final source = component.uriToSource[fileUri]!;
+    final importUriReplacement = importUriReplacements[source.importUri];
+    if (importUriReplacement == null) {
+      continue;
+    }
+
+    // Rewrite the source with the new import URI.
+    component.uriToSource[fileUri] = Source(
+      source.lineStarts,
+      source.source,
+      importUriReplacement,
+      source.fileUri,
+    )
+      ..cachedText = source.cachedText
+      ..constantCoverageConstructors = source.constantCoverageConstructors;
+  }
+
+  return component;
+}
+
+Uri prefixUri(Uri uri, List<String> prefixSegments) {
+  if (uri.scheme == 'package') {
+    // For package URIs, the first segment is dot-separated package path, so
+    // we prepend the prefix to the first segment.
+    final pathSegments = uri.pathSegments.toList();
+    pathSegments[0] = [...prefixSegments, pathSegments.first].join('.');
+    return uri.replace(pathSegments: pathSegments);
+  }
+
+  // For other schemes, we just prepend the prefix to the path segments.
+  return uri.replace(pathSegments: prefixSegments.followedBy(uri.pathSegments));
 }

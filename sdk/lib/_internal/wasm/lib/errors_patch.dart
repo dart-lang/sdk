@@ -15,6 +15,7 @@ class Error {
   }
 
   @pragma('wasm:entry-point')
+  @pragma('wasm:never-inline')
   static Never _throwWithCurrentStackTrace(Object object) =>
       Error._throw(object, StackTrace.current);
 
@@ -46,29 +47,6 @@ class _Error extends Error {
 
   @override
   String toString() => _message;
-}
-
-// This error is emitted when we catch an opaque object that was thrown from
-// JavaScript.
-@pragma("wasm:entry-point")
-class _JavaScriptError extends Error {
-  final WasmExternRef? _errorRef;
-
-  _JavaScriptError(this._errorRef);
-
-  @pragma("wasm:entry-point")
-  factory _JavaScriptError._(WasmExternRef? errorRef) =>
-      _JavaScriptError(errorRef);
-
-  @override
-  String toString() => JSStringImpl.fromRefUnchecked(
-    JS<WasmExternRef?>("(exn) => exn.toString()", _errorRef),
-  );
-
-  @override
-  @pragma("wasm:entry-point")
-  StackTrace get stackTrace =>
-      _JavaScriptStack(JS<WasmExternRef?>("(exn) => exn.stack", _errorRef));
 }
 
 class _TypeError extends _Error implements TypeError {
@@ -202,7 +180,7 @@ class NoSuchMethodError {
     }
     Map<Symbol, dynamic>? namedArguments = _namedArguments;
     if (namedArguments != null) {
-      namedArguments.forEach((Symbol key, var value) {
+      namedArguments.forEach((Symbol key, value) {
         sb.write(comma);
         sb.write(_symbolToString(key));
         sb.write(": ");

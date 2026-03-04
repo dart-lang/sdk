@@ -1,3 +1,5 @@
+// @dart = 3.10
+
 extension type Foo._(int i) {
   Foo(int i) : this._(i + 2);
   Foo.redirectNamed1(int a, int b) : this.named(a, subtract: b);

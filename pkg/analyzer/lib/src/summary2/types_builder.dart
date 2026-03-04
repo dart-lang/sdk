@@ -318,8 +318,8 @@ class TypesBuilder {
   }
 
   void _genericFunctionType(GenericFunctionTypeImpl node) {
-    var fragment = node.declaredFragment!;
-    fragment.returnType = node.returnType?.type ?? _dynamicType;
+    var element = node.declaredFragment!.element;
+    element.returnType = node.returnType?.type ?? _dynamicType;
   }
 
   void _genericTypeAlias(GenericTypeAliasImpl node) {

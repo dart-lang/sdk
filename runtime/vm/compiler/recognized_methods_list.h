@@ -44,7 +44,7 @@ namespace dart {
   V(CoreLibrary, _Record, get:_numFields, Record_numFields, 0x7ba4f393)        \
   V(CoreLibrary, _Record, get:_shape, Record_shape, 0x70c40933)                \
   V(CoreLibrary, _Record, _fieldAt, Record_fieldAt, 0xb47fa0b3)                \
-  V(CoreLibrary, _StringBase, _interpolate, StringBaseInterpolate, 0xc2be3a8b) \
+  V(CoreLibrary, _StringBase, _interpolate, StringBaseInterpolate, 0xecb2534a) \
   V(CoreLibrary, _StringBase, codeUnitAt, StringBaseCodeUnitAt, 0x17dbf511)    \
   V(CoreLibrary, _IntegerImplementation, toDouble, IntegerToDouble,            \
     0x97557386)                                                                \
@@ -560,9 +560,6 @@ namespace dart {
   V(CoreLibrary, _Double, get:isNegative, Double_getIsNegative, 0xd45438d1)    \
   V(CoreLibrary, _Double, _mulFromInteger, Double_mulFromInteger, 0xecd1beaf)  \
   V(CoreLibrary, _Double, .fromInteger, DoubleFromInteger, 0x7cf2c1d9)         \
-  V(CoreLibrary, _RegExp, _ExecuteMatch, RegExp_ExecuteMatch, 0x98f4bd89)      \
-  V(CoreLibrary, _RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky,      \
-    0x91c0704f)                                                                \
   V(CoreLibrary, Object, ==, ObjectEquals, 0x463b5870)                         \
   V(CoreLibrary, Object, get:runtimeType, ObjectRuntimeType, 0x0364b091)       \
   V(CoreLibrary, Object, _haveSameRuntimeType, ObjectHaveSameRuntimeType,      \

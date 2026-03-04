@@ -619,6 +619,7 @@ conflicting
 conflicts
 conform
 conformed
+conforming
 confuse
 confused
 confusion
@@ -2345,6 +2346,7 @@ popping
 pops
 populate
 populated
+populating
 port
 portion
 position

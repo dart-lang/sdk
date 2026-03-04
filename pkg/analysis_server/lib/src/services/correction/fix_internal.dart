@@ -285,6 +285,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.avoidEmptyElse: [RemoveEmptyElse.new],
   diag.avoidEscapingInnerQuotes: [ConvertQuotes.new],
+  diag.avoidFinalParameters: [RemoveLexeme.modifier],
   diag.avoidFunctionLiteralsInForeachCalls: [ConvertForEachToForLoop.new],
   diag.avoidInitToNull: [RemoveInitializer.bulkFixable],
   diag.avoidMultipleDeclarationsPerLine: [SplitMultipleDeclarations.new],
@@ -484,6 +485,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.useSuperParametersSingle: [ConvertToSuperParameters.new],
   diag.useSuperParametersMultiple: [ConvertToSuperParameters.new],
   diag.useTruncatingDivision: [UseEffectiveIntegerDivision.new],
+  diag.varWithNoTypeAnnotation: [RemoveLexeme.keyword],
 };
 
 final _builtInLintMultiGenerators = {
@@ -850,6 +852,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     QualifyReference.new,
   ],
   diag.uriDoesNotExist: [CreateFile.new],
+  diag.useOfPrivateParameterName: [AddMissingParameterNamed.new],
   diag.variablePatternKeywordInDeclarationContext: [RemoveVar.new],
   diag.wrongNumberOfTypeArgumentsConstructor: [
     MoveTypeArgumentsToClass.new,
@@ -1184,6 +1187,7 @@ final _builtInNonLintMultiGenerators = {
     // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
     ImportLibrary.forExtensionMember,
   ],
+  diag.useOfPrivateParameterName: [ChangeArgumentName.new],
   diag.wrongNumberOfTypeArguments: [DataDriven.new],
   diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],
   diag.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
@@ -1215,10 +1219,10 @@ void registerBuiltInFixGenerators() {
     _builtInLintMultiGenerators,
   );
   registeredFixGenerators.lintProducers.addAll(_builtInLintGenerators);
-  registeredFixGenerators.nonLintMultiProducers.addAll(
+  registeredFixGenerators.warningMultiProducers.addAll(
     _builtInNonLintMultiGenerators,
   );
-  registeredFixGenerators.nonLintProducers.addAll(_builtInNonLintGenerators);
+  registeredFixGenerators.warningProducers.addAll(_builtInNonLintGenerators);
   registeredFixGenerators.parseLintProducers.addAll(
     _builtInParseLintGenerators,
   );

@@ -1,0 +1,35 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+import "dart:_internal" as _in;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension type ET(core::int i) {
+  operator + = self::ET|+;
+  constructor • = self::ET|constructor#;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+[@vm.unboxing-info.metadata=()->i]
+static extension-type-member const method ET|constructor#() → self::ET% /* erasure=core::int, declared=! */ {
+  lowered final self::ET% /* erasure=core::int, declared=! */ #this = #C1;
+  return #this;
+}
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=(i,i)->i]
+@#C2
+static extension-type-member method ET|+([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::ET% /* erasure=core::int, declared=! */ #this, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 1)] core::int other) → core::int
+  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#this).{core::num::+}(other){(core::num) → core::int};
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final self::ET% /* erasure=core::int, declared=! */ et = [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::ET|constructor#();
+  core::print([@vm.inferred-type.metadata=int] self::ET|+(et, 1));
+}
+constants  {
+  #C1 = 42
+  #C2 = meta::RecordUse {}
+}

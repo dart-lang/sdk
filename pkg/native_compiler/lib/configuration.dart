@@ -11,6 +11,7 @@ import 'package:cfg/passes/simplification.dart';
 import 'package:cfg/passes/value_numbering.dart';
 import 'package:native_compiler/back_end/arm64/code_generator.dart';
 import 'package:native_compiler/back_end/arm64/constraints.dart';
+import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/code.dart';
@@ -18,6 +19,7 @@ import 'package:native_compiler/back_end/code_generator.dart';
 import 'package:native_compiler/back_end/constraints.dart';
 import 'package:native_compiler/back_end/regalloc_checker.dart';
 import 'package:native_compiler/back_end/register_allocator.dart';
+import 'package:native_compiler/back_end/stack_frame.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/passes/lowering.dart';
 import 'package:native_compiler/passes/reorder_blocks.dart';
@@ -60,6 +62,7 @@ abstract base class Configuration {
   ObjectLayout get objectLayout;
 
   Pipeline createPipeline(
+    CFunction function,
     FunctionRegistry functionRegistry,
     StubFactory stubFactory,
     CodeConsumer consumeGeneratedCode,
@@ -69,10 +72,16 @@ abstract base class Configuration {
     TargetCPU.arm64 => Arm64Constraints(),
   };
 
-  CodeGenerator createCodeGenerator(BackEndState backEndState) =>
-      switch (targetCPU) {
-        TargetCPU.arm64 => Arm64CodeGenerator(backEndState),
-      };
+  StackFrame createStackFrame(CFunction function) => switch (targetCPU) {
+    TargetCPU.arm64 => Arm64StackFrame(function),
+  };
+
+  CodeGenerator createCodeGenerator(
+    BackEndState backEndState,
+    FunctionRegistry functionRegistry,
+  ) => switch (targetCPU) {
+    TargetCPU.arm64 => Arm64CodeGenerator(backEndState, functionRegistry),
+  };
 
   StubFactory createStubFactory(CodeConsumer consumeGeneratedCode) =>
       switch (targetCPU) {
@@ -108,6 +117,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
 
   @override
   Pipeline createPipeline(
+    CFunction function,
     FunctionRegistry functionRegistry,
     StubFactory stubFactory,
     CodeConsumer consumeGeneratedCode,
@@ -116,6 +126,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     backEndState.vmOffsets = vmOffsets;
     backEndState.objectLayout = objectLayout;
     backEndState.stubFactory = stubFactory;
+    backEndState.stackFrame = createStackFrame(function);
     backEndState.consumeGeneratedCode = consumeGeneratedCode;
     final constraints = createConstraints();
     return Pipeline([
@@ -123,11 +134,11 @@ final class DevelopmentCompilerConfiguration extends Configuration {
       ValueNumbering(simplification: Simplification()),
       ConstantPropagation(),
       ControlFlowOptimizations(),
-      Lowering(functionRegistry),
+      Lowering(functionRegistry, objectLayout),
       ReorderBlocks(backEndState),
       LinearScanRegisterAllocator(backEndState, constraints),
       RegisterAllocationChecker(backEndState, constraints),
-      createCodeGenerator(backEndState),
+      createCodeGenerator(backEndState, functionRegistry),
     ]);
   }
 }

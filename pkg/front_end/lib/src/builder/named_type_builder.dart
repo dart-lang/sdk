@@ -435,7 +435,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
-    Template<Function, Message Function({required String typeName})> template =
+    Template<Message Function({required String typeName})> template =
         declaration.isTypeParameter
         ? diag.supertypeIsTypeParameter
         : diag.supertypeIsIllegal;

@@ -27,7 +27,7 @@ library;
 //   int operator +(covariant int other) /* Error */ => other + id.floor();
 //                  ^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/issue53324.dart:20:20: Error: Can't have modifier 'covariant' in a primary constructor.
+// pkg/front_end/testcases/extension_types/issue53324.dart:20:20: Error: The 'covariant' modifier can only be used on non-final declaring parameters.
 // Try removing 'covariant'.
 // extension type ET4(covariant num id) /* Error */ {}
 //                    ^^^^^^^^^

@@ -27,9 +27,20 @@ class DependenciesCollector {
   /// Returns the set of constants referred to by the (possibly composed)
   /// [constant].
   DirectConstantDependencies directConstantDependencies(Constant constant) {
+    Reference? extraReference;
+    if (constant is InstanceConstant) {
+      extraReference = constant.classReference;
+    } else if (constant is TearOffConstant) {
+      extraReference = constant.targetReference;
+    } else {
+      // The classes needed for  {List,Map,Set,Record}Constants are
+      // marked as @pragma('wasm:entry-point') and do not have to be explicitly
+      // modeled as dependencies (they land in the root unit).
+    }
+
     final children = <Constant>{};
     constant.visitChildren(_ConstantDependenciesCollector._(children));
-    return DirectConstantDependencies(children);
+    return DirectConstantDependencies(children, extraReference);
   }
 
   DirectReferenceDependencies directReferenceDependencies(Reference reference) {
@@ -48,6 +59,7 @@ class DependenciesCollector {
         _devirtualizionOracle,
         reference,
         deps);
+
     // We collect dependencies of [node] and therefore only have to visit
     // AST elements that represent code (such as `FunctionNode`, `Initializer`).
     if (node is Procedure) {
@@ -58,6 +70,11 @@ class DependenciesCollector {
       node.function.accept(collector);
       for (final init in node.initializers) {
         init.accept(collector);
+      }
+      for (final field in node.enclosingClass.fields) {
+        if (field.isInstanceMember) {
+          field.initializer?.accept(collector);
+        }
       }
       collector.addReference(node.enclosingClass.reference);
       return deps;
@@ -175,18 +192,26 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
     }
   }
 
+  // The references needed by the codegen to handle
+  // {List,Map,Set,Record}Literals are all marked with
+  // @pragma('wasm:entry-point') and do not have to be explicitly
+  // modeled as dependencies (they land in the root unit).
+
   @override
   void visitSuperPropertyGet(SuperPropertyGet node) {
+    super.visitSuperPropertyGet(node);
     _addSuperTargetReference(node.interfaceTarget, setter: false);
   }
 
   @override
   void visitSuperPropertySet(SuperPropertySet node) {
+    super.visitSuperPropertySet(node);
     _addSuperTargetReference(node.interfaceTarget, setter: true);
   }
 
   @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
+    super.visitSuperMethodInvocation(node);
     _addSuperTargetReference(node.interfaceTarget, setter: false);
   }
 
@@ -347,10 +372,19 @@ class DirectReferenceDependencies {
 
   DirectReferenceDependencies(this.references, this.deferredReferences,
       this.constants, this.deferredConstants);
+
+  bool get isEmpty =>
+      references.isEmpty &&
+      deferredConstants.isEmpty &&
+      constants.isEmpty &&
+      deferredConstants.isEmpty;
 }
 
 class DirectConstantDependencies {
   final Set<Constant> constants;
+  final Reference? reference;
 
-  DirectConstantDependencies(this.constants);
+  DirectConstantDependencies(this.constants, this.reference);
+
+  bool get isEmpty => constants.isEmpty && reference == null;
 }

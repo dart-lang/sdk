@@ -1030,7 +1030,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
   bool _hasValue = false;
 
   @pragma('dyn-module:language-impl:callable')
-  _StreamIterator(final Stream<T> stream)
+  _StreamIterator(Stream<T> stream)
     : _stateData = checkNotNullable(stream, "stream");
 
   T get current {

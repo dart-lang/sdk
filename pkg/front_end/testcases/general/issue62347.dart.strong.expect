@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<X extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  method foo<covariant-by-class Y extends self::A::X%>() → dynamic {}
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method foo<Z extends core::num>() → dynamic {}
+}
+class C extends self::_C&B&A {
+  synthetic constructor •() → self::C
+    : super self::_C&B&A::•()
+    ;
+}
+abstract class _C&B&A = self::B with self::A<core::num> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C&B&A
+    : super self::B::•()
+    ;
+  synthetic mixin-super-stub method foo<covariant-by-class Y extends core::num>() → dynamic
+    return super.{self::A::foo}<self::_C&B&A::foo::Y>();
+}

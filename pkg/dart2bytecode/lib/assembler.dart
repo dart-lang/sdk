@@ -84,13 +84,20 @@ class BytecodeAssembler {
 
   @pragma('vm:prefer-inline')
   void _emitSourcePosition() {
+    final position = currentSourcePosition == TreeNode.noOffset
+        ? SourcePositions.noSourcePosition
+        : currentSourcePosition;
     if (_emitSourcePositions && !isUnreachable) {
-      sourcePositions.add(
-          offset,
-          currentSourcePosition == TreeNode.noOffset
-              ? SourcePositions.noSourcePosition
-              : currentSourcePosition,
-          currentSourcePositionFlags);
+      bool added =
+          sourcePositions.add(offset, position, currentSourcePositionFlags);
+      if (!added) {
+        // There's already an entry for the current PC, so emit a Nop instruction
+        // to provide a new pc offset for the requested source position.
+        _emitNop();
+        added =
+            sourcePositions.add(offset, position, currentSourcePositionFlags);
+        assert(added);
+      }
     }
   }
 
@@ -707,10 +714,12 @@ class BytecodeAssembler {
     _emitInstructionA(Opcode.kCheckStack, ra);
   }
 
+  // Nops are never created by the bytecode generator, but rather by
+  // the assembler in order to provide unique pc offsets for source
+  // positions.
   @pragma('vm:prefer-inline')
-  void emitDebugCheck() {
-    emitSourcePosition();
-    _emitInstruction0(Opcode.kDebugCheck);
+  void _emitNop() {
+    _emitInstruction0(Opcode.kNop);
   }
 
   @pragma('vm:prefer-inline')

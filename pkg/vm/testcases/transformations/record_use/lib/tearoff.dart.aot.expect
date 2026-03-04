@@ -1,0 +1,36 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+abstract class SomeClass extends core::Object {
+
+  [@vm.inferred-return-type.metadata=int]
+  [@vm.unboxing-info.metadata=(b)->i]
+  @#C1
+  static method someStaticMethod(core::int i) → core::int {
+    return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int};
+  }
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.direct-call.metadata=closure 0 in #lib::SomeClass.someStaticMethod] [@vm.inferred-type.metadata=int (receiver not int)] [@vm.inferred-type.metadata=dart.core::_Closure (value: #lib::SomeClass.someStaticMethod) (closure 0 in #lib::SomeClass.someStaticMethod)] self::m()(42));
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Closure (value: #lib::SomeClass.someStaticMethod) (closure 0 in #lib::SomeClass.someStaticMethod)]
+@#C4
+@#C6
+static method m() → core::Function
+  return #C7;
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = "dart2js:never-inline"
+  #C3 = null
+  #C4 = core::pragma {name:#C2, options:#C3}
+  #C5 = "wasm:never-inline"
+  #C6 = core::pragma {name:#C5, options:#C3}
+  #C7 = static-tearoff self::SomeClass::someStaticMethod
+}

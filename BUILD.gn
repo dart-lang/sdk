@@ -266,6 +266,7 @@ if (is_fuchsia) {
     "tests/ffi/ffi_induce_a_crash_test.dart",
     "tests/ffi/ffi_native_test.dart",
     "tests/ffi/finalizer_external_size_accounting_test.dart",
+    "tests/ffi/function_callbacks_isolate_ownership_test.dart",
     "tests/ffi/function_callbacks_many_test.dart",
     "tests/ffi/function_callbacks_structs_by_value_generated_test.dart",
     "tests/ffi/function_callbacks_structs_by_value_native_callable_generated_test.dart",

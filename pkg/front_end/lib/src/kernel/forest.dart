@@ -450,8 +450,8 @@ class Forest {
   Catch createCatch(
     int fileOffset,
     DartType exceptionType,
-    VariableDeclaration? exceptionParameter,
-    VariableDeclaration? stackTraceParameter,
+    CatchVariable? exceptionParameter,
+    CatchVariable? stackTraceParameter,
     DartType stackTraceType,
     Statement body,
   ) {

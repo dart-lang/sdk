@@ -11,10 +11,6 @@ import 'package:test/test.dart';
 import '../utils.dart';
 import 'helpers.dart';
 
-const _packageForTest = 'vm_snapshot_analysis';
-const _packageVersion = '0.7.5';
-const _cliToolForTest = 'snapshot_analysis';
-
 final _sdkUri = resolveDartDevUri('.').resolve('../../');
 
 final _package2RelativePath = Uri.directory('pkg/dartdev/test/data/dart_app/');
@@ -22,8 +18,6 @@ final _package2RelativePath = Uri.directory('pkg/dartdev/test/data/dart_app/');
 final _package2Dir = Directory.fromUri(
   _sdkUri.resolveUri(_package2RelativePath),
 );
-
-const _gitPackageForTest = 'dart_app';
 
 final _pathEnvVarSeparator = Platform.isWindows ? ';' : ':';
 
@@ -48,52 +42,59 @@ void main() async {
     final result = await _runDartdev(
       fromDartdevSource,
       'run',
-      ['--help', '-v'],
+      ['--help'],
       null,
       {},
     );
-    print(result.stdout);
+    printOnFailure('stdout:\n${result.stdout}');
     expect(
       result.stdout,
-      contains(
-        '''
-    --enable-experiment-remote-run                     Enables running executables from remote packages.
-                                                       
-                                                         When running a remote executable, all other command-line flags are disabled,
-                                                         except for the options for remote executables. `dart run <remote-executable>`
-                                                         uses `dart install` under the hood and compiles the app into a standalone
-                                                         executable, preventing passing VM options.
-                                                       
-                                                         (Syntax is expected to change in the future.)
-                                                       
-                                                         From a hosted package server:
-                                                           <hosted-url>/<package>[@<version>][:<executable>]
-                                                       
-                                                           Downloads the package from a hosted package server and runs the specified
-                                                           executable.
-                                                           If a version is provided, the specified version is downloaded.
-                                                           If an executable is not specified, the package name is used.
-                                                           For example, `https://pub.dev/dcli@1.0.0:dcli_complete` runs the
-                                                           `dcli_complete` executable from version 1.0.0 of the `dcli` package.
-                                                       
-                                                         From a git repository:
-                                                           <git-url>[:<executable>]
-                                                       
-                                                           Clones the git repository and runs the specified executable from it.
-                                                           If an executable is not specified, the package name from the cloned
-                                                           repository's pubspec.yaml is used.
-                                                           The git url can be any valid git url.
-    --git-path                                         Path of git package in repository. Only applies when using a git url for <remote-executable>.
-    --git-ref                                          Git branch or commit to be retrieved. Only applies when using a git url for <remote-executable>.''',
-      ),
+      contains('''
+Run a Dart program from a file or a local or remote package.
+
+Usage:
+
+Running a local script or package executable:
+  dart run [vm-options] <dart-file>|<local-package>[:<executable>] args
+Running a remote package executable:
+  dart run <remote-package>[:<executable?]@[<descriptor>]> [args]
+
+<dart-file>
+  A path to a Dart script (e.g., `bin/main.dart`).
+
+<local-package>
+  The name of a package in the local package resolution.
+
+<executable>
+  The name of an executable in the package to execute.
+
+  For example, `dart run test:test` runs the `test` executable from the `test` package.
+  If the executable is not specified, the package name is used.
+
+<descriptor>
+  A YAML formatted string that describes how to locate the
+  remote package, the same you could use in a pubspec.
+
+  For example, to run the latest stable `pubviz` package from pub.dev:
+    dart run pubviz@
+  To specify a version constraint:
+    dart run pubviz@^4.0.0
+  To specify a custom package host:
+    dart run 'pubviz@{hosted: https://my_repository.com, version: ^1.0.0}'
+  To run from a git package:
+    dart run 'pubviz@{git: https://github.com/kevmoo/pubviz}'
+
+See https://dart.dev/to/package-descriptors for more details.'''),
     );
   });
 
-  for (final version in ['', '@$_packageVersion', '@']) {
-    final testName = version == ''
-        ? 'no version'
-        : (version == '@' ? 'empty version' : 'with version');
-    test('dart run hosted package $testName', timeout: longTimeout, () async {
+  for (final argument in [
+    'vm_snapshot_analysis:snapshot_analysis@0.7.5',
+    'vm_snapshot_analysis:snapshot_analysis@^0.7.5',
+    'vm_snapshot_analysis:snapshot_analysis@', // Resolves to latest stable version.
+    'vm_snapshot_analysis:snapshot_analysis@{hosted: https://pub.dev}',
+  ]) {
+    test('dart run  $argument', timeout: longTimeout, () async {
       await inTempDir((tempUri) async {
         final dartDataHome = tempUri.resolve('dart_home/');
         await Directory.fromUri(dartDataHome).create();
@@ -109,8 +110,7 @@ void main() async {
           fromDartdevSource,
           'run',
           [
-            '--enable-experiment-remote-run',
-            'https://pub.dev/$_packageForTest$version:$_cliToolForTest',
+            argument,
             // Make sure to pass arguments that influence stdout.
             'compare',
             '--help',
@@ -129,23 +129,18 @@ void main() async {
     });
   }
 
-  final argumentssGit = [
-    ['git'],
-    ['git', '--git-path', '--git-ref'],
-  ];
-
-  for (final testArguments in argumentssGit) {
-    var testName = testArguments.join(' ');
-
-    test('dart run from $testName', timeout: longTimeout, () async {
-      await inTempDir((tempUri) async {
-        final (gitUri, gitRef) = await _setupSimpleGitRepo(tempUri);
-        final gitPath = './';
+  test('dart run remote from git', timeout: longTimeout, () async {
+    await inTempDir((tempUri) async {
+      final (gitUri, gitRef) = await _setupSimpleGitRepo(tempUri);
+      for (final (argument, expectedResult) in [
+        ('dart_app@{git: ${gitUri.toString()}}', 'Hello Alice and Bob'),
+        (
+          'dart_app:other_app@{git: ${gitUri.toString()}}',
+          'Hello from other app Alice and Bob',
+        ),
+      ]) {
         final arguments = [
-          '--enable-experiment-remote-run',
-          if (testArguments.contains('--git-path')) ...['--git-path', gitPath],
-          if (testArguments.contains('--git-ref')) ...['--git-ref', gitRef],
-          '${gitUri.toFilePath()}:$_gitPackageForTest',
+          argument,
           // Make sure to pass arguments that influence stdout.
           'Alice',
           'and',
@@ -170,48 +165,24 @@ void main() async {
           environment,
         );
 
-        expect(
-          runResult.stdout,
-          stringContainsInOrder(['Hello Alice and Bob']),
-        );
+        expect(runResult.stdout, contains(expectedResult));
         expect(runResult.exitCode, 0);
-      });
+      }
     });
-  }
+  });
 
   final errorArgumentss = [
     (
-      [
-        '--enable-experiment-remote-run',
-        'https://pub.dev/this_package_does_not_exist_12345',
-      ],
+      ['this_package_does_not_exist_12345@'],
       'could not find package this_package_does_not_exist_12345 at',
       errorExitCode,
     ),
     (
-      [
-        '--enable-experiment-remote-run',
-        '--git-path',
-        'foo/',
-        'https://pub.dev/vm_snapshot_analysis',
-      ],
-      'git-path',
+      ['--enable-asserts', 'vm_snapshot_analysis@'],
+      '--enable-asserts cannot be used in remote runs',
       usageExitCode,
     ),
-    (
-      [
-        '--enable-experiment-remote-run',
-        '--enable-asserts',
-        'https://pub.dev/vm_snapshot_analysis',
-      ],
-      'enable-asserts',
-      usageExitCode,
-    ),
-    (
-      ['--enable-experiment-remote-run', '--git-path', 'foo/'],
-      'git-path',
-      usageExitCode,
-    ),
+    (['my_package@{,bad,descriptor,}'], '{,bad,descriptor,}', usageExitCode),
   ];
   for (final (errorArguments, error, exitCode) in errorArgumentss) {
     test('dart run ${errorArguments.join(' ')}', timeout: longTimeout, () async {
@@ -284,10 +255,7 @@ void main(List<String> args) async {
         final runResult = await _runDartdev(
           fromDartdevSource,
           'run',
-          [
-            '--enable-experiment-remote-run',
-            '${gitUri.toFilePath()}:$packageName',
-          ],
+          ['test_app_with_failing_hook@{git: ${gitUri.toFilePath()}}'],
           null,
           environment,
           expectedExitCode: errorExitCode,
@@ -309,13 +277,7 @@ void main(List<String> args) async {
     await inTempDir((tempUri) async {
       final (gitUri, gitRef) = await _setupSimpleGitRepo(tempUri);
 
-      final arguments = [
-        '--enable-experiment-remote-run',
-        '--git-ref',
-        gitRef,
-        '${gitUri.toFilePath()}:$_gitPackageForTest',
-        'World',
-      ];
+      final arguments = ['dart_app@{git: ${gitUri.toFilePath()}}', 'World'];
 
       // 2. Setup environment
       final dartDataHome = tempUri.resolve('dart_home/');
@@ -372,11 +334,8 @@ void main(List<String> args) async {
           );
 
           final arguments = [
-            '--enable-experiment-remote-run',
             if (verbosityError) '--verbosity=error',
-            '--git-ref',
-            gitRef,
-            '${gitUri.toFilePath()}:$packageName',
+            'test_app_with_hook@{git: {url: ${gitUri.toFilePath()}, ref: $gitRef}}',
             'ignored',
             'arguments',
           ];
@@ -391,8 +350,6 @@ void main(List<String> args) async {
                 '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
           };
 
-          print(environment);
-          print('dart run ${arguments.join(' ')}');
           final runResult = await _runDartdev(
             fromDartdevSource,
             'run',
@@ -407,7 +364,7 @@ void main(List<String> args) async {
             expect(runResult.stdout, isNot(contains('Running build hooks')));
             expect(runResult.stdout, isNot(contains('Running link hooks')));
             expect(runResult.stdout, isNot(contains('Generated: ')));
-            // Should have no other output then the program.
+            // Should have no other output than the program.
             expect(runResult.stdout.trim(), equals('Hello World'));
           } else {
             expect(runResult.stdout, contains('Running build hooks'));
@@ -512,6 +469,9 @@ Future<(Uri gitUri, String gitRef)> _setupSimpleGitRepo(Uri tempUri) async {
       ).readAsString(),
       'bin/dart_app.dart': await File.fromUri(
         _package2Dir.uri.resolve('bin/dart_app.dart'),
+      ).readAsString(),
+      'bin/other_app.dart': await File.fromUri(
+        _package2Dir.uri.resolve('bin/other_app.dart'),
       ).readAsString(),
     },
   );

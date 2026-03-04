@@ -94,7 +94,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
         return diagnostic;
       }
     }
-    fail('Expected to find an diagnostic with the code: $code');
+    fail('Expected to find a diagnostic with the code: $code');
   }
 }
 

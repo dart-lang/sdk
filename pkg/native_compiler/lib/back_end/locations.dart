@@ -66,16 +66,37 @@ final class FPRegister extends PhysicalRegister {
 
 const FPRegister invalidFPReg = FPRegister(-1, 'INVALID');
 
-/// Stack slot.
-final class StackLocation implements Location {
-  final int index;
-  const StackLocation(this.index);
+/// Base class for all stack locations.
+sealed class StackLocation implements Location {
+  const StackLocation();
 
   @override
   Location get physicalLocation => this;
+}
+
+/// Spill slot.
+final class SpillSlot extends StackLocation {
+  /// Index of the spill slot (0, 1, ...).
+  final int index;
+
+  const SpillSlot(this.index);
 
   @override
   String toString() => 'stack[$index]';
+}
+
+/// Constraint and location for the parameter passed on the stack.
+final class ParameterStackLocation extends StackLocation implements Constraint {
+  /// Parameter index (0, 1, ..., function.numberOfParameters-1).
+  final int paramIndex;
+
+  @override
+  final RegisterClass registerClass;
+
+  const ParameterStackLocation(this.paramIndex, this.registerClass);
+
+  @override
+  String toString() => 'param[$paramIndex]';
 }
 
 /// Location which can be allocated by register allocator.

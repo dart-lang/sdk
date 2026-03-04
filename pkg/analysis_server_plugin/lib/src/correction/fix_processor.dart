@@ -133,9 +133,9 @@ class FixProcessor {
       multiGenerators =
           registeredFixGenerators.lintMultiProducers[diagnosticCode];
     } else {
-      generators = registeredFixGenerators.nonLintProducers[diagnosticCode];
+      generators = registeredFixGenerators.warningProducers[diagnosticCode];
       multiGenerators =
-          registeredFixGenerators.nonLintMultiProducers[diagnosticCode];
+          registeredFixGenerators.warningMultiProducers[diagnosticCode];
     }
 
     if (generators != null) {

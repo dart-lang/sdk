@@ -176,10 +176,6 @@ abstract class SubstitutedElementImpl implements Element {
   @override
   bool get isPublic => baseElement.isPublic;
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic => baseElement.isSynthetic;
-
   @override
   ElementKind get kind => baseElement.kind;
 
@@ -1032,7 +1028,7 @@ class SubstitutedSetterElementImpl
 
 class SubstitutedSuperFormalParameterElementImpl
     extends SubstitutedFormalParameterElementImpl
-    implements SuperFormalParameterElement {
+    with InternalSuperFormalParameterElement {
   factory SubstitutedSuperFormalParameterElementImpl({
     required SuperFormalParameterElementImpl baseElement,
     required MapSubstitution substitution,

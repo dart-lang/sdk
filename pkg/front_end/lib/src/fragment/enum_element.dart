@@ -477,7 +477,9 @@ class EnumElementFragment implements Fragment {
 
   EnumElementDeclaration? _declaration;
 
-  final TypeBuilder type = new InferableTypeBuilder();
+  final TypeBuilder type = new InferableTypeBuilder(
+    InferenceDefaultType.Dynamic,
+  );
 
   @override
   late final UriOffsetLength uriOffset = new UriOffsetLength(

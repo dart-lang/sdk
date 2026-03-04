@@ -78,7 +78,7 @@ void KernelBytecode::GetVMInternalBytecodeInstructions(
     *instructions_size = sizeof(k##name##Instructions);                        \
     return;
 
-    INTERNAL_KERNEL_BYTECODES_LIST(CASE)
+    INTERNAL_KERNEL_BYTECODES_LIST_WITH_NO_BREAKPOINTS(CASE)
 #undef CASE
 
     default:

@@ -1,0 +1,40 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+abstract class SomeClass extends core::Object {
+
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+  [@vm.unboxing-info.metadata=()->i]
+  @#C1
+  static get someStaticGetter() → core::int
+    return 42;
+
+  [@vm.unboxing-info.metadata=(i)->b]
+  @#C1
+  static set someStaticSetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 123)] core::int value) → void {}
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+[@vm.unboxing-info.metadata=()->i]
+@#C1
+static get someTopLevelGetter() → core::int
+  return 42;
+
+[@vm.unboxing-info.metadata=(i)->b]
+@#C1
+static set someTopLevelSetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 456)] core::int value) → void {}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::SomeClass::someStaticGetter);
+  self::SomeClass::someStaticSetter = 123;
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::someTopLevelGetter);
+  self::someTopLevelSetter = 456;
+}
+constants  {
+  #C1 = meta::RecordUse {}
+}

@@ -2,6 +2,7 @@ include: package:lints/recommended.yaml
 
 analyzer:
   errors:
+    avoid_function_literals_in_foreach_calls: ignore
     avoid_renaming_method_parameters: ignore
     constant_identifier_names: ignore
     implementation_imports: ignore

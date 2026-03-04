@@ -1194,6 +1194,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (offset <= expression.beginToken.end) {
         _forStatement(node);
       }
+    } else if (expression is TypeLiteral) {
+      if (offset <= expression.end) {
+        _forStatement(node);
+      } else {
+        /// This might be the beginning of a local variable declaration
+        /// consisting of a type name.
+        identifierHelper(
+          includePrivateIdentifiers: false,
+        ).addSuggestionsFromTypeName(expression.type.name.lexeme);
+      }
     } else if (expression is PrefixedIdentifier) {
       if (offset <= expression.prefix.end) {
         declarationHelper(
@@ -2081,12 +2091,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type != null) {
         _forMemberAccess(node, type);
       }
+      var element = target == null ? null : _staticMemberTargetElement(target);
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
-          target is Identifier &&
+          element != null &&
           (!node.isCascaded || offset + 1 == operator.end)) {
-        var element = target.element;
         if (element is InterfaceElement || element is ExtensionTypeElement) {
-          declarationHelper().addStaticMembersOfElement(element!);
+          declarationHelper().addStaticMembersOfElement(element);
         }
         if (element is PrefixElement) {
           declarationHelper().addDeclarationsThroughImportPrefix(element);
@@ -2642,12 +2652,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type != null) {
         _forMemberAccess(node, type, onlySuper: target is SuperExpression);
       }
+      var element = _staticMemberTargetElement(target);
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
-          target is Identifier &&
+          element != null &&
           (!node.isCascaded || offset + 1 == operator.end)) {
-        var element = target.element;
         if (element is InterfaceElement || element is ExtensionTypeElement) {
-          declarationHelper().addStaticMembersOfElement(element!);
+          declarationHelper().addStaticMembersOfElement(element);
         }
         if (element is PrefixElement) {
           declarationHelper().addDeclarationsThroughImportPrefix(element);
@@ -4308,6 +4318,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return contextType.typeArguments.firstOrNull;
     }
     return contextType;
+  }
+
+  /// Return the element whose static members are being accessed through [target].
+  Element? _staticMemberTargetElement(Expression target) {
+    return switch (target) {
+      Identifier() => target.element,
+      TypeLiteral() => target.type.element,
+      _ => null,
+    };
   }
 
   /// Suggests overrides in the context of the given [element].

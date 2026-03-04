@@ -1,0 +1,202 @@
+Part 0
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib1.dart prefix: b1
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib2.dart prefix: b2
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib3.dart prefix: b3
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib4.dart prefix: b4
+  References
+     - dart:_boxed_int::BoxedInt::@methods::toRadixString
+     - dart:_string::@methods::dart:_string::_jsIdentical
+     - dart:_string::@methods::dart:_string::_jsStringToUpperCase
+     - dart:_string::@methods::jsStringFromCharCodeArray
+     - dart:_string::JSStringImpl::@fields::dart:_string::_stringFromCodePointBuffer
+     - dart:_string::JSStringImpl::@getters::dart:_string::_stringFromCodePointBuffer
+     - dart:_string::JSStringImpl::@getters::isNotEmpty
+     - dart:_string::JSStringImpl::@methods::[]
+     - dart:_string::JSStringImpl::@methods::fromCharCode
+     - dart:_string::JSStringImpl::@methods::fromCharCodeArray
+     - dart:_string::JSStringImpl::@methods::toUpperCase
+     - package:expect/expect.dart::@methods::package:expect/expect.dart::_identical
+     - package:expect/expect.dart::Expect::@methods::equals
+     - package:expect/expect.dart::Expect::@methods::isTrue
+     - package:expect/expect.dart::Expect::@methods::package:expect/expect.dart::_escapeString
+     - package:expect/expect.dart::Expect::@methods::package:expect/expect.dart::_escapeSubstring
+     - package:expect/expect.dart::Expect::@methods::package:expect/expect.dart::_fail
+     - package:expect/expect.dart::Expect::@methods::package:expect/expect.dart::_failNotEqual
+     - package:expect/expect.dart::Expect::@methods::package:expect/expect.dart::_getMessage
+     - package:expect/expect.dart::Expect::@methods::package:expect/expect.dart::_stringDifference
+     - package:expect/expect.dart::Expect::@methods::package:expect/expect.dart::_truncateString
+     - package:expect/expect.dart::ExpectException
+     - package:expect/expect.dart::ExpectException::@constructors::
+     - package:expect/expect.dart::ExpectException::@fields::message
+     - package:expect/expect.dart::ExpectException::@fields::name
+     - package:expect/expect.dart::ExpectException::@fields::package:expect/expect.dart::_getTestName
+     - package:expect/expect.dart::ExpectException::@getters::message
+     - package:expect/expect.dart::ExpectException::@getters::name
+     - package:expect/expect.dart::ExpectException::@getters::package:expect/expect.dart::_getTestName
+     - package:expect/expect.dart::ExpectException::@methods::package:expect/expect.dart::_kEmptyString
+     - package:expect/expect.dart::ExpectException::@methods::toString
+     - package:expect/expect.dart::ExpectException::@setters::package:expect/expect.dart::_getTestName
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_111_1
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::v
+  Constants
+     - IntConstant(127)
+     - IntConstant(20)
+     - IntConstant(256)
+     - IntConstant(36)
+     - IntConstant(92)
+     - StaticTearOffConstant(ExpectException._kEmptyString)
+     - StringConstant("(expected: <")
+     - StringConstant(") fails.")
+     - StringConstant(", '")
+     - StringConstant(", actual: <")
+     - StringConstant("0123456789ABCDEF")
+     - StringConstant("1")
+     - StringConstant("1111")
+     - StringConstant(": Expected <")
+     - StringConstant(">, ")
+     - StringConstant(">, actual: <")
+     - StringConstant("Expect.")
+     - StringConstant("Expect.isTrue(")
+     - StringConstant("Found: <")
+     - StringConstant("In test \"")
+     - StringConstant("\" ")
+     - StringConstant("\\\\")
+     - StringConstant("\\n")
+     - StringConstant("\\r")
+     - StringConstant("\\t")
+     - StringConstant("\\u{")
+     - StringConstant("\\x")
+     - StringConstant("at index ")
+     - StringConstant("equals")
+     - StringConstant("radix")
+
+Part 1
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib1.dart prefix: b1
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_100_0
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib_100_0.dart::@methods::g_100_0
+  Constants
+     - StringConstant("1000")
+
+Part 2
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib2.dart prefix: b2
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_010_0
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib_010_0.dart::@methods::g_010_0
+  Constants
+     - StringConstant("0100")
+
+Part 3
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib3.dart prefix: b3
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_001_0
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib_001_0.dart::@methods::g_001_0
+  Constants
+     - StringConstant("0010")
+
+Part 4
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib4.dart prefix: b4
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_000_1
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib_000_1.dart::@methods::g_000_1
+  Constants
+     - StringConstant("0001")
+
+Part 5
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib1.dart prefix: b1
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib4.dart prefix: b4
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_100_1
+  Constants
+     - StringConstant("1001")
+
+Part 6
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib1.dart prefix: b1
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib3.dart prefix: b3
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_101_0
+  Constants
+     - StringConstant("1010")
+
+Part 7
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib1.dart prefix: b1
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib3.dart prefix: b3
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib4.dart prefix: b4
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_101_1
+  Constants
+     - StringConstant("1011")
+
+Part 8
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib1.dart prefix: b1
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib2.dart prefix: b2
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_110_0
+  Constants
+     - StringConstant("1100")
+
+Part 9
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib1.dart prefix: b1
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib2.dart prefix: b2
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib4.dart prefix: b4
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_110_1
+  Constants
+     - StringConstant("1101")
+
+Part 10
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib1.dart prefix: b1
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib2.dart prefix: b2
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib3.dart prefix: b3
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_111_0
+  Constants
+     - StringConstant("1110")
+
+Part 11
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib2.dart prefix: b2
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib4.dart prefix: b4
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_010_1
+  Constants
+     - StringConstant("0101")
+
+Part 12
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib2.dart prefix: b2
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib3.dart prefix: b3
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_011_0
+  Constants
+     - StringConstant("0110")
+
+Part 13
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib2.dart prefix: b2
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib3.dart prefix: b3
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib4.dart prefix: b4
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_011_1
+  Constants
+     - StringConstant("0111")
+
+Part 14
+  ImportSet
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib3.dart prefix: b3
+     - pkg/compiler/test/custom_split/data/fuse_with_or/lib4.dart prefix: b4
+  References
+     - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::f_001_1
+  Constants
+     - StringConstant("0011")

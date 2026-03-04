@@ -13,7 +13,6 @@ import 'package:analyzer/error/error.dart';
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc =
     r'Only throw instances of classes extending either Exception or Error.';

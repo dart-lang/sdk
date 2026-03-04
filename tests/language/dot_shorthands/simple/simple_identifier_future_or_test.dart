@@ -4,8 +4,6 @@
 
 // `FutureOr<S>` denotes the same namespace as `S` for dot shorthands.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import 'dart:async';
 
 import '../dot_shorthand_helper.dart';

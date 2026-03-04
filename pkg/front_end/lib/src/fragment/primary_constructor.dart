@@ -96,10 +96,6 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
 
   @override
   FunctionBodyBuildingContext? createFunctionBodyBuildingContext() {
-    if (modifiers.isConst) {
-      // TODO(johnniwinther): Why?
-      return null;
-    }
     return new _PrimaryConstructorBodyBuildingContext(
       this,
       shouldFinishFunction: _primaryConstructorBodyFragment == null,

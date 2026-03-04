@@ -21,6 +21,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
+import '../util/helpers.dart';
 import 'offset_map.dart';
 import 'source_type_parameter_builder.dart';
 import 'type_parameter_factory.dart';
@@ -366,6 +367,8 @@ abstract class FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required int endOffset,
     required Token? beginInitializers,
+    required bool hasBody,
+    required int bodyOffset,
   });
 
   void addPrimaryConstructorField({
@@ -480,7 +483,6 @@ abstract class FragmentFactory {
     required bool hasSuper,
     required int nameOffset,
     required Token? initializerToken,
-    bool lowerWildcard = false,
   });
 
   ConstructorReferenceBuilder addConstructorReference(
@@ -516,7 +518,9 @@ abstract class FragmentFactory {
 
   TypeBuilder addVoidType(int charOffset);
 
-  InferableTypeBuilder addInferableType();
+  InferableTypeBuilder addInferableType(
+    InferenceDefaultType inferenceDefaultType,
+  );
 
   TypeParameterFragment addNominalParameter({
     required List<MetadataBuilder>? metadata,

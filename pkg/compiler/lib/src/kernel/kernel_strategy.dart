@@ -174,7 +174,8 @@ class KernelFrontendStrategy {
     AnnotationsData annotationsData = AnnotationsDataImpl(
       compiler.options,
       compiler.reporter,
-      annotationsDataBuilder.pragmaAnnotations,
+      annotationsDataBuilder.classPragmaAnnotations,
+      annotationsDataBuilder.memberPragmaAnnotations,
     );
     InterceptorDataBuilder interceptorDataBuilder = InterceptorDataBuilderImpl(
       nativeBasicData,
@@ -404,7 +405,7 @@ class KernelWorkItem implements WorkItem {
       List<PragmaAnnotationData> pragmaAnnotationData = _modularStrategy
           .getPragmaAnnotationData(node);
 
-      EnumSet<PragmaAnnotation> annotations = processMemberAnnotations(
+      EnumSet<PragmaAnnotation> annotations = processPragmaAnnotations(
         _elementMap.options,
         _elementMap.reporter,
         node,

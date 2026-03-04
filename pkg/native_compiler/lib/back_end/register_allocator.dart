@@ -15,7 +15,6 @@ import 'package:cfg/ir/liveness_analysis.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:native_compiler/utils/interval_list.dart';
-import 'package:cfg/utils/misc.dart';
 
 abstract base class RegisterAllocator extends Pass {
   final BackEndState backEndState;
@@ -47,7 +46,6 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   static const int maxPosition = 0x7fffffff;
 
   final Constraints constraints;
-  final StackFrameAllocator stackFrameAllocator;
 
   /// Instruction id -> instruction position in the
   /// linearized control flow.
@@ -77,8 +75,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   /// or null if register is not allocatable.
   late List<List<LiveRange>?> _allocated;
 
-  LinearScanRegisterAllocator(super.backEndState, this.constraints)
-    : stackFrameAllocator = StackFrameAllocator(constraints);
+  LinearScanRegisterAllocator(super.backEndState, this.constraints);
 
   RegisterClass registerClass(Definition instr) =>
       instr.type is DoubleType ? RegisterClass.fpu : RegisterClass.cpu;
@@ -90,8 +87,10 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   Instruction instructionByPos(int pos) =>
       graph.instructions[_instructionByPos[pos ~/ step]];
 
+  bool hasLiveRange(Definition instr) => instr is! Constant;
+
   LiveRange liveRangeFor(Definition instr) {
-    assert(instr is! Constant);
+    assert(hasLiveRange(instr));
     return _liveRanges[instr.id] ??= LiveRange(registerClass(instr));
   }
 
@@ -132,6 +131,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     resolveDataFlow(liveness);
 
     backEndState.operandLocations = _operandLocations;
+    backEndState.stackFrame.finalize();
   }
 
   /// Number instructions in the linearized control flow.
@@ -174,7 +174,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       // Add intervals for values which are live-out.
       for (final instrId in liveness.liveOut(block).elements) {
         final instr = graph.instructions[instrId] as Definition;
-        if (instr is! Constant) {
+        if (hasLiveRange(instr)) {
           final liveRange = liveRangeFor(instr);
           liveRange.addInterval(blockStart, blockEnd);
         }
@@ -201,6 +201,9 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       }
 
       for (final instr in block.reversed) {
+        if (instr is CallInstruction) {
+          backEndState.stackFrame.allocateArgumentsSlots(instr);
+        }
         final pos = instructionPos(instr);
         final constr = constraints.getConstraints(instr);
         if (constr == null) {
@@ -240,13 +243,16 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           _processTemp(pos, constr.temps[i], operandId);
         }
         // Process output.
-        if (instr is Definition && instr is! Constant) {
+        if (instr is Definition && hasLiveRange(instr)) {
           final operandId = OperandId.result(instr.id);
           final liveRange = liveRangeFor(instr);
           final resultConstr = constr.result;
           liveRange.defineAt(
             instructionPos(instr) +
-                ((resultConstr is PhysicalRegister) ? 1 : 0),
+                ((resultConstr is PhysicalRegister ||
+                        resultConstr is ParameterStackLocation)
+                    ? 1
+                    : 0),
           );
           if (resultConstr != null) {
             _processOutput(instr, liveRange, pos, resultConstr, operandId);
@@ -258,7 +264,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     errorContext.annotator = (Instruction instr) {
       if (instr is ParallelMove) return null;
       return '[${instructionPos(instr)}]' +
-          ((instr is Definition && instr is! Constant)
+          ((instr is Definition && hasLiveRange(instr))
               ? ' ${liveRangeFor(instr)}'
               : '');
     };
@@ -338,6 +344,19 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     assert(instr is! ControlFlowInstruction);
     if (constr is PhysicalRegister) {
       regLiveRange(constr).addInterval(pos, pos + 1);
+      _operandLocations[operandId] = constr;
+      if (instr.hasUses) {
+        final loc = liveRange.addUse(pos + 1, constr);
+        _insertMoveBefore(
+          _nextInstruction(instr),
+          ParallelMoveStage.output,
+          constr,
+          loc,
+        );
+      }
+    } else if (constr is ParameterStackLocation) {
+      assert(liveRange.splitFrom == null);
+      liveRange.spillSlot = constr;
       _operandLocations[operandId] = constr;
       if (instr.hasUses) {
         final loc = liveRange.addUse(pos + 1, constr);
@@ -693,9 +712,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   void spillLiveRange(LiveRange range) {
     final splitParent = range.splitParent;
     assert(splitParent.registerClass == range.registerClass);
-    final spillSlot = (splitParent.spillSlot ??= stackFrameAllocator.allocate(
-      splitParent.registerClass,
-    ));
+    final spillSlot = (splitParent.spillSlot ??= backEndState.stackFrame
+        .allocateSpillSlot(splitParent.registerClass));
     if (trace) {
       print('Spill $range to $spillSlot');
     }
@@ -809,7 +827,9 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       liveRange = _liveRanges[i]!.bundle;
       assert(liveRange.splitParent == liveRange);
       final spillSlot = liveRange.spillSlot;
-      if (spillSlot != null && i < graph.instructions.length) {
+      if (spillSlot != null &&
+          spillSlot is! ParameterStackLocation &&
+          i < graph.instructions.length) {
         Instruction instr = graph.instructions[i];
         if (instr is Phi) {
           instr = (instr.block as JoinBlock).phis.last;
@@ -1129,20 +1149,4 @@ class LiveRange {
   @override
   String toString() =>
       'LR $intervals ${uses.reversed} next: $nextInterval $nextUse';
-}
-
-class StackFrameAllocator {
-  final Constraints constraints;
-  int used = 0;
-
-  StackFrameAllocator(this.constraints);
-
-  StackLocation allocate(RegisterClass registerClass) {
-    final size = constraints.sizeInWords(registerClass);
-    final alignment = constraints.alignmentInWords(registerClass);
-    used = roundUp(used, alignment);
-    final slot = StackLocation(used);
-    used += size;
-    return slot;
-  }
 }

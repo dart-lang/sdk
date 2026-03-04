@@ -1129,7 +1129,7 @@ ASSEMBLER_TEST_RUN(Semaphore32, test) {
   typedef intptr_t (*Semaphore32)() DART_UNUSED;
   // Lower word has been atomically switched from 40 to 42k, whereas upper word
   // is unchanged at 40.
-  EXPECT_EQ(42 + (DART_INT64_C(40) << 32),
+  EXPECT_EQ(42 + (static_cast<int64_t>(40) << 32),
             EXECUTE_TEST_CODE_INT64(Semaphore32, test->entry()));
   EXPECT_DISASSEMBLY(
       "mov sp, csp\n"
@@ -1171,7 +1171,7 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
   typedef intptr_t (*FailedSemaphore32)() DART_UNUSED;
   // Lower word has had the failure code (1) added to it.  Upper word is
   // unchanged at 40.
-  EXPECT_EQ(41 + (DART_INT64_C(40) << 32),
+  EXPECT_EQ(41 + (static_cast<int64_t>(40) << 32),
             EXECUTE_TEST_CODE_INT64(FailedSemaphore32, test->entry()));
   EXPECT_DISASSEMBLY(
       "mov sp, csp\n"

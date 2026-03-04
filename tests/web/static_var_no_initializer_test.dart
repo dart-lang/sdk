@@ -11,7 +11,7 @@ void testOne() {
   Expect.equals(1, one);
 }
 
-void testX(var expected) {
+void testX(expected) {
   Expect.equals(expected, x);
 }
 

@@ -100,7 +100,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
 
   /** Determine if caps lock is one of the currently depressed keys. */
   bool get _capsLockOn =>
-      _keyDownList.any((var element) => element.keyCode == KeyCode.CAPS_LOCK);
+      _keyDownList.any((element) => element.keyCode == KeyCode.CAPS_LOCK);
 
   /**
    * Given the previously recorded keydown key codes, see if we can determine
@@ -339,7 +339,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       // keyCode/which for non printable keys.
       e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier]!;
     }
-    e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
+    e._shadowAltKey = _keyDownList.any((element) => element.altKey);
     _stream.add(e);
   }
 

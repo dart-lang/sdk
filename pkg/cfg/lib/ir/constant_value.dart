@@ -285,3 +285,28 @@ class TypeArgumentsConstant extends ast.AuxiliaryConstant {
   @override
   ast.DartType getType(StaticTypeContext context) => const ast.DynamicType();
 }
+
+/// Synthetic sentinel value which can be used by certain back-ends to
+/// represent the uninitialized value of a late or static field, late variable or
+/// value of an optional parameter which was not passed.
+class SentinelConstant extends ast.AuxiliaryConstant {
+  SentinelConstant();
+
+  @override
+  void visitChildren(ast.Visitor v) {}
+
+  @override
+  void toTextInternal(ast_printer.AstPrinter printer) => '#sentinel';
+
+  @override
+  String toString() => toStringInternal();
+
+  @override
+  int get hashCode => 2031;
+
+  @override
+  bool operator ==(Object other) => other is SentinelConstant;
+
+  @override
+  ast.DartType getType(StaticTypeContext context) => const ast.DynamicType();
+}

@@ -13,8 +13,8 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
         getMessageRelatedInformation;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity, severityEnumValues;
-import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/messages.dart';
+import 'package:analyzer_testing/utilities/extensions/string.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'

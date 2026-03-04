@@ -525,7 +525,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       _clonedDeclarationTypeParameters != null ? function.typeParameters : null;
 
   @override
-  VariableDeclaration? get thisVariable => _thisFormal.variable!;
+  VariableDeclaration? get thisVariable => _thisFormal.variable;
 
   @override
   Procedure get writeTarget => _procedure!;

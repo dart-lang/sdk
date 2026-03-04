@@ -18,35 +18,29 @@ import 'dart:typed_data';
 
 part 'regexp_helper.dart';
 
-// TODO(joshualitt): After we have JS types and more efficient JS interop, we
-// should be able to rewrite a significant amount of logic in this file and
-// `js_runtime_blob` such that most of the conversion logic can live in Dart.
-// TODO(joshualitt): In many places we use `WasmExternRef?` when the ref can't
-// be null, we should use `WasmExternRef` in those cases.
+/// [JSValue] is just a box for a `ref null extern` that is not a JS `null` or
+/// `undefined`.
+///
+/// This is the type that all JS interop types (`JSAny`, `JSNumber` etc.) are an
+/// extension of.
+class JSValue extends JSExternWrapper {
+  /// This reference is always non-null and it never points to a JS `undefined`.
+  /// We currently don't make it non-nullable as that makes it impossible to
+  /// dummy-initialize locals with `JSValue` type.
+  JSValue(WasmExternRef? ref) : assert(!isDartNull(ref)), super(ref);
 
-/// [JSValue] is just a box [WasmExternRef?]. For now, it is the single box for
-/// all JS types, but in time we may want to make each JS type a unique box
-/// type.
-class JSValue {
-  final WasmExternRef? _ref;
-
-  JSValue(this._ref);
-
-  // TODO(joshualitt): Remove [box] and [unbox] once `JSNull` is boxed and users
-  // have been migrated over to the helpers in `dart:js_interop`.
   static JSValue? box(WasmExternRef? ref) =>
       isDartNull(ref) ? null : JSValue(ref);
 
   static T boxT<T>(WasmExternRef? ref) => unsafeCastOpaque<T>(box(ref));
 
-  // We need to handle the case of a nullable [JSValue] to match the semantics
-  // of the JS backends.
+  @pragma('wasm:prefer-inline')
   static WasmExternRef? unbox(JSValue? v) =>
-      v == null ? WasmExternRef.nullRef : v._ref;
+      v == null ? WasmExternRef.nullRef : v.wrappedExternRef;
 
   @override
   bool operator ==(Object that) =>
-      that is JSValue && areEqualInJS(_ref, that._ref);
+      that is JSValue && areEqualInJS(wrappedExternRef, that.wrappedExternRef);
 
   // Because [JSValue] is a subtype of [Object] it can be used in Dart
   // collections. Unfortunately, JS does not expose an efficient hash code
@@ -61,10 +55,9 @@ class JSValue {
   int get hashCode => 0;
 
   @override
-  String toString() => stringify(_ref);
+  String toString() => stringify(wrappedExternRef);
 
-  // Overrides to avoid using [ObjectToJS].
-  WasmExternRef? get toExternRef => _ref;
+  bool get isExternalizedDartValue => isWasmGCStruct(wrappedExternRef);
 }
 
 // Extension helpers to convert to an externref.
@@ -79,7 +72,7 @@ extension DoubleToExternRef on double? {
 extension StringToExternRef on String? {
   WasmExternRef? get toExternRef => this == null
       ? WasmExternRef.nullRef
-      : jsStringFromDartString(this!).toExternRef;
+      : jsStringFromDartString(this!).wrappedExternRef;
 }
 
 extension JSValueToExternRef on JSValue? {
@@ -509,11 +502,12 @@ WasmExternRef? jsifyJSFloat64ArrayImpl(js_types.JSFloat64ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSDataViewImpl(js_types.JSDataViewImpl o) => o.toExternRef;
+WasmExternRef? jsifyJSDataViewImpl(js_types.JSDataViewImpl o) =>
+    o.wrappedExternRef;
 
 @pragma('wasm:prefer-inline')
 WasmExternRef? jsifyJSArrayBufferImpl(js_types.JSArrayBufferImpl o) =>
-    o.toExternRef;
+    o.wrappedExternRef;
 
 @pragma('wasm:prefer-inline')
 WasmExternRef? jsifyByteData(ByteData o) =>
@@ -781,3 +775,110 @@ external T JS<T>(
 
 @pragma("wasm:intrinsic")
 external WasmExternRef get thisModule;
+
+/// Represents a JS `null` or `undefined` thrown from JS and caught in Wasm.
+///
+/// The class name is copied from the dart2js class for the same thing, for
+/// compatibility.
+///
+/// This class is allocated by the generated code.
+class NullThrownFromJavaScriptException implements Exception {
+  /// Whether the reference was `null`. If not, then it must be pointing to a JS
+  /// `undefined`.
+  final bool _isNull;
+
+  const NullThrownFromJavaScriptException.fromNull() : _isNull = true;
+
+  const NullThrownFromJavaScriptException.fromUndefined() : _isNull = false;
+
+  /// `toString` copied from dart2js's `NullThrownFromJavaScriptException` for
+  /// compatibility.
+  @override
+  String toString() =>
+      "Throw of null ('${_isNull ? 'null' : 'undefined'}' from JavaScript)";
+}
+
+/// Box an exception caught from JS, the same way as dart2js.
+///
+/// When the exception value is `null` or `undefined`, this returns a
+/// [NullThrownFromJavaScriptException].
+///
+/// Otherwise it returns a `JSValue`.
+///
+/// This is called by the generated code and passed a JS exception as
+/// `externref`, caught using the `WebAssembly.JSTag` exception tag. The return
+/// value will be used to assign the exception variable in `catch` blocks, so it
+/// needs to have type `Object`.
+@pragma('wasm:entry-point')
+Object boxJsException(WasmExternRef? ref) {
+  if (ref.isNull) return NullThrownFromJavaScriptException.fromNull();
+  if (isJSUndefined(ref))
+    return NullThrownFromJavaScriptException.fromUndefined();
+  return JSValue(ref);
+}
+
+/// Get the stack trace of an exception value thrown in JS and caught in Wasm.
+///
+/// This is called by the generated code, with the same argument as
+/// [boxJsException].
+///
+/// The return value will be assigned to the stack trace variables in `catch`
+/// blocks, so it needs to have type [StackTrace].
+@pragma('wasm:entry-point')
+StackTrace jsExceptionStackTrace(WasmExternRef? ref) => JavaScriptStack(
+  JS<WasmExternRef?>("""
+      (exn) => {
+        if (exn instanceof Error) {
+          return exn.stack;
+        } else {
+          return null;
+        }
+      }
+    """, ref),
+);
+
+class JavaScriptStack extends JSExternWrapper implements StackTrace {
+  final bool _fromCurrent;
+
+  JavaScriptStack(WasmExternRef? ref) : _fromCurrent = false, super(ref);
+
+  // Note: We remove the first four frames to prevent including
+  // `StackTrace.current`, other current helpers and the JS interop function.
+  // On Chrome, the first line is not a frame but a line with just "Error",
+  // sometimes with details:
+  // "Error: ...". Also remove that line.
+  late final String _stringified = wrappedExternRef.isNull
+      ? ""
+      : JSStringImpl.fromRefUnchecked(
+          _fromCurrent
+              ? JS<WasmExternRef?>(r"""(exn) => {
+            let stackString = exn.toString();
+            let frames = stackString.split('\n');
+            let drop = 4;
+            if (frames[0].startsWith('Error')) {
+                drop += 1;
+            }
+            return frames.slice(drop).join('\n');
+          }""", wrappedExternRef)
+              : wrappedExternRef,
+        );
+
+  @pragma("wasm:never-inline")
+  JavaScriptStack.current()
+    : _fromCurrent = true,
+      super(JS<WasmExternRef?>("() => new Error().stack"));
+
+  @override
+  String toString() => _stringified;
+}
+
+base class JSExternWrapper {
+  final WasmExternRef? _externRef;
+
+  JSExternWrapper(this._externRef);
+}
+
+extension JSExternWrapperExt on JSExternWrapper {
+  @pragma("wasm:prefer-inline")
+  WasmExternRef? get wrappedExternRef => _externRef;
+}

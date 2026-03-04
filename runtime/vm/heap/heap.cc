@@ -88,7 +88,7 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   CollectForDebugging(thread);
   uword addr = new_space_.TryAllocate(thread, size);
-  if (LIKELY(addr != 0)) {
+  if (addr != 0) [[likely]] {
     return addr;
   }
 
@@ -113,7 +113,7 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
       CollectGarbage(thread, GCType::kScavenge, GCReason::kNewSpace);
 
       addr = new_space_.TryAllocate(thread, size);
-      if (LIKELY(addr != 0)) {
+      if (addr != 0) [[likely]] {
         return addr;
       }
     }

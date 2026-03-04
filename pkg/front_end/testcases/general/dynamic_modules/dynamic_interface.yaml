@@ -71,4 +71,11 @@ callable:
   - library: 'main_lib1.dart'
     class: 'C9'
     member: 'fact4'
+  - library: 'main_lib1.dart'
+    extension_type: 'ExtType2'
+  - library: 'main_lib1.dart'
+    extension_type: ['ExtType3', 'ExtType4']
+  - library: 'main_lib1.dart'
+    extension_type: 'ExtType5'
+    member: 'plus1'
   - library: 'main_lib2.dart'

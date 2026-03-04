@@ -257,7 +257,7 @@ if (current_os == "win") {
 # =============================================================================
 
 use_flutter_cxx = is_clang && (((is_asan || is_ubsan) && is_mac) || is_msan ||
-                               is_tsan || is_ios)
+                               is_tsan || is_ios || is_android)
 
 using_sanitizer = !is_win && (is_asan || is_hwasan || is_lsan || is_msan ||
                               is_tsan || is_ubsan)

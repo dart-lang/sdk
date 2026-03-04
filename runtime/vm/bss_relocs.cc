@@ -38,6 +38,9 @@ void BSS::Initialize(Thread* current, uword* bss_start, bool vm) {
   InitializeBSSEntry(Relocation::DLRT_ExitIsolateGroupBoundIsolate,
                      reinterpret_cast<uword>(DLRT_ExitIsolateGroupBoundIsolate),
                      bss_start);
+  InitializeBSSEntry(
+      Relocation::DLRT_ExitSyncCallbackTargetIsolate,
+      reinterpret_cast<uword>(DLRT_ExitSyncCallbackTargetIsolate), bss_start);
 }
 
 }  // namespace dart

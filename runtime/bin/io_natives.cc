@@ -223,6 +223,9 @@ static const struct NativeEntries {
 Dart_NativeFunction IONativeLookup(Dart_Handle name,
                                    int argument_count,
                                    bool* auto_setup_scope) {
+#if defined(DART_PRECOMPILER) && !defined(TESTING)
+  UNREACHABLE();  // gen_snapshot does not execute Dart code.
+#endif
   const char* function_name = nullptr;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
   ASSERT(!Dart_IsError(result));
@@ -241,6 +244,9 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
 }
 
 const uint8_t* IONativeSymbol(Dart_NativeFunction nf) {
+#if defined(DART_PRECOMPILER) && !defined(TESTING)
+  UNREACHABLE();  // gen_snapshot does not execute Dart code.
+#endif
   int num_entries = sizeof(IOEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     const struct NativeEntries* entry = &(IOEntries[i]);

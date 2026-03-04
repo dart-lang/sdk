@@ -1149,7 +1149,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       fileUri: compound.fileUri,
       reference: getterReference,
       isStatic: true,
-    )..fileOffset = compound.fileOffset;
+    )
+    ..fileOffset = compound.fileOffset
+    ..isSynthetic = true;
     addPragmaPreferInline(getter);
     compound.addProcedure(getter);
   }

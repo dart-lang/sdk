@@ -954,6 +954,11 @@ abstract final class _NativeDouble implements SizedNativeType {}
 
 abstract final class Void implements NativeType {}
 
+@Since('2.15')
+final class Bool implements SizedNativeType {
+  const Bool();
+}
+
 final class Int8 implements _NativeInteger {
   const Int8();
 }

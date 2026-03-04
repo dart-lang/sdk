@@ -1,6 +1,17 @@
-# 3.11.0-wip
+# 3.12.0-wip
 
+- new lint: `var_with_no_type_annotation`
+- stable: `omit_obvious_local_variable_types`
+- stable: `omit_obvious_property_types`
+- stable: `specify_nonobvious_property_types`
+- stable: `specify_nonobvious_property_types`
+
+# 3.11.0
+
+- new lint: `simplify_variable_pattern`
+- deprecated lint: `avoid_null_checks_in_equality_operators`
 - deprecated lint: `prefer_final_parameters`
+- deprecated lint: `use_if_null_to_convert_nulls_to_bools`
 
 # 3.10.0
 

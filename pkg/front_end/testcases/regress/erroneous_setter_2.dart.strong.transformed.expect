@@ -1,0 +1,97 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/erroneous_setter_2.dart:6:10: Error: A setter should have exactly one formal parameter.
+//   set foo({newFoo}) {
+//          ^
+//
+// pkg/front_end/testcases/regress/erroneous_setter_2.dart:18:10: Error: A setter should have exactly one formal parameter.
+//   set foo({newFoo}) {
+//          ^
+//
+// pkg/front_end/testcases/regress/erroneous_setter_2.dart:30:10: Error: A setter should have exactly one formal parameter.
+//   set foo({newFoo}) {
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Baz extends core::Object {
+  synthetic constructor •() → self::Baz
+    : super core::Object::•()
+    ;
+  set foo(dynamic #synthetic) → void {
+    invalid-expression "pkg/front_end/testcases/regress/erroneous_setter_2.dart:30:10: Error: A setter should have exactly one formal parameter.
+  set foo({newFoo}) {
+         ^";
+    {
+      dynamic newFoo = null;
+      {
+        core::print(this.{self::Baz::foo}{core::int});
+      }
+    }
+  }
+  get foo() → core::int
+    return 42;
+  method bar() → void {
+    this.{self::Baz::foo} = this.{self::Baz::foo}{core::int}.{core::num::-}(1){(core::num) → core::int};
+  }
+}
+extension Foo on core::int {
+  get foo = self::Foo|get#foo;
+  set foo = self::Foo|set#foo;
+  method bar = self::Foo|bar;
+  method tearoff bar = self::Foo|get#bar;
+}
+extension type Bar(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  get foo = self::Bar|get#foo;
+  set foo = self::Bar|set#foo;
+  method bar = self::Bar|bar;
+  method tearoff bar = self::Bar|get#bar;
+  constructor • = self::Bar|constructor#;
+  constructor tearoff • = self::Bar|constructor#_#new#tearOff;
+}
+static extension-member method Foo|set#foo(lowered final core::int #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/regress/erroneous_setter_2.dart:6:10: Error: A setter should have exactly one formal parameter.
+  set foo({newFoo}) {
+         ^";
+  {
+    dynamic newFoo = null;
+    {
+      core::print(self::Foo|get#foo(#this));
+    }
+  }
+}
+static extension-member method Foo|get#foo(lowered final core::int #this) → core::int
+  return 42;
+static extension-member method Foo|bar(lowered final core::int #this) → void {
+  let final core::int #t1 = self::Foo|get#foo(#this).{core::num::-}(1){(core::num) → core::int} in let final void #t2 = self::Foo|set#foo(#this, #t1) in #t1;
+}
+static extension-member method Foo|get#bar(lowered final core::int #this) → () → void
+  return () → void => self::Foo|bar(#this);
+static extension-type-member method Bar|constructor#(core::int i) → self::Bar% /* erasure=core::int, declared=! */ {
+  lowered final self::Bar% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member synthetic method Bar|constructor#_#new#tearOff(core::int i) → self::Bar% /* erasure=core::int, declared=! */
+  return self::Bar|constructor#(i);
+static extension-type-member method Bar|set#foo(lowered final self::Bar% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/regress/erroneous_setter_2.dart:18:10: Error: A setter should have exactly one formal parameter.
+  set foo({newFoo}) {
+         ^";
+  {
+    dynamic newFoo = null;
+    {
+      core::print(self::Bar|get#foo(#this));
+    }
+  }
+}
+static extension-type-member method Bar|get#foo(lowered final self::Bar% /* erasure=core::int, declared=! */ #this) → core::int
+  return 42;
+static extension-type-member method Bar|bar(lowered final self::Bar% /* erasure=core::int, declared=! */ #this) → void {
+  let final core::int #t3 = self::Bar|get#foo(#this).{core::num::-}(1){(core::num) → core::int} in let final void #t4 = self::Bar|set#foo(#this, #t3) in #t3;
+}
+static extension-type-member method Bar|get#bar(lowered final self::Bar% /* erasure=core::int, declared=! */ #this) → () → void
+  return () → void => self::Bar|bar(#this);

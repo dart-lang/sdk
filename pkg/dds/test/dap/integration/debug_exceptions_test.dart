@@ -54,6 +54,38 @@ main() {
       );
     });
 
+    test('includes the stack trace in exception text', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(asyncExceptionProgram);
+
+      // Run and expect to pause on an exception.
+      final stoppedEvent = await client.pauseOnException(
+        testFile,
+        exceptionPauseMode: 'Unhandled',
+        // No stack trace yet, see comment below.
+        expectText: 'UnimplementedError (UnimplementedError: NYI)',
+      );
+
+      // When we pause on an exception as it's thrown, we don't have a
+      // stackTrace yet (though it is always the same as the current stack).
+      // The stack trace is populated later after we've stepped (or been caught
+      // further up). Issue a continue and wait for it to break at the next
+      // level up before expecting the stack trace.
+      client.continue_(stoppedEvent.threadId!);
+      final nextStop = await client.expectStop('exception');
+      // Now we expect the stack trace where the exception really occurred
+      // (which is not where we currently are), so it should include the
+      // throwNYI function.
+      expect(
+          nextStop.text?.split('\n'),
+          containsAllInOrder([
+            'UnimplementedError (UnimplementedError: NYI)',
+            matches(r'^#0\s* inner'),
+            matches(r'^#1\s* outer'),
+            matches(r'^#2\s* main'),
+          ]));
+    });
+
     test('does not pauses on caught exceptions when mode=Unhandled', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleCaughtErrorProgram);

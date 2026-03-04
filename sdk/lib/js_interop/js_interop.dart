@@ -775,51 +775,6 @@ extension JSAnyUtilityExtension on JSAny? {
     return instanceof(constructor as JSFunction);
   }
 
-  /// Whether this <code>[JSAny]?</code> is an instance of the JavaScript type
-  /// that is declared by [T].
-  ///
-  /// Since the type-check this function emits is determined at compile-time,
-  /// [T] needs to be an interop extension type that can also be determined at
-  /// compile-time. In particular, `isA` can't be provided a generic type
-  /// variable as a type argument.
-  ///
-  /// This method uses a combination of `null`, `typeof`, and `instanceof`
-  /// checks in order to do this check. Use this instead of `is` checks.
-  ///
-  /// If [T] is a primitive JS type like [JSString], this uses a `typeof` check
-  /// that corresponds to that primitive type like `typeofEquals('string')`.
-  ///
-  /// If [T] is a non-primitive JS type like [JSArray] or an interop extension
-  /// type on one, this uses an `instanceof` check using the name or the
-  /// <code>@[JS]</code> rename of the given type like
-  /// `instanceOfString('Array')`. Note that if you rename the library using the
-  /// <code>@[JS]</code> annotation, this uses the rename in the `instanceof`
-  /// check like `instanceOfString('library1.JSClass')`.
-  ///
-  /// To determine the JavaScript constructor to use as the second operand in
-  /// the `instanceof` check, this function uses the JavaScript name associated
-  /// with the extension type, which is either the argument given to the
-  /// <code>@[JS]</code> annotation or the Dart declaration name. So, if you had
-  /// an interop extension type `JSClass` that wraps `JSArray` without a rename,
-  /// this does an `instanceOfString('JSClass')` check and not an
-  /// `instanceOfString('Array')` check.
-  ///
-  /// There are a few values for [T] that are exceptions to this rule:
-  /// - `JSTypedArray`: As `TypedArray` does not exist as a class in JavaScript,
-  ///   this does some prototype checking to make `isA<JSTypedArray>` do the
-  ///   right thing.
-  /// - `JSBoxedDartObject`: `isA<JSBoxedDartObject>` will check if the value is
-  ///   a result of a previous [ObjectToJSBoxedDartObject.toJSBox] call.
-  /// - `JSAny`: If you do an `isA<JSAny>` check, it will only check for `null`.
-  /// - User interop types whose representation types are JS primitive types:
-  ///   This will result in an error to avoid confusion on whether the user
-  ///   interop type is used in the type-check. Use the primitive JS type as the
-  ///   value for [T] instead.
-  /// - User interop types that have an object literal constructor: This will
-  ///   result in an error as you likely want to use [JSObject] instead.
-  @Since('3.4')
-  external bool isA<T extends JSAny?>();
-
   /// Converts a JavaScript JSON-like value to the Dart equivalent if possible.
   ///
   /// Effectively the inverse of [NullableObjectUtilExtension.jsify], [dartify]
@@ -886,6 +841,65 @@ extension NullableObjectUtilExtension on Object? {
   // backends, we can update the documentation to say that the object is
   // externalized instead of the conversion being undefined.
   external JSAny? jsify();
+
+  /// Whether this <code>[Object]?</code> is an instance of the JavaScript type
+  /// that is declared by [T].
+  ///
+  /// The result of this function tells you if you can safely cast to [T].
+  /// Because of runtime type differences across platforms, do not expect that
+  /// that this function returns the same value for the same type on every
+  /// platform e.g. <code>0.isA<JSNumber>()</code>.
+  ///
+  /// Since the type-check this function emits is determined at compile-time,
+  /// [T] needs to be an interop extension type that can also be determined at
+  /// compile-time. In particular, `isA` can't be provided a generic type
+  /// variable as a type argument.
+  ///
+  /// This method uses a combination of `null`, `typeof`, and `instanceof`
+  /// checks and intrinsic functions in order to do this check. Use this instead
+  /// of `is` checks for platform-independent type checks.
+  ///
+  /// If [T] is a primitive JS type like [JSString], this uses a `typeof` check
+  /// that corresponds to that primitive type like `typeofEquals('string')`.
+  ///
+  /// If [T] is a non-primitive JS type like [JSArray] or an interop extension
+  /// type on one, this uses an `instanceof` check using the name or the
+  /// <code>@[JS]</code> rename of the given type like
+  /// `instanceOfString('Array')`. Note that if you rename the library using the
+  /// <code>@[JS]</code> annotation, this uses the rename in the `instanceof`
+  /// check like `instanceOfString('library1.JSClass')`.
+  ///
+  /// To determine the JavaScript constructor to use as the second operand in
+  /// the `instanceof` check, this function uses the JavaScript name associated
+  /// with the extension type, which is either the argument given to the
+  /// <code>@[JS]</code> annotation or the Dart declaration name. So, if you had
+  /// an interop extension type `JSClass` that wraps `JSArray` without a rename,
+  /// this does an `instanceOfString('JSClass')` check and not an
+  /// `instanceOfString('Array')` check.
+  ///
+  /// There are a few values for [T] that are exceptions to this rule:
+  /// - `JSTypedArray`: As `TypedArray` does not exist as a class in JavaScript,
+  ///   this does some prototype checking to make `isA<JSTypedArray>` do the
+  ///   right thing.
+  /// - `JSBoxedDartObject`: `isA<JSBoxedDartObject>` will check if the value is
+  ///   a result of a previous [ObjectToJSBoxedDartObject.toJSBox] call.
+  /// - `JSAny`: `isA<JSAny>` will call an intrinsic function to check that the
+  ///   value is a JS value.
+  /// - `JSObject`: `isA<JSObject>` will call an intrinsic function to check
+  ///   that the value is a JS object (`instanceof Object` is insufficient for
+  ///   some objects).
+  /// - `JSExportedDartFunction`: `isA<JSExportedDartFunction>` will check if
+  ///   the value is a result of a previous
+  ///   [FunctionToJSExportedDartFunction.toJS] or
+  ///   [FunctionToJSExportedDartFunction.toJSCaptureThis] call.
+  /// - User interop types whose representation types are JS primitive types:
+  ///   This will result in an error to avoid confusion on whether the user
+  ///   interop type is used in the type-check. Use the primitive JS type as the
+  ///   value for [T] instead.
+  /// - User interop types that have an object literal constructor: This will
+  ///   result in an error as you likely want to use [JSObject] instead.
+  @Since('3.4')
+  external bool isA<T extends JSAny?>();
 }
 
 /// Utility extensions for [JSFunction].
@@ -1840,3 +1854,19 @@ external JSObject createJSInteropWrapper<T extends Object>(
 /// Returns a [JSPromise] that resolves to a [JSObject] that's the module
 /// namespace object.
 external JSPromise<JSObject> importModule(JSAny moduleName);
+
+/// Returns true if the underlying JavaScript values of [a] and [b] are
+/// identical.
+///
+/// The semantics are equivalent to the `===` operator in JavaScript. For
+/// backends that do not directly use JS values, the underlying JS value backing
+/// the native object will be compared using JS `===`. This should mean that the
+/// result of this should be consistent across backends unlike [identical] which
+/// only compares the native references.
+///
+/// `jsIdentical(a,b)` does not necessarily imply
+/// `a.runtimeType == b.runtimeType` or `a.hashCode == b.hashCode` as the JS
+/// values being compared may be wrapped by different native types. So a and b
+/// themselves cannot be used interchangeably.
+@Since('3.12')
+external bool jsIdentical(Object? a, Object? b);

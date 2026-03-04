@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Callback = () → void;
+class Foo extends core::Object {
+  late final [setter] field () →? void _koCallback;
+  final field () →? void _okCallback;
+  constructor •({() →? void okCallback = null, () →? void koCallback = null}) → self::Foo
+    ;
+  method thisWorks() → void
+    ;
+  method thisDoesNot() → void
+    ;
+}

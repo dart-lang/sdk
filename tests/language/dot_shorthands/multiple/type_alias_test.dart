@@ -4,8 +4,6 @@
 
 // Type aliases with dot shorthands.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 typedef ClassAlias = A<int>;
 typedef AliasAlias = ClassAlias;
 typedef ExtensionAlias = AExt<int>;

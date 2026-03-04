@@ -161,16 +161,19 @@ final class HtmlEscapeMode {
 
   /// Create a custom escaping mode.
   ///
+  /// The [_name] is only used as the result of [toString],
+  /// and defaults to `'custom'` if not provided.
+  ///
   /// All modes escape `&`.
   /// The mode can further be set to escape `<` and `>` ([escapeLtGt]),
   /// `"` ([escapeQuot]), `'` ([escapeApos]), and/or `/` ([escapeSlash]).
   const HtmlEscapeMode({
-    String name = "custom",
+    this._name = "custom",
     this.escapeLtGt = false,
     this.escapeQuot = false,
     this.escapeApos = false,
     this.escapeSlash = false,
-  }) : _name = name;
+  });
 
   String toString() => _name;
 }

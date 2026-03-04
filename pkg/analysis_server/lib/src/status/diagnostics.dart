@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
@@ -45,10 +44,11 @@ import 'package:analysis_server/src/status/pages/timing_page.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:collection/collection.dart';
 
 String get sdkVersion {
-  var version = Platform.version;
+  var version = platform.version;
   if (version.contains(' ')) {
     version = version.substring(0, version.indexOf(' '));
   }

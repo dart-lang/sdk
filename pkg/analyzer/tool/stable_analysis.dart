@@ -17,6 +17,7 @@ import 'package:linter/src/rules.dart' as linter;
 
 void main(List<String> args) {
   String? dirPath;
+  bool withFineDependencies = true;
   bool silent = false;
   bool lints = true;
   bool warnings = true;
@@ -46,6 +47,8 @@ void main(List<String> args) {
       silent = true;
     } else if (arg == "--no-lints") {
       lints = false;
+    } else if (arg == "--no-fine-dependencies") {
+      withFineDependencies = false;
     } else if (arg == "--no-warnings") {
       warnings = false;
     } else if (arg == "--no-comments") {
@@ -102,7 +105,7 @@ void main(List<String> args) {
         if (!silent) print("Enabled $added lints");
       }
     },
-    withFineDependencies: true,
+    withFineDependencies: withFineDependencies,
   );
   DriverBasedAnalysisContext context = collection.contexts[0];
   AnalysisDriver analysisDriver = context.driver;

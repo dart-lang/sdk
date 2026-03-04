@@ -4,6 +4,7 @@
 
 import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
+import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
 
 /// Base class representing a function (getter, setter, regular method,
@@ -37,6 +38,11 @@ sealed class CFunction {
   bool get hasFunctionTypeParameters =>
       member is ast.Procedure && member.function!.typeParameters.isNotEmpty;
 
+  /// Total number of parameters including function type parameters
+  /// (represented with a single parameter), receiver, closure and
+  /// optional parameters.
+  int get numberOfParameters;
+
   /// Return type of this function.
   CType get returnType;
 
@@ -47,6 +53,9 @@ sealed class CFunction {
 /// Function representing a getter.
 final class GetterFunction extends CFunction {
   GetterFunction._(super.member) : assert(member.hasGetter), super._();
+
+  @override
+  int get numberOfParameters => member.isInstanceMember ? 1 /* receiver */ : 0;
 
   @override
   late final CType returnType = CType.fromStaticType(member.getterType);
@@ -63,6 +72,10 @@ final class ImplicitFieldGetter extends GetterFunction {
 /// Function representing a setter.
 final class SetterFunction extends CFunction {
   SetterFunction._(super.member) : assert(member.hasSetter), super._();
+
+  @override
+  int get numberOfParameters =>
+      member.isInstanceMember ? 2 /* receiver, value */ : 1 /* only value */;
 
   @override
   CType get returnType => const TopType(const ast.VoidType());
@@ -86,6 +99,9 @@ final class FieldInitializerFunction extends CFunction {
       super._();
 
   @override
+  int get numberOfParameters => member.isInstanceMember ? 1 /* receiver */ : 0;
+
+  @override
   CType get returnType => CType.fromStaticType(member.getterType);
 
   @override
@@ -100,6 +116,13 @@ final class RegularFunction extends CFunction {
       super._();
 
   @override
+  int get numberOfParameters =>
+      (hasFunctionTypeParameters ? 1 : 0) +
+      (hasReceiverParameter ? 1 : 0) +
+      member.function!.positionalParameters.length +
+      member.function!.namedParameters.length;
+
+  @override
   late final CType returnType = CType.fromStaticType(
     member.function!.returnType,
   );
@@ -111,6 +134,12 @@ final class RegularFunction extends CFunction {
 /// Generative constructor.
 final class GenerativeConstructor extends CFunction {
   GenerativeConstructor._(ast.Constructor super.member) : super._();
+
+  @override
+  int get numberOfParameters =>
+      1 /* receiver */ +
+      member.function!.positionalParameters.length +
+      member.function!.namedParameters.length;
 
   @override
   CType get returnType => const TopType(const ast.VoidType());
@@ -143,6 +172,13 @@ final class LocalFunction extends ClosureFunction {
       localFunction.function.typeParameters.isNotEmpty;
 
   @override
+  int get numberOfParameters =>
+      (hasFunctionTypeParameters ? 1 : 0) +
+      1 /* closure */ +
+      localFunction.function.positionalParameters.length +
+      localFunction.function.namedParameters.length;
+
+  @override
   late final CType returnType = CType.fromStaticType(
     localFunction.function.returnType,
   );
@@ -167,6 +203,13 @@ final class TearOffFunction extends ClosureFunction {
       : member.function!.typeParameters.isNotEmpty;
 
   @override
+  int get numberOfParameters =>
+      (hasFunctionTypeParameters ? 1 : 0) +
+      1 /* closure */ +
+      member.function!.positionalParameters.length +
+      member.function!.namedParameters.length;
+
+  @override
   late final CType returnType = CType.fromStaticType(
     member is ast.Constructor
         ? ast.InterfaceType(
@@ -177,6 +220,33 @@ final class TearOffFunction extends ClosureFunction {
                 .toList(),
           )
         : member.function!.returnType,
+  );
+}
+
+class ArgumentsShape {
+  final int types;
+  final int positional;
+  final List<String> named;
+
+  const ArgumentsShape(this.types, this.positional, this.named);
+
+  @override
+  String toString() =>
+      'Args[$positional${types > 0 ? ', types: $types' : ''}${named.isNotEmpty ? ', named: $named' : ''}]';
+
+  @override
+  bool operator ==(Object other) =>
+      other is ArgumentsShape &&
+      this.types == other.types &&
+      this.positional == other.positional &&
+      listEquals(this.named, other.named);
+
+  @override
+  int get hashCode => finalizeHash(
+    combineHash(
+      combineHash(types.hashCode, positional.hashCode),
+      listHashCode(named),
+    ),
   );
 }
 
@@ -191,6 +261,7 @@ class FunctionRegistry {
   final Map<ast.Member, CFunction> _tearOffs = {};
   final Map<ast.Member, CFunction> _fieldInitializers = {};
   final Map<ast.Member, CFunction> _other = {};
+  final List<ArgumentsShape> _positionalArgShapes = [];
 
   /// Returns [CFunction] corresponding to [member] with
   /// given properties.
@@ -234,5 +305,19 @@ class FunctionRegistry {
       ast.Procedure() => RegularFunction._(member),
       _ => throw 'Unexpected member ${member.runtimeType} $member',
     };
+  }
+
+  ArgumentsShape getArgumentsShape(
+    int positional, {
+    int types = 0,
+    List<String> named = const [],
+  }) {
+    if (types == 0 && named.isEmpty) {
+      for (int i = _positionalArgShapes.length, n = positional; i <= n; ++i) {
+        _positionalArgShapes.add(ArgumentsShape(0, i, const <String>[]));
+      }
+      return _positionalArgShapes[positional];
+    }
+    return ArgumentsShape(types, positional, named);
   }
 }

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -165,26 +164,52 @@ class DartUnitOutlineComputer {
     return _nodeOutline(node, element);
   }
 
+  Outline _newConstructorBodyOutline(PrimaryConstructorBody body) {
+    var constructor = body.declaration;
+
+    var name = 'this';
+    var offset = body.thisKeyword.offset;
+    var length = body.thisKeyword.length;
+    var constructorNameToken = constructor?.constructorName?.name;
+    var isPrivate = false;
+    if (constructorNameToken != null) {
+      isPrivate = Identifier.isPrivateName(constructorNameToken.lexeme);
+    }
+    var element = Element(
+      ElementKind.CONSTRUCTOR,
+      name,
+      Element.makeFlags(isPrivate: isPrivate),
+      location: _getLocationOffsetLength(offset, length),
+    );
+    var contents = _addFunctionBodyOutlines(body.body);
+    return _nodeOutline(body, element, contents);
+  }
+
   Outline _newConstructorOutline(ConstructorDeclaration constructor) {
     String name;
     int offset;
     int length;
     var typeName = constructor.typeName;
+    var keyword = constructor.newKeyword ?? constructor.factoryKeyword;
     if (typeName != null) {
       name = typeName.name;
       offset = typeName.offset;
       length = typeName.length;
     } else {
-      name = '<unknown>';
-      offset = constructor.offset;
-      length = constructor.length;
+      name =
+          constructor.declaredFragment?.element.enclosingElement.name ??
+          '<unknown>';
+      offset = keyword?.offset ?? constructor.offset;
+      length = keyword?.length ?? constructor.length;
     }
     var constructorNameToken = constructor.name;
     var isPrivate = false;
     if (constructorNameToken != null) {
       var constructorName = constructorNameToken.lexeme;
       isPrivate = Identifier.isPrivateName(constructorName);
-      name += '.$constructorName';
+      if (constructorName != 'new') {
+        name += '.$constructorName';
+      }
       offset = constructorNameToken.offset;
       length = constructorNameToken.length;
     }
@@ -593,6 +618,10 @@ class DartUnitOutlineComputer {
         var methodDeclaration = classMember;
         memberOutlines.add(_newMethodOutline(methodDeclaration));
       }
+      if (classMember is PrimaryConstructorBody) {
+        var constructorBody = classMember;
+        memberOutlines.add(_newConstructorBodyOutline(constructorBody));
+      }
     }
     return memberOutlines;
   }
@@ -608,7 +637,9 @@ class DartUnitOutlineComputer {
     var outlines = <Outline>[];
     outlines.add(_newPrimaryConstructorOutline(namePart));
     for (var parameter in namePart.formalParameters.parameters) {
-      if (parameter.isDeclaringParameter) {
+      var parameterElement = parameter.declaredFragment!.element;
+      if (parameterElement is engine.FieldFormalParameterElement &&
+          parameterElement.isDeclaring) {
         outlines.add(_newDeclaredFieldOutline(parameter));
       }
     }

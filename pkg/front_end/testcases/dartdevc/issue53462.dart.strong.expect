@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+typedef Callback = () → void;
+class Foo extends core::Object {
+  field () →? void _#Foo#_koCallback = null;
+  field core::bool _#Foo#_koCallback#isSet = false;
+  final field () →? void _okCallback;
+  constructor •({() →? void okCallback = #C1, () →? void koCallback = #C1}) → self::Foo
+    : self::Foo::_okCallback = okCallback, super core::Object::•() {
+    this.{self::Foo::_koCallback} = koCallback;
+  }
+  get _koCallback() → () →? void
+    return this.{self::Foo::_#Foo#_koCallback#isSet}{core::bool} ?{() →? void} this.{self::Foo::_#Foo#_koCallback}{() →? void} : throw{for-error-handling} new _in::LateError::fieldNI("_koCallback");
+  set _koCallback(() →? void _koCallback#param) → void
+    if(this.{self::Foo::_#Foo#_koCallback#isSet}{core::bool})
+      throw{for-error-handling} new _in::LateError::fieldAI("_koCallback");
+    else {
+      this.{self::Foo::_#Foo#_koCallback#isSet} = true;
+      this.{self::Foo::_#Foo#_koCallback} = _koCallback#param;
+    }
+  static synthetic method _#new#tearOff({() →? void okCallback = #C1, () →? void koCallback = #C1}) → self::Foo
+    return new self::Foo::•(okCallback: okCallback, koCallback: koCallback);
+  method thisWorks() → void {
+    this.{self::Foo::_okCallback}{() →? void} == null ?{(dynamic) →? void} null : (dynamic value) → void => (this.{self::Foo::_okCallback}{() →? void} as{Unchecked} () → void)(){() → void};
+  }
+  method thisDoesNot() → void {
+    this.{self::Foo::_koCallback}{() →? void} == null ?{(dynamic) →? void} null : (dynamic value) → void => (this.{self::Foo::_koCallback}{() →? void} as{Unchecked} () → void)(){() → void};
+  }
+}
+
+constants  {
+  #C1 = null
+}

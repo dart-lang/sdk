@@ -113,7 +113,7 @@ class String {
     return JSStringImpl.fromRefUnchecked(
       js.JS<WasmExternRef?>(
         '(c, i, e) => String.fromCharCode.apply(null, new Uint32Array(c.buffer, c.byteOffset + i, e))',
-        charCodes.toExternRef,
+        charCodes.wrappedExternRef,
         WasmI32.fromInt(index * 4),
         WasmI32.fromInt(end - index),
       ),

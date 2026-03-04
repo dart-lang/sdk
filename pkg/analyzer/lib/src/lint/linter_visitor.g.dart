@@ -34,6 +34,27 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
+  @experimental
+  @override
+  void visitAnonymousBlockBody(AnonymousBlockBody node) {
+    _runSubscriptions(node, _registry._forAnonymousBlockBody);
+    node.visitChildren(this);
+  }
+
+  @experimental
+  @override
+  void visitAnonymousExpressionBody(AnonymousExpressionBody node) {
+    _runSubscriptions(node, _registry._forAnonymousExpressionBody);
+    node.visitChildren(this);
+  }
+
+  @experimental
+  @override
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    _runSubscriptions(node, _registry._forAnonymousMethodInvocation);
+    node.visitChildren(this);
+  }
+
   @override
   void visitArgumentList(ArgumentList node) {
     _runSubscriptions(node, _registry._forArgumentList);
@@ -881,20 +902,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
-  // ignore: deprecated_member_use_from_same_package
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {
-    _runSubscriptions(node, _registry._forRepresentationConstructorName);
-    node.visitChildren(this);
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    _runSubscriptions(node, _registry._forRepresentationDeclaration);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitRestPatternElement(RestPatternElement node) {
     _runSubscriptions(node, _registry._forRestPatternElement);
     node.visitChildren(this);
@@ -1180,6 +1187,14 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final List<_Subscription<AdjacentStrings>> _forAdjacentStrings = [];
 
   final List<_Subscription<Annotation>> _forAnnotation = [];
+
+  final List<_Subscription<AnonymousBlockBody>> _forAnonymousBlockBody = [];
+
+  final List<_Subscription<AnonymousExpressionBody>>
+  _forAnonymousExpressionBody = [];
+
+  final List<_Subscription<AnonymousMethodInvocation>>
+  _forAnonymousMethodInvocation = [];
 
   final List<_Subscription<ArgumentList>> _forArgumentList = [];
 
@@ -1495,14 +1510,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<RelationalPattern>> _forRelationalPattern = [];
 
-  // ignore: deprecated_member_use_from_same_package
-  final List<_Subscription<RepresentationConstructorName>>
-  _forRepresentationConstructorName = [];
-
-  // ignore: deprecated_member_use_from_same_package
-  final List<_Subscription<RepresentationDeclaration>>
-  _forRepresentationDeclaration = [];
-
   final List<_Subscription<RestPatternElement>> _forRestPatternElement = [];
 
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];
@@ -1593,6 +1600,31 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addAnnotation(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAnnotation.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addAnonymousBlockBody(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forAnonymousBlockBody.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addAnonymousExpressionBody(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forAnonymousExpressionBody.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addAnonymousMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forAnonymousMethodInvocation.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override
@@ -2456,28 +2488,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addRelationalPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRelationalPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void addRepresentationConstructorName(
-    AbstractAnalysisRule rule,
-    AstVisitor visitor,
-  ) {
-    _forRepresentationConstructorName.add(
-      _Subscription(rule, visitor, _getTimer(rule)),
-    );
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void addRepresentationDeclaration(
-    AbstractAnalysisRule rule,
-    AstVisitor visitor,
-  ) {
-    _forRepresentationDeclaration.add(
-      _Subscription(rule, visitor, _getTimer(rule)),
-    );
   }
 
   @override

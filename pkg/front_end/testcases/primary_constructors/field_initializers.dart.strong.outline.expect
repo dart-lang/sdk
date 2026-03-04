@@ -19,6 +19,6 @@ class C1 extends core::Object {
   field core::int e;
   field core::int f;
   field core::int g;
-  constructor •(core::int a, core::int b, final core::int c) → self::C1
+  constructor •(final core::int a, core::int b, final core::int c) → self::C1
     ;
 }

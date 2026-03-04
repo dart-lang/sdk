@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart' as ast;
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/configuration.dart';
+import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/snapshot/image_writer.dart';
 import 'package:native_compiler/snapshot/snapshot.dart';
 
@@ -26,7 +27,11 @@ class CompilationSet {
 
   CompilationSet(this.libraries, this.config)
     : _imageWriter = config.createImageWriter() {
-    _snapshot = SnapshotSerializer(config.targetCPU, functionRegistry);
+    _snapshot = SnapshotSerializer(
+      config.targetCPU,
+      functionRegistry,
+      config.objectLayout,
+    );
     _stubFactory = config.createStubFactory(_consumeGeneratedCode);
   }
 
@@ -43,6 +48,9 @@ class CompilationSet {
     for (final lib in libraries) {
       for (final cls in lib.classes) {
         for (final field in cls.fields) {
+          if (field.isAbstract) {
+            continue;
+          }
           _compileFieldFunctions(field);
           _compilePendingFunctions();
         }
@@ -51,6 +59,9 @@ class CompilationSet {
           _compilePendingFunctions();
         }
         for (final proc in cls.procedures) {
+          if (proc.isAbstract) {
+            continue;
+          }
           compileFunction(
             functionRegistry.getFunction(
               proc,
@@ -85,7 +96,7 @@ class CompilationSet {
     if (field.hasSetter && !field.isStatic) {
       compileFunction(functionRegistry.getFunction(field, isSetter: true));
     }
-    if ((field.isStatic || field.isLate) && field.initializer != null) {
+    if ((field.isStatic || field.isLate) && hasNonTrivialInitializer(field)) {
       compileFunction(functionRegistry.getFunction(field, isInitializer: true));
     }
   }
@@ -108,6 +119,7 @@ class CompilationSet {
         functionRegistry,
         recognizedMethods,
         enableAsserts: config.enableAsserts,
+        typeParametersStyle: .separateFunctionAndClassTypeParameters,
       ).buildFlowGraph();
     } catch (_) {
       print('Compiler crashed while compiling $function');
@@ -115,12 +127,18 @@ class CompilationSet {
     }
 
     config
-        .createPipeline(functionRegistry, _stubFactory, _consumeGeneratedCode)
+        .createPipeline(
+          function,
+          functionRegistry,
+          _stubFactory,
+          _consumeGeneratedCode,
+        )
         .run(graph);
   }
 
   void _consumeGeneratedCode(Code code) {
     code.instructionsImageOffset = _imageWriter.addInstructions(
+      code.name,
       code.instructions,
     );
     _snapshot.addRoot(code);

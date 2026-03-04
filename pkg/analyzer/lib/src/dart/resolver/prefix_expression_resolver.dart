@@ -267,7 +267,9 @@ class PrefixExpressionResolver {
       SharedTypeSchemaView(_typeProvider.boolType),
     );
     operand = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(operand);
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.flow?.getExpressionInfo(operand),
+    );
 
     _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(
       operand,

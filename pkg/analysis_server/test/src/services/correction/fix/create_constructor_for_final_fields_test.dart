@@ -89,7 +89,7 @@ import 'package:flutter/widgets.dart';
 class Test extends StatelessWidget {
   final int _a;
 
-  const Test({required int a, super.key}) : _a = a;
+  const Test({required this._a, super.key});
 }
 ''',
       filter: (error) {

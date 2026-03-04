@@ -32,6 +32,32 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  @experimental
+  void visitAnonymousBlockBody(AnonymousBlockBody node) {
+    _visitNode(node.block);
+  }
+
+  @override
+  @experimental
+  void visitAnonymousExpressionBody(AnonymousExpressionBody node) {
+    sink.write(node.functionDefinition.lexeme);
+    sink.write(' ');
+    _visitNode(node.expression);
+  }
+
+  @override
+  @experimental
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    _visitNode(node.target);
+    _visitToken(node.operator);
+    _visitNode(node.parameters);
+    if (node.parameters != null) {
+      sink.write(' ');
+    }
+    _visitNode(node.body);
+  }
+
+  @override
   void visitArgumentList(ArgumentList node) {
     sink.write('(');
     _visitNodeList(node.arguments, separator: ', ');
@@ -1225,24 +1251,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(node.operator.lexeme);
     sink.write(' ');
     _visitNode(node.operand);
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {
-    _visitToken(node.period);
-    _visitToken(node.name);
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    _visitNode(node.constructorName);
-    _visitToken(node.leftParenthesis);
-    _visitNodeList(node.fieldMetadata, separator: ' ', suffix: ' ');
-    _visitNode(node.fieldType, suffix: ' ');
-    _visitToken(node.fieldName);
-    _visitToken(node.rightParenthesis);
   }
 
   @override

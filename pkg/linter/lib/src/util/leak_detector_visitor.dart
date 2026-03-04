@@ -11,42 +11,6 @@ import 'package:meta/meta.dart';
 
 import '../ast.dart';
 
-/// Builds a function that reports a variable node if none of the [predicates]
-/// return `true` for any node inside the [container] node.
-_VisitVariableDeclaration _buildVariableReporter(
-  AstNode container,
-  AnalysisRule rule,
-  Map<DartTypePredicate, String> predicates, {
-  required _VariableType variableType,
-}) => (VariableDeclaration variable) {
-  if (variable.equals != null && variable.initializer is SimpleIdentifier) {
-    return;
-  }
-
-  var variableElement = variable.declaredFragment?.element;
-  if (variableElement == null) {
-    return;
-  }
-
-  if (!predicates.keys.any((DartTypePredicate p) => p(variableElement.type))) {
-    return;
-  }
-
-  var visitor = _ValidUseVisitor(
-    variable,
-    variableElement,
-    predicates,
-    variableType: variableType,
-  );
-  container.accept(visitor);
-
-  if (visitor.containsValidUse) {
-    return;
-  }
-
-  rule.reportAtNode(variable);
-};
-
 /// Whether any of the [predicates] applies to [methodName] and holds true for
 /// [type].
 bool _hasMatch(
@@ -54,13 +18,6 @@ bool _hasMatch(
   DartType type,
   String methodName,
 ) => predicates.keys.any((p) => predicates[p] == methodName && p(type));
-
-bool _isElementEqualToVariable(
-  Element? propertyElement,
-  VariableElement? variableElement,
-) =>
-    propertyElement == variableElement ||
-    propertyElement.matches(variableElement);
 
 bool _isInvocationThroughCascadeExpression(
   MethodInvocation invocation,
@@ -78,45 +35,26 @@ bool _isInvocationThroughCascadeExpression(
 }
 
 bool _isPostfixExpressionOperandEqualToVariable(
-  AstNode? n,
-  VariableElement variableElement,
-) {
-  if (n is PostfixExpression) {
-    return _isSimpleIdentifierElementEqualToVariable(
-      n.operand,
-      variableElement,
-    );
-  }
-  return false;
-}
-
-bool _isPropertyAccessThroughThis(
-  Expression? n,
-  VariableElement variableElement,
-) {
-  if (n is! PropertyAccess) {
-    return false;
-  }
-
-  var target = n.realTarget;
-  if (target is! ThisExpression) {
-    return false;
-  }
-
-  var propertyElement = n.propertyName.element;
-  return _isElementEqualToVariable(propertyElement, variableElement);
-}
-
-bool _isSimpleIdentifierElementEqualToVariable(
-  AstNode? n,
+  AstNode node,
   VariableElement variableElement,
 ) =>
-    n is SimpleIdentifier &&
-    _isElementEqualToVariable(n.element, variableElement);
+    node is PostfixExpression &&
+    _isSimpleIdentifierElementEqualToVariable(node.operand, variableElement);
+
+bool _isPropertyAccessThroughThis(
+  Expression node,
+  VariableElement variableElement,
+) =>
+    node is PropertyAccess &&
+    node.realTarget is ThisExpression &&
+    node.propertyName.element.isEqualToVariable(variableElement);
+
+bool _isSimpleIdentifierElementEqualToVariable(
+  AstNode n,
+  VariableElement variableElement,
+) => n is SimpleIdentifier && n.element.isEqualToVariable(variableElement);
 
 typedef DartTypePredicate = bool Function(DartType type);
-
-typedef _VisitVariableDeclaration = void Function(VariableDeclaration node);
 
 abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
@@ -132,13 +70,42 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
     if (unit != null) {
       // When visiting a field declaration, we want to check tree under the
       // containing unit for ConstructorFieldInitializers and FieldFormalParameters.
-      node.fields.variables.forEach(
-        _buildVariableReporter(
+      for (var variable in node.fields.variables) {
+        if (variable.hasSimpleInitializer) continue;
+        var element = variable.declaredFragment?.element;
+        if (element == null) continue;
+        _checkVariable(
+          variable,
+          element,
           unit,
-          rule,
-          predicates,
           variableType: _VariableType.field,
-        ),
+        );
+      }
+    }
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    // An extension type doesn't so much _have_ a field which may need to be
+    // checked, as it _is_ that field.
+    if (node.parent is ExtensionTypeDeclaration) return;
+
+    var unit = getCompilationUnit(node);
+    if (unit == null) return;
+
+    for (var parameter in node.formalParameters.parameters) {
+      var element = parameter.declaredFragment?.element;
+      if (element == null) continue;
+      if (element is! FieldFormalParameterElement || !element.isDeclaring) {
+        continue;
+      }
+      var fieldElement = element.field;
+      if (fieldElement == null) continue;
+      _checkVariable(
+        parameter,
+        fieldElement,
+        unit,
+        variableType: _VariableType.field,
       );
     }
   }
@@ -150,15 +117,40 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
       // When visiting a variable declaration, we want to check tree under the
       // containing function for ReturnStatements. If an interesting variable
       // is returned, don't report it.
-      node.variables.variables.forEach(
-        _buildVariableReporter(
+      for (var variable in node.variables.variables) {
+        if (variable.hasSimpleInitializer) continue;
+        var element = variable.declaredFragment?.element;
+        if (element == null) continue;
+        _checkVariable(
+          variable,
+          element,
           function,
-          rule,
-          predicates,
           variableType: _VariableType.local,
-        ),
-      );
+        );
+      }
     }
+  }
+
+  /// Reports lint at [variable] if none of the [predicates] return `true` for
+  /// any node inside the [container] node.
+  void _checkVariable(
+    AstNode variable,
+    VariableElement variableElement,
+    AstNode container, {
+    required _VariableType variableType,
+  }) {
+    if (!predicates.keys.any((p) => p(variableElement.type))) return;
+
+    var visitor = _ValidUseVisitor(
+      variable,
+      variableElement,
+      predicates,
+      variableType: variableType,
+    );
+    container.accept(visitor);
+    if (visitor.containsValidUse) return;
+
+    rule.reportAtNode(variable);
   }
 }
 
@@ -171,7 +163,7 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
 /// being returned by a function, or being passed as an argument to a function.
 class _ValidUseVisitor extends RecursiveAstVisitor<void> {
   /// The variable under consideration.
-  final VariableDeclaration variable;
+  final AstNode variable;
 
   /// The element of the variable under consideration; stored here as a non-
   /// `null` value.
@@ -202,17 +194,14 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     var rightHandSide = node.rightHandSide;
     if (rightHandSide is SimpleIdentifier) {
       var assignedElement = node.writeElement;
-      if (_isElementEqualToVariable(
-        assignedElement,
-        variable.declaredFragment?.element,
-      )) {
+      if (assignedElement.isEqualToVariable(variableElement)) {
         containsValidUse = true;
         return;
       }
       // Assignment to VariableDeclaration as setter.
       var leftHandSide = node.leftHandSide;
       if (leftHandSide is PropertyAccess &&
-          leftHandSide.propertyName.token.lexeme == variable.name.lexeme) {
+          leftHandSide.propertyName.token.lexeme == variableElement.name) {
         containsValidUse = true;
         return;
       }
@@ -253,19 +242,22 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (_hasMatch(predicates, variableElement.type, node.methodName.name) &&
-        (_isSimpleIdentifierElementEqualToVariable(
-              node.realTarget,
-              variableElement,
-            ) ||
-            _isPostfixExpressionOperandEqualToVariable(
-              node.realTarget,
-              variableElement,
-            ) ||
-            _isPropertyAccessThroughThis(node.realTarget, variableElement) ||
-            (node.thisOrAncestorMatching((a) => a == variable) != null))) {
-      containsValidUse = true;
-      return;
+    var realTarget = node.realTarget;
+    if (realTarget != null) {
+      if (_hasMatch(predicates, variableElement.type, node.methodName.name) &&
+          (_isSimpleIdentifierElementEqualToVariable(
+                realTarget,
+                variableElement,
+              ) ||
+              _isPostfixExpressionOperandEqualToVariable(
+                realTarget,
+                variableElement,
+              ) ||
+              _isPropertyAccessThroughThis(realTarget, variableElement) ||
+              (node.thisOrAncestorMatching((a) => a == variable) != null))) {
+        containsValidUse = true;
+        return;
+      }
     }
 
     if (_isInvocationThroughCascadeExpression(node, variableElement)) {
@@ -309,7 +301,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     if (variableType == _VariableType.local) {
       var expression = node.expression;
       if (expression is SimpleIdentifier &&
-          expression.element == variableElement) {
+          expression.element.isEqualToVariable(variableElement)) {
         containsValidUse = true;
         return;
       }
@@ -321,14 +313,34 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 /// The type of variable being assessed.
 enum _VariableType { field, local }
 
+extension on VariableDeclaration {
+  bool get hasSimpleInitializer =>
+      equals != null && initializer is SimpleIdentifier;
+}
+
 extension on Element? {
-  bool matches(VariableElement? requested) {
+  bool isEqualToVariable(VariableElement variableElement) =>
+      this == variableElement || matches(variableElement);
+
+  bool matches(VariableElement requested) {
     var baseElement = this?.baseElement;
     if (baseElement is PropertyAccessorElement) {
-      return baseElement.variable == requested;
+      if (baseElement.variable == requested) return true;
     } else if (baseElement is FieldElement) {
-      return baseElement == requested;
+      if (baseElement == requested) return true;
     }
+
+    if (this case VariableElement(:var type)) {
+      if (type.element case ExtensionTypeElement element) {
+        if (element.representation == requested) return true;
+      }
+
+      var requestedType = requested.type;
+      if (requestedType.element case ExtensionTypeElement element) {
+        if (element.representation == this) return true;
+      }
+    }
+
     return false;
   }
 }

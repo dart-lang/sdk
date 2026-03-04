@@ -14,6 +14,10 @@ class FindNode {
 
   FindNode(this.content, this.unit);
 
+  FormalParameter get firstFormalParameter => _first();
+
+  FormalParameterList get firstFormalParameterList => _first();
+
   List<MethodInvocation> get methodInvocations {
     var result = <MethodInvocation>[];
     unit.accept(FunctionAstVisitor(methodInvocation: result.add));
@@ -37,6 +41,8 @@ class FindNode {
   BinaryExpression get singleBinaryExpression => _single();
 
   Block get singleBlock => _single();
+
+  BlockFunctionBody get singleBlockFunctionBody => _single();
 
   CascadeExpression get singleCascadeExpression => _single();
 
@@ -75,6 +81,8 @@ class FindNode {
   FieldFormalParameter get singleFieldFormalParameter => _single();
 
   ForElement get singleForElement => _single();
+
+  FormalParameter get singleFormalParameter => _single();
 
   FormalParameterList get singleFormalParameterList => _single();
 
@@ -167,9 +175,6 @@ class FindNode {
 
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
-
-  @Deprecated('Use primaryConstructor instead')
-  RepresentationDeclaration get singleRepresentationDeclaration => _single();
 
   RethrowExpression get singleRethrowExpression => _single();
 
@@ -452,6 +457,10 @@ class FindNode {
 
   ForElement forElement(String search) {
     return _node(search, (n) => n is ForElement);
+  }
+
+  FormalParameter formalParameter(String search) {
+    return _node(search, (n) => n is FormalParameter);
   }
 
   FormalParameterList formalParameterList(String search) {
@@ -929,6 +938,14 @@ class FindNode {
 
   YieldStatement yieldStatement(String search) {
     return _node(search, (n) => n is YieldStatement);
+  }
+
+  /// If [unit] has at least one node of type [T], returns the first one.
+  /// Otherwise, throws.
+  T _first<T extends AstNode>() {
+    var visitor = _TypedNodeVisitor<T>();
+    unit.accept(visitor);
+    return visitor.nodes.first;
   }
 
   /// Locates a node at the offset of [search] and returns the first ancestor

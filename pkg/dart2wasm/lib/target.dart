@@ -235,7 +235,7 @@ class WasmTarget extends Target {
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
     final jsInteropChecks = JsInteropChecks(
         coreTypes, hierarchy, jsInteropReporter, _nativeClasses!,
-        isDart2Wasm: true, enableExperimentalFfi: enableExperimentalFfi);
+        isDart2Wasm: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
@@ -272,11 +272,18 @@ class WasmTarget extends Target {
       ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
-    if (!enableExperimentalWasmInterop) {
-      // Check `wasm:import` and `wasm:export` pragmas before FFI transforms as
-      // FFI transforms convert JS interop annotations to these pragmas.
-      _checkWasmImportExportPragmas(libraries, coreTypes,
-          diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
+    var invalidFfiUsage = false;
+    for (final library in libraries) {
+      if (!enableExperimentalFfi) {
+        invalidFfiUsage |= _checkDisallowedDartFfiUsage(library,
+            diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
+      }
+      // Check `wasm:import` and `wasm:export` pragmas before FFI transforms
+      // as FFI transforms convert JS interop annotations to these pragmas.
+      if (!enableExperimentalWasmInterop) {
+        _checkWasmImportExportPragmas(library, coreTypes,
+            diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
+      }
     }
 
     Set<Library> transitiveImportingJSInterop = {
@@ -331,7 +338,7 @@ class WasmTarget extends Target {
 
     List<Library>? transitiveImportingDartFfi = ffiHelper
         .calculateTransitiveImportsOfDartFfiIfUsed(component, libraries);
-    if (transitiveImportingDartFfi == null) {
+    if (transitiveImportingDartFfi == null || invalidFfiUsage) {
       logger?.call("Skipped ffi transformation");
     } else {
       wasmFfiNativeAddressTrans.transformLibraries(
@@ -556,31 +563,67 @@ class WasmVerification extends Verification {
   }
 }
 
-/// Check that `wasm:import` and `wasm:export` pragmas are only used in `dart:`
-/// libraries and in tests, with the exception of
-/// `reject_import_export_pragmas` test.
-void _checkWasmImportExportPragmas(List<Library> libraries, CoreTypes coreTypes,
-    DiagnosticReporter<Message, LocatedMessage> diagnosticReporter) {
-  for (Library library in libraries) {
-    final importUri = library.importUri;
-    if (importUri.isScheme('dart') ||
-        (importUri.isScheme('package') &&
-            JsInteropChecks.allowedInteropLibrariesInDart2WasmPackages
-                .contains(importUri.pathSegments.first))) {
-      continue;
-    }
+const _dartFfiAndPragmaAllowlist = [
+  // Flutter/benchmarks.
+  'flutter',
+  'engine',
+  'ui',
+  // Non-SDK packages that have been migrated for the Wasm experiment but
+  // still have references to older interop libraries.
+  'package_info_plus',
+  'test',
+  'url_launcher_web',
+];
 
-    for (Member member in library.members) {
-      if (util.hasWasmImportPragma(coreTypes, member) ||
-          util.hasWasmExportPragma(coreTypes, member) ||
-          util.hasWasmWeakExportPragma(coreTypes, member)) {
-        diagnosticReporter.report(
-          diag.wasmImportOrExportInUserCode,
-          member.fileOffset,
-          0,
-          library.fileUri,
+/// Return whether [importUri] is always allowed to import `dart:ffi` or use
+/// the `wasm:` pragmas.
+bool allowedToImportDartFfiOrUsePragmas(Uri importUri) =>
+    // TODO(srujzs): While we allow these imports for all `dart:*` libraries, we
+    // may want to restrict this further, as it may include `dart:ui`.
+    importUri.isScheme('dart') ||
+    importUri.isScheme('package') &&
+        _dartFfiAndPragmaAllowlist.contains(
+          importUri.pathSegments.first,
         );
-      }
+
+/// Report an error if [library] incorrectly depends on `dart:ffi` and return
+/// whether an error is reported.
+bool _checkDisallowedDartFfiUsage(Library library,
+    DiagnosticReporter<Message, LocatedMessage> diagnosticReporter) {
+  if (allowedToImportDartFfiOrUsePragmas(library.importUri)) return false;
+
+  for (final dependency in library.dependencies) {
+    final dependencyUriString = dependency.targetLibrary.importUri.toString();
+    if (dependencyUriString == 'dart:ffi') {
+      diagnosticReporter.report(
+        diag.dartFfiLibraryInDart2Wasm,
+        dependency.fileOffset,
+        dependencyUriString.length,
+        library.fileUri,
+      );
+      return true;
+    }
+  }
+  return false;
+}
+
+/// Check that `wasm:import` and `wasm:export` pragmas are only used in `dart:`
+/// libraries and in tests, with the exception of the
+/// `reject_import_export_pragmas` test.
+void _checkWasmImportExportPragmas(Library library, CoreTypes coreTypes,
+    DiagnosticReporter<Message, LocatedMessage> diagnosticReporter) {
+  if (allowedToImportDartFfiOrUsePragmas(library.importUri)) return;
+
+  for (Member member in library.members) {
+    if (util.hasWasmImportPragma(coreTypes, member) ||
+        util.hasWasmExportPragma(coreTypes, member) ||
+        util.hasWasmWeakExportPragma(coreTypes, member)) {
+      diagnosticReporter.report(
+        diag.wasmImportOrExportInUserCode,
+        member.fileOffset,
+        0,
+        library.fileUri,
+      );
     }
   }
 }

@@ -52,5 +52,5 @@ part of source_mapping_crash_test;
  */
 class Super {
   final sb = new StringBuffer();
-  Super(var y);
+  Super(y);
 }

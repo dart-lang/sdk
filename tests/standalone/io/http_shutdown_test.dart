@@ -126,7 +126,7 @@ void test3(int totalConnections) {
 
 void test4() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    server.listen((var request) {
+    server.listen((request) {
       request.listen(
         (_) {},
         onDone: () {

@@ -165,9 +165,8 @@ class SuiteFolderOptions {
   ) {
     Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
       // Force enable features in development.
-      ExperimentalFlag.nullAwareElements: true,
-      ExperimentalFlag.inferenceUsingBounds: true,
-      ExperimentalFlag.getterSetterError: true,
+      ExperimentalFlag.primaryConstructors: true,
+      ExperimentalFlag.privateNamedParameters: true,
     };
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {

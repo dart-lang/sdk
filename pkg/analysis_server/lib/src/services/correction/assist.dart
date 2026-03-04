@@ -121,8 +121,13 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Convert to use a URI',
   );
+  static const convertToDeclaringParameter = AssistKind(
+    'dart.assist.convert.toDeclaringParameter',
+    DartAssistKindPriority.default_,
+    'Convert to a declaring parameter',
+  );
   static const convertToDotShorthand = AssistKind(
-    'dart.assist.convert.ToDotShorthand',
+    'dart.assist.convert.toDotShorthand',
     DartAssistKindPriority.default_,
     'Convert to dot shorthand',
   );
@@ -170,11 +175,6 @@ abstract final class DartAssistKind {
     'dart.assist.convert.toMultilineString',
     DartAssistKindPriority.default_,
     'Convert to multiline string',
-  );
-  static const convertToNormalParameter = AssistKind(
-    'dart.assist.convert.toConstructorNormalParameter',
-    DartAssistKindPriority.default_,
-    'Convert to normal parameter',
   );
   static const convertToNullAware = AssistKind(
     'dart.assist.convert.toNullAware',

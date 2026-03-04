@@ -42,6 +42,11 @@ bool hasTrustTypesAnnotation(Annotatable a) =>
 bool hasJSExportAnnotation(Annotatable a) =>
     a.annotations.any(_isJSExportAnnotation);
 
+/// Returns true iff the node has an `@RecordUse()` annotation from
+/// `package:meta`.
+bool hasRecordUseAnnotation(Annotatable a) =>
+    a.annotations.any(_isRecordUseAnnotation);
+
 /// Returns true iff the node has an `@Native(...)` annotation from the internal
 /// `dart:_js_helper`.
 bool hasNativeAnnotation(Annotatable a) =>
@@ -127,6 +132,7 @@ final _internal = Uri.parse('dart:_internal');
 final _jsAnnotations = Uri.parse('dart:_js_annotations');
 final _jsHelper = Uri.parse('dart:_js_helper');
 final _jsInterop = Uri.parse('dart:js_interop');
+final _packageMeta = Uri.parse('package:meta/meta.dart');
 
 /// Returns true if [value] is the interop annotation whose class is
 /// [annotationClassName] from [interopLibraries].
@@ -168,6 +174,9 @@ bool _isTrustTypesAnnotation(Expression value) =>
 
 bool _isJSExportAnnotation(Expression value) =>
     _isInteropAnnotation(value, 'JSExport');
+
+bool _isRecordUseAnnotation(Expression value) =>
+    _isInteropAnnotation(value, 'RecordUse', interopLibraries: {_packageMeta});
 
 /// Returns true if [value] is the `Native` annotation from `dart:_js_helper`.
 bool _isNativeAnnotation(Expression value) {

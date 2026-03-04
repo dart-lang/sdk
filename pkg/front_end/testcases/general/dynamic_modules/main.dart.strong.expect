@@ -195,6 +195,16 @@
 //   print(42.isPositive);
 //            ^
 //
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:150:9: Error: Cannot use extension type 'ExtType5' in a dynamic module.
+// Try removing the reference to extension type 'ExtType5' or update the dynamic interface to list extension type 'ExtType5' as callable.
+//   print(ExtType5);
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:156:27: Error: Cannot invoke member 'ExtType5.isPositive' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'ExtType5.isPositive' as callable.
+//   print(ExtType5.plus1(3).isPositive);
+//                           ^
+//
 library;
 import self as self;
 import "main_lib1.dart" as mai;
@@ -351,6 +361,18 @@ static method test() → void {
   core::print(#C15);
   core::print(mai::ExtType1|constructor#(42));
   core::print(mai::Ext1|get#isPositive(42));
+  core::print(#C15);
+  core::print(mai::ExtType2|constructor#(42));
+  core::print(mai::ExtType2|get#isPositive(mai::ExtType2|constructor#(42)));
+  core::print(#C15);
+  core::print(mai::ExtType3|constructor#(42));
+  core::print(mai::ExtType3|get#isPositive(mai::ExtType3|constructor#(42)));
+  core::print(#C15);
+  core::print(mai::ExtType4|constructor#(42));
+  core::print(mai::ExtType4|get#isPositive(mai::ExtType4|constructor#(42)));
+  core::print(#C15);
+  core::print(mai::ExtType5|constructor#plus1(3));
+  core::print(mai::ExtType5|get#isPositive(mai::ExtType5|constructor#plus1(3)));
   core::print(new mai2::Lib3Class::•());
   mai2::lib3Method();
   mai2::lib3Field = 42;
@@ -493,6 +515,32 @@ extension type ExtType1(core::int raw) {
   constructor • = mai::ExtType1|constructor#;
   constructor tearoff • = mai::ExtType1|constructor#_#new#tearOff;
 }
+extension type ExtType2(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType2|get#isPositive;
+  constructor • = mai::ExtType2|constructor#;
+  constructor tearoff • = mai::ExtType2|constructor#_#new#tearOff;
+}
+extension type ExtType3(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType3|get#isPositive;
+  constructor • = mai::ExtType3|constructor#;
+  constructor tearoff • = mai::ExtType3|constructor#_#new#tearOff;
+}
+extension type ExtType4(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType4|get#isPositive;
+  constructor • = mai::ExtType4|constructor#;
+  constructor tearoff • = mai::ExtType4|constructor#_#new#tearOff;
+}
+extension type ExtType5(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType5|get#isPositive;
+  constructor _ = mai::ExtType5|constructor#_;
+  constructor tearoff _ = mai::ExtType5|constructor#_#_#tearOff;
+  constructor plus1 = mai::ExtType5|constructor#plus1;
+  constructor tearoff plus1 = mai::ExtType5|constructor#_#plus1#tearOff;
+}
 static field core::int field1 = 4;
 static field core::int field2 = 4;
 static const field mai::_C5 const1 = #C17;
@@ -511,6 +559,45 @@ static extension-type-member synthetic method ExtType1|constructor#_#new#tearOff
   return mai::ExtType1|constructor#(raw);
 static extension-member method Ext1|get#isPositive(lowered final core::int #this) → core::bool
   return #this.{core::num::>}(0){(core::num) → core::bool};
+static extension-type-member method ExtType2|constructor#(core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType2% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType2|constructor#_#new#tearOff(core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */
+  return mai::ExtType2|constructor#(raw);
+static extension-type-member method ExtType2|get#isPositive(lowered final mai::ExtType2% /* erasure=core::int, declared=! */ #this) → core::bool
+  return (#this as{Unchecked} core::int).{core::num::>}(0){(core::num) → core::bool};
+static extension-type-member method ExtType3|constructor#(core::int raw) → mai::ExtType3% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType3% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType3|constructor#_#new#tearOff(core::int raw) → mai::ExtType3% /* erasure=core::int, declared=! */
+  return mai::ExtType3|constructor#(raw);
+static extension-type-member method ExtType3|get#isPositive(lowered final mai::ExtType3% /* erasure=core::int, declared=! */ #this) → core::bool
+  return (#this as{Unchecked} core::int).{core::num::>}(0){(core::num) → core::bool};
+static extension-type-member method ExtType4|constructor#(core::int raw) → mai::ExtType4% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType4% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType4|constructor#_#new#tearOff(core::int raw) → mai::ExtType4% /* erasure=core::int, declared=! */
+  return mai::ExtType4|constructor#(raw);
+static extension-type-member method ExtType4|get#isPositive(lowered final mai::ExtType4% /* erasure=core::int, declared=! */ #this) → core::bool
+  return (#this as{Unchecked} core::int).{core::num::>}(0){(core::num) → core::bool};
+static extension-type-member method ExtType5|constructor#_(core::int raw) → mai::ExtType5% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType5% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType5|constructor#_#_#tearOff(core::int raw) → mai::ExtType5% /* erasure=core::int, declared=! */
+  return mai::ExtType5|constructor#_(raw);
+static extension-type-member method ExtType5|constructor#plus1(core::int n) → mai::ExtType5% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType5% /* erasure=core::int, declared=! */ #this;
+  #this = mai::ExtType5|constructor#_(n.{core::num::+}(1){(core::num) → core::int});
+  return #this;
+}
+static extension-type-member synthetic method ExtType5|constructor#_#plus1#tearOff(core::int n) → mai::ExtType5% /* erasure=core::int, declared=! */
+  return mai::ExtType5|constructor#plus1(n);
+static extension-type-member method ExtType5|get#isPositive(lowered final mai::ExtType5% /* erasure=core::int, declared=! */ #this) → core::bool
+  return (#this as{Unchecked} core::int).{core::num::>}(0){(core::num) → core::bool};
 
 library;
 import self as self2;

@@ -8,7 +8,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform, ProcessResult;
+import 'dart:io' show ProcessResult;
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -23,6 +23,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
@@ -940,7 +941,7 @@ class PluginManager {
     // We have server-side tooling that assumes the values are consistent.
     var values = <String>[];
 
-    var existing = Platform.environment[_pubEnvironmentKey];
+    var existing = platform.environment[_pubEnvironmentKey];
 
     // If there is an existing value for this var, make sure to include it.
     if ((existing != null) && existing.isNotEmpty) {

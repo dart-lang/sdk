@@ -5,6 +5,8 @@
 import 'package:dap/dap.dart';
 import 'package:vm_service/vm_service.dart';
 
+import 'protocol_converter.dart';
+
 /// A wrapper around variables for use in `variablesRequest` that can hold
 /// additional data, such as a formatting information supplied in an evaluation
 /// request.
@@ -18,13 +20,13 @@ class VariableData {
 /// Data used to lazily evaluate a getter in a Variables request.
 class VariableGetter {
   final Instance instance;
-  final String getterName;
-  final String? parentEvaluateName;
+  final GetterInfo getter;
+  final EvaluateName? parentEvaluateName;
   final bool allowCallingToString;
 
   VariableGetter({
     required this.instance,
-    required this.getterName,
+    required this.getter,
     required this.parentEvaluateName,
     required this.allowCallingToString,
   });
@@ -153,3 +155,8 @@ class EvaluationExpression {
     return EvaluationExpression._(expression, format: format);
   }
 }
+
+/// An expression for evaluating a variable ("evaluateName" in DAP) and a flag
+/// that indicates whether it's nullable (in which case it must be suffixed with
+/// a `?` when accessing members).
+typedef EvaluateName = ({String evaluateName, bool isNullable});

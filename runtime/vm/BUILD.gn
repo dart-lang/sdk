@@ -255,3 +255,27 @@ executable("offsets_extractor_aotruntime") {
   sources = [ "compiler/offsets_extractor.cc" ]
   include_dirs = [ ".." ]
 }
+
+executable("gen_regexp_special_case") {
+  # The timeline cannot be accessed from the generated executable, so we define
+  # DART_DISABLE_TIMELINE to strip out the timeline source code. The precise
+  # reason why we do this is to avoid missing header errors, as the Perfetto
+  # proto headers are not built as a dependency of this target, but are
+  # transitively included in this target when DART_DISABLE_TIMELINE is not
+  # defined.
+  defines = [ "DART_DISABLE_TIMELINE" ]
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_aotruntime_config",
+    "..:dart_maybe_product_config",
+    ":libdart_vm_config",
+  ]
+  deps = [
+    "../platform:libdart_platform_jit",
+    "//third_party/icu:icui18n",
+    "//third_party/icu:icuuc",
+  ]
+  sources = [ "regexp/gen_regexp_special_case.cc" ]
+  include_dirs = [ ".." ]
+}

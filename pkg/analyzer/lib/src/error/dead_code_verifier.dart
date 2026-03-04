@@ -314,6 +314,8 @@ class NullSafetyDeadCodeVerifier {
       } else if (parent is LogicalOrPattern &&
           firstDeadNode == parent.rightOperand) {
         offset = parent.operator.offset;
+      } else if (parent is AnonymousMethodInvocation) {
+        offset = parent.operator.offset;
       }
 
       var length = node.end - offset;

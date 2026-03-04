@@ -243,22 +243,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// etc.
   final List<bool> _isInLateLocalVariable = [false];
 
-  /// A flag indicating whether the visitor is currently within a native class
-  /// declaration.
-  bool _isInNativeClass = false;
-
-  /// A flag indicating whether the visitor is currently within a static
-  /// variable declaration.
-  bool _isInStaticVariableDeclaration = false;
-
-  /// A flag indicating whether the visitor is currently within an instance
-  /// variable declaration, which is not `late`.
-  bool _isInInstanceNotLateVariableDeclaration = false;
-
-  /// A flag indicating whether the visitor is currently within a constructor
-  /// initializer.
-  bool _isInConstructorInitializer = false;
-
   /// This is set to `true` iff the visitor is currently within a function typed
   /// formal parameter.
   bool _isInFunctionTypedFormalParameter = false;
@@ -274,8 +258,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// in the scope of an extension.
   ExtensionElement? _enclosingExtension;
 
-  /// Whether the current location has access to `this`.
-  bool _hasAccessToThis = false;
+  /// The stack of [ThisContext]s that tracks whether `this` can be accessed.
+  final List<ThisContext> _thisContextStack = [ThisContext.topLevel];
 
   /// The context of the method or function that we are currently visiting, or
   /// `null` if we are not inside a method or function.
@@ -292,8 +276,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
 
-  /// The features enabled in the unit currently being checked for errors.
-  FeatureSet? _featureSet;
+  /// The features enabled in the library being analyzed.
+  final FeatureSet _featureSet;
 
   final LibraryVerificationContext libraryContext;
   final RequiredParametersVerifier _requiredParametersVerifier;
@@ -314,7 +298,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     this.libraryContext,
     this.options, {
     required this.typeSystemOperations,
-  }) : _uninstantiatedBoundChecker = _UninstantiatedBoundChecker(
+  }) : _featureSet = _currentLibrary.featureSet,
+       _uninstantiatedBoundChecker = _UninstantiatedBoundChecker(
          diagnosticReporter,
        ),
        _checkUseVerifier = UseResultVerifier(diagnosticReporter),
@@ -327,8 +312,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
          diagnosticReporter,
        ) {
     _isInSystemLibrary = _currentLibrary.uri.isScheme('dart');
-    _isInStaticVariableDeclaration = false;
-    _isInConstructorInitializer = false;
     _intType = _typeProvider.intType;
     typeSystem = _currentLibrary.typeSystem;
     _typeArgumentsVerifier = TypeArgumentsVerifier(
@@ -368,6 +351,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         superClass.name == 'Union';
   }
 
+  /// The [ThisContext] for the code currently being visited.
+  ThisContext get _thisContext => _thisContextStack.last;
+
   @override
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
     SyntacticEntity errorEntity,
@@ -384,19 +370,31 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitAnonymousMethodInvocation(
+    covariant AnonymousMethodInvocationImpl node,
+  ) {
+    var target = node.target;
+    if (target != null) checkForUseOfVoidResult(target);
+    _constArgumentsVerifier.visitAnonymousMethodInvocation(node);
+    if (node.parameters == null) {
+      _withThisContext(ThisContext.instanceMemberBody, () {
+        super.visitAnonymousMethodInvocation(node);
+      });
+    } else {
+      super.visitAnonymousMethodInvocation(node);
+    }
+  }
+
+  @override
   void visitAsExpression(AsExpression node) {
     _checkForTypeAnnotationDeferredClass(node.type);
     super.visitAsExpression(node);
   }
 
   @override
-  void visitAssertInitializer(AssertInitializer node) {
-    _isInConstructorInitializer = true;
-    try {
-      super.visitAssertInitializer(node);
-    } finally {
-      _isInConstructorInitializer = false;
-    }
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    _checkForAssignmentToPrimaryConstructorParameter(node);
+    super.visitAssignedVariablePattern(node);
   }
 
   @override
@@ -407,6 +405,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForDeadNullCoalesce(node.readType!, node.rightHandSide);
     }
     _checkForAssignmentToFinal(lhs);
+    _checkForAssignmentToPrimaryConstructorParameter(lhs);
 
     _constArgumentsVerifier.visitAssignmentExpression(node);
     super.visitAssignmentExpression(node);
@@ -445,21 +444,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitBlock(covariant BlockImpl node) {
-    _withHiddenElements(node.statements, () {
+    _withHiddenElementsForStatements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitBlock(node);
     });
-  }
-
-  @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {
-    var oldHasAccessToThis = _hasAccessToThis;
-    try {
-      _hasAccessToThis = _computeThisAccessForFunctionBody(node);
-      super.visitBlockFunctionBody(node);
-    } finally {
-      _hasAccessToThis = oldHasAccessToThis;
-    }
   }
 
   @override
@@ -489,8 +477,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     try {
       var declaredFragment = node.declaredFragment!;
-
-      _isInNativeClass = node.nativeClause != null;
 
       var augmented = declaredFragment.element;
       var declarationFragment = augmented.firstFragment;
@@ -544,6 +530,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.namePart.typeName, node.declaredFragment!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
+      _checkForMultiplePrimaryConstructorBodyDeclarations(members);
 
       GetterSetterTypesVerifier(
         library: _currentLibrary,
@@ -553,7 +540,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       super.visitClassDeclaration(node);
     } finally {
-      _isInNativeClass = false;
       _enclosingClass = null;
     }
   }
@@ -610,7 +596,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitCompilationUnit(covariant CompilationUnitImpl node) {
     var fragment = node.declaredFragment!;
-    _featureSet = node.featureSet;
     _duplicateDefinitionVerifier.checkUnit(node);
     _checkForDeferredPrefixCollisions(node);
     _checkForIllegalLanguageOverride(node);
@@ -622,7 +607,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ).checkStaticGetters(fragment.element.getters);
 
     super.visitCompilationUnit(node);
-    _featureSet = null;
   }
 
   @override
@@ -665,7 +649,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkForUndefinedConstructorInInitializerImplicitConstructor(node);
         _checkForReturnInGenerativeConstructor(node);
         _checkForNonRedirectingGenerativeConstructorWithPrimary(node);
-        super.visitConstructorDeclaration(node);
+
+        node.visitChildrenWithHooks(
+          this,
+          visitInitializers: (initializers) {
+            _withThisContext(ThisContext.constructorInitializers, () {
+              initializers.accept(this);
+            });
+          },
+          visitBody: (body) {
+            _withThisContext(
+              node.factoryKeyword != null
+                  ? ThisContext.factoryConstructorBody
+                  : ThisContext.generativeConstructorBody,
+              () {
+                body.accept(this);
+              },
+            );
+          },
+        );
       },
       isAsynchronous: fragment.isAsynchronous,
       isGenerator: fragment.isGenerator,
@@ -674,25 +676,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    _isInConstructorInitializer = true;
-    try {
-      SimpleIdentifier fieldName = node.fieldName;
-      var element = fieldName.element;
-      _checkForInvalidField(node, fieldName, element);
-      if (element is FieldElement) {
-        _checkForAbstractOrExternalFieldConstructorInitializer(
-          node.fieldName.token,
-          element,
-        );
-      }
-      super.visitConstructorFieldInitializer(node);
-    } finally {
-      _isInConstructorInitializer = false;
+    SimpleIdentifier fieldName = node.fieldName;
+    var element = fieldName.element;
+    _checkForInvalidField(node, fieldName, element);
+    if (element is FieldElement) {
+      _checkForAbstractOrExternalFieldConstructorInitializer(
+        node.fieldName.token,
+        element,
+      );
     }
+    super.visitConstructorFieldInitializer(node);
   }
 
   @override
   void visitConstructorReference(covariant ConstructorReferenceImpl node) {
+    _constArgumentsVerifier.visitConstructorReference(node);
     _typeArgumentsVerifier.checkConstructorReference(node);
     _checkForInvalidGenerativeConstructorReference(
       node.constructorName,
@@ -798,6 +796,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.namePart.typeName, node.declaredFragment!);
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredElement);
+      _checkForMultiplePrimaryConstructorBodyDeclarations(members);
 
       GetterSetterTypesVerifier(
         library: _currentLibrary,
@@ -825,14 +824,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    var oldHasAccessToThis = _hasAccessToThis;
-    try {
-      _hasAccessToThis = _computeThisAccessForFunctionBody(node);
-      _returnTypeVerifier.verifyExpressionFunctionBody(node);
-      super.visitExpressionFunctionBody(node);
-    } finally {
-      _hasAccessToThis = oldHasAccessToThis;
-    }
+    _returnTypeVerifier.verifyExpressionFunctionBody(node);
+    super.visitExpressionFunctionBody(node);
   }
 
   @override
@@ -902,6 +895,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         members,
         node.primaryConstructor,
       );
+
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
         node,
         declaredFragment,
@@ -920,6 +914,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionTypeWithAbstractMember(node);
       _checkForExtensionTypeRepresentationErrorCodes(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
+      _checkForMultiplePrimaryConstructorBodyDeclarations(members);
 
       var interface = _inheritanceManager.getInterface(declaredElement);
       GetterSetterTypesVerifier(
@@ -936,31 +931,42 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    var fields = node.fields;
-    _isInStaticVariableDeclaration = node.isStatic;
-    _isInInstanceNotLateVariableDeclaration =
-        !node.isStatic && !node.fields.isLate;
-    if (!_isInStaticVariableDeclaration) {
-      if (fields.isConst) {
-        diagnosticReporter.report(diag.constInstanceField.at(fields.keyword!));
+    if (!node.isStatic) {
+      if (node.fields.isConst) {
+        diagnosticReporter.report(
+          diag.constInstanceField.at(node.fields.keyword!),
+        );
       }
     }
-    var oldHasAccessToThis = _hasAccessToThis;
-    try {
-      _hasAccessToThis = !node.isStatic && node.fields.isLate;
-      _checkForExtensionDeclaresInstanceField(node);
-      _checkForExtensionTypeDeclaresInstanceField(node);
 
-      _checkForWrongTypeParameterVarianceInField(node);
-      _checkForLateFinalFieldWithConstConstructor(node);
-      _checkForNonFinalFieldInEnum(node);
+    _checkForExtensionDeclaresInstanceField(node);
+    _checkForExtensionTypeDeclaresInstanceField(node);
+    _checkForWrongTypeParameterVarianceInField(node);
+    _checkForLateFinalFieldWithConstConstructor(node);
+    _checkForNonFinalFieldInEnum(
+      fieldDeclaration: node,
+      primaryConstructor: null,
+    );
 
-      super.visitFieldDeclaration(node);
-    } finally {
-      _isInStaticVariableDeclaration = false;
-      _isInInstanceNotLateVariableDeclaration = false;
-      _hasAccessToThis = oldHasAccessToThis;
-    }
+    node.visitChildrenWithHooks(
+      this,
+      visitFields: (fields) {
+        _withThisContext(
+          () {
+            if (node.isStatic) {
+              return ThisContext.staticFieldDeclaration;
+            } else if (node.fields.isLate) {
+              return ThisContext.lateInstanceFieldDeclaration;
+            } else {
+              return ThisContext.instanceFieldDeclaration;
+            }
+          }(),
+          () {
+            fields.accept(this);
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -1002,6 +1008,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitForElement(covariant ForElementImpl node) {
+    _withHiddenElementsForForParts(node.forLoopParts, () {
+      super.visitForElement(node);
+    });
+  }
+
+  @override
   void visitFormalParameterList(covariant FormalParameterListImpl node) {
     _duplicateDefinitionVerifier.checkParameters(node);
     _checkUseOfCovariantInParameters(node);
@@ -1015,6 +1028,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     _duplicateDefinitionVerifier.checkForVariables(node.variables);
     super.visitForPartsWithDeclarations(node);
+  }
+
+  @override
+  void visitForStatement(covariant ForStatementImpl node) {
+    _withHiddenElementsForForParts(node.forLoopParts, () {
+      super.visitForStatement(node);
+    });
   }
 
   @override
@@ -1085,6 +1105,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFunctionReference(FunctionReference node) {
+    _constArgumentsVerifier.visitFunctionReference(node);
     _typeArgumentsVerifier.checkFunctionReference(node);
     super.visitFunctionReference(node);
   }
@@ -1293,7 +1314,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           externalKeyword: node.externalKeyword,
           body: node.body,
         );
-        super.visitMethodDeclaration(node);
+
+        node.visitChildrenWithHooks(
+          this,
+          visitBody: (body) {
+            _withThisContext(
+              node.isStatic
+                  ? ThisContext.staticMemberBody
+                  : ThisContext.instanceMemberBody,
+              () {
+                body.accept(this);
+              },
+            );
+          },
+        );
       },
       isAsynchronous: fragment.isAsynchronous,
       isGenerator: fragment.isGenerator,
@@ -1432,6 +1466,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
     } else {
       _checkForAssignmentToFinal(operand);
+      _checkForAssignmentToPrimaryConstructorParameter(operand);
       _checkForIntNotAssignable(operand);
     }
     super.visitPostfixExpression(node);
@@ -1439,6 +1474,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    _constArgumentsVerifier.visitPrefixedIdentifier(node);
     if (node.parent is! Annotation) {
       var typeReference = getTypeReference(node.prefix);
       SimpleIdentifier name = node.identifier;
@@ -1455,6 +1491,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (operatorType != TokenType.BANG) {
       if (operatorType.isIncrementOperator) {
         _checkForAssignmentToFinal(operand);
+        _checkForAssignmentToPrimaryConstructorParameter(operand);
       }
       checkForUseOfVoidResult(operand);
       _checkForIntNotAssignable(operand);
@@ -1474,7 +1511,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       element,
       () {
         _checkForConflictingPrimaryConstructorInitializers(node);
-        super.visitPrimaryConstructorBody(node);
+
+        node.visitChildrenWithHooks(
+          this,
+          visitInitializers: (initializers) {
+            _withThisContext(ThisContext.constructorInitializers, () {
+              initializers.accept(this);
+            });
+          },
+          visitBody: (body) {
+            _withThisContext(ThisContext.generativeConstructorBody, () {
+              body.accept(this);
+            });
+          },
+        );
       },
       isAsynchronous: fragment.isAsynchronous,
       isGenerator: fragment.isGenerator,
@@ -1523,10 +1573,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       isAsynchronous: fragment.isAsynchronous,
       isGenerator: fragment.isGenerator,
     );
+    _checkForNonFinalFieldInEnum(
+      fieldDeclaration: null,
+      primaryConstructor: node,
+    );
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
+    _constArgumentsVerifier.visitPropertyAccess(node);
     var target = node.realTarget;
     var typeReference = getTypeReference(target);
     SimpleIdentifier propertyName = node.propertyName;
@@ -1559,12 +1614,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     _requiredParametersVerifier.visitRedirectingConstructorInvocation(node);
     _constArgumentsVerifier.visitRedirectingConstructorInvocation(node);
-    _isInConstructorInitializer = true;
-    try {
-      super.visitRedirectingConstructorInvocation(node);
-    } finally {
-      _isInConstructorInitializer = false;
-    }
+    super.visitRedirectingConstructorInvocation(node);
   }
 
   @override
@@ -1606,6 +1656,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
+    _constArgumentsVerifier.visitSimpleIdentifier(node);
     _checkForAmbiguousImport(
       name: node.token,
       element: node.writeOrReadElement,
@@ -1645,13 +1696,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       enclosingConstructor: _enclosingExecutable.element.tryCast(),
     );
     _constArgumentsVerifier.visitSuperConstructorInvocation(node);
-    _isInConstructorInitializer = true;
-    try {
-      _checkForExtensionTypeConstructorWithSuperInvocation(node);
-      super.visitSuperConstructorInvocation(node);
-    } finally {
-      _isInConstructorInitializer = false;
-    }
+    _checkForExtensionTypeConstructorWithSuperInvocation(node);
+    super.visitSuperConstructorInvocation(node);
   }
 
   @override
@@ -1721,7 +1767,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSwitchCase(covariant SwitchCaseImpl node) {
-    _withHiddenElements(node.statements, () {
+    _withHiddenElementsForStatements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitSwitchCase(node);
     });
@@ -1729,7 +1775,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSwitchDefault(covariant SwitchDefaultImpl node) {
-    _withHiddenElements(node.statements, () {
+    _withHiddenElementsForStatements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitSwitchDefault(node);
     });
@@ -1743,7 +1789,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSwitchPatternCase(covariant SwitchPatternCaseImpl node) {
-    _withHiddenElements(node.statements, () {
+    _withHiddenElementsForStatements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitSwitchPatternCase(node);
     });
@@ -2273,6 +2319,34 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _checkForAssignmentToPrimaryConstructorParameter(AstNode node) {
+    Element? formalParameter;
+    if (node is AssignedVariablePattern) {
+      formalParameter = node.element;
+    } else if (node is SimpleIdentifier) {
+      formalParameter = node.element;
+    } else {
+      return;
+    }
+
+    if (formalParameter is! FormalParameterElement) {
+      return;
+    }
+
+    var enclosing = formalParameter.enclosingElement;
+    if (enclosing is ConstructorElement && enclosing.isPrimary) {
+      switch (_thisContext) {
+        case ThisContext.constructorInitializers:
+        case ThisContext.instanceFieldDeclaration:
+          diagnosticReporter.report(
+            diag.assignmentToPrimaryConstructorParameter.at(node),
+          );
+        default:
+        // OK
+      }
+    }
+  }
+
   void _checkForAwaitInLateLocalVariableInitializer(AwaitExpression node) {
     if (_isInLateLocalVariable.last) {
       diagnosticReporter.report(
@@ -2298,7 +2372,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required WithClause? withClause,
   }) {
     // With the `class_modifiers` feature `Function` is final.
-    if (_featureSet!.isEnabled(Feature.class_modifiers)) {
+    if (_featureSet.isEnabled(Feature.class_modifiers)) {
       return;
     }
 
@@ -3405,15 +3479,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // An implicit tear-off conversion does occur on the values of the
         // iterator, but this does not guarantee their assignability.
 
-        if (_featureSet?.isEnabled(Feature.constructor_tearoffs) ?? true) {
+        if (_featureSet.isEnabled(Feature.constructor_tearoffs)) {
           var typeArguments = typeSystem.inferFunctionTypeInstantiation(
             variableType as FunctionTypeImpl,
             tearoffType,
             diagnosticReporter: diagnosticReporter,
             errorNode: node.iterable,
             genericMetadataIsEnabled: true,
-            inferenceUsingBoundsIsEnabled:
-                _featureSet?.isEnabled(Feature.inference_using_bounds) ?? true,
+            inferenceUsingBoundsIsEnabled: _featureSet.isEnabled(
+              Feature.inference_using_bounds,
+            ),
             strictInference: options.strictInference,
             strictCasts: options.strictCasts,
             typeSystemOperations: typeSystemOperations,
@@ -3775,7 +3850,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
     }
 
-    if (_featureSet!.isEnabled(Feature.primary_constructors)) {
+    if (_featureSet.isEnabled(Feature.primary_constructors)) {
       if (inner is SimpleFormalParameterImpl) {
         var keyword = inner.keyword;
         if (keyword != null) {
@@ -4014,7 +4089,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (node == null) {
       return;
     }
-    if (_featureSet?.isEnabled(Feature.generic_metadata) ?? false) {
+    if (_featureSet.isEnabled(Feature.generic_metadata)) {
       return;
     }
     DartType type = node.typeOrThrow;
@@ -4274,13 +4349,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_isInComment) {
       return;
     }
-    if (!_isInConstructorInitializer &&
-        !_enclosingExecutable.inStaticMethod &&
-        !_enclosingExecutable.inFactoryConstructor &&
-        !_isInInstanceNotLateVariableDeclaration &&
-        !_isInStaticVariableDeclaration) {
+
+    if (_thisContext.allowsThis) {
       return;
     }
+
     // prepare element
     var element = identifier.writeOrReadElement;
     if (!(element is MethodElement || element is PropertyAccessorElement)) {
@@ -4317,20 +4390,28 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    if (_enclosingExecutable.inStaticMethod) {
-      diagnosticReporter.report(
-        diag.instanceMemberAccessFromStatic.at(identifier),
-      );
-    } else if (_enclosingExecutable.inFactoryConstructor) {
-      diagnosticReporter.report(
-        diag.instanceMemberAccessFromFactory.at(identifier),
-      );
-    } else {
-      diagnosticReporter.report(
-        diag.implicitThisReferenceInInitializer
-            .withArguments(memberName: identifier.name)
-            .at(identifier),
-      );
+    switch (_thisContext) {
+      case ThisContext.constructorInitializers:
+      case ThisContext.instanceFieldDeclaration:
+      case ThisContext.staticFieldDeclaration:
+      case ThisContext.topLevel:
+        diagnosticReporter.report(
+          diag.implicitThisReferenceInInitializer
+              .withArguments(memberName: identifier.name)
+              .at(identifier),
+        );
+      case ThisContext.factoryConstructorBody:
+        diagnosticReporter.report(
+          diag.instanceMemberAccessFromFactory.at(identifier),
+        );
+      case ThisContext.staticMemberBody:
+        diagnosticReporter.report(
+          diag.instanceMemberAccessFromStatic.at(identifier),
+        );
+      case ThisContext.generativeConstructorBody:
+      case ThisContext.instanceMemberBody:
+      case ThisContext.lateInstanceFieldDeclaration:
+        throw StateError('Should not be reached');
     }
   }
 
@@ -4351,7 +4432,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [diag.invalidReferenceToThis].
   void _checkForInvalidReferenceToThis(ThisExpression expression) {
-    if (!_hasAccessToThis) {
+    if (!_thisContext.allowsThis) {
       diagnosticReporter.report(diag.invalidReferenceToThis.at(expression));
     }
   }
@@ -4405,7 +4486,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       this,
       forList: true,
       elementType: listElementType,
-      featureSet: _featureSet!,
+      featureSet: _featureSet,
     );
     for (CollectionElement element in literal.elements) {
       verifier.verify(element);
@@ -4497,7 +4578,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         forMap: true,
         mapKeyType: keyType,
         mapValueType: valueType,
-        featureSet: _featureSet!,
+        featureSet: _featureSet,
       );
       for (CollectionElement element in literal.elements) {
         verifier.verify(element);
@@ -4923,6 +5004,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _checkForMultiplePrimaryConstructorBodyDeclarations(
+    List<ClassMember> members,
+  ) {
+    var primaryConstructorBodies = members
+        .whereType<PrimaryConstructorBody>()
+        .toList();
+
+    for (var i = 1; i < primaryConstructorBodies.length; i++) {
+      diagnosticReporter.report(
+        diag.multiplePrimaryConstructorBodyDeclarations.at(
+          primaryConstructorBodies[i].thisKeyword,
+        ),
+      );
+    }
+  }
+
   /// Checks to ensure that the given native function [body] is in SDK code.
   ///
   /// See [diag.nativeFunctionBodyInNonSdkCode].
@@ -5137,20 +5234,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForNonFinalFieldInEnum(FieldDeclaration node) {
-    if (node.isStatic) return;
-
-    var variableList = node.fields;
-    if (variableList.isFinal) return;
-
-    var enclosingClass = _enclosingClass;
-    if (enclosingClass == null || enclosingClass is! EnumElement) {
+  void _checkForNonFinalFieldInEnum({
+    required FieldDeclaration? fieldDeclaration,
+    required PrimaryConstructorDeclarationImpl? primaryConstructor,
+  }) {
+    if (_enclosingClass is! EnumElement) {
       return;
     }
 
-    diagnosticReporter.report(
-      diag.nonFinalFieldInEnum.at(variableList.variables.first.name),
-    );
+    if (fieldDeclaration != null) {
+      if (!fieldDeclaration.isStatic) {
+        var variableList = fieldDeclaration.fields;
+        if (!variableList.isFinal) {
+          diagnosticReporter.report(
+            diag.nonFinalFieldInEnum.at(variableList.variables.first.name),
+          );
+        }
+      }
+    } else if (primaryConstructor != null) {
+      for (var parameter in primaryConstructor.formalParameters.parameters) {
+        var formalParameter = parameter.notDefault;
+        var element = formalParameter.declaredFragment?.element;
+        if (element is FieldFormalParameterElementImpl && element.isDeclaring) {
+          var nameToken = formalParameter.name;
+          var field = element.field;
+          if (nameToken != null && field != null && !field.isFinal) {
+            diagnosticReporter.report(diag.nonFinalFieldInEnum.at(nameToken));
+          }
+        }
+      }
+    } else {
+      throw StateError('No required location');
+    }
   }
 
   void _checkForNonRedirectingGenerativeConstructorWithPrimary(
@@ -5236,15 +5351,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    // TODO(scheglov): consider removing
-    // class A native 'something' { final int v; }
-    if (_isInNativeClass) {
-      return;
-    }
-
     var isInstanceField = !fieldDeclaration.isStatic;
     if (isInstanceField) {
-      // TODO(scheglov): consider removing
+      // [FfiVerifier] reports [fieldMustBeExternalInStruct].
       if (_isEnclosingClassFfiStruct || _isEnclosingClassFfiUnion) {
         return;
       }
@@ -5657,7 +5766,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         this,
         forSet: true,
         elementType: setElementType,
-        featureSet: _featureSet!,
+        featureSet: _featureSet,
       );
       for (CollectionElement element in literal.elements) {
         verifier.verify(element);
@@ -5750,7 +5859,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required Token name,
     required Element? element,
   }) {
-    if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
+    if (_enclosingExecutable.inStaticMethod ||
+        _thisContext == ThisContext.staticFieldDeclaration) {
       if (element is TypeParameterElement &&
           element.enclosingElement is InstanceElement) {
         // The class's type parameters are not in scope for static methods.
@@ -6043,63 +6153,51 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForValidField(FieldFormalParameter parameter) {
-    var parent2 = parameter.parent?.parent;
-    if (parent2 is! ConstructorDeclaration &&
-        parent2?.parent is! ConstructorDeclaration) {
+    var constructor = parameter.parentFormalParameterList.parent;
+    if (constructor is PrimaryConstructorDeclaration &&
+        constructor.parent is ExtensionTypeDeclaration) {
       return;
     }
+    if (constructor is! ConstructorDeclaration &&
+        constructor is! PrimaryConstructorDeclaration) {
+      return;
+    }
+
     var element = parameter.declaredFragment?.element;
-    if (element is FieldFormalParameterElementImpl) {
-      var fieldElement = element.field;
-      if (fieldElement == null || fieldElement.isOriginGetterSetter) {
-        diagnosticReporter.report(
-          diag.initializingFormalForNonExistentField
-              .withArguments(formalName: parameter.name.lexeme)
-              .at(parameter),
-        );
-      } else {
-        var parameterElement = parameter.declaredFragment?.element;
-        if (parameterElement is FieldFormalParameterElementImpl) {
-          var declaredType = parameterElement.type;
-          var fieldType = fieldElement.type;
-          if (fieldElement.isOriginGetterSetter) {
-            diagnosticReporter.report(
-              diag.initializingFormalForNonExistentField
-                  .withArguments(formalName: parameter.name.lexeme)
-                  .at(parameter),
-            );
-          } else if (fieldElement.isStatic) {
-            diagnosticReporter.report(
-              diag.initializerForStaticField
-                  .withArguments(formalName: parameter.name.lexeme)
-                  .at(parameter),
-            );
-          } else if (!typeSystem.isSubtypeOf(declaredType, fieldType)) {
-            diagnosticReporter.report(
-              diag.fieldInitializingFormalNotAssignable
-                  .withArguments(
-                    formalParameterType: declaredType,
-                    fieldType: fieldType,
-                  )
-                  .at(parameter),
-            );
-          }
-        } else {
-          if (fieldElement.isOriginGetterSetter) {
-            diagnosticReporter.report(
-              diag.initializingFormalForNonExistentField
-                  .withArguments(formalName: parameter.name.lexeme)
-                  .at(parameter),
-            );
-          } else if (fieldElement.isStatic) {
-            diagnosticReporter.report(
-              diag.initializerForStaticField
-                  .withArguments(formalName: parameter.name.lexeme)
-                  .at(parameter),
-            );
-          }
-        }
-      }
+    if (element is! FieldFormalParameterElementImpl) {
+      return;
+    }
+
+    var fieldElement = element.field;
+    if (fieldElement == null || fieldElement.isOriginGetterSetter) {
+      diagnosticReporter.report(
+        diag.initializingFormalForNonExistentField
+            .withArguments(formalName: parameter.name.lexeme)
+            .at(parameter),
+      );
+      return;
+    }
+
+    if (fieldElement.isStatic) {
+      diagnosticReporter.report(
+        diag.initializerForStaticField
+            .withArguments(formalName: parameter.name.lexeme)
+            .at(parameter),
+      );
+      return;
+    }
+
+    var elementType = element.type;
+    var fieldType = fieldElement.type;
+    if (!typeSystem.isSubtypeOf(elementType, fieldType)) {
+      diagnosticReporter.report(
+        diag.fieldInitializingFormalNotAssignable
+            .withArguments(
+              formalParameterType: elementType,
+              fieldType: fieldType,
+            )
+            .at(parameter),
+      );
     }
     //        else {
     // TODO(jwren): Report error, constructor initializer variable is a top level element
@@ -6468,15 +6566,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           diagnosticReporter.report(
             diag.experimentNotEnabled
                 .withArguments(
-                  string: feature.experimentalFlag!,
-                  string2: feature.releaseVersion.toString(),
+                  featureName: feature.experimentalFlag!,
+                  enabledVersion: feature.releaseVersion.toString(),
                 )
                 .at(name),
           );
         } else {
           diagnosticReporter.report(
             diag.experimentNotEnabledOffByDefault
-                .withArguments(string: feature.experimentalFlag!)
+                .withArguments(featureName: feature.experimentalFlag!)
                 .at(name),
           );
         }
@@ -6612,14 +6710,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
   }
-
-  bool _computeThisAccessForFunctionBody(FunctionBody node) =>
-      switch (node.parent) {
-        ConstructorDeclaration(:var factoryKeyword) => factoryKeyword == null,
-        MethodDeclaration(:var isStatic) => !isStatic,
-        PrimaryConstructorBody() => true,
-        _ => _hasAccessToThis,
-      };
 
   /// Given an [expression] in a switch case whose value is expected to be an
   /// enum constant, return the name of the constant.
@@ -6878,27 +6968,68 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _withHiddenElements(List<Statement> statements, void Function() f) {
-    _hiddenElements = HiddenElements(_hiddenElements, statements);
+  void _withHiddenElements(HiddenElements hiddenElements, void Function() f) {
+    var outerElements = _hiddenElements;
+    _hiddenElements = hiddenElements;
     try {
       f();
     } finally {
-      _hiddenElements = _hiddenElements!.outerElements;
+      _hiddenElements = outerElements;
     }
+  }
+
+  void _withHiddenElementsForForParts(
+    ForLoopParts forLoopParts,
+    void Function() f,
+  ) {
+    if (forLoopParts is ForPartsWithDeclarations) {
+      _withHiddenElements(
+        HiddenElements.forElements(
+          _hiddenElements,
+          forLoopParts.variables.variables.map(
+            (variable) => variable.declaredFragment!.element,
+          ),
+        ),
+        f,
+      );
+    } else {
+      f();
+    }
+  }
+
+  void _withHiddenElementsForStatements(
+    List<Statement> statements,
+    void Function() f,
+  ) {
+    _withHiddenElements(
+      HiddenElements.forElements(
+        _hiddenElements,
+        BlockScope.elementsInStatements(statements),
+      ),
+      f,
+    );
   }
 
   void _withHiddenElementsGuardedPattern(
     GuardedPatternImpl guardedPattern,
     void Function() f,
   ) {
-    _hiddenElements = HiddenElements.forGuardedPattern(
-      _hiddenElements,
-      guardedPattern,
+    _withHiddenElements(
+      HiddenElements.forElements(
+        _hiddenElements,
+        guardedPattern.variables.values,
+      ),
+      f,
     );
+  }
+
+  /// Executes [f] with [state] as the current [ThisContext].
+  void _withThisContext(ThisContext state, void Function() f) {
+    _thisContextStack.add(state);
     try {
       f();
     } finally {
-      _hiddenElements = _hiddenElements!.outerElements;
+      _thisContextStack.removeLast();
     }
   }
 
@@ -6933,20 +7064,9 @@ class HiddenElements {
   final Set<Element> _elements = {};
 
   /// Initialize a newly created set of hidden elements to include all of the
-  /// elements defined in the set of [outerElements] and all of the elements
-  /// declared in the given [statements].
-  HiddenElements(this.outerElements, List<Statement> statements) {
-    _initializeElements(statements);
-  }
-
-  /// Initialize a newly created set of hidden elements to include all of the
-  /// elements defined in the set of [outerElements] and all of the elements
-  /// declared in the given [guardedPattern].
-  HiddenElements.forGuardedPattern(
-    this.outerElements,
-    GuardedPatternImpl guardedPattern,
-  ) {
-    _elements.addAll(guardedPattern.variables.values);
+  /// elements defined in [outerElements] and the given [elements].
+  HiddenElements.forElements(this.outerElements, Iterable<Element> elements) {
+    _elements.addAll(elements);
   }
 
   /// Return `true` if this set of elements contains the given [element].
@@ -6963,12 +7083,6 @@ class HiddenElements {
   /// hidden.
   void declare(Element element) {
     _elements.remove(element);
-  }
-
-  /// Initialize the list of elements that are not yet declared to be all of the
-  /// elements declared somewhere in the given [statements].
-  void _initializeElements(List<Statement> statements) {
-    _elements.addAll(BlockScope.elementsInStatements(statements));
   }
 }
 
@@ -7006,6 +7120,23 @@ class LibraryVerificationContext {
   Set<InterfaceElement> setOfOn(MixinElement declaration) {
     return _setOfOnMaps[declaration] ??= Set.identity();
   }
+}
+
+/// The semantic location related to explicit or implicit `this` access.
+enum ThisContext {
+  constructorInitializers(allowsThis: false),
+  factoryConstructorBody(allowsThis: false),
+  generativeConstructorBody(allowsThis: true),
+  instanceFieldDeclaration(allowsThis: false),
+  instanceMemberBody(allowsThis: true),
+  lateInstanceFieldDeclaration(allowsThis: true),
+  staticFieldDeclaration(allowsThis: false),
+  staticMemberBody(allowsThis: false),
+  topLevel(allowsThis: false);
+
+  final bool allowsThis;
+
+  const ThisContext({required this.allowsThis});
 }
 
 /// Kinds of null-aware accesses handled by

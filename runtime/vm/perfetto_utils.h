@@ -132,32 +132,78 @@ inline void AppendPacketToJSONBase64String(
   });
 }
 
-// Sequence of elements which can be interned by |BytesInterner|.
+// Sequence of |length| elements of type |T|.
 //
-// Equality and hash are defined in terms of raw byte content.
+// These elements are treated as raw bytes for the purpose of equality and
+// hashing.
 template <typename T>
-struct InternedBytes {
-  InternedBytes(const T* data, intptr_t length)
-      : data(data),
-        length(length),
-        hash(HashBytes(reinterpret_cast<const uint8_t*>(data),
-                       length * sizeof(T))),
-        iid(0) {}
+struct Span {
+  const T* const data;
+  intptr_t length;
 
-  InternedBytes(const T* data, intptr_t length, uword hash, uint64_t iid)
-      : data(data), length(length), hash(hash), iid(iid) {}
+  template <typename Allocator>
+  Span<T> Copy(Allocator* allocator) const {
+    T* copy = allocator->template Alloc<T>(length);
+    memcpy(copy, data, length * sizeof(T));  // NOLINT
+    return {copy, length};
+  }
 
-  bool Equals(const InternedBytes& other) const {
+  template <typename Allocator>
+  void Dispose(Allocator* allocator) const {
+    if constexpr (Allocator::kSupportsFreeingIndividualAllocations) {
+      allocator->Free(const_cast<T*>(data), length);
+    }
+  }
+
+  bool Equals(const Span& other) const {
     if (length != other.length) {
       return false;
     }
     return memcmp(data, other.data, length * sizeof(T)) == 0;
   }
 
+  uword Hash() const {
+    return HashBytes(reinterpret_cast<const uint8_t*>(data),
+                     length * sizeof(T));
+  }
+};
+
+template <typename T, typename Allocator>
+concept DefinesCopyAndDispose = requires(const T& a, Allocator* allocator) {
+  { a.Copy(allocator) } -> std::same_as<T>;
+  { a.Dispose(allocator) } -> std::same_as<void>;
+};
+
+// Sequence of elements which can be interned by |BytesInterner|.
+//
+// Equality and hash are defined in terms of raw byte content.
+template <typename T>
+struct Interned {
+  explicit Interned(const T& data)
+      : data(data), hash(ComputeHash(data)), iid(0) {}
+
+  Interned(const T& data, uword hash, uint64_t iid)
+      : data(data), hash(hash), iid(iid) {}
+
+  bool Equals(const Interned& other) const {
+    if constexpr (DefinesHashAndEquality<T>) {
+      return data.Equals(other.data);
+    } else {
+      return memcmp(&data, &other.data, sizeof(T)) == 0;
+    }
+  }
+
+  static uword ComputeHash(const T& data) {
+    if constexpr (DefinesHashAndEquality<T>) {
+      return data.Hash();
+    } else {
+      return HashBytes(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
+    }
+  }
+
   uword Hash() const { return hash; }
 
-  const T* const data;
-  const intptr_t length;
+  const T data;
   const uword hash;
 
   // Interning id. Only set after interning and does not participate in
@@ -172,19 +218,18 @@ typedef uint8_t InternerStateBits;
 // Interning dictionary used to construct various parts of |InternedData|
 // message.
 template <typename T, typename Allocator>
-class BytesInterner
-    : public BaseDirectChainedHashMap<PointerSetKeyValueTrait<InternedBytes<T>>,
+class Interner
+    : public BaseDirectChainedHashMap<PointerSetKeyValueTrait<Interned<T>>,
                                       ValueObject,
                                       Allocator> {
-  using Base =
-      BaseDirectChainedHashMap<PointerSetKeyValueTrait<InternedBytes<T>>,
-                               ValueObject,
-                               Allocator>;
+  using Base = BaseDirectChainedHashMap<PointerSetKeyValueTrait<Interned<T>>,
+                                        ValueObject,
+                                        Allocator>;
 
  public:
-  explicit BytesInterner(Allocator* allocator = nullptr) : Base(allocator) {}
+  explicit Interner(Allocator* allocator = nullptr) : Base(allocator) {}
 
-  ~BytesInterner() {
+  ~Interner() {
     if constexpr (Allocator::kSupportsFreeingIndividualAllocations) {
       auto it = Base::GetIterator();
       while (auto pair = it.Next()) {
@@ -193,10 +238,18 @@ class BytesInterner
     }
   }
 
-  uint64_t Intern(const T* data, const intptr_t length) {
+  uint64_t Lookup(const T& data) {
+    Interned<T> key(data);
+    if (auto interned = Base::Lookup(&key)) {
+      return (*interned)->iid;
+    }
+    return 0;
+  }
+
+  uint64_t Intern(const T& data) {
     state_ |= kInternerWasUsed;
 
-    InternedBytes<T> key(data, length);
+    Interned<T> key(data);
     if (auto interned = Base::Lookup(&key)) {
       return (*interned)->iid;
     }
@@ -214,7 +267,8 @@ class BytesInterner
     // Note: we never remove elements from this map so we can just iterate
     // |pairs_| linearly.
     for (uint32_t i = first_to_flush_; i < Base::next_pair_index_; i++) {
-      callback(*Base::pairs_[i]);
+      auto pair = Base::pairs_[i];
+      callback(pair->iid, pair->data);
     }
     first_to_flush_ = Base::next_pair_index_;
   }
@@ -225,21 +279,35 @@ class BytesInterner
     return result;
   }
 
+  Interned<T>** begin() { return &Base::pairs_[0]; }
+  Interned<T>** end() { return &Base::pairs_[Base::next_pair_index_]; }
+
+  const Interned<T>** begin() const { return &Base::pairs_[0]; }
+  const Interned<T>** end() const {
+    return &Base::pairs_[Base::next_pair_index_];
+  }
+
+  const T& GetByIid(uint64_t iid) const { return Base::pairs_[iid - 1]->data; }
+
  private:
   Allocator* allocator() const { return Base::allocator_; }
 
-  InternedBytes<T>* Copy(const InternedBytes<T>& interned, uint64_t iid) const {
-    auto data_copy = allocator()->template Alloc<T>(interned.length);
-    memcpy(data_copy, interned.data, interned.length * sizeof(T));  // NOLINT
-    auto copy = allocator()->template Alloc<InternedBytes<T>>(1);
-    new (copy) InternedBytes<T>(data_copy, interned.length, interned.hash, iid);
+  Interned<T>* Copy(const Interned<T>& interned, uint64_t iid) const {
+    auto copy = allocator()->template Alloc<Interned<T>>(1);
+    if constexpr (DefinesCopyAndDispose<T, Allocator>) {
+      new (copy)
+          Interned<T>(interned.data.Copy(allocator()), interned.hash, iid);
+    } else {
+      new (copy) Interned<T>(interned.data, interned.hash, iid);
+    }
     return copy;
   }
 
-  void Dispose(InternedBytes<T>* interned) {
+  void Dispose(Interned<T>* interned) {
     if constexpr (Allocator::kSupportsFreeingIndividualAllocations) {
-      allocator()->Free(const_cast<T*>(interned->data),
-                        interned->length * sizeof(T));
+      if constexpr (DefinesCopyAndDispose<T, Allocator>) {
+        interned->data.Dispose(allocator());
+      }
       allocator()->Free(interned, 1);
     }
   }
@@ -258,9 +326,15 @@ class StringInterner : public ValueObject {
   explicit StringInterner(Allocator* allocator = nullptr)
       : bytes_interner_(allocator) {}
 
+  uint64_t Lookup(const char* str) {
+    return bytes_interner_.Lookup(
+        {str, static_cast<intptr_t>(strlen(str) + 1)});
+  }
+
   uint64_t Intern(const char* str) {
     // +1 to include terminating NUL character.
-    return bytes_interner_.Intern(str, strlen(str) + 1);
+    return bytes_interner_.Intern(
+        {str, static_cast<intptr_t>(strlen(str) + 1)});
   }
 
   InternerStateBits TakeAndResetState() {
@@ -270,13 +344,23 @@ class StringInterner : public ValueObject {
   template <typename F>
   void FlushNewlyInternedTo(F&& callback) {
     bytes_interner_.FlushNewlyInternedTo(
-        [callback = std::move(callback)](const auto& interned_bytes) {
-          callback(interned_bytes.iid, interned_bytes.data);
+        [callback = std::move(callback)](auto iid, const auto& span) {
+          callback(iid, span.data);
         });
   }
 
+  const char* GetByIid(uint64_t iid) const {
+    return bytes_interner_.GetByIid(iid).data;
+  }
+
+  Interned<Span<char>>** begin() { return bytes_interner_.begin(); }
+  Interned<Span<char>>** end() { return bytes_interner_.end(); }
+
+  const Interned<Span<char>>** begin() const { return bytes_interner_.begin(); }
+  const Interned<Span<char>>** end() const { return bytes_interner_.end(); }
+
  private:
-  BytesInterner<char, Allocator> bytes_interner_;
+  Interner<Span<char>, Allocator> bytes_interner_;
 };
 
 // Trait used to map 64-bit ids (e.g. isolate or isolate group id) to
@@ -311,6 +395,50 @@ class InternedDataBuilder : public ValueObject {
   enum class UnknownMappingState { kNotNeeded, kNeeded, kEmitted };
 
  public:
+  struct Mapping {
+    uint64_t start;
+    uint64_t end;
+    uint64_t offset;
+    uint64_t path_string;
+    uint64_t build_id;
+  };
+
+  // Each frame is either eagerly symbolized or not. For eagerly symbolized
+  // frames rel_pc is set to kEagerlySymbolizedFramePc and function_name_iid
+  // is set to the iid of the function name. For non-eagerly symbolized frames
+  // rel_pc is set to the relative pc and function_name_iid might or might
+  // not be set.
+  //
+  // We assume that depending on the writer all frames are either eagerly
+  // symbolized or not.
+  struct Frame {
+    static constexpr uint64_t kEagerlySymbolizedFramePc = kMaxUint64;
+
+    uint64_t rel_pc = kEagerlySymbolizedFramePc;
+    uint32_t mapping_iid = 0;
+    uint32_t function_name_iid = 0;
+
+    bool Equals(const Frame& other) const {
+      // We assume symbolization mode is consistent: either all frames
+      // have rel_pc set to kEagerlySymbolizedFramePc or none of them do.
+      if (rel_pc == kEagerlySymbolizedFramePc) {
+        return mapping_iid == other.mapping_iid &&
+               function_name_iid == other.function_name_iid;
+      }
+      return mapping_iid == other.mapping_iid && rel_pc == other.rel_pc;
+    }
+
+    uword Hash() const {
+      if (rel_pc == kEagerlySymbolizedFramePc) {
+        return CombineHashes(Utils::WordHash(mapping_iid),
+                             Utils::WordHash(function_name_iid));
+      } else {
+        return CombineHashes(Utils::WordHash(mapping_iid),
+                             Utils::WordHash(rel_pc));
+      }
+    }
+  };
+
   // InternedData contains multiple independent interning dictionaries which
   // are used for different attributes.
 #define PERFETTO_INTERNED_STRINGS_FIELDS_LIST(V)                               \
@@ -319,12 +447,13 @@ class InternedDataBuilder : public ValueObject {
   V(debug_annotation_names, name)                                              \
   V(debug_annotation_string_values, str)                                       \
   V(function_names, str)                                                       \
-  V(mapping_paths, str)
+  V(mapping_paths, str)                                                        \
+  V(build_ids, str)
 
-#define PERFETTO_INTERNED_RAW_BYTES_FIELDS_LIST(V)                             \
-  V(callstacks, uint64_t)                                                      \
-  V(mappings, uint64_t)                                                        \
-  V(frames, uint64_t)
+#define PERFETTO_INTERNED_FIELDS_LIST(V)                                       \
+  V(callstacks, Span<uint64_t>)                                                \
+  V(mappings, Mapping)                                                         \
+  V(frames, Frame)
 
   // Direct access for known strings.
 #define PERFETTO_COMMON_INTERNED_STRINGS_LIST(V)                               \
@@ -372,13 +501,14 @@ class InternedDataBuilder : public ValueObject {
     PERFETTO_INTERNED_STRINGS_FIELDS_LIST(FLUSH_FIELD)
 #undef FLUSH_FIELD
 
-    callstacks_.FlushNewlyInternedTo([interned_data](const auto& interned) {
-      auto callstack = interned_data->add_callstacks();
-      callstack->set_iid(interned.iid);
-      for (intptr_t i = 0; i < interned.length; i++) {
-        callstack->add_frame_ids(interned.data[i]);
-      }
-    });
+    callstacks_.FlushNewlyInternedTo(
+        [interned_data](const auto iid, const auto& stack) {
+          auto callstack = interned_data->add_callstacks();
+          callstack->set_iid(iid);
+          for (intptr_t i = 0; i < stack.length; i++) {
+            callstack->add_frame_ids(stack.data[i]);
+          }
+        });
 
     // Perfetto proto message definition claim that mapping iid 0 means
     // the same as frame not having mapping information. However Perfetto UI
@@ -392,18 +522,31 @@ class InternedDataBuilder : public ValueObject {
       unknown_mapping_ = UnknownMappingState::kEmitted;
     }
 
-    mappings_.FlushNewlyInternedTo([interned_data](const auto& interned) {
-      auto mapping = interned_data->add_mappings();
-      mapping->set_iid(interned.iid);
-      mapping->add_path_string_ids(interned.data[0]);
-    });
+    mappings_.FlushNewlyInternedTo(
+        [interned_data](const auto iid, const auto& data) {
+          auto mapping = interned_data->add_mappings();
+          mapping->set_iid(iid);
+          mapping->set_start(data.start);
+          mapping->set_end(data.end);
+          mapping->set_start_offset(data.offset);
+          mapping->add_path_string_ids(data.path_string);
+          if (data.build_id != 0) {
+            mapping->set_build_id(data.build_id);
+          }
+        });
 
-    frames_.FlushNewlyInternedTo([interned_data](const auto& interned) {
+    frames_.FlushNewlyInternedTo([interned_data](const auto iid,
+                                                 const auto& data) {
       auto frame = interned_data->add_frames();
-      frame->set_iid(interned.iid);
-      frame->set_function_name_id(interned.data[0]);
-      if (interned.data[1] != 0) {
-        frame->set_mapping_id(interned.data[1]);
+      frame->set_iid(iid);
+      if (data.function_name_iid != 0) {
+        frame->set_function_name_id(data.function_name_iid);
+      }
+      if (data.mapping_iid != 0) {
+        frame->set_mapping_id(data.mapping_iid);
+      }
+      if (data.rel_pc != 0 && data.rel_pc != Frame::kEagerlySymbolizedFramePc) {
+        frame->set_rel_pc(data.rel_pc);
       }
     });
   }
@@ -414,10 +557,8 @@ class InternedDataBuilder : public ValueObject {
 #undef DEFINE_GETTER
 
 #define DEFINE_GETTER(name, element_type)                                      \
-  perfetto_utils::BytesInterner<element_type, Malloc>& name() {                \
-    return name##_;                                                            \
-  }
-  PERFETTO_INTERNED_RAW_BYTES_FIELDS_LIST(DEFINE_GETTER)
+  perfetto_utils::Interner<element_type, Malloc>& name() { return name##_; }
+  PERFETTO_INTERNED_FIELDS_LIST(DEFINE_GETTER)
 #undef DEFINE_GETTER
 
 #define DEFINE_GETTER_FOR_COMMON_STRING(category, str)                         \
@@ -442,6 +583,13 @@ class InternedDataBuilder : public ValueObject {
     return InternFormattedIdForDebugAnnotation(
         isolate_group_id_to_iid_of_formatted_string_,
         ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id);
+  }
+
+  uint64_t InternSyntheticBuildIdForIsolateGroup(Dart_Port isolate_group_id) {
+    char build_id_string[3 + sizeof(Dart_Port) * 2 + 1];
+    Utils::SNPrint(build_id_string, ARRAY_SIZE(build_id_string),
+                   "ig/%016" Px64 "", isolate_group_id);
+    return build_ids().Intern(build_id_string);
   }
 
  private:
@@ -469,7 +617,7 @@ class InternedDataBuilder : public ValueObject {
 #define TAKE_AND_RESET(name, ignored) result |= name##_.TakeAndResetState();
 
     PERFETTO_INTERNED_STRINGS_FIELDS_LIST(TAKE_AND_RESET)
-    PERFETTO_INTERNED_RAW_BYTES_FIELDS_LIST(TAKE_AND_RESET)
+    PERFETTO_INTERNED_FIELDS_LIST(TAKE_AND_RESET)
 #undef TAKE_AND_RESET
 
     return result;
@@ -496,8 +644,8 @@ class InternedDataBuilder : public ValueObject {
 #undef DEFINE_FIELD
 
 #define DEFINE_FIELD(name, element_type)                                       \
-  perfetto_utils::BytesInterner<element_type, Malloc> name##_;
-  PERFETTO_INTERNED_RAW_BYTES_FIELDS_LIST(DEFINE_FIELD)
+  perfetto_utils::Interner<element_type, Malloc> name##_;
+  PERFETTO_INTERNED_FIELDS_LIST(DEFINE_FIELD)
 #undef DEFINE_FIELD
 
   DISALLOW_COPY_AND_ASSIGN(InternedDataBuilder);

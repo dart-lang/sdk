@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Callback = () → void;
+class Foo extends core::Object {
+  field () →? void _#Foo#_koCallback;
+  field core::bool _#Foo#_koCallback#isSet;
+  final field () →? void _okCallback;
+  constructor •({() →? void okCallback = null, () →? void koCallback = null}) → self::Foo
+    ;
+  get _koCallback() → () →? void;
+  set _koCallback(() →? void _koCallback#param) → void;
+  static synthetic method _#new#tearOff({() →? void okCallback, () →? void koCallback}) → self::Foo
+    return new self::Foo::•(okCallback: okCallback, koCallback: koCallback);
+  method thisWorks() → void
+    ;
+  method thisDoesNot() → void
+    ;
+}

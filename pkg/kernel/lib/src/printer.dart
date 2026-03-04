@@ -224,6 +224,8 @@ class AstPrinter {
         }
         return _variableDeclarationNames[node] ??=
             '#${_variableDeclarationNames.length}';
+      case CatchVariable(catchVariableName: var name):
+        return name;
     }
   }
 

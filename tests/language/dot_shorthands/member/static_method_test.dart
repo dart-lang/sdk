@@ -5,8 +5,6 @@
 // Basic usages of dot shorthands with static members in classes and extension
 // types.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 class StaticMemberContext {

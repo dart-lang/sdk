@@ -98,7 +98,7 @@ void NativeEntry::MaybePropagateError(NativeArguments* arguments) {
   // the kThreadInNative state.
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
   ObjectPtr retval = arguments->ReturnValue();
-  if (UNLIKELY(IsErrorClassId(retval->GetClassId()))) {
+  if (IsErrorClassId(retval->GetClassId())) [[unlikely]] {
     thread->UnwindScopes(thread->top_exit_frame_info());
 
     TransitionGeneratedToVM transition(thread);

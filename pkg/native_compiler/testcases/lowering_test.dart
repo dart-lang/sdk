@@ -70,4 +70,12 @@ void stringInterpolation(int x, String s, Object o) {
   print('Hey, x=$x, s=$s, o=$o');
 }
 
+class C<T> {
+  void typeParameters<U>(Object x) {
+    print(x is List<T>);
+    print(x is List<U>);
+    print(x as Map<T, U>);
+  }
+}
+
 void main() {}

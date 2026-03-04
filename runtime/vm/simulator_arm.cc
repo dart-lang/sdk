@@ -3486,8 +3486,8 @@ void Simulator::InstructionDecode(Instr* instr) {
 }
 
 void Simulator::Execute() {
-  if (LIKELY(FLAG_stop_sim_at == ULLONG_MAX &&
-             FLAG_trace_sim_after == ULLONG_MAX)) {
+  if (FLAG_stop_sim_at == ULLONG_MAX && FLAG_trace_sim_after == ULLONG_MAX)
+      [[likely]] {
     ExecuteNoTrace();
   } else {
     ExecuteTrace();

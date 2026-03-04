@@ -5545,6 +5545,14 @@ LinterLintCode:
         case three: ...
       }
       ```
+  invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType:
+    type: lint
+    parameters:
+      Object p0: undocumented
+    sharedName: invalidRuntimeCheckWithJsInteropTypes
+    problemMessage: "Catch clause with type '#p0' checks whether the caught value is a JS interop type, which might not be platform-consistent."
+    correctionMessage: "Remove the type in the catch clause and try using 'isA' from 'dart:js_interop' within the catch block to check if the value is a JS interop type."
+    hasPublishedDocs: false
   invalidRuntimeCheckWithJsInteropTypesDartAsJs:
     type: lint
     parameters:
@@ -5654,12 +5662,13 @@ LinterLintCode:
       extension type HTMLElement(JSObject o) implements JSObject {}
       extension type HTMLDivElement(JSObject o) implements HTMLElement {}
 
-      void compute(JSAny a, List<JSAny> l, JSObject o, HTMLElement e) {
+      void compute(JSAny a, List<JSAny> l, JSObject o, HTMLElement e, Object obj) {
         a.isA<JSString>; // OK, uses JS interop to check it is a JS string
         l[0].isA<JSString>; // OK, uses JS interop to check it is a JS string
         o.isA<HTMLElement>(); // OK, uses JS interop to check `o` is an HTMLElement
         e.isA<HTMLDivElement>(); // OK, uses JS interop to check `e` is an
                                  // HTMLDivElement
+        obj.isA<JSObject>(); // OK, uses JS interop to check `obj` is a JSObject
       }
       ```
 
@@ -5709,6 +5718,61 @@ LinterLintCode:
         la as List<JSString>; // OK, JSAny and JSString are compatible
         (o as Object) as JSObject; // OK, Object is a supertype of JSAny
       }
+
+      **DON'T** use a JS interop type in a catch clause. If the code in the try
+      block is expected to throw a JS value, don't use a type at all in the
+      catch clause.
+
+      **BAD:**
+      ```dart
+      @JS()
+      external void throwSomething();
+
+      extension type JSError(JSObject _) implements JSObject {}
+
+      void compute() {
+        try {
+          throwSomething();
+        } on JSString catch (e) { // LINT, checking that the caught value is a JS type
+          print('string $e');
+        } on JSError catch (e) { // LINT, checking that the caught value is a JS
+                                 // interop type
+          print('JSError: $e');
+        } on List<JSNumber> catch (e) { // LINT, type contains a JS interop type
+          print('List<JSNumber>: $e');
+        } on bool catch (e) { // NO LINT, but may be platform-dependent
+          print('bool: $e');
+        }
+      }
+      ```
+
+      Use `isA` from `dart:js_interop` to check if a value is a JS interop type
+      within the catch block. If the code in the try block is expected to throw
+      a JS value, leave the catch clause untyped and check for all JS interop
+      types first using `isA` before checking for Dart types.
+
+      **GOOD:**
+      ```dart
+      @JS()
+      external void throwSomething();
+
+      extension type JSError(JSObject _) implements JSObject {}
+
+      void compute() {
+        try {
+          throwSomething();
+        } catch (e) {
+          if (e.isA<JSString>()) { // OK, uses JS interop to check it is a JS string
+            print('string: $e');
+          } else if (e.isA<JSError>()) { // OK, uses JS interop to check it is a JSError
+            print('Error: $e');
+          } else if (e.isA<JSAny>()) { // OK, checks all interop types before Dart types
+            print('JSAny: $e');
+          } else if (e is bool) { // OK, `e` can't be a JS value
+            print('boolean: $e');
+          }
+        }
+      }
       ```
   invalidRuntimeCheckWithJsInteropTypesDartIsJs:
     type: lint
@@ -5717,6 +5781,7 @@ LinterLintCode:
       Object p1: undocumented
     sharedName: invalidRuntimeCheckWithJsInteropTypes
     problemMessage: "Runtime check between '#p0' and '#p1' checks whether a Dart value is a JS interop type, which might not be platform-consistent."
+    correctionMessage: "Try using 'isA' from 'dart:js_interop' to check if the Dart value is a JS interop type."
     hasPublishedDocs: false
   invalidRuntimeCheckWithJsInteropTypesJsAsDart:
     type: lint
@@ -7742,6 +7807,7 @@ LinterLintCode:
     correctionMessage: "Try removing the type annotation."
     state:
       experimental: "3.6"
+      stable: "3.11"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -7807,11 +7873,6 @@ LinterLintCode:
         return result;
       }
       ```
-
-      **This rule is experimental.**
-      It is being evaluated, and it might be changed or removed.
-      Feedback on its behavior is welcome! The primary relevant issue is
-      [dart-lang/sdk#58773](https://github.com/dart-lang/sdk/issues/58773).
   omitObviousPropertyTypes:
     type: lint
     parameters: none
@@ -7819,6 +7880,7 @@ LinterLintCode:
     correctionMessage: "Try removing the type annotation."
     state:
       experimental: "3.7"
+      stable: "3.11"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -7861,11 +7923,6 @@ LinterLintCode:
         static String? myStaticVariable = 'Hello';
       }
       ```
-
-      **This rule is experimental.**
-      It is being evaluated, and it might be changed or removed.
-      Feedback on its behavior is welcome! The primary relevant issue is
-      [dart-lang/sdk#59550](https://github.com/dart-lang/sdk/issues/59550).
   oneMemberAbstracts:
     type: lint
     parameters:
@@ -11179,15 +11236,15 @@ LinterLintCode:
 
       #### Common fixes
 
-      * If the declaration should be removed in the next release of the package,
+      If the declaration should be removed in the next release of the package,
       then remove the declaration:
 
       ```dart
       void g() {}
       ```
 
-      * If you are not making a breaking change, then use a minor or patch
-        version increment for the package:
+      If you are not making a breaking change, then use a
+      minor or patch version increment for the package:
 
       ```yaml
       %uri="pubspec.yaml"
@@ -11332,7 +11389,7 @@ LinterLintCode:
     state:
       stable: "3.11"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11940,6 +11997,7 @@ LinterLintCode:
     correctionMessage: "Try adding a type annotation."
     state:
       experimental: "3.6"
+      stable: "3.11"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -11992,11 +12050,6 @@ LinterLintCode:
 
       const List<List<Ingredient>> cookbook = ...;
       ```
-
-      **This rule is experimental.**
-      It is being evaluated, and it might be changed or removed.
-      Feedback on its behavior is welcome! The primary relevant issue is
-      [dart-lang/sdk#58773](https://github.com/dart-lang/sdk/issues/58773).
   specifyNonobviousPropertyTypes:
     type: lint
     parameters: none
@@ -12004,6 +12057,7 @@ LinterLintCode:
     correctionMessage: "Try adding a type annotation."
     state:
       experimental: "3.7"
+      stable: "3.11"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -12043,11 +12097,6 @@ LinterLintCode:
             myTopLevelVariable.update('foo', null);
       }
       ```
-
-      **This rule is experimental.**
-      It is being evaluated, and it might be changed or removed.
-      Feedback on its behavior is welcome! The primary relevant issue is
-      [dart-lang/sdk#59550](https://github.com/dart-lang/sdk/issues/59550).
   strictTopLevelInferenceAddType:
     type: lint
     parameters: none
@@ -16438,6 +16487,45 @@ LinterLintCode:
       **GOOD:**
       ```dart
       print(RegExp(r'\(').hasMatch('foo()'));
+      ```
+  varWithNoTypeAnnotation:
+    type: lint
+    parameters: none
+    problemMessage: "Avoid declaring parameters with `var` and no type annotation."
+    correctionMessage: "Try removing the keyword 'var' or replacing `var` with a type annotation."
+    state:
+      experimental: "3.12"
+    categories: [languageFeatureUsage]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      **AVOID** declaring parameters with `var` and no type annotation.
+
+      Declaring formal parameters using `var` and no type annotation will be a
+      compile-time error when primary constructors are enabled. This lint flags
+      those parameters to ease migration.
+
+      **BAD:**
+      ```dart
+      void func(var x) { // LINT
+        print(x);
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      void func(String x) { // OK
+        print(x);
+      }
+      ```
+
+      **BAD:**
+      ```dart
+      [1, 4, 6, 8].forEach((var value) => print(value + 2)); // LINT
+      ```
+
+      **GOOD:**
+      ```dart
+      [1, 4, 6, 8].forEach((value) => print(value + 2)); // OK
       ```
   visitRegisteredNodes:
     type: lint

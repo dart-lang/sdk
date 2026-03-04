@@ -295,7 +295,8 @@ class TypeArgumentsVerifier {
       if (unwrappedParent is AsExpression ||
           unwrappedParent is CastPattern ||
           unwrappedParent is IsExpression ||
-          unwrappedParent is ObjectPattern) {
+          unwrappedParent is ObjectPattern ||
+          unwrappedParent is TypeLiteral) {
         // Do not report a "Strict raw type" warning in this case; too noisy.
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {

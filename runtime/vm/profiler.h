@@ -27,6 +27,12 @@ class ProcessedSample;
 class ProcessedSampleBuffer;
 class Profile;
 
+#if defined(SUPPORT_PERFETTO)
+namespace perfetto_utils {
+class InternedDataBuilder;
+}  // namespace perfetto_utils
+#endif
+
 class Sample;
 class SampleBlock;
 
@@ -68,6 +74,9 @@ class Profiler : public AllStatic {
     bool enabled = FLAG_profiler;
     intptr_t period_us = FLAG_profile_period;
     RelaxedAtomic<intptr_t> max_depth = FLAG_max_profile_depth;
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
+    bool stream_to_timeline = false;
+#endif
   };
 
   // Configure the profiler.
@@ -87,12 +96,6 @@ class Profiler : public AllStatic {
 #else
     return false;
 #endif  // defined(DART_INCLUDE_PROFILER)
-  }
-
-  typedef void (*ProfileProcessorCallback)(Profile&);
-
-  static void SetProfileProcessorCallback(ProfileProcessorCallback callback) {
-    process_profile_callback_ = callback;
   }
 
   static SampleBlockBuffer* sample_block_buffer() {
@@ -125,11 +128,8 @@ class Profiler : public AllStatic {
   }
   inline static intptr_t Size();
 
-  // This function is currently a no-op, but should not be fully deleted
-  // because it will be used to implement
-  // go/dart-universal-observability-for-tools.
-  static void ProcessCompletedBlocks(Isolate* isolate);
-  static void IsolateShutdown(Thread* thread);
+  static void IsolateShutdown(Isolate* thread);
+  static void IsolateGroupShutdown(IsolateGroup* isolate_group);
 
  private:
   // Start the profiler.
@@ -165,8 +165,6 @@ class Profiler : public AllStatic {
   static SampleBlockBuffer* sample_block_buffer_;
 
   static ProfilerCounters counters_;
-
-  static ProfileProcessorCallback process_profile_callback_;
 
   friend class Thread;
 };
@@ -388,6 +386,25 @@ class Sample {
   }
 
   Sample* continuation_sample() const { return next_; }
+
+  Sample* Next() const {
+    if (!is_continuation_sample()) return nullptr;
+    Sample* next_sample = continuation_sample();
+    // Detect invalid chaining.
+    if (this == next_sample) {
+      return nullptr;
+    }
+    if (port() != next_sample->port()) {
+      return nullptr;
+    }
+    if (timestamp() != next_sample->timestamp()) {
+      return nullptr;
+    }
+    if (tid() != next_sample->tid()) {
+      return nullptr;
+    }
+    return next_sample;
+  }
 
   intptr_t allocation_cid() const {
     ASSERT(is_allocation_sample());
@@ -683,8 +700,6 @@ class SampleBuffer {
       ProcessedSampleBuffer* buffer = nullptr);
 
  protected:
-  Sample* Next(Sample* sample);
-
   ProcessedSample* BuildProcessedSample(Sample* sample,
                                         const CodeLookupTable& clt);
 
@@ -738,7 +753,7 @@ class SampleBlock : public SampleBuffer {
   }
   bool TryAcquireStreaming(Isolate* isolate) {
     if (state_.load(std::memory_order_relaxed) != kCompleted) return false;
-    if (owner_ != isolate) return false;
+    if (isolate != nullptr && owner_ != isolate) return false;
 
     State expected = kCompleted;
     State desired = kStreaming;
@@ -827,6 +842,14 @@ class SampleBlockBuffer {
       Isolate* isolate,
       SampleFilter* filter,
       ProcessedSampleBuffer* buffer = nullptr);
+
+#if defined(SUPPORT_PERFETTO)
+  void WritePerfetto(int64_t from_micros,
+                     int64_t to_micros,
+                     perfetto_utils::InternedDataBuilder& interned_data_builder,
+                     void* file,
+                     Dart_FileWriteCallback write_bytes);
+#endif
 
  private:
   Sample* ReserveSampleImpl(Isolate* isolate, bool allocation_sample);
@@ -964,6 +987,7 @@ class ProcessedSampleBuffer : public ZoneObject {
   DISALLOW_COPY_AND_ASSIGN(ProcessedSampleBuffer);
 };
 
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 class SampleBlockProcessor : public AllStatic {
  public:
   // Initialize the state on VM startup.
@@ -976,7 +1000,7 @@ class SampleBlockProcessor : public AllStatic {
   static void Startup();
 
   // Shutdown the worker thread.
-  static void Shutdown(bool drain = false);
+  static void Shutdown();
 
  private:
   static constexpr intptr_t kMaxThreads = 4096;
@@ -989,6 +1013,7 @@ class SampleBlockProcessor : public AllStatic {
 
   static void ThreadMain(uword parameters);
 };
+#endif
 
 class NoAllocationSampleFilter : public SampleFilter {
  public:

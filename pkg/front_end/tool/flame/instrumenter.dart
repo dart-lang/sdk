@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/util/options.dart';
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:front_end/src/base/file_system_dependency_tracker.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
@@ -16,6 +17,8 @@ import 'package:kernel/kernel.dart';
 import '../additional_targets.dart';
 import '../command_line.dart';
 import '../compile.dart' as cfe_compile;
+
+import 'instrumenter.dart' as self;
 
 /// Instrumenter that can produce flame graphs, count invocations,
 /// perform time tracking etc.
@@ -108,37 +111,49 @@ import '../compile.dart' as cfe_compile;
 Future<void> main(List<String> arguments) async {
   Directory tmpDir = Directory.systemTemp.createTempSync("cfe_instrumenter");
   try {
-    await _main(arguments, tmpDir);
+    await mainHelper(arguments, tmpDir);
   } finally {
     tmpDir.deleteSync(recursive: true);
   }
 }
 
-Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
+Future<Component> mainHelper(
+  List<String> inputArguments,
+  Directory tmpDir,
+) async {
   List<String> candidates = [];
   List<String> candidatesRaw = [];
   List<String> arguments = [];
   Set<String>? onlyIfIncludingCertainCalls;
+  int numTools = 0;
   bool doCount = false;
+  bool doCountCalls = false;
   bool doTimer = false;
   bool doSingleTimer = false;
+  bool omitPlatform = false;
+  bool delete = false;
   for (String arg in inputArguments) {
     if (arg == "--count") {
       doCount = true;
+      numTools++;
+    } else if (arg == "--countCalls") {
+      doCountCalls = true;
+      numTools++;
     } else if (arg == "--onlySome") {
       onlyIfIncludingCertainCalls = const {
         "any",
+        "every",
+        "firstWhere",
+        "firstWhereOrNull",
+        "fold",
+        "followedBy",
+        "lastWhere",
+        "lastWhereOrNull",
         "map",
-        "whereType",
+        "reduce",
         "singleWhere",
         "singleWhereOrNull",
-        "firstWhereOrNull",
-        "lastWhere",
-        "firstWhere",
-        "every",
-        "fold",
-        "reduce",
-        "followedBy",
+        "whereType",
       };
     } else if (arg.startsWith("--onlySome=")) {
       onlyIfIncludingCertainCalls = arg
@@ -147,15 +162,31 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
           .toSet();
     } else if (arg == "--timer") {
       doTimer = true;
+      numTools++;
     } else if (arg == "--single-timer") {
       doSingleTimer = true;
+      numTools++;
     } else if (arg.startsWith("--candidates=")) {
       candidates.add(arg.substring("--candidates=".length));
     } else if (arg.startsWith("--candidates-raw=")) {
       candidatesRaw.add(arg.substring("--candidates-raw=".length));
+    } else if (arg == "--omit-platform") {
+      omitPlatform = true;
+    } else if (arg == "--delete") {
+      delete = true;
     } else {
       arguments.add(arg);
     }
+  }
+  if (numTools != 1) {
+    throw "Need exactly one tool "
+        "(--count, --countCalls, --timer or --single-timer)";
+  }
+  if (doCountCalls &&
+      (onlyIfIncludingCertainCalls == null ||
+          onlyIfIncludingCertainCalls.isEmpty)) {
+    throw "--countCalls needs calls to wrap via "
+        "--onlySome or --onlySome=<f1>,<f2> etc";
   }
   bool reportCandidates = candidates.isEmpty && candidatesRaw.isEmpty;
 
@@ -166,7 +197,7 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
   Map<String, Set<String>> wanted = setupWantedMap(candidates, candidatesRaw);
 
   String libFilename = "instrumenter_lib.dart";
-  if (doCount) {
+  if (doCount || doCountCalls) {
     libFilename = "instrumenter_lib_counter.dart";
   } else if (doTimer) {
     libFilename = "instrumenter_lib_timer.dart";
@@ -174,9 +205,18 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
     libFilename = "instrumenter_lib_single_timer.dart";
   }
 
-  await compileInstrumentationLibrary(
-    tmpDir,
-    new TimerCounterInstrumenterConfig(
+  InstrumenterConfig config;
+  if (doCountCalls) {
+    config = new CountCalls(
+      libFilename: libFilename,
+      reportCandidates: reportCandidates,
+      wanted: wanted,
+      includeAll: reportCandidates,
+      includeConstructors: true,
+      onlyIfIncludingCertainCalls: onlyIfIncludingCertainCalls!,
+    );
+  } else {
+    config = new TimerCounterInstrumenterConfig(
       libFilename: libFilename,
       reportCandidates: reportCandidates,
       wanted: wanted,
@@ -184,10 +224,26 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
       includeConstructors:
           !reportCandidates || doCount || doTimer || doSingleTimer,
       onlyIfIncludingCertainCalls: onlyIfIncludingCertainCalls,
-    ),
+    );
+  }
+  Component component = await compileInstrumentationLibrary(
+    tmpDir,
+    config,
     arguments,
     output,
+    omitPlatform: omitPlatform,
   );
+
+  if (delete) {
+    File.fromUri(output).deleteSync();
+  } else {
+    print("Writing output.");
+    String outString = output.toFilePath() + ".instrumented.dill";
+    await writeComponentToBinary(component, outString);
+    print("Wrote to $outString");
+  }
+
+  return component;
 }
 
 Uri parseCompilerArguments(List<String> arguments) {
@@ -209,25 +265,33 @@ Uri parseCompilerArguments(List<String> arguments) {
   return output;
 }
 
-abstract class InstrumenterConfig {
+abstract interface class InstrumenterConfig {
   String get libFilename;
   String get beforeName;
   String get enterName;
   String get exitName;
   String get afterName;
 
+  void wrapProcedure(
+    Procedure p,
+    List<String> namesById,
+    Procedure instrumenterEnter,
+    Procedure instrumenterExit,
+  );
+
+  void wrapConstructor(
+    Constructor c,
+    List<String> namesById,
+    Procedure instrumenterEnter,
+    Procedure instrumenterExit,
+  );
+
   bool includeProcedure(Procedure procedure);
   bool includeConstructor(Constructor constructor);
 
-  Arguments createBeforeArguments(
-    List<Procedure> procedures,
-    List<Constructor> constructors,
-  );
+  Arguments createBeforeArguments(List<String> namesById);
 
-  Arguments createAfterArguments(
-    List<Procedure> procedures,
-    List<Constructor> constructors,
-  );
+  Arguments createAfterArguments(List<String> namesById);
 
   Arguments createEnterArguments(int id, Member member);
 
@@ -253,6 +317,32 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   });
 
   @override
+  void wrapConstructor(
+    Constructor c,
+    List<String> namesById,
+    Procedure instrumenterEnter,
+    Procedure instrumenterExit,
+  ) {
+    self.wrapConstructor(
+      this,
+      c,
+      namesById,
+      instrumenterEnter,
+      instrumenterExit,
+    );
+  }
+
+  @override
+  void wrapProcedure(
+    Procedure p,
+    List<String> namesById,
+    Procedure instrumenterEnter,
+    Procedure instrumenterExit,
+  ) {
+    self.wrapProcedure(this, p, namesById, instrumenterEnter, instrumenterExit);
+  }
+
+  @override
   String get beforeName => 'initialize';
 
   @override
@@ -267,7 +357,7 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   @override
   bool includeProcedure(Procedure p) {
     if (onlyIfIncludingCertainCalls != null) {
-      return _memberCallsCertainThings(p, onlyIfIncludingCertainCalls!);
+      return _memberCallsCertainThings(p);
     }
     if (includeAll) return true;
     String name = getProcedureName(p);
@@ -281,7 +371,7 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   bool includeConstructor(Constructor c) {
     if (!includeConstructors) return false;
     if (onlyIfIncludingCertainCalls != null) {
-      return _memberCallsCertainThings(c, onlyIfIncludingCertainCalls!);
+      return _memberCallsCertainThings(c);
     }
     if (includeAll) return true;
     String name = getConstructorName(c);
@@ -292,36 +382,23 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   }
 
   @override
-  Arguments createBeforeArguments(
-    List<Procedure> procedures,
-    List<Constructor> constructors,
-  ) {
+  Arguments createBeforeArguments(List<String> namesById) {
     return new Arguments([
-      new IntLiteral(procedures.length + constructors.length),
+      new IntLiteral(namesById.length),
       new BoolLiteral(reportCandidates),
     ]);
   }
 
   @override
-  Arguments createAfterArguments(
-    List<Procedure> procedures,
-    List<Constructor> constructors,
-  ) {
+  Arguments createAfterArguments(List<String> namesById) {
     return new Arguments([
-      new ListLiteral([
-        ...procedures.map(
-          (p) => new StringLiteral(
-            "${p.fileUri.pathSegments.last}|"
-            "${getProcedureName(p)}",
-          ),
+      new ListLiteral(
+        List.generate(
+          namesById.length,
+          (i) => new StringLiteral(namesById[i]),
+          growable: false,
         ),
-        ...constructors.map(
-          (c) => new StringLiteral(
-            "${c.fileUri.pathSegments.last}|"
-            "${getConstructorName(c)}",
-          ),
-        ),
-      ]),
+      ),
     ]);
   }
 
@@ -335,19 +412,63 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
     return new Arguments([new IntLiteral(id)]);
   }
 
-  bool _memberCallsCertainThings(Member m, Set<String> matchThese) {
+  bool _memberCallsCertainThings(Member m) {
     return _CollectCallsVisitor.collectCalls(
       m.function?.body,
-    ).intersection(matchThese).isNotEmpty;
+    ).intersection(onlyIfIncludingCertainCalls!).isNotEmpty;
   }
 }
 
-Future<void> compileInstrumentationLibrary(
+class CountCalls extends TimerCounterInstrumenterConfig {
+  CountCalls({
+    required super.libFilename,
+    required super.reportCandidates,
+    required super.includeAll,
+    required super.includeConstructors,
+    required super.wanted,
+    required Set<String> super.onlyIfIncludingCertainCalls,
+  });
+
+  @override
+  void wrapConstructor(
+    Constructor c,
+    List<String> namesById,
+    Procedure instrumenterEnter,
+    Procedure instrumenterExit,
+  ) {
+    _InvocationWrapperTransformer.wrap(
+      this,
+      c,
+      onlyIfIncludingCertainCalls!,
+      namesById,
+      instrumenterEnter,
+    );
+  }
+
+  @override
+  void wrapProcedure(
+    Procedure p,
+    List<String> namesById,
+    Procedure instrumenterEnter,
+    Procedure instrumenterExit,
+  ) {
+    _InvocationWrapperTransformer.wrap(
+      this,
+      p,
+      onlyIfIncludingCertainCalls!,
+      namesById,
+      instrumenterEnter,
+    );
+  }
+}
+
+Future<Component> compileInstrumentationLibrary(
   Directory tmpDir,
   InstrumenterConfig config,
   List<String> arguments,
-  Uri output,
-) async {
+  Uri output, {
+  bool omitPlatform = false,
+}) async {
   print("Compiling the instrumentation library.");
   Uri instrumentationLibDill = tmpDir.uri.resolve("instrumenter.dill");
   await cfe_compile.main([
@@ -405,29 +526,36 @@ Future<void> compileInstrumentationLibrary(
     (p) => p.name.text == config.afterName,
   );
 
-  int id = 0;
+  List<String> namesById = [];
   for (Procedure p in procedures) {
-    int thisId = id++;
-    wrapProcedure(config, p, thisId, instrumenterEnter, instrumenterExit);
+    config.wrapProcedure(p, namesById, instrumenterEnter, instrumenterExit);
   }
   for (Constructor c in constructors) {
-    int thisId = id++;
-    wrapConstructor(config, c, thisId, instrumenterEnter, instrumenterExit);
+    config.wrapConstructor(c, namesById, instrumenterEnter, instrumenterExit);
   }
 
   initializeAndReport(
     config,
     component.mainMethod!,
     instrumenterInitialize,
-    procedures,
-    constructors,
+    namesById,
     instrumenterReport,
   );
 
-  print("Writing output.");
-  String outString = output.toFilePath() + ".instrumented.dill";
-  await writeComponentToBinary(component, outString);
-  print("Wrote to $outString");
+  if (omitPlatform) {
+    Component userCode = new Component(
+      nameRoot: component.root,
+      uriToSource: new Map<Uri, Source>.from(component.uriToSource),
+    );
+    userCode.setMainMethodAndMode(component.mainMethodName, true);
+    for (Library library in component.libraries) {
+      if (!library.importUri.isScheme("dart")) {
+        userCode.libraries.add(library);
+      }
+    }
+    component = userCode;
+  }
+  return component;
 }
 
 void addIfWantedProcedures(
@@ -457,6 +585,12 @@ void addIfWantedConstructors(
       output.add(c);
     }
   }
+}
+
+String getNodeName(TreeNode n) {
+  if (n is Procedure) return getProcedureName(n);
+  if (n is Constructor) return getConstructorName(n);
+  throw "unknown node for naming: $n";
 }
 
 String getProcedureName(Procedure p) {
@@ -511,8 +645,7 @@ void initializeAndReport(
   InstrumenterConfig config,
   Procedure mainProcedure,
   Procedure initializeProcedure,
-  List<Procedure> procedures,
-  List<Constructor> constructors,
+  List<String> namesById,
   Procedure instrumenterReport,
 ) {
   mainProcedure.enclosingLibrary.dependencies.add(
@@ -522,7 +655,7 @@ void initializeAndReport(
     new ExpressionStatement(
       new StaticInvocation(
         initializeProcedure,
-        config.createBeforeArguments(procedures, constructors),
+        config.createBeforeArguments(namesById),
       ),
     ),
     new TryFinally(
@@ -530,7 +663,7 @@ void initializeAndReport(
       new ExpressionStatement(
         new StaticInvocation(
           instrumenterReport,
-          config.createAfterArguments(procedures, constructors),
+          config.createAfterArguments(namesById),
         ),
       ),
     ),
@@ -542,10 +675,12 @@ void initializeAndReport(
 void wrapProcedure(
   InstrumenterConfig config,
   Procedure p,
-  int id,
+  List<String> namesById,
   Procedure instrumenterEnter,
   Procedure instrumenterExit,
 ) {
+  int id = namesById.length;
+  namesById.add("${p.fileUri.pathSegments.last}|${getProcedureName(p)}");
   Block block = new Block([
     new ExpressionStatement(
       new StaticInvocation(
@@ -568,10 +703,12 @@ void wrapProcedure(
 void wrapConstructor(
   InstrumenterConfig config,
   Constructor c,
-  int id,
+  List<String> namesById,
   Procedure instrumenterEnter,
   Procedure instrumenterExit,
 ) {
+  int id = namesById.length;
+  namesById.add("${c.fileUri.pathSegments.last}|${getConstructorName(c)}");
   Arguments enterArguments = config.createEnterArguments(id, c);
   Arguments exitArguments = config.createExitArguments(id, c);
   if (c.function.body == null || c.function.body is EmptyStatement) {
@@ -623,13 +760,102 @@ class _CollectCallsVisitor extends RecursiveVisitor {
 
   @override
   void visitStaticInvocation(StaticInvocation node) {
-    collected.add(node.name.text);
+    collected.add(_extractUsedName(node));
     return super.visitStaticInvocation(node);
   }
 
   @override
   void visitInstanceInvocation(InstanceInvocation node) {
-    collected.add(node.name.text);
+    collected.add(_extractUsedName(node));
     return super.visitInstanceInvocation(node);
   }
+}
+
+class _InvocationWrapperTransformer extends Transformer {
+  static void wrap(
+    InstrumenterConfig config,
+    Member member,
+    Set<String> wantedNames,
+    List<String> namesById,
+    Procedure instrumenterEnter,
+  ) {
+    _InvocationWrapperTransformer transformer =
+        new _InvocationWrapperTransformer._(
+          config,
+          member,
+          wantedNames,
+          namesById,
+          instrumenterEnter,
+        );
+    member.transformChildren(transformer);
+  }
+
+  final InstrumenterConfig config;
+  final Member member;
+  final Set<String> wantedNames;
+  final List<String> namesById;
+  final Procedure instrumenterEnter;
+
+  _InvocationWrapperTransformer._(
+    this.config,
+    this.member,
+    this.wantedNames,
+    this.namesById,
+    this.instrumenterEnter,
+  );
+
+  @override
+  TreeNode visitStaticInvocation(StaticInvocation node) {
+    node.transformChildren(this);
+    if (wantedNames.contains(_extractUsedName(node))) {
+      return _wrapInvocation(node);
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitInstanceInvocation(InstanceInvocation node) {
+    node.transformChildren(this);
+    if (wantedNames.contains(_extractUsedName(node))) {
+      return _wrapInvocation(node);
+    }
+    return node;
+  }
+
+  BlockExpression _wrapInvocation(InvocationExpression node) {
+    int id = namesById.length;
+    namesById.add(
+      node.location?.toString() ??
+          "${member.fileUri.pathSegments.last}"
+              "|${getNodeName(member)}"
+              "|${node.name.text}",
+    );
+    return BlockExpression(
+      new Block([
+        new ExpressionStatement(
+          new StaticInvocation(
+            instrumenterEnter,
+            config.createEnterArguments(id, member),
+          ),
+        ),
+      ]),
+      node,
+    );
+  }
+}
+
+String _extractUsedName(InvocationExpression node) {
+  String result = node.name.text;
+  if (node is StaticInvocation &&
+      (node.target.isExtensionMember || node.target.isExtensionTypeMember)) {
+    var name = extractQualifiedNameFromExtensionMember(node.target);
+    if (name != null) {
+      var index = name.lastIndexOf(".");
+      if (index > 0) {
+        index++;
+        result = name.substring(index);
+      }
+    }
+  }
+  return result;
 }

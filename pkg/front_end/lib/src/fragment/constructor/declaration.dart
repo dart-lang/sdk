@@ -195,7 +195,7 @@ mixin _ConstructorDeclarationMixin
       // variable in the initializer list.
       if (formal.isWildcard) continue;
 
-      list.add(formal.forFormalParameterInitializerScope());
+      list.add(formal);
     }
     return list;
   }
@@ -410,7 +410,7 @@ mixin _ConstructorDeclarationMixin
           }
           formal.type.registerInferredType(type ?? const DynamicType());
         }
-        formal.variable!.hasDeclaredInitializer = formal.hasDeclaredInitializer;
+        formal.variable.hasDeclaredInitializer = formal.hasDeclaredInitializer;
       }
     }
 
@@ -1232,7 +1232,10 @@ class PrimaryConstructorDeclaration
   }) {
     _fragment.builder = constructorBuilder;
     _bodyFragment?.builder = constructorBuilder;
-    _bodyFragment?.primaryConstructorFragment = _fragment;
+    _bodyFragment?.registerPrimaryConstructorFragment(
+      problemReporting,
+      _fragment,
+    );
     _fragment.primaryConstructorBodyFragment = _bodyFragment;
     _typeParameters = encodingStrategy.createTypeParameters(
       declarationBuilder: declarationBuilder,

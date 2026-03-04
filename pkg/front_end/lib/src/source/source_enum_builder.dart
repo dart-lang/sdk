@@ -45,6 +45,7 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
+import '../util/helpers.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
@@ -311,7 +312,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
       ConstructorDeclaration constructorDeclaration =
           new DefaultEnumConstructorDeclaration(
-            returnType: libraryBuilder.loader.inferableTypes.addInferableType(),
+            returnType: libraryBuilder.loader.inferableTypes.addInferableType(
+              InferenceDefaultType.Dynamic,
+            ),
             formals: [indexFormalParameterBuilder, nameFormalParameterBuilder],
             fileUri: fileUri,
             fileOffset: fileOffset,

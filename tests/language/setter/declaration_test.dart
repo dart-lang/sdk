@@ -12,7 +12,7 @@ set tooFew() {}
 //        ^
 // [cfe] A setter should have exactly one formal parameter.
 
-set tooMany(var value, var extra) {}
+set tooMany(value, var extra) {}
 //  ^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 //         ^

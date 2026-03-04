@@ -65,6 +65,7 @@ main() {
     "Dart_ClassLibrary",
     "Dart_ClassName",
     "Dart_Cleanup",
+    "Dart_ClearCurrentThreadOwnsIsolate_ForTesting",
     "Dart_CloseNativePort",
     "Dart_ClosureFunction",
     "Dart_CompileAll",

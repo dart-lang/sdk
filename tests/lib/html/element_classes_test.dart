@@ -39,7 +39,7 @@ void listElementTearDown() {
 }
 
 /// Returns a canonical string for Set<String> and lists of Element's classes.
-String view(var e) {
+String view(e) {
   if (e is Set) return '${e.toList()..sort()}';
   if (e is Element) return view(e.classes);
   if (e is Iterable) return '${e.map(view).toList()}';

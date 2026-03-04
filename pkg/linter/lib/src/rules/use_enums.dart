@@ -154,6 +154,24 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    var namePart = node.namePart;
+    if (namePart is PrimaryConstructorDeclaration) {
+      var constructor = namePart.declaredFragment?.element;
+      if (constructor == null) return;
+      if (!constructor.isConst) return;
+      var name = namePart.constructorName?.name.lexeme;
+      if (classElement.isPublic &&
+          (name == null || !Identifier.isPrivateName(name))) {
+        return;
+      }
+      for (var parameter in namePart.formalParameters.parameters) {
+        var name = parameter.name?.lexeme;
+        if (name == 'hashCode' || name == 'index' || name == 'values') {
+          return;
+        }
+      }
+    }
+
     var body = node.body;
     if (body is! BlockClassBody) {
       return;

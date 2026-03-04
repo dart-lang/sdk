@@ -5,3 +5,16 @@
 callable:
   - library: 'dart:core'
   - library: 'shared/shared.dart'
+    member: 'get:value'
+  - library: 'shared/shared.dart'
+    member: 'get:valueBB'
+  - library: 'shared/shared.dart'
+    extension_type: ['B', 'C']
+  - library: 'shared/shared.dart'
+    extension_type: 'BB'
+  - library: 'shared/shared.dart'
+    extension_type: 'CC'
+    member: 'foo42'
+  - library: 'shared/shared.dart'
+    extension_type: 'CC'
+    member: 'foo43'

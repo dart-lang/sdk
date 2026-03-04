@@ -737,18 +737,18 @@ extension CheckHelper on ProblemReporting {
         bool isOptionalNamed = !formal.isRequiredNamed && formal.isNamed;
         bool isOptional = isOptionalPositional || isOptionalNamed;
         if (isOptional &&
-            formal.variable!.type.isPotentiallyNonNullable &&
+            formal.variable.type.isPotentiallyNonNullable &&
             !formal.hasDeclaredInitializer) {
           addProblem(
             diag.optionalNonNullableWithoutInitializerError.withArguments(
               parameterName: formal.name,
-              parameterType: formal.variable!.type,
+              parameterType: formal.variable.type,
             ),
             formal.fileOffset,
             formal.name.length,
             formal.fileUri,
           );
-          formal.variable?.isErroneouslyInitialized = true;
+          formal.variable.isErroneouslyInitialized = true;
         }
       }
     }
@@ -811,9 +811,9 @@ extension CheckHelper on ProblemReporting {
         fieldType.isPotentiallyNonNullable &&
         !hasInitializer) {
       addProblem(
-        diag.fieldNonNullableWithoutInitializerError.withArgumentsOld(
-          name,
-          fieldType,
+        diag.fieldNonNullableWithoutInitializerError.withArguments(
+          fieldName: name,
+          fieldType: fieldType,
         ),
         nameOffset,
         nameLength,
@@ -1069,6 +1069,7 @@ extension CheckHelper on ProblemReporting {
     required String parameterName,
     required Token nameToken,
     required Token? thisKeyword,
+    required bool isDeclaring,
     required LibraryFeatures libraryFeatures,
     required Uri fileUri,
   }) {
@@ -1078,7 +1079,7 @@ extension CheckHelper on ProblemReporting {
     String? publicName;
     if (kind.isNamed && parameterName.startsWith('_')) {
       // TODO(rnystrom): Also handle declaring field parameters.
-      bool refersToField = thisKeyword != null;
+      bool refersToField = thisKeyword != null || isDeclaring;
 
       if (libraryFeatures.privateNamedParameters.isEnabled) {
         if (!refersToField) {

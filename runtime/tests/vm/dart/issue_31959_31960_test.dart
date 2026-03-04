@@ -10,7 +10,7 @@ import 'dart:typed_data';
 import 'package:expect/async_helper.dart' show asyncStart, asyncEnd;
 import 'package:expect/expect.dart';
 
-Uint8List generateSampleList(final int size) {
+Uint8List generateSampleList(int size) {
   final list = Uint8List(size);
   for (int i = 0; i < size; i++) {
     list[i] = i % 243;
@@ -18,7 +18,7 @@ Uint8List generateSampleList(final int size) {
   return list;
 }
 
-void validateReceivedList(final int expectedSize, final list) {
+void validateReceivedList(int expectedSize, list) {
   Expect.equals(expectedSize, list.length);
   // probe few elements
   for (

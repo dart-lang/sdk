@@ -62,7 +62,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _check(Element? element, List<FormalParameter> parameters) {
-    // ignore: experimental_member_use
     if ((element is FieldFormalParameterElement && !element.isDeclaring) ||
         element is SuperFormalParameterElement) {
       rule.reportAtNode(

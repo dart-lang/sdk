@@ -135,6 +135,11 @@ extension type Version._(int value) {
 const noVersion = Version(0, 0, 0);
 
 final class MachoImageWriter extends ImageWriter {
+  static const declareSymbols = const bool.fromEnvironment(
+    'declare.symbols',
+    defaultValue: true,
+  );
+
   final TargetCPU targetCPU;
   final String libraryName;
 
@@ -161,12 +166,17 @@ final class MachoImageWriter extends ImageWriter {
     symbolTable.addSymbol(isolateSnapshotDataAsmSymbol, constSection, 0);
   }
 
-  int addInstructions(Uint8List instructions) {
+  @override
+  int addInstructions(String symbol, Uint8List instructions) {
     final offset = textSection.unalignedSize;
     textSection.addContents(instructions);
+    if (declareSymbols) {
+      symbolTable.addSymbol(symbol, textSection, offset);
+    }
     return offset;
   }
 
+  @override
   int addReadOnlyData(List<Uint8List> data, int length) {
     final offset = constSection.unalignedSize;
     for (final bytes in data) {

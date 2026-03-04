@@ -82,7 +82,7 @@ class AnonymousClass {
   //           ^
   // [web] Only JS interop members may be 'external'.
 
-  external factory AnonymousClass({var field});
+  external factory AnonymousClass({field});
   //               ^
   // [web] Only JS interop members may be 'external'.
 }

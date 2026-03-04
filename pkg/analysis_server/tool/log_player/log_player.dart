@@ -246,8 +246,7 @@ class LogPlayer {
       } else {
         if (!_shouldSkip(message)) {
           stderr.writeln(
-            'Unexpected message from analysis server:\n'
-            '${jsonEncode(message)}',
+            'Unexpected message from analysis server: ${message.preview}',
           );
         }
       }
@@ -314,9 +313,9 @@ class LogPlayer {
       }
       throw TimeoutException(
         'Timed out waiting for analysis server messages:\n\n'
-        '${pendingServerMessageExpectations.map(json.encode).join('\n\n')}'
+        '${pendingServerMessageExpectations.map((m) => m.preview).join('\n\n')}'
         '\n\nUnmatched analysis server messages:\n\n'
-        '${extraServerMessages.map(json.encode).join('\n\n')}',
+        '${extraServerMessages.map((m) => m.preview).join('\n\n')}',
       );
     } finally {
       progress.finish(showTiming: true);

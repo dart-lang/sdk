@@ -381,7 +381,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// Since those expressions aren't round-tripped as child variables are
   /// requested we build them up as we send variables out, so we can append to
   /// them when returning elements/map entries/fields/getters.
-  final _evaluateNamesForInstanceRefIds = <String, String>{};
+  final _evaluateNamesForInstanceRefIds = <String, EvaluateName>{};
 
   /// A list of all possible project paths that should be considered the users
   /// own code.
@@ -577,6 +577,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
+  /// Gets the evaluateName for a VM InstanceRef ID.
+  ///
+  /// If [instanceRefId] is `null`, or we have no evaluateName for it,
+  /// will return null.
+  EvaluateName? getEvaluateName({
+    required String? instanceRefId,
+  }) {
+    return _evaluateNamesForInstanceRefIds[instanceRefId];
+  }
+
   /// Builds an evaluateName given a parent VM InstanceRef ID and a suffix.
   ///
   /// If [parentInstanceRefId] is `null`, or we have no evaluateName for it,
@@ -586,15 +596,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     required String? parentInstanceRefId,
   }) {
     final parentEvaluateName =
-        _evaluateNamesForInstanceRefIds[parentInstanceRefId];
+        getEvaluateName(instanceRefId: parentInstanceRefId);
     return combineEvaluateName(parentEvaluateName, suffix);
   }
 
   /// Builds an evaluateName given a prefix and a suffix.
   ///
   /// If [prefix] is null, will return be null.
-  String? combineEvaluateName(String? prefix, String suffix) {
-    return prefix != null ? '$prefix$suffix' : null;
+  String? combineEvaluateName(EvaluateName? parent, String suffix) {
+    if (parent == null) {
+      return null;
+    }
+    final parentName = parent.evaluateName;
+    final nullAccessor = parent.isNullable ? '?' : '';
+    return '$parentName$nullAccessor$suffix';
   }
 
   /// configurationDone is called by the client when it has finished sending
@@ -1147,7 +1162,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         thread,
         result,
         name: null,
-        evaluateName: expression,
+        evaluateName: (evaluateName: expression, isNullable: false),
         allowCallingToString:
             evaluateToStringInDebugViews || shouldExpandTruncatedValues,
         allowTruncatedValue: !shouldExpandTruncatedValues,
@@ -1932,10 +1947,17 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Stores [evaluateName] as the expression that can be evaluated to get
   /// [instanceRef].
-  void storeEvaluateName(vm.InstanceRef instanceRef, String? evaluateName) {
-    if (evaluateName != null) {
-      _evaluateNamesForInstanceRefIds[instanceRef.id!] = evaluateName;
+  ///
+  /// If [isNullable] is `true`, records that we should append `?` when
+  /// accessing members to avoid "potentially null" compilation errors from
+  /// the expression compiler.
+  EvaluateName? storeEvaluateName(vm.ObjRef instanceRef, String? evaluateName,
+      {bool isNullable = false}) {
+    if (evaluateName == null) {
+      return null;
     }
+    return _evaluateNamesForInstanceRefIds[instanceRef.id!] =
+        (evaluateName: evaluateName, isNullable: isNullable);
   }
 
   /// Overridden by sub-classes to handle when the client sends a
@@ -2029,19 +2051,21 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final vars = data.frame.vars;
       if (vars != null) {
         Future<Variable> convert(int index, vm.BoundVariable variable) {
+          var name = variable.name;
           // Store the expression that gets this object as we may need it to
           // compute evaluateNames for child objects later.
           final value = variable.value;
           if (value is vm.InstanceRef) {
-            storeEvaluateName(value, variable.name);
+            storeEvaluateName(value, name);
           }
           return _converter.convertVmResponseToVariable(
             thread,
             variable.value,
-            name: variable.name,
+            name: name,
             allowCallingToString: evaluateToStringInDebugViews &&
                 index < maxToStringsPerEvaluation,
-            evaluateName: variable.name,
+            evaluateName:
+                name != null ? (evaluateName: name, isNullable: false) : null,
             format: format,
           );
         }
@@ -2059,15 +2083,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // Store the name of this field as we may need it to
         // compute evaluateNames for child objects later.
         final value = response is vm.Field ? response.staticValue : response;
-        if (value is vm.InstanceRef) {
-          storeEvaluateName(value, fieldRef.name);
-        }
+        final isNullable = response is vm.Field &&
+            _converter.isDeclaredNullable(response.declaredType);
+        final evaluateName =
+            storeEvaluateName(value, fieldRef.name, isNullable: isNullable);
 
         return _converter.convertVmResponseToVariable(
           thread,
           value,
           name: fieldRef.name,
-          evaluateName: fieldRef.name,
+          evaluateName: evaluateName,
           allowCallingToString:
               evaluateToStringInDebugViews && index < maxToStringsPerEvaluation,
           format: format,
@@ -2172,7 +2197,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           variables.addAll(await _converter.convertVmInstanceToVariablesList(
             thread,
             object,
-            evaluateName: buildEvaluateName('', parentInstanceRefId: data.id),
+            evaluateName: getEvaluateName(instanceRefId: data.id),
             allowCallingToString: evaluateToStringInDebugViews,
             startItem: childStart,
             numItems: childCount,
@@ -2200,7 +2225,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // Empty names for lazy variable values because they were already shown
         // in the parent object.
         variableName: '',
-        getterName: data.getterName,
+        getter: data.getter,
         evaluateName: data.parentEvaluateName,
         allowCallingToString: data.allowCallingToString,
         format: format,

@@ -77,7 +77,7 @@ class VariableDeclarationResolver {
     _resolver.analyzeExpression(initializer, SharedTypeSchemaView(contextType));
     initializer = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      initializer,
+      _resolver.flowAnalysis.flow?.getExpressionInfo(initializer),
     );
 
     var initializerType = initializer.typeOrThrow;

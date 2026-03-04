@@ -12,6 +12,7 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  private_named_parameters,
   dot_shorthands,
   native_assets,
   getter_setter_error,

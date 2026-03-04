@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:meta/meta.dart';
 
 /// Maintains the file system state needed by the analysis driver, as well as
 /// information about files that have changed and the impact of those changes.
@@ -46,6 +47,9 @@ class FileTracker {
   /// The set of files that are currently scheduled for analysis, and don't
   /// have any special relation with changed files.
   var _pendingFiles = <String>{};
+
+  @visibleForTesting
+  late final FileTrackerTestView testView = FileTrackerTestView(this);
 
   FileTracker(this._logger, this._fsState, this._fileContentStrategy);
 
@@ -228,4 +232,21 @@ class FileTracker {
     }
     return false;
   }
+}
+
+@visibleForTesting
+class FileTrackerTestView {
+  final FileTracker tracker;
+
+  FileTrackerTestView(this.tracker);
+
+  Set<String> get changedFiles => tracker._changedFiles;
+
+  Set<String> get pendingChangedFiles => tracker._pendingChangedFiles;
+
+  Set<String> get pendingErrorFiles => tracker._pendingErrorFiles;
+
+  Set<String> get pendingFiles => tracker._pendingFiles;
+
+  Set<String> get pendingImportFiles => tracker._pendingImportFiles;
 }

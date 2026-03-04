@@ -245,11 +245,12 @@ abstract class AstCodeGenerator
     }
     final mayNeedToCheckTypes = translator.needToCheckTypesFor(member);
     if (mayNeedToCheckTypes) {
-      for (int i = 0; i < typeParametersToTypeCheck.length; i++) {
-        final typeParameter = typeParametersToTypeCheck[i];
+      for (int i = 0; i < typeParameters.length; i++) {
+        final typeParameter = typeParameters[i];
         if (translator.needToCheckTypeParameter(typeParameter)) {
+          final typeParameterToCheck = typeParametersToTypeCheck[i];
           _generateTypeArgumentBoundCheck(typeParameter.name!,
-              typeLocals[typeParameter]!, typeParameter.bound);
+              typeLocals[typeParameter]!, typeParameterToCheck);
         }
       }
     }
@@ -345,14 +346,13 @@ abstract class AstCodeGenerator
 
     for (int i = 0; i < positional.length; i++) {
       final bool isRequired = i < memberFunction.requiredParameterCount;
-      final typeToCheck = positionalToTypeCheck[i].type;
+      final typeToCheck = positionalToTypeCheck[i];
       setupParamLocal(
           typeToCheck, positional[i], i, paramInfo.positional[i], isRequired);
     }
-    for (var param in named) {
-      final typeToCheck = identical(named, namedToTypeCheck)
-          ? param.type
-          : namedToTypeCheck.singleWhere((n) => n.name == param.name).type;
+    for (int i = 0; i < named.length; i++) {
+      final param = named[i];
+      final typeToCheck = namedToTypeCheck[i];
       setupParamLocal(typeToCheck, param, paramInfo.nameIndex[param.name]!,
           paramInfo.named[param.name], param.isRequired);
     }
@@ -832,7 +832,7 @@ abstract class AstCodeGenerator
       // variable is captured as the context is already initialized.
       translator
           .getDummyValuesCollectorForModule(b.moduleBuilder)
-          .instantiateDummyValue(b, local.type);
+          .instantiateLocalDummyValue(b, local.type);
       b.local_set(local);
     }
   }
@@ -1014,10 +1014,14 @@ abstract class AstCodeGenerator
         .any((c) => guardCanMatchJSException(translator, c.guard))) {
       b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
 
-      call(translator.javaScriptErrorFactory.reference);
+      final jsExceptionLocal = addLocal(w.RefType.extern(nullable: true));
+      b.local_tee(jsExceptionLocal);
+
+      call(translator.boxJsException.reference);
       b.local_tee(thrownException); // ref null #Top
 
-      b.getJavaScriptErrorStackTrace(translator);
+      b.local_get(jsExceptionLocal);
+      call(translator.jsExceptionStackTrace.reference);
       b.local_set(thrownStackTrace);
 
       for (int catchBlockIndex = 0;
@@ -1597,8 +1601,6 @@ abstract class AstCodeGenerator
       b.unreachable();
       return expectedType;
     }
-
-    translator.functions.recordClassAllocation(info.classId);
 
     return call(target).single;
   }
@@ -2393,11 +2395,10 @@ abstract class AstCodeGenerator
         b.ref_as_non_null();
       }
     } else {
-      translator.globals.readGlobal(
-          b,
-          translator
-              .getDummyValuesCollectorForModule(b.moduleBuilder)
-              .dummyStructGlobal); // Dummy context
+      translator
+          .getDummyValuesCollectorForModule(b.moduleBuilder)
+          .instantiateLocalDummyValue(
+              b, const w.RefType.struct(nullable: false)); // Dummy context
     }
   }
 
@@ -3909,6 +3910,10 @@ class ConstructorAllocatorCodeGenerator extends AstCodeGenerator {
     b.struct_new(info.struct);
     b.local_tee(temp);
 
+    // Mark the class as allocated now, which enqueues those methods of the
+    // class that could be targeted by already emitted instance calls.
+    translator.functions.recordClassAllocation(info.classId);
+
     // Push context local if it is present
     if (contextLocal != null) {
       b.local_get(contextLocal);
@@ -5165,24 +5170,6 @@ extension MacroAssembler on w.InstructionsBuilder {
     struct_get(
         translator.classInfoCollector.topInfo.struct, FieldIndex.classId);
   }
-
-  /// Expects a `_JavaScriptError` object to be on stack, calls
-  /// `_JavaScriptError.stackTrace` getter, downcasts the stack trace to
-  /// non-null. The cast is safe as this getter doesn't return null, but its
-  /// return type in the signature is nullable as it's an override.
-  ///
-  /// This is used to get the JS stack trace of a JS exception after boxing the
-  /// exception's `externref` (caught with the tag `WebAssembly.JSTag`) as
-  /// `_JavaScriptError`.
-  void getJavaScriptErrorStackTrace(Translator translator) {
-    final stackTraceGetter =
-        translator.javaScriptErrorStackTraceGetter.reference;
-    final stackTraceGetterFunction =
-        translator.functions.getFunction(stackTraceGetter);
-    ref_cast(stackTraceGetterFunction.type.inputs[0] as w.RefType);
-    translator.callReference(stackTraceGetter, this);
-    ref_as_non_null();
-  }
 }
 
 /// A call target that may be called with a direct call or may be inlined.
@@ -5238,16 +5225,15 @@ class AstCallTarget extends CallTarget {
   w.BaseFunction get function => _translator.functions.getFunction(_reference);
 }
 
+/// Whether a `catch` guard has the right type to catch JS exceptions.
+///
+/// JS exceptions are only caught as: `dynamic`, `Object`, an extension of
+/// `JSValue` like `JSObject`.
+///
+/// Note that the guard type can be nullable, but the value for the exception
+/// needs to be non-null regardless of the guard type, as per Dart semantics.
 bool guardCanMatchJSException(Translator translator, DartType guard) {
-  if (guard is DynamicType) {
-    return true;
-  }
-  if (guard is InterfaceType) {
-    return translator.hierarchy
-        .isSubInterfaceOf(translator.javaScriptErrorClass, guard.classNode);
-  }
-  if (guard is TypeParameterType) {
-    return guardCanMatchJSException(translator, guard.bound);
-  }
-  return false;
+  return translator.typeEnvironment.isSubtypeOf(
+      InterfaceType(translator.jsValueClass, Nullability.nonNullable),
+      guard.extensionTypeErasure);
 }

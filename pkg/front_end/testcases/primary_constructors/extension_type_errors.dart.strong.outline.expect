@@ -71,7 +71,7 @@ import self as self;
 import "dart:core" as core;
 
 extension type ET0(dynamic a) {
-  abstract extension-type-member representation-field get a() → dynamic;
+  abstract extension-type-member representation-field get a() → core::Object?;
   constructor • = self::ET0|constructor#;
   constructor tearoff • = self::ET0|constructor#_#new#tearOff;
 }
@@ -151,9 +151,9 @@ extension type ET14(invalid-type #) {
   constructor • = self::ET14|constructor#;
   constructor tearoff • = self::ET14|constructor#_#new#tearOff;
 }
-static extension-type-member method ET0|constructor#(dynamic a) → self::ET0% /* erasure=dynamic, declared=! */
+static extension-type-member method ET0|constructor#(core::Object? a) → self::ET0% /* erasure=dynamic, declared=! */
   ;
-static extension-type-member synthetic method ET0|constructor#_#new#tearOff(dynamic a) → self::ET0% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method ET0|constructor#_#new#tearOff(core::Object? a) → self::ET0% /* erasure=dynamic, declared=! */
   return self::ET0|constructor#(a);
 static extension-type-member method ET1|constructor#(core::bool a) → self::ET1% /* erasure=core::bool, declared=! */
   ;

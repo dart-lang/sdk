@@ -149,7 +149,7 @@ class PageSpace {
   }
   DART_FORCE_INLINE
   uword TryAllocatePromoLocked(FreeList* freelist, intptr_t size) {
-    if (LIKELY(IsAllocatableViaFreeLists(size))) {
+    if (IsAllocatableViaFreeLists(size)) [[likely]] {
       uword result;
       if (freelist->TryAllocateBumpLocked(size, &result)) {
         return result;
@@ -159,7 +159,7 @@ class PageSpace {
   }
   DART_FORCE_INLINE
   uword AllocateSnapshotLocked(FreeList* freelist, intptr_t size) {
-    if (LIKELY(IsAllocatableViaFreeLists(size))) {
+    if (IsAllocatableViaFreeLists(size)) [[likely]] {
       uword result;
       if (freelist->TryAllocateBumpLocked(size, &result)) {
         return result;
@@ -222,6 +222,14 @@ class PageSpace {
       size += page->memory_->size();
     }
     return size >> kWordSizeLog2;
+  }
+
+  template <typename F>
+  void ForEachImagePage(F&& callback) const {
+    MutexLocker ml(&pages_lock_);
+    for (Page* page = image_pages_; page != nullptr; page = page->next()) {
+      callback(page);
+    }
   }
 
   bool Contains(uword addr) const;

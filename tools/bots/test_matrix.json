@@ -176,6 +176,7 @@
       "pkg/dart_internal/",
       "pkg/dart2native/",
       "pkg/dart2js_tools/",
+      "pkg/dart_runtime_service/",
       "pkg/dds/",
       "pkg/expect/",
       "pkg/front_end/",
@@ -1293,6 +1294,36 @@
           ],
           "fileset": "vm",
           "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-modaot-mac-debug-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the modular AOT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--dart-dynamic-modules",
+            "--codesigning-identity=-",
+            "runtime",
+            "utils/dart2bytecode",
+            "utils/modular_aot_compiler"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-modaot-${system}-${mode}-${arch}",
+            "language"
+          ],
+          "fileset": "vm",
+          "shards": 5
         }
       ]
     },

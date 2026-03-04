@@ -1,0 +1,32 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension Ext on core::String {
+  method foo = self::Ext|foo;
+  method tearoff foo = self::Ext|get#foo;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+@#C1
+static extension-member method Ext|foo([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "43")] lowered final core::String #this) → void {
+  core::print(#this);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Closure (closure 1 in #lib::Ext|get#foo)]
+[@vm.closure-id=1]
+static extension-member method Ext|get#foo([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "43")] [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "43")] lowered final core::String #this) → () → void
+  return [@vm.closure-id=1]() → void => [@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::Ext|foo(#this);
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final core::String nonConst = "43";
+  final () → void f = [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::Ext|get#foo)] self::Ext|get#foo(nonConst);
+  core::print(f);
+}
+constants  {
+  #C1 = meta::RecordUse {}
+}

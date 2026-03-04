@@ -116,7 +116,9 @@ class ImportSetLattice {
 
   /// Builds a list of [ImportSetTransition]s which should be applied
   /// before finalizing [ImportSet]s.
-  void buildSetTransitions(List<psc.SetTransition> setTransitions) {
+  void buildSetTransitions(
+    List<psc.SetTransition<ImportEntity>> setTransitions,
+  ) {
     for (var setTransition in setTransitions) {
       importSetTransitions.add(
         ImportSetTransition(

@@ -274,7 +274,7 @@ class NoSuchMethodError {
       }
       var namedArguments = localInvocation.namedArguments;
       if (namedArguments != null) {
-        namedArguments.forEach((Symbol key, var value) {
+        namedArguments.forEach((Symbol key, value) {
           if (argumentCount > 0) {
             argumentsBuf.write(", ");
           }

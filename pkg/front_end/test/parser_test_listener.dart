@@ -1372,11 +1372,17 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
-    seen(token);
+  void handleFunctionBodySkipped(
+    Token beginToken,
+    Token endToken,
+    bool isExpressionBody,
+  ) {
+    seen(beginToken);
+    seen(endToken);
     doPrint(
       'handleFunctionBodySkipped('
-      '$token, '
+      '$beginToken, '
+      '$endToken, '
       '$isExpressionBody)',
     );
   }

@@ -380,6 +380,29 @@ abstract class Generator {
     );
   }
 
+  /// Builds the [Pattern] for assignment to a variable through a pattern
+  /// assignment, for instance `i` and `j` in
+  ///
+  ///     method((int, int) r) {
+  ///       int i, j;
+  ///       (i, j) = r;
+  ///     }
+  ///
+  /// If this generator is not for an assignable variable, an error is reported
+  /// and an invalid pattern is returned.
+  Pattern buildPatternAssignment(Token token) {
+    return _forest.createInvalidPattern(
+      problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: diag.patternAssignmentNotLocalVariable,
+        fileOffset: token.charOffset,
+        length: token.charCount,
+        fileUri: _fileUri,
+      ),
+      declaredVariables: [],
+    );
+  }
+
   void printOn(StringSink sink);
 
   @override
@@ -566,6 +589,16 @@ class VariableUseGenerator extends Generator {
       index,
       isNullAware: isNullAware,
     );
+  }
+
+  @override
+  Pattern buildPatternAssignment(Token token) {
+    Pattern pattern = _forest.createAssignedVariablePattern(
+      token.charOffset,
+      variable,
+    );
+    _helper.registerVariableAssignment(variable);
+    return pattern;
   }
 
   @override
@@ -4815,6 +4848,7 @@ enum ReadOnlyAccessKind {
   TypeLiteral,
   ParenthesizedExpression,
   InvalidDeclaration,
+  PrimaryConstructorParameter,
 }
 
 /// [ReadOnlyAccessGenerator] represents the subexpression whose prefix is the
@@ -4932,6 +4966,14 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
           length: lengthForToken(token),
           errorHasBeenReported: errorHasBeenReported,
         );
+      case ReadOnlyAccessKind.PrimaryConstructorParameter:
+        return _helper.buildProblem(
+          message: diag.assignmentToPrimaryConstructorParameter,
+          fileUri: _helper.uri,
+          fileOffset: fileOffset,
+          length: lengthForToken(token),
+          errorHasBeenReported: errorHasBeenReported,
+        );
       case ReadOnlyAccessKind.LetVariable:
       case ReadOnlyAccessKind.InvalidDeclaration:
         break;
@@ -5015,6 +5057,14 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
       _createRead(),
       index,
       isNullAware: isNullAware,
+    );
+  }
+
+  @override
+  Pattern buildPatternAssignment(Token token) {
+    return _forest.createInvalidPattern(
+      _makeInvalidWrite(),
+      declaredVariables: [],
     );
   }
 

@@ -104,7 +104,7 @@ class BinaryExpressionResolver {
     ExpressionInfo? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
-      leftInfo = flow?.equalityOperand_end(left);
+      leftInfo = flow?.getExpressionInfo(left);
     }
 
     // When evaluating exactly a dot shorthand in the RHS, we save the LHS type
@@ -121,7 +121,9 @@ class BinaryExpressionResolver {
       SharedTypeSchemaView(UnknownInferredType.instance),
     );
     var right = _resolver.popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(right);
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.flow?.getExpressionInfo(right),
+    );
 
     if (!leftExtensionOverride) {
       flow?.storeExpressionInfo(
@@ -129,7 +131,7 @@ class BinaryExpressionResolver {
         flow.equalityOperation_end(
           leftInfo,
           SharedTypeView(left.typeOrThrow),
-          flow.equalityOperand_end(right),
+          flow.getExpressionInfo(right),
           SharedTypeView(right.typeOrThrow),
           notEqual: notEqual,
         ),
@@ -204,7 +206,10 @@ class BinaryExpressionResolver {
     {
       j = contextType;
     }
-    flow?.ifNullExpression_rightBegin(left, SharedTypeView(t1));
+    flow?.ifNullExpression_rightBegin(
+      flow.getExpressionInfo(left),
+      SharedTypeView(t1),
+    );
     _resolver.analyzeExpression(right, SharedTypeSchemaView(j));
     right = _resolver.popRewrite()!;
     flow?.ifNullExpression_end();
@@ -257,7 +262,9 @@ class BinaryExpressionResolver {
       SharedTypeSchemaView(_typeProvider.boolType),
     );
     left = _resolver.popRewrite()!;
-    var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
+    var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.flow?.getExpressionInfo(left),
+    );
 
     flow?.logicalBinaryOp_rightBegin(
       flow.getExpressionInfo(left),
@@ -272,7 +279,7 @@ class BinaryExpressionResolver {
     );
     right = _resolver.popRewrite()!;
     var rightWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      right,
+      _resolver.flowAnalysis.flow?.getExpressionInfo(right),
     );
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
@@ -298,7 +305,9 @@ class BinaryExpressionResolver {
       SharedTypeSchemaView(_typeProvider.boolType),
     );
     left = _resolver.popRewrite()!;
-    var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
+    var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.flow?.getExpressionInfo(left),
+    );
 
     flow?.logicalBinaryOp_rightBegin(
       flow.getExpressionInfo(left),
@@ -313,7 +322,7 @@ class BinaryExpressionResolver {
     );
     right = _resolver.popRewrite()!;
     var rightWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      right,
+      _resolver.flowAnalysis.flow?.getExpressionInfo(right),
     );
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
@@ -352,7 +361,9 @@ class BinaryExpressionResolver {
       SharedTypeSchemaView(rightContextType),
     );
     var right = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(right);
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.flow?.getExpressionInfo(right),
+    );
 
     _resolveUserDefinableType(node);
     _resolver.checkForArgumentTypeNotAssignableForArgument(

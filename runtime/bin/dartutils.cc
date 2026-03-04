@@ -282,9 +282,9 @@ static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib,
 // TODO(iposva): Allocate from the zone instead of leaking error string
 // here. On the other hand the binary is about to exit anyway.
 #define SET_ERROR_MSG(error_msg, format, ...)                                  \
-  intptr_t len = snprintf(nullptr, 0, format, __VA_ARGS__);                    \
+  intptr_t len = snprintf(nullptr, 0, format, ##__VA_ARGS__);                  \
   char* msg = reinterpret_cast<char*>(malloc(len + 1));                        \
-  snprintf(msg, len + 1, format, __VA_ARGS__);                                 \
+  snprintf(msg, len + 1, format, ##__VA_ARGS__);                               \
   *error_msg = msg
 
 static uint8_t* ReadFileFully(const char* filename,

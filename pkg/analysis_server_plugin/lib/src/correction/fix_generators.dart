@@ -27,7 +27,7 @@ class _RegisteredFixGenerators {
   /// [CorrectionProducer]s.
   ///
   /// The generators are then used to build fixes for those diagnostics. The
-  /// generators used for non-lint diagnostics are in the [nonLintProducers].
+  /// generators used for non-lint diagnostics are in the [warningProducers].
   final Map<DiagnosticCode, List<ProducerGenerator>> lintProducers = {};
 
   final Map<DiagnosticCode, List<MultiProducerGenerator>> lintMultiProducers =
@@ -38,7 +38,7 @@ class _RegisteredFixGenerators {
   ///
   /// The generators used for lint rules are in the [lintMultiProducers].
   final Map<DiagnosticCode, List<MultiProducerGenerator>>
-  nonLintMultiProducers = {};
+  warningMultiProducers = {};
 
   /// A set of generators that are used to create correction producers that
   /// produce corrections that ignore diagnostics locally.
@@ -49,7 +49,7 @@ class _RegisteredFixGenerators {
   ///
   /// The generators are then used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintProducers].
-  final Map<DiagnosticCode, List<ProducerGenerator>> nonLintProducers = {};
+  final Map<DiagnosticCode, List<ProducerGenerator>> warningProducers = {};
 
   /// A map from lint codes to a list of fix generators that work with only
   /// parsed results.
@@ -60,12 +60,23 @@ class _RegisteredFixGenerators {
     lintProducers.clear();
   }
 
+  /// Clears the warning producers.
+  void clearWarningProducers() {
+    warningProducers.clear();
+  }
+
   /// Associates the given correction producer [generator] with the lint with
   /// the given [lintCode].
-  void registerFixForLint(
-    DiagnosticCode lintCode,
+  void registerFixForLint(LintCode lintCode, ProducerGenerator generator) {
+    lintProducers.putIfAbsent(lintCode, () => []).add(generator);
+  }
+
+  /// Associates the given correction producer [generator] with the lint with
+  /// the given [diagnosticCode].
+  void registerFixForWarning(
+    DiagnosticCode diagnosticCode,
     ProducerGenerator generator,
   ) {
-    lintProducers.putIfAbsent(lintCode, () => []).add(generator);
+    warningProducers.putIfAbsent(diagnosticCode, () => []).add(generator);
   }
 }

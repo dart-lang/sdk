@@ -41,12 +41,14 @@ linter:
     - /*[0*/prefer_relative_imports/*0]*/
     - /*[1*/prefer_single_quotes/*1]*/
     - /*[2*/prefer_int_literals/*2]*/
+    - /*[3*/no_runtimeType_toString/*3]*/
 ''';
 
     var expectedLinks = [
       '${_lintBase}prefer_relative_imports',
       '${_lintBase}prefer_single_quotes',
       '${_lintBase}prefer_int_literals',
+      '${_lintBase}no_runtimetype_tostring',
     ];
 
     await _test_analysisOptions_links(content, expectedLinks);

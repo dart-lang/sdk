@@ -348,7 +348,7 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ movl(EDX, Address(EDI, ESI, TIMES_4, kBytesPerBigIntDigit));
   __ shrdl(EAX, EDX, ECX);
   __ movl(Address(EBX, ESI, TIMES_4, 0), EAX);
-  __ incl(ESI);
+  __ addl(ESI, Immediate(1));
   __ j(NOT_ZERO, &loop, Assembler::kNearJump);
   __ Bind(&last);
   __ shrdl(EDX, ESI, ECX);  // ESI == 0.
@@ -380,7 +380,7 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subl(EAX, ECX);
-  __ incl(EAX);  // To account for the extra test between loops.
+  __ addl(EAX, Immediate(1));  // To account for the extra test between loops.
   __ pushl(EAX);
 
   __ xorl(EDX, EDX);  // EDX = 0, carry flag = 0.
@@ -446,7 +446,7 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
 
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subl(EAX, ECX);
-  __ incl(EAX);  // To account for the extra test between loops.
+  __ addl(EAX, Immediate(1));  // To account for the extra test between loops.
   __ pushl(EAX);
 
   __ xorl(EDX, EDX);  // EDX = 0, carry flag = 0.
@@ -597,7 +597,7 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   Label propagate_carry_loop;
   __ Bind(&propagate_carry_loop);
   __ addl(ESI, Immediate(kBytesPerBigIntDigit));
-  __ incl(Address(ESI, 0));  // c == 0 or 1
+  __ addl(Address(ESI, 0), Immediate(1));  // c == 0 or 1
   __ j(CARRY, &propagate_carry_loop, Assembler::kNearJump);
 
   __ Bind(&done);
@@ -1511,7 +1511,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // EDX: ch and temporary.
   __ CombineHashes(EAX, EDX);
 
-  __ incl(EDI);
+  __ addl(EDI, Immediate(1));
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&done);
@@ -1663,7 +1663,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ movzxb(EBX, Address(EDI, EDX, TIMES_1, 0));
   __ movb(FieldAddress(EAX, EDX, TIMES_1, target::OneByteString::data_offset()),
           BL);
-  __ incl(EDX);
+  __ addl(EDX, Immediate(1));
   __ Bind(&check);
   __ cmpl(EDX, ECX);
   __ j(LESS, &loop, Assembler::kNearJump);
@@ -1741,38 +1741,6 @@ void AsmIntrinsifier::TwoByteString_equality(Assembler* assembler,
 
   StringEquality(assembler, EAX, EBX, EDI, ECX, EAX, normal_ir_body,
                  kTwoByteStringCid);
-}
-
-void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
-                                                   Label* normal_ir_body,
-                                                   bool sticky) {
-  if (FLAG_interpret_irregexp) return;
-
-  const intptr_t kRegExpParamOffset = 3 * target::kWordSize;
-  const intptr_t kStringParamOffset = 2 * target::kWordSize;
-  // start_index smi is located at offset 1.
-
-  // Incoming registers:
-  // EAX: Function. (Will be loaded with the specialized matcher function.)
-  // ECX: Unknown. (Must be GC safe on tail call.)
-  // EDX: Arguments descriptor. (Will be preserved.)
-
-  // Load the specialized function pointer into EAX. Leverage the fact the
-  // string CIDs as well as stored function pointers are in sequence.
-  __ movl(EBX, Address(ESP, kRegExpParamOffset));
-  __ movl(EDI, Address(ESP, kStringParamOffset));
-  __ LoadClassId(EDI, EDI);
-  __ SubImmediate(EDI, Immediate(kOneByteStringCid));
-  __ movl(FUNCTION_REG, FieldAddress(EBX, EDI, TIMES_4,
-                                     target::RegExp::function_offset(
-                                         kOneByteStringCid, sticky)));
-
-  // Registers are now set up for the lazy compile stub. It expects the function
-  // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
-  __ xorl(ECX, ECX);
-
-  // Tail-call the function.
-  __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
 }
 
 void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,

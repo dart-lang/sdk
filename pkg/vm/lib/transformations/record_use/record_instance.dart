@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
+import 'package:kernel/constructor_tearoff_lowering.dart';
 import 'package:record_use/record_use_internal.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
 
@@ -13,17 +15,10 @@ import 'constant_collector.dart';
 class InstanceRecorder {
   /// Keep track of the classes which are recorded, to easily add found
   /// instances.
-  final Map<Identifier, List<InstanceReference>> instancesForClass = {};
-
-  /// Keep track of the calls which are recorded, to easily add newly found
-  /// ones.
-  final Map<Identifier, String> loadingUnitForDefinition = {};
+  final Map<Definition, List<InstanceReference>> instancesForClass = {};
 
   /// A function to look up the loading unit for a reference.
   final LoadingUnitLookup _loadingUnitLookup;
-
-  /// The source uri to base relative URIs off of.
-  final Uri _source;
 
   /// A visitor traversing and collecting constants.
   late final ConstantCollector collector;
@@ -32,12 +27,113 @@ class InstanceRecorder {
   //TODO(mosum): add verbose mode to enable this
   bool exactLocation = false;
 
-  InstanceRecorder(this._source, this._loadingUnitLookup) {
-    collector = ConstantCollector.collectWith(_collectInstance);
+  InstanceRecorder(this._loadingUnitLookup) {
+    collector = ConstantCollector.collectWith(_handleConstant);
   }
 
   void recordConstantExpression(ast.ConstantExpression node) =>
       collector.collect(node);
+
+  void _handleConstant(ast.ConstantExpression context, ast.Constant constant) {
+    if (constant is ast.InstanceConstant) {
+      _collectInstance(context, constant);
+    } else if (constant is ast.ConstructorTearOffConstant) {
+      _collectConstructorTearOffConstant(context, constant);
+    } else if (constant is ast.RedirectingFactoryTearOffConstant) {
+      _collectRedirectingFactoryTearOffConstant(context, constant);
+    } else if (constant is ast.StaticTearOffConstant) {
+      _collectStaticTearOffConstant(context, constant);
+    }
+  }
+
+  void _collectStaticTearOffConstant(
+    ast.ConstantExpression context,
+    ast.StaticTearOffConstant constant,
+  ) {
+    if (isConstructorTearOffLowering(constant.target)) {
+      final instance = ConstructorTearoffReference(
+        loadingUnits: [_loadingUnitLookup(context)],
+      );
+      _addToUsage(constant.target.enclosingClass as ast.Class, instance);
+    }
+  }
+
+  void _collectRedirectingFactoryTearOffConstant(
+    ast.ConstantExpression context,
+    ast.RedirectingFactoryTearOffConstant constant,
+  ) {
+    final instance = ConstructorTearoffReference(
+      loadingUnits: [_loadingUnitLookup(context)],
+    );
+    _addToUsage(constant.target.enclosingClass!, instance);
+  }
+
+  void _collectConstructorTearOffConstant(
+    ast.ConstantExpression context,
+    ast.ConstructorTearOffConstant constant,
+  ) {
+    final instance = ConstructorTearoffReference(
+      loadingUnits: [_loadingUnitLookup(context)],
+    );
+    _addToUsage(constant.target.enclosingClass as ast.Class, instance);
+  }
+
+  void recordConstructorInvocation(ast.ConstructorInvocation node) {
+    final target = node.target;
+    if (isBeingRecorded(target)) {
+      final positionalArguments =
+          node.arguments.positional
+              .map((argument) => evaluateExpression(argument))
+              .toList();
+      final namedArguments = <String, MaybeConstant>{};
+      for (final argument in node.arguments.named) {
+        namedArguments[argument.name] = evaluateExpression(argument.value);
+      }
+
+      final instance = InstanceCreationReference(
+        positionalArguments: positionalArguments,
+        namedArguments: namedArguments,
+        loadingUnits: [_loadingUnitLookup(node)],
+      );
+      _addToUsage(target.enclosingClass, instance);
+    }
+  }
+
+  void recordConstructorTearOff(ast.ConstructorTearOff node) {
+    final target = node.target;
+    if (isBeingRecorded(target)) {
+      final instance = ConstructorTearoffReference(
+        loadingUnits: [_loadingUnitLookup(node)],
+      );
+      _addToUsage(target.enclosingClass as ast.Class, instance);
+    }
+  }
+
+  void recordLoweredConstructorTearOff(ast.StaticTearOff node) {
+    final target = node.target;
+    if (isBeingRecorded(target)) {
+      final instance = ConstructorTearoffReference(
+        loadingUnits: [_loadingUnitLookup(node)],
+      );
+      _addToUsage(target.enclosingClass as ast.Class, instance);
+    }
+  }
+
+  void recordRedirectingFactoryTearOff(ast.RedirectingFactoryTearOff node) {
+    final target = node.target;
+    if (isBeingRecorded(target)) {
+      ast.Member ultimateTarget = target;
+      while (ultimateTarget is ast.Procedure &&
+          ultimateTarget.isRedirectingFactory) {
+        ultimateTarget =
+            ultimateTarget.function.redirectingFactoryTarget!.target!;
+      }
+      final instance = ConstructorTearoffReference(
+        loadingUnits: [_loadingUnitLookup(node)],
+      );
+      _addToUsage(ultimateTarget.enclosingClass!, instance);
+    }
+  }
 
   void _collectInstance(
     ast.ConstantExpression expression,
@@ -50,36 +146,28 @@ class InstanceRecorder {
   /// Collect the name and definition location of the invocation. This is
   /// shared across multiple calls to the same method.
   void _addToUsage(ast.Class cls, InstanceReference instance) {
-    var (:identifier, :loadingUnit) = _definitionFromClass(cls);
+    final identifier = _definitionFromClass(cls);
     instancesForClass.update(
       identifier,
       (usage) => usage..add(instance),
       ifAbsent: () => [instance],
-    );
-    loadingUnitForDefinition.update(identifier, (value) {
-      assert(value == loadingUnit);
-      return value;
-    }, ifAbsent: () => loadingUnit);
-  }
-
-  ({Identifier identifier, String loadingUnit}) _definitionFromClass(
-    ast.Class cls,
-  ) {
-    final enclosingLibrary = cls.enclosingLibrary;
-    final file = getImportUri(enclosingLibrary, _source);
-
-    return (
-      identifier: Identifier(importUri: file, name: cls.name),
-      loadingUnit: _loadingUnitLookup(cls),
     );
   }
 
   InstanceReference _createInstanceReference(
     ast.ConstantExpression expression,
     ast.InstanceConstant constant,
-  ) => InstanceReference(
-    location: expression.location!.recordLocation(_source, exactLocation),
+  ) => InstanceConstantReference(
     instanceConstant: evaluateInstanceConstant(constant),
-    loadingUnit: _loadingUnitLookup(expression),
+    loadingUnits: [_loadingUnitLookup(expression)],
   );
+
+  Definition _definitionFromClass(ast.Class cls) {
+    final enclosingLibrary = cls.enclosingLibrary;
+    final importUri = enclosingLibrary.importUri.toString();
+
+    return Definition(importUri, [
+      Name(cls.name, kind: DefinitionKind.classKind),
+    ]);
+  }
 }

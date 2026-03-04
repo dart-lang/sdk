@@ -2587,7 +2587,8 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         compiler->thread()->isolate_group()->optimization_counter_threshold();
     const int32_t threshold =
         configured_optimization_counter_threshold * (loop_depth() + 1);
-    __ incl(compiler::FieldAddress(EDI, Function::usage_counter_offset()));
+    __ addl(compiler::FieldAddress(EDI, Function::usage_counter_offset()),
+            compiler::Immediate(1));
     __ cmpl(compiler::FieldAddress(EDI, Function::usage_counter_offset()),
             compiler::Immediate(threshold));
     __ j(GREATER_EQUAL, slow_path->osr_entry_label());
@@ -4417,31 +4418,6 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 #undef DEFINE_EMIT
-
-LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
-  summary->set_in(0, Location::RegisterLocation(EAX));
-  summary->set_in(1, Location::RegisterLocation(ECX));
-  summary->set_in(2, Location::RegisterLocation(EDX));
-  summary->set_in(3, Location::RegisterLocation(EBX));
-  summary->set_out(0, Location::RegisterLocation(EAX));
-  return summary;
-}
-
-void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler::LeafRuntimeScope rt(compiler->assembler(),
-                                /*frame_size=*/4 * compiler::target::kWordSize,
-                                /*preserve_registers=*/false);
-  __ movl(compiler::Address(ESP, +0 * kWordSize), locs()->in(0).reg());
-  __ movl(compiler::Address(ESP, +1 * kWordSize), locs()->in(1).reg());
-  __ movl(compiler::Address(ESP, +2 * kWordSize), locs()->in(2).reg());
-  __ movl(compiler::Address(ESP, +3 * kWordSize), locs()->in(3).reg());
-  rt.Call(TargetFunction(), 4);
-}
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {

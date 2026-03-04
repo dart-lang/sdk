@@ -14,6 +14,7 @@ dependencies:
   args: any
   build_integration: any
   collection: any
+  compiler: any
   front_end: any
   kernel: any
   linter: any
@@ -21,10 +22,10 @@ dependencies:
   wasm_builder: any
   path: any
   pool: any
+  record_use: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   expect: any
   js: any
   lints: any
-  record_use: any

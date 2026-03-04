@@ -49,6 +49,58 @@ void main() async {
     });
   });
 
+  test('dart compile only bails in bin/', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runDart(
+        arguments: ['pub', 'get'],
+        workingDirectory: dartAppUri,
+        logger: logger,
+      );
+
+      // 1. Compiling in bin/ should fail.
+      final resultBin = await runDart(
+        arguments: [
+          'compile',
+          'exe',
+          'bin/dart_app.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(resultBin.exitCode, 255);
+      expect(
+        resultBin.stderr,
+        contains(
+          "'dart compile' does not support build hooks, use 'dart build' instead.",
+        ),
+      );
+
+      // 2. Compiling outside bin/ should succeed (even if it might fail at runtime).
+      final otherFile = File.fromUri(dartAppUri.resolve('tool/other.dart'));
+      await otherFile.parent.create(recursive: true);
+      await otherFile.writeAsString('void main() { print("hello"); }');
+
+      final resultOther = await runDart(
+        arguments: [
+          '-v',
+          'compile',
+          'exe',
+          'tool/other.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+      );
+      expect(resultOther.exitCode, 0);
+      final exePath = dartAppUri.resolve('tool/other.exe').toFilePath();
+      final resultRun = await runProcess(
+        executable: Uri.file(exePath),
+        logger: logger,
+      );
+      expect(resultRun.stdout, contains('hello'));
+    });
+  });
+
   test('Recorded usages in dart2js', timeout: longTimeout, () async {
     await recordUseTest('drop_data_asset', (dartAppUri) async {
       await runDart(
@@ -78,15 +130,28 @@ void main() async {
       expect(recordedUsages.existsSync(), true);
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
-      final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
-      final constArguments = u.constArgumentsFor(Identifier(
-        importUri: 'package:drop_data_asset/src/drop_data_asset.dart',
-        scope: 'MyMath',
-        name: 'add',
+      final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
+      printOnFailure(actualRecordedUsages);
+      final constArguments = u.constArgumentsFor(Definition(
+        'package:drop_data_asset/src/drop_data_asset.dart',
+        [
+          Name(
+            kind: DefinitionKind.classKind,
+            'MyMath',
+          ),
+          Name(
+            kind: DefinitionKind.methodKind,
+            'add',
+            disambiguators: {
+              DefinitionDisambiguator.staticDisambiguator,
+            },
+          )
+        ],
       ));
       expect(constArguments.length, 1);
-      expect(constArguments.first.named.isEmpty, true);
-      expect(constArguments.first.positional, [3, 4]);
+      expect(constArguments.first.namedArguments.isEmpty, true);
+      expect(constArguments.first.positionalArguments,
+          const [IntConstant(3), IntConstant(4)]);
     });
   });
 
@@ -121,12 +186,44 @@ void main() async {
       expect(recordedUsages.existsSync(), true);
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
-      final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
-      final constantsOf = u.constantsOf(Identifier(
-        importUri: 'package:drop_data_asset/src/drop_data_asset.dart',
-        name: 'RecordCallToC',
+      final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
+      final constantsOf = u.constantsOf(Definition(
+        'package:drop_data_asset/src/drop_data_asset.dart',
+        [Name('RecordCallToC')],
       ));
       expect(constantsOf.length, 0);
     });
   });
+}
+
+extension on Recordings {
+  List<CallWithArguments> constArgumentsFor(Definition definition) {
+    final result = <CallWithArguments>[];
+    for (final entry in calls.entries) {
+      // ignore: invalid_use_of_visible_for_testing_member
+      if (entry.key.semanticEquals(definition)) {
+        for (final call in entry.value) {
+          if (call is CallWithArguments) {
+            result.add(call);
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  List<Constant> constantsOf(Definition definition) {
+    final result = <Constant>[];
+    for (final entry in instances.entries) {
+      // ignore: invalid_use_of_visible_for_testing_member
+      if (entry.key.semanticEquals(definition)) {
+        for (final instance in entry.value) {
+          if (instance is InstanceConstantReference) {
+            result.add(instance.instanceConstant);
+          }
+        }
+      }
+    }
+    return result;
+  }
 }

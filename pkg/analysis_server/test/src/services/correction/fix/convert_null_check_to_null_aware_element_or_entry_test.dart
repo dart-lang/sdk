@@ -392,4 +392,129 @@ Set<int> f(int? x) {
 }
 ''');
   }
+
+  Future<void> test_spread_case_getter_list() async {
+    await resolveTestCode('''
+List<int>? get x => null;
+List<int> f() => [
+  if (x case var y?) ...y,
+];
+''');
+    await assertHasFix('''
+List<int>? get x => null;
+List<int> f() => [
+  ...?x,
+];
+''');
+  }
+
+  Future<void> test_spread_case_getter_map() async {
+    await resolveTestCode('''
+Map<int, int>? get x => null;
+Map<int, int> f() => {
+  if (x case var y?) ...y,
+};
+''');
+    await assertHasFix('''
+Map<int, int>? get x => null;
+Map<int, int> f() => {
+  ...?x,
+};
+''');
+  }
+
+  Future<void> test_spread_case_list() async {
+    await resolveTestCode('''
+List<int> f(List<int>? x) => [
+  if (x case var y?) ...y,
+];
+''');
+    await assertHasFix('''
+List<int> f(List<int>? x) => [
+  ...?x,
+];
+''');
+  }
+
+  Future<void> test_spread_case_map() async {
+    await resolveTestCode('''
+Map<int, int> f(Map<int, int>? x) => {
+  if (x case var y?) ...y,
+};
+''');
+    await assertHasFix('''
+Map<int, int> f(Map<int, int>? x) => {
+  ...?x,
+};
+''');
+  }
+
+  Future<void> test_spread_getter_list() async {
+    await resolveTestCode('''
+List<int>? get x => null;
+List<int> f() => [
+  if (x != null) ...x!,
+];
+''');
+    await assertHasFix('''
+List<int>? get x => null;
+List<int> f() => [
+  ...?x,
+];
+''');
+  }
+
+  Future<void> test_spread_getter_map() async {
+    await resolveTestCode('''
+Map<int, int>? get x => null;
+Map<int, int> f() => {
+  if (x != null) ...x!,
+};
+''');
+    await assertHasFix('''
+Map<int, int>? get x => null;
+Map<int, int> f() => {
+  ...?x,
+};
+''');
+  }
+
+  Future<void> test_spread_list() async {
+    await resolveTestCode('''
+List<int> f(List<int>? x) => [
+  if (x != null) ...x,
+];
+''');
+    await assertHasFix('''
+List<int> f(List<int>? x) => [
+  ...?x,
+];
+''');
+  }
+
+  Future<void> test_spread_map() async {
+    await resolveTestCode('''
+Map<int, int> f(Map<int, int>? x) => {
+  if (x != null) ...x,
+};
+''');
+    await assertHasFix('''
+Map<int, int> f(Map<int, int>? x) => {
+  ...?x,
+};
+''');
+  }
+
+  Future<void> test_spread_set() async {
+    await resolveTestCode('''
+Set<int> f(List<int>? x) => {
+  if (x != null) ...x,
+};
+''');
+    await assertHasFix('''
+Set<int> f(List<int>? x) => {
+  ...?x,
+};
+''');
+  }
 }

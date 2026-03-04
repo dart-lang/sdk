@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-method1(var a) {
+method1(a) {
   yield null;
   yield a;
   yield a();

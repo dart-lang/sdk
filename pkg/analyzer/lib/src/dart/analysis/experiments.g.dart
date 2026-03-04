@@ -603,7 +603,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.primary_constructors,
     isExpired: IsExpired.primary_constructors,
     documentation: 'Less verbose constructors.',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.12.0'),
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
@@ -616,7 +616,7 @@ class ExperimentalFeatures {
     documentation:
         'Allow named parameters with private names that refer to fields.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.12.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -869,7 +869,7 @@ class IsEnabledByDefault {
   static const bool primary_constructors = false;
 
   /// Default state of the experiment "private-named-parameters"
-  static const bool private_named_parameters = false;
+  static const bool private_named_parameters = true;
 
   /// Default state of the experiment "record-use"
   static const bool record_use = false;
@@ -946,7 +946,7 @@ class IsExpired {
   static const bool digit_separators = true;
 
   /// Expiration status of the experiment "dot-shorthands"
-  static const bool dot_shorthands = false;
+  static const bool dot_shorthands = true;
 
   /// Expiration status of the experiment "enhanced-enums"
   static const bool enhanced_enums = true;

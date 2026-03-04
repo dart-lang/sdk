@@ -15,6 +15,7 @@ import 'package:analyzer_testing/src/mock_packages/flutter/painting/text_painter
 import 'package:analyzer_testing/src/mock_packages/flutter/painting/text_scaler.dart';
 import 'package:analyzer_testing/src/mock_packages/flutter/painting/text_style.dart';
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/painting/text_span.dart';
 
 /// The set of compilation units that make up the mock 'painting' component of
 /// the 'flutter' package.
@@ -32,6 +33,7 @@ final List<MockLibraryUnit> units = [
   paintingTextPainterLibrary,
   paintingTextScalerLibrary,
   paintingTextStyleLibrary,
+  paintingTextSpanLibrary,
 ];
 
 final paintingLibrary = MockLibraryUnit('lib/painting.dart', r'''
@@ -49,4 +51,5 @@ export 'src/painting/edge_insets.dart';
 export 'src/painting/text_painter.dart';
 export 'src/painting/text_scaler.dart';
 export 'src/painting/text_style.dart';
+export 'src/painting/text_span.dart';
 ''');

@@ -374,10 +374,15 @@ class ExceptionHandlerStack {
       if (canHandleJSExceptions) {
         b.catch_legacy(codeGen.translator.getJsExceptionTag(b.moduleBuilder));
 
-        codeGen.call(codeGen.translator.javaScriptErrorFactory.reference);
+        final jsExceptionLocal =
+            codeGen.addLocal(w.RefType.extern(nullable: true));
+        b.local_tee(jsExceptionLocal);
+
+        codeGen.call(codeGen.translator.boxJsException.reference);
         b.local_tee(exceptionLocal); // ref null #Top
 
-        b.getJavaScriptErrorStackTrace(codeGen.translator);
+        b.local_get(jsExceptionLocal);
+        codeGen.call(codeGen.translator.jsExceptionStackTrace.reference);
         b.local_set(stackTraceLocal);
 
         generateCatchBody();

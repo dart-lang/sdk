@@ -208,12 +208,13 @@ extension FormalParameterExtension on FormalParameter {
 }
 
 extension FormalParameterImplExtension on FormalParameterImpl {
-  FormalParameterImpl get notDefault {
-    var self = this;
-    if (self is DefaultFormalParameterImpl) {
-      return self.parameter;
+  NormalFormalParameterImpl get notDefault {
+    switch (this) {
+      case DefaultFormalParameterImpl self:
+        return self.parameter;
+      case NormalFormalParameterImpl self:
+        return self;
     }
-    return self;
   }
 }
 

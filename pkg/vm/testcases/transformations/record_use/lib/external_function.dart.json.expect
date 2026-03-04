@@ -1,0 +1,83 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 6
+    },
+    {
+      "type": "int",
+      "value": 7
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "someExternalStaticMethod"
+        }
+      ],
+      "uri": "package:record_use_test/external_function.dart"
+    },
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "someExternalFunction"
+        }
+      ],
+      "uri": "package:record_use_test/external_function.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              1
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      },
+      {
+        "definition_index": 1,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              0
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -25,51 +25,11 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/scope_context.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/element_walker.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 
-class ElementHolder {
-  final FragmentImpl _fragment;
-  final List<TypeParameterFragmentImpl> _typeParameters = [];
-  final List<FormalParameterFragmentImpl> _formalParameters = [];
-
-  ElementHolder(this._fragment);
-
-  List<FormalParameterFragmentImpl> get formalParameters {
-    return _formalParameters.toFixedList();
-  }
-
-  List<TypeParameterFragmentImpl> get typeParameters {
-    return _typeParameters.toFixedList();
-  }
-
-  void addParameter(FormalParameterFragmentImpl fragment) {
-    _formalParameters.add(fragment);
-  }
-
-  void addTypeParameter(TypeParameterFragmentImpl fragment) {
-    _typeParameters.add(fragment);
-  }
-
-  void enclose(FragmentImpl fragment) {
-    fragment.enclosingFragment = _fragment;
-  }
-}
-
-/// Recursively visit AST and perform following resolution tasks:
-///
-/// 1. Set existing top-level elements from [_elementWalker] to corresponding
-///    nodes in AST.
-/// 2. Create and set new elements for local declarations.
-/// 3. Resolve all [NamedType]s - set elements and types.
-/// 4. Resolve all [GenericFunctionType]s - set their types.
-/// 5. Rewrite AST where resolution provides a more accurate understanding.
 class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final LibraryElementImpl _libraryElement;
   final TypeProviderImpl _typeProvider;
@@ -78,27 +38,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final AstRewriter _astRewriter;
   final NamedTypeResolver _namedTypeResolver;
   final RecordTypeAnnotationResolver _recordTypeResolver;
-
-  /// This index is incremented every time we visit a [LibraryDirective].
-  /// There is just one [LibraryElement], so we can support only one node.
-  int _libraryDirectiveIndex = 0;
-
-  /// The provider of pre-built children elements from the element being
-  /// visited. For example when we visit a method, its element is resynthesized
-  /// from the summary, and we get resynthesized elements for type parameters
-  /// and formal parameters to apply to corresponding AST nodes.
-  ElementWalker? _elementWalker;
-
-  /// The scope used to resolve identifiers.
-  Scope _nameScope;
-
-  /// The scope used to resolve labels for `break` and `continue` statements,
-  /// or `null` if no labels have been defined in the current context.
-  LabelScope? _labelScope;
-
-  /// The container to add newly created elements that should be put into the
-  /// enclosing element.
-  ElementHolder _elementHolder;
 
   /// Data structure for tracking declared pattern variables.
   late final _VariableBinder _patternVariables = _VariableBinder(
@@ -111,13 +50,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
+  final ScopeContext _scopeContext;
+  LabelScope? _labelScope;
+  int _libraryDirectiveIndex = 0;
+
   factory ResolutionVisitor({
     required LibraryFragmentImpl libraryFragment,
     required DiagnosticListener diagnosticListener,
     required Scope nameScope,
     required bool strictInference,
     required bool strictCasts,
-    ElementWalker? elementWalker,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
   }) {
     var libraryElement = libraryFragment.library;
@@ -154,8 +96,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       namedTypeResolver,
       recordTypeResolver,
       nameScope,
-      elementWalker,
-      ElementHolder(libraryFragment),
       typeSystemOperations,
       dataForTesting,
     );
@@ -169,14 +109,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._astRewriter,
     this._namedTypeResolver,
     this._recordTypeResolver,
-    this._nameScope,
-    this._elementWalker,
-    this._elementHolder,
+    Scope nameScope,
     this.typeSystemOperations,
     this.dataForTesting,
-  );
+  ) : _scopeContext = ScopeContext(
+        libraryFragment: _libraryFragment,
+        nameScope: nameScope,
+      );
 
-  TypeImpl get _dynamicType => _typeProvider.dynamicType;
+  Scope get nameScope => _scopeContext.nameScope;
 
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
@@ -187,12 +128,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
-    if (_elementWalker == null) {
-      ElementAnnotationImpl(_libraryFragment, node);
-    }
-    _withElementWalker(null, () {
-      super.visitAnnotation(node);
-    });
+    super.visitAnnotation(node);
   }
 
   @override
@@ -200,10 +136,26 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     covariant AssignedVariablePatternImpl node,
   ) {
     var name = node.name.lexeme;
-    var element = _nameScope.lookup(name).getter;
+    var element = nameScope.lookup(name).getter;
     node.element = element;
 
     if (element == null) {
+      // Recovery: the code might try to refer to an instance field.
+      if (_scopeContext.enclosingInstanceElement
+          case InterfaceElementImpl enclosingInterfaceElement?) {
+        var element = enclosingInterfaceElement.inheritanceManager.getMember(
+          enclosingInterfaceElement,
+          Name.forLibrary(_libraryElement, name).forSetter,
+        );
+        if (element != null) {
+          node.element = element;
+          _diagnosticReporter.report(
+            diag.patternAssignmentNotLocalVariable.at(node.name),
+          );
+          return;
+        }
+      }
+
       _diagnosticReporter.report(
         diag.undefinedIdentifier.withArguments(name: name).at(node.name),
       );
@@ -216,17 +168,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitBlock(Block node) {
-    var outerScope = _nameScope;
-    try {
-      _nameScope = LocalScope(_nameScope);
-
-      var statements = node.statements;
-      _buildLocalElements(statements);
-      statements.accept(this);
-    } finally {
-      _nameScope = outerScope;
-    }
+  void visitBlock(covariant BlockImpl node) {
+    _scopeContext.withLocalScope((scope) {
+      node.nameScope = scope;
+      _defineLocalElements(scope, node.statements);
+      node.statements.accept(this);
+    });
   }
 
   @override
@@ -234,53 +181,25 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var exceptionTypeNode = node.exceptionType;
     exceptionTypeNode?.accept(this);
 
-    _withNameScope(() {
+    _scopeContext.withLocalScope((scope) {
       var exceptionNode = node.exceptionParameter;
       if (exceptionNode != null) {
-        var fragment = LocalVariableFragmentImpl(
-          name: _getFragmentName(exceptionNode.name),
-          firstTokenOffset: exceptionNode.offset,
-        );
-        fragment.nameOffset = exceptionNode.name.offsetIfNotEmpty;
-        _elementHolder.enclose(fragment);
-        _define(fragment.element);
+        var fragment = exceptionNode.declaredFragment!;
+        scope.add(fragment.element);
 
-        exceptionNode.declaredFragment = fragment;
-
-        fragment.isFinal = true;
         if (exceptionTypeNode == null) {
-          fragment.hasImplicitType = true;
           fragment.element.type = _typeProvider.objectType;
         } else {
           fragment.element.type = exceptionTypeNode.typeOrThrow;
         }
-
-        fragment.setCodeRange(
-          exceptionNode.name.offset,
-          exceptionNode.name.length,
-        );
       }
 
       var stackTraceNode = node.stackTraceParameter;
       if (stackTraceNode != null) {
-        var fragment = LocalVariableFragmentImpl(
-          name: _getFragmentName(stackTraceNode.name),
-          firstTokenOffset: stackTraceNode.offset,
-        );
-        fragment.nameOffset = stackTraceNode.name.offsetIfNotEmpty;
-        _elementHolder.enclose(fragment);
-        _define(fragment.element);
+        var fragment = stackTraceNode.declaredFragment!;
+        scope.add(fragment.element);
 
-        stackTraceNode.declaredFragment = fragment;
-
-        fragment.isFinal = true;
-        fragment.hasImplicitType = true;
         fragment.element.type = _typeProvider.stackTraceType;
-
-        fragment.setCodeRange(
-          stackTraceNode.name.offset,
-          stackTraceNode.name.length,
-        );
       }
 
       node.body.accept(this);
@@ -289,694 +208,303 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    var fragment = _elementWalker!.getClass();
+    var fragment = node.declaredFragment!;
     var element = fragment.element;
-    node.declaredFragment = fragment;
+
     _namedTypeResolver.enclosingClass = element;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementWalker(ElementWalker.forClass(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.namePart.typeParameters);
-        node.namePart.accept(this);
-
-        var extendsClause = node.extendsClause;
-        var withClause = node.withClause;
-
-        if (extendsClause != null) {
-          _resolveType(
-            declaration: node,
-            clause: extendsClause,
-            namedType: extendsClause.superclass,
-          );
-        }
-
-        _resolveWithClause(declaration: node, clause: withClause);
-        _resolveImplementsClause(
-          declaration: node,
-          clause: node.implementsClause,
-        );
-
-        _defineElements(element.getters);
-        _defineElements(element.setters);
-        _defineElements(element.methods);
-        node.body.accept(this);
-      });
-    });
-
+    _scopeContext.visitClassDeclaration(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    ClassFragmentImpl fragment = _elementWalker!.getClass();
-    node.declaredFragment = fragment;
-    _namedTypeResolver.enclosingClass = fragment.asElement2;
+    var fragment = node.declaredFragment!;
+    _namedTypeResolver.enclosingClass = fragment.element;
 
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementWalker(ElementWalker.forClass(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
-
-        _resolveType(
-          declaration: node,
-          clause: null,
-          namedType: node.superclass,
-        );
-
-        _resolveWithClause(declaration: node, clause: node.withClause);
-        _resolveImplementsClause(
-          declaration: node,
-          clause: node.implementsClause,
-        );
-      });
-    });
+    _scopeContext.visitClassTypeAlias(
+      node,
+      visitor: this,
+      visitSuperclass: (superclass) {
+        _resolveType(declaration: node, clause: null, namedType: superclass);
+      },
+    );
 
     _namedTypeResolver.enclosingClass = null;
   }
 
   @override
+  void visitCompilationUnit(covariant CompilationUnitImpl node) {
+    node.nameScope = nameScope;
+    super.visitCompilationUnit(node);
+  }
+
+  @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    var fragment = _elementWalker!.getConstructor();
-    var element = fragment.element;
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementHolder(ElementHolder(fragment), () {
-      _withElementWalker(null, () {
-        _withNameScope(() {
-          node.typeName?.accept(this);
-
-          _withElementWalker(ElementWalker.forExecutable(fragment), () {
-            node.parameters.accept(this);
-          });
-          _defineFormalParameters(element.formalParameters);
-
-          node.redirectedConstructor?.accept(this);
-          node.initializers.accept(this);
-          node.body.accept(this);
-        });
-      });
-    });
+    _scopeContext.visitConstructorDeclaration(node, visitor: this);
   }
 
   @override
   void visitDeclaredIdentifier(covariant DeclaredIdentifierImpl node) {
-    var nameToken = node.name;
-    var fragment = LocalVariableFragmentImpl(
-      name: _getFragmentName(nameToken),
-      firstTokenOffset: node.offset,
-    );
-    fragment.nameOffset = nameToken.offsetIfNotEmpty;
-    node.declaredFragment = fragment;
-    _elementHolder.enclose(fragment);
+    super.visitDeclaredIdentifier(node);
 
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    fragment.isConst = node.isConst;
-    fragment.isFinal = node.isFinal;
-
-    if (node.type case var typeNode?) {
-      typeNode.accept(this);
-      fragment.element.type = typeNode.typeOrThrow;
+    if (node.type != null) {
+      node.declaredFragment!.element.type = node.type!.typeOrThrow;
     } else {
-      fragment.hasImplicitType = true;
-      fragment.element.type = _dynamicType;
+      node.declaredFragment!.element.type = _typeProvider.dynamicType;
     }
-
-    _setCodeRange(fragment, node);
   }
 
   @override
   void visitDeclaredVariablePattern(
     covariant DeclaredVariablePatternImpl node,
   ) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
     node.type?.accept(this);
 
-    var name = node.name.lexeme;
-    var fragment = BindPatternVariableFragmentImpl(
-      node: node,
-      name: _getFragmentName(node.name),
-      firstTokenOffset: node.offset,
-    );
-    fragment.nameOffset = node.name.offsetIfNotEmpty;
-    _patternVariables.add(name, fragment.element);
-    _elementHolder.enclose(fragment);
-    _define(fragment.element);
-    fragment.hasImplicitType = node.type == null;
-    if (node.type case var typeNode?) {
-      fragment.element.type = typeNode.typeOrThrow;
+    if (node.type != null) {
+      element.type = node.type!.typeOrThrow;
+    } else {
+      fragment.hasImplicitType = true;
     }
-    node.declaredFragment = fragment;
 
     var patternContext = node.patternContext;
     if (patternContext is ForEachPartsWithPatternImpl) {
-      fragment.isFinal = patternContext.finalKeyword != null;
+      fragment.isFinal = patternContext.keyword.keyword == Keyword.FINAL;
     } else if (patternContext is PatternVariableDeclarationImpl) {
-      fragment.isFinal = patternContext.finalKeyword != null;
+      fragment.isFinal = patternContext.keyword.keyword == Keyword.FINAL;
     } else {
-      fragment.isFinal = node.finalKeyword != null;
+      fragment.isFinal = node.keyword?.keyword == Keyword.FINAL;
     }
   }
 
   @override
   void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
     var normalParameter = node.parameter;
-    var nameToken = normalParameter.name;
-
-    FormalParameterFragmentImpl fragment;
-    if (_elementWalker != null) {
-      fragment = _elementWalker!.getParameter();
-    } else {
-      var name2 = nameToken?.lexeme.nullIfEmpty;
-      var nameOffset2 = nameToken?.offset;
-      if (node.parameter is FieldFormalParameter) {
-        // Only for recovery, this should not happen in valid code.
-        fragment = FieldFormalParameterFragmentImpl(
-          firstTokenOffset: node.offset,
-          parameterKind: node.kind,
-          name: name2,
-          nameOffset: nameOffset2,
-          privateName: null,
-        )..constantInitializer = node.defaultValue;
-      } else if (node.parameter is SuperFormalParameter) {
-        // Only for recovery, this should not happen in valid code.
-        fragment = SuperFormalParameterFragmentImpl(
-          firstTokenOffset: node.offset,
-          parameterKind: node.kind,
-          name: name2,
-          nameOffset: nameOffset2,
-        )..constantInitializer = node.defaultValue;
-      } else {
-        fragment = FormalParameterFragmentImpl(
-          firstTokenOffset: node.offset,
-          parameterKind: node.kind,
-          name: name2,
-          nameOffset: nameOffset2,
-        )..constantInitializer = node.defaultValue;
-      }
-      _elementHolder.addParameter(fragment);
-
-      _setCodeRange(fragment, node);
-      fragment.isConst = node.isConst;
-      fragment.isExplicitlyCovariant = node.parameter.covariantKeyword != null;
-      fragment.isFinal = node.isFinal;
-
-      if (normalParameter is SimpleFormalParameterImpl &&
-          normalParameter.type == null) {
-        fragment.hasImplicitType = true;
-      }
-    }
-
-    normalParameter.declaredFragment = fragment;
-    node.declaredFragment = fragment;
-
     normalParameter.accept(this);
 
     var defaultValue = node.defaultValue;
     if (defaultValue != null) {
-      _withElementWalker(null, () {
-        _withElementHolder(ElementHolder(fragment), () {
-          defaultValue.accept(this);
-        });
-      });
+      defaultValue.accept(this);
     }
+  }
+
+  @override
+  void visitDoStatement(covariant DoStatementImpl node) {
+    _visitStatementInScope(node.body);
+    node.condition.accept(this);
   }
 
   @override
   void visitEnumConstantDeclaration(
     covariant EnumConstantDeclarationImpl node,
   ) {
-    var fragment = _elementWalker!.getVariable() as FieldFragmentImpl;
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
+    node.metadata.accept(this);
 
     var arguments = node.arguments;
     if (arguments != null) {
-      _withElementWalker(null, () {
-        _withElementHolder(ElementHolder(fragment), () {
-          arguments.accept(this);
-        });
-      });
+      arguments.accept(this);
     }
   }
 
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
-    var fragment = _elementWalker!.getEnum();
+    var fragment = node.declaredFragment!;
     var element = fragment.element;
-    node.declaredFragment = fragment;
+
     _namedTypeResolver.enclosingClass = element;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementWalker(ElementWalker.forEnum(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.namePart.typeParameters);
-        node.namePart.accept(this);
-
-        _resolveWithClause(declaration: node, clause: node.withClause);
-        _resolveImplementsClause(
-          declaration: node,
-          clause: node.implementsClause,
-        );
-
-        _defineElements(element.getters);
-        _defineElements(element.setters);
-        _defineElements(element.methods);
-        node.body.accept(this);
-      });
-    });
-
+    _scopeContext.visitEnumDeclaration(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
-    var element = node.libraryExport;
-    if (element != null) {
-      _setElementAnnotations(node.metadata, element.metadata.annotations);
-    }
+    super.visitExportDirective(node);
+  }
 
-    _withElementWalker(null, () {
-      super.visitExportDirective(node);
-    });
+  @override
+  void visitExpressionFunctionBody(covariant ExpressionFunctionBodyImpl node) {
+    node.nameScope = nameScope;
+    super.visitExpressionFunctionBody(node);
+  }
+
+  @override
+  void visitExtendsClause(covariant ExtendsClauseImpl node) {
+    _resolveType(
+      declaration: node.parent as Declaration?,
+      clause: node,
+      namedType: node.superclass,
+    );
   }
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var fragment = _elementWalker!.getExtension();
-    var element = fragment.element;
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementWalker(ElementWalker.forExtension(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
-        node.onClause?.accept(this);
-
-        _defineElements(element.getters);
-        _defineElements(element.setters);
-        _defineElements(element.methods);
-        node.body.accept(this);
-      });
-    });
+    _scopeContext.visitExtensionDeclaration(node, visitor: this);
   }
 
   @override
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    var fragment = _elementWalker!.getExtensionType();
+    var fragment = node.declaredFragment!;
     var element = fragment.element;
-    node.declaredFragment = fragment;
+
     _namedTypeResolver.enclosingClass = element;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementWalker(ElementWalker.forExtensionType(fragment), () {
-      _withNameScope(() {
-        var typeParameters = node.primaryConstructor.typeParameters;
-        _buildTypeParameterElements(typeParameters);
-
-        node.primaryConstructor.accept(this);
-
-        _resolveImplementsClause(
-          declaration: node,
-          clause: node.implementsClause,
-        );
-
-        _defineElements(element.getters);
-        _defineElements(element.setters);
-        _defineElements(element.methods);
-        node.body.accept(this);
-      });
-    });
-
+    _scopeContext.visitExtensionTypeDeclaration(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
-    FieldFormalParameterFragmentImpl fragment;
-    if (node.parent is DefaultFormalParameter) {
-      fragment = node.declaredFragment!;
-    } else {
-      var nameToken = node.name;
-      if (_elementWalker != null) {
-        fragment =
-            _elementWalker!.getParameter() as FieldFormalParameterFragmentImpl;
-      } else {
-        // Only for recovery, this should not happen in valid code.
-        fragment = FieldFormalParameterFragmentImpl(
-          firstTokenOffset: node.offset,
-          name: nameToken.lexeme.nullIfEmpty,
-          nameOffset: nameToken.offset.nullIfNegative,
-          parameterKind: node.kind,
-          privateName: null,
-        );
-        _elementHolder.enclose(fragment);
-        fragment.isConst = node.isConst;
-        fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-        fragment.isFinal = node.isFinal;
-        _setCodeRange(fragment, node);
-      }
-      node.declaredFragment = fragment;
-    }
+    _scopeContext.visitFieldFormalParameter(node, visitor: this);
+  }
 
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementHolder(ElementHolder(fragment), () {
-      _withElementWalker(
-        _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
-        () {
-          _withNameScope(() {
-            _buildTypeParameterElements(node.typeParameters);
-            node.typeParameters?.accept(this);
-            node.type?.accept(this);
-            if (_elementWalker != null) {
-              node.parameters?.accept(this);
-            } else {
-              // Only for recovery, this should not happen in valid code.
-              fragment.element.type = node.type?.type ?? _dynamicType;
-              _withElementWalker(null, () {
-                node.parameters?.accept(this);
-              });
-            }
-          });
-        },
-      );
-    });
+  @override
+  void visitForEachPartsWithDeclaration(
+    covariant ForEachPartsWithDeclarationImpl node,
+  ) {
+    throw StateError('Should not be invoked');
   }
 
   @override
   void visitForEachPartsWithPattern(
     covariant ForEachPartsWithPatternImpl node,
   ) {
-    _patternVariables.casePatternStart();
-    super.visitForEachPartsWithPattern(node);
-    var variablesMap = _patternVariables.casePatternFinish();
-    node.variables = variablesMap.values
-        .whereType<BindPatternVariableElementImpl>()
-        .map((e) => e.asElement)
-        .toList();
+    throw StateError('Should not be invoked');
   }
 
   @override
   void visitForElement(covariant ForElementImpl node) {
-    _withNameScope(() {
-      super.visitForElement(node);
+    _scopeContext.withLocalScope((scope) {
+      node.nameScope = scope;
+      _visitForLoopParts(scope, node.forLoopParts);
+      _scopeContext.withLocalScope((_) {
+        node.body.accept(this);
+      });
     });
   }
 
   @override
-  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    _withNameScope(() {
-      super.visitForPartsWithDeclarations(node);
+  void visitForPartsWithPattern(covariant ForPartsWithPatternImpl node) {
+    throw StateError('Should not be invoked');
+  }
+
+  @override
+  void visitForStatement(covariant ForStatementImpl node) {
+    _scopeContext.withLocalScope((scope) {
+      node.nameScope = scope;
+      _visitForLoopParts(scope, node.forLoopParts);
+      _visitStatementInScope(node.body);
     });
   }
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var expression = node.functionExpression;
+    var element = node.declaredFragment!.element;
 
-    ExecutableFragmentImpl fragment;
-    if (_elementWalker != null) {
-      if (node.isGetter) {
-        fragment = _elementWalker!.getGetter();
-      } else if (node.isSetter) {
-        fragment = _elementWalker!.getSetter();
-      } else {
-        fragment = _elementWalker!.getFunction();
-      }
-      node.declaredFragment = fragment;
-      expression.declaredFragment = fragment;
-    } else {
-      var functionFragment = node.declaredFragment as LocalFunctionFragmentImpl;
+    _scopeContext.visitFunctionDeclaration(node, visitor: this);
 
-      fragment = functionFragment;
-      expression.declaredFragment = functionFragment;
-
-      _setCodeRange(fragment, node);
-      setElementDocumentationComment(fragment, node);
-
-      var body = node.functionExpression.body;
-      if (node.externalKeyword != null || body is NativeFunctionBody) {
-        fragment.isExternal = true;
-      }
-
-      fragment.isAsynchronous = body.isAsynchronous;
-      fragment.isGenerator = body.isGenerator;
-      if (node.returnType == null) {
-        fragment.hasImplicitReturnType = true;
-      }
+    if (element is LocalFunctionElementImpl) {
+      element.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
     }
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    var holder = ElementHolder(fragment);
-    _withElementHolder(holder, () {
-      _withElementWalker(
-        _elementWalker != null ? ElementWalker.forExecutable(fragment) : null,
-        () {
-          _withNameScope(() {
-            _buildTypeParameterElements(expression.typeParameters);
-            expression.typeParameters?.accept(this);
-            if (_elementWalker == null) {
-              fragment.typeParameters = holder.typeParameters;
-            }
-
-            expression.parameters?.accept(this);
-            if (_elementWalker == null) {
-              fragment.formalParameters = holder.formalParameters;
-            }
-
-            node.returnType?.accept(this);
-            if (_elementWalker == null) {
-              fragment.element.returnType =
-                  node.returnType?.type ?? _dynamicType;
-            }
-
-            _defineFormalParameters(fragment.element.formalParameters);
-            _withElementWalker(null, () {
-              expression.body.accept(this);
-            });
-          });
-        },
-      );
-    });
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(
-    covariant FunctionDeclarationStatementImpl node,
-  ) {
-    if (!_hasLocalElementsBuilt(node)) {
-      _buildLocalFunctionElement(node);
-    }
-
-    node.functionDeclaration.accept(this);
   }
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    var fragment = LocalFunctionFragmentImpl(
-      name: null,
-      firstTokenOffset: node.offset,
-    );
-
-    _elementHolder.enclose(fragment);
-    node.declaredFragment = fragment;
-
-    fragment.hasImplicitReturnType = true;
-    fragment.element.returnType = DynamicTypeImpl.instance;
-
-    FunctionBody body = node.body;
-    fragment.isAsynchronous = body.isAsynchronous;
-    fragment.isGenerator = body.isGenerator;
-
-    var holder = ElementHolder(fragment);
-    _withElementHolder(holder, () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
-        fragment.typeParameters = holder.typeParameters;
-
-        node.parameters!.accept(this);
-        fragment.formalParameters = holder.formalParameters;
-
-        _defineFormalParameters(fragment.element.formalParameters);
-        node.body.accept(this);
-      });
-    });
-
-    _setCodeRange(fragment, node);
+    _scopeContext.visitFunctionExpression(node, visitor: this);
   }
 
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    var fragment = _elementWalker!.getTypedef();
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    var holder = ElementHolder(fragment);
-    _withElementHolder(holder, () {
-      _withNameScope(() {
-        // Apply existing type parameter elements to nodes.
-        _withElementWalker(ElementWalker.forTypedef(fragment), () {
-          _buildTypeParameterElements(node.typeParameters);
-          node.typeParameters?.accept(this);
-        });
-
-        // Run without walker to create fresh formal parameter elements.
-        _withElementWalker(null, () {
-          node.returnType?.accept(this);
-          node.parameters.accept(this);
-          fragment.encloseElements(holder.formalParameters);
-        });
-      });
-    });
+    _scopeContext.visitFunctionTypeAlias(node, visitor: this);
   }
 
   @override
   void visitFunctionTypedFormalParameter(
     covariant FunctionTypedFormalParameterImpl node,
   ) {
-    FormalParameterFragmentImpl fragment;
-    if (node.parent is DefaultFormalParameter) {
-      fragment = node.declaredFragment!;
-    } else {
-      var nameToken = node.name;
-      if (_elementWalker != null) {
-        fragment = _elementWalker!.getParameter();
-      } else {
-        fragment = FormalParameterFragmentImpl(
-          firstTokenOffset: node.offset,
-          name: nameToken.lexeme.nullIfEmpty,
-          nameOffset: nameToken.offset.nullIfNegative,
-          parameterKind: node.kind,
-        );
-        _elementHolder.addParameter(fragment);
-        fragment.isConst = node.isConst;
-        fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-        fragment.isFinal = node.isFinal;
-        _setCodeRange(fragment, node);
-      }
-      node.declaredFragment = fragment;
-    }
+    _scopeContext.visitFunctionTypedFormalParameter(node, visitor: this);
 
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    var holder = ElementHolder(fragment);
-    _withElementHolder(holder, () {
-      _withElementWalker(
-        _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
-        () {
-          _withNameScope(() {
-            _buildTypeParameterElements(node.typeParameters);
-            node.typeParameters?.accept(this);
-            if (_elementWalker == null) {
-              fragment.typeParameters = holder.typeParameters;
-            }
-
-            node.parameters.accept(this);
-            if (_elementWalker == null) {
-              fragment.formalParameters = holder.formalParameters;
-            }
-
-            node.returnType?.accept(this);
-            if (_elementWalker == null) {
-              var type = FunctionTypeImpl(
-                typeParameters: fragment.typeParameters
-                    .map((f) => f.element)
-                    .toList(),
-                parameters: fragment.formalParameters
-                    .map((f) => f.asElement2)
-                    .toList(),
-                returnType: node.returnType?.type ?? _dynamicType,
-                nullabilitySuffix: _getNullability(node.question != null),
-              );
-              fragment.element.type = type;
-            }
-          });
-        },
-      );
-    });
+    var element = node.declaredFragment!.element;
+    element.type = FunctionTypeImpl(
+      typeParameters: element.typeParameters,
+      parameters: element.formalParameters,
+      returnType: node.returnType?.type ?? _typeProvider.dynamicType,
+      nullabilitySuffix: _getNullability(node.question != null),
+    );
   }
 
   @override
-  void visitGenericFunctionType(GenericFunctionType node) {
-    var fragment = GenericFunctionTypeFragmentImpl(
-      firstTokenOffset: node.offset,
-    );
-    _libraryFragment.encloseElement(fragment);
-    (node as GenericFunctionTypeImpl).declaredFragment = fragment;
+  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
+    _scopeContext.visitGenericFunctionType(node, visitor: this);
 
-    fragment.isNullable = node.question != null;
-
-    _setCodeRange(fragment, node);
-
-    var holder = ElementHolder(fragment);
-    _withElementHolder(holder, () {
-      _withElementWalker(null, () {
-        _withNameScope(() {
-          _buildTypeParameterElements(node.typeParameters);
-          node.typeParameters?.accept(this);
-          fragment.typeParameters = holder.typeParameters;
-
-          node.parameters.accept(this);
-          fragment.formalParameters = holder.formalParameters;
-
-          node.returnType?.accept(this);
-          fragment.returnType = node.returnType?.type ?? _dynamicType;
-        });
-      });
-    });
+    var element = node.declaredFragment!.element;
+    element.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
 
     var type = FunctionTypeImpl(
-      typeParameters: fragment.typeParameters.map((f) => f.asElement2).toList(),
-      parameters: fragment.formalParameters.map((f) => f.asElement2).toList(),
-      returnType: fragment.returnType,
+      typeParameters: element.typeParameters,
+      parameters: element.formalParameters,
+      returnType: element.returnType,
       nullabilitySuffix: _getNullability(node.question != null),
     );
-    fragment.type = type;
+    element.type = type;
     node.type = type;
   }
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    var fragment = _elementWalker!.getTypedef();
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementWalker(ElementWalker.forGenericTypeAlias(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
-        node.type.accept(this);
-      });
-    });
+    _scopeContext.visitGenericTypeAlias(
+      node,
+      visitor: this,
+      enterTypeParameterScope: () {
+        node.nameScope = nameScope;
+      },
+    );
   }
 
   @override
   void visitIfElement(covariant IfElementImpl node) {
-    _withNameScope(() {
-      _visitIf(node);
-    });
+    if (node.caseClause case var caseClause?) {
+      node.expression.accept(this);
+      _resolveGuardedPattern(
+        caseClause.guardedPattern,
+        then: () {
+          caseClause.nameScope = nameScope;
+          node.ifTrue.accept(this);
+        },
+      );
+      node.ifFalse?.accept(this);
+    } else {
+      node.visitChildren(this);
+    }
   }
 
   @override
   void visitIfStatement(covariant IfStatementImpl node) {
-    _visitIf(node);
+    if (node.caseClause case var caseClause?) {
+      node.expression.accept(this);
+      _resolveGuardedPattern(
+        caseClause.guardedPattern,
+        then: () {
+          caseClause.nameScope = nameScope;
+          _visitStatementInScope(node.ifTrue);
+        },
+      );
+      _visitStatementInScope(node.ifFalse);
+    } else {
+      node.expression.accept(this);
+      _visitStatementInScope(node.ifTrue);
+      _visitStatementInScope(node.ifFalse);
+    }
+  }
+
+  @override
+  void visitImplementsClause(covariant ImplementsClauseImpl node) {
+    _resolveImplementsClause(
+      declaration: node.parent as Declaration,
+      clause: node,
+    );
   }
 
   @override
@@ -985,17 +513,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (element != null) {
       _setElementAnnotations(node.metadata, element.metadata.annotations);
     }
-
-    _withElementWalker(null, () {
-      super.visitImportDirective(node);
-    });
+    super.visitImportDirective(node);
   }
 
   @override
   void visitInstanceCreationExpression(
     covariant InstanceCreationExpressionImpl node,
   ) {
-    var newNode = _astRewriter.instanceCreationExpression(_nameScope, node);
+    var newNode = _astRewriter.instanceCreationExpression(
+      nameScope,
+      node,
+      libraryElement: _libraryElement,
+      enclosingInstanceElement: _scopeContext.enclosingInstanceElement,
+    );
     if (newNode != node) {
       if (node.constructorName.type.typeArguments != null &&
           newNode is MethodInvocation &&
@@ -1018,13 +548,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    _buildLabelElements(node.labels, false);
-
     var outerScope = _labelScope;
     try {
       var unlabeled = node.unlabeled;
-      for (Label label in node.labels) {
-        SimpleIdentifier labelNameNode = label.label;
+      for (var label in node.labels) {
+        var labelNameNode = label.label;
         _labelScope = LabelScope(
           _labelScope,
           labelNameNode.name,
@@ -1045,10 +573,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (element is LibraryElementImpl && _libraryDirectiveIndex == 1) {
       _setElementAnnotations(node.metadata, element.metadata.annotations);
     }
-
-    _withElementWalker(null, () {
-      super.visitLibraryDirective(node);
-    });
+    super.visitLibraryDirective(node);
   }
 
   @override
@@ -1059,57 +584,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLogicalOrPattern(covariant LogicalOrPatternImpl node) {
-    _patternVariables.logicalOrPatternStart();
     node.leftOperand.accept(this);
-    _patternVariables.logicalOrPatternFinishLeft();
     node.rightOperand.accept(this);
-    _patternVariables.logicalOrPatternFinish(node);
   }
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    ExecutableFragmentImpl fragment;
-    if (node.isGetter) {
-      fragment = _elementWalker!.getGetter();
-    } else if (node.isSetter) {
-      fragment = _elementWalker!.getSetter();
-    } else {
-      fragment = _elementWalker!.getFunction();
-      assert(() {
-        if (node.name.lexeme != fragment.name) {
-          throw StateError(
-            'Method name mismatch:'
-            '\nNode: |$node|\nFragment: |$fragment|',
-          );
-        }
-        return true;
-      }());
-    }
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementWalker(ElementWalker.forExecutable(fragment), () {
-      node.metadata.accept(this);
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
-        node.parameters?.accept(this);
-        node.returnType?.accept(this);
-
-        _withElementWalker(null, () {
-          _withElementHolder(ElementHolder(fragment), () {
-            _defineFormalParameters(fragment.element.formalParameters);
-            node.body.accept(this);
-          });
-        });
-      });
-    });
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
   @override
   void visitMethodInvocation(covariant MethodInvocationImpl node) {
-    var newNode = _astRewriter.methodInvocation(_nameScope, node);
+    var newNode = _astRewriter.methodInvocation(nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
     }
@@ -1119,36 +605,22 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    var fragment = _elementWalker!.getMixin();
-    var element = fragment.element;
-    node.declaredFragment = fragment;
+    _scopeContext.visitMixinDeclaration(node, visitor: this);
+  }
 
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementWalker(ElementWalker.forMixin(fragment), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
-
-        _resolveOnClause(declaration: node, clause: node.onClause);
-        _resolveImplementsClause(
-          declaration: node,
-          clause: node.implementsClause,
-        );
-
-        _defineElements(element.getters);
-        _defineElements(element.setters);
-        _defineElements(element.methods);
-        node.body.accept(this);
-      });
-    });
+  @override
+  void visitMixinOnClause(covariant MixinOnClauseImpl node) {
+    _resolveMixinOnClause(
+      declaration: node.parent as Declaration,
+      clause: node,
+    );
   }
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
     node.typeArguments?.accept(this);
 
-    _namedTypeResolver.nameScope = _nameScope;
+    _namedTypeResolver.nameScope = nameScope;
     _namedTypeResolver.resolve(node, dataForTesting: dataForTesting);
 
     if (_namedTypeResolver.rewriteResult != null) {
@@ -1162,45 +634,38 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (partInclude != null) {
       _setElementAnnotations(node.metadata, partInclude.metadata.annotations);
     }
-
-    _withElementWalker(null, () {
-      super.visitPartDirective(node);
-    });
+    super.visitPartDirective(node);
   }
 
   @override
-  void visitPartOfDirective(PartOfDirective node) {
-    _withElementWalker(null, () {
-      super.visitPartOfDirective(node);
+  void visitPatternAssignment(covariant PatternAssignmentImpl node) {
+    _scopeContext.withLocalScope((scope) {
+      var variables = _computeDeclaredPatternVariables(node.pattern);
+      scope.addAll(variables);
+      node.pattern.accept(this);
+      node.expression.accept(this);
     });
-  }
-
-  @override
-  void visitPatternAssignment(PatternAssignment node) {
-    // We need to call `casePatternStart` and `casePatternFinish` in case there
-    // are any declared variable patterns inside the pattern assignment (this
-    // could happen due to error recovery).  But we don't need to keep the
-    // variables map that `casePatternFinish` returns.
-    _patternVariables.casePatternStart();
-    super.visitPatternAssignment(node);
-    _patternVariables.casePatternFinish();
   }
 
   @override
   void visitPatternVariableDeclaration(
     covariant PatternVariableDeclarationImpl node,
   ) {
-    _patternVariables.casePatternStart();
-    super.visitPatternVariableDeclaration(node);
-    var variablesMap = _patternVariables.casePatternFinish();
-    node.elements = variablesMap.values
-        .whereType<BindPatternVariableElementImpl>()
-        .toList();
+    node.metadata.accept(this);
+    node.pattern.accept(this);
+    node.expression.accept(this);
+  }
+
+  @override
+  void visitPatternVariableDeclarationStatement(
+    covariant PatternVariableDeclarationStatementImpl node,
+  ) {
+    node.declaration.accept(this);
   }
 
   @override
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
-    var newNode = _astRewriter.prefixedIdentifier(_nameScope, node);
+    var newNode = _astRewriter.prefixedIdentifier(nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
     }
@@ -1210,46 +675,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
-    if (node.declaration case var declaration?) {
-      var fragment = declaration.declaredFragment!;
-      _withElementHolder(ElementHolder(fragment), () {
-        _withNameScope(() {
-          _defineFormalParameters(fragment.element.formalParameters);
-          _withElementWalker(null, () {
-            super.visitPrimaryConstructorBody(node);
-          });
-        });
-      });
-    } else {
-      _withElementWalker(null, () {
-        super.visitPrimaryConstructorBody(node);
-      });
-    }
-  }
-
-  @override
-  void visitPrimaryConstructorDeclaration(
-    covariant PrimaryConstructorDeclarationImpl node,
-  ) {
-    node.typeParameters?.accept(this);
-
-    var fragment = _elementWalker!.getConstructor();
-    node.declaredFragment = fragment;
-
-    _withElementHolder(ElementHolder(fragment), () {
-      _withElementWalker(null, () {
-        _withNameScope(() {
-          _withElementWalker(ElementWalker.forExecutable(fragment), () {
-            node.formalParameters.accept(this);
-          });
-        });
-      });
-    });
+    _scopeContext.visitPrimaryConstructorBody(node, visitor: this);
   }
 
   @override
   void visitPropertyAccess(covariant PropertyAccessImpl node) {
-    var newNode = _astRewriter.propertyAccess(_nameScope, node);
+    var newNode = _astRewriter.propertyAccess(nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
     }
@@ -1259,63 +690,28 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
-    _withElementWalker(null, () {
-      node.visitChildren(this);
-    });
-
+    node.visitChildren(this);
     _recordTypeResolver.resolve(node);
   }
 
   @override
   void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
-    FormalParameterFragmentImpl fragment;
-    if (node.parent is DefaultFormalParameter) {
-      fragment = node.declaredFragment!;
-    } else {
-      var nameToken = node.name;
-      if (_elementWalker != null) {
-        fragment = _elementWalker!.getParameter();
-      } else {
-        if (nameToken != null) {
-          fragment = FormalParameterFragmentImpl(
-            firstTokenOffset: node.offset,
-            name: nameToken.lexeme.nullIfEmpty,
-            nameOffset: nameToken.offset.nullIfNegative,
-            parameterKind: node.kind,
-          );
-        } else {
-          fragment = FormalParameterFragmentImpl(
-            firstTokenOffset: node.offset,
-            name: null,
-            nameOffset: null,
-            parameterKind: node.kind,
-          );
-        }
-        _elementHolder.addParameter(fragment);
-
-        _setCodeRange(fragment, node);
-        fragment.isConst = node.isConst;
-        fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-        fragment.isFinal = node.isFinal;
-        if (node.type == null) {
-          fragment.hasImplicitType = true;
-        }
-        node.declaredFragment = fragment;
-      }
-      node.declaredFragment = fragment;
-    }
-
+    var fragment = node.declaredFragment;
     node.type?.accept(this);
-    if (_elementWalker == null) {
-      fragment.element.type = node.type?.type ?? _dynamicType;
+    if (fragment != null) {
+      if (node.type != null) {
+        fragment.element.type = node.type!.type ?? _typeProvider.dynamicType;
+      } else if (fragment.element.type is InvalidTypeImpl) {
+        // TODO(scheglov): review and improve resolution to not rely on dynamic.
+        fragment.element.type = _typeProvider.dynamicType;
+      }
     }
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
+    node.metadata.accept(this);
   }
 
   @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    var newNode = _astRewriter.simpleIdentifier(_nameScope, node);
+    var newNode = _astRewriter.simpleIdentifier(nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
     }
@@ -1325,54 +721,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
-    SuperFormalParameterFragmentImpl fragment;
-    if (node.parent is DefaultFormalParameter) {
-      fragment = node.declaredFragment as SuperFormalParameterFragmentImpl;
-    } else {
-      var nameToken = node.name;
-      if (_elementWalker != null) {
-        fragment =
-            _elementWalker!.getParameter() as SuperFormalParameterFragmentImpl;
-      } else {
-        // Only for recovery, this should not happen in valid code.
-        fragment = SuperFormalParameterFragmentImpl(
-          firstTokenOffset: node.offset,
-          name: nameToken.lexeme.nullIfEmpty,
-          nameOffset: nameToken.offset.nullIfNegative,
-          parameterKind: node.kind,
-        );
-        _elementHolder.enclose(fragment);
-        fragment.isConst = node.isConst;
-        fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-        fragment.isFinal = node.isFinal;
-        _setCodeRange(fragment, node);
-      }
-      node.declaredFragment = fragment;
-    }
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _withElementHolder(ElementHolder(fragment), () {
-      _withElementWalker(
-        _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
-        () {
-          _withNameScope(() {
-            _buildTypeParameterElements(node.typeParameters);
-            node.typeParameters?.accept(this);
-            node.type?.accept(this);
-            if (_elementWalker != null) {
-              node.parameters?.accept(this);
-            } else {
-              // Only for recovery, this should not happen in valid code.
-              fragment.element.type = node.type?.type ?? _dynamicType;
-              _withElementWalker(null, () {
-                node.parameters?.accept(this);
-              });
-            }
-          });
-        },
-      );
-    });
+    _scopeContext.visitSuperFormalParameter(node, visitor: this);
   }
 
   @override
@@ -1390,14 +739,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.expression.accept(this);
 
     for (var case_ in node.cases) {
-      _withNameScope(() {
-        _resolveGuardedPattern(
-          case_.guardedPattern,
-          then: () {
-            case_.expression.accept(this);
-          },
-        );
-      });
+      _resolveGuardedPattern(
+        case_.guardedPattern,
+        then: () {
+          case_.nameScope = nameScope;
+          case_.expression.accept(this);
+        },
+      );
     }
   }
 
@@ -1418,7 +766,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     for (var group in node.memberGroups) {
       _patternVariables.switchStatementSharedCaseScopeStart(group);
       for (var member in group.members) {
-        _buildLabelElements(member.labels, true);
         if (member is SwitchCaseImpl) {
           member.expression.accept(this);
         } else if (member is SwitchDefaultImpl) {
@@ -1438,10 +785,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       group.variables = _patternVariables.switchStatementSharedCaseScopeFinish(
         group,
       );
-      _withNameScope(() {
-        var statements = group.statements;
-        _buildLocalElements(statements);
-        statements.accept(this);
+
+      _scopeContext.withLocalScope((scope) {
+        group.members.lastOrNull?.nameScope = scope;
+        _defineLocalElements(scope, group.statements);
+        scope.addAll(group.variables.values);
+        group.statements.accept(this);
       });
     }
   }
@@ -1450,220 +799,95 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitTypeParameter(covariant TypeParameterImpl node) {
     var fragment = node.declaredFragment!;
 
-    _setOrCreateMetadataElements(fragment, node.metadata);
+    node.metadata.accept(this);
 
     var boundNode = node.bound;
     if (boundNode != null) {
       boundNode.accept(this);
-      if (_elementWalker == null) {
-        fragment.element.bound = boundNode.type;
-      }
+      fragment.element.bound = boundNode.type;
     }
   }
 
   @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var initializerNode = node.initializer;
+    var element = node.declaredFragment!.element;
 
-    VariableFragmentImpl fragment;
-    if (_elementWalker != null) {
-      fragment = _elementWalker!.getVariable();
-      node.declaredFragment = fragment;
-    } else {
-      var localFragment = node.declaredFragment as LocalVariableFragmentImpl;
-      fragment = localFragment;
-
+    if (element is LocalVariableElementImpl) {
       var varList = node.parent as VariableDeclarationListImpl;
-      localFragment.hasInitializer = initializerNode != null;
       if (varList.type case var typeNode?) {
-        var type = typeNode.typeOrThrow;
-        localFragment.element.type = type;
+        element.type = typeNode.typeOrThrow;
       } else {
-        localFragment.hasImplicitType = true;
-        localFragment.element.type = _dynamicType;
+        // TODO(scheglov): review and improve resolution to not rely on dynamic.
+        element.type = _typeProvider.dynamicType;
       }
     }
 
-    if (initializerNode != null) {
-      _withElementWalker(null, () {
-        _withElementHolder(ElementHolder(fragment), () {
-          initializerNode.accept(this);
-        });
-      });
-    }
+    node.initializer?.accept(this);
   }
 
   @override
   void visitVariableDeclarationList(
     covariant VariableDeclarationListImpl node,
   ) {
-    var parent = node.parent;
-    if (parent is ForPartsWithDeclarations ||
-        parent is VariableDeclarationStatement &&
-            !_hasLocalElementsBuilt(parent)) {
-      _buildLocalVariableElements(node);
-    }
-
-    node.visitChildren(this);
-
-    NodeList<AnnotationImpl> annotations;
-    if (parent is FieldDeclarationImpl) {
-      annotations = parent.metadata;
-    } else if (parent is TopLevelVariableDeclarationImpl) {
-      annotations = parent.metadata;
-    } else {
-      // Local variable declaration
-      annotations = node.metadata;
-    }
-
-    var variables = node.variables;
-    for (var i = 0; i < variables.length; i++) {
-      var variable = variables[i];
-      var fragment = variable.declaredFragment!;
-      _setOrCreateMetadataElements(fragment, annotations, visitNodes: false);
-
-      var offset = (i == 0 ? node.parent! : variable).offset;
-      var length = variable.end - offset;
-      fragment.setCodeRange(offset, length);
-    }
+    _scopeContext.visitVariableDeclarationList(node, visitor: this);
   }
 
-  /// Builds the label elements associated with [labels] and stores them in the
-  /// element holder.
-  void _buildLabelElements(List<Label> labels, bool onSwitchMember) {
-    for (var label in labels) {
-      label as LabelImpl;
-      var labelName = label.label;
-      var fragment = LabelFragmentImpl(
-        name: labelName.name,
-        firstTokenOffset: label.offset,
-        onSwitchMember: onSwitchMember,
-      );
-      labelName.element = fragment.asElement2;
-      _elementHolder.enclose(fragment);
-    }
+  @override
+  void visitWhileStatement(covariant WhileStatementImpl node) {
+    node.condition.accept(this);
+    _visitStatementInScope(node.body);
   }
 
-  void _buildLocalElements(List<Statement> statements) {
-    for (var statement in statements) {
-      if (statement is FunctionDeclarationStatementImpl) {
-        _buildLocalFunctionElement(statement);
-      } else if (statement is VariableDeclarationStatement) {
-        _buildLocalVariableElements(statement.variables);
-      }
-    }
+  @override
+  void visitWithClause(covariant WithClauseImpl node) {
+    _resolveWithClause(declaration: node.parent as Declaration?, clause: node);
   }
 
-  void _buildLocalFunctionElement(
-    covariant FunctionDeclarationStatementImpl statement,
+  List<BindPatternVariableElementImpl> _computeDeclaredPatternVariables(
+    DartPatternImpl pattern,
   ) {
-    var node = statement.functionDeclaration;
-    var nameToken = node.name;
+    var variables = _computePatternVariables(pattern);
+    return variables.values
+        .whereType<BindPatternVariableElementImpl>()
+        .toList();
+  }
 
-    var fragment = LocalFunctionFragmentImpl(
-      name: nameToken.nameIfNotEmpty,
-      firstTokenOffset: node.offset,
+  Map<String, PatternVariableElementImpl> _computePatternVariables(
+    DartPatternImpl pattern, {
+    Object? sharedCaseScopeKey,
+  }) {
+    _patternVariables.casePatternStart();
+    pattern.accept(_PatternVariableBinderVisitor(_patternVariables));
+    return _patternVariables.casePatternFinish(
+      sharedCaseScopeKey: sharedCaseScopeKey,
     );
-    fragment.nameOffset = nameToken.offsetIfNotEmpty;
-    node.declaredFragment = fragment;
-    node.functionExpression.declaredFragment = fragment;
-
-    // The fragment's old enclosing element needs to be set before we can get
-    // the new element for it.
-    _elementHolder.enclose(fragment);
-
-    if (!_isWildCardVariable(nameToken.lexeme)) {
-      _define(fragment.element);
-    }
   }
 
-  void _buildLocalVariableElements(VariableDeclarationList variableList) {
-    var isConst = variableList.isConst;
-    var isFinal = variableList.isFinal;
-    var isLate = variableList.isLate;
-    for (var variable in variableList.variables) {
-      variable as VariableDeclarationImpl;
-      var nameToken = variable.name;
-
-      var fragment = LocalVariableFragmentImpl(
-        name: _getFragmentName(nameToken),
-        firstTokenOffset: variable.offset,
-      );
-      fragment.nameOffset = nameToken.offsetIfNotEmpty;
-      variable.declaredFragment = fragment;
-      _elementHolder.enclose(fragment);
-      _define(fragment.element);
-
-      fragment.isConst = isConst;
-      fragment.isFinal = isFinal;
-      fragment.isLate = isLate;
-    }
-  }
-
-  /// Ensure that each type parameters from the [typeParameterList] has its
-  /// element set, either from the [_elementWalker] or new, and define these
-  /// elements in the [_nameScope].
-  void _buildTypeParameterElements(TypeParameterList? typeParameterList) {
-    if (typeParameterList == null) return;
-
-    for (var typeParameter in typeParameterList.typeParameters) {
-      typeParameter as TypeParameterImpl;
-      var name = typeParameter.name;
-
-      TypeParameterFragmentImpl fragment;
-      if (_elementWalker != null) {
-        fragment = _elementWalker!.getTypeParameter();
-      } else {
-        fragment = TypeParameterFragmentImpl(
-          name: name.lexeme,
-          firstTokenOffset: typeParameter.offset,
-        );
-        fragment.nameOffset = name.offset;
-        _elementHolder.addTypeParameter(fragment);
-
-        _setCodeRange(fragment, typeParameter);
-      }
-      typeParameter.declaredFragment = fragment;
-
-      if (!_isWildCardVariable(fragment.name)) {
-        _define(fragment.element);
-      }
-
-      _setOrCreateMetadataElements(fragment, typeParameter.metadata);
-    }
-  }
-
-  void _define(Element element) {
-    if (_nameScope case LocalScope nameScope) {
-      nameScope.add(element);
-    }
-  }
-
-  /// Define given [elements] in the [_nameScope].
-  void _defineElements(List<Element> elements) {
-    int length = elements.length;
-    for (int i = 0; i < length; i++) {
-      var element = elements[i];
-      _define(element);
-    }
-  }
-
-  /// Define given [parameters] in the [_nameScope].
-  void _defineFormalParameters(List<FormalParameterElement> parameters) {
-    int length = parameters.length;
-    for (int i = 0; i < length; i++) {
-      var formalParameter = parameters[i];
-      if (!formalParameter.isInitializingFormal) {
-        _define(formalParameter);
+  void _defineLocalElements(LocalScope scope, List<Statement> statements) {
+    for (var statement in statements) {
+      statement = statement.unlabeled;
+      switch (statement) {
+        case FunctionDeclarationStatementImpl():
+          var declaration = statement.functionDeclaration;
+          var element = declaration.declaredFragment!.element;
+          scope.add(element);
+        case PatternVariableDeclarationStatementImpl():
+          var declaration = statement.declaration;
+          _definePatternVariableDeclarationElements(scope, declaration);
+        case VariableDeclarationStatementImpl():
+          scope.addAll(statement.variables.declaredElements);
       }
     }
   }
 
-  String? _getFragmentName(Token? nameToken) {
-    if (nameToken == null || nameToken.isSynthetic) {
-      return null;
-    }
-    return nameToken.lexeme;
+  void _definePatternVariableDeclarationElements(
+    LocalScope scope,
+    PatternVariableDeclarationImpl declaration,
+  ) {
+    var pattern = declaration.pattern;
+    var variables = _computeDeclaredPatternVariables(pattern);
+    declaration.elements = variables;
+    scope.addAll(variables);
   }
 
   NullabilitySuffix _getNullability(bool hasQuestion) {
@@ -1674,26 +898,20 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  bool _isWildCardVariable(String? name) =>
-      name == '_' &&
-      _libraryElement.featureSet.isEnabled(Feature.wildcard_variables);
-
   void _resolveGuardedPattern(
     GuardedPatternImpl guardedPattern, {
     Object? sharedCaseScopeKey,
     void Function()? then,
   }) {
-    _patternVariables.casePatternStart();
-    guardedPattern.pattern.accept(this);
-    var variables = _patternVariables.casePatternFinish(
+    var variables = _computePatternVariables(
+      guardedPattern.pattern,
       sharedCaseScopeKey: sharedCaseScopeKey,
     );
     // Matched variables are available in `whenClause`.
-    _withNameScope(() {
-      for (var variable in variables.values) {
-        _define(variable);
-      }
+    _scopeContext.withLocalScope((scope) {
+      scope.addAll(variables.values);
       guardedPattern.variables = variables;
+      guardedPattern.pattern.accept(this);
       guardedPattern.whenClause?.accept(this);
       if (then != null) {
         then();
@@ -1714,12 +932,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     );
   }
 
-  void _resolveOnClause({
+  void _resolveMixinOnClause({
     required Declaration? declaration,
-    required MixinOnClauseImpl? clause,
+    required MixinOnClauseImpl clause,
   }) {
-    if (clause == null) return;
-
     _resolveTypes(
       declaration: declaration,
       clause: clause,
@@ -1746,11 +962,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var enclosingElement = _namedTypeResolver.enclosingClass;
     if (enclosingElement is ExtensionTypeElementImpl) {
-      _verifyExtensionElementImplements(
-        enclosingElement.asElement,
-        namedType,
-        type,
-      );
+      _verifyExtensionElementImplements(enclosingElement, namedType, type);
       return;
     }
 
@@ -1844,31 +1056,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _setCodeRange(FragmentImpl fragment, AstNode node) {
-    fragment.setCodeRange(node.offset, node.length);
-  }
-
-  void _setOrCreateMetadataElements(
-    FragmentImpl fragment,
-    NodeList<AnnotationImpl> annotations, {
-    bool visitNodes = true,
-  }) {
-    if (visitNodes) {
-      annotations.accept(this);
-    }
-    if (_elementWalker != null) {
-      _setElementAnnotations(annotations, fragment.metadata.annotations);
-    } else if (annotations.isNotEmpty) {
-      fragment.metadata = MetadataImpl(
-        annotations.map((annotation) {
-          return annotation.elementAnnotation!;
-        }).toList(),
-      );
-    }
-  }
-
   void _verifyExtensionElementImplements(
-    ExtensionTypeFragmentImpl declaredFragment,
+    ExtensionTypeElementImpl declaredElement,
     NamedTypeImpl node,
     TypeImpl type,
   ) {
@@ -1883,7 +1072,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var declaredElement = declaredFragment.element;
     var declaredRepresentation = declaredElement.representation.type;
     if (typeSystem.isSubtypeOf(declaredRepresentation, type)) {
       return;
@@ -1903,7 +1091,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
                   implementedRepresentationType: implementedRepresentation,
                   implementedExtensionTypeName: type.element.name ?? '',
                   representationType: declaredRepresentation,
-                  extensionTypeName: declaredFragment.name ?? '',
+                  extensionTypeName: declaredElement.name ?? '',
                 )
                 .at(node),
           );
@@ -1919,62 +1107,61 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     );
   }
 
-  void _visitIf(IfElementOrStatementImpl node) {
-    var caseClause = node.caseClause;
-    if (caseClause != null) {
-      node.expression.accept(this);
-      _resolveGuardedPattern(
-        caseClause.guardedPattern,
-        then: () {
-          node.ifTrue.accept(this);
-        },
-      );
-      node.ifFalse?.accept(this);
-    } else {
-      node.visitChildren(this);
+  void _visitForLoopParts(LocalScope scope, ForLoopPartsImpl node) {
+    switch (node) {
+      case ForEachPartsWithDeclarationImpl():
+        node.iterable.accept(this);
+        scope.add(node.loopVariable.declaredFragment!.element);
+        node.loopVariable.accept(this);
+      case ForEachPartsWithIdentifierImpl():
+        node.iterable.accept(this);
+        node.identifier.accept(this);
+      case ForEachPartsWithPatternImpl():
+        node.iterable.accept(this);
+        var variables = _computeDeclaredPatternVariables(node.pattern);
+        node.variables = variables;
+        scope.addAll(variables);
+        node.pattern.accept(this);
+        node.metadata.accept(this);
+      case ForPartsWithDeclarationsImpl():
+        scope.addAll(node.variables.declaredElements);
+        node.variables.accept(this);
+        node.condition?.accept(this);
+        node.updaters.accept(this);
+      case ForPartsWithExpressionImpl():
+        node.initialization?.accept(this);
+        node.condition?.accept(this);
+        node.updaters.accept(this);
+      case ForPartsWithPatternImpl():
+        _definePatternVariableDeclarationElements(scope, node.variables);
+        node.variables.accept(this);
+        node.condition?.accept(this);
+        node.updaters.accept(this);
     }
   }
 
-  /// Make the given [holder] be the current one while running [f].
-  void _withElementHolder(ElementHolder holder, void Function() f) {
-    var previousHolder = _elementHolder;
-    _elementHolder = holder;
-    try {
-      f();
-    } finally {
-      _elementHolder = previousHolder;
-    }
-  }
-
-  /// Make the given [walker] be the current one while running [f].
-  void _withElementWalker(ElementWalker? walker, void Function() f) {
-    var current = _elementWalker;
-    try {
-      _elementWalker = walker;
-      f();
-    } finally {
-      _elementWalker = current;
-    }
-  }
-
-  /// Run [f] with the new name scope.
-  void _withNameScope(void Function() f) {
-    var current = _nameScope;
-    try {
-      _nameScope = LocalScope(current);
-      f();
-    } finally {
-      _nameScope = current;
+  /// Visits [statement], ensuring that if it is a block it is visited as such,
+  /// and if it is not, it is wrapped in an implicit block scope.
+  ///
+  /// This implements the requirement from the specification that sub-statements
+  /// of control flow statements (like `if`, `while`, `do`, `for`) introduce
+  /// a new scope, even if they are not explicitly blocks.
+  void _visitStatementInScope(StatementImpl? statement) {
+    if (statement != null) {
+      if (statement is BlockImpl) {
+        visitBlock(statement);
+      } else {
+        _scopeContext.withLocalScope((scope) {
+          _defineLocalElements(scope, [statement]);
+          statement.accept(this);
+        });
+      }
     }
   }
 
   /// We always build local elements for [VariableDeclarationStatement]s and
   /// [FunctionDeclarationStatement]s in blocks, because invalid code might try
   /// to use forward references.
-  static bool _hasLocalElementsBuilt(Statement node) {
-    var parent = node.parent;
-    return parent is Block || parent is SwitchMember;
-  }
 
   /// Associate each of the annotation [nodes] with the corresponding
   /// [ElementAnnotation] in [annotations].
@@ -1993,6 +1180,102 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       nodes[i].elementAnnotation = annotations[i];
     }
   }
+}
+
+class _PatternVariableBinderVisitor extends ThrowingAstVisitor<void> {
+  final VariableBinder<DartPatternImpl, PatternVariableElementImpl> _binder;
+
+  _PatternVariableBinderVisitor(this._binder);
+
+  @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {}
+
+  @override
+  void visitCastPattern(CastPattern node) {
+    node.pattern.accept(this);
+  }
+
+  @override
+  void visitConstantPattern(ConstantPattern node) {}
+
+  @override
+  void visitDeclaredVariablePattern(
+    covariant DeclaredVariablePatternImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+    _binder.add(node.name.lexeme, element);
+  }
+
+  @override
+  void visitListPattern(ListPattern node) {
+    node.elements.accept(this);
+  }
+
+  @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    node.leftOperand.accept(this);
+    node.rightOperand.accept(this);
+  }
+
+  @override
+  void visitLogicalOrPattern(covariant LogicalOrPatternImpl node) {
+    _binder.logicalOrPatternStart();
+    node.leftOperand.accept(this);
+    _binder.logicalOrPatternFinishLeft();
+    node.rightOperand.accept(this);
+    _binder.logicalOrPatternFinish(node);
+  }
+
+  @override
+  void visitMapPattern(MapPattern node) {
+    node.elements.accept(this);
+  }
+
+  @override
+  void visitMapPatternEntry(MapPatternEntry node) {
+    node.value.accept(this);
+  }
+
+  @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    node.pattern.accept(this);
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    node.pattern.accept(this);
+  }
+
+  @override
+  void visitObjectPattern(ObjectPattern node) {
+    node.fields.accept(this);
+  }
+
+  @override
+  void visitParenthesizedPattern(ParenthesizedPattern node) {
+    node.pattern.accept(this);
+  }
+
+  @override
+  void visitPatternField(PatternField node) {
+    node.pattern.accept(this);
+  }
+
+  @override
+  void visitRecordPattern(RecordPattern node) {
+    node.fields.accept(this);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {}
+
+  @override
+  void visitRestPatternElement(RestPatternElement node) {
+    node.pattern?.accept(this);
+  }
+
+  @override
+  void visitWildcardPattern(WildcardPattern node) {}
 }
 
 class _VariableBinder
@@ -2028,7 +1311,7 @@ class _VariableBinder
     var resultFragment = JoinPatternVariableFragmentImpl(
       name: first.name,
       firstTokenOffset: null,
-      variables: expandedVariables.map((e) => e.asElement).toList(),
+      variables: expandedVariables.map((e) => e.firstFragment).toList(),
       inconsistency: inconsistency.maxWithAll(
         components.whereType<JoinPatternVariableElementImpl>().map(
           (e) => e.inconsistency,
@@ -2086,12 +1369,11 @@ class _VariableBinderErrors
   }
 }
 
-extension on Token {
-  String? get nameIfNotEmpty {
-    return lexeme.isNotEmpty ? lexeme : null;
-  }
-
-  int? get offsetIfNotEmpty {
-    return lexeme.isNotEmpty ? offset : null;
+extension _VariableDeclarationList on VariableDeclarationList {
+  List<LocalVariableElementImpl> get declaredElements {
+    return variables
+        .map((v) => v.declaredFragment!.element)
+        .cast<LocalVariableElementImpl>()
+        .toList();
   }
 }

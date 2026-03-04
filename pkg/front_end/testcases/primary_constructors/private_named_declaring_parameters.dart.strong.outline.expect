@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int? _a;
+  final field core::int? _b;
+  field core::int _c;
+  final field core::int _d;
+  constructor •({core::int? a = null, final core::int? b = null, required core::int c, required final core::int d}) → self::C
+    ;
+}
+class E extends core::_Enum /*isEnum*/  {
+  final field core::int? _a;
+  final field core::int _b;
+  enum-element static const field self::E x = const self::E::•(0, "x", b: 1);
+  enum-element static const field self::E y = const self::E::•(1, "y", a: 0, b: 1);
+  static const field core::List<self::E> values = const <self::E>[self::E::x, self::E::y];
+  const constructor •(core::int #index, core::String #name, {final core::int? a = null, required final core::int b}) → self::E
+    : self::E::_a = a, self::E::_b = b, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+extension type ET1(core::int? _a) {
+  abstract extension-type-member representation-field get _a() → core::int?;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(core::int _a) {
+  abstract extension-type-member representation-field get _a() → core::int;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#({core::int? a = null}) → self::ET1% /* erasure=core::int?, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff({core::int? a}) → self::ET1% /* erasure=core::int?, declared=! */
+  return self::ET1|constructor#(a: a);
+static extension-type-member method ET2|constructor#({required core::int a}) → self::ET2% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff({required core::int a}) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(a: a);
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///private_named_declaring_parameters.dart:12:3 -> InstanceConstant(const E{E._a: null, E._b: 1, _Enum.index: 0, _Enum._name: "x"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///private_named_declaring_parameters.dart:12:12 -> InstanceConstant(const E{E._a: 0, E._b: 1, _Enum.index: 1, _Enum._name: "y"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///private_named_declaring_parameters.dart:11:6 -> ListConstant(const <E>[const E{E._a: null, E._b: 1, _Enum.index: 0, _Enum._name: "x"}, const E{E._a: 0, E._b: 1, _Enum.index: 1, _Enum._name: "y"}])
+Extra constant evaluation: evaluated: 14, effectively constant: 3

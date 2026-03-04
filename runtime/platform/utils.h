@@ -141,6 +141,10 @@ class Utils {
   static constexpr int CountOneBits64(uint64_t x) { return std::popcount(x); }
   static constexpr int CountOneBits32(uint32_t x) { return std::popcount(x); }
   static constexpr int CountOneBitsWord(uword x) { return std::popcount(x); }
+  template <typename T>
+  static constexpr int CountOneBits(T x) {
+    return std::popcount(x);
+  }
 
   // TODO(koda): Compare to flsll call/intrinsic.
   static constexpr size_t HighestBit(int64_t v) {

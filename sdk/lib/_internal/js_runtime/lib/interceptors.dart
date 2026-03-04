@@ -79,6 +79,17 @@ final String DART_CLOSURE_PROPERTY_NAME = getIsolateAffinityTag(
   r'_$dart_dartClosure',
 );
 
+/// Present in JS functions that were converted specifically using
+/// `dart:js_interop`.
+final String DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME = getIsolateAffinityTag(
+  r'_$dart_dartClosure_dartJSInterop',
+);
+
+/// Returns whether [f] is a wrapped Dart function through `dart:js_interop`'s
+/// conversion methods.
+bool isJSExportedDartFunction(JavaScriptFunction f) =>
+    JS('', '#.#', f, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME) != null;
+
 getDispatchProperty(object) {
   return JS(
     '',
@@ -484,7 +495,9 @@ final class JavaScriptFunction extends LegacyJavaScriptObject
   const JavaScriptFunction();
 
   String toString() {
-    var dartClosure = JS('', '#.#', this, DART_CLOSURE_PROPERTY_NAME);
+    var dartClosure =
+        JS('', '#.#', this, DART_CLOSURE_PROPERTY_NAME) ??
+        JS('', '#.#', this, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME);
     if (dartClosure == null) return super.toString();
     return 'JavaScript function for ${dartClosure.toString()}';
   }

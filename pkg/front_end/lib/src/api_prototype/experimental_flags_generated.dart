@@ -146,7 +146,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag dotShorthands = const ExperimentalFlag(
     name: 'dot-shorthands',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     enabledVersion: const Version(3, 10),
     experimentEnabledVersion: const Version(3, 10),
     experimentReleasedVersion: const Version(3, 9),
@@ -320,16 +320,16 @@ class ExperimentalFlag {
     isExpired: false,
     enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentReleasedVersion: const Version(3, 12),
   );
 
   static const ExperimentalFlag privateNamedParameters = const ExperimentalFlag(
     name: 'private-named-parameters',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    enabledVersion: const Version(3, 12),
+    experimentEnabledVersion: const Version(3, 12),
+    experimentReleasedVersion: const Version(3, 12),
   );
 
   static const ExperimentalFlag recordUse = const ExperimentalFlag(

@@ -128,14 +128,13 @@ class EditGetFixesHandler extends LegacyHandler
     var sdkVersionConstraint = (package is PubPackage)
         ? package.sdkVersionConstraint
         : null;
-    var diagnostics = analyzeAnalysisOptions(
-      FileSource(optionsFile),
-      content,
-      sourceFactory,
-      analysisContext.contextRoot.root.path,
-      sdkVersionConstraint,
-      resourceProvider,
-    );
+    var diagnostics = AnalysisOptionsAnalyzer(
+      initialSource: FileSource(optionsFile),
+      sourceFactory: sourceFactory,
+      contextRoot: analysisContext.contextRoot.root.path,
+      sdkVersionConstraint: sdkVersionConstraint,
+      resourceProvider: resourceProvider,
+    ).walkIncludes(content: content);
     var options = _getOptions(sourceFactory, content);
     if (options == null) {
       return errorFixesList;

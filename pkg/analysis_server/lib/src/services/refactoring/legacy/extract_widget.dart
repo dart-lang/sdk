@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
@@ -347,18 +348,24 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       }
     }
 
-    // Give each private parameter a public name for the constructor.
+    // Give each private parameter a non-colliding public name if needed.
     for (var parameter in _parameters) {
       var name = parameter.name;
       if (name.startsWith('_')) {
+        // If the library supports private named parameters, we only need to
+        // rename if the public name collides.
         var baseName = name.substring(1);
-        for (var i = 1; ; i++) {
-          name = i == 1 ? baseName : '$baseName$i';
-          if (usedNames.add(name)) {
-            break;
+        if (!_featureSet.isEnabled(Feature.private_named_parameters) ||
+            !usedNames.add(baseName)) {
+          for (var i = 1; ; i++) {
+            name = i == 1 ? baseName : '$baseName$i';
+            if (usedNames.add(name)) {
+              break;
+            }
           }
         }
       }
+
       parameter.constructorName = name;
     }
 
@@ -589,7 +596,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       if (parameter != _parameters.first) {
         builder.write(', ');
       }
-      builder.write(parameter.constructorName);
+      builder.write(
+        correspondingPublicName(parameter.constructorName) ??
+            parameter.constructorName,
+      );
       builder.write(': ');
       builder.write(parameter.name);
     }

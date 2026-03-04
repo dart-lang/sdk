@@ -329,6 +329,7 @@ class NodeCreator {
         case NodeKind.PatternSwitchCase:
         case NodeKind.SwitchExpressionCase:
         case NodeKind.LocalVariable:
+        case NodeKind.CatchVariable:
         case NodeKind.PositionalParameter:
         case NodeKind.NamedParameter:
         case NodeKind.SyntheticVariable:
@@ -502,7 +503,9 @@ class NodeCreator {
   ///
   /// [index] is used to create multiple distinct [Procedure] nodes even when
   /// these have the same requirements.
-  Procedure _needProcedure({int? index, bool? isStatic}) {
+  Procedure _needProcedure() {
+    int? index = null;
+    bool? isStatic = null;
     for (Procedure procedure in _neededProcedures) {
       if (isStatic == null || isStatic == procedure.isStatic) {
         if (index == null || index == 0) {
@@ -1855,6 +1858,7 @@ class NodeCreator {
             _createExpression())
           ..fileOffset = _needFileOffset();
       case NodeKind.LocalVariable:
+      case NodeKind.CatchVariable:
       case NodeKind.PositionalParameter:
       case NodeKind.NamedParameter:
       case NodeKind.SyntheticVariable:

@@ -4,8 +4,6 @@
 
 // `T?` denotes the same namespace as `T` for dot shorthands.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import '../dot_shorthand_helper.dart';
 
 class NullableInteger {

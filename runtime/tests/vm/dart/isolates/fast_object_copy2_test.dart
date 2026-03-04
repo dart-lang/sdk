@@ -166,7 +166,7 @@ final copyableClosures = <dynamic>[
     return inner;
   }(),
   () {
-    foo(var arg) {
+    foo(arg) {
       return () => arg;
     }
 

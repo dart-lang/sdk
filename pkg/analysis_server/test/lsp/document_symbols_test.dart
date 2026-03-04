@@ -4,10 +4,12 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -180,15 +182,7 @@ class MyClass {
   myMethod() {}
 }
 ''';
-    newFile(mainFilePath, content);
-    await initialize();
-
-    var result = await getDocumentSymbols(mainFileUri);
-    var symbols = result.map(
-      (docsymbols) => docsymbols,
-      (symbolInfos) => throw 'Expected DocumentSymbols, got SymbolInformations',
-    );
-
+    var symbols = await _getSymbols(content);
     expect(symbols, hasLength(2));
 
     var topLevel = symbols[0];
@@ -211,6 +205,134 @@ class MyClass {
     var method = myClass.children![2];
     expect(method.name, equals('myMethod'));
     expect(method.kind, equals(SymbolKind.Method));
+  }
+
+  Future<void> test_hierarchical_constructor_primary() async {
+    setHierarchicalDocumentSymbolSupport();
+
+    const content = '''
+class /*[0*//*[1*/MyClass/*1]*//*0]*/();
+''';
+    var code = TestCode.parse(content);
+    var symbols = await _getSymbols(code.code);
+
+    expect(symbols, [
+      _isClass(
+        'MyClass',
+        code.ranges[0],
+        children: [_isConstructor('MyClass', code.ranges[1])],
+      ),
+    ]);
+  }
+
+  Future<void> test_hierarchical_constructor_primary_body() async {
+    setHierarchicalDocumentSymbolSupport();
+
+    const content = '''
+class /*[0*/A/*0]*/(final int /*[1*/a/*1]*/, int b) {
+  /*[2*/this/*2]*/ {}
+}
+''';
+    var code = TestCode.parse(content);
+    var symbols = await _getSymbols(code.code);
+
+    expect(symbols, [
+      _isClass(
+        'A',
+        code.ranges[0],
+        children: [
+          _isConstructor('A', code.ranges[0]),
+          _isSymbol('a', .Field, code.ranges[1]),
+          _isConstructor('this', code.ranges[2]),
+        ],
+      ),
+    ]);
+  }
+
+  Future<void> test_hierarchical_constructor_primary_named() async {
+    setHierarchicalDocumentSymbolSupport();
+
+    const content = '''
+class /*[0*/MyClass/*0]*//*[1*/.named/*1]*/();
+''';
+    var code = TestCode.parse(content);
+    var symbols = await _getSymbols(code.code);
+
+    expect(symbols, [
+      _isClass(
+        'MyClass',
+        code.ranges[0],
+        children: [_isConstructor('MyClass.named', code.ranges[1])],
+      ),
+    ]);
+  }
+
+  Future<void> test_hierarchical_constructor_secondary_new() async {
+    setHierarchicalDocumentSymbolSupport();
+
+    const content = '''
+class /*[0*/MyClass/*0]*/ {
+  /*[1*/new/*1]*/();
+  new /*[2*/named/*2]*/();
+}
+''';
+    var code = TestCode.parse(content);
+    var symbols = await _getSymbols(code.code);
+
+    expect(symbols, [
+      _isClass(
+        'MyClass',
+        code.ranges[0],
+        children: [
+          _isConstructor('MyClass', code.ranges[1]),
+          _isConstructor('MyClass.named', code.ranges[2]),
+        ],
+      ),
+    ]);
+  }
+
+  Future<void> test_hierarchical_constructor_secondary_typeName() async {
+    setHierarchicalDocumentSymbolSupport();
+
+    const content = '''
+class /*[0*/MyClass/*0]*/ {
+  /*[1*/MyClass/*1]*/();
+  MyClass./*[2*/named/*2]*/();
+}
+''';
+    var code = TestCode.parse(content);
+    var symbols = await _getSymbols(code.code);
+
+    expect(symbols, [
+      _isClass(
+        'MyClass',
+        code.ranges[0],
+        children: [
+          _isConstructor('MyClass', code.ranges[1]),
+          _isConstructor('MyClass.named', code.ranges[2]),
+        ],
+      ),
+    ]);
+  }
+
+  Future<void> test_hierarchical_constructor_secondary_typeName_new() async {
+    setHierarchicalDocumentSymbolSupport();
+
+    const content = '''
+class /*[0*/MyClass/*0]*/ {
+  MyClass./*[1*/new/*1]*/();
+}
+''';
+    var code = TestCode.parse(content);
+    var symbols = await _getSymbols(code.code);
+
+    expect(symbols, [
+      _isClass(
+        'MyClass',
+        code.ranges[0],
+        children: [_isConstructor('MyClass', code.ranges[1])],
+      ),
+    ]);
   }
 
   Future<void> test_noAnalysisRoot_openedFile() async {
@@ -264,5 +386,49 @@ class MyClass {
       (symbolInfos) => symbolInfos,
     );
     expect(symbols, isEmpty);
+  }
+
+  Future<List<DocumentSymbol>> _getSymbols(String content) async {
+    newFile(mainFilePath, content);
+    await initialize();
+
+    var result = await getDocumentSymbols(mainFileUri);
+    return result.map(
+      (docsymbols) => docsymbols,
+      (symbolInfos) => throw 'Expected DocumentSymbols, got SymbolInformations',
+    );
+  }
+
+  Matcher _isClass(
+    String name,
+    TestCodeRange range, {
+    List<Matcher>? children,
+  }) {
+    return _isSymbol(name, .Class, range, children: children);
+  }
+
+  Matcher _isConstructor(
+    String name,
+    TestCodeRange range, {
+    List<Matcher>? children,
+  }) {
+    return _isSymbol(name, .Constructor, range, children: children);
+  }
+
+  Matcher _isSymbol(
+    String name,
+    SymbolKind kind,
+    TestCodeRange selectionRange, {
+    List<Matcher>? children,
+  }) {
+    return isA<DocumentSymbol>()
+        .having((symbol) => symbol.name, 'name', name)
+        .having((symbol) => symbol.kind, 'kind', kind)
+        .having(
+          (symbol) => symbol.selectionRange,
+          'selectionRange',
+          selectionRange.range,
+        )
+        .having((symbol) => symbol.children, 'children', children);
   }
 }

@@ -22,7 +22,10 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
   final LookupScope enclosingScope;
 
   final LookupScope typeParameterScope;
+
+  @override
   final DeclarationBuilderScope bodyScope;
+
   final List<Fragment> _fragments = [];
 
   @override

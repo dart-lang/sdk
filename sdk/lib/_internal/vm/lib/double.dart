@@ -221,13 +221,6 @@ final class _Double implements double {
   external double truncateToDouble();
 
   num clamp(num lowerLimit, num upperLimit) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (lowerLimit == null) {
-      throw ArgumentError.notNull("lowerLimit");
-    }
-    if (upperLimit == null) {
-      throw ArgumentError.notNull("upperLimit");
-    }
     if (lowerLimit.compareTo(upperLimit) > 0) {
       throw ArgumentError(lowerLimit);
     }
@@ -269,11 +262,6 @@ final class _Double implements double {
 
   String toStringAsFixed(int fractionDigits) {
     // See ECMAScript-262, 15.7.4.5 for details.
-
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (fractionDigits == null) {
-      throw ArgumentError.notNull("fractionDigits");
-    }
 
     // Step 2.
     if (fractionDigits < 0 || fractionDigits > 20) {
@@ -330,9 +318,6 @@ final class _Double implements double {
   String toStringAsPrecision(int precision) {
     // See ECMAScript-262, 15.7.4.7 for details.
 
-    if (precision == null) {
-      throw ArgumentError.notNull("precision");
-    }
     // The EcmaScript specification checks for NaN and Infinity before looking
     // at the fractionDigits. In Dart we are consistent with toStringAsFixed and
     // look at the fractionDigits first.

@@ -61,6 +61,20 @@ class KeywordHelper {
     addKeyword(Keyword.FACTORY);
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.GET);
+    if (featureSet.isEnabled(Feature.primary_constructors)) {
+      // Because this method is invoked when completing in a method declaration,
+      // it needs to verify that the method declaration is in a containing
+      // declaration that allows the `new` keyword.
+      var parent = state.selection.coveringNode.thisOrAncestorMatching(
+        (node) =>
+            node is ClassDeclaration ||
+            node is EnumDeclaration ||
+            node is ExtensionTypeDeclaration,
+      );
+      if (parent != null) {
+        addKeyword(Keyword.NEW);
+      }
+    }
     addKeyword(Keyword.OPERATOR);
     addKeyword(Keyword.SET);
     addKeyword(Keyword.STATIC);
@@ -251,6 +265,9 @@ class KeywordHelper {
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.GET);
     addKeyword(Keyword.LATE);
+    if (featureSet.isEnabled(Feature.primary_constructors)) {
+      addKeyword(Keyword.NEW);
+    }
     addKeyword(Keyword.OPERATOR);
     addKeyword(Keyword.SET);
     addKeyword(Keyword.STATIC);
@@ -379,6 +396,9 @@ class KeywordHelper {
     addKeyword(Keyword.DYNAMIC);
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.GET);
+    if (featureSet.isEnabled(Feature.primary_constructors)) {
+      addKeyword(Keyword.NEW);
+    }
     if (!isStatic) addKeyword(Keyword.OPERATOR);
     addKeyword(Keyword.SET);
     if (!isStatic) addKeyword(Keyword.STATIC);

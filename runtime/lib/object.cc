@@ -52,7 +52,7 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
   // This is safe since the argument is only used in a tail call.
   // The performance benefit is more than 5% when using hashCode.
   intptr_t hash = GetHash(thread->isolate_group(), arguments->NativeArgAt(0));
-  if (LIKELY(hash != 0)) {
+  if (hash != 0) [[likely]] {
     return Smi::New(hash);
   }
 

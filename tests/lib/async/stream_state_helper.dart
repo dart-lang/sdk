@@ -35,11 +35,11 @@ class SubscriptionProtocolTest {
     _subscription = null;
   }
 
-  void expectData(var data, [void action()?]) {
+  void expectData(data, [void action()?]) {
     _streamTest._expectData(this, data, action);
   }
 
-  void expectError(var error, [void action()?]) {
+  void expectError(error, [void action()?]) {
     _streamTest._expectError(this, error, action);
   }
 
@@ -111,11 +111,11 @@ class StreamProtocolTest {
   }
 
   // Actions on the stream and controller.
-  void add(var data) {
+  void add(data) {
     _controller.add(data);
   }
 
-  void error(var error) {
+  void error(error) {
     _controller.addError(error);
   }
 
@@ -127,7 +127,7 @@ class StreamProtocolTest {
     int subscriptionId = _subscriptionIdCounter++;
 
     StreamSubscription subscription = _controllerStream.listen(
-      (var data) {
+      (data) {
         _onData(subscriptionId, data);
       },
       onError: (Object error) {
@@ -179,7 +179,7 @@ class StreamProtocolTest {
   }
 
   // Handling of stream events.
-  void _onData(int id, var data) {
+  void _onData(int id, data) {
     if (trace) print("[Data#$id : $data]");
     _withNextExpectation((Event expect) {
       if (!expect.matchData(id, data)) {
@@ -305,22 +305,22 @@ class StreamProtocolTest {
     _expectations.add(new LogAnyEvent(action));
   }
 
-  void expectData(var data, [void action()?]) {
+  void expectData(data, [void action()?]) {
     _expectData(null, data, action);
   }
 
-  void _expectData(SubscriptionProtocolTest? sub, var data, void action()?) {
+  void _expectData(SubscriptionProtocolTest? sub, data, void action()?) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(new DataEvent(sub, data, action));
   }
 
-  void expectError(var error, [void action()?]) {
+  void expectError(error, [void action()?]) {
     _expectError(null, error, action);
   }
 
-  void _expectError(SubscriptionProtocolTest? sub, var error, void action()?) {
+  void _expectError(SubscriptionProtocolTest? sub, error, void action()?) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
@@ -436,7 +436,7 @@ class Event {
     }
   }
 
-  bool matchData(int id, var data) {
+  bool matchData(int id, data) {
     return false;
   }
 
@@ -499,7 +499,7 @@ class SubscriptionEvent extends Event {
   SubscriptionProtocolTest? subscription;
   SubscriptionEvent(this.subscription, void action()?) : super(action);
 
-  bool matchData(int id, var data) {
+  bool matchData(int id, data) {
     if (subscription != null && subscription!.id != id) return false;
     if (!_testData(data)) return false;
     _action?.call();
@@ -532,7 +532,7 @@ class DataEvent extends SubscriptionEvent {
   final data;
   DataEvent(SubscriptionProtocolTest? sub, this.data, void action()?)
     : super(sub, action);
-  bool _testData(var data) => this.data == data;
+  bool _testData(data) => this.data == data;
   String toString() => "[Data$_id: $data]";
 }
 
@@ -594,7 +594,7 @@ class LogAnyEvent extends Event {
 
   LogAnyEvent(void action()?) : super(action);
 
-  bool _testData(var data) {
+  bool _testData(data) {
     _actual = "*[Data $data]";
     return true;
   }

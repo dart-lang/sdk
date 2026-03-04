@@ -4,7 +4,7 @@
 // Check that initializers are not duplicated
 
 class Class {
-  Class(var v)
+  Class(v)
     : field_ = v,
       // Test against duplicate final field initialization in initializing list.
       field_ = 2;

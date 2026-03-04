@@ -50,7 +50,6 @@ class JsInteropChecks extends RecursiveVisitor {
 
   final ExportChecker exportChecker;
   final bool isDart2Wasm;
-  final bool enableExperimentalFfi;
 
   /// Native tests to exclude from checks on external.
   // TODO(rileyporter): Use ExternalName from CFE to exclude native tests.
@@ -62,18 +61,6 @@ class JsInteropChecks extends RecursiveVisitor {
 
   static final List<Pattern> _allowedTrustTypesTestPatterns = [
     RegExp(r'(?<!generated_)tests/lib/js'),
-  ];
-
-  static const allowedInteropLibrariesInDart2WasmPackages = [
-    // Flutter/benchmarks.
-    'flutter',
-    'engine',
-    'ui',
-    // Non-SDK packages that have been migrated for the Wasm experiment but
-    // still have references to older interop libraries.
-    'package_info_plus',
-    'test',
-    'url_launcher_web',
   ];
 
   /// Libraries that use `external` to exclude from checks on external.
@@ -104,7 +91,6 @@ class JsInteropChecks extends RecursiveVisitor {
     this._reporter,
     this._nativeClasses, {
     this.isDart2Wasm = false,
-    this.enableExperimentalFfi = false,
   }) : exportChecker = ExportChecker(_reporter, _coreTypes.objectClass),
        _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
          'dart:js_interop',
@@ -208,18 +194,18 @@ class JsInteropChecks extends RecursiveVisitor {
       }
       if (superclass != null && !hasJSInteropAnnotation(superclass)) {
         report(
-          diag.jsInteropJSClassExtendsDartClass.withArgumentsOld(
-            node.name,
-            superclass.name,
+          diag.jsInteropJSClassExtendsDartClass.withArguments(
+            className: node.name,
+            superclassName: superclass.name,
           ),
         );
       }
     } else {
       if (superclass != null && hasJSInteropAnnotation(superclass)) {
         report(
-          diag.jsInteropDartClassExtendsJSClass.withArgumentsOld(
-            node.name,
-            superclass.name,
+          diag.jsInteropDartClassExtendsJSClass.withArguments(
+            className: node.name,
+            superclassName: superclass.name,
           ),
         );
       }
@@ -262,9 +248,9 @@ class JsInteropChecks extends RecursiveVisitor {
       }
       if (superclass != null && hasStaticInteropAnnotation(superclass)) {
         report(
-          diag.jsInteropNonStaticWithStaticInteropSupertype.withArgumentsOld(
-            node.name,
-            superclass.name,
+          diag.jsInteropNonStaticWithStaticInteropSupertype.withArguments(
+            className: node.name,
+            superclassName: superclass.name,
           ),
         );
       }
@@ -273,9 +259,9 @@ class JsInteropChecks extends RecursiveVisitor {
       for (final supertype in node.implementedTypes) {
         if (hasStaticInteropAnnotation(supertype.classNode)) {
           report(
-            diag.jsInteropNonStaticWithStaticInteropSupertype.withArgumentsOld(
-              node.name,
-              supertype.classNode.name,
+            diag.jsInteropNonStaticWithStaticInteropSupertype.withArguments(
+              className: node.name,
+              superclassName: supertype.classNode.name,
             ),
           );
         }
@@ -315,8 +301,6 @@ class JsInteropChecks extends RecursiveVisitor {
     _libraryHasJSAnnotation =
         _libraryHasDartJSInteropAnnotation || hasJSInteropAnnotation(node);
     _libraryIsGlobalNamespace = _isLibraryGlobalNamespace(node);
-
-    if (isDart2Wasm) _checkDisallowedLibrariesForDart2Wasm(node);
 
     super.visitLibrary(node);
     exportChecker.visitLibrary(node);
@@ -444,6 +428,7 @@ class JsInteropChecks extends RecursiveVisitor {
 
   @override
   void visitField(Field node) {
+    _staticTypeContext.enterMember(node);
     if (_classHasStaticInteropAnnotation && node.isInstanceMember) {
       _reporter.report(
         diag.jsInteropStaticInteropWithInstanceMembers.withArguments(
@@ -454,11 +439,14 @@ class JsInteropChecks extends RecursiveVisitor {
         node.fileUri,
       );
     }
+
     super.visitField(node);
+    _staticTypeContext.leaveMember(node);
   }
 
   @override
   void visitConstructor(Constructor node) {
+    _staticTypeContext.enterMember(node);
     void report(Message message) => _reporter.report(
       message,
       node.fileOffset,
@@ -485,6 +473,7 @@ class JsInteropChecks extends RecursiveVisitor {
     }
 
     super.visitConstructor(node);
+    _staticTypeContext.leaveMember(node);
   }
 
   @override
@@ -551,35 +540,6 @@ class JsInteropChecks extends RecursiveVisitor {
 
   // JS interop library checks
 
-  /// Check that [node] doesn't depend on any disallowed interop libraries in
-  /// dart2wasm.
-  ///
-  /// We allowlist `dart:*` libraries and select packages.
-  void _checkDisallowedLibrariesForDart2Wasm(Library node) {
-    final uri = node.importUri;
-    for (final dependency in node.dependencies) {
-      final dependencyUriString = dependency.targetLibrary.importUri.toString();
-      if (!enableExperimentalFfi && dependencyUriString == 'dart:ffi') {
-        // TODO(srujzs): While we allow these imports for all `dart:*`
-        // libraries, we may want to restrict this further, as it may include
-        // `dart:ui`.
-        final allowedToImport =
-            uri.isScheme('dart') ||
-            uri.isScheme('package') &&
-                allowedInteropLibrariesInDart2WasmPackages.contains(
-                  uri.pathSegments.first,
-                );
-        if (allowedToImport) return;
-        _reporter.report(
-          diag.dartFfiLibraryInDart2Wasm,
-          dependency.fileOffset,
-          dependencyUriString.length,
-          node.fileUri,
-        );
-      }
-    }
-  }
-
   /// Compute whether top-level nodes under [node] would be using the global
   /// JS namespace.
   bool _isLibraryGlobalNamespace(Library node) {
@@ -626,10 +586,10 @@ class JsInteropChecks extends RecursiveVisitor {
       final nativeClass = _nativeClasses[jsClass];
       if (nativeClass != null) {
         _reporter.report(
-          diag.jsInteropNativeClassInAnnotation.withArgumentsOld(
-            node.name,
-            nativeClass.name,
-            nativeClass.enclosingLibrary.importUri.toString(),
+          diag.jsInteropNativeClassInAnnotation.withArguments(
+            className: node.name,
+            nativeClassName: nativeClass.name,
+            uri: nativeClass.enclosingLibrary.importUri.toString(),
           ),
           node.fileOffset,
           node.name.length,
@@ -889,8 +849,8 @@ class JsInteropChecks extends RecursiveVisitor {
       final firstPositionalParam = positionalParams[0];
       _reporter.report(
         diag.jsInteropObjectLiteralConstructorPositionalParameters
-            .withArgumentsOld(
-              isAnonymousFactory
+            .withArguments(
+              kind: isAnonymousFactory
                   ? '@anonymous factories'
                   : 'Object literal constructors',
             ),
@@ -1095,7 +1055,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (!_isAllowedExternalType(accessorType)) {
         _reporter.report(
           diag.jsInteropStaticInteropExternalAccessorTypeViolation
-              .withArgumentsOld(accessorType),
+              .withArguments(type: accessorType),
           node.fileOffset,
           node.name.text.length,
           node.location?.file,
@@ -1106,8 +1066,9 @@ class JsInteropChecks extends RecursiveVisitor {
       if (!_isAllowedExternalFunctionType(functionType)) {
         _reporter.report(
           diag.jsInteropStaticInteropExternalFunctionTypeViolation
-              .withArgumentsOld(
-                _disallowedExternalFunctionTypeString(functionType),
+              .withArguments(
+                typeWithDiasllowedPartsHighlighted:
+                    _disallowedExternalFunctionTypeString(functionType),
               ),
           node.fileOffset,
           node.name.text.length,
@@ -1123,9 +1084,12 @@ class JsInteropChecks extends RecursiveVisitor {
   ) {
     if (!_isAllowedExternalFunctionType(functionType)) {
       _reporter.report(
-        diag.jsInteropFunctionToJSTypeViolation.withArgumentsOld(
-          invocation.target == _functionToJSTarget ? 'toJS' : 'toJSCaptureThis',
-          _disallowedExternalFunctionTypeString(functionType),
+        diag.jsInteropFunctionToJSTypeViolation.withArguments(
+          conversion: invocation.target == _functionToJSTarget
+              ? 'toJS'
+              : 'toJSCaptureThis',
+          typeWithDiasllowedPartsHighlighted:
+              _disallowedExternalFunctionTypeString(functionType),
         ),
         invocation.fileOffset,
         invocation.name.text.length,

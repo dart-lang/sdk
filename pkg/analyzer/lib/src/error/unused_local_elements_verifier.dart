@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -30,8 +31,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   InterfaceElement? _enclosingClass;
   ExecutableElement? _enclosingExec;
 
-  /// Non-null when the visitor is inside an [IsExpression]'s type.
-  IsExpression? _enclosingIsExpression;
+  /// Whether the visitor is inside an [IsExpression]'s type.
+  bool _insideIsExpression = false;
 
   /// Non-null when the visitor is inside a [VariableDeclarationList]'s type.
   VariableDeclarationList? _enclosingVariableDeclaration;
@@ -130,6 +131,28 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    usedElements.addElement(node.element?.enclosingElement);
+    _addParametersForArguments(node.argumentList);
+    super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    usedElements.addElement(node.memberName.element?.enclosingElement);
+    _addParametersForArguments(node.argumentList);
+    super.visitDotShorthandInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    usedElements.addElement(node.propertyName.element?.enclosingElement);
+    super.visitDotShorthandPropertyAccess(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     usedElements.addElement(node.constructorElement?.baseElement);
 
@@ -196,13 +219,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIsExpression(IsExpression node) {
-    var enclosingIsExpressionOld = _enclosingIsExpression;
+    var insideIsExpressionOld = _insideIsExpression;
     node.expression.accept(this);
     try {
-      _enclosingIsExpression = node;
+      _insideIsExpression = true;
       node.type.accept(this);
     } finally {
-      _enclosingIsExpression = enclosingIsExpressionOld;
+      _insideIsExpression = insideIsExpressionOld;
     }
   }
 
@@ -230,7 +253,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _useIdentifierElement(node.element, parent: node);
+    _useIdentifierElement(node.element);
     super.visitNamedType(node);
   }
 
@@ -267,7 +290,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    if (_inCommentReference(node)) {
+    if (node.inCommentReference) {
       return;
     }
     var element = node.writeOrReadElement;
@@ -292,9 +315,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       }
     } else {
       var parent = node.parent!;
-      _useIdentifierElement(node.readElement, parent: parent);
-      _useIdentifierElement(node.writeElement, parent: parent);
-      _useIdentifierElement(node.element, parent: parent);
+      _useIdentifierElement(node.readElement);
+      _useIdentifierElement(node.writeElement);
+      _useIdentifierElement(node.element);
       var grandparent = parent.parent;
       // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
@@ -376,7 +399,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   /// Marks the [element] as used in the library.
-  void _useIdentifierElement(Element? element, {required AstNode parent}) {
+  void _useIdentifierElement(Element? element) {
     if (element == null) {
       return;
     }
@@ -392,29 +415,11 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Ignore places where the element is not actually used.
-    // TODO(scheglov): Do we need 'parent' at all?
-    if (parent is NamedType) {
-      if (element is InterfaceElement) {
-        var enclosingVariableDeclaration = _enclosingVariableDeclaration;
-        if (enclosingVariableDeclaration != null) {
-          // If it's a field's type, it still counts as used.
-          if (enclosingVariableDeclaration.parent is! FieldDeclaration) {
-            return;
-          }
-        } else if (_enclosingIsExpression != null) {
-          // An interface type found in an `is` expression is not used.
-          return;
-        }
-      }
+    if (element is! TypeAliasElement && _insideIsExpression) {
+      // An interface type found in an `is` expression is not used.
+      return;
     }
-    // OK
     usedElements.addElement(element);
-  }
-
-  /// Returns whether [identifier] is found in a [CommentReference].
-  static bool _inCommentReference(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
-    return parent is CommentReference || parent?.parent is CommentReference;
   }
 
   /// Returns whether the value of [node] is _only_ being read at this position.

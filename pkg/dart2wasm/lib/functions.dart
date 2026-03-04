@@ -52,13 +52,16 @@ class FunctionCollector {
   void _importOrExport(Procedure member) {
     final importName = util.getWasmImportPragma(translator.coreTypes, member);
     if (importName != null) {
+      final isPure =
+          util.hasWasmPureFunctionPragma(translator.coreTypes, member);
       final ftype = _makeFunctionType(translator, member.reference, null,
           isImportOrExport: true);
       _functions[member.reference] = translator
           .moduleForReference(member.reference)
           .functions
           .import(importName.moduleName, importName.itemName, ftype,
-              "$importName (import)");
+              "$importName (import)")
+        ..isPure = isPure;
     }
 
     // Ensure any procedures marked as exported are enqueued.
@@ -98,6 +101,8 @@ class FunctionCollector {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       final member = target.asMember;
+      final hasPureAnnotation =
+          util.hasWasmPureFunctionPragma(translator.coreTypes, member);
 
       // If this function is a `@pragma('wasm:import', '<module>.<name>')` we
       // import the function and return it.
@@ -112,7 +117,8 @@ class FunctionCollector {
               .moduleForReference(member.reference)
               .functions
               .import(importName.moduleName, importName.itemName, ftype,
-                  "$importName (import)");
+                  "$importName (import)")
+            ..isPure = hasPureAnnotation;
         }
       }
 
@@ -136,7 +142,10 @@ class FunctionCollector {
           ? _makeFunctionType(translator, target, null, isImportOrExport: true)
           : translator.signatureForDirectCall(target);
 
-      final function = module.functions.define(ftype, getFunctionName(target));
+      final function = module.functions.define(ftype, getFunctionName(target))
+        ..isPure = hasPureAnnotation &&
+            !target.isTypeCheckerReference &&
+            !target.isCheckedEntryReference;
       if (exportName != null) module.exports.export(exportName, function);
 
       // Export the function from the main module if it is callable from
@@ -590,9 +599,10 @@ w.FunctionType makeFunctionTypeForBody(Translator translator, Member member) {
       translator.translateType(translator.typeOfCheckedParameterVariable(p)),
   ];
 
-  final isSetter = member is Procedure && member.isSetter;
+  final hasNoReturnValue =
+      member is Procedure && (member.isSetter || member.name.text == '[]=');
   final outputs = [
-    if (!isSetter)
+    if (!hasNoReturnValue)
       translator.translateReturnType(translator.typeOfReturnValue(member)),
   ];
 
@@ -632,9 +642,10 @@ w.FunctionType _makeFunctionType(
       (t is InterfaceType && t.classNode == translator.wasmVoidClass);
 
   final List<w.ValueType> outputs;
-  if (target.isSetter) {
-    // Setters are the only functions without any returned values. All other
-    // functions can either return values (even `void` returning functions)
+  final hasNoReturnValue = target.isSetter || member.name.text == '[]=';
+  if (hasNoReturnValue) {
+    // Setters and []= are the only functions without any returned values. All
+    // other functions can return values (even `void` returning functions).
     outputs = const [];
   } else {
     final DartType returnType = translator.typeOfReturnValue(member);

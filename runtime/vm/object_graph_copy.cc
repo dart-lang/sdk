@@ -1369,7 +1369,7 @@ class FastObjectCopyBase : public ObjectCopyBase {
       return;
     }
 
-    if (UNLIKELY(!CanCopyObject(tags, value_decompressed))) {
+    if (!CanCopyObject(tags, value_decompressed)) [[unlikely]] {
       ASSERT(exception_msg_ != nullptr);
       StoreCompressedPointerNoBarrier(dst, offset, Object::null());
       return;
@@ -1543,7 +1543,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
       return;
     }
 
-    if (UNLIKELY(!CanCopyObject(tags, value_decompressed))) {
+    if (!CanCopyObject(tags, value_decompressed)) [[unlikely]] {
       ASSERT(exception_msg_ != nullptr);
       StoreCompressedLargeArrayPointerBarrier(dst.ptr(), offset,
                                               Object::null());
@@ -1577,7 +1577,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
       return;
     }
 
-    if (UNLIKELY(!CanCopyObject(tags, value_decompressed))) {
+    if (!CanCopyObject(tags, value_decompressed)) [[unlikely]] {
       ASSERT(exception_msg_ != nullptr);
       StoreCompressedPointerNoBarrier(dst.ptr(), offset, Object::null());
       return;

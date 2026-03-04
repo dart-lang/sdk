@@ -1,0 +1,77 @@
+{
+  "constants": [
+    {
+      "message": "Function/Method tear-offs are not supported for recording.",
+      "type": "unsupported"
+    },
+    {
+      "type": "string",
+      "value": "key"
+    },
+    {
+      "type": "list",
+      "value": [
+        0
+      ]
+    },
+    {
+      "type": "map",
+      "value": [
+        {
+          "key": 1,
+          "value": 0
+        }
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "recorded"
+        }
+      ],
+      "uri": "package:record_use_test/unsupported_collections.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              2
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              3
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

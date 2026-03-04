@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:cfg/ir/constant_value.dart';
 
@@ -365,7 +367,10 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   @override
   void leaveDartFrame() {
     // Restore and untag pool pointer.
-    ldr(poolPointerReg, RegOffsetAddress(FP, -2 * wordSize));
+    ldr(
+      poolPointerReg,
+      RegOffsetAddress(FP, Arm64StackFrame.poolPointerOffsetFromFP),
+    );
     sub(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
 
     mov(stackPointerReg, FP);
@@ -466,6 +471,18 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     ldr(
       reg,
       address(poolPointerReg, vmOffsets.ObjectPool_elementOffset(poolIndex)),
+    );
+  }
+
+  void loadPairFromPool(Register low, Register high, PairSpecializedEntry obj) {
+    int poolIndex = objectPool.getObject(obj);
+    ldp(
+      low,
+      high,
+      pairAddress(
+        poolPointerReg,
+        vmOffsets.ObjectPool_elementOffset(poolIndex),
+      ),
     );
   }
 
@@ -576,6 +593,34 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   }
 
   @override
+  void subImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert(sz.is32or64);
+    assert(_isInt(sz.bitWidth, value) || _isUint(sz.bitWidth, value));
+    if (value == 0) {
+      if (dst != src) {
+        mov(dst, src, sz);
+      }
+    } else if (canEncodeImm12(value)) {
+      sub(dst, src, Immediate(value), sz);
+    } else if (canEncodeImm12(-value)) {
+      add(dst, src, Immediate(-value), sz);
+    } else {
+      assert(src != tempReg);
+      loadImmediate(tempReg, value);
+      if (dst == SP || src == SP) {
+        sub(dst, src, ExtRegOperand(tempReg, .UXTX, 0), sz);
+      } else {
+        sub(dst, src, tempReg, sz);
+      }
+    }
+  }
+
+  @override
   void andImmediate(
     Register dst,
     Register src,
@@ -631,6 +676,61 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadConstant(R0, ConstantValue.fromString(message));
     push(R0);
     callRuntime(RuntimeEntry.FatalError, 1);
+  }
+
+  /// Generate code for inline object allocation.
+  void inlineAllocation(
+    Register resultReg,
+    Register tagsReg,
+    Register scratch1Reg,
+    Register scratch2Reg,
+    int instanceSize,
+    Label slowPath,
+  ) {
+    final endReg = scratch1Reg;
+    final newTopReg = scratch2Reg;
+    // Load Thread.top_ and Thread.end_.
+    ldp(resultReg, endReg, pairAddress(threadReg, vmOffsets.Thread_top_offset));
+    addImmediate(newTopReg, resultReg, instanceSize);
+    cmp(endReg, newTopReg);
+    b(slowPath, .unsignedLessOrEqual);
+
+    // TLAB has enough space. Update top and initialize object.
+    str(newTopReg, address(threadReg, vmOffsets.Thread_top_offset));
+    str(tagsReg, address(resultReg, vmOffsets.Object_tags_offset));
+    // TODO: figure out if we need store-store barrier here.
+
+    // TODO: support compressed pointers.
+    const maxUnrolledSize = 16 * wordSize;
+    if (instanceSize <= maxUnrolledSize) {
+      int offset = vmOffsets.Instance_first_field_offset;
+      for (; offset + 2 * wordSize <= instanceSize; offset += 2 * wordSize) {
+        stp(nullReg, nullReg, pairAddress(resultReg, offset));
+      }
+      if (offset < instanceSize) {
+        str(nullReg, address(resultReg, offset));
+        offset += wordSize;
+      }
+      assert(offset == instanceSize);
+    } else {
+      final fieldReg = scratch1Reg;
+      addImmediate(fieldReg, resultReg, vmOffsets.Instance_first_field_offset);
+
+      final loop = Label();
+      bind(loop);
+      stp(
+        nullReg,
+        nullReg,
+        WritebackRegOffsetAddress(fieldReg, 2 * wordSize, isPostIndexed: true),
+      );
+      // There is at least two word (kAllocationRedZoneSize) gap at the end of page
+      // which makes it possible to initialize objects by two words at once and
+      // write slightly beyond the end.
+      cmp(fieldReg, newTopReg);
+      b(loop, Condition.unsignedLess);
+    }
+
+    addImmediate(resultReg, resultReg, heapObjectTag);
   }
 
   // [rd] and [rn] can be SP if [o] is Immediate or ExtRegOperand.

@@ -17,6 +17,15 @@ class SortConstructorsFirstTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.sort_constructors_first;
 
+  test_constructor_afterPrimaryConstructorBody() async {
+    await assertNoDiagnostics(r'''
+class C() {
+  this;
+  C.named() : this();
+}
+''');
+  }
+
   test_constructorBeforeMethod() async {
     await assertNoDiagnostics(r'''
 abstract class A {
@@ -24,6 +33,41 @@ abstract class A {
   void f();
 }
 ''');
+  }
+
+  test_enum_afterPrimaryConstructorBody() async {
+    await assertNoDiagnostics(r'''
+enum E(int x) {
+  v(1);
+  this;
+  const E.named() : this(2);
+}
+''');
+  }
+
+  test_enum_primaryConstructorBody_afterMethod() async {
+    await assertDiagnostics(
+      r'''
+enum E(int x) {
+  v(1);
+  void f() {}
+  this;
+}
+''',
+      [lint(40, 4)],
+    );
+  }
+
+  test_extensionType_primaryConstructorBody_afterMethod() async {
+    await assertDiagnostics(
+      r'''
+extension type E(int x) {
+  void f() {}
+  this;
+}
+''',
+      [lint(42, 4)],
+    );
   }
 
   test_fieldBeforeConstructor() async {
@@ -35,6 +79,43 @@ abstract class A {
 }
 ''',
       [lint(36, 1)],
+    );
+  }
+
+  test_fieldBeforeConstructor_newHead_named() async {
+    await assertDiagnostics(
+      r'''
+abstract class A {
+  final a = 0;
+  new named();
+}
+''',
+      [lint(36, 9)],
+    );
+  }
+
+  test_fieldBeforeConstructor_newHead_unnamed() async {
+    await assertDiagnostics(
+      r'''
+abstract class A {
+  final a = 0;
+  new();
+}
+''',
+      [lint(36, 3)],
+    );
+  }
+
+  test_method_betweenConstructors_withPrimaryConstructorBody() async {
+    await assertDiagnostics(
+      r'''
+class C() {
+  this;
+  void f() {}
+  C.named() : this();
+}
+''',
+      [lint(36, 7)],
     );
   }
 
@@ -60,7 +141,7 @@ extension type E(Object o) {
   E.e(this.o);
 }
 ''',
-      [lint(45, 1)],
+      [lint(45, 3)],
     );
   }
 
@@ -73,7 +154,7 @@ abstract class A {
   A.named();
 }
 ''',
-      [lint(33, 1), lint(40, 1)],
+      [lint(33, 1), lint(40, 7)],
     );
   }
 
@@ -83,6 +164,36 @@ enum A {
   a,b,c;
   const A();
   int f() => 0;
+}
+''');
+  }
+
+  test_primaryConstructorBody_afterMethod() async {
+    await assertDiagnostics(
+      r'''
+class C() {
+  void f() {}
+  this;
+}
+''',
+      [lint(28, 4)],
+    );
+  }
+
+  test_primaryConstructorBody_amongConstructors() async {
+    await assertNoDiagnostics(r'''
+class C() {
+  C.named() : this();
+  this;
+}
+''');
+  }
+
+  test_primaryConstructorBody_beforeMethod() async {
+    await assertNoDiagnostics(r'''
+class C() {
+  this;
+  void f() {}
 }
 ''');
   }

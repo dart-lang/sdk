@@ -91,12 +91,15 @@ class AssignmentExpressionResolver {
 
     var flow = _resolver.flowAnalysis.flow;
     if (flow != null && isIfNull) {
-      flow.ifNullExpression_rightBegin(left, SharedTypeView(node.readType!));
+      flow.ifNullExpression_rightBegin(
+        flow.getExpressionInfo(left),
+        SharedTypeView(node.readType!),
+      );
     }
 
     _resolver.analyzeExpression(right, SharedTypeSchemaView(rhsContext));
     right = _resolver.popRewrite()!;
-    var whyNotPromoted = flow?.whyNotPromoted(right);
+    var whyNotPromoted = flow?.whyNotPromoted(flow.getExpressionInfo(right));
 
     _resolveTypes(
       node,
@@ -112,7 +115,7 @@ class AssignmentExpressionResolver {
             node,
             writeElement2,
             SharedTypeView(node.typeOrThrow),
-            hasRead ? null : right,
+            hasRead ? null : flow.getExpressionInfo(right),
           ),
         );
       }

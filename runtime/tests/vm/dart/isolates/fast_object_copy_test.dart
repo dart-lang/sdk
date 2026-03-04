@@ -41,7 +41,7 @@ final nonCopyableClosures = <dynamic>[
     return inner;
   })(),
   (() {
-    foo(var arg) {
+    foo(arg) {
       return () => arg;
     }
 

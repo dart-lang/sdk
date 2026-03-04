@@ -20,6 +20,8 @@ import 'package:analyzer_testing/src/mock_packages/flutter/widgets/ticker_provid
 import 'package:analyzer_testing/src/mock_packages/flutter/widgets/value_listenable_builder.dart';
 import 'package:analyzer_testing/src/mock_packages/flutter/widgets/widget_inspector.dart';
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/media_query.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/scroll_delegate.dart';
 
 /// The set of compilation units that make up the mock 'widgets'
 /// component of the 'flutter' package.
@@ -42,6 +44,8 @@ final List<MockLibraryUnit> units = [
   widgetsTickerProviderLibrary,
   widgetsValueListenableBuilderLibrary,
   widgetsWidgetInspectorLibrary,
+  widgetsMediaQueryLibrary,
+  widgetsScrollDelegateLibrary,
 ];
 
 final widgetsLibrary = MockLibraryUnit('lib/widgets.dart', r'''
@@ -65,4 +69,6 @@ export 'src/widgets/text.dart';
 export 'src/widgets/ticker_provider.dart';
 export 'src/widgets/value_listenable_builder.dart';
 export 'src/widgets/widget_inspector.dart';
+export 'src/widgets/media_query.dart';
+export 'src/widgets/scroll_delegate.dart';
 ''');

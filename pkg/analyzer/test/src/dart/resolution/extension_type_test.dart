@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -677,15 +675,19 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
-            token: T
-            element: #E0 T
+          expression: TypeLiteral
+            type: NamedType
+              name: T
+              element: #E0 T
+              type: T
             staticType: Type
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
-            token: U
-            element: #E1 U
+          expression: TypeLiteral
+            type: NamedType
+              name: U
+              element: #E1 U
+              type: U
             staticType: Type
           semicolon: ;
       rightBracket: }
@@ -2603,12 +2605,6 @@ extension type A() {}
     );
 
     var node = findNode.extensionTypeDeclaration('A');
-    if (node is ExtensionTypeDeclarationImpl) {
-      // ignore: deprecated_member_use_from_same_package
-      var representation = node.representation;
-      expect(representation.constructorFragment, isNotNull);
-      expect(representation.fieldFragment, isNotNull);
-    }
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
@@ -2800,6 +2796,120 @@ ExtensionTypeDeclaration
         type: A Function(Object?)
   body: BlockClassBody
     leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+''');
+  }
+
+  test_primaryConstructor_formalParameters_scope() async {
+    await assertErrorsInCode(
+      r'''
+extension type A(int it) {
+  static const String int = 'not a type';
+}
+''',
+      [error(diag.notAType, 17, 3)],
+    );
+
+    var node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: <testLibrary>::@extensionType::A::@getter::int
+          type: InvalidType
+        name: it
+        declaredFragment: <testLibraryFragment> it@21
+          element: isFinal isPublic
+            type: InvalidType
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(InvalidType)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+          variables
+            VariableDeclaration
+              name: int
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'not a type'
+              declaredFragment: <testLibraryFragment> int@49
+        semicolon: ;
+        declaredFragment: <null>
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+''');
+  }
+
+  test_primaryConstructor_formalParameters_scope_language310() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 3.10
+extension type A(int it) {
+  static const String int = 'not a type';
+}
+''');
+
+    var node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@37
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+          variables
+            VariableDeclaration
+              name: int
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'not a type'
+              declaredFragment: <testLibraryFragment> int@65
+        semicolon: ;
+        declaredFragment: <null>
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@31
 ''');
@@ -3139,12 +3249,19 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructorBody_duplicate() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A({bool it = false}) {
-  this : assert(it);
-  this : assert(!it);
+  this : assert(it) {
+    it;
+  }
+  this : assert(!it) {
+    it;
+  }
 }
-''');
+''',
+      [error(diag.multiplePrimaryConstructorBodyDeclarations, 74, 4)],
+    );
 
     var node = findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
@@ -3195,8 +3312,17 @@ ExtensionTypeDeclaration
               element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
               staticType: bool
             rightParenthesis: )
-        body: EmptyFunctionBody
-          semicolon: ;
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: it
+                  element: <testLibrary>::@extensionType::A::@getter::it
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
       PrimaryConstructorBody
         thisKeyword: this
         colon: :
@@ -3213,8 +3339,17 @@ ExtensionTypeDeclaration
               element: <null>
               staticType: bool
             rightParenthesis: )
-        body: EmptyFunctionBody
-          semicolon: ;
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: it
+                  element: <testLibrary>::@extensionType::A::@getter::it
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@15
 ''');
@@ -3470,6 +3605,24 @@ ExtensionTypeDeclaration
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@15
 ''');
+  }
+
+  test_typeParameter_bound_undefined() async {
+    await assertErrorsInCode(
+      r'''
+extension type E<T extends Unresolved>(int it) {}
+''',
+      [error(diag.undefinedClass, 27, 10)],
+    );
+  }
+
+  test_typeParameter_metadata_undefined() async {
+    await assertErrorsInCode(
+      r'''
+extension type E<@Unresolved T>(int it) {}
+''',
+      [error(diag.undefinedAnnotation, 17, 11)],
+    );
   }
 
   test_typeParameters() async {

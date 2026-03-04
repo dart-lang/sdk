@@ -33,7 +33,10 @@ class LateVarInitTransformer {
     return false;
   }
 
-  List<Statement> _transformVariableDeclaration(VariableDeclaration node) {
+  List<Statement> _transformVariableDeclaration(
+    VariableDeclaration node,
+    LocalFunctionIdGenerator localFunctionIdGenerator,
+  ) {
     final fnNode = FunctionNode(
       ReturnStatement(node.initializer),
       returnType: node.type,
@@ -48,7 +51,7 @@ class LateVarInitTransformer {
         isSynthesized: true,
       ),
       fnNode,
-    );
+    )..id = localFunctionIdGenerator.allocateId();
     node.initializer = LocalFunctionInvocation(
       fn.variable,
       Arguments([]),
@@ -58,13 +61,19 @@ class LateVarInitTransformer {
     return [fn, node];
   }
 
-  List<Statement>? _transformStatements(List<Statement> statements) {
+  List<Statement>? _transformStatements(
+    List<Statement> statements,
+    LocalFunctionIdGenerator localFunctionIdGenerator,
+  ) {
     if (!statements.any((s) => _shouldApplyTransform(s))) return null;
     final List<Statement> newStatements = <Statement>[];
     for (Statement s in statements) {
       if (_shouldApplyTransform(s)) {
         newStatements.addAll(
-          _transformVariableDeclaration(s as VariableDeclaration),
+          _transformVariableDeclaration(
+            s as VariableDeclaration,
+            localFunctionIdGenerator,
+          ),
         );
       } else {
         newStatements.add(s);
@@ -73,14 +82,26 @@ class LateVarInitTransformer {
     return newStatements;
   }
 
-  Block transformBlock(Block node) {
-    final statements = _transformStatements(node.statements);
+  Block transformBlock(
+    Block node,
+    LocalFunctionIdGenerator localFunctionIdGenerator,
+  ) {
+    final statements = _transformStatements(
+      node.statements,
+      localFunctionIdGenerator,
+    );
     if (statements == null) return node;
     return Block(statements)..fileOffset = node.fileOffset;
   }
 
-  AssertBlock transformAssertBlock(AssertBlock node) {
-    final statements = _transformStatements(node.statements);
+  AssertBlock transformAssertBlock(
+    AssertBlock node,
+    LocalFunctionIdGenerator localFunctionIdGenerator,
+  ) {
+    final statements = _transformStatements(
+      node.statements,
+      localFunctionIdGenerator,
+    );
     if (statements == null) return node;
     return AssertBlock(statements)..fileOffset = node.fileOffset;
   }

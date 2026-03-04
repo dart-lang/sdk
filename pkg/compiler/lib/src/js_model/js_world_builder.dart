@@ -248,7 +248,14 @@ class JClosedWorldBuilder {
     AnnotationsData annotationsData = AnnotationsDataImpl(
       _options,
       _reporter,
-      map.toBackendMemberMap(oldAnnotationsData.pragmaAnnotations, identity),
+      map.toBackendClassMap(
+        oldAnnotationsData.classPragmaAnnotations,
+        identity,
+      ),
+      map.toBackendMemberMap(
+        oldAnnotationsData.memberPragmaAnnotations,
+        identity,
+      ),
     );
 
     OutputUnitData outputUnitData = _convertOutputUnitData(

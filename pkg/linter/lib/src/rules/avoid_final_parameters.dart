@@ -9,6 +9,8 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -65,8 +67,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _reportApplicableParameters(FormalParameterList? parameters) {
     if (parameters != null) {
       for (var param in parameters.parameters) {
-        if (param.isFinal) {
-          rule.reportAtNode(param);
+        if (param.notDefault
+            case SimpleFormalParameter(:var keyword?) ||
+                FieldFormalParameter(:var keyword?) ||
+                SuperFormalParameter(:var keyword?) when param.isFinal) {
+          rule.reportAtToken(keyword);
         }
       }
     }

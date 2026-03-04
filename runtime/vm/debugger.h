@@ -24,13 +24,8 @@
 DECLARE_FLAG(bool, verbose_debug);
 
 // 'Trace Debugger' TD_Print.
-#if defined(_MSC_VER)
-#define TD_Print(format, ...)                                                  \
-  if (FLAG_verbose_debug) Log::Current()->Print(format, __VA_ARGS__)
-#else
 #define TD_Print(format, ...)                                                  \
   if (FLAG_verbose_debug) Log::Current()->Print(format, ##__VA_ARGS__)
-#endif
 
 namespace dart {
 

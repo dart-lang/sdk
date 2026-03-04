@@ -48,6 +48,7 @@ class WasmCompilerOptions {
   Uri? dynamicInterfaceUri;
   Uri? dynamicModuleMetadataFile;
   Uri? loadsIdsUri;
+  Uri? programSplitConstraintsUri;
   bool validateDynamicModules = true;
   Map<String, String> environment = {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};

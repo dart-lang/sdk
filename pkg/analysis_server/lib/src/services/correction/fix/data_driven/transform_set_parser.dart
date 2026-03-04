@@ -20,8 +20,8 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
@@ -210,10 +210,11 @@ class TransformSetParser {
       }
       var endIndex = template.indexOf(_closeComponent, variableStart + 2);
       if (endIndex < 0) {
-        _diagnosticReporter.atOffset(
-          offset: templateOffset + variableStart,
-          length: 2,
-          diagnosticCode: diag.missingTemplateEnd,
+        _diagnosticReporter.report(
+          diag.missingTemplateEnd.atOffset(
+            offset: templateOffset + variableStart,
+            length: 2,
+          ),
         );
         // Ignore the invalid component, treating it as if it extended to the
         // end of the template.
@@ -222,11 +223,14 @@ class TransformSetParser {
         var name = template.substring(variableStart + 2, endIndex).trim();
         var generator = variableScope.lookup(name);
         if (generator == null) {
-          _diagnosticReporter.atOffset(
-            offset: templateOffset + template.indexOf(name, variableStart),
-            length: name.length,
-            diagnosticCode: diag.undefinedVariable,
-            arguments: [name],
+          _diagnosticReporter.report(
+            diag.undefinedVariable
+                .withArguments(key: name)
+                .atOffset(
+                  offset:
+                      templateOffset + template.indexOf(name, variableStart),
+                  length: name.length,
+                ),
           );
           // Ignore the invalid component.
         } else {
@@ -276,11 +280,10 @@ class TransformSetParser {
       var span = e.span;
       var offset = span?.start.offset ?? 0;
       var length = span?.length ?? 0;
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: diag.yamlSyntaxError,
-        arguments: [e.message],
+      _diagnosticReporter.report(
+        diag.yamlSyntaxError
+            .withArguments(message: e.message)
+            .atOffset(offset: offset, length: length),
       );
     }
     return null;
@@ -289,18 +292,9 @@ class TransformSetParser {
   /// Report a diagnostic with the given [code] associated with the given
   /// [node]. A list of [arguments] should be provided if the diagnostic message
   /// has parameters.
-  void _reportError(
-    DiagnosticCode code,
-    YamlNode node, [
-    List<String> arguments = const [],
-  ]) {
+  void _reportError(LocatableDiagnostic locatableDiagnostic, YamlNode node) {
     var span = node.span;
-    _diagnosticReporter.atOffset(
-      offset: span.start.offset,
-      length: span.length,
-      diagnosticCode: code,
-      arguments: arguments,
-    );
+    _diagnosticReporter.report(locatableDiagnostic.atSourceSpan(span));
   }
 
   /// Report that the value represented by the [node] does not have the
@@ -310,11 +304,14 @@ class TransformSetParser {
     ErrorContext context,
     String expectedType,
   ) {
-    _reportError(diag.invalidValue, node, [
-      context.key,
-      expectedType,
-      _nodeType(node),
-    ]);
+    _reportError(
+      diag.invalidValue.withArguments(
+        key: context.key,
+        expectedType: expectedType,
+        actualType: _nodeType(node),
+      ),
+      node,
+    );
     return null;
   }
 
@@ -325,17 +322,23 @@ class TransformSetParser {
     ErrorContext context,
     List<String> allowedValues,
   ) {
-    _reportError(diag.invalidValueOneOf, node, [
-      context.key,
-      allowedValues.quotedAndCommaSeparatedWithOr,
-    ]);
+    _reportError(
+      diag.invalidValueOneOf.withArguments(
+        key: context.key,
+        allowedValues: allowedValues.quotedAndCommaSeparatedWithOr,
+      ),
+      node,
+    );
     return null;
   }
 
   /// Report that a required key is missing, using the [context] to locate the
   /// node associated with the diagnostic and the key to use in the message.
   Null _reportMissingKey(ErrorContext context) {
-    _reportError(diag.missingKey, context.parentNode, [context.key]);
+    _reportError(
+      diag.missingKey.withArguments(key: context.key),
+      context.parentNode,
+    );
     return null;
   }
 
@@ -345,7 +348,7 @@ class TransformSetParser {
       keyNode as YamlNode;
       var key = _translateKey(keyNode);
       if (key != null && !validKeys.contains(key)) {
-        _reportError(diag.unsupportedKey, keyNode, [key]);
+        _reportError(diag.unsupportedKey.withArguments(key: key), keyNode);
       }
     }
   }
@@ -394,14 +397,23 @@ class TransformSetParser {
       if (required) {
         var validKeysList =
             translators.keys.flattenedToList.quotedAndCommaSeparatedWithOr;
-        _reportError(diag.missingOneOfMultipleKeys, errorNode, [validKeysList]);
+        _reportError(
+          diag.missingOneOfMultipleKeys.withArguments(validKeys: validKeysList),
+          errorNode,
+        );
       }
       return null;
     }
 
     var firstKey = firstEntry.key;
     for (var entry in entries.skip(1)) {
-      _reportError(diag.conflictingKey, entry.keyNode, [entry.key, firstKey]);
+      _reportError(
+        diag.conflictingKey.withArguments(
+          key: entry.key,
+          conflictingKey: firstKey,
+        ),
+        entry.keyNode,
+      );
     }
 
     return firstEntry.translator(firstKey, firstEntry.valueNode);
@@ -443,7 +455,10 @@ class TransformSetParser {
     }
     if (!validStyles.contains(style)) {
       var validStylesList = validStyles.quotedAndCommaSeparatedWithOr;
-      _reportError(diag.invalidParameterStyle, styleNode, [validStylesList]);
+      _reportError(
+        diag.invalidParameterStyle.withArguments(validStyles: validStylesList),
+        styleNode,
+      );
       return;
     }
     var isRequired = style.startsWith('required_');
@@ -641,10 +656,13 @@ class TransformSetParser {
     if (!validNullabilityChanges.contains(nullability)) {
       var nullabilityChangeList =
           validNullabilityChanges.quotedAndCommaSeparatedWithOr;
-      _reportError(diag.invalidValueOneOf, nullabilityNode!, [
-        _nullabilityKey,
-        nullabilityChangeList,
-      ]);
+      _reportError(
+        diag.invalidValueOneOf.withArguments(
+          key: _nullabilityKey,
+          allowedValues: nullabilityChangeList,
+        ),
+        nullabilityNode!,
+      );
       return;
     }
     var argumentValueNode = node.valueAt(_argumentValueKey);
@@ -912,7 +930,12 @@ class TransformSetParser {
           ].contains(elementKey)) {
             var validKeysList =
                 validContainerKeys.quotedAndCommaSeparatedWithOr;
-            _reportError(diag.missingOneOfMultipleKeys, node, [validKeysList]);
+            _reportError(
+              diag.missingOneOfMultipleKeys.withArguments(
+                validKeys: validKeysList,
+              ),
+              node,
+            );
             return null;
           }
         } else {
@@ -1016,7 +1039,7 @@ class TransformSetParser {
     } else {
       type = node.runtimeType.toString();
     }
-    _reportError(diag.invalidKey, node, [type]);
+    _reportError(diag.invalidKey.withArguments(keyType: type), node);
     return null;
   }
 
@@ -1141,16 +1164,21 @@ class TransformSetParser {
     if (oldElement != null) {
       var compatibleTypes = compatibleReplacementTypes[oldElement.kind];
       if (compatibleTypes == null) {
-        _reportError(diag.invalidChangeForKind, node.valueAt(_newElementKey)!, [
-          _replacedByKind,
-          oldElement.kind.displayName,
-        ]);
+        _reportError(
+          diag.invalidChangeForKind.withArguments(
+            changeKind: _replacedByKind,
+            elementKind: oldElement.kind.displayName,
+          ),
+          node.valueAt(_newElementKey)!,
+        );
         return null;
       } else if (!compatibleTypes.contains(newElement.kind)) {
         _reportError(
-          diag.incompatibleElementKind,
+          diag.incompatibleElementKind.withArguments(
+            oldKind: oldElement.kind.displayName,
+            newKind: newElement.kind.displayName,
+          ),
           node.valueAt(_newElementKey)!,
-          [oldElement.kind.displayName, newElement.kind.displayName],
         );
         return null;
       }
@@ -1365,7 +1393,14 @@ class TransformSetParser {
     } else {
       // TODO(brianwilkerson): Consider having a different error code for the
       //  top-level node (instead of using 'file' as the "key").
-      _reportError(diag.invalidValue, node, ['file', 'Map', _nodeType(node)]);
+      _reportError(
+        diag.invalidValue.withArguments(
+          key: 'file',
+          expectedType: 'Map',
+          actualType: _nodeType(node),
+        ),
+        node,
+      );
       return null;
     }
   }

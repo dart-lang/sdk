@@ -29,6 +29,7 @@ class CancelSubscriptions extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
   }
 }

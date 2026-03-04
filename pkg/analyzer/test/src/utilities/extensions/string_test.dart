@@ -109,6 +109,15 @@ class IterableOfStringExtensionTest {
 
 @reflectiveTest
 class StringExtensionTest {
+  void test_capitalize() {
+    expect(''.capitalize(), '');
+    expect('a'.capitalize(), 'A');
+    expect('abc'.capitalize(), 'Abc');
+    expect('ABC'.capitalize(), 'ABC');
+    expect('проба'.capitalize(), 'Проба');
+    expect('ПРОБА'.capitalize(), 'ПРОБА');
+  }
+
   void test_elideTo() {
     expect(''.elideTo(10), '');
     expect('0'.elideTo(10), '0');
@@ -209,10 +218,21 @@ class StringExtensionTest {
     expect('A'.codeUnitAt(0).isWhitespace, isFalse);
   }
 
+  void test_nullIfEmpty() {
+    expect(''.nullIfEmpty, isNull);
+    expect('a'.nullIfEmpty, 'a');
+  }
+
   void test_pluralized() {
     expect('cat'.pluralized(0), 'cats');
     expect('cat'.pluralized(1), 'cat');
     expect('cat'.pluralized(2), 'cats');
+  }
+
+  void test_removePrefixOrSelf() {
+    expect('abcdef'.removePrefixOrSelf('abc'), 'def');
+    expect('abcdef'.removePrefixOrSelf('xyz'), 'abcdef');
+    expect('abcdef'.removePrefixOrSelf(''), 'abcdef');
   }
 
   void test_removeSuffix() {
@@ -222,6 +242,15 @@ class StringExtensionTest {
     expect('01234'.removeSuffix('01234'), '');
     expect('01234'.removeSuffix('012345'), isNull);
     expect('01234'.removeSuffix('5'), isNull);
+  }
+
+  void test_removeSuffixOrSelf() {
+    expect('01234'.removeSuffixOrSelf(''), '01234');
+    expect('01234'.removeSuffixOrSelf('4'), '0123');
+    expect('01234'.removeSuffixOrSelf('34'), '012');
+    expect('01234'.removeSuffixOrSelf('01234'), '');
+    expect('01234'.removeSuffixOrSelf('012345'), '01234');
+    expect('01234'.removeSuffixOrSelf('5'), '01234');
   }
 
   void test_toScreamingSnake() {

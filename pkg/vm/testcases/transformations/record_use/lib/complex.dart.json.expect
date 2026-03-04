@@ -1,0 +1,60 @@
+{
+  "constants": [
+    {
+      "type": "non_constant"
+    },
+    {
+      "type": "int",
+      "value": 42
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "OtherClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "generate"
+        }
+      ],
+      "uri": "package:record_use_test/complex.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

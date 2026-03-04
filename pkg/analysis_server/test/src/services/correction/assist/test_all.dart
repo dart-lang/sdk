@@ -31,19 +31,21 @@ import 'convert_into_getter_test.dart' as convert_into_getter;
 import 'convert_into_is_not_empty_test.dart' as convert_into_is_not_empty;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_part_of_to_uri_test.dart' as convert_part_of_to_uri;
+import 'convert_to_declaring_parameter_test.dart'
+    as convert_to_declaring_parameter;
 import 'convert_to_dot_shorthand_test.dart' as convert_to_dot_shorthand;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
-import 'convert_to_field_parameter_test.dart' as convert_to_field_parameter;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_if_case_statement_chain_test.dart'
     as convert_to_if_case_statement_chain;
 import 'convert_to_if_case_statement_test.dart' as convert_to_if_case_statement;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
+import 'convert_to_initializing_formal_test.dart'
+    as convert_to_initializing_formal;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_multiline_string_test.dart' as convert_to_multiline_string;
-import 'convert_to_normal_parameter_test.dart' as convert_to_normal_parameter;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
 import 'convert_to_primary_constructor_test.dart'
@@ -143,17 +145,17 @@ void main() {
     convert_into_is_not.main();
     convert_into_is_not_empty.main();
     convert_part_of_to_uri.main();
+    convert_to_declaring_parameter.main();
     convert_to_dot_shorthand.main();
     convert_to_double_quoted_string.main();
-    convert_to_field_parameter.main();
     convert_to_for_element.main();
     convert_to_if_case_statement_chain.main();
     convert_to_if_case_statement.main();
     convert_to_if_element.main();
+    convert_to_initializing_formal.main();
     convert_to_int_literal.main();
     convert_to_map_literal.main();
     convert_to_multiline_string.main();
-    convert_to_normal_parameter.main();
     convert_to_null_aware.main();
     convert_to_package_import.main();
     convert_to_primary_constructor.main();

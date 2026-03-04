@@ -33,14 +33,14 @@ class CSuperParameters(final int x, super.y) extends C1;
 // Named parameters (regular and required).
 class CNamedParameters({final int x = 1, required var int y});
 
-enum EnumNamedParameters({final int x = 1, required var int y}) {
+enum EnumNamedParameters({final int x = 1, required final int y}) {
   e(x: 2, y: 3), f(y: 3);
 }
 
 // Optional parameters.
 class COptionalParameters([final int x = 1, var int y = 2]);
 
-enum EnumOptionalParameters([final int x = 1, var int y = 2]) {
+enum EnumOptionalParameters([final int x = 1, final int y = 2]) {
   e(3, 4), f(3), g();
 }
 

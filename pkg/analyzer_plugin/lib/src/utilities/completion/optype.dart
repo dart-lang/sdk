@@ -715,7 +715,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         optype.includeTypeNameSuggestions = true;
       }
       if ((token.isSynthetic || token.lexeme == ';') &&
-          node.expression is Identifier) {
+          (node.expression is Identifier || node.expression is TypeLiteral)) {
         optype.includeVarNameSuggestions = true;
       }
     }

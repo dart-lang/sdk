@@ -91,9 +91,6 @@ abstract base class Constraints
   int getNumberOfFPRegisters();
   List<FPRegister> getAllocatableFPRegisters();
 
-  int sizeInWords(RegisterClass registerClass);
-  int alignmentInWords(RegisterClass registerClass);
-
   InstructionConstraints? getConstraints(Instruction instr) =>
       instr.accept(this);
 
@@ -129,6 +126,10 @@ abstract base class Constraints
 
   @override
   InstructionConstraints? visitParallelMove(ParallelMove instr) => null;
+
+  @override
+  InstructionConstraints? visitTypeParameters(TypeParameters instr) =>
+      throw 'Unexpected TypeParameters (should be lowered)';
 
   @override
   InstructionConstraints? visitAllocateListLiteral(AllocateListLiteral instr) =>

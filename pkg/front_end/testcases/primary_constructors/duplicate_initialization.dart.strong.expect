@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/duplicate_initialization.dart:12:26: Error: Fields can't be initialized in both the primary constructor parameter list and at their declaration.
+// Try removing one of the initializations.
+// class C1(var int x, this.z) {
+//                          ^
+// pkg/front_end/testcases/primary_constructors/duplicate_initialization.dart:14:7: Context: This is the field declaration.
+//   int z = 2;
+//       ^
+//
+// pkg/front_end/testcases/primary_constructors/duplicate_initialization.dart:15:10: Error: Fields can't be initialized in both the primary constructor and at their declaration.
+// Try removing one of the initializations.
+//   this : y = 1;
+//          ^
+// pkg/front_end/testcases/primary_constructors/duplicate_initialization.dart:13:7: Context: This is the field declaration.
+//   int y = 0;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object {
+  field core::int x;
+  field core::int y = 0;
+  field core::int z = 2;
+  constructor •(core::int x, core::int z) → self::C0
+    : self::C0::x = x, self::C0::z = z, self::C0::y = 1, super core::Object::•()
+    ;
+}
+class C1 extends core::Object {
+  field core::int x;
+  field core::int y = 0;
+  field core::int z = 2;
+  constructor •(core::int x, final core::int z) → self::C1
+    : self::C1::x = x, self::C1::z = z, self::C1::y = 1, super core::Object::•()
+    ;
+}

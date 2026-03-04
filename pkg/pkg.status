@@ -307,6 +307,7 @@ dds/test/log_history_size_gigantic_test: Skip # The Windows ARM64 bots are not p
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 
 [ $arch != x64 && ($system == linux || $system == windows) ]
+dart_runtime_service/test/sse_client_test: Skip # Chrome not available
 dds/test/devtools_server/instance_reuse_test: Skip # Chrome not available
 dds/test/devtools_server/remote_control_test: Skip # Chrome not available
 dds/test/devtools_server/server_connection_api_test: Skip # Chrome not available

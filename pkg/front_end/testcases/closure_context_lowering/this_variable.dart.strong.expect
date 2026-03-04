@@ -161,28 +161,28 @@ class A extends core::Object {
     this-variable.{self::A::a} = this-variable.{self::A::a}{self::A}.{self::A::+}(new self::A::•()){(self::A) → self::A};
   }
   method capturedMethodCall() → dynamic/* scope=[
-    #ctx23: captured VariableContext([
+    #ctx23: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx23 */ → dynamic => this-variable.{self::A::method}(){() → dynamic};
   }
   method capturedExpression() → dynamic/* scope=[
-    #ctx24: captured VariableContext([
+    #ctx24: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx24 */ → self::A => this-variable;
   }
   method capturedPropertyGet() → dynamic/* scope=[
-    #ctx25: captured VariableContext([
+    #ctx25: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx25 */ → core::Object? => this-variable.{self::A::field}{core::Object?};
   }
   method capturedPropertySet() → dynamic/* scope=[
-    #ctx26: captured VariableContext([
+    #ctx26: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -191,21 +191,21 @@ class A extends core::Object {
     };
   }
   method capturedCall() → dynamic/* scope=[
-    #ctx27: captured VariableContext([
+    #ctx27: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx27 */ → core::Object? => this-variable.{self::A::call}(){() → core::Object?};
   }
   method capturedIndexGet() → dynamic/* scope=[
-    #ctx28: captured VariableContext([
+    #ctx28: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx28 */ → core::Object? => this-variable.{self::A::[]}(0){(core::int) → core::Object?};
   }
   method capturedIndexSet() → dynamic/* scope=[
-    #ctx29: captured VariableContext([
+    #ctx29: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -214,63 +214,63 @@ class A extends core::Object {
     };
   }
   method capturedUnary() → dynamic/* scope=[
-    #ctx30: captured VariableContext([
+    #ctx30: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx30 */ → self::A => this-variable.{self::A::unary-}(){() → self::A};
   }
   method capturedBinary() → dynamic/* scope=[
-    #ctx31: captured VariableContext([
+    #ctx31: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx31 */ → self::A => this-variable.{self::A::+}(this-variable){(self::A) → self::A};
   }
   method capturedPropertyCall() → dynamic/* scope=[
-    #ctx32: captured VariableContext([
+    #ctx32: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx32 */ → core::Object? => this-variable.{self::A::a}{self::A}.{self::A::call}(){() → core::Object?};
   }
   method capturedPropertyPrefix() → dynamic/* scope=[
-    #ctx33: captured VariableContext([
+    #ctx33: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx33 */ → core::int => let final self::A #t3 = this-variable in #t3.{self::A::n} = #t3.{self::A::n}{core::int}.{core::num::+}(1){(core::num) → core::int};
   }
   method capturedPropertyPostfix() → dynamic/* scope=[
-    #ctx34: captured VariableContext([
+    #ctx34: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx34 */ → core::int => let final self::A #t4 = this-variable in let final core::int #t5 = #t4.{self::A::n}{core::int} in let final void #t6 = #t4.{self::A::n} = #t5.{core::num::+}(1){(core::num) → core::int} in #t5;
   }
   method capturedPropertyIndexGet() → dynamic/* scope=[
-    #ctx35: captured VariableContext([
+    #ctx35: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx35 */ → core::Object? => this-variable.{self::A::a}{self::A}.{self::A::[]}(0){(core::int) → core::Object?};
   }
   method capturedPropertyIndexSet() → dynamic/* scope=[
-    #ctx36: captured VariableContext([
+    #ctx36: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx36 */ → Null => let final self::A #t7 = this-variable.{self::A::a}{self::A} in let final core::int #t8 = 0 in let final has-declared-initializer Null #t9 = null in let final void #t10 = #t7.{self::A::[]=}(#t8, #t9){(core::int, core::Object?) → void} in #t9;
   }
   method capturedPropertyIfNullAssignment() → dynamic/* scope=[
-    #ctx37: captured VariableContext([
+    #ctx37: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
     return () /* #ctx37 */ → self::A => let final self::A? #t11 = this-variable.{self::A::aNull}{self::A?} in #t11 == null ?{self::A} this-variable.{self::A::aNull} = new self::A::•() : #t11{self::A};
   }
   method capturedPropertyCompoundAssignment() → dynamic/* scope=[
-    #ctx38: captured VariableContext([
+    #ctx38: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -403,7 +403,7 @@ class B extends self::A {
   }
   @#C1
   method capturedMethodCall() → dynamic/* scope=[
-    #ctx54: captured VariableContext([
+    #ctx54: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -411,7 +411,7 @@ class B extends self::A {
   }
   @#C1
   method capturedPropertyGet() → dynamic/* scope=[
-    #ctx55: captured VariableContext([
+    #ctx55: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -419,7 +419,7 @@ class B extends self::A {
   }
   @#C1
   method capturedPropertySet() → dynamic/* scope=[
-    #ctx56: captured VariableContext([
+    #ctx56: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -429,7 +429,7 @@ class B extends self::A {
   }
   @#C1
   method capturedCall() → dynamic/* scope=[
-    #ctx57: captured VariableContext([
+    #ctx57: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -437,7 +437,7 @@ class B extends self::A {
   }
   @#C1
   method capturedIndexGet() → dynamic/* scope=[
-    #ctx58: captured VariableContext([
+    #ctx58: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -445,7 +445,7 @@ class B extends self::A {
   }
   @#C1
   method capturedIndexSet() → dynamic/* scope=[
-    #ctx59: captured VariableContext([
+    #ctx59: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -455,7 +455,7 @@ class B extends self::A {
   }
   @#C1
   method capturedUnary() → dynamic/* scope=[
-    #ctx60: captured VariableContext([
+    #ctx60: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -463,7 +463,7 @@ class B extends self::A {
   }
   @#C1
   method capturedBinary() → dynamic/* scope=[
-    #ctx61: captured VariableContext([
+    #ctx61: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -471,7 +471,7 @@ class B extends self::A {
   }
   @#C1
   method capturedPropertyCall() → dynamic/* scope=[
-    #ctx62: captured VariableContext([
+    #ctx62: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -479,7 +479,7 @@ class B extends self::A {
   }
   @#C1
   method capturedPropertyPrefix() → dynamic/* scope=[
-    #ctx63: captured VariableContext([
+    #ctx63: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -487,7 +487,7 @@ class B extends self::A {
   }
   @#C1
   method capturedPropertyPostfix() → dynamic/* scope=[
-    #ctx64: captured VariableContext([
+    #ctx64: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -495,7 +495,7 @@ class B extends self::A {
   }
   @#C1
   method capturedPropertyIndexGet() → dynamic/* scope=[
-    #ctx65: captured VariableContext([
+    #ctx65: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -503,7 +503,7 @@ class B extends self::A {
   }
   @#C1
   method capturedPropertyIndexSet() → dynamic/* scope=[
-    #ctx66: captured VariableContext([
+    #ctx66: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -511,7 +511,7 @@ class B extends self::A {
   }
   @#C1
   method capturedPropertyIfNullAssignment() → dynamic/* scope=[
-    #ctx67: captured VariableContext([
+    #ctx67: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
@@ -519,7 +519,7 @@ class B extends self::A {
   }
   @#C1
   method capturedPropertyCompoundAssignment() → dynamic/* scope=[
-    #ctx68: captured VariableContext([
+    #ctx68: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {

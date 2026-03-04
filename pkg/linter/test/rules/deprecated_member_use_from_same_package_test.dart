@@ -957,4 +957,18 @@ var x = C();
       [lint(42, 1)],
     );
   }
+
+  test_deprecatedUnnamedConstructor_newSyntax() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  @deprecated
+  new();
+}
+
+var x = C();
+''',
+      [lint(44, 1)],
+    );
+  }
 }

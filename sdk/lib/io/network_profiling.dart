@@ -99,7 +99,7 @@ abstract class _NetworkProfiling {
               ...HttpProfiler.serializeHttpProfileRequests(updatedSince),
               ...getHttpClientProfilingData()
                   .where(
-                    (final Map<String, Object?> p) =>
+                    (Map<String, Object?> p) =>
                         updatedSince == null ||
                         (p['_lastUpdateTime'] as int) >= updatedSince,
                   )

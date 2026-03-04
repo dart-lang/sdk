@@ -30,10 +30,10 @@ library
         #F1 isOriginDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+        #F2 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
           element: <testLibrary>::@getter::f
       setters
-        #F3 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+        #F3 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
           element: <testLibrary>::@setter::f
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
@@ -46,13 +46,13 @@ library
       getter: <testLibrary>::@getter::f
       setter: <testLibrary>::@setter::f
   getters
-    synthetic static isOriginVariable f
+    static isOriginVariable f
       reference: <testLibrary>::@getter::f
       firstFragment: #F2
       returnType: void Function()
       variable: <testLibrary>::@topLevelVariable::f
   setters
-    synthetic static isOriginVariable f
+    static isOriginVariable f
       reference: <testLibrary>::@setter::f
       firstFragment: #F3
       formalParameters
@@ -78,10 +78,10 @@ library
         #F1 isOriginDeclaration f (nameOffset:17) (firstTokenOffset:17) (offset:17)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+        #F2 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
           element: <testLibrary>::@getter::f
       setters
-        #F3 synthetic isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+        #F3 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
           element: <testLibrary>::@setter::f
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
@@ -94,13 +94,13 @@ library
       getter: <testLibrary>::@getter::f
       setter: <testLibrary>::@setter::f
   getters
-    synthetic static isOriginVariable f
+    static isOriginVariable f
       reference: <testLibrary>::@getter::f
       firstFragment: #F2
       returnType: void Function()?
       variable: <testLibrary>::@topLevelVariable::f
   setters
-    synthetic static isOriginVariable f
+    static isOriginVariable f
       reference: <testLibrary>::@setter::f
       firstFragment: #F3
       formalParameters
@@ -205,7 +205,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
@@ -216,7 +216,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
@@ -269,10 +269,10 @@ library
         #F1 isOriginDeclaration v (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F2 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@getter::v
       setters
-        #F3 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F3 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@setter::v
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
@@ -285,13 +285,13 @@ library
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
-    synthetic static isOriginVariable v
+    static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F2
       returnType: int Function(int, String)
       variable: <testLibrary>::@topLevelVariable::v
   setters
-    synthetic static isOriginVariable v
+    static isOriginVariable v
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
@@ -332,7 +332,7 @@ library
         #F4 class B (nameOffset:64) (firstTokenOffset:29) (offset:64)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -350,7 +350,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
 ''');
@@ -430,10 +430,10 @@ library
                 baseElement: <testLibrary>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
       getters
-        #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+        #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
           element: <testLibrary>::@getter::v
       setters
-        #F6 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+        #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
           element: <testLibrary>::@setter::v
           formalParameters
             #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
@@ -501,13 +501,13 @@ library
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
-    synthetic static isOriginVariable v
+    static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F5
       returnType: int
       variable: <testLibrary>::@topLevelVariable::v
   setters
-    synthetic static isOriginVariable v
+    static isOriginVariable v
       reference: <testLibrary>::@setter::v
       firstFragment: #F6
       formalParameters
@@ -600,7 +600,7 @@ library
                 rightParenthesis: ) @68
               staticType: A<String Function({int? a})>
       getters
-        #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     class A
@@ -623,7 +623,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::v
   getters
-    synthetic static isOriginVariable v
+    static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F5
       returnType: A<String Function({int? a})>
@@ -712,7 +712,7 @@ library
                 rightParenthesis: ) @68
               staticType: A<String Function([int?])>
       getters
-        #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     class A
@@ -735,7 +735,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::v
   getters
-    synthetic static isOriginVariable v
+    static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F5
       returnType: A<String Function([int?])>
@@ -824,7 +824,7 @@ library
                 rightParenthesis: ) @76
               staticType: A<String Function({required int a})>
       getters
-        #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     class A
@@ -847,7 +847,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::v
   getters
-    synthetic static isOriginVariable v
+    static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F5
       returnType: A<String Function({required int a})>
@@ -929,7 +929,7 @@ library
                 rightParenthesis: ) @65
               staticType: A<String Function(int)>
       getters
-        #F5 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     class A
@@ -952,7 +952,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::v
   getters
-    synthetic static isOriginVariable v
+    static isOriginVariable v
       reference: <testLibrary>::@getter::v
       firstFragment: #F5
       returnType: A<String Function(int)>
@@ -1008,13 +1008,13 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F4 class B (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F5 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
@@ -1028,7 +1028,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic isOriginImplicitDefault new
+        isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class alias B
@@ -1038,7 +1038,7 @@ library
       mixins
         M
       constructors
-        synthetic isOriginMixinApplication new
+        isOriginMixinApplication new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
           constantInitializers

@@ -1,7 +1,29 @@
-## 0.3.9-dev
+## 0.3.12-dev
 
-- Require version `10.1.0-dev` of the `analyzer` package.
-- Require version `0.14.3-dev` of the `analyzer_plugin` package.
+- Require version `11.1.0-dev` of the `analyzer` package.
+- Require version `0.14.6-dev` of the `analyzer_plugin` package.
+
+## 0.3.11
+
+- Files which are excluded in analysis options are no longer analyzed by
+  analyzer plugins.
+- Require version `^11.0.0-0` of the `analyzer` package.
+- Require version `0.14.5-dev` of the `analyzer_plugin` package.
+
+## 0.3.10-dev
+
+- Require version `10.3.0-dev` of the `analyzer` package.
+- Require version `0.14.5-dev` of the `analyzer_plugin` package.
+
+## 0.3.10
+
+- Require version `10.2.0` of the `analyzer` package.
+- Require version `0.14.4` of the `analyzer_plugin` package.
+
+## 0.3.9
+
+- Require version `10.1.0` of the `analyzer` package.
+- Require version `0.14.3` of the `analyzer_plugin` package.
 
 ## 0.3.8
 

@@ -63,6 +63,54 @@ class A {
     );
   }
 
+  test_localFunction_optionalNamed() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  void foo({this.x}) {}
+  foo(x: 0);
+}
+''',
+      [error(diag.fieldInitializerOutsideConstructor, 23, 6)],
+    );
+  }
+
+  test_localFunction_optionalPositional() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  void foo([this.x]) {}
+  foo(0);
+}
+''',
+      [error(diag.fieldInitializerOutsideConstructor, 23, 6)],
+    );
+  }
+
+  test_localFunction_requiredNamed() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  void foo({required this.x}) {}
+  foo(x: 0);
+}
+''',
+      [error(diag.fieldInitializerOutsideConstructor, 23, 15)],
+    );
+  }
+
+  test_localFunction_requiredPositional() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  void foo(this.x) {}
+  foo(0);
+}
+''',
+      [error(diag.fieldInitializerOutsideConstructor, 22, 6)],
+    );
+  }
+
   test_method() async {
     // TODO(brianwilkerson): Fix the duplicate error messages.
     await assertErrorsInCode(

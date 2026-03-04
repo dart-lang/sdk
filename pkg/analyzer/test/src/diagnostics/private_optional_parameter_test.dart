@@ -62,10 +62,7 @@ class C {
   C({this._123}) {}
 }
 ''',
-      [
-        error(diag.unusedField, 31, 4),
-        error(diag.experimentNotEnabledOffByDefault, 47, 4),
-      ],
+      [error(diag.unusedField, 31, 4), error(diag.experimentNotEnabled, 47, 4)],
     );
   }
 

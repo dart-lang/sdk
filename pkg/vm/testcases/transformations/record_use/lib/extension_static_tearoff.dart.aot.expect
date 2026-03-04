@@ -1,0 +1,26 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension StringUtils on core::String {
+  static method printHello = self::StringUtils|printHello;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+@#C1
+static extension-member method StringUtils|printHello() → void
+  return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::print("hello");
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final () → void f = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=dart.core::_Closure (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList] core::_GrowableList::_literal1<() → void>(#C2).{core::List::[]}(0){(core::int) → () → void};
+  core::print(f);
+  [@vm.inferred-type.metadata=? (receiver not int)] f(){() → void};
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = static-tearoff self::StringUtils|printHello
+}

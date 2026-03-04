@@ -134,6 +134,11 @@ then that is used instead.''',
         allowed: Verbosity.allowedValues,
         allowedHelp: Verbosity.allowedValuesHelp,
       )
+      ..addOption(
+        'depfile',
+        valueHelp: 'path',
+        help: 'Path to output Ninja depfile',
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -178,6 +183,7 @@ then that is used instead.''',
       return 128;
     }
     final verbosity = args.option('verbosity')!;
+    final depFile = args.option('depfile');
     final enabledExperiments = args.enabledExperiments;
 
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
@@ -198,6 +204,7 @@ then that is used instead.''',
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
       verbose: verbose,
       verbosity: verbosity,
+      depFile: depFile,
     );
   }
 
@@ -211,18 +218,27 @@ then that is used instead.''',
     required List<String> enabledExperiments,
     required bool verbose,
     required String verbosity,
+    String? depFile,
   }) async {
-    if (executables.length >= 2 && recordUseEnabled) {
-      // Multiple entry points can lead to multiple different tree-shakings.
-      // We either need to generate a new entry point that combines all entry
-      // points and combine that into a single executable and have wrappers
-      // around that executable. Or, we need to merge the recorded uses for the
-      // various entrypoints. The former will lead to smaller bundle-size
-      // overall.
-      stderr.writeln(
-        'Multiple executables together with record use is not yet supported.',
-      );
-      return 255;
+    if (executables.length >= 2) {
+      if (recordUseEnabled) {
+        // Multiple entry points can lead to multiple different tree-shakings.
+        // We either need to generate a new entry point that combines all entry
+        // points and combine that into a single executable and have wrappers
+        // around that executable. Or, we need to merge the recorded uses for
+        // the various entrypoints. The former will lead to smaller bundle-size
+        // overall.
+        stderr.writeln(
+          'Multiple executables together with record use is not yet supported.',
+        );
+        return 255;
+      }
+      if (depFile != null) {
+        stderr.writeln(
+          'The --depfile option is not supported with multiple targets.',
+        );
+        return 255;
+      }
     }
     final outputDir = Directory.fromUri(outputUri);
     if (await outputDir.exists()) {
@@ -304,6 +320,7 @@ then that is used instead.''',
           targetOS: targetOS,
           enableExperiment: enabledExperiments.join(','),
           tempDir: tempDir,
+          depFile: depFile,
         );
 
         final snapshotGenerator = await generator.generate(

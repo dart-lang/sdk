@@ -76,6 +76,7 @@ class ForResolver {
     required ForEachPartsWithPatternImpl forLoopParts,
     required void Function() dispatchBody,
   }) {
+    forLoopParts.metadata.accept(_resolver);
     _resolver.analyzePatternForIn(
       node: node,
       hasAwait: awaitKeyword != null,
@@ -243,7 +244,7 @@ class ForResolver {
       );
       condition = _resolver.popRewrite()!;
       var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-        condition,
+        _resolver.flowAnalysis.flow?.getExpressionInfo(condition),
       );
       _resolver.boolExpressionVerifier.checkForNonBoolCondition(
         condition,

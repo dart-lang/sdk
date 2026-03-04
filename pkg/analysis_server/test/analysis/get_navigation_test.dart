@@ -97,6 +97,35 @@ String f() {
     assertHasRegion(example2Path, length: example2Path.length);
   }
 
+  Future<void> test_constructor_factory() async {
+    addTestFile('''
+class Foo {
+  new _();
+  factory();
+}
+
+final a = Foo(1);
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo(1)');
+    assertHasRegionTarget('Foo(1)', 'factory()');
+  }
+
+  Future<void> test_constructor_new() async {
+    addTestFile('''
+class Foo {
+  new();
+}
+
+final a = Foo.new(1);
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'new(1)');
+    assertHasRegionTarget('new(1)', 'new()');
+  }
+
   Future<void> test_constructorInvocation() async {
     // Check that a constructor invocation navigates to the constructor and not
     // the class.

@@ -1,0 +1,305 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:6:3: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// Try making the constructor redirect to the primary constructor, or remove the primary constructor.
+//   C1.other(); // Error
+//   ^
+//
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:10:7: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// Try making the constructor redirect to the primary constructor, or remove the primary constructor.
+//   new other1(); // Error
+//       ^
+//
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:11:7: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// Try making the constructor redirect to the primary constructor, or remove the primary constructor.
+//   new other2(); // Error
+//       ^
+//
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:23:3: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// Try making the constructor redirect to the primary constructor, or remove the primary constructor.
+//   new(); // Error
+//   ^
+//
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:32:9: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// Try making the constructor redirect to the primary constructor, or remove the primary constructor.
+//   const E1.other(); // Error
+//         ^
+//
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:37:13: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// Try making the constructor redirect to the primary constructor, or remove the primary constructor.
+//   const new other1(); // Error
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:38:13: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// Try making the constructor redirect to the primary constructor, or remove the primary constructor.
+//   const new other2(); // Error
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:53:9: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// Try making the constructor redirect to the primary constructor, or remove the primary constructor.
+//   const new(); // Error
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  constructor •() → self::C1
+    : super core::Object::•()
+    ;
+  constructor other() → self::C1
+    : super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  constructor •() → self::C2
+    : super core::Object::•()
+    ;
+  constructor other1() → self::C2
+    : super core::Object::•()
+    ;
+  constructor other2() → self::C2
+    : super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  constructor •() → self::C3
+    : super core::Object::•()
+    ;
+  constructor other() → self::C3
+    : this self::C3::•()
+    ;
+}
+class C4 extends core::Object {
+  constructor •() → self::C4
+    : super core::Object::•()
+    ;
+  constructor other() → self::C4
+    : this self::C4::•()
+    ;
+}
+class C5 extends core::Object {
+  constructor primary() → self::C5
+    : super core::Object::•()
+    ;
+  constructor •() → self::C5
+    : super core::Object::•()
+    ;
+}
+class C6 extends core::Object {
+  constructor primary() → self::C6
+    : super core::Object::•()
+    ;
+  constructor •() → self::C6
+    : this self::C6::primary()
+    ;
+}
+class E1 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E1 a = #C3;
+  enum-element static const field self::E1 b = #C6;
+  static const field core::List<self::E1> values = #C7;
+  const constructor •(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor other(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E2 a = #C8;
+  enum-element static const field self::E2 b = #C9;
+  enum-element static const field self::E2 c = #C12;
+  static const field core::List<self::E2> values = #C13;
+  const constructor •(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor other1(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor other2(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E3 a = #C14;
+  enum-element static const field self::E3 b = #C15;
+  static const field core::List<self::E3> values = #C16;
+  const constructor •(core::int #index, core::String #name) → self::E3
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor other(core::int #index, core::String #name) → self::E3
+    : this self::E3::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E4 a = #C17;
+  enum-element static const field self::E4 b = #C18;
+  static const field core::List<self::E4> values = #C19;
+  const constructor •(core::int #index, core::String #name) → self::E4
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor other(core::int #index, core::String #name) → self::E4
+    : this self::E4::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+class E5 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E5 a = #C20;
+  enum-element static const field self::E5 b = #C21;
+  static const field core::List<self::E5> values = #C22;
+  const constructor primary(core::int #index, core::String #name) → self::E5
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor •(core::int #index, core::String #name) → self::E5
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E6 a = #C23;
+  enum-element static const field self::E6 b = #C24;
+  static const field core::List<self::E6> values = #C25;
+  const constructor primary(core::int #index, core::String #name) → self::E6
+    : super core::_Enum::•(#index, #name)
+    ;
+  const constructor •(core::int #index, core::String #name) → self::E6
+    : this self::E6::primary(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+extension type ET1(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+  constructor other = self::ET1|constructor#other;
+  constructor tearoff other = self::ET1|constructor#_#other#tearOff;
+}
+extension type E2T(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::E2T|constructor#;
+  constructor tearoff • = self::E2T|constructor#_#new#tearOff;
+  constructor other = self::E2T|constructor#other;
+  constructor tearoff other = self::E2T|constructor#_#other#tearOff;
+}
+extension type ET3(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor primary = self::ET3|constructor#primary;
+  constructor tearoff primary = self::ET3|constructor#_#primary#tearOff;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+extension type ET4(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor primary = self::ET4|constructor#primary;
+  constructor tearoff primary = self::ET4|constructor#_#primary#tearOff;
+  constructor • = self::ET4|constructor#;
+  constructor tearoff • = self::ET4|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(i);
+static extension-type-member method ET1|constructor#other(core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#other#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#other(i);
+static extension-type-member method E2T|constructor#(core::int i) → self::E2T% /* erasure=core::int, declared=! */ {
+  lowered final self::E2T% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member synthetic method E2T|constructor#_#new#tearOff(core::int i) → self::E2T% /* erasure=core::int, declared=! */
+  return self::E2T|constructor#(i);
+static extension-type-member method E2T|constructor#other(core::int i) → self::E2T% /* erasure=core::int, declared=! */ {
+  lowered final self::E2T% /* erasure=core::int, declared=! */ #this;
+  #this = self::E2T|constructor#(i);
+  return #this;
+}
+static extension-type-member synthetic method E2T|constructor#_#other#tearOff(core::int i) → self::E2T% /* erasure=core::int, declared=! */
+  return self::E2T|constructor#other(i);
+static extension-type-member method ET3|constructor#primary(core::int i) → self::ET3% /* erasure=core::int, declared=! */ {
+  lowered final self::ET3% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member synthetic method ET3|constructor#_#primary#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
+  return self::ET3|constructor#primary(i);
+static extension-type-member method ET3|constructor#(core::int i) → self::ET3% /* erasure=core::int, declared=! */ {
+  lowered final self::ET3% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
+  return self::ET3|constructor#(i);
+static extension-type-member method ET4|constructor#primary(core::int i) → self::ET4% /* erasure=core::int, declared=! */ {
+  lowered final self::ET4% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member synthetic method ET4|constructor#_#primary#tearOff(core::int i) → self::ET4% /* erasure=core::int, declared=! */
+  return self::ET4|constructor#primary(i);
+static extension-type-member method ET4|constructor#(core::int i) → self::ET4% /* erasure=core::int, declared=! */ {
+  lowered final self::ET4% /* erasure=core::int, declared=! */ #this;
+  #this = self::ET4|constructor#primary(i);
+  return #this;
+}
+static extension-type-member synthetic method ET4|constructor#_#new#tearOff(core::int i) → self::ET4% /* erasure=core::int, declared=! */
+  return self::ET4|constructor#(i);
+
+constants  {
+  #C1 = 0
+  #C2 = "a"
+  #C3 = self::E1 {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "b"
+  #C6 = self::E1 {index:#C4, _name:#C5}
+  #C7 = <self::E1>[#C3, #C6]
+  #C8 = self::E2 {index:#C1, _name:#C2}
+  #C9 = self::E2 {index:#C4, _name:#C5}
+  #C10 = 2
+  #C11 = "c"
+  #C12 = self::E2 {index:#C10, _name:#C11}
+  #C13 = <self::E2>[#C8, #C9, #C12]
+  #C14 = self::E3 {index:#C1, _name:#C2}
+  #C15 = self::E3 {index:#C4, _name:#C5}
+  #C16 = <self::E3>[#C14, #C15]
+  #C17 = self::E4 {index:#C1, _name:#C2}
+  #C18 = self::E4 {index:#C4, _name:#C5}
+  #C19 = <self::E4>[#C17, #C18]
+  #C20 = self::E5 {index:#C1, _name:#C2}
+  #C21 = self::E5 {index:#C4, _name:#C5}
+  #C22 = <self::E5>[#C20, #C21]
+  #C23 = self::E6 {index:#C1, _name:#C2}
+  #C24 = self::E6 {index:#C4, _name:#C5}
+  #C25 = <self::E6>[#C23, #C24]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///primary_and_generative.dart:
+- E1. (from org-dartlang-testcase:///primary_and_generative.dart:30:8)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- E1.other (from org-dartlang-testcase:///primary_and_generative.dart:32:9)
+- E2. (from org-dartlang-testcase:///primary_and_generative.dart:35:8)
+- E2.other1 (from org-dartlang-testcase:///primary_and_generative.dart:37:13)
+- E2.other2 (from org-dartlang-testcase:///primary_and_generative.dart:38:13)
+- E3. (from org-dartlang-testcase:///primary_and_generative.dart:41:8)
+- E3.other (from org-dartlang-testcase:///primary_and_generative.dart:43:13)
+- E4. (from org-dartlang-testcase:///primary_and_generative.dart:46:8)
+- E4.other (from org-dartlang-testcase:///primary_and_generative.dart:48:13)
+- E5. (from org-dartlang-testcase:///primary_and_generative.dart:53:9)
+- E5.primary (from org-dartlang-testcase:///primary_and_generative.dart:51:9)
+- E6. (from org-dartlang-testcase:///primary_and_generative.dart:58:9)
+- E6.primary (from org-dartlang-testcase:///primary_and_generative.dart:56:9)

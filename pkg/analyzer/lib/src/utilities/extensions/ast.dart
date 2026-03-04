@@ -161,6 +161,14 @@ extension CompilationUnitExtension on CompilationUnit {
   }
 }
 
+extension ExpressionExtension on Expression {
+  /// Whether this expression is found in a [CommentReference].
+  bool get inCommentReference =>
+      parent is CommentReference ||
+      parent?.parent is CommentReference ||
+      parent?.parent?.parent is CommentReference;
+}
+
 extension ExtensionElementExtension on ExtensionElement {
   InterfaceElement? get extendedInterfaceElement =>
       extendedType.tryCast<InterfaceType>()?.element;

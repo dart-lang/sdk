@@ -4,10 +4,15 @@
 
 /// Recognition and validation of usage recording annotations.
 ///
-/// A static method to be recorded can be annotated with `@RecordUse()`.
+/// A static method or class to be recorded can be annotated with
+/// `@RecordUse()`.
+///
+/// Only usages in reachable code (executable code) are tracked. Usages
+/// appearing within metadata (annotations) are ignored.
 library;
 
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
+import '../api_prototype/lowering_predicates.dart';
+import '../codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
 import 'constant_evaluator.dart' show ErrorReporter;
@@ -28,7 +33,6 @@ Iterable<InstanceConstant> findRecordUseAnnotation(Annotatable node) {
   return result ?? const [];
 }
 
-// Coverage-ignore(suite): Not run.
 bool hasRecordUseAnnotation(Annotatable node) =>
     findRecordUseAnnotation(node).isNotEmpty;
 
@@ -41,34 +45,160 @@ bool isRecordUse(Class cls) =>
     cls.enclosingLibrary.importUri == _metaLibraryUri;
 
 // Coverage-ignore(suite): Not run.
-bool isBeingRecorded(Class cls) => isRecordUse(cls) || hasRecordUse(cls);
+bool _enclosedInLibraryWithPackageUri(Annotatable node) {
+  final Library? library = switch (node) {
+    Library l => l,
+    Class c => c.enclosingLibrary,
+    Member m => m.enclosingLibrary,
+    _ => null,
+  };
+  return library?.importUri.isScheme('package') ?? false;
+}
+
+bool isBeingRecorded(Annotatable node) {
+  if (hasRecordUseAnnotation(node)) {
+    // Coverage-ignore-block(suite): Not run.
+    return _enclosedInLibraryWithPackageUri(node);
+  }
+
+  if (node is Procedure) {
+    // Coverage-ignore-block(suite): Not run.
+    Procedure? implementation = getExtensionMemberImplementation(node);
+    if (implementation != null) {
+      return isBeingRecorded(implementation);
+    }
+    Extension? extension = node.extension;
+    if (extension != null) {
+      if (isBeingRecorded(extension)) return true;
+    }
+    ExtensionTypeDeclaration? extensionTypeDeclaration =
+        node.extensionTypeDeclaration;
+    if (extensionTypeDeclaration != null) {
+      if (isBeingRecorded(extensionTypeDeclaration)) return true;
+    }
+
+    if (node.isFactory) {
+      final Class? cls = node.enclosingClass;
+      if (cls != null && isBeingRecorded(cls)) return true;
+    }
+
+    if (isConstructorTearOffLowering(node)) {
+      final Member? target = getConstructorTearOffLoweringTarget(node);
+      if (target != null) {
+        return isBeingRecorded(target);
+      }
+    }
+  }
+
+  if (node is Constructor) {
+    // Coverage-ignore-block(suite): Not run.
+    final Class? cls = node.enclosingClass;
+    if (cls != null && isBeingRecorded(cls)) return true;
+  }
+
+  if (node is Procedure &&
+      // Coverage-ignore(suite): Not run.
+      node.isRedirectingFactory) {
+    // Coverage-ignore-block(suite): Not run.
+    final Member? target = node.function.redirectingFactoryTarget?.target;
+    if (target != null) return isBeingRecorded(target);
+  }
+
+  return false;
+}
 
 // Coverage-ignore(suite): Not run.
-/// If [cls] annotation is in turn annotated by a recording annotation.
-bool hasRecordUse(Class cls) => cls.annotations
-    .whereType<ConstantExpression>()
-    .map((e) => e.constant)
-    .whereType<InstanceConstant>()
-    .any((annotation) => isRecordUse(annotation.classNode));
+Uri? _getFileUri(Annotatable node) {
+  if (node is Library) return node.fileUri;
+  if (node is Class) return node.fileUri;
+  if (node is Member) return node.fileUri;
+  return node.location?.file;
+}
+
+/// Performs all validations for `@RecordUse` on the given [node].
+void validateAnnotations(Annotatable node, ErrorReporter errorReporter) {
+  final Iterable<InstanceConstant> annotations = findRecordUseAnnotation(node);
+
+  if (annotations.isNotEmpty) {
+    // Coverage-ignore-block(suite): Not run.
+    _validateRecordUseDeclaration(node, errorReporter, annotations);
+    _validateClassIsFinal(node, errorReporter);
+  }
+
+  if (node is Class) {
+    _validateSubtyping(node, errorReporter);
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+void _validateClassIsFinal(Annotatable node, ErrorReporter errorReporter) {
+  if (node is Class && !node.isFinal && !node.isEnum) {
+    final Uri? fileUri = _getFileUri(node);
+    if (fileUri != null) {
+      errorReporter.report(
+        diag.recordUseClassesMustBeFinal.withLocation(
+          fileUri,
+          node.fileOffset,
+          node.name.length,
+        ),
+      );
+    }
+  }
+}
+
+void _validateSubtyping(Class node, ErrorReporter errorReporter) {
+  final List<Class> supertypes = node.supers.map((e) => e.classNode).toList();
+
+  for (final Class supertype in supertypes) {
+    if (isBeingRecorded(supertype)) {
+      // Coverage-ignore-block(suite): Not run.
+      final Uri? fileUri = _getFileUri(node);
+      if (fileUri != null) {
+        errorReporter.report(
+          diag.recordUseSubtypingNotSupported
+              .withArguments(name: supertype.name)
+              .withLocation(fileUri, node.fileOffset, node.name.length),
+        );
+      }
+    }
+  }
+}
 
 // Coverage-ignore(suite): Not run.
 /// Report if the resource annotations is placed on anything but a static
 /// method or a class without a const constructor.
-void validateRecordUseDeclaration(
+void _validateRecordUseDeclaration(
   Annotatable node,
   ErrorReporter errorReporter,
   Iterable<InstanceConstant> resourceAnnotations,
 ) {
-  final bool onNonStaticMethod =
-      node is! Procedure || !node.isStatic || node.kind != ProcedureKind.Method;
+  if (resourceAnnotations.isEmpty) return;
 
-  final bool onClassWithoutConstConstructor =
-      node is! Class ||
-      !node.constructors.any((constructor) => constructor.isConst);
-  if (onNonStaticMethod && onClassWithoutConstConstructor) {
+  final Uri? fileUri = _getFileUri(node);
+  if (fileUri == null) return;
+
+  if (!_enclosedInLibraryWithPackageUri(node)) {
+    errorReporter.report(
+      diag.recordUseOutsideOfPackage.withLocation(fileUri, node.fileOffset, 1),
+    );
+  }
+
+  // Non-generative, non-redirecting constructors are treated as static calls.
+  final bool onFactory =
+      node is Procedure && node.isFactory && !node.isRedirectingFactory;
+
+  final bool onStaticMethod =
+      (node is Procedure &&
+          node.isStatic &&
+          node.kind != ProcedureKind.Factory) ||
+      onFactory;
+
+  final bool onClass = node is Class;
+
+  if (!onStaticMethod && !onClass) {
     errorReporter.report(
       diag.recordUseCannotBePlacedHere.withLocation(
-        node.location!.file,
+        fileUri,
         node.fileOffset,
         1,
       ),

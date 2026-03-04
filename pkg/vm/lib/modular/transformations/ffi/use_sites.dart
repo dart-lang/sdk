@@ -6,9 +6,7 @@
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, SimpleErrorReporter;
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show
-        LocatedMessage;
+import 'package:front_end/src/codes/cfe_codes.dart' show LocatedMessage;
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -443,6 +441,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           );
         }
       } else if (target == structArrayElemAt || target == unionArrayElemAt) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
@@ -450,12 +451,18 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         return _replaceRefArray(node);
       } else if (target == structArrayElements ||
           target == unionArrayElements) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
 
         return _replaceArrayElements(node);
       } else if (target == arrayArrayElemAt) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(
@@ -467,6 +474,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         return _replaceArrayArrayElemAt(node);
       } else if (target == abiSpecificIntegerArrayElements) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(
@@ -478,6 +488,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         return _replaceAbiSpecificIntegerElements(node);
       } else if (target == arrayArrayElements) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(
@@ -489,6 +502,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         return _replaceArrayArrayElements(node);
       } else if (target == arrayArrayAssignAt) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(
@@ -500,6 +516,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         return _replaceArrayArrayElemAt(node, setter: true);
       } else if (target == sizeOfMethod) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(
@@ -516,6 +535,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           }
         }
       } else if (target == lookupFunctionMethod) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final nativeType = InterfaceType(
           nativeFunctionClass,
           currentLibrary.nonNullable,
@@ -540,6 +562,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         );
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final dartType = node.arguments.types[1];
         final InterfaceType nativeType = InterfaceType(
           nativeFunctionClass,
@@ -588,6 +613,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           replacement: _replaceNativeCallableIsolateGroupBoundConstructor,
         );
       } else if (target == nativeCallableListenerConstructor) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final DartType nativeType = InterfaceType(
           nativeFunctionClass,
           currentLibrary.nonNullable,
@@ -634,6 +662,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                 .toList();
         return invokeCompoundConstructors(replacement, compoundClasses);
       } else if (target == allocateMethod) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final DartType nativeType = node.arguments.types[0];
 
         ensureNativeTypeValid(
@@ -665,6 +696,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           );
         }
       } else if (target == structCreate || target == unionCreate) {
+        if (_isMissingArguments(node)) {
+          return node;
+        }
         final nativeType = node.arguments.types.first;
         ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
         return _transformCompoundCreate(node);
@@ -694,6 +728,20 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     return node;
+  }
+
+  /// Returns true if the [node] invocation is missing arguments.
+  ///
+  /// If a call is missing arguments, the front-end has already identified
+  /// compilation errors. In such cases, it is safe to early-return the
+  /// untransformed [node] because the transformation logic (which assumes valid
+  /// arguments) would crash, and the program is guaranteed to fail compilation.
+  static bool _isMissingArguments(StaticInvocation node) {
+    final target = node.target;
+    return node.arguments.types.length <
+            target.function.typeParameters.length ||
+        node.arguments.positional.length <
+            target.function.requiredParameterCount;
   }
 
   bool _isLeaf(InstanceConstant native) {
@@ -1140,6 +1188,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     required Expression Function(StaticInvocation, Expression, bool)
     replacement,
   }) {
+    if (_isMissingArguments(node)) {
+      return node;
+    }
     final DartType nativeType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
@@ -1901,6 +1952,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   /// native transformer and because it requires context from the library to
   /// resolve the asset id.
   StaticInvocation _replaceNativeAddressOf(StaticInvocation node) {
+    if (_isMissingArguments(node)) {
+      return node;
+    }
     final arg = node.arguments.positional.single;
     final nativeType = node.arguments.types.single;
 

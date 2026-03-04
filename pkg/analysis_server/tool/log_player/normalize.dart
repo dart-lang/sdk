@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show exit;
+import 'dart:io' show Directory, exit;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -10,9 +10,11 @@ import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart';
 import 'package:package_config/package_config.dart';
 
+import '../performance/project_generator/project_generator.dart'
+    show ContextRoot, getContextRoots;
 import 'log.dart';
 
-void main(List<String> args) {
+Future<void> main(List<String> args) async {
   var parsed = argParser.parse(args);
   if (parsed.flag('help')) {
     print(argParser.usage);
@@ -30,20 +32,38 @@ void main(List<String> args) {
   var outputFile = resourceProvider.getFile(
     Uri.base.resolve(parsed.option('output')!).toFilePath(),
   );
-  var packageConfigFile = resourceProvider.getFile(
-    Uri.base.resolve(parsed.option('package-config')!).toFilePath(),
-  );
-  if (!packageConfigFile.exists) {
-    print('Package config file ${packageConfigFile.path} does not exist');
+  var rootDirPath = parsed.option('root-dir');
+  if (rootDirPath == null) {
+    print('Root directory not specified');
     exit(1);
   }
-  var packageConfig = PackageConfig.parseBytes(
-    packageConfigFile.readAsBytesSync(),
-    packageConfigFile.toUri(),
-  );
+  var rootDir = resourceProvider.getFolder(rootDirPath);
+  if (!rootDir.exists) {
+    print('Root directory $rootDirPath does not exist');
+    exit(1);
+  }
+
+  List<ContextRoot> contextRoots;
+
+  var packageConfigPath = parsed.option('package-config');
+  if (packageConfigPath != null) {
+    var packageConfigFile = resourceProvider.getFile(packageConfigPath);
+    if (!packageConfigFile.exists) {
+      print('Package config file $packageConfigPath does not exist');
+      exit(1);
+    }
+    var packageConfig = PackageConfig.parseBytes(
+      packageConfigFile.readAsBytesSync(),
+      packageConfigFile.toUri(),
+    );
+
+    contextRoots = [ContextRoot(Directory(rootDirPath), packageConfig)];
+  } else {
+    contextRoots = await getContextRoots(rootDirPath);
+  }
 
   print('normalizing log at ${inputFile.path}');
-  var normalized = normalizeLog(inputFile, packageConfig);
+  var normalized = normalizeLog(inputFile, contextRoots);
   outputFile.writeAsStringSync(normalized);
   print('wrote normalized log to ${outputFile.path}');
 
@@ -70,10 +90,17 @@ final argParser = ArgParser()
     mandatory: true,
   )
   ..addOption(
+    'root-dir',
+    abbr: 'r',
+    help: 'The path to the root directory for normalizing package paths',
+    mandatory: true,
+  )
+  ..addOption(
     'package-config',
     abbr: 'p',
-    help: 'The path to the package config file for normalizing package paths',
-    mandatory: true,
+    help:
+        'The path to the package config file, if specified, will be used '
+        'instead of inferring it from the workspace directories.',
   )
   ..addFlag('help', abbr: 'h', help: 'Prints the usage text');
 
@@ -92,7 +119,7 @@ final argParser = ArgParser()
 //
 // TODO(somebody): Don't take a package config, instead infer them from the
 // workspace directories.
-String normalizeLog(File input, PackageConfig packageCofig) {
+String normalizeLog(File input, List<ContextRoot> contextRoots) {
   var content = input.readAsStringSync();
 
   // First, replace the workspace folder paths.
@@ -117,15 +144,15 @@ String normalizeLog(File input, PackageConfig packageCofig) {
   // TODO(somebody): Replace the flutter SDK path with {{flutterSdkRoot}}.
 
   // Finally, replace the package roots
-  for (var package in packageCofig.packages) {
-    // TODO(somebody): Add an identifier (query string?) to this placeholder
-    // for the package config that it came from. This should correspond to the
-    // roots returned by `initializeContextRoots` which will perform the
-    // inverse operation.
-    content = content.replaceAll(
-      package.root.toString(),
-      '{{package-root:${package.name}}}',
-    );
+  for (var i = 0; i < contextRoots.length; i++) {
+    var contextRoot = contextRoots[i];
+
+    for (var package in contextRoot.packageConfig.packages) {
+      content = content.replaceAll(
+        package.root.toString(),
+        '{{context-$i:package-root:${package.name}}}',
+      );
+    }
   }
   return content;
 }

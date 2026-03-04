@@ -16,7 +16,7 @@ import 'package:expect/expect.dart';
 class A {
   external get foo;
 
-  external A(var foo);
+  external A(foo);
 }
 
 @JS()

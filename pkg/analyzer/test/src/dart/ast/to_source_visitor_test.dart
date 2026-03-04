@@ -3881,7 +3881,7 @@ final x = $code[];
     var code = 'in T';
     var findNode = _parseStringToFindNode('''
 class A<$code> {}
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.typeParameter(code));
   }
 
@@ -3889,7 +3889,7 @@ class A<$code> {}
     var code = 'out T';
     var findNode = _parseStringToFindNode('''
 class A<$code> {}
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.typeParameter(code));
   }
 
@@ -3897,7 +3897,7 @@ class A<$code> {}
     var code = 'inout T';
     var findNode = _parseStringToFindNode('''
 class A<$code> {}
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.typeParameter(code));
   }
 
@@ -3921,7 +3921,7 @@ class A<$code> {}
     var code = 'T';
     var findNode = _parseStringToFindNode('''
 class A<$code> {}
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.typeParameter(code));
   }
 
@@ -3949,7 +3949,7 @@ class A$code {}
     var code = 'foo = bar';
     var findNode = _parseStringToFindNode('''
 var $code;
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.variableDeclaration(code));
   }
 
@@ -3957,7 +3957,7 @@ var $code;
     var code = 'foo';
     var findNode = _parseStringToFindNode('''
 var $code;
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.variableDeclaration(code));
   }
 

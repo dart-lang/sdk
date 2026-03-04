@@ -126,8 +126,10 @@ class NamedTypeBuilder extends TypeBuilder {
         element: element,
         nullabilitySuffix: nullabilitySuffix,
       );
-    } else {
+    } else if (element is DynamicElementImpl) {
       _type = _dynamicType;
+    } else {
+      _type = InvalidTypeImpl.instance;
     }
 
     node?.type = _type;

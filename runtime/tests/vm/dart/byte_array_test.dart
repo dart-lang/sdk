@@ -2107,7 +2107,7 @@ class ByteArrayTest {
     // TODO: byte_array.getFloat64(0)
   }
 
-  static testInt8ListViewImpl(var array) {
+  static testInt8ListViewImpl(array) {
     Expect.equals(12, array.length);
     Expect.equals(1, array.elementSizeInBytes);
     Expect.equals(12, array.lengthInBytes);
@@ -2346,7 +2346,7 @@ class ByteArrayTest {
     testInt8ListViewImpl(array);
   }
 
-  static testUint8ListViewImpl(var array) {
+  static testUint8ListViewImpl(array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(12, array.length);
     Expect.equals(1, array.elementSizeInBytes);
@@ -2547,7 +2547,7 @@ class ByteArrayTest {
     testUint8ListViewImpl(array);
   }
 
-  static testInt16ListViewImpl(var array) {
+  static testInt16ListViewImpl(array) {
     Expect.equals(24, array.length);
     Expect.equals(1, array.elementSizeInBytes);
     Expect.equals(24, array.lengthInBytes);
@@ -2908,7 +2908,7 @@ class ByteArrayTest {
     testInt16ListViewImpl(array);
   }
 
-  static testUint16ListViewImpl(var array) {
+  static testUint16ListViewImpl(array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(24, array.length);
     Expect.equals(1, array.elementSizeInBytes);
@@ -3711,7 +3711,7 @@ class ByteArrayTest {
     ], array);
   }
 
-  static testUint32ListViewImpl(var array) {
+  static testUint32ListViewImpl(array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(48, array.length);
     Expect.equals(1, array.elementSizeInBytes);
@@ -4109,7 +4109,7 @@ class ByteArrayTest {
     testUint32ListViewImpl(array);
   }
 
-  static testInt64ListViewImpl(var array) {
+  static testInt64ListViewImpl(array) {
     Expect.equals(96, array.length);
     Expect.equals(1, array.elementSizeInBytes);
     Expect.equals(96, array.lengthInBytes);
@@ -4811,7 +4811,7 @@ class ByteArrayTest {
     testInt64ListViewImpl(array);
   }
 
-  static testUint64ListViewImpl(var array) {
+  static testUint64ListViewImpl(array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(96, array.length);
     Expect.equals(1, array.elementSizeInBytes);
@@ -5310,7 +5310,7 @@ class ByteArrayTest {
     testUint64ListViewImpl(array);
   }
 
-  static testFloat32ListViewImpl(var array) {
+  static testFloat32ListViewImpl(array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(12, array.length);
     Expect.equals(4, array.elementSizeInBytes);
@@ -5540,7 +5540,7 @@ class ByteArrayTest {
     testFloat32ListViewImpl(array);
   }
 
-  static testFloat64ListViewImpl(var array) {
+  static testFloat64ListViewImpl(array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(12, array.length);
     Expect.equals(8, array.elementSizeInBytes);

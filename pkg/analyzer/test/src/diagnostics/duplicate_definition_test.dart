@@ -584,6 +584,33 @@ class C(var int foo) {
     );
   }
 
+  test_instance_primaryConstructor_requiredPositional_wildcard() async {
+    await assertErrorsInCode(
+      r'''
+class A(var int _);
+''',
+      [error(diag.unusedFieldFromPrimaryConstructor, 16, 1)],
+    );
+  }
+
+  test_instance_primaryConstructor_requiredPositional_wildcard_wildcard() async {
+    await assertErrorsInCode(
+      r'''
+class A(var int _, var int _);
+''',
+      [
+        error(diag.unusedFieldFromPrimaryConstructor, 16, 1),
+        error(
+          diag.duplicateDefinition,
+          27,
+          1,
+          contextMessages: [message(testFile, 16, 1)],
+        ),
+        error(diag.unusedFieldFromPrimaryConstructor, 27, 1),
+      ],
+    );
+  }
+
   test_instance_setter_getter() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -1485,12 +1512,44 @@ enum E(var int foo) {
 }
 ''',
       [
+        error(diag.nonFinalFieldInEnum, 15, 3),
         error(
           diag.duplicateDefinition,
           36,
           3,
           contextMessages: [message(testFile, 15, 3)],
         ),
+      ],
+    );
+  }
+
+  test_instance_primaryConstructor_requiredPositional_wildcard() async {
+    await assertErrorsInCode(
+      r'''
+enum E(final int _) {
+  v(0);
+}
+''',
+      [error(diag.unusedFieldFromPrimaryConstructor, 17, 1)],
+    );
+  }
+
+  test_instance_primaryConstructor_requiredPositional_wildcard_wildcard() async {
+    await assertErrorsInCode(
+      r'''
+enum E(final int _, final int _) {
+  v(0, 0);
+}
+''',
+      [
+        error(diag.unusedFieldFromPrimaryConstructor, 17, 1),
+        error(
+          diag.duplicateDefinition,
+          30,
+          1,
+          contextMessages: [message(testFile, 17, 1)],
+        ),
+        error(diag.unusedFieldFromPrimaryConstructor, 30, 1),
       ],
     );
   }

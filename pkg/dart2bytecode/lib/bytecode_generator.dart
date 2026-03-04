@@ -65,14 +65,16 @@ void generateBytecode(
   required CoreTypes coreTypes,
   required ClassHierarchy hierarchy,
   required Target target,
+  required Set<Library> extraLoadedLibraries,
 }) {
   Timeline.timeSync("generateBytecode", () {
     verifyBytecodeInstructionDeclarations();
     final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
     final pragmaParser = ConstantPragmaAnnotationParser(coreTypes, target);
 
-    final bytecodeGenerator = BytecodeGenerator(component, coreTypes, hierarchy,
-        typeEnvironment, options, pragmaParser);
+    final bytecodeGenerator = BytecodeGenerator(
+        component, coreTypes, hierarchy, typeEnvironment, options, pragmaParser,
+        libraries: libraries, extraLoadedLibraries: extraLoadedLibraries);
     for (Library library in libraries) {
       bytecodeGenerator.visitLibrary(library);
     }
@@ -105,7 +107,10 @@ class BytecodeGenerator extends RecursiveVisitor {
   final PragmaAnnotationParser pragmaParser;
   final RecognizedMethods recognizedMethods;
   final Map<Uri, Source> astUriToSource;
-  final LibraryIndex ffiLibraryIndex;
+  final List<Library> libraries;
+  final Set<Library> extraLoadedLibraries;
+  late LibraryIndex ffiLibraryIndex;
+  late LibraryIndex developerLibraryIndex;
   late StringTable stringTable;
   late ObjectTable objectTable;
   late Component bytecodeComponent;
@@ -143,13 +148,25 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   bool isInDeeplyImmutableClass = false;
 
+  late final Set<Library> allLibraries = {
+    ...libraries,
+    ...extraLoadedLibraries
+  };
+
+  LibraryIndex getLibraryIndexFor(String library) =>
+      coreTypes.index.containsLibrary(library)
+          ? coreTypes.index
+          : LibraryIndex.fromLibraries(allLibraries, [library]);
+
   BytecodeGenerator(
       ast.Component component,
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       TypeEnvironment typeEnvironment,
       BytecodeOptions options,
-      PragmaAnnotationParser pragmaParser)
+      PragmaAnnotationParser pragmaParser,
+      {required List<Library> libraries,
+      Set<Library> extraLoadedLibraries = const {}})
       : this._internal(
             component,
             coreTypes,
@@ -157,6 +174,8 @@ class BytecodeGenerator extends RecursiveVisitor {
             typeEnvironment,
             options,
             pragmaParser,
+            libraries: libraries,
+            extraLoadedLibraries: extraLoadedLibraries,
             StatefulStaticTypeContext.flat(typeEnvironment));
 
   BytecodeGenerator._internal(
@@ -166,13 +185,16 @@ class BytecodeGenerator extends RecursiveVisitor {
       this.typeEnvironment,
       this.options,
       this.pragmaParser,
-      this.staticTypeContext)
+      this.staticTypeContext,
+      {required this.libraries,
+      required this.extraLoadedLibraries})
       : recognizedMethods = new RecognizedMethods(staticTypeContext),
-        astUriToSource = component.uriToSource,
-        ffiLibraryIndex = LibraryIndex(component, const ['dart:ffi']) {
+        astUriToSource = component.uriToSource {
     bytecodeComponent = new Component(coreTypes);
     stringTable = bytecodeComponent.stringTable;
     objectTable = bytecodeComponent.objectTable;
+    ffiLibraryIndex = getLibraryIndexFor('dart:ffi');
+    developerLibraryIndex = getLibraryIndexFor('dart:developer');
   }
 
   @override
@@ -198,9 +220,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
-    isInDeeplyImmutableClass =
-        pragmaParser.parsedPragmas<ParsedVmDeeplyImmutablePragma>(
-            node.annotations).isNotEmpty;
+    isInDeeplyImmutableClass = pragmaParser
+        .parsedPragmas<ParsedVmDeeplyImmutablePragma>(node.annotations)
+        .isNotEmpty;
     startMembers();
     visitList(node.constructors, this);
     visitList(node.procedures, this);
@@ -1056,9 +1078,15 @@ class BytecodeGenerator extends RecursiveVisitor {
       ? ffiLibraryIndex.getTopLevelProcedure('dart:ffi', '_ffiCall')
       : null;
 
-  late Procedure ensureDeeplyImmutable =
-      libraryIndex.getTopLevelProcedure('dart:_internal',
-                                        '_ensureDeeplyImmutable');
+  late Library? dartDeveloperLibrary =
+      developerLibraryIndex.tryGetLibrary('dart:developer');
+
+  late Procedure? debugger = (dartDeveloperLibrary != null)
+      ? developerLibraryIndex.getTopLevelProcedure('dart:developer', 'debugger')
+      : null;
+
+  late Procedure ensureDeeplyImmutable = libraryIndex.getTopLevelProcedure(
+      'dart:_internal', '_ensureDeeplyImmutable');
 
   // Selector for implicit dynamic calls 'foo(...)' where
   // variable 'foo' has type 'dynamic'.
@@ -1152,8 +1180,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final int cpIndex = cp.addInstanceField(field);
     if (isInDeeplyImmutableClass) {
       // TODO(dartbug.com/61078): Use static type to avoid runtime check.
-      _genDirectCall(
-          ensureDeeplyImmutable, objectTable.getArgDescHandle(1), 1);
+      _genDirectCall(ensureDeeplyImmutable, objectTable.getArgDescHandle(1), 1);
     }
 
     asm.emitStoreFieldTOS(cpIndex);
@@ -2515,14 +2542,18 @@ class BytecodeGenerator extends RecursiveVisitor {
     currentLoopDepth = savedLoopDepth;
     asyncTryBlock = savedAsyncTryBlock;
 
-    bool capturesOnlyFinalNotLateVars =
-        locals.capturesOnlyFinalNotLateVars;
+    bool capturesOnlyFinalNotLateVars = locals.capturesOnlyFinalNotLateVars;
 
     locals.leaveScope();
 
-    closure.code = new ClosureCode(asm.bytecode, asm.exceptionsTable,
-        finalizeSourcePositions(), finalizeLocalVariables(),
-        capturesOnlyFinalNotLateVars);
+    assert(node.id != LocalFunctionId.invalid);
+    closure.code = new ClosureCode(
+        asm.bytecode,
+        asm.exceptionsTable,
+        finalizeSourcePositions(),
+        finalizeLocalVariables(),
+        capturesOnlyFinalNotLateVars,
+        node.id.toInt());
 
     _popAssemblerState();
 
@@ -3561,6 +3592,12 @@ class BytecodeGenerator extends RecursiveVisitor {
     _genArguments(null, args);
     _genDirectCallWithArgs(target, args,
         isFactory: target.isFactory, node: node);
+    if (target == debugger) {
+      // The debugger needs a pause for the current source position right after
+      // stepping out from the debugger function.
+      assert(asm.currentSourcePosition != TreeNode.noOffset);
+      asm.emitSourcePosition();
+    }
   }
 
   @override

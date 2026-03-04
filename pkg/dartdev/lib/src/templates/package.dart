@@ -35,12 +35,12 @@ class PackageGenerator extends DefaultGenerator {
 }
 
 final String _gitignore = '''
-# https://dart.dev/guides/libraries/private-files
+# https://dart.dev/tools/private-files
 # Created by `dart pub`
 .dart_tool/
 
 # Avoid committing pubspec.lock for library packages; see
-# https://dart.dev/guides/libraries/private-files#pubspeclock.
+# https://dart.dev/tools/pub/private-files#pubspec-lock.
 pubspec.lock
 ''';
 
@@ -64,17 +64,17 @@ dev_dependencies:
 ''';
 
 final String _readme = '''
-<!-- 
+<!--
 This README describes the package. If you publish this package to pub.dev,
 this README's contents appear on the landing page for your package.
 
 For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
+[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
 
 For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
+[creating packages](https://dart.dev/tools/pub/create-packages)
 and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
+[developing packages and plugins](https://flutter.dev/to/develop-packages).
 -->
 
 TODO: Put a short description of the package here that helps potential users
@@ -92,7 +92,7 @@ start using the package.
 ## Usage
 
 TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+to `/example` folder.
 
 ```dart
 const like = 'sample';
@@ -100,8 +100,8 @@ const like = 'sample';
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
+TODO: Tell users more about the package: where to find more information, how to
+contribute to the package, how to file issues, what response they can expect
 from the package authors, and more.
 ''';
 

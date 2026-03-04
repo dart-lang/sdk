@@ -1,0 +1,16 @@
+library test.qualified.main;
+
+import "qualified_2_lib.dart" as lib;
+
+part "qualified_2_part.dart";
+
+class Bad extends lib.Missing {
+  factory WrongName() => throw '';
+  lib.Missing method() {}
+}
+
+class IllegalSupertype extends lib.VoidFunction {}
+
+class WithMixin extends lib.Supertype with lib.Mixin {}
+
+main() {}

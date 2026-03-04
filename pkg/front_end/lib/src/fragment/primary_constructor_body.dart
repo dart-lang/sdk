@@ -19,6 +19,26 @@ class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
   final DeclarationFragment enclosingDeclaration;
   final LibraryFragment enclosingCompilationUnit;
 
+  /// Whether this primary constructor body declaration was declared with a
+  /// constructor body.
+  ///
+  /// For instance
+  ///
+  ///   class C1() {
+  ///     this {}
+  ///   }
+  ///
+  /// as opposed to
+  ///
+  ///   class C2() {
+  ///     this;
+  ///   }
+  ///
+  final bool hasBody;
+
+  /// The offset of the constructor body.
+  final int bodyOffset;
+
   PrimaryConstructorFragment? _primaryConstructorFragment;
 
   SourceConstructorBuilder? _builder;
@@ -30,6 +50,8 @@ class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
     required this.enclosingScope,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
+    required this.hasBody,
+    required this.bodyOffset,
   });
 
   @override
@@ -50,8 +72,19 @@ class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
     _builder = value;
   }
 
-  void set primaryConstructorFragment(PrimaryConstructorFragment value) {
-    _primaryConstructorFragment = value;
+  void registerPrimaryConstructorFragment(
+    ProblemReporting problemReporting,
+    PrimaryConstructorFragment primaryConstructorFragment,
+  ) {
+    _primaryConstructorFragment = primaryConstructorFragment;
+    if (primaryConstructorFragment.modifiers.isConst && hasBody) {
+      problemReporting.addProblem(
+        diag.constConstructorWithBody,
+        bodyOffset,
+        noLength,
+        fileUri,
+      );
+    }
   }
 
   @override
@@ -63,10 +96,6 @@ class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
     if (_primaryConstructorFragment == null) {
       // This primary constructor body has no corresponding primary constructor,
       // so we skip building the body.
-      return null;
-    }
-    if (_primaryConstructorFragment!.modifiers.isConst) {
-      // TODO(johnniwinther): Why?
       return null;
     }
     return new _PrimaryConstructorBodyBuildingContext(

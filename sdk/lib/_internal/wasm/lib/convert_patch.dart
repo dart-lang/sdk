@@ -9,7 +9,7 @@ import "dart:_internal"
     show patch, POWERS_OF_TEN, unsafeCast, pushWasmArray, popWasmArray;
 import "dart:_js_string_convert";
 import "dart:_js_types";
-import "dart:_js_helper" show JS, jsStringFromDartString;
+import "dart:_js_helper" show JS, jsStringFromDartString, JSExternWrapperExt;
 import "dart:_list"
     show GrowableList, WasmListBaseUnsafeExtensions, WasmListBase;
 import "dart:_string";
@@ -1673,7 +1673,7 @@ class _JSStringImplParser extends _ChunkedJsonParserState
   _JSStringImplParser(_JsonListener listener) : super(listener);
 
   void setNewChunk(JSStringImpl string, int end) {
-    final externRef = string.toExternRef;
+    final externRef = string.wrappedExternRef;
     final array = WasmArray<WasmI16>(end);
     if (string.length == end) {
       jsStringIntoCharCodeArray(externRef, array, 0.toWasmI32());
@@ -2894,7 +2894,7 @@ WasmArray<WasmI8> _makeI8ArrayFromWasmI8ArrayBase(
 // Assumes the given [string] is a valid float, so it can rely on the implicit
 // string to number conversion in JS using `+<string-of-number>`.
 double _jsParseValidFloat(String string) =>
-    JS<double>('(s) => +s', jsStringFromDartString(string).toExternRef);
+    JS<double>('(s) => +s', jsStringFromDartString(string).wrappedExternRef);
 
 const ImmutableWasmArray<BoxedInt> _intBoxes256 = ImmutableWasmArray.literal([
   0, 1, 2, 3, 4, 5, 6, 7, //

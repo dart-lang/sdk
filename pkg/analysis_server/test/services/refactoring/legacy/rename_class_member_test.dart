@@ -1701,6 +1701,53 @@ class A<NewName> {
 ''');
   }
 
+  Future<void> test_instance_outsideClass() async {
+    await indexTestUnit('''
+void foo(A a) {
+  var b = B();
+  b.foo.forEach((_, _) {
+    var baz = [];
+    a.foo(baz);
+  });
+}
+
+class B {
+  final Map<String, List<String>> fo^o = {};
+
+  void bar(String p1, String p2) {
+    (foo[p1] ??= []).add(p2);
+  }
+}
+
+abstract class A {
+  void foo(Object _);
+}
+''');
+    createRenameRefactoring();
+    refactoring.newName = 'baz';
+    await assertSuccessfulRefactoring('''
+void foo(A a) {
+  var b = B();
+  b.baz.forEach((_, _) {
+    var baz = [];
+    a.foo(baz);
+  });
+}
+
+class B {
+  final Map<String, List<String>> baz = {};
+
+  void bar(String p1, String p2) {
+    (baz[p1] ??= []).add(p2);
+  }
+}
+
+abstract class A {
+  void foo(Object _);
+}
+''');
+  }
+
   Future<void> test_memberWithSameName() async {
     await indexTestUnit('''
 class Foo {

@@ -50,6 +50,23 @@ class ReplaceFinalWithVarTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_final;
 
+  Future<void> test_forIn_pattern() async {
+    await resolveTestCode(r'''
+void foo(Map<String, String> map) {
+  for (final MapEntry(:key, :value) in map.entries) {
+    print('$key: $value');
+  }
+}
+''');
+    await assertHasFix(r'''
+void foo(Map<String, String> map) {
+  for (var MapEntry(:key, :value) in map.entries) {
+    print('$key: $value');
+  }
+}
+''');
+  }
+
   Future<void> test_function_forLoop() async {
     await resolveTestCode('''
 void f(List<int> values) {
@@ -87,6 +104,23 @@ f() {
 f() {
   if (0 case var a){
     print(a);
+  }
+}
+''');
+  }
+
+  Future<void> test_ifCase_pattern() async {
+    await resolveTestCode(r'''
+void foo(Map<String, String> map) {
+  if (map case final m) {
+    print('Map has ${m.length} entries');
+  }
+}
+''');
+    await assertHasFix(r'''
+void foo(Map<String, String> map) {
+  if (map case var m) {
+    print('Map has ${m.length} entries');
   }
 }
 ''');
@@ -222,5 +256,22 @@ void f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_ifCase_pattern() async {
+    await resolveTestCode(r'''
+void foo(Map<String, String> map) {
+  if (map case final Map<String, String> m) {
+    print('Map has ${m.length} entries');
+  }
+}
+''');
+    await assertHasFix(r'''
+void foo(Map<String, String> map) {
+  if (map case Map<String, String> m) {
+    print('Map has ${m.length} entries');
+  }
+}
+''');
   }
 }

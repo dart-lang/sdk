@@ -15,9 +15,9 @@ TransformSetErrorCode:
   conflictingKey:
     type: compileTimeError
     parameters:
-      Object p0: the conflicting key
-      Object p1: the key that it conflicts with
-    problemMessage: "The key '#p0' can't be used when '#p1' is also used."
+      String key: the conflicting key
+      String conflictingKey: the key that it conflicts with
+    problemMessage: "The key '#key' can't be used when '#conflictingKey' is also used."
     hasPublishedDocs: false
   expectedPrimary:
     type: compileTimeError
@@ -27,28 +27,28 @@ TransformSetErrorCode:
   incompatibleElementKind:
     type: compileTimeError
     parameters:
-      Object p0: the old kind
-      Object p1: the new kind
-    problemMessage: "An element of kind '#p0' can't be replaced by an element of kind '#p1'."
+      String oldKind: the old kind
+      String newKind: the new kind
+    problemMessage: "An element of kind '#oldKind' can't be replaced by an element of kind '#newKind'."
     hasPublishedDocs: false
   invalidChangeForKind:
     type: compileTimeError
     parameters:
-      Object p0: the change kind that is invalid
-      Object p1: the element kind for the transform
-    problemMessage: "A change of type '#p0' can't be used for an element of kind '#p1'."
+      String changeKind: the change kind that is invalid
+      String elementKind: the element kind for the transform
+    problemMessage: "A change of type '#changeKind' can't be used for an element of kind '#elementKind'."
     hasPublishedDocs: false
   invalidCharacter:
     type: compileTimeError
     parameters:
-      Object p0: the character that is invalid
-    problemMessage: "Invalid character '#p0'."
+      String text: the character that is invalid
+    problemMessage: "Invalid character '#text'."
     hasPublishedDocs: false
   invalidKey:
     type: compileTimeError
     parameters:
-      Object p0: the actual type of the key
-    problemMessage: "Keys must be of type 'String' but found the type '#p0'."
+      String keyType: the actual type of the key
+    problemMessage: "Keys must be of type 'String' but found the type '#keyType'."
     hasPublishedDocs: false
   invalidRequiredIf:
     type: compileTimeError
@@ -58,35 +58,35 @@ TransformSetErrorCode:
   invalidValue:
     type: compileTimeError
     parameters:
-      Object p0: the key with which the value is associated
-      Object p1: the expected type of the value
-      Object p2: the actual type of the value
-    problemMessage: "The value of '#p0' should be of type '#p1' but is of type '#p2'."
+      String key: the key with which the value is associated
+      String expectedType: the expected type of the value
+      String actualType: the actual type of the value
+    problemMessage: "The value of '#key' should be of type '#expectedType' but is of type '#actualType'."
     hasPublishedDocs: false
   invalidParameterStyle:
     type: compileTimeError
     parameters:
-      Object p0: the list of valid parameter styles
-    problemMessage: "The parameter style must be one of the following: #p0."
+      String validStyles: the list of valid parameter styles
+    problemMessage: "The parameter style must be one of the following: #validStyles."
     hasPublishedDocs: false
   invalidValueOneOf:
     type: compileTimeError
     parameters:
-      Object p0: the key with which the value is associated
-      Object p1: the allowed values as a comma-separated list
-    problemMessage: "The value of '#p0' must be one of the following: '#p1'."
+      String key: the key with which the value is associated
+      String allowedValues: the allowed values as a comma-separated list
+    problemMessage: "The value of '#key' must be one of the following: '#allowedValues'."
     hasPublishedDocs: false
   missingKey:
     type: compileTimeError
     parameters:
-      Object p0: the missing key
-    problemMessage: "Missing the required key '#p0'."
+      String key: the missing key
+    problemMessage: "Missing the required key '#key'."
     hasPublishedDocs: false
   missingOneOfMultipleKeys:
     type: compileTimeError
     parameters:
-      Object p0: the list of valid keys
-    problemMessage: "Exactly one of the following keys must be provided: #p0."
+      String validKeys: the list of valid keys
+    problemMessage: "Exactly one of the following keys must be provided: #validKeys."
     hasPublishedDocs: false
   missingTemplateEnd:
     type: compileTimeError
@@ -96,8 +96,8 @@ TransformSetErrorCode:
   missingToken:
     type: compileTimeError
     parameters:
-      Object p0: a description of the expected kinds of tokens
-    problemMessage: "Expected to find #p0."
+      String validKinds: a description of the expected kinds of tokens
+    problemMessage: "Expected to find #validKinds."
     hasPublishedDocs: false
   missingUri:
     type: compileTimeError
@@ -107,26 +107,26 @@ TransformSetErrorCode:
   undefinedVariable:
     type: compileTimeError
     parameters:
-      Object p0: the missing key
-    problemMessage: "The variable '#p0' isn't defined."
+      String key: the missing key
+    problemMessage: "The variable '#key' isn't defined."
     hasPublishedDocs: false
   unexpectedTransformSetToken:
     type: compileTimeError
     parameters:
-      Object p0: the token that was unexpectedly found
-    problemMessage: "Didn't expect to find #p0."
+      String tokenKind: the token that was unexpectedly found
+    problemMessage: "Didn't expect to find #tokenKind."
     hasPublishedDocs: false
   unknownAccessor:
     type: compileTimeError
     parameters:
-      Object p0: a description of the expected kind of token
-    problemMessage: "The accessor '#p0' is invalid."
+      String accessor: a description of the expected kind of token
+    problemMessage: "The accessor '#accessor' is invalid."
     hasPublishedDocs: false
   unsupportedKey:
     type: compileTimeError
     parameters:
-      Object p0: the unsupported key
-    problemMessage: "The key '#p0' isn't supported."
+      String key: the unsupported key
+    problemMessage: "The key '#key' isn't supported."
     hasPublishedDocs: false
   unsupportedStatic:
     type: compileTimeError
@@ -141,13 +141,13 @@ TransformSetErrorCode:
   wrongToken:
     type: compileTimeError
     parameters:
-      Object p0: a description of the expected kind of token
-      Object p1: a description of the actual kind of token
-    problemMessage: "Expected to find #p0, but found #p1."
+      String validKinds: a description of the expected kind of token
+      String actualKind: a description of the actual kind of token
+    problemMessage: "Expected to find #validKinds, but found #actualKind."
     hasPublishedDocs: false
   yamlSyntaxError:
     type: compileTimeError
     parameters:
-      Object p0: the message produced by the YAML parser
-    problemMessage: "Parse error: #p0"
+      String message: the message produced by the YAML parser
+    problemMessage: "Parse error: #message"
     hasPublishedDocs: false

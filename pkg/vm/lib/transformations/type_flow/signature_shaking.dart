@@ -51,11 +51,16 @@ import '../../metadata/procedure_attributes.dart';
 class SignatureShaker {
   final TypeFlowAnalysis typeFlowAnalysis;
   final TableSelectorAssigner tableSelectorAssigner;
+  final Constant Function(Constant) treeShakeConstant;
 
   final Map<Member, _ProcedureInfo> _memberInfo = {};
   final Map<int, _ProcedureInfo> _selectorInfo = {};
 
-  SignatureShaker(this.typeFlowAnalysis, this.tableSelectorAssigner);
+  SignatureShaker(
+    this.typeFlowAnalysis,
+    this.tableSelectorAssigner,
+    this.treeShakeConstant,
+  );
 
   _ProcedureInfo? _infoForMember(Member member) {
     if (!(member is Procedure &&
@@ -223,7 +228,7 @@ class _ParameterInfo {
     /// Disable signature shaking for annotated methods, to prevent removal of
     /// parameters. The consumers of recorded_usages.json expect constant
     /// argument values to be present for all parameters.
-    if (member is Procedure && recordUse.hasRecordUseAnnotation(member)) {
+    if (member is Procedure && recordUse.isBeingRecorded(member)) {
       isChecked = true;
     }
   }
@@ -268,7 +273,7 @@ class _Collect extends RecursiveVisitor {
         shaker.typeFlowAnalysis.nativeCodeOracle.isRecognized(member) ||
         member.isExternal ||
         member.name.text == '==' ||
-        recordUse.hasRecordUseAnnotation(member)) {
+        recordUse.isBeingRecorded(member)) {
       info.eligible = false;
     }
   }
@@ -399,7 +404,8 @@ class _Transform extends RecursiveVisitor {
           (variable.initializer as ConstantExpression?)?.constant ??
           NullConstant();
     }
-    eliminatedParams[variable] = value;
+
+    eliminatedParams[variable] = shaker.treeShakeConstant(value);
   }
 
   void transformMemberSignature(Member member) {

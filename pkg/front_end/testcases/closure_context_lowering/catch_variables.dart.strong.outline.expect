@@ -1,0 +1,19 @@
+library;
+import self as self;
+
+static method testNotCapturedImplicitTypes() → dynamic
+  ;
+static method testNotCapturedExplicitTypes() → dynamic
+  ;
+static method testNotCapturedWildcards() → dynamic
+  ;
+static method testDirectCaptured() → dynamic
+  ;
+static method testAssertCaptured() → dynamic
+  ;
+static method testErroneousOptional() → dynamic
+  ;
+static method testErroneousOneOptional() → dynamic
+  ;
+static method testErroneousNamed() → dynamic
+  ;

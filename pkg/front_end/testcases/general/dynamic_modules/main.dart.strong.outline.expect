@@ -222,6 +222,32 @@ extension type ExtType1(core::int raw) {
   constructor • = mai::ExtType1|constructor#;
   constructor tearoff • = mai::ExtType1|constructor#_#new#tearOff;
 }
+extension type ExtType2(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType2|get#isPositive;
+  constructor • = mai::ExtType2|constructor#;
+  constructor tearoff • = mai::ExtType2|constructor#_#new#tearOff;
+}
+extension type ExtType3(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType3|get#isPositive;
+  constructor • = mai::ExtType3|constructor#;
+  constructor tearoff • = mai::ExtType3|constructor#_#new#tearOff;
+}
+extension type ExtType4(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType4|get#isPositive;
+  constructor • = mai::ExtType4|constructor#;
+  constructor tearoff • = mai::ExtType4|constructor#_#new#tearOff;
+}
+extension type ExtType5(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType5|get#isPositive;
+  constructor _ = mai::ExtType5|constructor#_;
+  constructor tearoff _ = mai::ExtType5|constructor#_#_#tearOff;
+  constructor plus1 = mai::ExtType5|constructor#plus1;
+  constructor tearoff plus1 = mai::ExtType5|constructor#_#plus1#tearOff;
+}
 static field core::int field1;
 static field core::int field2;
 static const field mai::_C5 const1 = const mai::_C5::•(mai::_privateMethod1);
@@ -243,6 +269,34 @@ static extension-type-member method ExtType1|constructor#(core::int raw) → mai
 static extension-type-member synthetic method ExtType1|constructor#_#new#tearOff(core::int raw) → mai::ExtType1% /* erasure=core::int, declared=! */
   return mai::ExtType1|constructor#(raw);
 static extension-member method Ext1|get#isPositive(lowered final core::int #this) → core::bool
+  ;
+static extension-type-member method ExtType2|constructor#(core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtType2|constructor#_#new#tearOff(core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */
+  return mai::ExtType2|constructor#(raw);
+static extension-type-member method ExtType2|get#isPositive(lowered final mai::ExtType2% /* erasure=core::int, declared=! */ #this) → core::bool
+  ;
+static extension-type-member method ExtType3|constructor#(core::int raw) → mai::ExtType3% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtType3|constructor#_#new#tearOff(core::int raw) → mai::ExtType3% /* erasure=core::int, declared=! */
+  return mai::ExtType3|constructor#(raw);
+static extension-type-member method ExtType3|get#isPositive(lowered final mai::ExtType3% /* erasure=core::int, declared=! */ #this) → core::bool
+  ;
+static extension-type-member method ExtType4|constructor#(core::int raw) → mai::ExtType4% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtType4|constructor#_#new#tearOff(core::int raw) → mai::ExtType4% /* erasure=core::int, declared=! */
+  return mai::ExtType4|constructor#(raw);
+static extension-type-member method ExtType4|get#isPositive(lowered final mai::ExtType4% /* erasure=core::int, declared=! */ #this) → core::bool
+  ;
+static extension-type-member method ExtType5|constructor#_(core::int raw) → mai::ExtType5% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtType5|constructor#_#_#tearOff(core::int raw) → mai::ExtType5% /* erasure=core::int, declared=! */
+  return mai::ExtType5|constructor#_(raw);
+static extension-type-member method ExtType5|constructor#plus1(core::int n) → mai::ExtType5% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtType5|constructor#_#plus1#tearOff(core::int n) → mai::ExtType5% /* erasure=core::int, declared=! */
+  return mai::ExtType5|constructor#plus1(n);
+static extension-type-member method ExtType5|get#isPositive(lowered final mai::ExtType5% /* erasure=core::int, declared=! */ #this) → core::bool
   ;
 
 library;
@@ -292,4 +346,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:78:28
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:89:28 -> InstanceConstant(const _ConstForC7{_ConstForC7._f: _privateMethodForC7})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:67:16 -> InstanceConstant(const _C5{_C5.func: _privateMethod1})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:68:16 -> InstanceConstant(const _C5{_C5.func: _privateMethod2})
-Extra constant evaluation: evaluated: 21, effectively constant: 6
+Extra constant evaluation: evaluated: 31, effectively constant: 6

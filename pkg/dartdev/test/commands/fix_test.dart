@@ -658,6 +658,58 @@ linter:
       );
     });
 
+    test('--apply (contiguous initializing formals require a second '
+        'pass)', () async {
+      // We can't convert contiguous leading initializers or assignments to
+      // initializing formals because the edits collide on the comma or
+      // whitespace between them. But two passes is enough to catch them all.
+      p = project(
+        mainSrc: '''
+class C {
+  int a;
+  int b;
+  int c;
+  int d;
+  int e;
+  int f;
+  C(int a, int b, int c, int d, int e, int f) : a = a, b = b, c = c {
+    this.d = d;
+    this.e = e;
+    this.f = f;
+  }
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - prefer_initializing_formals
+''',
+      );
+      var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(
+        result.stdout,
+        stringContainsInOrderWithVariableBullets([
+          'Applying fixes...',
+          'lib${Platform.pathSeparator}main.dart',
+          '  prefer_initializing_formals $bullet 6',
+          '6 fixes made in 1 file.',
+        ]),
+      );
+      expect(p!.findFile('lib/main.dart')!.readAsStringSync(), '''
+class C {
+  int a;
+  int b;
+  int c;
+  int d;
+  int e;
+  int f;
+  C(this.a, this.b, this.c, this.d, this.e, this.f);
+}
+''');
+    });
+
     group('AOT mode', () {
       test('--use-aot-snapshot', () async {
         p = project(

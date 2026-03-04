@@ -54,6 +54,7 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import '../kernel/utils.dart';
+import '../util/helpers.dart';
 import 'check_helper.dart';
 import 'fragment_factory.dart';
 import 'offset_map.dart';
@@ -1493,8 +1494,8 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype != null) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            diag.nullableSuperclassError.withArgumentsOld(
-              supertype.fullNameForErrors,
+            diag.nullableSuperclassError.withArguments(
+              supertypeName: supertype.fullNameForErrors,
             ),
             identifier.nameOffset,
             classNameForErrors.length,
@@ -1506,7 +1507,9 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder mixin in mixins) {
           if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableMixinError.withArgumentsOld(mixin.fullNameForErrors),
+              diag.nullableMixinError.withArguments(
+                mixinName: mixin.fullNameForErrors,
+              ),
               identifier.nameOffset,
               classNameForErrors.length,
               uri,
@@ -1518,8 +1521,8 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableInterfaceError.withArgumentsOld(
-                interface.fullNameForErrors,
+              diag.nullableInterfaceError.withArguments(
+                interfaceName: interface.fullNameForErrors,
               ),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -1600,8 +1603,8 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder supertype in supertypeConstraints) {
           if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableSuperclassError.withArgumentsOld(
-                supertype.fullNameForErrors,
+              diag.nullableSuperclassError.withArguments(
+                supertypeName: supertype.fullNameForErrors,
               ),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -1614,8 +1617,8 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableInterfaceError.withArgumentsOld(
-                interface.fullNameForErrors,
+              diag.nullableInterfaceError.withArguments(
+                interfaceName: interface.fullNameForErrors,
               ),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -1953,8 +1956,11 @@ class OutlineBuilder extends StackListenerImpl {
                 ? formal.copyDefaultValueToken()
                 : null,
           );
-          formals[i] = formal.forPrimaryConstructor(_builderFactory);
         }
+        formals[i] = formal.forPrimaryConstructor(
+          _builderFactory,
+          isDeclaring: modifiers.isDeclaringParameter,
+        );
       }
       if (forExtensionType) {
         if (libraryFeatures.primaryConstructors.isEnabled) {
@@ -2029,13 +2035,15 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endPrimaryConstructorBody");
     assert(
       checkState(beginToken, [
+        /* method body token */ ValueKinds.Token,
         ValueKinds.MethodBody,
         ValueKinds.AsyncModifier,
         ValueKinds.MetadataListOrNull,
       ]),
     );
 
-    pop() as MethodBody;
+    Token methodBodyToken = pop() as Token;
+    MethodBody methodBody = pop() as MethodBody;
     pop() as AsyncMarker;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     _builderFactory.addPrimaryConstructorBody(
@@ -2044,6 +2052,8 @@ class OutlineBuilder extends StackListenerImpl {
       beginToken: beginToken,
       endOffset: endToken.charOffset,
       beginInitializers: beginInitializers,
+      hasBody: methodBody != MethodBody.Abstract,
+      bodyOffset: methodBodyToken.charOffset,
     );
   }
 
@@ -2067,6 +2077,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endTopLevelMethod");
     assert(
       checkState(beginToken, [
+        /* method body token */ ValueKinds.Token,
         ValueKinds.MethodBody,
         ValueKinds.AsyncMarker,
         ValueKinds.FormalListOrNull,
@@ -2079,6 +2090,7 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
+    pop() as Token; // Method body token
     MethodBody kind = pop() as MethodBody;
     AsyncMarker asyncModifier = pop() as AsyncMarker;
     List<FormalParameterBuilder>? formals =
@@ -2198,8 +2210,10 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("NativeFunctionBody");
     if (nativeMethodName != null) {
       push(MethodBody.Regular);
+      push(nativeToken);
     } else {
       push(MethodBody.Abstract);
+      push(semicolon);
     }
   }
 
@@ -2218,6 +2232,7 @@ class OutlineBuilder extends StackListenerImpl {
       );
     }
     push(MethodBody.Regular);
+    push(nativeToken);
   }
 
   @override
@@ -2229,12 +2244,18 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       push(MethodBody.Abstract);
     }
+    push(token);
   }
 
   @override
-  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
+  void handleFunctionBodySkipped(
+    Token beginToken,
+    Token endToken,
+    bool isExpressionBody,
+  ) {
     debugEvent("handleFunctionBodySkipped");
     push(MethodBody.Regular);
+    push(beginToken);
   }
 
   @override
@@ -2376,7 +2397,13 @@ class OutlineBuilder extends StackListenerImpl {
       );
     }
 
-    assert(checkState(beginToken, [ValueKinds.MethodBody]));
+    assert(
+      checkState(beginToken, [
+        /* method body token */ ValueKinds.Token,
+        /* method body kind */ ValueKinds.MethodBody,
+      ]),
+    );
+    pop() as Token; // Method body token
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
@@ -2447,8 +2474,7 @@ class OutlineBuilder extends StackListenerImpl {
       procedureKind = ProcedureKind.Operator;
       int requiredArgumentCount = operator.requiredArgumentCount;
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        Template<Function, Message Function({required String operatorName})>
-        template;
+        Template<Message Function({required String operatorName})> template;
         switch (requiredArgumentCount) {
           case 0:
             template = diag.operatorParameterMismatch0;
@@ -2589,7 +2615,13 @@ class OutlineBuilder extends StackListenerImpl {
       );
     }
 
-    assert(checkState(beginToken, [ValueKinds.MethodBody]));
+    assert(
+      checkState(beginToken, [
+        /* method body token */ ValueKinds.Token,
+        /* method body kind */ ValueKinds.MethodBody,
+      ]),
+    );
+    pop() as Token; // Method body token
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
@@ -2788,8 +2820,8 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype is TypeBuilder) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            diag.nullableSuperclassError.withArgumentsOld(
-              supertype.fullNameForErrors,
+            diag.nullableSuperclassError.withArguments(
+              supertypeName: supertype.fullNameForErrors,
             ),
             identifier.nameOffset,
             classNameForErrors.length,
@@ -2800,7 +2832,9 @@ class OutlineBuilder extends StackListenerImpl {
       for (TypeBuilder mixin in mixins) {
         if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            diag.nullableMixinError.withArgumentsOld(mixin.fullNameForErrors),
+            diag.nullableMixinError.withArguments(
+              mixinName: mixin.fullNameForErrors,
+            ),
             identifier.nameOffset,
             classNameForErrors.length,
             uri,
@@ -2811,8 +2845,8 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableInterfaceError.withArgumentsOld(
-                interface.fullNameForErrors,
+              diag.nullableInterfaceError.withArguments(
+                interfaceName: interface.fullNameForErrors,
               ),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -3018,7 +3052,9 @@ class OutlineBuilder extends StackListenerImpl {
     Object? name = pop(NullValues.Identifier);
     TypeBuilder? type = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
-    if (memberKind == MemberKind.PrimaryConstructor && varOrFinal != null) {
+    if (memberKind == MemberKind.PrimaryConstructor &&
+        (varOrFinal != null ||
+            declarationContext == DeclarationContext.ExtensionType)) {
       modifiers |= Modifiers.DeclaringParameter;
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
@@ -3037,6 +3073,7 @@ class OutlineBuilder extends StackListenerImpl {
         parameterName: parameterName,
         nameToken: nameToken,
         thisKeyword: thisKeyword,
+        isDeclaring: modifiers.isDeclaringParameter,
         libraryFeatures: libraryFeatures,
         fileUri: _compilationUnit.fileUri,
       );
@@ -3046,22 +3083,56 @@ class OutlineBuilder extends StackListenerImpl {
           metadata: metadata,
           kind: kind,
           modifiers: modifiers,
-          type:
-              type ??
-              (memberKind.isParameterInferable(libraryFeatures)
-                  ? _builderFactory.addInferableType()
-                  : const ImplicitTypeBuilder()),
+          type: type ?? _createOmittedParameterTypeBuilder(memberKind),
           name: parameterName,
           publicName: publicName,
           hasThis: thisKeyword != null,
           hasSuper: superKeyword != null,
           nameOffset: identifier?.nameOffset ?? nameToken.charOffset,
           initializerToken: initializerStart,
-          // Extension type parameters should not have a lowered name for
-          // wildcard variables.
-          lowerWildcard: declarationContext != DeclarationContext.ExtensionType,
         ),
       );
+    }
+  }
+
+  /// Creates the [TypeBuilder] use for an omitted parameter type on the given
+  /// member [kind].
+  TypeBuilder _createOmittedParameterTypeBuilder(MemberKind kind) {
+    switch (kind) {
+      case MemberKind.Catch:
+      case MemberKind.FunctionTypeAlias:
+      case MemberKind.Factory:
+      case MemberKind.FunctionTypedParameter:
+      case MemberKind.GeneralizedFunctionType:
+      case MemberKind.Local:
+      case MemberKind.StaticMethod:
+      case MemberKind.TopLevelMethod:
+      case MemberKind.ExtensionNonStaticMethod:
+      case MemberKind.ExtensionStaticMethod:
+      case MemberKind.ExtensionTypeStaticMethod:
+        // Parameter type is not inferred.
+        return const ImplicitTypeBuilder();
+      case MemberKind.NonStaticMethod:
+      case MemberKind.ExtensionTypeNonStaticMethod:
+      // TODO(eernst): Write a test such that this does run.
+      case MemberKind.AnonymousMethod:
+      // These can be inferred but cannot hold parameters so the cases are
+      // dead code:
+      case MemberKind.NonStaticField:
+      case MemberKind.StaticField:
+      case MemberKind.TopLevelField:
+        // Parameter type is inferred with `dynamic` as default.
+        return _builderFactory.addInferableType(InferenceDefaultType.Dynamic);
+      case MemberKind.PrimaryConstructor:
+        if (libraryFeatures.primaryConstructors.isEnabled) {
+          // Parameter type is inferred with `Object?` as default.
+          return _builderFactory.addInferableType(
+            InferenceDefaultType.NullableObject,
+          );
+        } else {
+          // Parameter type is not inferred.
+          return const ImplicitTypeBuilder();
+        }
     }
   }
 
@@ -3134,18 +3205,19 @@ class OutlineBuilder extends StackListenerImpl {
         assert(last != null);
         formals = [last as FormalParameterBuilder];
       }
-
-      Token? tokenBeforeEnd = endToken.previous;
-      if (tokenBeforeEnd != null &&
-          tokenBeforeEnd.isA(TokenType.COMMA) &&
-          kind == MemberKind.PrimaryConstructor &&
-          declarationContext == DeclarationContext.ExtensionType) {
-        _compilationUnit.addProblem(
-          diag.representationFieldTrailingComma,
-          tokenBeforeEnd.charOffset,
-          1,
-          uri,
-        );
+      if (!libraryFeatures.primaryConstructors.isEnabled) {
+        Token? tokenBeforeEnd = endToken.previous;
+        if (tokenBeforeEnd != null &&
+            tokenBeforeEnd.isA(TokenType.COMMA) &&
+            kind == MemberKind.PrimaryConstructor &&
+            declarationContext == DeclarationContext.ExtensionType) {
+          _compilationUnit.addProblem(
+            diag.representationFieldTrailingComma,
+            tokenBeforeEnd.charOffset,
+            1,
+            uri,
+          );
+        }
       }
     } else if (count > 1) {
       Object? last = pop();
@@ -3498,8 +3570,8 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              diag.nullableInterfaceError.withArgumentsOld(
-                interface.fullNameForErrors,
+              diag.nullableInterfaceError.withArguments(
+                interfaceName: interface.fullNameForErrors,
               ),
               interface.charOffset ?? startOffset,
               identifier.name.length,
@@ -3571,8 +3643,8 @@ class OutlineBuilder extends StackListenerImpl {
 
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.records.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.records.name,
         ),
         leftBracket.offset,
         noLength,
@@ -4430,8 +4502,14 @@ class OutlineBuilder extends StackListenerImpl {
     Token factoryKeyword,
     Token endToken,
   ) {
-    assert(checkState(beginToken, [ValueKinds.MethodBody]));
+    assert(
+      checkState(beginToken, [
+        /* method body token */ ValueKinds.Token,
+        /* method body kind */ ValueKinds.MethodBody,
+      ]),
+    );
 
+    pop() as Token; // Method body token
     MethodBody kind = pop() as MethodBody;
 
     assert(
@@ -4527,6 +4605,7 @@ class OutlineBuilder extends StackListenerImpl {
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     debugEvent("RedirectingFactoryBody");
     push(MethodBody.RedirectingFactoryBody);
+    push(beginToken);
   }
 
   @override
@@ -4778,38 +4857,6 @@ class OutlineBuilder extends StackListenerImpl {
       token.charOffset,
       token.length,
     );
-  }
-}
-
-extension on MemberKind {
-  /// Returns `true` if a parameter occurring in this context can be inferred.
-  bool isParameterInferable(LibraryFeatures libraryFeatures) {
-    switch (this) {
-      case MemberKind.Catch:
-      case MemberKind.FunctionTypeAlias:
-      case MemberKind.Factory:
-      case MemberKind.FunctionTypedParameter:
-      case MemberKind.GeneralizedFunctionType:
-      case MemberKind.Local:
-      case MemberKind.StaticMethod:
-      case MemberKind.TopLevelMethod:
-      case MemberKind.ExtensionNonStaticMethod:
-      case MemberKind.ExtensionStaticMethod:
-      case MemberKind.ExtensionTypeStaticMethod:
-        return false;
-      case MemberKind.NonStaticMethod:
-      case MemberKind.ExtensionTypeNonStaticMethod:
-      // TODO(eernst): Write a test such that this does run.
-      case MemberKind.AnonymousMethod:
-      // These can be inferred but cannot hold parameters so the cases are
-      // dead code:
-      case MemberKind.NonStaticField:
-      case MemberKind.StaticField:
-      case MemberKind.TopLevelField:
-        return true;
-      case MemberKind.PrimaryConstructor:
-        return libraryFeatures.primaryConstructors.isEnabled;
-    }
   }
 }
 

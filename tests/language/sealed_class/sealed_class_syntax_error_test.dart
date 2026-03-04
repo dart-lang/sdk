@@ -8,7 +8,7 @@
 abstract class SealedMembers {
   sealed int foo;
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] 'sealed' isn't a type.
 //       ^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -19,10 +19,10 @@ abstract class SealedMembers {
 
   int bar(sealed int x);
 //^^^
-// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] 'int' isn't a type.
 //        ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] 'sealed' isn't a type.
 //                   ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

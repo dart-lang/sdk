@@ -23,4 +23,14 @@ class SliverList extends SliverMultiBoxAdaptorWidget {
     bool addSemanticIndexes = true,
   });
 }
+
+class SliverMainAxisGroup extends Widget {
+  final List<Widget> slivers;
+  const SliverMainAxisGroup({required this.slivers});
+}
+
+class SliverCrossAxisGroup extends Widget {
+  final List<Widget> slivers;
+  const SliverCrossAxisGroup({required this.slivers});
+}
 ''');

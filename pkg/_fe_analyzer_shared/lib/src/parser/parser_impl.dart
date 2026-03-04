@@ -4755,8 +4755,8 @@ class Parser {
   Token ensureBlock(Token token, BlockKind? missingBlockKind) {
     Token next = token.next!;
     if (next.isA(TokenType.OPEN_CURLY_BRACKET)) return next;
-    codes.Template<Function, codes.Message Function({required Token lexeme})>?
-    template = missingBlockKind?.template;
+    codes.Template<codes.Message Function({required Token lexeme})>? template =
+        missingBlockKind?.template;
     if (template == null) {
       codes.Message? message = missingBlockKind?.message;
       if (message == null) {
@@ -5726,6 +5726,29 @@ class Parser {
           identifier,
           IdentifierContext.methodDeclaration,
         );
+      } else if (token.next!.isA(TokenType.PERIOD) &&
+          token.next!.next!.isIdentifier) {
+        // This a constructor declaration like `new.name();` which isn't
+        // allowed.
+        Token dot = token.next!;
+        reportRecoverableError(dot, diag.newConstructorDotName);
+        Token identifier = token = dot.next!;
+        listener.handleIdentifier(
+          identifier,
+          IdentifierContext.methodDeclaration,
+        );
+        // Recovery: This call only does something if the next token is
+        // a '.' --- that's not legal for constructors using 'new' so we'll
+        // report an error and recover better by allowing it.
+        Token qualified = parseQualifiedRestOpt(
+          token,
+          IdentifierContext.methodDeclarationContinuation,
+        );
+        if (token != qualified) {
+          hasQualifiedName = true;
+          reportRecoverableError(token, diag.newConstructorQualifiedName);
+        }
+        token = qualified;
       } else {
         listener.handleNoIdentifier(token, IdentifierContext.methodDeclaration);
       }
@@ -6245,6 +6268,7 @@ class Parser {
       }
       listener.handleNoFunctionBody(token);
     } else if (identical(value, '=>')) {
+      Token beginToken = next;
       token = parseExpression(next);
       // There ought to be a semicolon following the expression, but we check
       // before advancing in order to be consistent with the way the method
@@ -6252,9 +6276,13 @@ class Parser {
       if (token.next!.isA(TokenType.SEMICOLON)) {
         token = token.next!;
       }
-      listener.handleFunctionBodySkipped(token, /* isExpressionBody = */ true);
+      listener.handleFunctionBodySkipped(
+        beginToken,
+        token,
+        /* isExpressionBody = */ true,
+      );
     } else if (identical(value, '=')) {
-      token = next;
+      Token beginToken = token = next;
       reportRecoverableError(token, diag.expectedBody);
       token = parseExpression(token);
       // There ought to be a semicolon following the expression, but we check
@@ -6263,10 +6291,19 @@ class Parser {
       if (token.next!.isA(TokenType.SEMICOLON)) {
         token = token.next!;
       }
-      listener.handleFunctionBodySkipped(token, /* isExpressionBody = */ true);
+      listener.handleFunctionBodySkipped(
+        beginToken,
+        token,
+        /* isExpressionBody = */ true,
+      );
     } else {
+      Token beginToken = token.next!;
       token = skipBlock(token);
-      listener.handleFunctionBodySkipped(token, /* isExpressionBody = */ false);
+      listener.handleFunctionBodySkipped(
+        beginToken,
+        token,
+        /* isExpressionBody = */ false,
+      );
     }
     return token;
   }
@@ -11112,8 +11149,7 @@ class Parser {
 
   void reportRecoverableErrorWithToken(
     Token token,
-    codes.Template<Function, codes.Message Function({required Token lexeme})>
-    template,
+    codes.Template<codes.Message Function({required Token lexeme})> template,
   ) {
     // Find a non-synthetic token on which to report the error.
     token = findNonZeroLengthToken(token);

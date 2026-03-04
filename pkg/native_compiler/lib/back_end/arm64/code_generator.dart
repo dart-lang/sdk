@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
+import 'package:cfg/ir/functions.dart';
+import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/types.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:native_compiler/back_end/arm64/assembler.dart';
@@ -16,9 +20,10 @@ import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
 final class Arm64CodeGenerator extends CodeGenerator {
+  final FunctionRegistry functionRegistry;
   late final Arm64Assembler _asm;
 
-  Arm64CodeGenerator(super.backEndState);
+  Arm64CodeGenerator(super.backEndState, this.functionRegistry);
 
   @override
   Assembler createAssembler() => _asm = Arm64Assembler(backEndState.vmOffsets);
@@ -26,9 +31,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
   @override
   void enterFrame() {
     _asm.enterDartFrame();
-
-    // TODO: calculate stack frame size.
-    _asm.sub(stackPointerReg, stackPointerReg, Immediate(64));
+    _asm.subImmediate(
+      stackPointerReg,
+      stackPointerReg,
+      stackFrame.frameSizeToAllocate,
+    );
   }
 
   void _generateBranch(
@@ -197,7 +204,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     Register getTempReg() => (pendingReg == tempReg) ? LR : tempReg;
 
-    for (var i = 0; i < instr.inputCount; ++i) {
+    for (var i = instr.inputCount - 1; i >= 0; --i) {
       final arg = instr.inputDefAt(i);
       Register reg;
       if (arg is Constant) {
@@ -223,23 +230,23 @@ final class Arm64CodeGenerator extends CodeGenerator {
       if (pendingReg == invalidReg) {
         pendingReg = reg;
       } else {
+        // TODO: support large offsets
         _asm.stp(pendingReg, reg, RegOffsetAddress(stackPointerReg, offset));
         pendingReg = invalidReg;
         offset += 2 * wordSize;
       }
     }
     if (pendingReg != invalidReg) {
+      // TODO: support large offsets
       _asm.str(pendingReg, RegOffsetAddress(stackPointerReg, offset));
+      offset += wordSize;
     }
+    assert(offset <= stackFrame.maxArgumentsStackSlots * wordSize);
   }
 
-  @override
-  void visitDirectCall(DirectCall instr) {
-    // TODO: pass arg_desc when needed.
-    _asm.loadImmediate(argumentsDescriptorReg, 0);
-    _passArguments(instr);
-    _asm.loadFromPool(functionReg, instr.target);
+  void _callFunction(CFunction function) {
     // TODO: call directly through Code.
+    _asm.loadFromPool(functionReg, function);
     _asm.ldr(
       codeReg,
       _asm.fieldAddress(functionReg, vmOffsets.Function_code_offset),
@@ -255,8 +262,39 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitDirectCall(DirectCall instr) {
+    _passArguments(instr);
+    _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
+    _callFunction(instr.target);
+  }
+
+  @override
   void visitInterfaceCall(InterfaceCall instr) {
-    _asm.unimplemented('Unimplemented: code generation for InterfaceCall');
+    _passArguments(instr);
+    _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
+    // TODO: call through monomorphic/table dispatcher.
+    _asm.loadFromPool(R6, graph.function);
+    _asm.ldr(
+      R0,
+      _asm.address(
+        stackPointerReg,
+        (instr.inputCount - 1 - (instr.hasTypeArguments ? 1 : 0)) * wordSize,
+      ),
+    );
+    _asm.loadPairFromPool(
+      inlineCacheDataReg,
+      codeReg,
+      InterfaceCallEntry(
+        graph.function,
+        instr.argumentsShape,
+        instr.interfaceTarget,
+      ),
+    );
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
+    );
+    _asm.blr(tempReg);
   }
 
   @override
@@ -282,22 +320,204 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitLoadInstanceField(LoadInstanceField instr) {
-    _asm.unimplemented('Unimplemented: code generation for LoadInstanceField');
+    final objectReg = inputReg(instr, 0);
+    final valueReg = outputReg(instr);
+    if (instr.checkInitialized) {
+      // TODO: initialized check for late fields.
+      _asm.unimplemented(
+        'Unimplemented: code generation for LoadInstanceField.checkInitialized',
+      );
+      return;
+    }
+    // TODO: unboxed fields
+    _asm.ldr(
+      valueReg,
+      _asm.fieldAddress(objectReg, objectLayout.getFieldOffset(instr.field)),
+    );
+  }
+
+  bool _canSkipWriteBarrier(Definition objectDef, Definition valueDef) =>
+      (objectDef == valueDef) ||
+      switch (valueDef) {
+        Constant(:var value)
+            when value.isNull ||
+                value.isBool ||
+                (value.isInt && objectLayout.isSmi(value.intValue)) =>
+          true,
+        _ => false,
+      };
+
+  bool _canBeSmi(Definition def) => switch (def) {
+    Constant(:var value) => value.isInt && objectLayout.isSmi(value.intValue),
+    _ => def.type is IntType || const IntType().isSubtypeOf(def.type),
+  };
+
+  void _writeBarrier(
+    Register objectReg,
+    Register valueReg,
+    Register scratch1Reg,
+    Register scratch2Reg, {
+    required bool valueCanBeSmi,
+  }) {
+    // Test whether
+    //  - object is old and not remembered and value is new, or
+    //  - object is old and value is old and not marked and concurrent marking is in progress.
+    // If so, call the WriteBarrier stub.
+
+    final done = Label();
+    Label slowPath = addSlowPath(() {
+      _asm.callStub(
+        backEndState.stubFactory.getWriteBarrierStub(objectReg, valueReg),
+      );
+      _asm.b(done);
+    });
+
+    if (valueCanBeSmi) {
+      _asm.tbz(valueReg, smiBit, done);
+    } else {
+      final ok = Label();
+      _asm.tbnz(valueReg, smiBit, ok);
+      _asm.unimplemented('Smi value in _writeBarrier');
+      _asm.bind(ok);
+    }
+
+    _asm.ldr(
+      scratch1Reg,
+      _asm.address(objectReg, vmOffsets.Object_tags_offset),
+      .u8,
+    );
+    _asm.ldr(
+      scratch2Reg,
+      _asm.address(valueReg, vmOffsets.Object_tags_offset),
+      .u8,
+    );
+    _asm.and(
+      scratch1Reg,
+      scratch2Reg,
+      ShiftedRegOperand(scratch1Reg, .LSR, barrierOverlapShift),
+    );
+    _asm.tst(scratch1Reg, ShiftedRegOperand(heapBitsReg, .LSR, 32));
+    _asm.b(slowPath, .notEqual);
+
+    _asm.bind(done);
   }
 
   @override
   void visitStoreInstanceField(StoreInstanceField instr) {
-    _asm.unimplemented('Unimplemented: code generation for StoreInstanceField');
+    final objectReg = inputReg(instr, 0);
+    final valueReg = inputReg(instr, 1);
+    final scratch1Reg = temporaryReg(instr, 0);
+    final scratch2Reg = temporaryReg(instr, 1);
+    if (instr.checkNotInitialized) {
+      // TODO: not-initialized check for late final fields.
+      _asm.unimplemented(
+        'Unimplemented: code generation for StoreInstanceField.checkNotInitialized',
+      );
+      return;
+    }
+    // TODO: unboxed fields
+    _asm.str(
+      valueReg,
+      _asm.fieldAddress(objectReg, objectLayout.getFieldOffset(instr.field)),
+    );
+    if (!_canSkipWriteBarrier(instr.object, instr.value)) {
+      _writeBarrier(
+        objectReg,
+        valueReg,
+        scratch1Reg,
+        scratch2Reg,
+        valueCanBeSmi: _canBeSmi(instr.value),
+      );
+    }
+  }
+
+  void _loadStaticFieldAddress(Register dst, CField field, Register scratch) {
+    _asm.ldr(
+      scratch,
+      _asm.address(threadReg, vmOffsets.Thread_field_table_values_offset),
+    );
+    _asm.loadFromPool(dst, StaticFieldOffset(field));
+    _asm.add(dst, dst, scratch);
   }
 
   @override
   void visitLoadStaticField(LoadStaticField instr) {
-    _asm.unimplemented('Unimplemented: code generation for LoadStaticField');
+    final field = instr.field;
+    final valueReg = outputReg(instr);
+    final scratch1Reg = temporaryReg(instr, 0);
+    final scratch2Reg = temporaryReg(instr, 1);
+
+    // TODO: shared static fields
+    _loadStaticFieldAddress(scratch1Reg, field, scratch2Reg);
+    _asm.ldr(valueReg, RegOffsetAddress(scratch1Reg, 0));
+
+    if (instr.checkInitialized) {
+      _asm.loadFromPool(scratch2Reg, SentinelConstant());
+      _asm.cmp(valueReg, scratch2Reg);
+
+      final done = Label();
+      Label slowPath = addSlowPath(() {
+        if (hasNonTrivialInitializer(field.astField)) {
+          _callFunction(
+            functionRegistry.getFunction(field.astField, isInitializer: true),
+          );
+          assert(valueReg == returnReg);
+          _loadStaticFieldAddress(scratch1Reg, field, scratch2Reg);
+
+          if (field.isLate && field.isFinal) {
+            final ok = Label();
+            _asm.ldr(scratch2Reg, RegOffsetAddress(scratch1Reg, 0));
+            _asm.loadFromPool(tempReg, SentinelConstant());
+            _asm.cmp(scratch2Reg, tempReg);
+            _asm.b(ok, .equal);
+            _asm.unimplemented(
+              'Unimplemented: already initialized late final field in LoadStaticField',
+            );
+            _asm.bind(ok);
+          }
+
+          _asm.str(valueReg, RegOffsetAddress(scratch1Reg, 0));
+          _asm.b(done);
+        } else {
+          _asm.unimplemented(
+            'Unimplemented: uninitialized late field without initializer in LoadStaticField',
+          );
+        }
+      });
+
+      _asm.b(slowPath, .equal);
+      _asm.bind(done);
+    }
   }
 
   @override
   void visitStoreStaticField(StoreStaticField instr) {
-    _asm.unimplemented('Unimplemented: code generation for StoreStaticField');
+    final field = instr.field;
+    final valueReg = inputReg(instr, 0);
+    final scratch1Reg = temporaryReg(instr, 0);
+    final scratch2Reg = temporaryReg(instr, 1);
+
+    // TODO: shared static fields
+    _loadStaticFieldAddress(scratch1Reg, field, scratch2Reg);
+
+    if (instr.checkNotInitialized) {
+      _asm.ldr(scratch2Reg, RegOffsetAddress(scratch1Reg, 0));
+      _asm.loadFromPool(tempReg, SentinelConstant());
+      _asm.cmp(scratch2Reg, tempReg);
+
+      final done = Label();
+      Label slowPath = addSlowPath(() {
+        _asm.unimplemented(
+          'Unimplemented: already initialized late final field in StoreStaticField',
+        );
+        _asm.b(done);
+      });
+
+      _asm.b(slowPath, .notEqual);
+      _asm.bind(done);
+    }
+
+    _asm.str(valueReg, RegOffsetAddress(scratch1Reg, 0));
   }
 
   @override
@@ -308,11 +528,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
   @override
   void visitNullCheck(NullCheck instr) {
     _asm.unimplemented('Unimplemented: code generation for NullCheck');
-  }
-
-  @override
-  void visitTypeParameters(TypeParameters instr) {
-    _asm.unimplemented('Unimplemented: code generation for TypeParameters');
   }
 
   @override
@@ -354,59 +569,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.b(done);
     });
 
-    final endReg = AllocationStub.scratch1Reg;
-    final newTopReg = AllocationStub.scratch2Reg;
-    // Load Thread.top_ and Thread.end_.
-    _asm.ldp(
-      resultReg,
-      endReg,
-      _asm.pairAddress(threadReg, vmOffsets.Thread_top_offset),
-    );
-    _asm.addImmediate(newTopReg, resultReg, instanceSize);
-    _asm.cmp(endReg, newTopReg);
-    _asm.b(slowPath, Condition.unsignedLessOrEqual);
-
-    // TLAB has enough space. Update top and initialize object.
     _asm.loadFromPool(tagsReg, NewObjectTags(cls));
-    _asm.str(newTopReg, _asm.address(threadReg, vmOffsets.Thread_top_offset));
-    _asm.str(tagsReg, _asm.address(resultReg, vmOffsets.Object_tags_offset));
-    // TODO: figure out if we need store-store barrier here.
-
-    // TODO: support compressed pointers.
-    const maxUnrolledSize = 16 * wordSize;
-    if (instanceSize <= maxUnrolledSize) {
-      int offset = vmOffsets.Instance_first_field_offset;
-      for (; offset + 2 * wordSize <= instanceSize; offset += 2 * wordSize) {
-        _asm.stp(nullReg, nullReg, _asm.pairAddress(resultReg, offset));
-      }
-      if (offset < instanceSize) {
-        _asm.str(nullReg, _asm.address(resultReg, offset));
-        offset += wordSize;
-      }
-      assert(offset == instanceSize);
-    } else {
-      final fieldReg = AllocationStub.scratch1Reg;
-      _asm.addImmediate(
-        fieldReg,
-        resultReg,
-        vmOffsets.Instance_first_field_offset,
-      );
-
-      final loop = Label();
-      _asm.bind(loop);
-      _asm.stp(
-        nullReg,
-        nullReg,
-        WritebackRegOffsetAddress(fieldReg, 2 * wordSize, isPostIndexed: true),
-      );
-      // There is at least two word (kAllocationRedZoneSize) gap at the end of page
-      // which makes it possible to initialize objects by two words at once and
-      // write slightly beyond the end.
-      _asm.cmp(fieldReg, newTopReg);
-      _asm.b(loop, Condition.unsignedLess);
-    }
-
-    _asm.addImmediate(resultReg, resultReg, heapObjectTag);
+    _asm.inlineAllocation(
+      resultReg,
+      tagsReg,
+      AllocationStub.scratch1Reg,
+      AllocationStub.scratch2Reg,
+      instanceSize,
+      slowPath,
+    );
 
     if (typeArgsField != null) {
       if (instr.hasTypeArguments) {
@@ -442,7 +613,39 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitAllocateClosure(AllocateClosure instr) {
-    _asm.unimplemented('Unimplemented: code generation for AllocateClosure');
+    final cls = GlobalContext.instance.coreTypes.index.getClass(
+      'dart:core',
+      '_Closure',
+    );
+    final instanceSize = objectLayout.getInstanceSize(cls);
+    final resultReg = AllocationStub.resultReg;
+    assert(outputReg(instr) == resultReg);
+
+    final initializeObject = Label();
+    Label slowPath = addSlowPath(() {
+      _asm.callStub(backEndState.stubFactory.getAllocationStub(cls));
+      _asm.b(initializeObject);
+    });
+
+    _asm.loadFromPool(AllocationStub.tagsReg, NewObjectTags(cls));
+    _asm.inlineAllocation(
+      resultReg,
+      AllocationStub.tagsReg,
+      AllocationStub.scratch1Reg,
+      AllocationStub.scratch2Reg,
+      instanceSize,
+      slowPath,
+    );
+
+    _asm.bind(initializeObject);
+    final fieldReg = AllocationStub.scratch1Reg;
+    _asm.loadFromPool(fieldReg, instr.function);
+    _asm.str(
+      fieldReg,
+      _asm.fieldAddress(resultReg, vmOffsets.Closure_function_offset),
+    );
+    // TODO: initialize the rest of the fields.
+    assert(instr.inputCount == 0);
   }
 
   @override
@@ -489,7 +692,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
             _asm.mov(to, from);
             return;
           case StackLocation():
-            _asm.str(from, _asm.address(FP, to.frameOffset));
+            _asm.str(from, _asm.address(FP, stackFrame.offsetFromFP(to)));
             return;
           default:
             break;
@@ -497,7 +700,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case StackLocation():
         switch (to) {
           case Register():
-            _asm.ldr(to, _asm.address(FP, from.frameOffset));
+            _asm.ldr(to, _asm.address(FP, stackFrame.offsetFromFP(from)));
             return;
           default:
             break;
@@ -552,8 +755,4 @@ extension on ComparisonOpcode {
     ComparisonOpcode.doubleGreater => Condition.greater,
     ComparisonOpcode.doubleGreaterOrEqual => Condition.greaterOrEqual,
   };
-}
-
-extension on StackLocation {
-  int get frameOffset => -(2 + index) * wordSize;
 }

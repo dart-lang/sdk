@@ -24,7 +24,9 @@ String createWildcardVariableName(int index) {
 
 /// Whether the given [name] is a wildcard formal parameter.
 bool isWildcardLoweredFormalParameter(String name) {
-  return name.startsWith(wildcardPrefix) && name.endsWith(wildcardFormalSuffix);
+  return name.startsWith(wildcardPrefix) &&
+      // Coverage-ignore(suite): Not run.
+      name.endsWith(wildcardFormalSuffix);
 }
 
 // Coverage-ignore(suite): Not run.

@@ -2906,7 +2906,10 @@ class BinaryBuilder {
 
   Expression _readFunctionExpression() {
     int offset = readOffset();
-    return new FunctionExpression(readFunctionNode())..fileOffset = offset;
+    final LocalFunctionId id = LocalFunctionId(readUInt30());
+    return new FunctionExpression(readFunctionNode())
+      ..fileOffset = offset
+      ..id = id;
   }
 
   Expression _readLet() {
@@ -3668,8 +3671,10 @@ class BinaryBuilder {
     int offset = readOffset();
     VariableDeclaration variable = readVariableDeclaration();
     variableStack.add(variable); // Will be popped by the enclosing scope.
+    final LocalFunctionId id = LocalFunctionId(readUInt30());
     return new FunctionDeclaration(variable, readFunctionNode())
-      ..fileOffset = offset;
+      ..fileOffset = offset
+      ..id = id;
   }
 
   void _readSwitchCaseInto(SwitchCase caseNode) {

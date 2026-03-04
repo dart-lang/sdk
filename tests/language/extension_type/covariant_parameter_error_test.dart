@@ -10,8 +10,8 @@ extension type ET1(num id) {
 }
 
 extension type ET2<T extends num>(T id) {
-  void setter(covariant int x) {}
-  //          ^^^^^^^^^
+  set setter(covariant int x) {}
+  //         ^^^^^^^^^
   // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE
   // [cfe] Can't have modifier 'covariant' in an extension type.
 }

@@ -158,6 +158,7 @@ final class Simplification extends Pass
         closure.function,
         instr.type,
         inputCount: instr.inputCount,
+        argumentsShape: instr.argumentsShape,
       );
       for (int i = 0, n = instr.inputCount; i < n; ++i) {
         replacement.setInputAt(i, instr.inputDefAt(i));

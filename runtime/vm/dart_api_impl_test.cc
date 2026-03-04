@@ -1742,7 +1742,7 @@ TEST_CASE(DartAPI_IntegerToHexCString) {
       {-1, "-0x1"},
       {0x123, "0x123"},
       {-0xABCDEF, "-0xABCDEF"},
-      {DART_INT64_C(-0x7FFFFFFFFFFFFFFF), "-0x7FFFFFFFFFFFFFFF"},
+      {-0x7FFFFFFFFFFFFFFF, "-0x7FFFFFFFFFFFFFFF"},
       {kMaxInt64, "0x7FFFFFFFFFFFFFFF"},
       {kMinInt64, "-0x8000000000000000"},
   };

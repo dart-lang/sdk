@@ -41,9 +41,12 @@ class AnalyzerStatePrinter {
   FileSystemState get fileSystemState => libraryContext.fileSystemState;
 
   void writeAnalysisDriver(AnalysisDriverTestView testData) {
-    _writeFiles(testData.fileSystem);
-    _writeLibraryContext(testData.libraryContext);
-    _writeElementFactory();
+    sink.writelnWithIndent('driver');
+    sink.withIndent(() {
+      _writeWorkState(testData);
+      _writeFileSystemState(testData.fileSystem);
+      _writeLibraryContextState(testData.libraryContext);
+    });
   }
 
   void writeFileResolver(FileResolverTestData testData) {
@@ -326,6 +329,42 @@ class AnalyzerStatePrinter {
     });
   }
 
+  void _writeFileSystemState(FileSystemTestData testData) {
+    sink.writelnWithIndent('fileSystemState');
+    sink.withIndent(() {
+      _writeFiles(testData);
+    });
+  }
+
+  void _writeFileTracker(AnalysisDriverTestView testData) {
+    var fileTracker = testData.fileTracker;
+    var fileTrackerTestData = fileTracker.testView;
+
+    sink.writelnWithIndent('fileTracker');
+    sink.withIndent(() {
+      sink.writelnWithIndent('anyPendingFile: ${fileTracker.anyPendingFile}');
+      sink.writelnWithIndent(
+        'numberOfPendingFiles: ${fileTracker.numberOfPendingFiles}',
+      );
+
+      _writeSortedPathSet('addedFiles', fileTracker.addedFiles);
+      _writeSortedPathSet('changedFiles', fileTrackerTestData.changedFiles);
+      _writeSortedPathSet(
+        'pendingChangedFiles',
+        fileTrackerTestData.pendingChangedFiles,
+      );
+      _writeSortedPathSet(
+        'pendingImportFiles',
+        fileTrackerTestData.pendingImportFiles,
+      );
+      _writeSortedPathSet(
+        'pendingErrorFiles',
+        fileTrackerTestData.pendingErrorFiles,
+      );
+      _writeSortedPathSet('pendingFiles', fileTrackerTestData.pendingFiles);
+    });
+  }
+
   void _writeFileUnlinkedKey(FileState file) {
     var unlinkedShort = idProvider.shortKey(file.unlinkedKey);
     sink.writelnWithIndent('unlinkedKey: $unlinkedShort');
@@ -380,6 +419,14 @@ class AnalyzerStatePrinter {
           sink.writelnWithIndent('put: $shortPuts');
         });
       }
+    });
+  }
+
+  void _writeLibraryContextState(LibraryContextTestData testData) {
+    sink.writelnWithIndent('libraryContext');
+    sink.withIndent(() {
+      _writeLibraryContext(testData);
+      _writeElementFactory();
     });
   }
 
@@ -581,6 +628,21 @@ class AnalyzerStatePrinter {
     }
   }
 
+  void _writeSortedPathSet(String name, Set<String> paths) {
+    var sorted = paths.map((path) {
+      return resourceProvider.getFile(path).posixPath;
+    }).sorted();
+    sink.writeElements(name, sorted, (value) {
+      sink.writelnWithIndent(value);
+    });
+  }
+
+  void _writeStringList(String name, List<String> elements) {
+    sink.writeElements(name, elements, (element) {
+      sink.writelnWithIndent(element);
+    });
+  }
+
   void _writeUnlinkedUnitStore() {
     sink.writelnWithIndent('unlinkedUnitStore');
     sink.withIndent(() {
@@ -614,6 +676,26 @@ class AnalyzerStatePrinter {
         }
       });
     }
+  }
+
+  void _writeWorkState(AnalysisDriverTestView testData) {
+    sink.writelnWithIndent('workState');
+    sink.withIndent(() {
+      _writeSortedPathSet('priorityFiles', testData.priorityFiles);
+      _writeStringList(
+        'pendingFileChanges',
+        testData.pendingFileChanges.map((change) {
+          var posixPath = resourceProvider.getFile(change.path).posixPath;
+          return '${change.kind.name} $posixPath';
+        }).toList(),
+      );
+      _writeFileTracker(testData);
+      expect(
+        testData.numberOfFilesToAnalyze,
+        testData.fileTracker.numberOfPendingFiles,
+      );
+      sink.writelnWithIndent('workPriority: ${testData.workPriority.name}');
+    });
   }
 }
 

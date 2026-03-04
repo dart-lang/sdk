@@ -4372,40 +4372,6 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
-LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
-  summary->set_in(0, Location::RegisterLocation(A0));
-  summary->set_in(1, Location::RegisterLocation(A1));
-  summary->set_in(2, Location::RegisterLocation(A2));
-  // Can't specify A3 because it is blocked in register allocation as TMP.
-  summary->set_in(3, Location::Any());
-  summary->set_out(0, Location::RegisterLocation(A0));
-  return summary;
-}
-
-void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (compiler->intrinsic_mode()) {
-    // Would also need to preserve CODE_REG and ARGS_DESC_REG.
-    UNIMPLEMENTED();
-  }
-
-  compiler::LeafRuntimeScope rt(compiler->assembler(),
-                                /*frame_size=*/0,
-                                /*preserve_registers=*/false);
-  if (locs()->in(3).IsRegister()) {
-    __ mv(A3, locs()->in(3).reg());
-  } else if (locs()->in(3).IsStackSlot()) {
-    __ lx(A3, LocationToStackSlotAddress(locs()->in(3)));
-  } else {
-    UNIMPLEMENTED();
-  }
-  rt.Call(TargetFunction(), TargetFunction().argument_count());
-}
-
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   if (representation() == kUnboxedDouble) {

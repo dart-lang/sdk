@@ -28,11 +28,14 @@ import 'package:cfg/passes/simplification.dart';
 import 'package:cfg/passes/value_numbering.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:native_compiler/back_end/arm64/constraints.dart';
+import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/regalloc_checker.dart';
 import 'package:native_compiler/back_end/register_allocator.dart';
 import 'package:native_compiler/passes/lowering.dart';
 import 'package:native_compiler/passes/reorder_blocks.dart';
+import 'package:native_compiler/runtime/object_layout.dart';
+import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:test/test.dart';
 import 'package:vm/modular/target/vm.dart';
 
@@ -150,15 +153,23 @@ class CompileAndDumpIr extends RecursiveVisitor {
       functionRegistry,
       recognizedMethods,
       enableAsserts: true,
+      typeParametersStyle: .separateFunctionAndClassTypeParameters,
     ).buildFlowGraph();
     final backEndState = BackEndState();
     final constraints = Arm64Constraints();
+    final vmOffsets = Arm64VMOffsets();
+    final objectLayout = ObjectLayout(
+      vmOffsets,
+      wordSize: 8,
+      compressedWordSize: 8,
+    );
+    backEndState.stackFrame = Arm64StackFrame(function);
     final pipeline = Pipeline([
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),
       ConstantPropagation(),
       ControlFlowOptimizations(),
-      Lowering(functionRegistry),
+      Lowering(functionRegistry, objectLayout),
       ReorderBlocks(backEndState),
       LinearScanRegisterAllocator(backEndState, constraints),
       RegisterAllocationChecker(backEndState, constraints),

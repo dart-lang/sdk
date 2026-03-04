@@ -178,7 +178,6 @@ class _Visitor extends RecursiveAstVisitor<void> {
         if (name != null && Identifier.isPrivateName(name)) {
           var parameterElement = parameter.declaredFragment!.element;
           if (parameterElement is FieldFormalParameterElement &&
-              // ignore: experimental_member_use
               !parameterElement.isDeclaring) {
             continue;
           }

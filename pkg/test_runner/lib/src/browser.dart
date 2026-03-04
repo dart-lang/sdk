@@ -345,6 +345,9 @@ String dart2wasmHtml(
           src="/root_dart/pkg/test_runner/lib/src/test_controller.js">
   </script>
   <script type="module">
+  // Default stack trace limit in V8 is 10, which hides some of the stack frames
+  // we check in stack trace tests.
+  Error.stackTraceLimit = 20;
   async function loadAndRun(mjsPath, wasmPath, supportJsPath) {
     const supportJSExpression = await (await fetch(supportJsPath)).text();
     const support = eval(supportJSExpression);
@@ -363,7 +366,8 @@ String dart2wasmHtml(
       return response.arrayBuffer();
     };
     const appInstance = await compiledApp.instantiate({}, {
-      loadDeferredModule: fetch
+      loadDeferredModules: (modules, handleWasmBytes) =>
+        Promise.all(modules.map((m) => fetch(m).then((b) => handleWasmBytes(m, b)))),
     });
     dartMainRunner(() => {
       appInstance.invokeMain();

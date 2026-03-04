@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'method_collector.dart';
@@ -46,7 +47,10 @@ class CallbackSpecializer {
 
     final callExpr = FunctionInvocation(FunctionAccessKind.FunctionType,
         VariableGet(callbackVariable), Arguments(callbackArguments),
-        functionType: null);
+        // Instantiate any type parameters to bounds as they would otherwise
+        // be free type variables in this context.
+        functionType: const _InstantiateToBounds().substituteType(function)
+            as FunctionType);
 
     final temp = VariableDeclaration(null,
         initializer: callExpr,
@@ -200,12 +204,12 @@ class CallbackSpecializer {
   /// Create a [Procedure] that will wrap a Dart callback in a JS wrapper.
   ///
   /// [node] is the conversion function that is called by the user (either
-  /// `allowInterop`, `Function.toJS`, or `Function.toJSCaptureThis`). [type] is
-  /// the static type of the callback. [boxExternRef] determines if the
-  /// trampoline should box the arguments and return value or convert every
-  /// value. [needsCastClosure] determines if a cast closure is needed in order
-  /// to validate the types of some arguments. [captureThis] determines if
-  /// `this` needs to be passed into the trampoline from the JS wrapper.
+  /// `Function.toJS` or `Function.toJSCaptureThis`). [type] is the static type
+  /// of the callback. [boxExternRef] determines if the trampoline should box
+  /// the arguments and return value or convert every value. [needsCastClosure]
+  /// determines if a cast closure is needed in order to validate the types of
+  /// some arguments. [captureThis] determines if `this` needs to be passed into
+  /// the trampoline from the JS wrapper.
   ///
   /// The procedure will call a JS method that will create a wrapper, cache the
   /// callback, and call the trampoline function with the callback, the JS
@@ -366,5 +370,15 @@ class CallbackSpecializer {
                 StaticInvocation(_util.jsObjectFromDartObjectTarget,
                     Arguments([castClosure]))
             ]))));
+  }
+}
+
+class _InstantiateToBounds extends Substitution {
+  const _InstantiateToBounds();
+  @override
+  DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
+    // Substitute to bound recursively in case a bound is itself a type
+    // parameter.
+    return substituteType(parameter.bound);
   }
 }

@@ -55,6 +55,7 @@ namespace dart {
   V(Capability_factory, 1)                                                     \
   V(Capability_equals, 2)                                                      \
   V(Capability_get_hashcode, 1)                                                \
+  V(createConstMapFromMapOfDeeplyImmutables, 1)                                \
   V(RawReceivePort_factory, 2)                                                 \
   V(RawReceivePort_get_id, 1)                                                  \
   V(RawReceivePort_closeInternal, 1)                                           \

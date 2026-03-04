@@ -234,4 +234,5 @@ linter:
     - use_to_and_as_if_applicable
     - use_truncating_division
     - valid_regexps
+    - var_with_no_type_annotation
     - void_checks

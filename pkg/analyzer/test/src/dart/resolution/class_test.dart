@@ -575,6 +575,76 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructor_formalParameters_bodyScope_metadata() async {
+    await assertNoErrorsInCode(r'''
+const foo = 0;
+class A(@foo int x) {
+  static const foo = 1;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@getter::foo
+            staticType: null
+          element: <testLibrary>::@class::A::@getter::foo
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      name: x
+      declaredFragment: <testLibraryFragment> x@32
+        element: isPublic
+          type: int
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::A::@constructor::new
+      type: A Function(int)
+''');
+  }
+
+  test_primaryConstructor_formalParameters_bodyScope_type() async {
+    await assertErrorsInCode(
+      r'''
+class A(int x) {
+  static const String int = '';
+}
+''',
+      [error(diag.notAType, 8, 3)],
+    );
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+        element: <testLibrary>::@class::A::@getter::int
+        type: InvalidType
+      name: x
+      declaredFragment: <testLibraryFragment> x@12
+        element: isPublic
+          type: InvalidType
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::A::@constructor::new
+      type: A Function(InvalidType)
+''');
+  }
+
   test_primaryConstructor_hasTypeParameters_named() async {
     await assertNoErrorsInCode(r'''
 class A<T>.named(T t) {}
@@ -895,7 +965,8 @@ ClassDeclaration
   }
 
   test_primaryConstructorBody_duplicate() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A(bool x, bool y) {
   this : assert(x) {
     y;
@@ -904,7 +975,9 @@ class A(bool x, bool y) {
     !y;
   }
 }
-''');
+''',
+      [error(diag.multiplePrimaryConstructorBodyDeclarations, 60, 4)],
+    );
 
     var node = findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
@@ -1121,6 +1194,29 @@ PrimaryConstructorBody
 ''');
   }
 
+  test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter_shadowedClassName() async {
+    await assertNoErrorsInCode(r'''
+class A(final int A()) {
+  this : assert(A() > 0);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
   test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter() async {
     await assertNoErrorsInCode(r'''
 class A(this.a) {
@@ -1145,6 +1241,34 @@ PrimaryConstructorBody
       rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter_shadowedClassName() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int _);
+}
+
+class B(this.A) {
+  final int Function() A;
+  this : assert(A() > 0);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: int Function()
+  staticType: int
 ''');
   }
 
@@ -1198,6 +1322,30 @@ PrimaryConstructorBody
       rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_superFormalParameter_shadowedClassName() async {
+    await assertNoErrorsInCode(r'''
+class A(int Function() A);
+class B(super.A) extends A {
+  this : assert(A() > 0);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: int Function()
+  staticType: int
 ''');
   }
 
@@ -1478,6 +1626,23 @@ FieldDeclaration
         declaredFragment: <testLibraryFragment> bar@32
   semicolon: ;
   declaredFragment: <null>
+''');
+  }
+
+  test_primaryInitializerScope_fieldTypeAnnotation_shadowedClassName() async {
+    await assertNoErrorsInCode(r'''
+class A(int A) {
+  A? field;
+}
+''');
+
+    var node = findNode.namedType('A? field');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  question: ?
+  element: <testLibrary>::@class::A
+  type: A?
 ''');
   }
 }

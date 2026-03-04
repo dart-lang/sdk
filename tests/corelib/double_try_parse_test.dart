@@ -36,7 +36,7 @@ const whiteSpace = const [
   "\uFEFF",
 ];
 
-void expectNumEquals(double expected, var actual, String message) {
+void expectNumEquals(double expected, actual, String message) {
   if (expected.isNaN) {
     Expect.isTrue(actual is double && actual.isNaN, "isNaN: $message");
   } else {

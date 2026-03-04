@@ -53,10 +53,7 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
       await _setUpSdk(projectDir);
     }
     return Workspace(
-      contextRoots: await initializeContextRoots(
-        projectDir.path,
-        isSdk: isSdkRepo,
-      ).toList(),
+      contextRoots: await getContextRoots(projectDir.path, isSdk: isSdkRepo),
       workspaceDirectories: [
         if (openSubdirs case var openSubdirs?) ...[
           for (var subdir in openSubdirs)

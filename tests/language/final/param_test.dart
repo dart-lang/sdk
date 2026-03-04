@@ -1,6 +1,10 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// Limit language version to a pre-primary constructors version.
+// @dart = 3.11
+
 // Disallow assignment of parameters marked as final.
 
 class A {

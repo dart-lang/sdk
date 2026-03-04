@@ -36,7 +36,9 @@ class ConvertNullCheckToNullAwareElementOrEntry
     )) {
       if (node.caseClause == null) {
         // An element or entry of the form `if (x != null) ...`.
-        if (thenElement is SimpleIdentifier) {
+        if (thenElement
+            case SpreadElement(expression: SimpleIdentifier element) ||
+                SimpleIdentifier element) {
           // In case of a list or set element with a promotable target, we
           // simply replace the entire element with the then-element prefixed by
           // '?'.
@@ -44,11 +46,13 @@ class ConvertNullCheckToNullAwareElementOrEntry
           //     `if (x != null) x` is rewritten as `?x`
           await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(
-              range.startStart(node, thenElement),
-              '?',
+              range.startStart(node, element),
+              thenElement is SpreadElement ? '...?' : '?',
             );
           });
-        } else if (thenElement is PostfixExpression) {
+        } else if (thenElement
+            case SpreadElement(expression: PostfixExpression element) ||
+                PostfixExpression element) {
           // In case of a list or set element with a getter target, we replace
           // the entire element with the then-element target identifier prefixed
           // by '?'. Note that in the case of a getter target, the null-check
@@ -57,10 +61,10 @@ class ConvertNullCheckToNullAwareElementOrEntry
           //     `if (x != null) x!` is rewritten as `?x`
           await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(
-              range.startStart(node, thenElement),
-              '?',
+              range.startStart(node, element),
+              thenElement is SpreadElement ? '...?' : '?',
             );
-            builder.addDeletion(range.endEnd(thenElement.operand, thenElement));
+            builder.addDeletion(range.endEnd(element.operand, element));
           });
         } else if (thenElement is MapLiteralEntry) {
           // In case of a map entry we need to check if it's the key that's
@@ -146,7 +150,7 @@ class ConvertNullCheckToNullAwareElementOrEntry
           await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(
               range.startStart(node, condition),
-              '?',
+              thenElement is SpreadElement ? '...?' : '?',
             );
             builder.addDeletion(range.endEnd(condition, node));
           });

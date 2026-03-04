@@ -56,6 +56,7 @@ vmspecific_native_finalizer_isolate_groups_test: Skip # SpawnUri not available o
 async_void_function_callbacks_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 exceptional_return_const_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 ffi_induce_a_crash_test/*: Skip # Test harness doesn't support multitest with Fuchsia
+function_callbacks_isolate_ownership_test: SkipByDesign # Needs access to Dart executable
 function_callbacks_leaf_test: SkipByDesign # Needs access to Dart executable
 function_callbacks_many_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 function_callbacks_structs_by_value_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia

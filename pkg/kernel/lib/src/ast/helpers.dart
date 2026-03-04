@@ -204,7 +204,8 @@ class _Hash {
     return combine2Finish(object2.hashCode, object2.hashCode, 0);
   }
 
-  static int combineListHash(List<Object> list, [int hash = 1]) {
+  static int combineListHash(List<Object> list) {
+    int hash = 1;
     for (Object item in list) {
       hash = _Hash.combine(item.hashCode, hash);
     }

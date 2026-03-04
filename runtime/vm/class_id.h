@@ -591,7 +591,8 @@ inline bool IsDeeplyImmutableCid(intptr_t predefined_cid) {
          predefined_cid == kNullCid || predefined_cid == kPointerCid ||
          predefined_cid == kTypeCid || predefined_cid == kTypeArgumentsCid ||
          predefined_cid == kTypeParameterCid ||
-         predefined_cid == kRecordTypeCid || predefined_cid == kFunctionTypeCid;
+         predefined_cid == kRecordTypeCid ||
+         predefined_cid == kFunctionTypeCid || predefined_cid == kConstMapCid;
 }
 
 inline bool IsShallowlyImmutableCid(intptr_t predefined_cid) {

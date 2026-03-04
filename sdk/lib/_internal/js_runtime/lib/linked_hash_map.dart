@@ -198,7 +198,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     }
   }
 
-  void _addHashTableEntry(var table, K key, V value) {
+  void _addHashTableEntry(table, K key, V value) {
     LinkedHashMapCell? cell = _getTableCell(table, key);
     if (cell == null) {
       _setTableEntry(table, key, _newLinkedCell(key, value));
@@ -207,7 +207,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     }
   }
 
-  V? _removeHashTableEntry(var table, Object? key) {
+  V? _removeHashTableEntry(table, Object? key) {
     if (table == null) return null;
     LinkedHashMapCell? cell = _getTableCell(table, key);
     if (cell == null) return null;
@@ -259,27 +259,27 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     _modified();
   }
 
-  static bool _isStringKey(var key) {
+  static bool _isStringKey(key) {
     return key is String;
   }
 
-  static bool _isNumericKey(var key) {
+  static bool _isNumericKey(key) {
     // Only treat unsigned 30-bit integers as numeric keys. This way,
     // we avoid converting them to strings when we use them as keys in
     // the JavaScript hash table object.
     return key is num && JS('bool', '(# & 0x3fffffff) === #', key, key);
   }
 
-  int internalComputeHashCode(var key) {
+  int internalComputeHashCode(key) {
     return bucketHashMask & key.hashCode;
   }
 
-  List<LinkedHashMapCell>? _getBucket(var table, var key) {
+  List<LinkedHashMapCell>? _getBucket(table, key) {
     var hash = internalComputeHashCode(key);
     return _getTableBucket(table, hash);
   }
 
-  int internalFindBucketIndex(var bucket, var key) {
+  int internalFindBucketIndex(bucket, key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -291,24 +291,24 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
 
   String toString() => MapBase.mapToString(this);
 
-  LinkedHashMapCell? _getTableCell(var table, var key) {
+  LinkedHashMapCell? _getTableCell(table, key) {
     return JS('var', '#[#]', table, key);
   }
 
-  List<LinkedHashMapCell>? _getTableBucket(var table, var key) {
+  List<LinkedHashMapCell>? _getTableBucket(table, key) {
     return JS('var', '#[#]', table, key);
   }
 
-  void _setTableEntry(var table, var key, var value) {
+  void _setTableEntry(table, key, value) {
     assert(value != null);
     JS('void', '#[#] = #', table, key, value);
   }
 
-  void _deleteTableEntry(var table, var key) {
+  void _deleteTableEntry(table, key) {
     JS('void', 'delete #[#]', table, key);
   }
 
-  bool _containsTableEntry(var table, var key) {
+  bool _containsTableEntry(table, key) {
     LinkedHashMapCell? cell = _getTableCell(table, key);
     return cell != null;
   }
@@ -493,11 +493,11 @@ class LinkedHashMapEntryIterator<K, V> implements Iterator<MapEntry<K, V>> {
 base class JsIdentityLinkedHashMap<K, V> extends JsLinkedHashMap<K, V> {
   JsIdentityLinkedHashMap();
 
-  int internalComputeHashCode(var key) {
+  int internalComputeHashCode(key) {
     return JsLinkedHashMap.bucketHashMask & identityHashCode(key);
   }
 
-  int internalFindBucketIndex(var bucket, var key) {
+  int internalFindBucketIndex(bucket, key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {
@@ -514,11 +514,11 @@ base class JsIdentityLinkedHashMap<K, V> extends JsLinkedHashMap<K, V> {
 base class JsConstantLinkedHashMap<K, V> extends JsLinkedHashMap<K, V> {
   JsConstantLinkedHashMap();
 
-  int internalComputeHashCode(var key) {
+  int internalComputeHashCode(key) {
     return JsLinkedHashMap.bucketHashMask & constantHashCode(key);
   }
 
-  int internalFindBucketIndex(var bucket, var key) {
+  int internalFindBucketIndex(bucket, key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
     for (int i = 0; i < length; i++) {

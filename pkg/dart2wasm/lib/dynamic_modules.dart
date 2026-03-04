@@ -19,7 +19,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'code_generator.dart';
 import 'compiler_options.dart';
-import 'constants.dart' show maxArrayNewFixedLength;
+import 'constants.dart' show maxArrayNewFixedLength, DummyValueConstant;
 import 'dispatch_table.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'intrinsics.dart' show MemberIntrinsic;
@@ -915,8 +915,21 @@ class DynamicModuleInfo {
         final table = translator.dispatchTable.getWasmTable(ib.moduleBuilder);
         ib.call_indirect(localSignature, table);
       }
-      translator.convertType(ib, localSignature.outputs.single,
-          generalizedMainSignature.outputs.single);
+      // Convert the output to the generalized signature type. Not all calls
+      // have an output. For example, setters where the implied output is never
+      // used.
+      if (localSignature.outputs.isNotEmpty &&
+          generalizedMainSignature.outputs.isNotEmpty) {
+        translator.convertType(ib, localSignature.outputs.single,
+            generalizedMainSignature.outputs.single);
+      } else if (localSignature.outputs.isNotEmpty) {
+        // This can happen when the shared signature from the main module is
+        // different from the local signature in the dynamic module. For
+        // example, one may use setter return values while the other doesn't.
+        ib.drop();
+      } else {
+        assert(generalizedMainSignature.outputs.isEmpty);
+      }
       ib.end();
     };
   }
@@ -924,7 +937,9 @@ class DynamicModuleInfo {
   void callOverridableDispatch(
       w.InstructionsBuilder b, SelectorInfo selector, Reference interfaceTarget,
       {required bool useUncheckedEntry}) {
-    metadata.invokedOverridableReferences.add(interfaceTarget);
+    if (!isSubmodule) {
+      metadata.invokedOverridableReferences.add(interfaceTarget);
+    }
 
     final localSignature = selector.signature;
     // If any input is not a RefType (i.e. it's an unboxed value) then wrap it
@@ -951,6 +966,21 @@ class DynamicModuleInfo {
     b.i32_const(useUncheckedEntry ? 1 : 0);
     b.local_get(idLocal);
 
+    final targetMember = interfaceTarget.asMember;
+    final enclosingClass = targetMember.enclosingClass!;
+    if (enclosingClass.isEliminatedMixin) {
+      // Eliminated mixins will have copies of all the members in the mixed in
+      // class. But the main module will not have known about these copies. So
+      // instead we use a reference to the implementation on the mixed in class
+      // itself. It is an invariant that this is the last type in the
+      // implementedTypes list.
+      final mixedInClass = enclosingClass.implementedTypes.last.classNode;
+      interfaceTarget = translator.hierarchy
+          .getDispatchTarget(mixedInClass, targetMember.name,
+              setter: selector.isSetter)!
+          .reference;
+    }
+
     final mainDispatchTable =
         translator.dynamicMainModuleDispatchTable ?? translator.dispatchTable;
     final mainModuleSelector =
@@ -968,8 +998,20 @@ class DynamicModuleInfo {
             buildSelectorBranch(interfaceTarget, mainModuleSelector),
         skipSubmodule:
             selector.targets(unchecked: false).allTargetRanges.isEmpty);
-    translator.convertType(
-        b, generalizedSignature.outputs.single, localSignature.outputs.single);
+    // Convert the output to the local signature type. Not all calls have
+    // an output. For example, setters where the implied output is never used.
+    if (generalizedSignature.outputs.isNotEmpty &&
+        localSignature.outputs.isNotEmpty) {
+      translator.convertType(b, generalizedSignature.outputs.single,
+          localSignature.outputs.single);
+    } else if (generalizedSignature.outputs.isNotEmpty) {
+      // This can happen when the shared signature from the main module is
+      // different from the local signature in the dynamic module. For example,
+      // one may use setter return values while the other doesn't.
+      b.drop();
+    } else {
+      assert(localSignature.outputs.isEmpty);
+    }
   }
 }
 
@@ -1001,7 +1043,11 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
   /// A local containing the value to be canonicalized.
   final w.Local valueLocal;
 
-  ConstantCanonicalizer(this.translator, this.b, this.valueLocal);
+  final Map<w.HeapType, w.Global> _dummyValueCheckers;
+  final w.FunctionType _dummyValueCheckerType;
+
+  ConstantCanonicalizer(this.translator, this.b, this.valueLocal,
+      this._dummyValueCheckers, this._dummyValueCheckerType);
 
   late final _checkerType = translator.typesBuilder.defineFunction([
     translator.topTypeNonNullable,
@@ -1322,9 +1368,38 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     }
   }
 
+  w.Global _initDummyValueChecker(w.HeapType heapType) {
+    final moduleBuilder = b.moduleBuilder;
+    final function = moduleBuilder.functions.define(_dummyValueCheckerType);
+    final global = moduleBuilder.globals.define(
+        w.GlobalType(w.RefType(_dummyValueCheckerType, nullable: false)));
+    global.initializer
+      ..ref_func(function)
+      ..end();
+    final ib = function.body;
+    ib.local_get(ib.locals[0]);
+    // Any value which satisfies the wasm type system will do. We just need a
+    // consistent value across modules for a given heap type. So as long as we
+    // always use the first matching one, it doesn't matter if multiple types
+    // use the same dummy value.
+    ib.ref_test(w.RefType(heapType, nullable: false));
+    ib.end();
+    return global;
+  }
+
   @override
-  Never visitAuxiliaryConstant(AuxiliaryConstant node) {
-    throw UnsupportedError('Cannot canonicalize auxiliary constants.');
+  void visitAuxiliaryConstant(AuxiliaryConstant node) {
+    if (node is DummyValueConstant) {
+      final heapType = node.type;
+      // The value is already on the stack.
+      b.global_get(
+          _dummyValueCheckers[heapType] ??= _initDummyValueChecker(heapType));
+      translator.callReference(
+          translator.dummyValueConstCanonicalize.reference, b);
+      b.ref_cast(w.RefType(heapType, nullable: false));
+      return;
+    }
+    throw UnsupportedError('Cannot canonicalize auxiliary constant: $node');
   }
 
   @override

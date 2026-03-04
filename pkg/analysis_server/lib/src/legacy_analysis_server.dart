@@ -19,8 +19,7 @@ import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
-import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart'
-    hide Occurrences;
+import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_errors.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_hover.dart';

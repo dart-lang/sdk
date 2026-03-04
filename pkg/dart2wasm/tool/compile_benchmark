@@ -17,28 +17,12 @@ function follow_links() {
   echo "$file"
 }
 
-function host_arch() {
-  # Use uname to determine the host architecture.
-  case `uname -m` in
-    x86_64)
-    echo "X64"
-    ;;
-    aarch64 | arm64 | armv8*)
-    echo "ARM64"
-    ;;
-    *)
-    echo "Unknown host architecture" `uname -m` >&2
-    exit 1
-    ;;
-  esac
-}
-
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
 PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
 # Handle the case where dart-sdk/bin has been symlinked to.
 PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
-SDK_DIR="$(cd "${PROG_DIR}/../../.." ; pwd -P)"
+source "$PROG_DIR/utils.sh"
 
 # Locate build directory, containing executables, snapshots and platform dill.
 if [[ `uname` == 'Darwin' ]]; then
@@ -46,7 +30,7 @@ if [[ `uname` == 'Darwin' ]]; then
 else
   OUT_DIR="$SDK_DIR/out"
 fi
-HOST_ARCH="$(host_arch)"
+HOST_ARCH="$(get_host_arch | tr '[:lower:]' '[:upper:]')"
 DART_CONFIGURATION=${DART_CONFIGURATION:-Release$HOST_ARCH}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
@@ -61,6 +45,8 @@ GENERATE_SOURCE_MAP=1
 COMPILE_BENCHMARK_BASE_NAME=""
 PLATFORM_FILENAME="$BIN_DIR/dart2wasm_platform.dill"
 SNAPSHOT_NAME="dart2wasm"
+RUN_BENCHMARK=0
+USE_TEMP_OUTPUT=0
 
 # All arguments will be passed along to dart2wasm except specially recognized
 # flags.
@@ -78,6 +64,23 @@ while [ $# -gt 0 ]; do
 
     --src)
       RUN_SRC=1
+      shift
+      ;;
+
+    --run)
+      RUN_BENCHMARK=1
+      RUN_BENCHMARK_SHELL="d8"
+      shift
+      ;;
+
+    --run=*)
+      RUN_BENCHMARK=1
+      RUN_BENCHMARK_SHELL="${1#--run=}"
+      shift
+      ;;
+
+    --temp-output)
+      USE_TEMP_OUTPUT=1
       shift
       ;;
 
@@ -159,9 +162,27 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-if [ -z "$DART_FILE" -o -z "$OUTPUT_FILE" ]; then
+if [ -z "$DART_FILE" ]; then
+  echo "Expected <file.dart> [file.wasm]"
+  exit 1
+fi
+
+if [ $USE_TEMP_OUTPUT -eq 1 ] && [ -n "$OUTPUT_FILE" ]; then
+  echo "Cannot specify both --temp-output and an explicit output file!"
+  exit 1
+fi
+
+if [ $USE_TEMP_OUTPUT -eq 0 ] && [ -z "$OUTPUT_FILE" ]; then
   echo "Expected <file.dart> <file.wasm>"
   exit 1
+fi
+
+if [ $USE_TEMP_OUTPUT -eq 1 ]; then
+  BASENAME=$(basename "$DART_FILE" .dart)
+  TEMP_DIR=$(mktemp -d)
+  trap "rm -rf $TEMP_DIR" EXIT
+  OUTPUT_FILE="$TEMP_DIR/${BASENAME}.wasm"
+  echo "Compiling to temporary file: $OUTPUT_FILE"
 fi
 
 if [ -z "$PHASES" ]; then
@@ -175,7 +196,7 @@ DART2WASM_SRC="$SDK_DIR/pkg/dart2wasm/bin/dart2wasm.dart"
 
 function measure() {
   set +e
-  RESULT=$( { /usr/bin/time --format="\nMemory: %M KB, Time: %e s" $@; } 2>&1 )
+  RESULT=$( { /usr/bin/time --format="\nMemory: %M KB, Time: %e s" "$@"; } 2>&1 )
   EXIT=$?
   if [ $EXIT -ne 0 ]; then
     echo "Running $@ resulted in exit code $EXIT"
@@ -195,31 +216,33 @@ function measure_size() {
 
 function run_if_binaryen_enabled() {
   if [ $RUN_BINARYEN -eq 1 ] && [[ $OUTPUT_FILE == *.wasm ]]; then
-    $@
+    "$@"
   fi
 }
 
 COMPILER_SIZE=0
 COMPILER_GZIP_SIZE=0
 
+if [ $RUN_SRC -eq 1 ]; then
+  BASE_CMD=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG")
+else
+  BASE_CMD=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG")
+fi
+
 function run_compiler() {
-  if [ $RUN_SRC -eq 1 ]; then
-    dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG" "${DART2WASM_ARGS[@]}" "--phases=$PHASES" "$DART_FILE" "$OUTPUT_FILE")
-  else
-    dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "--phases=$PHASES" "$DART_FILE" "$OUTPUT_FILE")
-  fi
+  local dart2wasm_command=("${BASE_CMD[@]}" "${DART2WASM_ARGS[@]}" "--phases=$PHASES" "$DART_FILE" "$OUTPUT_FILE")
 
   if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
     measure "${dart2wasm_command[@]}"
     COMPILER_TIME=$TIME
     COMPILER_MEMORY=$MEMORY
 
-    measure_size ${OUTPUT_FILE%.wasm}.mjs
+    measure_size "${OUTPUT_FILE%.wasm}.mjs"
     MJS_SIZE=$SIZE
     MJS_GZIP_SIZE=$GZIP_SIZE
 
     for OUTPUT_FILE in "${OUTPUT_FILE%.wasm}"*.wasm; do
-      measure_size $OUTPUT_FILE
+      measure_size "$OUTPUT_FILE"
       (( COMPILER_SIZE+=$SIZE ))
       (( COMPILER_GZIP_SIZE+=$GZIP_SIZE ))
     done
@@ -234,17 +257,14 @@ BINARYEN_SIZE=0
 BINARYEN_GZIP_SIZE=0
 
 function run_binaryen() {
-  if [ $RUN_SRC -eq 1 ]; then
-    opt_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG" "${DART2WASM_ARGS[@]}" "--phases=opt" "--wasm-opt=$BINARYEN" "$OUTPUT_FILE" "$OUTPUT_FILE")
-  else
-    opt_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "--phases=opt" "--wasm-opt=$BINARYEN" "$OUTPUT_FILE" "$OUTPUT_FILE")
-  fi
+  local opt_command=("${BASE_CMD[@]}" "${DART2WASM_ARGS[@]}" "--phases=opt" "--wasm-opt=$BINARYEN" "$OUTPUT_FILE" "$OUTPUT_FILE")
+
   if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
     # If we're measuring run each binaryen command sequentially.
     measure "${opt_command[@]}"
     BINARYEN_TIME=$(echo "$BINARYEN_TIME + $TIME" | bc)
     BINARYEN_MEMORY=$(($BINARYEN_MEMORY > $MEMORY ? $BINARYEN_MEMORY : $MEMORY ))
-    measure_size $OUTPUT_FILE
+    measure_size "$OUTPUT_FILE"
     BINARYEN_SIZE=$(echo "$BINARYEN_SIZE + $SIZE" | bc)
     BINARYEN_GZIP_SIZE=$(echo "$BINARYEN_GZIP_SIZE + $GZIP_SIZE" | bc)
     MAX_MEMORY=$(($COMPILER_MEMORY > $BINARYEN_MEMORY ? $COMPILER_MEMORY : $BINARYEN_MEMORY ))
@@ -275,4 +295,10 @@ if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
   run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Max(MemoryUse): $MAX_MEMORY bytes"
   echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Dart2Wasm(MemoryUse): $COMPILER_MEMORY bytes"
   run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Wasm2WasmOpt(MemoryUse): $BINARYEN_MEMORY bytes"
+fi
+
+if [ $RUN_BENCHMARK -eq 1 ]; then
+  echo ""
+  echo "RUNNING $OUTPUT_FILE"
+  "$PROG_DIR/run_benchmark" "--$RUN_BENCHMARK_SHELL" "$OUTPUT_FILE"
 fi

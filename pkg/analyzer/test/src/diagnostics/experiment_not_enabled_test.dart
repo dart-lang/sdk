@@ -76,10 +76,7 @@ class C {
   C({this._x});
 }
 ''',
-      [
-        error(diag.unusedField, 32, 2),
-        error(diag.experimentNotEnabledOffByDefault, 46, 2),
-      ],
+      [error(diag.unusedField, 32, 2), error(diag.experimentNotEnabled, 46, 2)],
     );
   }
 }

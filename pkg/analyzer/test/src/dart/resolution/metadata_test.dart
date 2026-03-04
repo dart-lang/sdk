@@ -193,6 +193,19 @@ A
 ''');
   }
 
+  test_location_forEach_declaredIdentifier() async {
+    await assertNoErrorsInCode(r'''
+const foo = 42;
+void f(List<int> list) {
+  for (@foo var x in list) {
+    x;
+  }
+}
+''');
+
+    _assertAtFoo42();
+  }
+
   test_location_forEachPartsWithDeclaration() async {
     await resolveTestCode(r'''
 void f() {

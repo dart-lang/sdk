@@ -1,0 +1,15 @@
+include: package:dart_flutter_team_lints/analysis_options.yaml
+
+analyzer:
+  language:
+    strict-raw-types: true
+
+linter:
+  rules:
+    - avoid_redundant_argument_values
+    - prefer_final_in_for_each
+    - prefer_final_locals
+    - sort_constructors_first
+    - sort_unnamed_constructors_first
+    - unnecessary_async
+    - unnecessary_breaks

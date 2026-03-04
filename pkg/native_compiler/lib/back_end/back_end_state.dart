@@ -5,6 +5,7 @@
 import 'package:cfg/ir/instructions.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/stack_frame.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
@@ -23,6 +24,9 @@ class BackEndState {
 
   /// Block order for the code generation.
   late final List<Block> codeGenBlockOrder;
+
+  /// Layout of the stack frame.
+  late final StackFrame stackFrame;
 
   /// Locations of inputs/outputs/temps, result of register allocation.
   late final Map<OperandId, Location> operandLocations;

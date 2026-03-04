@@ -2144,6 +2144,7 @@ class BinaryPrinter
   void visitFunctionExpression(FunctionExpression node) {
     writeByte(Tag.FunctionExpression);
     writeOffset(node.fileOffset);
+    writeUInt30(node.id.toInt());
     writeFunctionNode(node.function);
   }
 
@@ -2456,6 +2457,7 @@ class BinaryPrinter
     writeByte(Tag.FunctionDeclaration);
     writeOffset(node.fileOffset);
     writeVariableDeclaration(node.variable);
+    writeUInt30(node.id.toInt());
     writeFunctionNode(node.function);
   }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -67,14 +68,14 @@ class _C {
   int? a;
   int b;
   int? c;
-  _C([this.b = 1]);
+  _C([this.b = 1]) : a = null : c = null;
 }
 
 class _C2 {
   int? a;
   int b;
   int? c;
-  _C2({this.b = 1});
+  _C2({this.b = 1}) : a = null : c = null;
 }
 
 void main() {
@@ -92,6 +93,88 @@ class RemoveUnusedParameterTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.avoid_unused_constructor_parameters;
+
+  Future<void> test_fieldFormalParameter_withDefaultValue() async {
+    await resolveTestCode('''
+class _C {
+  final int? _i;
+  _C({this._i = 3});
+}
+''');
+    await assertHasFix(
+      '''
+class _C {
+  final int? _i;
+  _C() : _i = 3;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.unusedElementParameter,
+    );
+  }
+
+  Future<void>
+  test_fieldFormalParameter_withDefaultValue_withInitializer() async {
+    await resolveTestCode('''
+class _C {
+  final int? _i;
+  final int _j;
+  _C({this._i = 3}) : _j = 2;
+}
+''');
+    await assertHasFix(
+      '''
+class _C {
+  final int? _i;
+  final int _j;
+  _C() : _i = 3, _j = 2;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.unusedElementParameter,
+    );
+  }
+
+  Future<void> test_fieldFormalParameter_withoutDefaultValue() async {
+    await resolveTestCode('''
+class _C {
+  final int? _i;
+  _C({this._i});
+}
+''');
+    await assertHasFix(
+      '''
+class _C {
+  final int? _i;
+  _C() : _i = null;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.unusedElementParameter,
+    );
+  }
+
+  Future<void>
+  test_fieldFormalParameter_withoutDefaultValue_withInitializer() async {
+    await resolveTestCode('''
+class _C {
+  final int? _i;
+  final int _j;
+  _C({this._i}) : _j = 2;
+}
+''');
+    await assertHasFix(
+      '''
+class _C {
+  final int? _i;
+  final int _j;
+  _C() : _i = null, _j = 2;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.unusedElementParameter,
+    );
+  }
 
   Future<void> test_first_optionalNamed_second_optionalNamed() async {
     await resolveTestCode('''
@@ -327,6 +410,33 @@ class C {
 }
 ''');
   }
+
+  Future<void> test_primaryConstructor_named_optionalNamed() async {
+    await resolveTestCode('''
+class C.named({int? x});
+''');
+    await assertHasFix('''
+class C.named();
+''');
+  }
+
+  Future<void> test_primaryConstructor_unnamed_multiple() async {
+    await resolveTestCode('''
+class C(int x, var int y);
+''');
+    await assertHasFix('''
+class C(var int y);
+''');
+  }
+
+  Future<void> test_primaryConstructor_unnamed_requiredPositional() async {
+    await resolveTestCode('''
+class C(int x);
+''');
+    await assertHasFix('''
+class C();
+''');
+  }
 }
 
 /// Situations exist where unused parameters are flagged by hints, rather
@@ -353,7 +463,7 @@ void main() {
 class _C {
   final int variable;
   int? somethingElse;
-  _C({required this.variable});
+  _C({required this.variable}) : somethingElse = null;
 }
 
 void main() {
@@ -378,7 +488,7 @@ void main() {
 class _C {
   int? somethingElse;
   int? entirely;
-  _C([this.somethingElse]);
+  _C([this.somethingElse]) : entirely = null;
 }
 
 void main() {

@@ -65,6 +65,7 @@ import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart'
     show internalProblem, unhandled, unsupported, DebugAbort;
+import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -172,11 +173,6 @@ abstract class BodyBuilder {
     required List<FormalParameterBuilder>? formals,
     required int fileOffset,
   });
-
-  /// If the current member is an instance member of a non-extension
-  /// declaration, and the closure context lowering experiment is enabled, this
-  /// field contains the variable representing `this`.
-  ThisVariable? get internalThisVariable;
 }
 
 class BodyBuilderImpl extends StackListenerImpl
@@ -337,8 +333,10 @@ class BodyBuilderImpl extends StackListenerImpl
   /// for `this`.
   final VariableDeclaration? thisVariable;
 
-  @override
-  ThisVariable? internalThisVariable;
+  /// If the current member is an instance member of a non-extension
+  /// declaration, and the closure context lowering experiment is enabled, this
+  /// field contains the variable representing `this`.
+  ThisVariable? _internalThisVariable;
 
   final List<TypeParameter>? thisTypeParameters;
 
@@ -370,6 +368,7 @@ class BodyBuilderImpl extends StackListenerImpl
     required this.typeEnvironment,
     required ConstantContext constantContext,
     required this.extensionScope,
+    required ThisVariable? internalThisVariable,
   }) : _context = context,
        forest = const Forest(),
        enableNative = libraryBuilder.loader.target.backendTarget.enableNative(
@@ -377,47 +376,36 @@ class BodyBuilderImpl extends StackListenerImpl
        ),
        benchmarker = libraryBuilder.loader.target.benchmarker,
        _localScopes = new LocalStack([enclosingScope]),
-       _labelScopes = new LocalStack([new LabelScopeImpl()]) {
+       _labelScopes = new LocalStack([new LabelScopeImpl()]),
+       _internalThisVariable = internalThisVariable {
     this.constantContext = constantContext;
     if (formalParameterScope != null) {
       for (VariableBuilder builder in formalParameterScope!.localVariables) {
-        // TODO(62401): Ensure `builder.variable!` is an
-        // InternalExpressionVariable.
-        if (builder.variable!
-            case InternalExpressionVariable(
-                  astVariable: ExpressionVariable variable,
-                ) ||
-                // Coverage-ignore(suite): Not run.
-                ExpressionVariable variable) {
-          assignedVariables.declare(variable);
-        }
+        // TODO(62401): Remove the cast when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        assignedVariables.declare(
+          (builder.variable as InternalExpressionVariable).astVariable,
+        );
       }
     }
     if (thisVariable != null && context.isConstructor) {
       // The this variable is not part of the [formalParameterScope] in
       // constructors.
-      // TODO(62401): Ensure `thisVariable!` is an InternalExpressionVariable.
-      if (thisVariable!
-          case InternalExpressionVariable(
-                astVariable: ExpressionVariable variable,
-              ) ||
-              // Coverage-ignore(suite): Not run.
-              ExpressionVariable variable) {
-        assignedVariables.declare(variable);
-      }
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      assignedVariables.declare(
+        (thisVariable as InternalExpressionVariable).astVariable,
+      );
     }
-    if (isClosureContextLoweringEnabled &&
-        context.isDeclarationInstanceContext) {
-      ThisVariable variable = new ThisVariable(type: context.thisType!);
-      assignedVariables.declare(variable);
-      internalThisVariable = variable;
+    if (isClosureContextLoweringEnabled && _internalThisVariable != null) {
+      assignedVariables.declare(_internalThisVariable!);
     }
   }
 
   @override
   void readInternalThisVariable() {
-    if (internalThisVariable != null) {
-      assignedVariables.read(internalThisVariable!);
+    if (isClosureContextLoweringEnabled && _internalThisVariable != null) {
+      assignedVariables.read(_internalThisVariable!);
     }
   }
 
@@ -1142,7 +1130,7 @@ class BodyBuilderImpl extends StackListenerImpl
                 formal.name,
                 formal.fileOffset,
                 formal.fileOffset,
-                new VariableGet(formal.variable!)
+                new VariableGet(formal.variable)
                   ..fileOffset = formal.fileOffset,
                 formal: formal,
               );
@@ -2695,28 +2683,28 @@ class BodyBuilderImpl extends StackListenerImpl
             diag.notAConstantExpression,
           );
         }
-        ExpressionVariable variable = getable.variable!;
-        // TODO(johnniwinther): The handling of for-in variables should be
-        //  done through the builder.
+        ExpressionVariable variable = getable.variable;
         if (forStatementScope &&
-            variable.isAssignable &&
-            variable.isLate &&
-            variable.isFinal) {
+            getable.isAssignable &&
+            getable.isLate &&
+            getable.isFinal) {
           return new ForInLateFinalVariableUseGenerator(
             this,
             nameToken,
             variable,
           );
         } else if (!getable.isAssignable ||
-            (variable.isFinal && forStatementScope)) {
+            (getable.isFinal && forStatementScope)) {
           return _createReadOnlyVariableAccess(
             variable,
             nameToken,
             nameOffset,
             name,
-            variable.isConst
-                ? ReadOnlyAccessKind.ConstVariable
-                : ReadOnlyAccessKind.FinalVariable,
+            getable.isPrimaryConstructorParameter
+                ? ReadOnlyAccessKind.PrimaryConstructorParameter
+                : (getable.isConst
+                      ? ReadOnlyAccessKind.ConstVariable
+                      : ReadOnlyAccessKind.FinalVariable),
           );
         } else {
           return new VariableUseGenerator(this, nameToken, variable);
@@ -3149,8 +3137,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (!libraryFeatures.digitSeparators.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.digitSeparators.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.digitSeparators.name,
         ),
         token.offset,
         token.length,
@@ -3348,10 +3336,16 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     pushNewLocalVariable(initializer, equalsToken: assignmentOperator);
     if (isLate) {
-      VariableDeclaration node = peek() as VariableDeclaration;
+      VariableInitialization node = peek() as VariableInitialization;
       // This is matched by the call to [beginNode] in
       // [beginVariableInitializer].
-      assignedVariables.storeInfo(node, assignedVariablesInfo!);
+
+      // TODO(62401): Remove the cast when the flow analysis uses
+      // [InternalExpressionVariable]s.
+      assignedVariables.storeInfo(
+        (node.variable as InternalExpressionVariable).astVariable,
+        assignedVariablesInfo!,
+      );
     }
   }
 
@@ -3408,6 +3402,10 @@ class BodyBuilderImpl extends StackListenerImpl
         astVariable: new LocalVariable(
           cosmeticName: name,
           type: currentLocalVariableType,
+          isFinal: isFinal,
+          isConst: isConst,
+          isLate: isLate,
+          isWildcard: isWildcard,
         ),
         forSyntheticToken: identifier.token.isSynthetic,
         isImplicitlyTyped: currentLocalVariableType == null,
@@ -3415,6 +3413,7 @@ class BodyBuilderImpl extends StackListenerImpl
       variableInitialization = new VariableInitialization(
         variable: internalVariable.asExpressionVariable,
         initializer: initializer,
+        hasDeclaredInitializer: initializer != null,
       );
     } else {
       variableInitialization = internalVariable =
@@ -3450,7 +3449,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (parameters != null) {
         Map<String, VariableBuilder> local = {};
         for (FormalParameterBuilder formal in parameters) {
-          assignedVariables.declare(formal.variable!);
+          assignedVariables.declare(formal.variable);
           local[formal.name] = formal;
         }
         _localScopes.push(
@@ -4708,8 +4707,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (!libraryFeatures.digitSeparators.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.digitSeparators.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.digitSeparators.name,
         ),
         token.offset,
         token.length,
@@ -4786,8 +4785,8 @@ class BodyBuilderImpl extends StackListenerImpl
       if (!libraryFeatures.nullAwareElements.isEnabled) {
         // Coverage-ignore-block(suite): Not run.
         addProblem(
-          diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-            ExperimentalFlag.nullAwareElements.name,
+          diag.experimentNotEnabledOffByDefault.withArguments(
+            featureName: ExperimentalFlag.nullAwareElements.name,
           ),
           (nullAwareKeyToken ?? nullAwareValueToken!).offset,
           noLength,
@@ -5038,8 +5037,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.records.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.records.name,
         ),
         leftBracket.offset,
         noLength,
@@ -5389,7 +5388,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Identifier? name = nameNode as Identifier?;
 
-    FormalParameterBuilder? parameter;
+    ParameterBuilder? parameter;
     int nameOffset = offsetForToken(nameToken);
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
@@ -5404,22 +5403,11 @@ class BodyBuilderImpl extends StackListenerImpl
       }
     } else {
       String parameterName = name?.name ?? '';
-      String? publicName = problemReporting.checkPublicName(
-        compilationUnit: libraryBuilder.compilationUnit,
-        kind: kind,
-        parameterName: parameterName,
-        nameToken: nameToken,
-        thisKeyword: thisKeyword,
-        libraryFeatures: libraryFeatures,
-        fileUri: uri,
-      );
       bool isWildcard =
           libraryFeatures.wildcardVariables.isEnabled && parameterName == '_';
+      int? wildcardIndex;
       if (isWildcard) {
-        parameterName = createWildcardFormalParameterName(
-          wildcardVariableIndex,
-        );
-        wildcardVariableIndex++;
+        wildcardIndex = wildcardVariableIndex++;
       }
       if (memberKind.isFunctionType) {
         push(
@@ -5431,65 +5419,98 @@ class BodyBuilderImpl extends StackListenerImpl
         );
         return;
       }
-      parameter = new FormalParameterBuilder(
-        kind: kind,
-        modifiers: modifiers,
-        type: type ?? const ImplicitTypeBuilder(),
-        name: parameterName,
-        fileOffset: nameOffset,
-        nameOffset: nameOffset,
-        fileUri: uri,
-        hasImmediatelyDeclaredInitializer: initializerStart != null,
-        isWildcard: isWildcard,
-        publicName: publicName,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-      );
-    }
-    VariableDeclaration functionParameter = parameter.build(libraryBuilder);
-    Expression? initializer = name?.initializer;
-    if (initializer != null) {
-      if (_context.isRedirectingFactory) {
-        addProblem(
-          diag.defaultValueInRedirectingFactoryConstructor.withArguments(
-            redirectionTarget: _context.redirectingFactoryTargetName,
-          ),
-          initializer.fileOffset,
-          noLength,
+      if (memberKind == MemberKind.Catch) {
+        parameter = new CatchParameterBuilder(
+          modifiers: modifiers,
+          type: type ?? const ImplicitTypeBuilder(),
+          name: parameterName,
+          fileOffset: nameOffset,
+          nameOffset: nameOffset,
+          fileUri: uri,
+          wildcardIndex: wildcardIndex,
+          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         );
-        functionParameter.isErroneouslyInitialized = true;
       } else {
-        if (!parameter.initializerWasInferred) {
-          functionParameter.initializer = initializer
-            ..parent = functionParameter;
+        String? publicName = problemReporting.checkPublicName(
+          compilationUnit: libraryBuilder.compilationUnit,
+          kind: kind,
+          parameterName: parameterName,
+          nameToken: nameToken,
+          thisKeyword: thisKeyword,
+          isDeclaring: false,
+          libraryFeatures: libraryFeatures,
+          fileUri: uri,
+        );
+        parameter = new FormalParameterBuilder(
+          kind: kind,
+          modifiers: modifiers,
+          type: type ?? const ImplicitTypeBuilder(),
+          name: parameterName,
+          fileOffset: nameOffset,
+          nameOffset: nameOffset,
+          fileUri: uri,
+          hasImmediatelyDeclaredInitializer: initializerStart != null,
+          wildcardIndex: wildcardIndex,
+          publicName: publicName,
+          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+        );
+      }
+    }
+
+    ExpressionVariable functionParameter;
+    if (memberKind == MemberKind.Catch) {
+      functionParameter = (parameter as CatchParameterBuilder).build(
+        libraryBuilder,
+      );
+    } else {
+      functionParameter = (parameter as FormalParameterBuilder).build(
+        libraryBuilder,
+      );
+      Expression? initializer = name?.initializer;
+      if (initializer != null) {
+        if (_context.isRedirectingFactory) {
+          addProblem(
+            diag.defaultValueInRedirectingFactoryConstructor.withArguments(
+              redirectionTarget: _context.redirectingFactoryTargetName,
+            ),
+            initializer.fileOffset,
+            noLength,
+          );
+          functionParameter.isErroneouslyInitialized = true;
+        } else {
+          if (!parameter.initializerWasInferred) {
+            functionParameter.initializer = initializer
+              ..parent = functionParameter;
+          }
+        }
+      } else if (kind.isOptional) {
+        functionParameter.initializer ??= forest.createNullLiteral(noLocation)
+          ..parent = functionParameter;
+      }
+      if (annotations != null) {
+        if (functionParameter is VariableDeclaration) {
+          functionParameter.clearAnnotations();
+        }
+        for (Expression annotation in annotations) {
+          functionParameter.addAnnotation(annotation);
+        }
+        // TODO(johnniwinther): This seems wrong. If we add the annotations, we
+        //  should infer them.
+        if (functionNestingLevel == 0) {
+          _registerSingleTargetAnnotations(functionParameter);
         }
       }
-    } else if (kind.isOptional) {
-      functionParameter.initializer ??= forest.createNullLiteral(noLocation)
-        ..parent = functionParameter;
     }
-    if (annotations != null) {
-      functionParameter.clearAnnotations();
-      for (Expression annotation in annotations) {
-        functionParameter.addAnnotation(annotation);
-      }
-      // TODO(johnniwinther): This seems wrong. If we add the annotations, we
-      //  should infer them.
-      if (functionNestingLevel == 0) {
-        _registerSingleTargetAnnotations(functionParameter);
-      }
-    }
+
     push(parameter);
     // We pass `ignoreDuplicates: true` because the variable might have been
     // previously passed to `declare` in the `BodyBuilder` constructor.
-    // TODO(62401): Ensure `functionParameter` is an InternalExpressionVariable.
-    if (functionParameter
-        case InternalExpressionVariable(
-              astVariable: ExpressionVariable variable,
-            ) ||
-            // Coverage-ignore(suite): Not run.
-            ExpressionVariable variable) {
-      assignedVariables.declare(variable, ignoreDuplicates: true);
-    }
+    // TODO(62401): Remove the cast when the flow analysis uses
+    // [InternalExpressionVariable]s.
+    assignedVariables.declare(
+      (functionParameter as InternalExpressionVariable).astVariable,
+      ignoreDuplicates: true,
+    );
   }
 
   @override
@@ -5514,12 +5535,17 @@ class BodyBuilderImpl extends StackListenerImpl
         push(parameters);
       }
     } else {
-      List<FormalParameterBuilder>? parameters =
-          const FixedNullableList<FormalParameterBuilder>().popNonNullable(
-            stack,
-            count,
-            dummyFormalParameterBuilder,
-          );
+      List<ParameterBuilder>? parameters = inCatchClause
+          ? const FixedNullableList<CatchParameterBuilder>().popNonNullable(
+              stack,
+              count,
+              dummyCatchParameterBuilder,
+            )
+          : const FixedNullableList<FormalParameterBuilder>().popNonNullable(
+              stack,
+              count,
+              dummyFormalParameterBuilder,
+            );
       if (parameters == null) {
         push(new ParserRecovery(offsetForToken(beginToken)));
       } else {
@@ -5674,11 +5700,12 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       assert(
         checkState(beginToken, [
-          if (count > 0 && peek() is List<FormalParameterBuilder>) ...[
-            ValueKinds.FormalList,
+          if (count > 0 && peek() is List<ParameterVariableBuilder>) ...[
+            ValueKinds.ParameterList,
             ...repeatedKind(
               unionOfKinds([
                 ValueKinds.FormalParameterBuilder,
+                ValueKinds.CatchParameterBuilder,
                 ValueKinds.ParserRecovery,
               ]),
               count - 1,
@@ -5687,6 +5714,7 @@ class BodyBuilderImpl extends StackListenerImpl
             ...repeatedKind(
               unionOfKinds([
                 ValueKinds.FormalParameterBuilder,
+                ValueKinds.CatchParameterBuilder,
                 ValueKinds.ParserRecovery,
               ]),
               count,
@@ -5695,31 +5723,45 @@ class BodyBuilderImpl extends StackListenerImpl
           /* constantContext */ ValueKinds.ConstantContext,
         ]),
       );
-      List<FormalParameterBuilder>? optionals;
+      List<ParameterVariableBuilder>? optionals;
       int optionalsCount = 0;
-      if (count > 0 && peek() is List<FormalParameterBuilder>) {
-        optionals = pop() as List<FormalParameterBuilder>;
+      if (count > 0 && peek() is List<ParameterVariableBuilder>) {
+        optionals = pop() as List<ParameterVariableBuilder>;
         count--;
         optionalsCount = optionals.length;
       }
-      List<FormalParameterBuilder>? parameters =
-          const FixedNullableList<FormalParameterBuilder>()
-              .popPaddedNonNullable(
-                stack,
-                count,
-                optionalsCount,
-                dummyFormalParameterBuilder,
-              );
+      List<ParameterVariableBuilder>? parameters = inCatchClause
+          ? const FixedNullableList<CatchParameterBuilder>()
+                .popPaddedNonNullable(
+                  stack,
+                  count,
+                  optionalsCount,
+                  dummyCatchParameterBuilder,
+                )
+          : const FixedNullableList<FormalParameterBuilder>()
+                .popPaddedNonNullable(
+                  stack,
+                  count,
+                  optionalsCount,
+                  dummyFormalParameterBuilder,
+                );
       if (optionals != null && parameters != null) {
         parameters.setRange(count, count + optionalsCount, optionals);
       }
       assert(parameters?.isNotEmpty ?? true);
-      FormalParameters formals = new FormalParameters(
-        parameters,
-        offsetForToken(beginToken),
-        lengthOfSpan(beginToken, endToken),
-        uri,
-      );
+      Parameters formals = inCatchClause
+          ? new CatchParameters(
+              parameters as List<CatchParameterBuilder>?,
+              offsetForToken(beginToken),
+              lengthOfSpan(beginToken, endToken),
+              uri,
+            )
+          : new FormalParameters(
+              parameters as List<FormalParameterBuilder>?,
+              offsetForToken(beginToken),
+              lengthOfSpan(beginToken, endToken),
+              uri,
+            );
       inFormals = pop() as bool;
       constantContext = pop() as ConstantContext;
       push(formals);
@@ -5759,8 +5801,8 @@ class BodyBuilderImpl extends StackListenerImpl
     if (catchKeyword != null) {
       exitLocalScope();
     }
-    FormalParameters? catchParameters =
-        popIfNotNull(catchKeyword) as FormalParameters?;
+    CatchParameters? catchParameters =
+        popIfNotNull(catchKeyword) as CatchParameters?;
     TypeBuilder? unresolvedExceptionType =
         popIfNotNull(onKeyword) as TypeBuilder?;
     DartType exceptionType;
@@ -5773,8 +5815,8 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       exceptionType = coreTypes.objectNonNullableRawType;
     }
-    FormalParameterBuilder? exception;
-    FormalParameterBuilder? stackTrace;
+    CatchParameterBuilder? exception;
+    CatchParameterBuilder? stackTrace;
     List<Statement>? compileTimeErrors;
     if (catchParameters?.parameters != null) {
       int parameterCount = catchParameters!.parameters!.length;
@@ -5792,7 +5834,7 @@ class BodyBuilderImpl extends StackListenerImpl
         // If parameterCount is 0, the parser reported an error already.
         if (parameterCount != 0) {
           for (int i = 2; i < parameterCount; i++) {
-            FormalParameterBuilder parameter = catchParameters.parameters![i];
+            CatchParameterBuilder parameter = catchParameters.parameters![i];
             compileTimeErrors ??= <Statement>[];
             compileTimeErrors.add(
               buildProblemStatement(
@@ -5805,18 +5847,6 @@ class BodyBuilderImpl extends StackListenerImpl
         }
       }
     }
-    assert(
-      exception == null ||
-          exception.kind == FormalParameterKind.requiredPositional ||
-          // Coverage-ignore(suite): Not run.
-          exception.kind == FormalParameterKind.optionalPositional,
-    );
-    assert(
-      stackTrace == null ||
-          stackTrace.kind == FormalParameterKind.requiredPositional ||
-          // Coverage-ignore(suite): Not run.
-          stackTrace.kind == FormalParameterKind.optionalPositional,
-    );
     push(
       forest.createCatch(
         offsetForToken(onKeyword ?? catchKeyword),
@@ -7464,8 +7494,8 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("NullAwareElement");
     if (!libraryFeatures.nullAwareElements.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.nullAwareElements.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.nullAwareElements.name,
         ),
         nullAwareElement.offset,
         noLength,
@@ -9490,8 +9520,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement problem;
     bool isBreak = keyword.isA(Keyword.BREAK);
     if (name != null) {
-      Template<Function, Message Function({required String label})> template =
-          isBreak
+      Template<Message Function({required String label})> template = isBreak
           ? diag.breakTargetOutsideFunction
           : diag.continueTargetOutsideFunction;
       problem = buildProblemStatement(
@@ -9878,7 +9907,13 @@ class BodyBuilderImpl extends StackListenerImpl
       MemberBuilder firstBuilder = result.declarations.first;
       if (firstBuilder is SourcePropertyBuilder && firstBuilder.hasField) {
         // Assume the first field has been initialized.
-        _context.registerInitializedField(firstBuilder);
+        _context.registerInitializedField(
+          firstBuilder,
+          new FieldInitialization(
+            new UriOffsetLength(uri, fieldNameOffset, name.length),
+            fromInitializingFormal: formal != null,
+          ),
+        );
       }
       return <Initializer>[
         createInvalidInitializer(
@@ -9970,9 +10005,15 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
         ];
       } else {
-        _context.registerInitializedField(builder);
+        _context.registerInitializedField(
+          builder,
+          new FieldInitialization(
+            new UriOffsetLength(uri, fieldNameOffset, name.length),
+            fromInitializingFormal: formal != null,
+          ),
+        );
         if (formal != null && formal.type is! OmittedTypeBuilder) {
-          DartType formalType = formal.variable!.type;
+          DartType formalType = formal.variable.type;
           DartType fieldType = _context.substituteFieldType(builder.fieldType);
           if (!typeEnvironment.isSubtypeOf(formalType, fieldType)) {
             return [
@@ -10822,28 +10863,8 @@ class BodyBuilderImpl extends StackListenerImpl
       variable.charCount,
     );
     assert(variable.lexeme != '_');
-    Pattern pattern;
-    Expression variableUse = scopeLookup(
-      _localScope,
-      variable,
-    ).buildSimpleRead();
-    if (variableUse is VariableGet) {
-      ExpressionVariable variableDeclaration = variableUse.variable;
-      pattern = forest.createAssignedVariablePattern(
-        variable.charOffset,
-        variableDeclaration,
-      );
-      registerVariableAssignment(variableDeclaration);
-    } else {
-      addProblem(
-        diag.patternAssignmentNotLocalVariable,
-        variable.charOffset,
-        variable.charCount,
-      );
-      // Recover by using [WildcardPattern] instead.
-      pattern = forest.createWildcardPattern(variable.charOffset, null);
-    }
-    push(pattern);
+    Generator generator = scopeLookup(_localScope, variable);
+    push(generator.buildPatternAssignment(variable));
   }
 
   @override
@@ -11022,8 +11043,8 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("DotShorthandContext");
     if (!libraryFeatures.dotShorthands.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.dotShorthands.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.dotShorthands.name,
         ),
         token.offset,
         token.length,
@@ -11044,8 +11065,8 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("DotShorthandHead");
     if (!libraryFeatures.dotShorthands.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.dotShorthands.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.dotShorthands.name,
         ),
         token.offset,
         token.length,
@@ -11274,7 +11295,7 @@ class BodyBuilderImpl extends StackListenerImpl
       for (FormalParameterBuilder formal in formals) {
         // We pass `ignoreDuplicates: true` because the variable might have been
         // previously passed to `declare` in the `BodyBuilder` constructor.
-        assignedVariables.declare(formal.variable!, ignoreDuplicates: true);
+        assignedVariables.declare(formal.variable, ignoreDuplicates: true);
       }
     }
     token = parser.parseInitializersOpt(token);
@@ -11420,7 +11441,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (formals != null) {
       for (FormalParameterBuilder formalParameterBuilder in formals) {
-        assignedVariables.declare(formalParameterBuilder.variable!);
+        assignedVariables.declare(formalParameterBuilder.variable);
       }
     }
 
@@ -11480,12 +11501,12 @@ class BodyBuilderImpl extends StackListenerImpl
     );
   }
 
-  void _registerSingleTargetAnnotations(
-    Annotatable target, [
-    List<int>? indicesOfAnnotationsToBeInferred,
-  ]) {
+  void _registerSingleTargetAnnotations(Annotatable target) {
     (_singleTargetAnnotations ??= []).add(
-      new SingleTargetAnnotations(target, indicesOfAnnotationsToBeInferred),
+      new SingleTargetAnnotations(
+        target,
+        null /*indicesOfAnnotationsToBeInferred*/,
+      ),
     );
   }
 

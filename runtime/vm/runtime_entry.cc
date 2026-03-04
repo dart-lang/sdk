@@ -209,6 +209,16 @@ void OnEveryRuntimeEntryCall(Thread* thread,
 #define DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(name, argument_count)               \
   DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, /*can_lazy_deopt=*/false)
 
+#define DEFINE_LEAF_RUNTIME_ENTRY(name, argument_count, func)                  \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
+      true, false, /*can_lazy_deopt=*/false)
+
+#define DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(name, argument_count, func)            \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
+      true, true, /*can_lazy_deopt=*/false)
+
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& index = Instance::CheckedHandle(zone, arguments.ArgAt(1));
@@ -457,11 +467,15 @@ DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
 }
 
 static Heap::Space SpaceForRuntimeAllocation() {
-  return UNLIKELY(FLAG_runtime_allocate_old) ? Heap::kOld : Heap::kNew;
+  if (FLAG_runtime_allocate_old) [[unlikely]] {
+    return Heap::kOld;
+  } else {
+    return Heap::kNew;
+  }
 }
 
 static void RuntimeAllocationEpilogue(Thread* thread) {
-  if (UNLIKELY(FLAG_runtime_allocate_spill_tlab)) {
+  if (FLAG_runtime_allocate_spill_tlab) [[unlikely]] {
     static RelaxedAtomic<uword> count = 0;
     if ((count++ % 10) == 0) {
       thread->heap()->new_space()->AbandonRemainingTLAB(thread);
@@ -4841,7 +4855,7 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
   ObjectPtr result =
       interpreter->Call(function, argdesc, argc, argv, Array::null(), thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  if (UNLIKELY(IsErrorClassId(result->GetClassId()))) {
+  if (IsErrorClassId(result->GetClassId())) [[unlikely]] {
     // Must not leak handles in the caller's zone.
     HANDLESCOPE(thread);
     // Protect the result in a handle before transitioning, which may trigger
@@ -4916,7 +4930,7 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
     result = interpreter->Resume(thread, fp, sp, value.ptr(), exception.ptr(),
                                  stack_trace.ptr());
   }
-  if (UNLIKELY(IsErrorClassId(result.GetClassId()))) {
+  if (IsErrorClassId(result.GetClassId())) [[unlikely]] {
     Exceptions::PropagateError(Error::Cast(result));
   }
   arguments.SetReturn(result);
@@ -5018,70 +5032,88 @@ Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
   return temp_thread;
 }
 
-Thread* HandleSyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
-                              uword* out_entry_point,
-                              uword* out_trampoline_type) {
+Thread* HandleIsolateGroupBoundSyncFfiCallback(
+    FfiCallbackMetadata::Metadata metadata,
+    uword* out_entry_point,
+    uword* out_trampoline_type) {
   Thread* current_thread = Thread::Current();
 
-  if (metadata.is_isolate_group_bound()) {
-    *out_entry_point = metadata.target_entry_point();
-    *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
-  } else {
-    Isolate* target_isolate = metadata.target_isolate();
-    *out_entry_point = metadata.target_entry_point();
-    *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
-    if (current_thread == nullptr) {
-      FATAL("Cannot invoke native callback outside an isolate.");
-    }
-    if (current_thread->no_callback_scope_depth() != 0) {
-      FATAL("Cannot invoke native callback when API callbacks are prohibited.");
-    }
-    if (current_thread->is_unwind_in_progress()) {
-      FATAL("Cannot invoke native callback while unwind error propagates.");
-    }
-    if (!current_thread->IsDartMutatorThread()) {
-      FATAL("Native callbacks must be invoked on the mutator thread.");
-    }
-    if (current_thread->isolate() != target_isolate) {
-      FATAL("Cannot invoke native callback from a different isolate.");
-    }
-    if (current_thread->execution_state() != Thread::kThreadInNative) {
-      FATAL("Cannot invoke native callback from a leaf call.");
-    }
-  }
+  *out_entry_point = metadata.target_entry_point();
+  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
 
   if (current_thread != nullptr) {
     current_thread->ExitSafepointFromNative();
     current_thread->set_execution_state(Thread::kThreadInVM);
   }
 
-  if (metadata.is_isolate_group_bound()) {
-    Isolate* current_isolate =
-        current_thread != nullptr ? current_thread->isolate() : nullptr;
+  Isolate* current_isolate =
+      current_thread != nullptr ? current_thread->isolate() : nullptr;
 
-    if (current_thread != nullptr) {
-      Thread::ExitIsolate(/*isolate_shutdown=*/false);
-    }
-    Thread::EnterIsolateGroupAsMutator(metadata.target_isolate_group(),
-                                       /*bypass_safepoint=*/false);
-    auto new_thread = Thread::Current();
-    new_thread->set_execution_state(Thread::kThreadInVM);
-    // We need to go back to current thread after we come back from
-    // the callback.
-    new_thread->set_unboxed_int64_runtime_arg(
-        reinterpret_cast<intptr_t>(current_thread));
-    new_thread->set_unboxed_int64_runtime_second_arg(
-        reinterpret_cast<intptr_t>(current_isolate));
-    current_thread = new_thread;
+  if (current_thread != nullptr) {
+    Thread::ExitIsolate(/*isolate_shutdown=*/false);
   }
+  Thread::EnterIsolateGroupAsMutator(metadata.target_isolate_group(),
+                                     /*bypass_safepoint=*/false);
+  auto new_thread = Thread::Current();
+  new_thread->set_execution_state(Thread::kThreadInVM);
+  // We need to go back to current thread after we come back from
+  // the callback.
+  new_thread->set_unboxed_int64_runtime_arg(
+      reinterpret_cast<intptr_t>(current_thread));
+  new_thread->set_unboxed_int64_runtime_second_arg(
+      reinterpret_cast<intptr_t>(current_isolate));
+  current_thread = new_thread;
 
   current_thread->set_unboxed_int64_runtime_arg(metadata.context());
 
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", current_thread);
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",
-                     (void*)*out_entry_point);
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
-                     (void*)*out_trampoline_type);
+  return current_thread;
+}
+
+void FfiCallbackThreadChecks(Thread* thread, Isolate* target_isolate) {
+  if (thread->no_callback_scope_depth() != 0) {
+    FATAL("Cannot invoke native callback when API callbacks are prohibited.");
+  }
+  if (thread->is_unwind_in_progress()) {
+    FATAL("Cannot invoke native callback while unwind error propagates.");
+  }
+  if (!thread->IsDartMutatorThread()) {
+    FATAL("Native callbacks must be invoked on the mutator thread.");
+  }
+  if (thread->isolate() != target_isolate) {
+    FATAL("Cannot invoke native callback from a different isolate.");
+  }
+}
+
+Thread* HandleIsolateBoundSyncFfiCallback(
+    FfiCallbackMetadata::Metadata metadata,
+    uword* out_entry_point,
+    uword* out_trampoline_type) {
+  Thread* current_thread = Thread::Current();
+
+  *out_entry_point = metadata.target_entry_point();
+  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
+
+  Isolate* target_isolate = metadata.target_isolate();
+  if (current_thread == nullptr) {
+    if (!PortMap::IsOwnedByCurrentThread(target_isolate->main_port())) {
+      FATAL("Cannot invoke native callback outside an isolate.");
+    }
+    Thread::EnterIsolate(target_isolate);
+    current_thread = Thread::Current();
+    *out_trampoline_type |=
+        FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag;
+    FfiCallbackThreadChecks(current_thread, target_isolate);
+  } else {
+    FfiCallbackThreadChecks(current_thread, target_isolate);
+    if (current_thread->execution_state() != Thread::kThreadInNative) {
+      FATAL("Cannot invoke native callback from a leaf call.");
+    }
+    current_thread->ExitSafepointFromNative();
+  }
+
+  current_thread->set_execution_state(Thread::kThreadInVM);
+  current_thread->set_unboxed_int64_runtime_arg(metadata.context());
+
   return current_thread;
 }
 }  // namespace
@@ -5122,14 +5154,25 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     FATAL("Callback invoked after it has been deleted.");
   }
 
+  Thread* thread = nullptr;
   if (metadata.trampoline_type() ==
       FfiCallbackMetadata::TrampolineType::kAsync) {
-    return HandleAsyncFfiCallback(metadata, out_entry_point,
-                                  out_trampoline_type);
+    thread =
+        HandleAsyncFfiCallback(metadata, out_entry_point, out_trampoline_type);
+  } else if (metadata.is_isolate_group_bound()) {
+    thread = HandleIsolateGroupBoundSyncFfiCallback(metadata, out_entry_point,
+                                                    out_trampoline_type);
   } else {
-    return HandleSyncFfiCallback(metadata, out_entry_point,
-                                 out_trampoline_type);
+    thread = HandleIsolateBoundSyncFfiCallback(metadata, out_entry_point,
+                                               out_trampoline_type);
   }
+
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", thread);
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",
+                     (void*)*out_entry_point);
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
+                     (void*)*out_trampoline_type);
+  return thread;
 }
 
 extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
@@ -5145,6 +5188,14 @@ extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
     Thread::EnterIsolate(source_isolate);
     Thread::Current()->EnterSafepoint();
   }
+}
+
+extern "C" void DLRT_ExitSyncCallbackTargetIsolate() {
+  TRACE_RUNTIME_CALL("ExitSyncCallbackTargetIsolate%s", "");
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  thread->set_execution_state(Thread::kThreadInVM);
+  Thread::ExitIsolate(/*isolate_shutdown=*/false);
 }
 
 extern "C" void DLRT_ExitTemporaryIsolate() {

@@ -2169,20 +2169,20 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       closedWorld,
     );
 
+    final sourceInformation = _sourceInformationBuilder.buildCall(
+      functionNode,
+      functionNode,
+    );
     push(
       HInvokeExternal(
         targetElement as FunctionEntity,
         inputs,
         returnType,
         nativeBehavior,
-        sourceInformation: null,
+        sourceInformation: sourceInformation,
       ),
     );
     HInstruction value;
-    final sourceInformation = _sourceInformationBuilder.buildCall(
-      functionNode,
-      functionNode,
-    );
     if (options.nativeNullAssertions && nodeIsInWebLibrary(functionNode)) {
       value = pop();
       DartType type = _getDartTypeIfValid(functionNode.returnType);

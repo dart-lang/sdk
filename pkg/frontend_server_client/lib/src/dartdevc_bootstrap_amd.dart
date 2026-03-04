@@ -51,7 +51,6 @@ String generateAmdMainModule({required String entrypoint}) {
   return '''/* ENTRYPOINT_EXTENTION_MARKER */
 // Create the main module loaded below.
 require(["$entrypoint.lib.js", "dart_sdk"], function(app, dart_sdk) {
-  dart_sdk.dart.setStartAsyncSynchronously(true);
   dart_sdk._debugger.registerDevtoolsFormatter();
 
   // See the generateMainModule doc comment.

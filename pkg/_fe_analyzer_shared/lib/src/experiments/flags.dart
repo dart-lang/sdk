@@ -85,7 +85,7 @@ enum ExperimentalFlag {
   dotShorthands(
     name: 'dot-shorthands',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 10),
     experimentReleasedVersion: const Version(3, 9),
   ),
@@ -239,15 +239,15 @@ enum ExperimentalFlag {
     isEnabledByDefault: false,
     isExpired: false,
     experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentReleasedVersion: const Version(3, 12),
   ),
 
   privateNamedParameters(
     name: 'private-named-parameters',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 12),
+    experimentReleasedVersion: const Version(3, 12),
   ),
 
   recordUse(

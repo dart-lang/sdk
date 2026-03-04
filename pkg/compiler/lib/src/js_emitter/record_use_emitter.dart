@@ -6,24 +6,31 @@
 ///
 /// See [documentation](../../../doc/record_uses.md) for examples.
 ///
-/// To appear in the output, arguments must be primitive constants i.e. int,
-/// double, String, bool, null. Other constants (e.g. enums, const objects) will
-/// simply be missing as though they were not constants.
+/// To appear in the output, arguments must be constants i.e. int, String, bool,
+/// null, List, Map, or constant objects.
 library;
 
-import 'dart:io';
-
-import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/io/source_information.dart';
 // ignore: implementation_imports
-import 'package:front_end/src/api_unstable/dart2js.dart' show relativizeUri;
-import 'package:compiler/src/deferred_load/output_unit.dart';
-import 'package:compiler/src/js_model/js_world.dart';
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+import 'package:kernel/ast.dart' as ir;
 import 'package:record_use/record_use_internal.dart';
 
+import '../common/elements.dart';
+import '../constants/values.dart';
+import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as js;
+import '../js_model/element_map.dart';
+import '../js_model/js_world.dart';
 import '../universe/recorded_use.dart'
-    show RecordedCallWithArguments, RecordedTearOff, RecordedUse;
+    show
+        RecordUseValueConverter,
+        RecordedCallWithArguments,
+        RecordedConstInstance,
+        RecordedInstanceCreation,
+        RecordedConstructorTearOff,
+        RecordedTearOff,
+        RecordedUse;
 
 class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
   final RecordUseCollector _collector;
@@ -41,82 +48,188 @@ class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
 }
 
 class RecordUseCollector {
+  final JClosedWorld _closedWorld;
   RecordUseCollector(this._closedWorld);
 
-  final JClosedWorld _closedWorld;
+  JsToElementMap get _elementMap => _closedWorld.elementMap;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
+  late final RecordUseValueConverter _converter = RecordUseValueConverter(
+    _elementEnvironment,
+    _closedWorld.annotationsData,
+  );
 
   final Map<FunctionEntity, List<CallReference>> callMap = {};
+  final Map<ClassEntity, List<InstanceReference>> instanceMap = {};
 
   js.JavaScriptAnnotationMonitor monitorFor(String fileName) {
     return _AnnotationMonitor(this, fileName);
   }
 
-  Location _recordUseLocation(SourceInformation sourceInformation) {
-    SourceLocation? sourceLocation =
-        sourceInformation.startPosition ??
-        sourceInformation.innerPosition ??
-        sourceInformation.endPosition;
-    if (sourceLocation == null) {
-      throw UnsupportedError('Source location is null.');
-    }
-    final sourceUri = sourceLocation.sourceUri;
-    if (sourceUri == null) {
-      throw UnsupportedError('Source uri is null.');
-    }
-
-    // Is [sourceUri] normalized in some way or does that need to be done
-    // here?
-    return Location(
-      uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
-    );
-  }
-
   void _register(String loadingUnit, RecordedUse recordedUse) {
-    final location = _recordUseLocation(recordedUse.sourceInformation);
-    final callReference = switch (recordedUse) {
-      RecordedCallWithArguments() => CallWithArguments(
-        loadingUnit: loadingUnit,
-        namedArguments: recordedUse.namedArgumentsInRecordUseFormat(),
-        positionalArguments: recordedUse.positionalArgumentsInRecordUseFormat(),
-        location: location,
-      ),
-      RecordedTearOff() => CallTearOff(
-        loadingUnit: loadingUnit,
-        location: location,
-      ),
-    };
-    callMap.putIfAbsent(recordedUse.function, () => []).add(callReference);
+    switch (recordedUse) {
+      case RecordedCallWithArguments():
+        final reference = CallWithArguments(
+          loadingUnits: [LoadingUnit(loadingUnit)],
+          receiver: recordedUse.receiverInRecordUseFormat(_converter),
+          namedArguments: recordedUse.namedArgumentsInRecordUseFormat(
+            _converter,
+          ),
+          positionalArguments: recordedUse.positionalArgumentsInRecordUseFormat(
+            _converter,
+          ),
+        );
+        callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
+        break;
+      case RecordedTearOff():
+        final reference = CallTearoff(
+          loadingUnits: [LoadingUnit(loadingUnit)],
+          receiver: recordedUse.receiverInRecordUseFormat(_converter),
+        );
+        callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
+        break;
+      case RecordedConstInstance():
+        if (_elementEnvironment.isEnumClass(recordedUse.constantClass)) {
+          // TODO(https://github.com/dart-lang/native/issues/2908): Support enum
+          // constant instances.
+          break;
+        }
+        final instanceValue = _converter.findInstanceValue(
+          recordedUse.constant,
+        );
+        final reference = InstanceConstantReference(
+          instanceConstant: instanceValue as InstanceConstant,
+          loadingUnits: [LoadingUnit(loadingUnit)],
+        );
+        instanceMap
+            .putIfAbsent(recordedUse.constantClass, () => [])
+            .add(reference);
+        break;
+      case RecordedInstanceCreation():
+        final reference = InstanceCreationReference(
+          loadingUnits: [LoadingUnit(loadingUnit)],
+          namedArguments: recordedUse.namedArguments.map(
+            (k, v) => MapEntry(k, _converter.findValueOrNonConst(v)),
+          ),
+          positionalArguments: recordedUse.positionalArguments
+              .map((v) => _converter.findValueOrNonConst(v))
+              .toList(),
+        );
+        instanceMap.putIfAbsent(recordedUse.cls, () => []).add(reference);
+        break;
+      case RecordedConstructorTearOff():
+        final reference = ConstructorTearoffReference(
+          loadingUnits: [LoadingUnit(loadingUnit)],
+        );
+        instanceMap.putIfAbsent(recordedUse.cls, () => []).add(reference);
+        break;
+    }
   }
 
-  Map<String, dynamic> finish(
-    Map<String, String> environment,
-    Map<OutputUnit, String> outputUnitToName,
-  ) => Recordings(
-    metadata: Metadata(
-      comment: 'Resources referenced by annotated resource identifiers',
-      version: version,
-      extension: {'AppTag': 'TBD', 'environment': environment},
-    ),
-    callsForDefinition: callMap.map(
-      (key, value) => MapEntry(
-        Definition(
-          identifier: Identifier(
-            name: key.name!,
-            scope: key.enclosingClass?.name,
-            importUri: relativizeUri(
-              Uri.base,
-              key.library.canonicalUri,
-              Platform.isWindows,
+  Map<String, dynamic> finish() {
+    final calls = <Definition, List<CallReference>>{};
+    callMap.forEach((k, v) {
+      final definition = _getDefinitionForFunction(k);
+      // Multiple FunctionEntitys can map to the same Definition, for example
+      // an extension member implementation and its extension member tear-off.
+      // We merge them here because they represent the same logical member.
+      calls.putIfAbsent(definition, () => []).addAll(v);
+    });
+    return Recordings(
+      calls: calls,
+      instances: instanceMap.map((key, value) {
+        return MapEntry(
+          Definition(key.library.canonicalUri.toString(), [
+            Name(
+              key.name,
+              kind: _elementEnvironment.isEnumClass(key)
+                  ? DefinitionKind.enumKind
+                  : DefinitionKind.classKind,
             ),
-          ),
-          loadingUnit:
-              outputUnitToName[_closedWorld.outputUnitData.outputUnitForMember(
-                key,
-              )]!,
+          ]),
+          value,
+        );
+      }),
+    ).toJson();
+  }
+
+  Definition _getDefinitionForFunction(FunctionEntity function) {
+    final libraryUri = function.library.canonicalUri.toString();
+    final String name = function.name!;
+
+    final node = _elementMap.getMemberDefinition(function).node;
+    DefinitionKind kind = DefinitionKind.methodKind;
+    if (node is ir.Procedure) {
+      if (node.isExtensionMember || node.isExtensionTypeMember) {
+        kind = isExtensionMemberTearOff(node)
+            ? DefinitionKind.methodKind
+            : isExtensionMemberGetter(node)
+            ? DefinitionKind.getterKind
+            : isExtensionMemberSetter(node)
+            ? DefinitionKind.setterKind
+            : isExtensionMemberOperator(node)
+            ? DefinitionKind.operatorKind
+            : DefinitionKind.methodKind;
+      } else {
+        kind = switch (node.kind) {
+          ir.ProcedureKind.Getter => DefinitionKind.getterKind,
+          ir.ProcedureKind.Setter => DefinitionKind.setterKind,
+          ir.ProcedureKind.Operator => DefinitionKind.operatorKind,
+          ir.ProcedureKind.Factory => DefinitionKind.constructorKind,
+          ir.ProcedureKind.Method => DefinitionKind.methodKind,
+        };
+      }
+    } else if (function is ConstructorEntity) {
+      kind = DefinitionKind.constructorKind;
+    }
+
+    final String? qualifiedExtensionName =
+        extractQualifiedNameFromExtensionMethodName(name);
+    if (qualifiedExtensionName != null) {
+      final List<String> parts = qualifiedExtensionName.split('.');
+
+      var originallyInstance = false;
+      _elementEnvironment.forEachParameter(function, (
+        DartType type,
+        String? name,
+        ConstantValue? defaultValue,
+      ) {
+        if (isExtensionThisName(name)) {
+          originallyInstance = true;
+        }
+      });
+
+      return Definition(libraryUri, [
+        Name(
+          hasUnnamedExtensionNamePrefix(name) ? '<unnamed>' : parts[0],
+          kind: (node is ir.Procedure && node.isExtensionTypeMember)
+              ? DefinitionKind.extensionTypeKind
+              : DefinitionKind.extensionKind,
         ),
-        value,
+        Name(
+          parts[1],
+          kind: kind,
+          disambiguators: {
+            originallyInstance
+                ? DefinitionDisambiguator.instanceDisambiguator
+                : DefinitionDisambiguator.staticDisambiguator,
+          },
+        ),
+      ]);
+    }
+
+    return Definition(libraryUri, [
+      if (function.enclosingClass != null)
+        Name(function.enclosingClass!.name, kind: DefinitionKind.classKind),
+      Name(
+        name,
+        kind: kind,
+        disambiguators: {
+          (function.isStatic || function.isTopLevel)
+              ? DefinitionDisambiguator.staticDisambiguator
+              : DefinitionDisambiguator.instanceDisambiguator,
+        },
       ),
-    ),
-    instancesForDefinition: {},
-  ).toJson();
+    ]);
+  }
 }

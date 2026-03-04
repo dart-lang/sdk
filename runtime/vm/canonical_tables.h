@@ -444,7 +444,7 @@ class RegExpKey {
   }
   uword Hash() const {
     // Must agree with RegExp::CanonicalizeHash.
-    return CombineHashes(pattern_.Hash(), flags_.value());
+    return CombineHashes(pattern_.Hash(), flags_);
   }
 
   const String& pattern_;

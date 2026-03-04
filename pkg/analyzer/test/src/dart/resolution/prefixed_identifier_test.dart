@@ -99,36 +99,6 @@ PrefixedIdentifier
 ''');
   }
 
-  test_class_read_typedef_functionType() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-typedef A = void Function();
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart' as p;
-
-void f() {
-  p.A;
-}
-''');
-
-    var node = findNode.singlePrefixedIdentifier;
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: p
-    element: <testLibraryFragment>::@prefix2::p
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: A
-    element: package:test/a.dart::@typeAlias::A
-    staticType: Type
-  element: package:test/a.dart::@typeAlias::A
-  staticType: Type
-''');
-  }
-
   test_class_readWrite_assignment() async {
     await assertNoErrorsInCode('''
 class A {
@@ -206,32 +176,6 @@ AssignmentExpression
   writeType: int
   element: <null>
   staticType: int
-''');
-  }
-
-  test_dynamic_explicitCore_withPrefix() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:core' as mycore;
-
-main() {
-  mycore.dynamic;
-}
-''');
-
-    var node = findNode.singlePrefixedIdentifier;
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: mycore
-    element: <testLibraryFragment>::@prefix2::mycore
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: dynamic
-    element: dynamic
-    staticType: Type
-  element: dynamic
-  staticType: Type
 ''');
   }
 
@@ -433,66 +377,6 @@ SimpleIdentifier
   token: a
   element: package:test/a.dart::@getter::a
   staticType: A?
-''');
-  }
-
-  test_importPrefix_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.A;
-}
-''');
-
-    var node = findNode.prefixed('prefix.');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: A
-    element: package:test/a.dart::@class::A
-    staticType: Type
-  element: package:test/a.dart::@class::A
-  staticType: Type
-''');
-  }
-
-  test_importPrefix_functionTypeAlias() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-typedef void F();
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.F;
-}
-''');
-
-    var node = findNode.prefixed('prefix.');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: F
-    element: package:test/a.dart::@typeAlias::F
-    staticType: Type
-  element: package:test/a.dart::@typeAlias::F
-  staticType: Type
 ''');
   }
 
@@ -1161,36 +1045,6 @@ PrefixedIdentifier
     staticType: InvalidType
   element: <null>
   staticType: InvalidType
-''');
-  }
-
-  test_read_typedef_interfaceType() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-typedef A = List<int>;
-''');
-
-    await assertNoErrorsInCode('''
-import 'a.dart' as p;
-
-void f() {
-  p.A;
-}
-''');
-
-    var node = findNode.singlePrefixedIdentifier;
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: p
-    element: <testLibraryFragment>::@prefix2::p
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: A
-    element: package:test/a.dart::@typeAlias::A
-    staticType: Type
-  element: package:test/a.dart::@typeAlias::A
-  staticType: Type
 ''');
   }
 }

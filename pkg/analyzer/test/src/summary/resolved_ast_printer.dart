@@ -352,13 +352,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.typeName != null) {
-      assert(
-        // ignore: deprecated_member_use_from_same_package
-        identical(node.returnType, node.typeName),
-      );
-    }
-
     _sink.writeln('ConstructorDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -803,7 +796,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeGenericFunctionTypeElement(
+        _writeGenericFunctionTypeFragment(
           'declaredFragment',
           node.declaredFragment,
         );
@@ -1826,8 +1819,6 @@ Expected parent: (${parent.runtimeType}) $parent
       _sink.writeIf(fragment.isPrivate, 'isPrivate ');
       _sink.writeIf(fragment.isPublic, 'isPublic ');
       _sink.writeIf(fragment.isStatic, 'isStatic ');
-      // ignore: deprecated_member_use_from_same_package
-      _sink.writeIf(fragment.isSynthetic, 'isSynthetic ');
       _sink.write('${fragment.name ?? ''}@${fragment.nameOffset}');
     });
 
@@ -1917,17 +1908,19 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
-  void _writeGenericFunctionTypeElement(
+  void _writeGenericFunctionTypeFragment(
     String name,
-    GenericFunctionTypeFragmentImpl? element,
+    GenericFunctionTypeFragmentImpl? fragment,
   ) {
     _sink.writeWithIndent('$name: ');
-    if (element == null) {
+    if (fragment == null) {
       _sink.writeln('<null>');
     } else {
       _sink.withIndent(() {
         _sink.writeln('GenericFunctionTypeElement');
-        _writeFormalParameterFragments(element.formalParameters);
+        _writeFormalParameterFragments(fragment.formalParameters);
+
+        var element = fragment.element;
         _writeType('returnType', element.returnType);
         _writeType('type', element.type);
       });

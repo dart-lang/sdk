@@ -30,6 +30,7 @@ import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
+import '../util/helpers.dart';
 import 'internal_ast.dart';
 
 /// Interface that defines the interface between the [BodyBuilder] and the
@@ -276,8 +277,13 @@ abstract class BodyBuilderContext {
   }
 
   /// Registers that the field [builder] has been initialized in generative
-  /// constructor whose body is being built.
-  void registerInitializedField(SourcePropertyBuilder builder) {
+  /// constructor whose body is being built with [fromInitializingFormal]
+  /// whether the field was initialized through an initializing formal, or from
+  /// and explicit field initializer in the initializer list.
+  void registerInitializedField(
+    SourcePropertyBuilder builder,
+    FieldInitialization fieldInitialization,
+  ) {
     throw new UnsupportedError('${runtimeType}.registerInitializedField');
   }
 
@@ -395,6 +401,15 @@ abstract class BodyBuilderContext {
   /// This is only used for classes. For extensions and extension types, `this`
   /// is handled via a synthetic this variable.
   InterfaceType? get thisType => declarationContext.thisType;
+
+  /// Variable representing `this` in member bodies of classes and similar.
+  ///
+  /// Declarations with synthesized `this`, such as extensions and extension
+  /// types, don't have an internal [ThisVariable] because `this` is desugared
+  /// as a parameter in that case.
+  ThisVariable? createInternalThisVariable() {
+    return thisType != null ? new ThisVariable(type: thisType!) : null;
+  }
 }
 
 /// Interface that provides information for a [BodyBuilderContext] from the

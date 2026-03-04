@@ -123,7 +123,7 @@ class FlowAnalysisHelper {
     var typeAnnotation = node.type;
 
     flow!.asExpression_end(
-      expression,
+      flow!.getExpressionInfo(expression),
       subExpressionType: SharedTypeView(expression.typeOrThrow),
       castType: SharedTypeView(typeAnnotation.typeOrThrow),
     );
@@ -305,7 +305,7 @@ class FlowAnalysisHelper {
     flow!.storeExpressionInfo(
       node,
       flow!.isExpression_end(
-        expression,
+        flow!.getExpressionInfo(expression),
         node.notOperator != null,
         subExpressionType: SharedTypeView(expression.typeOrThrow),
         checkedType: SharedTypeView(typeAnnotation.typeOrThrow),
@@ -979,6 +979,22 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   _AssignedVariablesVisitor(this.assignedVariables);
 
   @override
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    node.target?.accept(this);
+    var parameters = node.parameters;
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        var element = parameter.declaredFragment?.element;
+        if (element is FormalParameterElementImpl) {
+          assignedVariables.declare(element);
+        }
+      }
+      parameters.accept(this);
+    }
+    node.body.accept(this);
+  }
+
+  @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var element = node.element;
     if (element is PromotableElementImpl) {
@@ -1270,7 +1286,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         assignedVariables.declare(variable);
       } else if (forLoopParts is ForEachPartsWithPatternImpl) {
         for (var variable in forLoopParts.variables) {
-          assignedVariables.declare(variable.element);
+          assignedVariables.declare(variable);
         }
       } else {
         throw StateError('Unrecognized for loop parts');

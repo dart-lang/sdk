@@ -36,7 +36,7 @@ extension ArgParserExtensions on ArgParser {
       allowedHelp: verbose ? allowedHelp : null,
       help:
           'Enable one or more experimental features '
-          '(see dart.dev/go/experiments).',
+          '(see https://dart.dev/go/experiments).',
       hide: !verbose,
     );
   }

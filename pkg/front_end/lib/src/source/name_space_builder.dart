@@ -64,10 +64,12 @@ class DeclarationNameSpaceBuilder {
         );
 
     Map<String, List<Fragment>> fragmentsByName = {};
+    int primaryConstructBodyCount = 0;
     List<PrimaryConstructorBodyFragment>? primaryConstructorBodies;
     for (Fragment fragment in _fragments) {
       if (fragment is PrimaryConstructorBodyFragment) {
         (primaryConstructorBodies ??= []).add(fragment);
+        primaryConstructBodyCount++;
       } else {
         (fragmentsByName[fragment.name] ??= []).add(fragment);
       }
@@ -115,6 +117,28 @@ class DeclarationNameSpaceBuilder {
         member,
         member.fileUri!,
       );
+    }
+
+    if (primaryConstructorBodies != null &&
+        primaryConstructorBodies.isNotEmpty) {
+      bool hasPrimaryConstructor =
+          primaryConstructBodyCount > primaryConstructorBodies.length;
+      int index = hasPrimaryConstructor ? 1 : 0;
+      for (PrimaryConstructorBodyFragment fragment
+          in primaryConstructorBodies) {
+        if (index == 0) {
+          problemReporting.addProblem2(
+            diag.primaryConstructorBodyWithoutDeclaration,
+            fragment.uriOffset,
+          );
+        } else {
+          problemReporting.addProblem2(
+            diag.multiplePrimaryConstructorBodyDeclarations,
+            fragment.uriOffset,
+          );
+        }
+        index++;
+      }
     }
 
     memberBuilders.forEach(checkConflicts);
