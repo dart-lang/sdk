@@ -49,7 +49,7 @@ workspace:
     assertNoErrors('''
 name: sample
 workspace:
-  - *
+  - '*'
 ''');
   }
 
