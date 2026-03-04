@@ -344,29 +344,23 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             parameterType = _voidFunctionNoParameters();
           }
           var isFunctionType = parameterType is FunctionType;
+          Expression? argument;
+          if (isFunctionType && argumentIndex < arguments.length) {
+            argument = arguments[argumentIndex];
+          }
           _forExpression(
             parent,
             mustBeNonVoid: true,
             canBeNull: _canBeNull(parameterType),
             canBeBool: _canBeBool(parameterType),
+            includeTrailingCommaAfterClosure:
+                argument == null || !argument.isFollowedByComma,
             // TODO(FMorschel): Determine if the parameter type has a constant
             //  constructor.
             // Function tear-offs and closures cannot have the `const` keyword
             // before it
             canSuggestConst: !isFunctionType,
           );
-          var expression = node.thisOrAncestorOfType<ExpressionImpl>();
-          var isConstant =
-              expression?.constantContext(includeSelf: true) != null;
-          if (isFunctionType && !isConstant) {
-            Expression? argument;
-            if (argumentIndex < arguments.length) {
-              argument = arguments[argumentIndex];
-            }
-            var includeTrailingComma =
-                argument == null || !argument.isFollowedByComma;
-            _addClosureSuggestion(parameterType, includeTrailingComma);
-          }
         } else {
           collector.completionLocation = _locationFor(node, isNamed: true);
         }
@@ -2231,14 +2225,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         //  constructor.
         // Function tear-offs and closures cannot have the `const` keyword
         // before it
+        includeTrailingCommaAfterClosure: !node.isFollowedByComma,
         canSuggestConst: !isFunctionType,
       );
-      var expression = node.ifTypeOrNull<ExpressionImpl>();
-      var isConstant = expression?.constantContext(includeSelf: true) != null;
-      if (isFunctionType && !isConstant) {
-        var includeTrailingComma = !node.isFollowedByComma;
-        _addClosureSuggestion(parameterType, includeTrailingComma);
-      }
     }
   }
 
@@ -3452,10 +3441,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (equals != null && offset >= equals.end) {
       collector.completionLocation = 'VariableDeclaration_initializer';
       _forExpression(node, mustBeNonVoid: true);
-      var variableType = node.declaredFragment?.element.type;
-      if (variableType is FunctionType && !node.isConst) {
-        _addClosureSuggestion(variableType, false);
-      }
     }
   }
 
@@ -3555,9 +3540,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   /// Adds a suggestion for a closure.
   void _addClosureSuggestion(
-    FunctionType parameterType,
-    bool includeTrailingComma,
-  ) {
+    FunctionType parameterType, {
+    required bool includeTrailingComma,
+  }) {
     var includeTypes = state.includeTypes;
     collector.addSuggestion(
       ClosureSuggestion(
@@ -3796,10 +3781,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool canBeNull = true,
     bool canSuggestConst = true,
     bool preferNonInvocation = false,
+    bool includeTrailingCommaAfterClosure = false,
   }) {
     var mustBeConstant =
-        node is Expression &&
-        (node.inConstantContext || node.parent is DefaultFormalParameter);
+        node is ExpressionImpl &&
+        (node.constantContext(includeSelf: true) != null ||
+            node.parent is DefaultFormalParameter);
     var mustBeStatic = node.inStaticContext;
     keywordHelper.addExpressionKeywords(
       node,
@@ -3816,6 +3803,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       mustBeStatic: mustBeStatic,
       preferNonInvocation: preferNonInvocation,
     ).addLexicalDeclarations(node);
+    var type = state.contextType;
+    if (type?.isDartCoreFunction ?? false) {
+      type = _voidFunctionNoParameters();
+    }
+    if (type is FunctionType && !mustBeConstant) {
+      _addClosureSuggestion(
+        type,
+        includeTrailingComma: includeTrailingCommaAfterClosure,
+      );
+    }
   }
 
   /// Adds the suggestions that are appropriate when the selection is at the
