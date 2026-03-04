@@ -317,6 +317,73 @@ class A {
     return _assertConditionsFatal("Can't inline an operator.");
   }
 
+  Future<void> test_bad_primaryConstructor_body() async {
+    await indexTestUnit(r'''
+class A() {
+  th^is {}
+}
+''');
+    _createRefactoring();
+    // error
+    return _assertInvalidSelection();
+  }
+
+  Future<void> test_bad_primaryConstructor_factoryKeyword() async {
+    await indexTestUnit(r'''
+class A {
+  new _();
+  fac^tory() => A._();
+}
+''');
+    _createRefactoring();
+    // error
+    return _assertInvalidSelection();
+  }
+
+  Future<void> test_bad_primaryConstructor_factoryKeyword_named() async {
+    await indexTestUnit(r'''
+class A {
+  new();
+  fac^tory named() => A();
+}
+''');
+    _createRefactoring();
+    // error
+    return _assertInvalidSelection();
+  }
+
+  Future<void> test_bad_primaryConstructor_name() async {
+    await indexTestUnit(r'''
+class A.nam^ed() {
+}
+''');
+    _createRefactoring();
+    // error
+    return _assertInvalidSelection();
+  }
+
+  Future<void> test_bad_primaryConstructor_newKeyword() async {
+    await indexTestUnit(r'''
+class A {
+  ne^w();
+}
+''');
+    _createRefactoring();
+    // error
+    return _assertInvalidSelection();
+  }
+
+  Future<void> test_bad_primaryConstructor_newKeyword_named() async {
+    await indexTestUnit(r'''
+class A {
+  new nam^ed();
+}
+''');
+    _createRefactoring();
+    // error
+    return _assertInvalidSelection();
+  }
+
   Future<void> test_bad_propertyAccessor_synthetic() async {
     await indexTestUnit(r'''
 class A {

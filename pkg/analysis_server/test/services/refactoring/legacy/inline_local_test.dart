@@ -160,6 +160,28 @@ void f() {
 ''');
   }
 
+  Future<void> test_OK_inPrimaryConstructorBody() async {
+    await indexTestUnit('''
+class A() {
+  this {
+    int test = 1 + 2;
+    print(test);
+    print(test);
+  }
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    await assertSuccessfulRefactoring('''
+class A() {
+  this {
+    print(1 + 2);
+    print(1 + 2);
+  }
+}
+''');
+  }
+
   Future<void> test_OK_inSwitchCase_language219() async {
     await indexTestUnit('''
 // @dart=2.19
