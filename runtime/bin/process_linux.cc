@@ -38,21 +38,29 @@ int Process::global_exit_code_ = 0;
 Mutex* Process::global_exit_code_mutex_ = nullptr;
 Process::ExitHook Process::exit_hook_ = nullptr;
 
-// ProcessInfo is used to map a process id to the file descriptor for
-// the pipe used to communicate the exit code of the process to Dart.
-// ProcessInfo objects are kept in the static singly-linked
-// ProcessInfoList.
+// ProcessInfo represents a child process started by ProcessStarter.
+//
+// fd_ contains the file descriptor for the write end of a pipe used to
+// communicate the exit code of the process to Dart. fd_ might be -1 if
+// we failed to create a pipe.
 class ProcessInfo {
  public:
   ProcessInfo(pid_t pid, intptr_t fd) : pid_(pid), fd_(fd) {}
   ~ProcessInfo() {
-    int closed = close(fd_);
-    if (closed != 0) {
-      FATAL("Failed to close process exit code pipe");
+    if (fd_ != -1) {
+      int closed = close(fd_);
+      if (closed != 0) {
+        FATAL("Failed to close process exit code pipe");
+      }
     }
   }
   pid_t pid() { return pid_; }
   intptr_t fd() { return fd_; }
+  intptr_t take_fd() {
+    intptr_t fd = fd_;
+    fd_ = -1;
+    return fd;
+  }
   ProcessInfo* next() { return next_; }
   void set_next(ProcessInfo* info) { next_ = info; }
 
@@ -78,35 +86,25 @@ class ProcessInfoList {
     active_processes_ = info;
   }
 
-  static intptr_t LookupProcessExitFd(pid_t pid) {
-    MutexLocker locker(mutex_);
-    ProcessInfo* current = active_processes_;
-    while (current != nullptr) {
-      if (current->pid() == pid) {
-        return current->fd();
-      }
-      current = current->next();
-    }
-    return 0;
-  }
-
-  static void RemoveProcess(pid_t pid) {
+  static bool RemoveProcess(pid_t pid, intptr_t* fd) {
     MutexLocker locker(mutex_);
     ProcessInfo* prev = nullptr;
     ProcessInfo* current = active_processes_;
     while (current != nullptr) {
       if (current->pid() == pid) {
+        *fd = current->take_fd();
         if (prev == nullptr) {
           active_processes_ = current->next();
         } else {
           prev->set_next(current->next());
         }
         delete current;
-        return;
+        return true;
       }
       prev = current;
       current = current->next();
     }
+    return false;
   }
 
  private:
@@ -206,21 +204,23 @@ class ExitCodeHandler {
           exit_code = WTERMSIG(status);
           negative = 1;
         }
-        intptr_t exit_code_fd = ProcessInfoList::LookupProcessExitFd(pid);
-        if (exit_code_fd != 0) {
-          int message[2] = {exit_code, negative};
-          ssize_t result =
-              FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
-          // If the process has been closed, the read end of the exit
-          // pipe has been closed. It is therefore not a problem that
-          // write fails with a broken pipe error. Other errors should
-          // not happen.
-          if ((result != -1) && (result != sizeof(message))) {
-            FATAL("Failed to write entire process exit message");
-          } else if ((result == -1) && (errno != EPIPE)) {
-            FATAL("Failed to write exit code: %d", errno);
+        intptr_t exit_code_fd;
+        if (ProcessInfoList::RemoveProcess(pid, &exit_code_fd)) {
+          if (exit_code_fd != -1) {
+            int message[2] = {exit_code, negative};
+            ssize_t result =
+                FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
+            // If the process has been closed, the read end of the exit
+            // pipe has been closed. It is therefore not a problem that
+            // write fails with a broken pipe error. Other errors should
+            // not happen.
+            if ((result != -1) && (result != sizeof(message))) {
+              FATAL("Failed to write entire process exit message");
+            } else if ((result == -1) && (errno != EPIPE)) {
+              FATAL("Failed to write exit code: %d", errno);
+            }
+            close(exit_code_fd);
           }
-          ProcessInfoList::RemoveProcess(pid);
           {
             MonitorLocker locker(monitor_);
             process_count_--;
@@ -386,17 +386,11 @@ class ProcessStarter {
     // listen for exit-codes, now that we have a non detached child process
     // and also Register this child process.
     if (Process::ModeIsAttached(mode_)) {
+      ExitCodeHandler::ProcessStarted();
       err = RegisterProcess(pid);
       if (err != 0) {
-        // The child is blocked in read() waiting for the go signal that
-        // will never arrive.  Kill it and reap immediately.
-        // ProcessStarted() has not been called yet so the exit-code
-        // handler is not involved.
-        kill(pid, SIGKILL);
-        waitpid(pid, nullptr, 0);
         return err;
       }
-      ExitCodeHandler::ProcessStarted();
     }
 
     // Notify child process to start. This is done to delay the call to exec
@@ -496,10 +490,10 @@ class ProcessStarter {
   }
 
   void NewProcess() {
-    // Close the write end of the start-signal pipe so that read() below
-    // sees EOF if the parent closes its end (e.g. on error cleanup).
-    // Without this the child holds both ends open and blocks forever.
+    // Close the write end of the pipe so that read below EOFs if something
+    // goes wrong in the parent and it closes write end as well.
     close(read_in_[1]);
+    read_in_[1] = -1;
     // Wait for parent process before setting up the child process.
     char msg;
     int bytes_read = FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
@@ -637,6 +631,14 @@ class ProcessStarter {
     int event_fds[2];
     result = TEMP_FAILURE_RETRY(pipe2(event_fds, O_CLOEXEC));
     if (result < 0) {
+      // Even if we failed to create a pipe we still add process to the list
+      // so that |ExitProcessHandler| can correctly identify it when it exits
+      // and decrement its count of running processes.
+      // Note: we do not expect child process to die before we close the
+      // write end of read_in_ pipe in CleanupAndReturnError below, if it
+      // does actually die there will be race in ExitProcessHandler not being
+      // able to find it in the list of child processes.
+      ProcessInfoList::AddProcess(pid, -1);
       return CleanupAndReturnError();
     }
 
