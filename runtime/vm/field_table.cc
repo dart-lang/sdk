@@ -117,7 +117,7 @@ void FieldTable::Grow(intptr_t new_capacity) {
   old_tables_->Add(old_table);
   // Ensure that new_table_ is populated before it is published
   // via store to table_.
-  reinterpret_cast<AcqRelAtomic<ObjectPtr*>*>(&table_)->store(new_table);
+  std::atomic_ref(table_).store(new_table, std::memory_order_release);
   if (isolate_group_ != nullptr) {
     isolate_group_->ForEachIsolate(
         [&](Isolate* isolate) {

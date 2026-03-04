@@ -896,9 +896,8 @@ class Object {
 
   template <typename FieldType, std::memory_order order>
   FieldType LoadNonPointer(const FieldType* addr) const {
-    return reinterpret_cast<std::atomic<FieldType>*>(
-               const_cast<FieldType*>(addr))
-        ->load(order);
+    return std::atomic_ref<FieldType>(*const_cast<FieldType*>(addr))
+        .load(order);
   }
 
   // Needs two template arguments to allow assigning enums to fixed-size ints.
@@ -913,8 +912,8 @@ class Object {
   void StoreNonPointer(const FieldType* addr, ValueType value) const {
     // Can't use Contains, as it uses tags_, which is set through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(ptr()));
-    reinterpret_cast<std::atomic<FieldType>*>(const_cast<FieldType*>(addr))
-        ->store(value, order);
+    std::atomic_ref<FieldType>(*const_cast<FieldType*>(addr))
+        .store(value, order);
   }
 
   // Provides non-const access to non-pointer fields within the object. Such

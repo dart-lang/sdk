@@ -26,40 +26,19 @@
 
 namespace dart {
 
-static Dart_CObject cobj_sentinel = {Dart_CObject_kUnsupported, {false}};
-static Dart_CObject cobj_dynamic_type = {Dart_CObject_kUnsupported, {false}};
-static Dart_CObject cobj_void_type = {Dart_CObject_kUnsupported, {false}};
-static Dart_CObject cobj_empty_type_arguments = {Dart_CObject_kUnsupported,
-                                                 {false}};
-static Dart_CObject cobj_true = {Dart_CObject_kBool, {true}};
-static Dart_CObject cobj_false = {Dart_CObject_kBool, {false}};
-
-// Workaround for lack of designated initializers until we adopt c++20
-class PredefinedCObjects {
- public:
-  static PredefinedCObjects& getInstance() {
-    static PredefinedCObjects instance;
-    return instance;
-  }
-
-  static Dart_CObject* cobj_null() { return &getInstance().cobj_null_; }
-  static Dart_CObject* cobj_empty_array() {
-    return &getInstance().cobj_empty_array_;
-  }
-
- private:
-  PredefinedCObjects() {
-    cobj_null_.type = Dart_CObject_kNull;
-    cobj_null_.value.as_int64 = 0;
-    cobj_empty_array_.type = Dart_CObject_kArray;
-    cobj_empty_array_.value.as_array = {0, nullptr};
-  }
-
-  Dart_CObject cobj_null_;
-  Dart_CObject cobj_empty_array_;
-
-  DISALLOW_COPY_AND_ASSIGN(PredefinedCObjects);
-};
+static Dart_CObject cobj_sentinel = {.type = Dart_CObject_kUnsupported};
+static Dart_CObject cobj_dynamic_type = {.type = Dart_CObject_kUnsupported};
+static Dart_CObject cobj_void_type = {.type = Dart_CObject_kUnsupported};
+static Dart_CObject cobj_empty_type_arguments = {.type =
+                                                     Dart_CObject_kUnsupported};
+static Dart_CObject cobj_true = {.type = Dart_CObject_kBool,
+                                 .value = {.as_bool = true}};
+static Dart_CObject cobj_false = {.type = Dart_CObject_kBool,
+                                  .value = {.as_bool = false}};
+static Dart_CObject cobj_null = {.type = Dart_CObject_kNull,
+                                 .value = {.as_int64 = 0}};
+static Dart_CObject cobj_empty_array = {.type = Dart_CObject_kArray,
+                                        .value = {.as_array = {0, nullptr}}};
 
 enum class MessagePhase {
   kBeforeTypes = 0,
@@ -2374,7 +2353,7 @@ class ArrayMessageSerializationCluster : public MessageSerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       Dart_CObject* array = reinterpret_cast<Dart_CObject*>(objects_[i]);
       intptr_t length = array->value.as_array.length;
-      s->WriteRef(PredefinedCObjects::cobj_null());  // TypeArguments
+      s->WriteRef(&cobj_null);  // TypeArguments
       for (intptr_t j = 0; j < length; j++) {
         s->WriteRef(array->value.as_array.values[j]);
       }
@@ -2819,7 +2798,7 @@ bool ApiMessageSerializer::Trace(Dart_CObject* object) {
   intptr_t cid;
   switch (object->type) {
     case Dart_CObject_kNull:
-      ForwardRef(object, PredefinedCObjects::cobj_null());
+      ForwardRef(object, &cobj_null);
       return true;
     case Dart_CObject_kBool:
       ForwardRef(object, object->value.as_bool ? &cobj_true : &cobj_false);
@@ -3234,9 +3213,9 @@ void MessageDeserializer::AddBaseObjects() {
 }
 
 void ApiMessageSerializer::AddBaseObjects() {
-  AddBaseObject(PredefinedCObjects::cobj_null());
+  AddBaseObject(&cobj_null);
   AddBaseObject(&cobj_sentinel);
-  AddBaseObject(PredefinedCObjects::cobj_empty_array());
+  AddBaseObject(&cobj_empty_array);
   AddBaseObject(&cobj_dynamic_type);
   AddBaseObject(&cobj_void_type);
   AddBaseObject(&cobj_empty_type_arguments);
@@ -3245,9 +3224,9 @@ void ApiMessageSerializer::AddBaseObjects() {
 }
 
 void ApiMessageDeserializer::AddBaseObjects() {
-  AddBaseObject(PredefinedCObjects::cobj_null());
+  AddBaseObject(&cobj_null);
   AddBaseObject(&cobj_sentinel);
-  AddBaseObject(PredefinedCObjects::cobj_empty_array());
+  AddBaseObject(&cobj_empty_array);
   AddBaseObject(&cobj_dynamic_type);
   AddBaseObject(&cobj_void_type);
   AddBaseObject(&cobj_empty_type_arguments);

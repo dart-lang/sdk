@@ -2560,15 +2560,15 @@ void Simulator::DecodeAtomicMemory(Instr* instr) {
 
   if (size == 3) {
     uint64_t in = get_register(rs, R31IsZR);
-    auto addr =
-        reinterpret_cast<std::atomic<uint64_t>*>(get_register(rn, R31IsSP));
+    auto addr = std::atomic_ref(
+        *reinterpret_cast<uint64_t*>(get_register(rn, R31IsSP)));
     uint64_t out;
     switch (opc) {
       case 1:
-        out = addr->fetch_and(~in, order);
+        out = addr.fetch_and(~in, order);
         break;
       case 3:
-        out = addr->fetch_or(in, order);
+        out = addr.fetch_or(in, order);
         break;
       default:
         UNIMPLEMENTED();
@@ -2577,15 +2577,15 @@ void Simulator::DecodeAtomicMemory(Instr* instr) {
   } else if (size == 2) {
     ASSERT(size == 2);
     uint32_t in = get_wregister(rs, R31IsZR);
-    auto addr =
-        reinterpret_cast<std::atomic<uint32_t>*>(get_register(rn, R31IsSP));
+    auto addr = std::atomic_ref(
+        *reinterpret_cast<uint32_t*>(get_register(rn, R31IsSP)));
     uint32_t out;
     switch (opc) {
       case 1:
-        out = addr->fetch_and(~in, order);
+        out = addr.fetch_and(~in, order);
         break;
       case 3:
-        out = addr->fetch_or(in, order);
+        out = addr.fetch_or(in, order);
         break;
       default:
         UNIMPLEMENTED();

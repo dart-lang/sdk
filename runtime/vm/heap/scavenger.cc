@@ -117,14 +117,14 @@ static void objcpy(void* dst, const void* src, size_t size) {
 
 DART_FORCE_INLINE
 static uword ReadHeaderRelaxed(ObjectPtr obj) {
-  return reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(obj))
-      ->load(std::memory_order_relaxed);
+  return std::atomic_ref(*reinterpret_cast<uword*>(UntaggedObject::ToAddr(obj)))
+      .load(std::memory_order_relaxed);
 }
 
 DART_FORCE_INLINE
 static void WriteHeaderRelaxed(ObjectPtr obj, uword header) {
-  reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(obj))
-      ->store(header, std::memory_order_relaxed);
+  std::atomic_ref(*reinterpret_cast<uword*>(UntaggedObject::ToAddr(obj)))
+      .store(header, std::memory_order_relaxed);
 }
 
 class ScavengerVisitor : public ObjectPointerVisitor,
@@ -524,8 +524,9 @@ class ScavengerVisitor : public ObjectPointerVisitor,
   bool InstallForwardingPointer(uword addr,
                                 uword* old_header,
                                 uword new_header) {
-    return reinterpret_cast<std::atomic<uword>*>(addr)->compare_exchange_strong(
-        *old_header, new_header, std::memory_order_relaxed);
+    return std::atomic_ref(*reinterpret_cast<uword*>(addr))
+        .compare_exchange_strong(*old_header, new_header,
+                                 std::memory_order_relaxed);
   }
 
   DART_FORCE_INLINE

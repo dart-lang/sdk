@@ -602,8 +602,7 @@ class UntaggedObject {
   }
   template <typename type, std::memory_order order>
   type LoadPointer(type const* addr) const {
-    return reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->load(order);
+    return std::atomic_ref<type>(*const_cast<type*>(addr)).load(order);
   }
   template <typename type, typename compressed_type>
   type LoadCompressedPointer(compressed_type const* addr) const {
@@ -612,9 +611,9 @@ class UntaggedObject {
   }
   template <typename type, typename compressed_type, std::memory_order order>
   type LoadCompressedPointer(compressed_type const* addr) const {
-    compressed_type v = reinterpret_cast<std::atomic<compressed_type>*>(
-                            const_cast<compressed_type*>(addr))
-                            ->load(order);
+    compressed_type v =
+        std::atomic_ref<compressed_type>(*const_cast<compressed_type*>(addr))
+            .load(order);
     return static_cast<type>(v.Decompress(heap_base()));
   }
   template <typename type, typename compressed_type>
@@ -638,8 +637,7 @@ class UntaggedObject {
   }
   template <typename type, std::memory_order order>
   void StorePointer(type const* addr, type value) {
-    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->store(value, order);
+    std::atomic_ref<type>(*const_cast<type*>(addr)).store(value, order);
     if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
@@ -654,9 +652,8 @@ class UntaggedObject {
   }
   template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedPointer(compressed_type const* addr, type value) {
-    reinterpret_cast<std::atomic<compressed_type>*>(
-        const_cast<compressed_type*>(addr))
-        ->store(static_cast<compressed_type>(value), order);
+    std::atomic_ref<compressed_type>(*const_cast<compressed_type*>(addr))
+        .store(static_cast<compressed_type>(value), order);
     if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
@@ -698,8 +695,7 @@ class UntaggedObject {
   }
   template <typename type, std::memory_order order, typename value_type = type>
   void StoreArrayPointer(type const* addr, value_type value) {
-    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->store(type(value), order);
+    std::atomic_ref<type>(*const_cast<type*>(addr)).store(type(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
     }
@@ -722,9 +718,8 @@ class UntaggedObject {
   }
   template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedArrayPointer(compressed_type const* addr, type value) {
-    reinterpret_cast<std::atomic<compressed_type>*>(
-        const_cast<compressed_type*>(addr))
-        ->store(static_cast<compressed_type>(value), order);
+    std::atomic_ref<compressed_type>(*const_cast<compressed_type*>(addr))
+        .store(static_cast<compressed_type>(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
     }
@@ -734,9 +729,8 @@ class UntaggedObject {
   void StoreCompressedArrayPointer(compressed_type const* addr,
                                    type value,
                                    Thread* thread) {
-    reinterpret_cast<std::atomic<compressed_type>*>(
-        const_cast<compressed_type*>(addr))
-        ->store(static_cast<compressed_type>(value), order);
+    std::atomic_ref<compressed_type>(*const_cast<compressed_type*>(addr))
+        .store(static_cast<compressed_type>(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, thread);
     }
@@ -757,9 +751,8 @@ class UntaggedObject {
             std::memory_order order = std::memory_order_relaxed>
   type ExchangeCompressedPointer(compressed_type const* addr, type value) {
     compressed_type previous_value =
-        reinterpret_cast<std::atomic<compressed_type>*>(
-            const_cast<compressed_type*>(addr))
-            ->exchange(static_cast<compressed_type>(value), order);
+        std::atomic_ref<compressed_type>(*const_cast<compressed_type*>(addr))
+            .exchange(static_cast<compressed_type>(value), order);
     if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
@@ -771,8 +764,7 @@ class UntaggedObject {
   }
   template <std::memory_order order>
   SmiPtr LoadSmi(SmiPtr const* addr) const {
-    return reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
-        ->load(order);
+    return std::atomic_ref<SmiPtr>(*const_cast<SmiPtr*>(addr)).load(order);
   }
   SmiPtr LoadCompressedSmi(CompressedSmiPtr const* addr) const {
     return static_cast<SmiPtr>(
@@ -780,10 +772,10 @@ class UntaggedObject {
   }
   template <std::memory_order order>
   SmiPtr LoadCompressedSmi(CompressedSmiPtr const* addr) const {
-    return static_cast<SmiPtr>(reinterpret_cast<std::atomic<CompressedSmiPtr>*>(
-                                   const_cast<CompressedSmiPtr*>(addr))
-                                   ->load(order)
-                                   .DecompressSmi());
+    return static_cast<SmiPtr>(
+        std::atomic_ref<CompressedSmiPtr>(*const_cast<CompressedSmiPtr*>(addr))
+            .load(order)
+            .DecompressSmi());
   }
 
   // Use for storing into an explicitly Smi-typed field of an object
@@ -794,17 +786,15 @@ class UntaggedObject {
   }
   template <typename type, std::memory_order order>
   void StoreSmi(type const* addr, type value) {
-    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->store(value, order);
+    std::atomic_ref<type>(*const_cast<type*>(addr)).store(value, order);
   }
   void StoreCompressedSmi(CompressedSmiPtr const* addr, SmiPtr value) {
     *const_cast<CompressedSmiPtr*>(addr) = value;
   }
   template <std::memory_order order>
   void StoreCompressedSmi(CompressedSmiPtr const* addr, SmiPtr value) {
-    reinterpret_cast<std::atomic<CompressedSmiPtr>*>(
-        const_cast<CompressedSmiPtr*>(addr))
-        ->store(static_cast<CompressedSmiPtr>(value), order);
+    std::atomic_ref<CompressedSmiPtr>(*const_cast<CompressedSmiPtr*>(addr))
+        .store(static_cast<CompressedSmiPtr>(value), order);
   }
 
  private:
