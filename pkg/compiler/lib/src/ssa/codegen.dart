@@ -11,7 +11,8 @@ import 'package:front_end/src/api_prototype/lowering_predicates.dart'
     show
         isExtensionMemberTearOff,
         getExtensionMemberImplementation,
-        isExtensionThisName;
+        isExtensionThisName,
+        getConstructorTearOffLoweringTarget;
 import 'package:kernel/constructor_tearoff_lowering.dart'
     show isConstructorTearOffLowering;
 // ignore: implementation_imports
@@ -2504,28 +2505,60 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   bool _shouldRecordConstructor(MemberEntity element) {
-    final cls = element.enclosingClass;
-    if (cls == null) return false; // Not a tearoff lowering or constructor.
-    if (!_closedWorld.annotationsData.shouldRecordConstInstances(cls)) {
+    final node = _closedWorld.elementMap.getMemberDefinition(element).node;
+    MemberEntity resolved = element;
+    bool isTearOff = false;
+    if (node is ir.Procedure) {
+      final target = getConstructorTearOffLoweringTarget(node);
+      if (target != null) {
+        resolved = _closedWorld.elementMap.getMember(target);
+        isTearOff = true;
+      }
+    }
+
+    final irResolved = _closedWorld.elementMap
+        .getMemberDefinition(resolved)
+        .node;
+
+    if (irResolved is ir.Procedure && irResolved.isRedirectingFactory) {
+      final ultimate = _getUltimateConstructorTarget(irResolved);
+      if (ultimate == null) return false;
+      resolved = _closedWorld.elementMap.getMember(ultimate);
+    }
+
+    if (resolved is! ConstructorEntity) return false;
+    final constructor = resolved;
+
+    final classAnnotated = _closedWorld.annotationsData
+        .shouldRecordConstInstances(constructor.enclosingClass);
+
+    if (isTearOff) {
+      return classAnnotated;
+    }
+
+    if (constructor.isGenerativeConstructor) {
+      if (classAnnotated) {
+        // If we are currently compiling a constructor tear-off lowering, we
+        // don't want to record the generative constructor calls inside it.
+        final callerNode = _closedWorld.elementMap
+            .getMemberDefinition(_member)
+            .node;
+        return callerNode is! ir.Procedure ||
+            !isConstructorTearOffLowering(callerNode);
+      }
       return false;
     }
 
-    if (element is ConstructorEntity) {
-      // If we are currently compiling a constructor tear-off lowering, we don't
-      // want to record the generative constructor calls inside it.
-      final node = _closedWorld.elementMap.getMemberDefinition(_member).node;
-      if (node is ir.Procedure && isConstructorTearOffLowering(node)) {
-        return false;
-      }
-      return element.isGenerativeConstructor || element.isFactoryConstructor;
-    }
-
-    if (element is FunctionEntity) {
-      final node = _closedWorld.elementMap.getMemberDefinition(element).node;
-      return node is ir.Procedure && isConstructorTearOffLowering(node);
-    }
-
+    // Regular factory call. Treat as static call. Don't record instances.
     return false;
+  }
+
+  ir.Member? _getUltimateConstructorTarget(ir.Member node) {
+    ir.Member? current = node;
+    while (current is ir.Procedure && current.isRedirectingFactory) {
+      current = current.function.redirectingFactoryTarget?.target;
+    }
+    return current;
   }
 
   RecordedUse _recordConstructorUses(
@@ -2533,17 +2566,24 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     List<HInstruction> arguments,
     SourceInformation sourceInformation,
   ) {
+    ir.Member node =
+        _closedWorld.elementMap.getMemberDefinition(element).node as ir.Member;
+    node = _getUltimateConstructorTarget(node)!;
+    final resolvedElement =
+        _closedWorld.elementMap.getMember(node) as ConstructorEntity;
+
     final positionalArguments = <ConstantValue?>[];
     final namedArguments = <String, ConstantValue?>{};
     var argumentIndex = 0;
-    _closedWorld.elementEnvironment.forEachParameter(element, (
+    _closedWorld.elementEnvironment.forEachParameter(resolvedElement, (
       DartType type,
       String? name,
       ConstantValue? defaultValue,
     ) {
       if (argumentIndex < arguments.length) {
         final value = _findConstant(arguments[argumentIndex++]);
-        if (argumentIndex <= element.parameterStructure.positionalParameters) {
+        if (argumentIndex <=
+            resolvedElement.parameterStructure.positionalParameters) {
           positionalArguments.add(value);
         } else {
           namedArguments[name!] = value;
@@ -2552,7 +2592,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     });
 
     return RecordedInstanceCreation(
-      cls: element.enclosingClass,
+      cls: resolvedElement.enclosingClass,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
       sourceInformation: sourceInformation,
@@ -2563,8 +2603,16 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     FunctionEntity element,
     SourceInformation sourceInformation,
   ) {
+    final node = _closedWorld.elementMap.getMemberDefinition(element).node;
+    ir.Member target = node as ir.Member;
+    if (node is ir.Procedure) {
+      target = getConstructorTearOffLoweringTarget(node) ?? target;
+    }
+    target = _getUltimateConstructorTarget(target)!;
+    final constructor = _closedWorld.elementMap.getMember(target);
+
     return RecordedConstructorTearOff(
-      cls: element.enclosingClass!,
+      cls: constructor.enclosingClass!,
       sourceInformation: sourceInformation,
     );
   }
