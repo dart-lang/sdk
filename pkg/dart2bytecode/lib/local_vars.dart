@@ -12,7 +12,7 @@ import 'options.dart' show BytecodeOptions;
 
 class LocalVariables {
   final _scopes = new Map<TreeNode, Scope>();
-  final _vars = new Map<VariableDeclaration, VarDesc>();
+  final _vars = new Map<ExpressionVariable, VarDesc>();
   Map<TreeNode, List<int>>? _temps;
   Map<TreeNode, VariableDeclaration>? _capturedSavedContextVars;
   Map<TreeNode, VariableDeclaration>? _capturedExceptionVars;
@@ -27,11 +27,11 @@ class LocalVariables {
   Frame? _currentFrameInternal;
   Frame get _currentFrame => _currentFrameInternal!;
 
-  VarDesc _getVarDesc(VariableDeclaration variable) =>
+  VarDesc _getVarDesc(ExpressionVariable variable) =>
       _vars[variable] ??
       (throw 'Variable descriptor is not created for $variable');
 
-  int _getVarIndex(VariableDeclaration variable, bool isCaptured) {
+  int _getVarIndex(ExpressionVariable variable, bool isCaptured) {
     final v = _getVarDesc(variable);
     if (v.isCaptured != isCaptured) {
       throw 'Mismatch in captured state of $variable';
@@ -39,13 +39,13 @@ class LocalVariables {
     return v.index ?? (throw 'Variable $variable is not allocated');
   }
 
-  bool isCaptured(VariableDeclaration variable) =>
+  bool isCaptured(ExpressionVariable variable) =>
       _getVarDesc(variable).isCaptured;
 
-  int getVarIndexInFrame(VariableDeclaration variable) =>
+  int getVarIndexInFrame(ExpressionVariable variable) =>
       _getVarIndex(variable, false);
 
-  int getVarIndexInContext(VariableDeclaration variable) =>
+  int getVarIndexInContext(ExpressionVariable variable) =>
       _getVarIndex(variable, true);
 
   int getOriginalParamSlotIndex(VariableDeclaration variable) =>
@@ -72,13 +72,13 @@ class LocalVariables {
       _currentFrame.contextLevelAtEntry ??
       (throw "Current frame is top level and it doesn't have a context at entry");
 
-  int getContextLevelOfVar(VariableDeclaration variable) {
+  int getContextLevelOfVar(ExpressionVariable variable) {
     final v = _getVarDesc(variable);
     assert(v.isCaptured);
     return v.scope.contextLevel!;
   }
 
-  int getVarContextId(VariableDeclaration variable) {
+  int getVarContextId(ExpressionVariable variable) {
     final v = _getVarDesc(variable);
     assert(v.isCaptured);
     return v.scope.contextId!;
@@ -176,7 +176,7 @@ class LocalVariables {
   }
 
   bool get capturesOnlyFinalNotLateVars =>
-    _currentFrame.capturesOnlyFinalNotLateVars;
+      _currentFrame.capturesOnlyFinalNotLateVars;
 
   void withTemp(TreeNode node, int temp, void action()) {
     final old = _temps![node];
@@ -473,7 +473,7 @@ class _ScopeBuilder extends RecursiveVisitor {
     locals._vars[variable] = v;
   }
 
-  void _useVariable(VariableDeclaration variable) {
+  void _useVariable(ExpressionVariable variable) {
     final VarDesc? v = locals._vars[variable];
     if (v == null) {
       throw 'Variable $variable is used before declared';
@@ -536,9 +536,9 @@ class _ScopeBuilder extends RecursiveVisitor {
 
   @override
   void visitVariableGet(VariableGet node) {
-    _useVariable(node.variable);
-    if (node.variable.isLate) {
-      node.variable.initializer?.accept(this);
+    _useVariable(node.expressionVariable);
+    if (node.expressionVariable.isLate) {
+      node.expressionVariable.initializer?.accept(this);
     }
   }
 
@@ -1191,7 +1191,7 @@ class _Allocator extends RecursiveVisitor {
 
   @override
   void visitVariableGet(VariableGet node) {
-    _visit(node, temps: node.variable.isLate ? 1 : 0);
+    _visit(node, temps: node.expressionVariable.isLate ? 1 : 0);
   }
 
   @override

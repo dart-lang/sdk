@@ -1477,7 +1477,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genPushContextForVariable(VariableDeclaration variable,
+  void _genPushContextForVariable(ExpressionVariable variable,
       {int? currentContextLevel}) {
     currentContextLevel ??= locals.currentContextLevel;
     int depth = currentContextLevel - locals.getContextLevelOfVar(variable);
@@ -1491,13 +1491,13 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genPushContextIfCaptured(VariableDeclaration variable) {
+  void _genPushContextIfCaptured(ExpressionVariable variable) {
     if (locals.isCaptured(variable)) {
       _genPushContextForVariable(variable);
     }
   }
 
-  void _genLoadVar(VariableDeclaration v, {int? currentContextLevel}) {
+  void _genLoadVar(ExpressionVariable v, {int? currentContextLevel}) {
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v, currentContextLevel: currentContextLevel);
       asm.emitLoadContextVar(
@@ -1515,7 +1515,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   // Stores value into variable.
   // If variable is captured, context should be pushed before value.
-  void _genStoreVar(VariableDeclaration variable) {
+  void _genStoreVar(ExpressionVariable variable) {
     if (locals.isCaptured(variable)) {
       asm.emitStoreContextVar(locals.getVarContextId(variable),
           locals.getVarIndexInContext(variable));
@@ -3685,7 +3685,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitVariableGet(VariableGet node) {
-    final v = node.variable;
+    final v = node.expressionVariable;
     if (v.isConst) {
       _genPushConstExpr(v.initializer!);
     } else if (v.isLate) {
@@ -3715,7 +3715,7 @@ class BytecodeGenerator extends RecursiveVisitor {
           asm.emitJump(store);
 
           asm.bind(error);
-          asm.emitPushConstant(cp.addName(v.name!));
+          asm.emitPushConstant(cp.addName(v.cosmeticName!));
           _genDirectCall(throwLocalAssignedDuringInitialization,
               objectTable.getArgDescHandle(1), 1);
           asm.emitDrop1();
@@ -3724,7 +3724,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
         _genStoreVar(v);
       } else {
-        asm.emitPushConstant(cp.addName(v.name!));
+        asm.emitPushConstant(cp.addName(v.cosmeticName!));
         _genDirectCall(
             throwLocalNotInitialized, objectTable.getArgDescHandle(1), 1);
         asm.emitDrop1();
