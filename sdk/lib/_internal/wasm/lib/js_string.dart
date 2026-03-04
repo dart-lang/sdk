@@ -240,6 +240,7 @@ final class JSStringImpl extends js.JSExternWrapper
 
   @override
   @pragma('dyn-module:callable')
+  @pragma('wasm:pure-function')
   String operator +(String other) {
     return JSStringImpl.fromRefUnchecked(
       _jsStringConcatImport(

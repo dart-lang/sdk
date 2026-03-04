@@ -45,6 +45,9 @@ class SelectorInfo {
   /// Is this an implicit or explicit setter?
   final bool isSetter;
 
+  /// Is this an index setter?
+  final bool isIndexSetter;
+
   /// Whether we create multiple entry points for the selector.
   ///
   /// We create multiple entry points when any implementation of this selector
@@ -90,6 +93,7 @@ class SelectorInfo {
     this.name,
     this.callCount, {
     required this.isSetter,
+    required this.isIndexSetter,
   });
 
   void serialize(DataSerializer sink) {
@@ -98,6 +102,7 @@ class SelectorInfo {
     sink.writeInt(callCount);
     sink.writeBoolList([
       isSetter,
+      isIndexSetter,
       useMultipleEntryPoints,
       isDynamicSubmoduleOverridable,
       isDynamicSubmoduleCallable,
@@ -117,6 +122,7 @@ class SelectorInfo {
     final callCount = source.readInt();
     final [
       isSetter,
+      isIndexSetter,
       useMultipleEntryPoints,
       isDynamicSubmoduleOverridable,
       isDynamicSubmoduleCallable,
@@ -138,7 +144,7 @@ class SelectorInfo {
         references,
         useSentinelForOptionalParameters);
     return SelectorInfo._(dispatchTable, id, name, callCount,
-        isSetter: isSetter)
+        isSetter: isSetter, isIndexSetter: isIndexSetter)
       ..useMultipleEntryPoints = useMultipleEntryPoints
       ..isDynamicSubmoduleCallable = isDynamicSubmoduleCallable
       ..isDynamicSubmoduleOverridable = isDynamicSubmoduleOverridable
@@ -165,7 +171,7 @@ class SelectorInfo {
   /// returns are subtypes (resp. supertypes) of the types in the signature.
   w.FunctionType _computeSignature() {
     var nameIndex = paramInfo.nameIndex;
-    final int returnCount = isSetter ? 0 : 1;
+    final int returnCount = (isSetter || isIndexSetter) ? 0 : 1;
     List<Set<w.ValueType>> inputSets =
         List.generate(1 + paramInfo.paramCount, (_) => {});
     List<Set<w.ValueType>> outputSets = List.generate(returnCount, (_) => {});
@@ -206,7 +212,7 @@ class SelectorInfo {
             for (VariableDeclaration param in function.namedParameters)
               param.name!: typeForParam(param, param.isRequired)
           };
-          returns = target.isSetter
+          returns = returnCount == 0
               ? const []
               : [translator.typeOfReturnValue(member)];
         }
@@ -563,6 +569,7 @@ class DispatchTable {
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
     bool isSetter = target.isSetter;
+    bool isIndexSetter = member.name.text == '[]=';
     ProcedureAttributesMetadata metadata = procedureAttributeMetadata[member]!;
     int selectorId = isGetter
         ? metadata.getterSelectorId
@@ -585,8 +592,9 @@ class DispatchTable {
     final selector = _selectorInfo.putIfAbsent(
         selectorId,
         () => SelectorInfo._(this, selectorId, member.name.text, callCount,
-            isSetter: isSetter));
+            isSetter: isSetter, isIndexSetter: isIndexSetter));
     assert(selector.isSetter == isSetter);
+    assert(selector.isIndexSetter == isIndexSetter);
     selector._references.add(target);
 
     if (calledDynamically) {

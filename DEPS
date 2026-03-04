@@ -117,7 +117,7 @@ vars = {
   "perfetto_rev": "13ce0c9e13b0940d2476cd0cff2301708a9a2e2b",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "zlib_rev": "470d3a2ee4ef721688ce6961bc865a99fcb64070",
+  "zlib_rev": "3008c4b3a06bd65392c31db8846000a21e3d03c5",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
