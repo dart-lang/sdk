@@ -12,7 +12,7 @@ abstract final class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor
   [@vm.inferred-return-type.metadata=dart.core::_Smi]
   [@vm.unboxing-info.metadata=()->i]
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C15
@@ -44,7 +44,7 @@ final class WCharStruct extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi]
   [@vm.unboxing-info.metadata=()->i]
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C24.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C15
@@ -69,7 +69,7 @@ final class WCharArrayStruct extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi]
   [@vm.unboxing-info.metadata=()->i]
   @#C10
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C34.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 class _DummyAllocator extends core::Object implements ffi::Allocator /*hasConstConstructor*/  {
