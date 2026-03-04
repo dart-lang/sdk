@@ -70,6 +70,86 @@ class C {
 ''');
   }
 
+  test_enum_constructor_final() async {
+    await assertDiagnostics(
+      r'''
+enum E {
+  a(1);
+  const E(final int p);
+}
+''',
+      [lint(27, 5)],
+    );
+  }
+
+  test_enum_constructor_noFinal() async {
+    await assertNoDiagnostics(r'''
+enum E {
+  a(1);
+  const E(int p);
+}
+''');
+  }
+
+  test_enum_method_final() async {
+    await assertDiagnostics(
+      r'''
+enum E {
+  a;
+  void f(final p) {}
+}
+''',
+      [lint(23, 5)],
+    );
+  }
+
+  test_enum_method_noFinal() async {
+    await assertNoDiagnostics(r'''
+enum E {
+  a;
+  void f(int p) {}
+}
+''');
+  }
+
+  test_extension_method_final() async {
+    await assertDiagnostics(
+      r'''
+extension E on int {
+  void f(final p) {}
+}
+''',
+      [lint(30, 5)],
+    );
+  }
+
+  test_extension_method_noFinal() async {
+    await assertNoDiagnostics(r'''
+extension E on int {
+  void f(int p) {}
+}
+''');
+  }
+
+  test_extensionType_method_final() async {
+    await assertDiagnostics(
+      r'''
+extension type E(int i) {
+  void f(final p) {}
+}
+''',
+      [lint(35, 5)],
+    );
+  }
+
+  test_extensionType_method_noFinal() async {
+    await assertNoDiagnostics(r'''
+extension type E(int i) {
+  void f(int p) {}
+}
+''');
+  }
+
   test_functionExpression_final() async {
     await assertDiagnostics(
       r'''
@@ -82,6 +162,27 @@ var f = (final int value) {};
   test_functionExpression_noFinal() async {
     await assertNoDiagnostics(r'''
 var f = (int value) {};
+''');
+  }
+
+  test_functionTyped_fieldFormal_final() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  final void Function(int) f;
+  C(void this.f(final p));
+}
+''',
+      [lint(56, 5)],
+    );
+  }
+
+  test_functionTyped_fieldFormal_noFinal() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final void Function(int) f;
+  C(void this.f(int p));
+}
 ''');
   }
 
@@ -98,6 +199,84 @@ void f(final p()) {}
   test_functionTyped_noFinal() async {
     await assertNoDiagnostics(r'''
 void f(int p()) {}
+''');
+  }
+
+  test_functionTyped_parameter_final() async {
+    await assertDiagnostics(
+      r'''
+void f(void g(final p)) {}
+''',
+      [lint(14, 5)],
+    );
+  }
+
+  test_functionTyped_parameter_noFinal() async {
+    await assertNoDiagnostics(r'''
+void f(void g(int p)) {}
+''');
+  }
+
+  test_functionTyped_superFormal_final() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A(void f(int p));
+}
+class B extends A {
+  B(void super.f(final p));
+}
+''',
+      [lint(69, 5)],
+    );
+  }
+
+  test_functionTyped_superFormal_noFinal() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(void f(int p));
+}
+class B extends A {
+  B(void super.f(int p));
+}
+''');
+  }
+
+  test_localFunction_final() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  void g(final p) {}
+}
+''',
+      [lint(20, 5)],
+    );
+  }
+
+  test_localFunction_noFinal() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  void g(int p) {}
+}
+''');
+  }
+
+  test_mixin_method_final() async {
+    await assertDiagnostics(
+      r'''
+mixin M {
+  void f(final p) {}
+}
+''',
+      [lint(19, 5)],
+    );
+  }
+
+  test_mixin_method_noFinal() async {
+    await assertNoDiagnostics(r'''
+mixin M {
+  void f(int p) {}
+}
 ''');
   }
 
@@ -221,7 +400,7 @@ set f(int value) {}
 ''');
   }
 
-  test_super() async {
+  test_super_final() async {
     await assertDiagnostics(
       r'''
 class A {
@@ -242,6 +421,54 @@ class B extends A {
         lint(98, 5),
       ],
     );
+  }
+
+  test_super_noFinal() async {
+    await assertNoDiagnostics(r'''
+class A {
+  String? a;
+  String? b;
+  A(this.a, this.b);
+}
+class B extends A {
+  B(super.a, super.b);
+}
+''');
+  }
+
+  test_typedef_final() async {
+    await assertDiagnostics(
+      r'''
+typedef String Type(final value);
+''',
+      [lint(20, 5)],
+    );
+  }
+
+  test_typedef_genericFunctionType_final() async {
+    await assertDiagnostics(
+      r'''
+typedef F = void Function(final x);
+''',
+      [
+        // No lint reported to avoid redundancy with
+        // `functionTypedParameterVar`.
+        error(diag.functionTypedParameterVar, 26, 5),
+        error(diag.undefinedClass, 32, 1),
+      ],
+    );
+  }
+
+  test_typedef_genericFunctionType_noFinal() async {
+    await assertNoDiagnostics(r'''
+typedef F = void Function(int x);
+''');
+  }
+
+  test_typedef_noFinal() async {
+    await assertNoDiagnostics(r'''
+typedef String Type(int value);
+''');
   }
 }
 
