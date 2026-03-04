@@ -156,6 +156,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return child;
   }
 
+  bool get _isDotShorthandEnabled =>
+      state.request.featureSet.isEnabled(.dot_shorthands);
+
   /// Computes the candidate suggestions associated with this pass.
   void computeSuggestions() {
     var completionNode = _completionNode;
@@ -980,7 +983,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         declarationHelper(
           mustBeConstant: node.isConst,
           suggestingDotShorthand: true,
-          suggestUnnamedAsNew: true,
+          suggestUnnamedAsNew:
+              _isDotShorthandEnabled ||
+              state.request.isReplacingKeywordOrIdentifier,
         ).addConstructorNamesForType(type: contextType);
       }
     }
@@ -1000,7 +1005,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         declarationHelper(
           mustBeConstant: node.inConstantContext,
           suggestingDotShorthand: true,
-          suggestUnnamedAsNew: true,
+          suggestUnnamedAsNew:
+              _isDotShorthandEnabled ||
+              state.request.isReplacingKeywordOrIdentifier,
         ).addStaticMembersOfElement(element);
       }
     }
@@ -1025,7 +1032,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         preferNonInvocation:
             element is InterfaceElement &&
             state.request.shouldSuggestTearOff(element),
-        suggestUnnamedAsNew: true,
+        suggestUnnamedAsNew:
+            _isDotShorthandEnabled ||
+            state.request.isReplacingKeywordOrIdentifier,
       ).addStaticMembersOfElement(element);
     }
   }

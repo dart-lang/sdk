@@ -498,10 +498,10 @@ class CompletionTarget {
   /// Return a source range that represents the region of text that should be
   /// replaced when a suggestion based on this target is selected, given that
   /// the completion was requested at the given [requestOffset].
-  SourceRange computeReplacementRange(int requestOffset) {
-    bool isKeywordOrIdentifier(Token token) =>
-        token.type.isKeyword || token.type == TokenType.IDENTIFIER;
-
+  SourceRange computeReplacementRange(
+    int requestOffset, {
+    required bool isDotShorthandEnabled,
+  }) {
     var token =
         droppedToken ??
         (entity is AstNode ? (entity as AstNode).beginToken : entity as Token?);
@@ -509,13 +509,24 @@ class CompletionTarget {
       token = containingNode.findPrevious(token);
     }
     if (token != null) {
-      if (requestOffset == token.offset && !isKeywordOrIdentifier(token)) {
+      if (requestOffset == token.offset && !token.isKeywordOrIdentifier) {
         // If the insertion point is at the beginning of the current token
         // and the current token is not an identifier
         // then check the previous token to see if it should be replaced
         token = containingNode.findPrevious(token);
       }
-      if (token != null && isKeywordOrIdentifier(token)) {
+      if (containingNode
+          case DotShorthandConstructorInvocation() ||
+              DotShorthandInvocation() ||
+              DotShorthandPropertyAccess()
+          when !isDotShorthandEnabled && token != null) {
+        var offset = token.isKeywordOrIdentifier
+            ? token.previous!.offset
+            : token.offset;
+        var length = token.end - offset;
+        return SourceRange(offset, length);
+      }
+      if (token != null && token.isKeywordOrIdentifier) {
         if (token.offset <= requestOffset && requestOffset <= token.end) {
           // Replacement range for typical identifier completion
           return SourceRange(token.offset, token.length);
