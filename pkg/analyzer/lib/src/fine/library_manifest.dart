@@ -1604,6 +1604,18 @@ class LibraryManifestBuilder {
       }
     }
 
+    // A member of a conflicting top-level interface has no declared
+    // item in this bundle. Use the top-level conflict id.
+    if (conflictingTopLevelElements.contains(enclosingElement)) {
+      var enclosingName = enclosingElement.lookupName!.asLookupName;
+      var enclosingManifest = enclosingElement.library.manifest!.instance;
+      return enclosingManifest.declaredConflicts[enclosingName] ??
+          (throw StateError(
+            'Missing conflict id for $enclosingElement in '
+            '${enclosingElement.library.uri}',
+          ));
+    }
+
     return elementFactory.getElementId(element)!;
   }
 

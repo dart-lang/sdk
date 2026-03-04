@@ -92298,6 +92298,111 @@ class B {}
     );
   }
 
+  test_manifest_topConflict_class_inheritedMember_libraryCycle() async {
+    // https://github.com/dart-lang/sdk/issues/62810
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'test.dart';
+
+class B extends A {
+  void foo() {}
+}
+''');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'b.dart';
+
+class A {
+  void foo() {}
+}
+
+class A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/b.dart
+    hashForRequirements: #H0
+    declaredClasses
+      B: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M3
+          inherited
+            foo: #M3
+    exportMapId: #M4
+    exportMap
+      B: #M0
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M3
+      A=: #M3
+    exportMapId: #M5
+    exportMap
+      A: #M3
+      A=: #M3
+''',
+      updatedCode: r'''
+import 'b.dart';
+
+class A {
+  void foo() {}
+}
+
+class A {
+  void foo() {}
+}
+
+class C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/b.dart
+    hashForRequirements: #H2
+    declaredClasses
+      B: #M6
+        declaredMethods
+          foo: #M7
+        interface: #M8
+          map
+            foo: #M7
+          implemented
+            foo: #M7
+          superImplemented
+            [0]
+              foo: #M9
+          inherited
+            foo: #M9
+    exportMapId: #M10
+    exportMap
+      B: #M6
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredConflicts
+      A: #M9
+      A=: #M9
+    declaredClasses
+      C: #M11
+        interface: #M12
+    exportMapId: #M13
+    exportMap
+      A: #M9
+      A=: #M9
+      C: #M11
+''',
+    );
+  }
+
   test_manifest_topConflict_class_topFunction() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
