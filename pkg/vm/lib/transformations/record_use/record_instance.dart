@@ -81,22 +81,44 @@ class InstanceRecorder {
   void recordConstructorInvocation(ast.ConstructorInvocation node) {
     final target = node.target;
     if (isBeingRecorded(target)) {
-      final positionalArguments =
-          node.arguments.positional
-              .map((argument) => evaluateExpression(argument))
-              .toList();
-      final namedArguments = <String, MaybeConstant>{};
-      for (final argument in node.arguments.named) {
-        namedArguments[argument.name] = evaluateExpression(argument.value);
-      }
-
-      final instance = InstanceCreationReference(
-        positionalArguments: positionalArguments,
-        namedArguments: namedArguments,
-        loadingUnits: [_loadingUnitLookup(node)],
-      );
-      _addToUsage(target.enclosingClass, instance);
+      _recordCreation(target.enclosingClass, node.arguments, node);
     }
+  }
+
+  void recordRedirectingFactoryInvocation(ast.StaticInvocation node) {
+    final target = node.target;
+    assert(target.isRedirectingFactory);
+    if (isBeingRecorded(target)) {
+      ast.Member ultimateTarget = target;
+      while (ultimateTarget is ast.Procedure &&
+          ultimateTarget.isRedirectingFactory) {
+        ultimateTarget =
+            ultimateTarget.function.redirectingFactoryTarget!.target!;
+      }
+      _recordCreation(ultimateTarget.enclosingClass!, node.arguments, node);
+    }
+  }
+
+  void _recordCreation(
+    ast.Class cls,
+    ast.Arguments arguments,
+    ast.TreeNode context,
+  ) {
+    final positionalArguments =
+        arguments.positional
+            .map((argument) => evaluateExpression(argument))
+            .toList();
+    final namedArguments = <String, MaybeConstant>{};
+    for (final argument in arguments.named) {
+      namedArguments[argument.name] = evaluateExpression(argument.value);
+    }
+
+    final instance = InstanceCreationReference(
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
+      loadingUnits: [_loadingUnitLookup(context)],
+    );
+    _addToUsage(cls, instance);
   }
 
   void recordConstructorTearOff(ast.ConstructorTearOff node) {
@@ -135,6 +157,24 @@ class InstanceRecorder {
     }
   }
 
+  void recordStaticGet(ast.StaticGet node) {
+    final target = node.target;
+    // Record enum const instance field accesses.
+    if (target is ast.Field && isBeingRecorded(target)) {
+      final initializer = target.initializer;
+      if (initializer is ast.ConstantExpression) {
+        final constant = initializer.constant;
+        if (constant is ast.InstanceConstant) {
+          final instance = InstanceConstantReference(
+            instanceConstant: evaluateConstant(constant),
+            loadingUnits: [_loadingUnitLookup(node)],
+          );
+          _addToUsage(constant.classNode, instance);
+        }
+      }
+    }
+  }
+
   void _collectInstance(
     ast.ConstantExpression expression,
     ast.InstanceConstant constant,
@@ -158,7 +198,7 @@ class InstanceRecorder {
     ast.ConstantExpression expression,
     ast.InstanceConstant constant,
   ) => InstanceConstantReference(
-    instanceConstant: evaluateInstanceConstant(constant),
+    instanceConstant: evaluateConstant(constant),
     loadingUnits: [_loadingUnitLookup(expression)],
   );
 
@@ -167,7 +207,10 @@ class InstanceRecorder {
     final importUri = enclosingLibrary.importUri.toString();
 
     return Definition(importUri, [
-      Name(cls.name, kind: DefinitionKind.classKind),
+      Name(
+        cls.name,
+        kind: cls.isEnum ? DefinitionKind.enumKind : DefinitionKind.classKind,
+      ),
     ]);
   }
 }

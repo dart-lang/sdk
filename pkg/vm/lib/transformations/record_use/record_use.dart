@@ -89,7 +89,17 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   void visitStaticInvocation(ast.StaticInvocation node) {
     if (_isAnnotation(node)) return;
 
-    staticCallRecorder.recordStaticInvocation(node);
+    final target = node.target;
+    if (target.isFactory) {
+      if (target.isRedirectingFactory) {
+        instanceUseRecorder.recordRedirectingFactoryInvocation(node);
+      }
+      // We skip recording non-redirecting factory calls here.
+      // The call inside the factory body to the generative constructor
+      // will be recorded when that body is visited.
+    } else {
+      staticCallRecorder.recordStaticInvocation(node);
+    }
 
     super.visitStaticInvocation(node);
   }
@@ -99,6 +109,7 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
     if (_isAnnotation(node)) return;
 
     staticCallRecorder.recordStaticGet(node);
+    instanceUseRecorder.recordStaticGet(node);
 
     super.visitStaticGet(node);
   }
@@ -141,6 +152,15 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
     instanceUseRecorder.recordConstructorTearOff(node);
 
     super.visitConstructorTearOff(node);
+  }
+
+  @override
+  void visitRedirectingFactoryTearOff(ast.RedirectingFactoryTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    instanceUseRecorder.recordRedirectingFactoryTearOff(node);
+
+    super.visitRedirectingFactoryTearOff(node);
   }
 
   @override

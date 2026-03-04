@@ -90,6 +90,25 @@
             "type": "constant"
           }
         ]
+      },
+      {
+        "definition_index": 1,
+        "uses": [
+          {
+            "constant_index": 2,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
+          },
+          {
+            "constant_index": 3,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
+          }
+        ]
       }
     ]
   }

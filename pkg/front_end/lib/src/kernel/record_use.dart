@@ -61,6 +61,20 @@ bool isBeingRecorded(Annotatable node) {
     return _enclosedInLibraryWithPackageUri(node);
   }
 
+  if (node is Constructor) {
+    // Coverage-ignore-block(suite): Not run.
+    final Class? cls = node.enclosingClass;
+    if (cls != null && isBeingRecorded(cls)) return true;
+  }
+
+  if (node is Field &&
+      // Coverage-ignore(suite): Not run.
+      node.isEnumElement) {
+    // Coverage-ignore-block(suite): Not run.
+    final Class? cls = node.enclosingClass;
+    if (cls != null && isBeingRecorded(cls)) return true;
+  }
+
   if (node is Procedure) {
     // Coverage-ignore-block(suite): Not run.
     Procedure? implementation = getExtensionMemberImplementation(node);
@@ -77,7 +91,12 @@ bool isBeingRecorded(Annotatable node) {
       if (isBeingRecorded(extensionTypeDeclaration)) return true;
     }
 
-    if (node.isFactory) {
+    if (node.isRedirectingFactory) {
+      final Member? target = node.function.redirectingFactoryTarget?.target;
+      if (target != null) return isBeingRecorded(target);
+    }
+
+    if (node.isStatic || node.isFactory) {
       final Class? cls = node.enclosingClass;
       if (cls != null && isBeingRecorded(cls)) return true;
     }
@@ -88,20 +107,6 @@ bool isBeingRecorded(Annotatable node) {
         return isBeingRecorded(target);
       }
     }
-  }
-
-  if (node is Constructor) {
-    // Coverage-ignore-block(suite): Not run.
-    final Class? cls = node.enclosingClass;
-    if (cls != null && isBeingRecorded(cls)) return true;
-  }
-
-  if (node is Procedure &&
-      // Coverage-ignore(suite): Not run.
-      node.isRedirectingFactory) {
-    // Coverage-ignore-block(suite): Not run.
-    final Member? target = node.function.redirectingFactoryTarget?.target;
-    if (target != null) return isBeingRecorded(target);
   }
 
   return false;
