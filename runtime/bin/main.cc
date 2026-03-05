@@ -6,6 +6,7 @@
 #include "platform/assert.h"
 
 int main(int argc, char** argv) {
-  dart::bin::main(argc, argv);
+  // Maybe I should uncomment this?
+  // dart::bin::main(argc, argv);
   UNREACHABLE();
 }
