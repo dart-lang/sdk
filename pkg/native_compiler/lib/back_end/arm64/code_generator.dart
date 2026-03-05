@@ -559,7 +559,31 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitClosureCall(ClosureCall instr) {
-    _asm.unimplemented('Unimplemented: code generation for ClosureCall');
+    _passArguments(instr);
+    _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
+    _asm.ldr(
+      R0,
+      _asm.address(
+        stackPointerReg,
+        (instr.inputCount - 1 - (instr.hasTypeArguments ? 1 : 0)) * wordSize,
+      ),
+    );
+    _asm.ldr(
+      functionReg,
+      _asm.fieldAddress(R0, vmOffsets.Closure_function_offset),
+    );
+    _asm.ldr(
+      codeReg,
+      _asm.fieldAddress(functionReg, vmOffsets.Function_code_offset),
+    );
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(
+        functionReg,
+        vmOffsets.Function_entry_point_offset.first,
+      ),
+    );
+    _asm.blr(tempReg);
   }
 
   @override
