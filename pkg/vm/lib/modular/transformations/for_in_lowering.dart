@@ -139,7 +139,8 @@ class ForInLowering {
       valueVariable.initializer!.parent = valueVariable;
 
       final whileBody = new Block(<Statement>[valueVariable, stmt.body]);
-      final tryBody = new WhileStatement(whileCondition, whileBody);
+      final tryBody = new WhileStatement(whileCondition, whileBody)
+        ..fileOffset = stmt.fileOffset;
 
       // if (:for-iterator._subscription != null) await :for-iterator.cancel();
       final DartType subscriptionType = Substitution.fromInterfaceType(
@@ -259,6 +260,9 @@ class ForInLowering {
     final Block body = Block([variable, stmt.body])
       ..fileOffset = stmt.bodyOffset;
 
-    return Block([syncForIterator, ForStatement([], condition, [], body)]);
+    return Block([
+      syncForIterator,
+      ForStatement([], condition, [], body)..fileOffset = stmt.fileOffset,
+    ]);
   }
 }
