@@ -18,6 +18,7 @@ import 'package:kernel/type_environment.dart'
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/configuration.dart';
+import 'package:native_compiler/runtime/names.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
 
@@ -104,6 +105,7 @@ enum ObjectPoolEntryKind {
   newObjectTags,
   staticFieldOffset,
   interfaceCall,
+  dynamicCall,
 }
 
 abstract base class SerializationCluster {
@@ -710,27 +712,6 @@ final class TwoByteStringSerializationCluster extends SerializationCluster {
   }
 }
 
-extension type Name._(Object raw) implements Object {
-  factory Name(String text, ast.Library? library) =>
-      Name._((library != null) ? PrivateName(text, library) : text);
-}
-
-/// Private name in a [library].
-/// VM mangles such names with a library key (`@nnnn`).
-final class PrivateName {
-  final String text;
-  final ast.Library library;
-  PrivateName(this.text, this.library);
-
-  @override
-  bool operator ==(Object other) =>
-      other is PrivateName && text == other.text && library == other.library;
-
-  @override
-  int get hashCode =>
-      finalizeHash(combineHash(text.hashCode, library.hashCode));
-}
-
 final class PrivateNameSerializationCluster extends SerializationCluster {
   final List<PrivateName> _objects = [];
 
@@ -1288,7 +1269,7 @@ final class ICDataSerializationCluster extends SerializationCluster {
 
 final class ObjectPoolSerializationCluster extends SerializationCluster {
   final List<ObjectPool> _objects = [];
-  final Map<InterfaceCallEntry, ICData> icDatas = {};
+  final Map<ICDataCallEntry, ICData> icDatas = {};
 
   @override
   void trace(SnapshotSerializer serializer, Object object) {
@@ -1301,15 +1282,11 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             serializer.push(entry.cls);
           case StaticFieldOffset():
             serializer.push(entry.field);
-          case InterfaceCallEntry():
-            // TODO: call through monomorphic/table dispatcher.
+          case ICDataCallEntry():
             final icData = icDatas[entry] = ICData(
               entry.owner,
               entry.argumentsShape,
-              Name(
-                entry.selectorName,
-                entry.interfaceTarget.member.name.library,
-              ),
+              entry.selector,
             );
             serializer.push(icData);
           case ReservedEntry():
@@ -1350,6 +1327,9 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
               serializer.writeRefId(entry.field);
             case InterfaceCallEntry():
               serializer.writeUint(ObjectPoolEntryKind.interfaceCall.index);
+              serializer.writeRefId(icDatas[entry]);
+            case DynamicCallEntry():
+              serializer.writeUint(ObjectPoolEntryKind.dynamicCall.index);
               serializer.writeRefId(icDatas[entry]);
             case ReservedEntry():
           }

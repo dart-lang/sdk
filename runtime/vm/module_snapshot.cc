@@ -99,6 +99,7 @@ class ModuleSnapshot : public AllStatic {
     kNewObjectTags,
     kStaticFieldOffset,
     kInterfaceCall,
+    kDynamicCall,
   };
 };
 
@@ -1183,7 +1184,8 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
                 Smi::Value(field->untag()->host_offset_or_field_id()));
             break;
           }
-          case ModuleSnapshot::kInterfaceCall: {
+          case ModuleSnapshot::kInterfaceCall:
+          case ModuleSnapshot::kDynamicCall: {
             pool->untag()->entry_bits()[j] = tagged_entry_bits;
             UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
             entry.raw_obj_ = d.ReadRef();

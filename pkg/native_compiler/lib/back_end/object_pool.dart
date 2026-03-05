@@ -4,7 +4,10 @@
 
 import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/functions.dart';
+import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
+import 'package:native_compiler/runtime/names.dart';
 
 /// Helper class for building object pool accessible from generated code.
 class ObjectPool {
@@ -57,35 +60,44 @@ final class NewObjectTags extends SpecializedEntry {
       other is NewObjectTags && this.cls == other.cls;
 }
 
-/// InterfaceCall object pool entry occupies 2 slots: dispatcher data, dispatcher code.
-final class InterfaceCallEntry extends PairSpecializedEntry {
-  final CFunction owner; // TODO: remove, only needed for ICData.
+/// ICData call object pool entries occupies 2 slots: ICData, dispatcher code.
+sealed class ICDataCallEntry extends PairSpecializedEntry {
+  final CFunction owner;
   final ArgumentsShape argumentsShape;
-  final CFunction interfaceTarget;
+  final Name selector;
 
-  InterfaceCallEntry(this.owner, this.argumentsShape, this.interfaceTarget);
-
-  /// Returns selector name corresponding to interface call
-  /// in the VM convention (with get: and set: prefixes),
-  /// but without a library key (`@nnnn`).
-  String get selectorName {
-    final simpleName = interfaceTarget.member.name.text;
-    return switch (interfaceTarget) {
-      GetterFunction() => 'get:$simpleName',
-      SetterFunction() => 'set:$simpleName',
-      _ => simpleName,
-    };
-  }
+  ICDataCallEntry(this.owner, this.argumentsShape, {required this.selector});
 
   @override
-  int get hashCode => interfaceTarget.hashCode + 23;
+  int get hashCode =>
+      finalizeHash(combineHash(selector.hashCode, argumentsShape.hashCode));
 
   @override
   bool operator ==(Object other) =>
-      other is InterfaceCallEntry &&
+      other is ICDataCallEntry &&
       this.owner == other.owner &&
       this.argumentsShape == other.argumentsShape &&
-      this.interfaceTarget == other.interfaceTarget;
+      this.selector == other.selector;
+}
+
+/// InterfaceCall object pool entry occupies 2 slots: dispatcher data, dispatcher code.
+/// TODO: switch from ICData calls to dispatch table calls.
+final class InterfaceCallEntry extends ICDataCallEntry {
+  InterfaceCallEntry(
+    super.owner,
+    super.argumentsShape,
+    CFunction interfaceTarget,
+  ) : super(selector: Name.interfaceCallSelector(interfaceTarget));
+}
+
+/// DynamicCall object pool entry occupies 2 slots: ICData, dispatcher code.
+final class DynamicCallEntry extends ICDataCallEntry {
+  DynamicCallEntry(
+    super.owner,
+    super.argumentsShape,
+    DynamicCallKind kind,
+    ast.Name selector,
+  ) : super(selector: Name.dynamicCallSelector(kind, selector));
 }
 
 /// Reserved entry, filled from a preceeding [SpecializedEntry]

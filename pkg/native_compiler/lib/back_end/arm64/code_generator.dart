@@ -529,13 +529,37 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
-  void visitClosureCall(ClosureCall instr) {
-    _asm.unimplemented('Unimplemented: code generation for ClosureCall');
+  void visitDynamicCall(DynamicCall instr) {
+    _passArguments(instr);
+    _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
+    _asm.loadFromPool(R6, graph.function);
+    _asm.ldr(
+      R0,
+      _asm.address(
+        stackPointerReg,
+        (instr.inputCount - 1 - (instr.hasTypeArguments ? 1 : 0)) * wordSize,
+      ),
+    );
+    _asm.loadPairFromPool(
+      inlineCacheDataReg,
+      codeReg,
+      DynamicCallEntry(
+        graph.function,
+        instr.argumentsShape,
+        instr.kind,
+        instr.selector,
+      ),
+    );
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
+    );
+    _asm.blr(tempReg);
   }
 
   @override
-  void visitDynamicCall(DynamicCall instr) {
-    _asm.unimplemented('Unimplemented: code generation for DynamicCall');
+  void visitClosureCall(ClosureCall instr) {
+    _asm.unimplemented('Unimplemented: code generation for ClosureCall');
   }
 
   @override
