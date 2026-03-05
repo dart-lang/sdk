@@ -4108,8 +4108,8 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
     final globalDefinition =
         translator.dartGlobals.getDefinitionForStaticField(field);
     if (isImplicitGetter) {
-      final initFunction =
-          translator.functions.getExistingFunction(field.fieldReference);
+      final initFunction = translator.functions
+          .getExistingFunction(field.staticFieldInitializer);
       _generateGetter(globalDefinition, initFunction);
     } else {
       _generateSetter(globalDefinition);

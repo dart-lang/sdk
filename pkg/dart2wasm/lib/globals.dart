@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'code_generator.dart' show EagerStaticFieldInitializerCodeGenerator;
+import 'reference_extensions.dart';
 import 'table_based_globals.dart';
 import 'translator.dart';
 import 'util.dart' as util;
@@ -170,7 +171,7 @@ class DartGlobals {
       }
 
       // Add initializer function to the compilation queue.
-      translator.functions.getFunction(field.fieldReference);
+      translator.functions.getFunction(field.staticFieldInitializer);
 
       // We will have to initialize the global lazily, meaning each access will
       // check if it's initialized and if not, cause initialization.

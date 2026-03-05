@@ -42,8 +42,9 @@ class _EntityToIdMapper {
     if (reference.isCheckedEntryReference) return 6;
     if (reference.isUncheckedEntryReference) return 7;
     if (reference.isBodyReference) return 8;
+    if (reference.isStaticFieldInitializer) return 9;
     assert(reference == reference.asMember.reference);
-    return 9;
+    return 10;
   }
 }
 
@@ -88,7 +89,8 @@ class _IdToEntityMapper {
     if (flag == 6) return member.checkedEntryReference;
     if (flag == 7) return member.uncheckedEntryReference;
     if (flag == 8) return member.bodyReference;
-    assert(flag == 9);
+    if (flag == 9) return (member as Field).staticFieldInitializer;
+    assert(flag == 10);
     return member.reference;
   }
 }

@@ -6,8 +6,8 @@
   (type $_Future <...>)
   (global $".FooConst3(" (import "" "FooConst3(") (ref extern))
   (global $"\")\"" (import "module0" "global4") (ref $JSExternWrapper))
-  (global $3 (import "module0" "global11") (ref $BoxedInt))
-  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 34 funcref)
+  (global $3 (import "module0" "global18") (ref $BoxedInt))
+  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 46 funcref)
   (global $"\"FooConst3(\"" (ref $JSExternWrapper)
     (i32.const 108)
     (i32.const 0)
@@ -22,9 +22,10 @@
     (ref.null none))
   (elem $module0.cross-module-funcs-0
     (set 11 (ref.func $foo3))
-    (set 22 (ref.func $"fooGlobal3 implicit getter"))
-    (set 23 (ref.func $"foo3Code <noInline>"))
-    (set 32 (ref.func $0)))
+    (set 19 (ref.func $"foo3Code <noInline>"))
+    (set 36 (ref.func $0))
+    (set 37 (ref.func $1))
+    (set 44 (ref.func $2)))
   (func $"foo3Code <noInline>" (param $var0 (ref null $#Top)) (result (ref null $#Top))
     global.get $FooConst3
     i32.const 14
@@ -42,7 +43,8 @@
     global.set $fooGlobal3
     ref.null none
   )
-  (func $fooGlobal3 implicit getter (result (ref $#Top)) <...>)
+  (func $null (result (ref null $#Top)) <...>)
+  (func $null (param $var0 (ref null $#Top)) <...>)
   (func $null (result (ref $Object)) <...>)
   (func $FooConst3.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     global.get $"\"FooConst3(\""
@@ -55,7 +57,7 @@
     drop
     local.get $var0
     local.get $var1
-    i32.const 27
+    i32.const 22
     call_indirect $module0.cross-module-funcs-0 (param (ref $Object) (ref null $#Top)) (result (ref null $#Top))
     drop
     ref.null none

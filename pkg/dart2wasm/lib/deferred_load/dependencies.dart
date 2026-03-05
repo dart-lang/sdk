@@ -80,16 +80,25 @@ class DependenciesCollector {
       return deps;
     }
     if (node is Field) {
-      node.initializer?.accept(collector);
-      if (node.fieldReference != reference) {
-        collector.addReference(node.fieldReference);
-      }
-      if (node.getterReference != reference) {
-        collector.addReference(node.getterReference);
-      }
-      if (node.setterReference case final setterReference?) {
-        if (setterReference != reference) {
-          collector.addReference(setterReference);
+      if (node.isInstanceMember) {
+        // Instance field getters/setters have no dependencies: The field
+        // initializers are initialized at constructor invocation time not at
+        // field access time. The field itself doesn't have a storage location
+        // (like a static field).
+        assert(node.getterReference == reference ||
+            node.hasSetter && node.setterReference == reference);
+      } else {
+        if (node.getterReference == reference) {
+          // A static getter may invoke the initializer and accesses the storage
+          // location of the field.
+          collector.addReference(node.fieldReference);
+          node.initializer?.accept(collector);
+        } else if (node.setterReference == reference) {
+          // A static setter only accesses the storage location of the field.
+          collector.addReference(node.fieldReference);
+        } else {
+          assert(node.fieldReference == reference);
+          // The field storage itself has no dependencies.
         }
       }
       return deps;
@@ -127,7 +136,7 @@ class DependenciesCollector {
       deps.references.add(superReference);
     }
     for (final m in klass.members) {
-      if (m.isInstanceMember) {
+      if (m.isInstanceMember && !m.isAbstract) {
         if (m is Field) {
           if (!_devirtualizionOracle
               .isAlwaysStaticallyDispatchedTo(m.getterReference)) {

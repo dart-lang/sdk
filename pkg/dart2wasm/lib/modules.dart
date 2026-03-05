@@ -114,15 +114,36 @@ class ModuleOutputData {
   ModuleMetadata moduleForReference(Reference reference) {
     // Turn artificial [Reference]s used in dart2wasm to the normal Kernel AST
     // [Reference]s.
-    if (reference.node is Member &&
-        (reference.isTypeCheckerReference ||
-            reference.isCheckedEntryReference ||
-            reference.isUncheckedEntryReference ||
-            reference.isBodyReference ||
-            reference.isInitializerReference ||
-            reference.isConstructorBodyReference ||
-            reference.isTearOffReference)) {
-      reference = reference.asMember.reference;
+    final node = reference.node;
+    if (node is Field) {
+      if (reference.isGetter) {
+        reference = node.getterReference;
+      } else if (reference.isSetter) {
+        reference = node.setterReference!;
+      } else if (reference.isStaticFieldInitializer) {
+        assert(node.isStatic);
+        reference = node.getterReference;
+      } else {
+        assert(reference == node.fieldReference);
+      }
+    } else if (node is Constructor) {
+      if (reference.isInitializerReference ||
+          reference.isConstructorBodyReference) {
+        reference = node.reference;
+      } else {
+        assert(reference == node.reference);
+      }
+    } else {
+      node as Procedure;
+      if (reference.isTypeCheckerReference ||
+          reference.isCheckedEntryReference ||
+          reference.isUncheckedEntryReference ||
+          reference.isBodyReference ||
+          reference.isTearOffReference) {
+        reference = reference.asMember.reference;
+      } else {
+        assert(reference == reference.asMember.reference);
+      }
     }
 
     // We may have fine-grained partitioning of the application.

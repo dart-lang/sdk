@@ -75,6 +75,7 @@ Future testPartitionExpectation(String mainFile, ConstraintData? constraints,
     final result = await Process.run('/usr/bin/env', [
       'bash',
       'pkg/dart2wasm/tool/compile_benchmark',
+      '--compiler-asserts',
       '--phases=cfe,tfa',
       '--enable-deferred-loading',
       '-o',

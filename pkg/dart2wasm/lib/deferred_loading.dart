@@ -309,7 +309,16 @@ Set<Reference> findWasmRoots(CoreTypes coreTypes, Component component) {
     for (final klass in library.classes) {
       if (check(klass)) exports.add(klass.reference);
       for (final member in klass.members) {
-        if (check(member)) exports.add(member.reference);
+        if (check(member)) {
+          if (member is Field) {
+            exports.add(member.getterReference);
+            if (member.hasSetter) {
+              exports.add(member.setterReference!);
+            }
+          } else {
+            exports.add(member.reference);
+          }
+        }
       }
     }
   }
