@@ -160,15 +160,11 @@ class DartGlobals {
         final definition =
             _defineGlobalBasedField(field, fieldType, module, true, init, null);
 
-        if (module.module == translator.initFunction.enclosingModule) {
-          // We have to initialize the global field in the same module as where
-          // the field value is defined in.
-          // TODO: Once dynamic modules only compile code for the submodule and
-          // not the main module, we should turn this into an assert.
-          EagerStaticFieldInitializerCodeGenerator(
-                  translator, field, definition.global)
-              .generate(translator.initFunction.body, [], null);
-        }
+        // We have to initialize the global field in the same module as where
+        // the field value is defined in.
+        EagerStaticFieldInitializerCodeGenerator(
+                translator, field, definition.global)
+            .generate(module.startFunction.body, [], null);
 
         return definition;
       }

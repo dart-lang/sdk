@@ -650,8 +650,9 @@ class DynamicModuleInfo {
   }
 
   void finishDynamicModule() {
-    _registerModuleRefs(
-        isSubmodule ? initFunction.body : translator.initFunction.body);
+    _registerModuleRefs(isSubmodule
+        ? initFunction.body
+        : translator.mainModule.startFunction.body);
   }
 
   void _registerModuleRefs(w.InstructionsBuilder b) {
