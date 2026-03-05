@@ -12,14 +12,7 @@ import 'util.dart';
 
 final Uri _pkgVmDir = Platform.script.resolve('../../vm/');
 
-const Set<String> dart2wasmNotSupported = {
-  // TODO(https://github.com/dart-lang/native/issues/2908): Enum instances
-  // are not yet supported in dart2wasm because of the specific lowering.
-  'enum_instance_usage.dart',
-  'enhanced_enum.dart',
-  'enum_const_arg.dart',
-  'record_enum.dart',
-};
+const Set<String> dart2wasmNotSupported = {};
 
 Future<void> runTestCase(
   Uri sourceFileUri,

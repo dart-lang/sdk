@@ -45,7 +45,7 @@
     block $label0 (result (ref $#Closure-0-1))
       global.get $"globalH0Foo tear-off"
       br_on_non_null $label0
-      i32.const 53
+      i32.const 52
       i32.const 0
       global.get $global0
       global.get $global2
