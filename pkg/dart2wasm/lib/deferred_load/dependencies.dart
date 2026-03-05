@@ -6,6 +6,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart';
+import 'package:vm/metadata/procedure_attributes.dart';
 
 import '../modules.dart';
 import 'devirtualization_oracle.dart';
@@ -16,13 +17,15 @@ class DependenciesCollector {
   final DevirtualizionOracle _devirtualizionOracle;
   final DeferredModuleLoadingMap _loadingMap;
 
+  final Map<TreeNode, ProcedureAttributesMetadata> procedureAttributeMetadata;
+
   late final _checkLibraryIsLoadedFromLoadId = _coreTypes.index.getProcedure(
       'dart:_internal',
       LibraryIndex.topLevel,
       'checkLibraryIsLoadedFromLoadId');
 
-  DependenciesCollector(this._coreTypes, this._classHierarchy,
-      this._devirtualizionOracle, this._loadingMap);
+  DependenciesCollector(this.procedureAttributeMetadata, this._coreTypes,
+      this._classHierarchy, this._devirtualizionOracle, this._loadingMap);
 
   /// Returns the set of constants referred to by the (possibly composed)
   /// [constant].
@@ -46,14 +49,14 @@ class DependenciesCollector {
   DirectReferenceDependencies directReferenceDependencies(Reference reference) {
     final TreeNode node = reference.node!;
 
-    final deps = DirectReferenceDependencies({}, {}, {}, {});
-
+    final deps = DirectReferenceDependencies();
     if (node is Class) {
       _enqueueInstanceMembers(node, deps);
       return deps;
     }
 
     final collector = _ReferenceDependenciesCollector._(
+        procedureAttributeMetadata,
         _recognizeDeferredLoadingGuard,
         _classHierarchy,
         _devirtualizionOracle,
@@ -171,6 +174,9 @@ class _ConstantDependenciesCollector extends RecursiveVisitor {
 }
 
 class _ReferenceDependenciesCollector extends RecursiveVisitor {
+  late final Map<TreeNode, ProcedureAttributesMetadata>
+      _procedureAttributeMetadata;
+
   final LibraryDependency? Function(Let node) recognizeDeferredLoadingGuard;
   final DevirtualizionOracle _devirtualizionOracle;
   final ClosedWorldClassHierarchy _classHierarchy;
@@ -180,6 +186,7 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
   final List<LibraryDependency> _activeLoadGuards = [];
 
   _ReferenceDependenciesCollector._(
+      this._procedureAttributeMetadata,
       this.recognizeDeferredLoadingGuard,
       this._classHierarchy,
       this._devirtualizionOracle,
@@ -208,18 +215,24 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
 
   @override
   void visitSuperPropertyGet(SuperPropertyGet node) {
+    // NOTE: Super calls are direct calls and as such don't need to call
+    // [addSelectorUse]/[addDynamicSelectorUse].
     super.visitSuperPropertyGet(node);
     _addSuperTargetReference(node.interfaceTarget, setter: false);
   }
 
   @override
   void visitSuperPropertySet(SuperPropertySet node) {
+    // NOTE: Super calls are direct calls and as such don't need to call
+    // [addSelectorUse]/[addDynamicSelectorUse].
     super.visitSuperPropertySet(node);
     _addSuperTargetReference(node.interfaceTarget, setter: true);
   }
 
   @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
+    // NOTE: Super calls are direct calls and as such don't need to call
+    // [addSelectorUse]/[addDynamicSelectorUse].
     super.visitSuperMethodInvocation(node);
     _addSuperTargetReference(node.interfaceTarget, setter: false);
   }
@@ -228,21 +241,74 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
   void visitInstanceGet(InstanceGet node) {
     super.visitInstanceGet(node);
     final target = _devirtualizionOracle.staticDispatchTargetForGet(node);
-    if (target != null) addReference(target);
+    if (target != null) {
+      addReference(target);
+    } else {
+      addSelectorUse(node.interfaceTarget, getter: true);
+    }
   }
 
   @override
   void visitInstanceSet(InstanceSet node) {
     super.visitInstanceSet(node);
     final target = _devirtualizionOracle.staticDispatchTargetForSet(node);
-    if (target != null) addReference(target);
+    if (target != null) {
+      addReference(target);
+    } else {
+      addSelectorUse(node.interfaceTarget, getter: false);
+    }
   }
 
   @override
   void visitInstanceInvocation(InstanceInvocation node) {
     super.visitInstanceInvocation(node);
     final target = _devirtualizionOracle.staticDispatchTargetForCall(node);
-    if (target != null) addReference(target);
+    if (target != null) {
+      addReference(target);
+    } else {
+      addSelectorUse(node.interfaceTarget, getter: false);
+    }
+  }
+
+  @override
+  void visitInstanceTearOff(InstanceTearOff node) {
+    super.visitInstanceTearOff(node);
+    // There's no [Reference] in pure Kernel AST to represent the tear-off of a
+    // method (**). So for the purpose of this code that works on pure Kernel
+    // AST and collects dependencies, the method and it's tear-off are one
+    // entity. We treat it as such by making any use of the method be a use of
+    // tear-off as well - and vice versa.
+    //
+    // (**) The dart2wasm backend code does use multiple [Reference]s to
+    // represent the same method, constructor etc - including tear-offs. Though
+    // this is in the backend.
+    addSelectorUse(node.interfaceTarget, getter: true);
+    addSelectorUse(node.interfaceTarget, getter: false);
+  }
+
+  @override
+  void visitDynamicGet(DynamicGet node) {
+    super.visitDynamicGet(node);
+    addDynamicSelectorUse(node.name);
+  }
+
+  @override
+  void visitDynamicSet(DynamicSet node) {
+    super.visitDynamicSet(node);
+    addDynamicSelectorUse(node.name);
+  }
+
+  @override
+  void visitDynamicInvocation(DynamicInvocation node) {
+    super.visitDynamicInvocation(node);
+    addDynamicSelectorUse(node.name);
+  }
+
+  @override
+  void visitFunctionInvocation(FunctionInvocation node) {
+    // NOTE: [_Closure.call] is marked as `@pragma('wasm:entry-point')` and will
+    // therefore be considered a selector use by the root.
+    super.visitFunctionInvocation(node);
   }
 
   @override
@@ -371,22 +437,59 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
       addReference(member is Field ? member.getterReference : member.reference);
     }
   }
+
+  void addDynamicSelectorUse(Name used) {
+    if (_activeLoadGuards.isEmpty) {
+      if (deps.dynamicSelectors.add(used)) {
+        deps.deferredDynamicSelectors.remove(used);
+      }
+      return;
+    }
+    if (!deps.dynamicSelectors.contains(used)) {
+      (deps.deferredDynamicSelectors[used] ??= {}).add(_activeLoadGuards.last);
+    }
+  }
+
+  void addSelectorUse(Member member, {required bool getter}) {
+    final metadata = _procedureAttributeMetadata[member]!;
+    final selectorId =
+        getter ? metadata.getterSelectorId : metadata.methodOrSetterSelectorId;
+    if (_activeLoadGuards.isEmpty) {
+      if (deps.selectorIds.add(selectorId)) {
+        deps.deferredSelectorIds.remove(selectorId);
+      }
+      return;
+    }
+    if (!deps.selectorIds.contains(selectorId)) {
+      (deps.deferredSelectorIds[selectorId] ??= {}).add(_activeLoadGuards.last);
+    }
+  }
 }
 
 class DirectReferenceDependencies {
-  final Set<Reference> references;
-  final Map<Reference, Set<LibraryDependency>> deferredReferences;
-  final Set<Constant> constants;
-  final Map<Constant, Set<LibraryDependency>> deferredConstants;
+  // The static dependencies.
+  final Set<Reference> references = {};
+  final Map<Reference, Set<LibraryDependency>> deferredReferences = {};
+  final Set<Constant> constants = {};
+  final Map<Constant, Set<LibraryDependency>> deferredConstants = {};
 
-  DirectReferenceDependencies(this.references, this.deferredReferences,
-      this.constants, this.deferredConstants);
+  // The selectors used during calls.
+  final Set<int> selectorIds = {};
+  final Map<int, Set<LibraryDependency>> deferredSelectorIds = {};
+  final Set<Name> dynamicSelectors = {};
+  final Map<Name, Set<LibraryDependency>> deferredDynamicSelectors = {};
+
+  DirectReferenceDependencies();
 
   bool get isEmpty =>
       references.isEmpty &&
-      deferredConstants.isEmpty &&
+      deferredReferences.isEmpty &&
       constants.isEmpty &&
-      deferredConstants.isEmpty;
+      deferredConstants.isEmpty &&
+      selectorIds.isEmpty &&
+      deferredSelectorIds.isEmpty &&
+      dynamicSelectors.isEmpty &&
+      deferredDynamicSelectors.isEmpty;
 }
 
 class DirectConstantDependencies {
@@ -396,4 +499,71 @@ class DirectConstantDependencies {
   DirectConstantDependencies(this.constants, this.reference);
 
   bool get isEmpty => constants.isEmpty && reference == null;
+}
+
+/// Computes the roots for each deferred import.
+ProgramPrefixUsages computePrefixRoots(
+  LibraryDependency programRootPrefix,
+  Set<Reference> programRoots,
+  Set<int> programSelectorRoots,
+  Map<Reference, DirectReferenceDependencies> directReferenceDependencies,
+  Map<Constant, DirectConstantDependencies> directConstantDependencies,
+) {
+  final rootUsages = PrefixUsages(programRootPrefix);
+  rootUsages.references.addAll(programRoots);
+  rootUsages.selectorIds.addAll(programSelectorRoots);
+
+  final prefixRoots = <LibraryDependency, PrefixUsages>{
+    programRootPrefix: rootUsages,
+  };
+
+  directReferenceDependencies.forEach((_, deps) {
+    deps.deferredReferences.forEach((reference, imports) {
+      for (final import in imports) {
+        (prefixRoots[import] ??= PrefixUsages(import))
+            .references
+            .add(reference);
+      }
+    });
+    deps.deferredConstants.forEach((constant, imports) {
+      for (final import in imports) {
+        (prefixRoots[import] ??= PrefixUsages(import)).constants.add(constant);
+      }
+    });
+    deps.deferredSelectorIds.forEach((selectorId, imports) {
+      for (final import in imports) {
+        (prefixRoots[import] ??= PrefixUsages(import))
+            .selectorIds
+            .add(selectorId);
+      }
+    });
+    deps.deferredDynamicSelectors.forEach((name, imports) {
+      for (final import in imports) {
+        (prefixRoots[import] ??= PrefixUsages(import)).selectorNames.add(name);
+      }
+    });
+  });
+  return ProgramPrefixUsages(prefixRoots);
+}
+
+/// Maps each deferred library import to [PrefixUsages].
+///
+/// Depending on the usage, the [PrefixUsages] may only be the roots (i.e. the
+/// ones accessed directly via `D.*` accesses) or it may be the transitive
+/// closure of them or the transitive closure minus that of dominators.
+class ProgramPrefixUsages {
+  final Map<LibraryDependency, PrefixUsages> usages;
+  ProgramPrefixUsages(this.usages);
+}
+
+class PrefixUsages {
+  final LibraryDependency prefix;
+
+  final Set<Reference> references = {};
+  final Set<Constant> constants = {};
+
+  final Set<int> selectorIds = {};
+  final Set<Name> selectorNames = {};
+
+  PrefixUsages(this.prefix);
 }

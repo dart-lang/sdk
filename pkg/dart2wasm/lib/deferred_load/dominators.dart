@@ -120,6 +120,201 @@ Dominators computeDominators(
   return Dominators(doms[rootImport]!, doms);
 }
 
+SelectorDominators computeSelectorDominators(
+    Dominators dominators, ProgramPrefixUsages prefixDominatorUsages) {
+  final selectorIdDominator = <int, DominatorNode<LibraryDependency>>{};
+  final selectorNameDominator = <Name, DominatorNode<LibraryDependency>>{};
+  dominators.root.visitDFS((_) {}, (node) {
+    final usages = prefixDominatorUsages.usages[node.prefix]!;
+    for (final selectorId in usages.selectorIds) {
+      final existing = selectorIdDominator[selectorId];
+      selectorIdDominator[selectorId] =
+          existing == null ? node : existing.commonDominator(node);
+    }
+    for (final name in usages.selectorNames) {
+      final existing = selectorNameDominator[name];
+      selectorNameDominator[name] =
+          existing == null ? node : existing.commonDominator(node);
+    }
+  });
+  return SelectorDominators(selectorIdDominator, selectorNameDominator);
+}
+
+/// Dominators of selectors.
+///
+/// This tells us which node in the dominator tree dominates all uses of a
+/// selector.
+class SelectorDominators {
+  final Map<int, DominatorNode<LibraryDependency>> selectorIds;
+  final Map<Name, DominatorNode<LibraryDependency>> selectorNames;
+  SelectorDominators(this.selectorIds, this.selectorNames);
+
+  void dump() {
+    print('Selector dominators:');
+    for (final MapEntry(:key, :value) in selectorIds.entries) {
+      print('  $key -> $value');
+    }
+    for (final MapEntry(:key, :value) in selectorNames.entries) {
+      print('  $key -> $value');
+    }
+  }
+}
+
+ClassDominators computeClassDominators(
+    Dominators dominators, ProgramPrefixUsages prefixDominatorUsages) {
+  final classDominators = <Reference, DominatorNode<LibraryDependency>>{};
+  dominators.root.visitDFS((_) {}, (node) {
+    final usages = prefixDominatorUsages.usages[node.prefix]!;
+    for (final reference in usages.references) {
+      if (reference.node is! Class) continue;
+      final existing = classDominators[reference];
+      classDominators[reference] =
+          existing == null ? node : existing.commonDominator(node);
+    }
+  });
+  return ClassDominators(classDominators);
+}
+
+/// Dominators of classes.
+///
+/// This tells us which node in the dominator tree dominates all uses of a
+/// class (a constructor invocation or constant will be a class use).
+class ClassDominators {
+  final Map<Reference, DominatorNode<LibraryDependency>> classDominators;
+  ClassDominators(this.classDominators);
+
+  void dump() {
+    print('Class dominators:');
+    for (final MapEntry(:key, :value) in classDominators.entries) {
+      print('  $key -> $value');
+    }
+  }
+}
+
+/// Computes transitive usages of library prefixes minus that of their
+/// dominators.
+///
+/// So if we have
+///
+///        Root
+///        / \
+///       D1  D2
+///       /
+///     D3
+///
+/// This walks down the tree in DFS order.
+///
+///   * transitive accesses via root prefix (i.e. program roots)
+///   * transitive accesses via D1 prefix - excluding `Root` usages
+///   * transitive accesses via D2 prefix - excluding `Root` usages
+///   * transitive accesses via D3 prefix - excluding `D1` & `Root` usages
+///
+/// (the transitive accesses do not include deferred accesses)
+ProgramPrefixUsages computeTransitiveDominatorUsages(
+  Dominators dominators,
+  ProgramPrefixUsages programRoots,
+  Map<Reference, DirectReferenceDependencies> directReferenceDependencies,
+  Map<Constant, DirectConstantDependencies> directConstantDependencies,
+) {
+  final parentStack = <PrefixUsages>[];
+  final transitiveUsages = <LibraryDependency, PrefixUsages>{};
+  dominators.root.visitDFS((node) {
+    final prefixRoots = programRoots.usages[node.prefix]!;
+    final usages = scanTransitiveDepsExcludingParents(parentStack, prefixRoots,
+        directReferenceDependencies, directConstantDependencies);
+    transitiveUsages[node.prefix] = usages;
+    parentStack.add(usages);
+  }, (node) {
+    parentStack.removeLast();
+  });
+  return ProgramPrefixUsages(transitiveUsages);
+}
+
+PrefixUsages scanTransitiveDepsExcludingParents(
+  List<PrefixUsages> parents,
+  PrefixUsages roots,
+  Map<Reference, DirectReferenceDependencies> directReferenceDependencies,
+  Map<Constant, DirectConstantDependencies> directConstantDependencies,
+) {
+  final syncUsages = PrefixUsages(roots.prefix);
+
+  final worklistReferences = <Reference>[];
+  final worklistConstant = <Constant>[];
+
+  final enqueuedReferences = <Reference>{};
+  final enqueuedConstants = <Constant>{};
+  final enqueuedSelectorIds = <int>{};
+  final enqueuedSelectorNames = <Name>{};
+
+  void enqueueReference(Reference reference) {
+    if (enqueuedReferences.add(reference)) {
+      for (int i = 0; i < parents.length; ++i) {
+        if (parents[i].references.contains(reference)) return;
+      }
+      syncUsages.references.add(reference);
+      worklistReferences.add(reference);
+    }
+  }
+
+  void enqueueConstant(Constant constant) {
+    if (enqueuedConstants.add(constant)) {
+      for (int i = 0; i < parents.length; ++i) {
+        if (parents[i].constants.contains(constant)) return;
+      }
+      syncUsages.constants.add(constant);
+      worklistConstant.add(constant);
+    }
+  }
+
+  void enqueueSelectorId(int selectorId) {
+    if (enqueuedSelectorIds.add(selectorId)) {
+      for (int i = 0; i < parents.length; ++i) {
+        if (parents[i].selectorIds.contains(selectorId)) return;
+      }
+      syncUsages.selectorIds.add(selectorId);
+    }
+  }
+
+  void enqueueSelectorName(Name selectorName) {
+    if (enqueuedSelectorNames.add(selectorName)) {
+      for (int i = 0; i < parents.length; ++i) {
+        if (parents[i].selectorNames.contains(selectorName)) return;
+      }
+      syncUsages.selectorNames.add(selectorName);
+    }
+  }
+
+  for (final reference in roots.references) {
+    enqueueReference(reference);
+  }
+  for (final constant in roots.constants) {
+    enqueueConstant(constant);
+  }
+  for (final selectorId in roots.selectorIds) {
+    enqueueSelectorId(selectorId);
+  }
+
+  while (worklistReferences.isNotEmpty || worklistConstant.isNotEmpty) {
+    while (worklistReferences.isNotEmpty) {
+      final reference = worklistReferences.removeLast();
+      final deps = directReferenceDependencies[reference]!;
+      deps.references.forEach(enqueueReference);
+      deps.selectorIds.forEach(enqueueSelectorId);
+      deps.dynamicSelectors.forEach(enqueueSelectorName);
+      deps.constants.forEach(enqueueConstant);
+    }
+    while (worklistConstant.isNotEmpty) {
+      final constant = worklistConstant.removeLast();
+      final deps = directConstantDependencies[constant]!;
+      deps.constants.forEach(enqueueConstant);
+      final reference = deps.reference;
+      if (reference != null) enqueueReference(reference);
+    }
+  }
+
+  return syncUsages;
+}
+
 class Vertex extends dom.Vertex<Vertex> {
   final Object object;
   bool isLoadingRoot = true;
@@ -167,6 +362,10 @@ class DominatorNode<T> {
       dom = dom.dominator;
     }
     return false;
+  }
+
+  bool dominates(DominatorNode<T> other) {
+    return this == other || strictlyDominates(other);
   }
 
   DominatorNode<T> commonDominator(DominatorNode<T> right) {

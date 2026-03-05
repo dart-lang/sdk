@@ -17,20 +17,8 @@
   (func $"wasm:js-string.equals (import)" (import "wasm:js-string" "equals") (param externref externref) (result i32))
   (@binaryen.removable.if.unused)
   (func $"wasm:js-string.length (import)" (import "wasm:js-string" "length") (param externref) (result i32))
-  (global $".FooConst0(" (import "" "FooConst0(") (ref extern))
-  (global $".FooConstBase(" (import "" "FooConstBase(") (ref extern))
-  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 46 funcref)
+  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 45 funcref)
   (global $"\")\"" (ref $JSExternWrapper) <...>)
-  (global $"\"FooConst0(\"" (ref $JSExternWrapper)
-    (i32.const 108)
-    (i32.const 0)
-    (global.get $".FooConst0(")
-    (struct.new $JSExternWrapper))
-  (global $"\"FooConstBase(\"" (ref $JSExternWrapper)
-    (i32.const 108)
-    (i32.const 0)
-    (global.get $".FooConstBase(")
-    (struct.new $JSExternWrapper))
   (global $"\"foo0Code(\"" (ref $JSExternWrapper) <...>)
   (global $0 (ref $BoxedInt) <...>)
   (global $FooConst0 (ref $Object)
@@ -42,29 +30,28 @@
   (elem $cross-module-funcs-0
     (set 1 (ref.func $_makeFuture))
     (set 2 (ref.func $_newAsyncSuspendState))
-    (set 3 (ref.func $loadLibraryFromLoadId))
-    (set 4 (ref.func $_awaitHelper))
-    (set 5 (ref.func $checkLibraryIsLoadedFromLoadId))
-    (set 7 (ref.func $_AsyncSuspendState._complete))
-    (set 8 (ref.func $_AsyncSuspendState._completeError))
-    (set 9 (ref.func $boxJsException))
-    (set 10 (ref.func $jsExceptionStackTrace))
-    (set 14 (ref.func $print))
-    (set 15 (ref.func $JSStringImpl._interpolate3))
-    (set 16 (ref.func $"foo0Code <noInline>"))
+    (set 4 (ref.func $loadLibraryFromLoadId))
+    (set 5 (ref.func $_awaitHelper))
+    (set 6 (ref.func $checkLibraryIsLoadedFromLoadId))
+    (set 8 (ref.func $_AsyncSuspendState._complete))
+    (set 9 (ref.func $_AsyncSuspendState._completeError))
+    (set 10 (ref.func $boxJsException))
+    (set 11 (ref.func $jsExceptionStackTrace))
+    (set 18 (ref.func $print))
+    (set 19 (ref.func $JSStringImpl._interpolate3))
+    (set 20 (ref.func $"foo0Code <noInline>"))
     (set 21 (ref.func $"_throwIndexError <noInline>"))
-    (set 22 (ref.func $FooConstBase.doit))
-    (set 23 (ref.func $GrowableList._withData))
-    (set 26 (ref.func $"wasm:js-string.length (import)"))
-    (set 27 (ref.func $"wasm:js-string.charCodeAt (import)"))
-    (set 28 (ref.func $IntegerDivisionByZeroException))
-    (set 29 (ref.func $"Error._throwWithCurrentStackTrace <noInline>"))
-    (set 30 (ref.func $"wasm:js-string.equals (import)"))
-    (set 31 (ref.func $JSStringImpl.substring))
-    (set 32 (ref.func $JSStringImpl.+))
-    (set 33 (ref.func $JSStringImpl._interpolate))
-    (set 34 (ref.func $JSStringImpl.fromRefUnchecked))
-    (set 35 (ref.func $JSStringImpl._interpolate2)))
+    (set 22 (ref.func $GrowableList._withData))
+    (set 25 (ref.func $"wasm:js-string.length (import)"))
+    (set 26 (ref.func $"wasm:js-string.charCodeAt (import)"))
+    (set 27 (ref.func $IntegerDivisionByZeroException))
+    (set 28 (ref.func $"Error._throwWithCurrentStackTrace <noInline>"))
+    (set 29 (ref.func $"wasm:js-string.equals (import)"))
+    (set 30 (ref.func $JSStringImpl.substring))
+    (set 31 (ref.func $JSStringImpl.+))
+    (set 32 (ref.func $JSStringImpl._interpolate))
+    (set 33 (ref.func $JSStringImpl.fromRefUnchecked))
+    (set 34 (ref.func $JSStringImpl._interpolate2)))
   (func $Error._throwWithCurrentStackTrace <noInline> (param $var0 (ref $#Top)) (result (ref none)) <...>)
   (func $_throwIndexError <noInline> (param $var0 i64) (param $var1 i64) (param $var2 (ref null $JSExternWrapper)) (result (ref none)) <...>)
   (func $"foo0Code <noInline>" (param $var0 (ref null $#Top)) (result (ref null $#Top))
@@ -79,28 +66,6 @@
     drop
     global.get $0
     global.set $fooGlobal0
-    ref.null none
-  )
-  (func $FooConst0.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"\"FooConst0(\""
-    local.get $var1
-    global.get $"\")\""
-    call $JSStringImpl._interpolate3
-    call $print
-    drop
-    local.get $var0
-    local.get $var1
-    call $FooConstBase.doit
-    drop
-    ref.null none
-  )
-  (func $FooConstBase.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"\"FooConstBase(\""
-    local.get $var1
-    global.get $"\")\""
-    call $JSStringImpl._interpolate3
-    call $print
-    drop
     ref.null none
   )
   (func $GrowableList._withData (param $var0 (ref $_Type)) (param $var1 (ref $Array<Object?>)) (result (ref $WasmListBase)) <...>)

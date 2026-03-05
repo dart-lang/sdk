@@ -15,8 +15,6 @@ void main() async {
   await D2.loadLibrary();
   await D2.d2();
 
-  await D1.loadLibrary();
-  await D1.d1();
   usedByMain();
   usedByMainD1();
   usedByMainD1D2();
