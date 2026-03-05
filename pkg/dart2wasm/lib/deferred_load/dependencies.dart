@@ -16,6 +16,7 @@ class DependenciesCollector {
   final ClosedWorldClassHierarchy _classHierarchy;
   final DevirtualizionOracle _devirtualizionOracle;
   final DeferredModuleLoadingMap _loadingMap;
+  final bool _assertsEnabled;
 
   final Map<TreeNode, ProcedureAttributesMetadata> procedureAttributeMetadata;
 
@@ -24,8 +25,19 @@ class DependenciesCollector {
       LibraryIndex.topLevel,
       'checkLibraryIsLoadedFromLoadId');
 
-  DependenciesCollector(this.procedureAttributeMetadata, this._coreTypes,
-      this._classHierarchy, this._devirtualizionOracle, this._loadingMap);
+  late final _loadLibraryFromLoadId = _coreTypes.index.getProcedure(
+      'dart:_internal', LibraryIndex.topLevel, 'loadLibraryFromLoadId');
+
+  late final _exportWasmFunction = _coreTypes.index
+      .getTopLevelMember('dart:_internal', 'exportWasmFunction');
+
+  DependenciesCollector(
+      this.procedureAttributeMetadata,
+      this._coreTypes,
+      this._classHierarchy,
+      this._devirtualizionOracle,
+      this._loadingMap,
+      this._assertsEnabled);
 
   /// Returns the set of constants referred to by the (possibly composed)
   /// [constant].
@@ -58,8 +70,10 @@ class DependenciesCollector {
     final collector = _ReferenceDependenciesCollector._(
         procedureAttributeMetadata,
         _recognizeDeferredLoadingGuard,
+        _disableAllGuards,
         _classHierarchy,
         _devirtualizionOracle,
+        _assertsEnabled,
         reference,
         deps);
 
@@ -109,28 +123,19 @@ class DependenciesCollector {
     throw UnsupportedError('Unexpected reference: $reference');
   }
 
-  LibraryDependency? _recognizeDeferredLoadingGuard(Let let) {
-    // TODO(http://dartbug.com/61764): Find better way to do this.
-    //
-    // If we have
-    //
-    //   let
-    //     _ = checkLibraryIsLoadedFromLoadId(<id>)
-    //   in
-    //     <body>
-    //
-    // Then we know that the body will only be executed once the deferred prefix
-    // `D` was loaded.
-    final init = let.variable.initializer;
-    if (init is StaticInvocation) {
-      final target = init.target;
-      if (target == _checkLibraryIsLoadedFromLoadId) {
-        final args = init.arguments.positional;
-        final loadId = (args[0] as IntLiteral).value;
-        return _loadingMap.loadIdToDeferredImport[loadId];
-      }
+  LibraryDependency? _recognizeDeferredLoadingGuard(StaticInvocation node) {
+    final target = node.target;
+    if (target == _checkLibraryIsLoadedFromLoadId ||
+        target == _loadLibraryFromLoadId) {
+      final args = node.arguments.positional;
+      final loadId = (args[0] as IntLiteral).value;
+      return _loadingMap.loadIdToDeferredImport[loadId];
     }
     return null;
+  }
+
+  bool _disableAllGuards(StaticInvocation node) {
+    return node.target == _exportWasmFunction;
   }
 
   void _enqueueInstanceMembers(Class klass, DirectReferenceDependencies deps) {
@@ -177,9 +182,12 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
   late final Map<TreeNode, ProcedureAttributesMetadata>
       _procedureAttributeMetadata;
 
-  final LibraryDependency? Function(Let node) recognizeDeferredLoadingGuard;
+  final LibraryDependency? Function(StaticInvocation node)
+      _recognizeDeferredLoadingGuard;
+  final bool Function(StaticInvocation node) _disableAllGuards;
   final DevirtualizionOracle _devirtualizionOracle;
   final ClosedWorldClassHierarchy _classHierarchy;
+  final bool _assertsEnabled;
 
   final Reference reference;
   final DirectReferenceDependencies deps;
@@ -187,37 +195,260 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
 
   _ReferenceDependenciesCollector._(
       this._procedureAttributeMetadata,
-      this.recognizeDeferredLoadingGuard,
+      this._recognizeDeferredLoadingGuard,
+      this._disableAllGuards,
       this._classHierarchy,
       this._devirtualizionOracle,
+      this._assertsEnabled,
       this.reference,
       this.deps);
 
-  @override
-  void visitLet(Let node) {
-    node.variable.accept(this);
+  // ---------------------------------------------------------------------------
+  // Ensure all AST nodes are handled - in case future AST nodes are added, they
+  // may affect control flow or dependency collection, so we want to know about
+  // them by throwing here.
+  // ---------------------------------------------------------------------------
 
-    final guard = recognizeDeferredLoadingGuard(node);
-    if (guard != null) {
-      _activeLoadGuards.add(guard);
+  @override
+  void defaultExpression(Expression node) => throw UnimplementedError();
+
+  @override
+  void defaultStatement(Statement node) => throw UnimplementedError();
+
+  // ---------------------------------------------------------------------------
+  // Only node that needs dependency collection & load active load guard
+  // handling.
+  // ---------------------------------------------------------------------------
+
+  @override
+  void visitStaticInvocation(StaticInvocation node) {
+    if (_disableAllGuards(node)) {
+      // If a function looks like this:
+      // ```
+      //   void foo() {
+      //     ...
+      //     D.baz();
+      //     ...
+      //     _exportWasmFunction(baz);
+      //     ...
+      //   }
+      //
+      //   @pragma('wasm:weak-export')
+      //   external ... baz(...);
+      // ```
+      // Then the intrinsifier will recognize `_exportWasmFunction(baz)`
+      // specially and export the `baz` function from the same module as
+      // `foo`. We therefore do not want `baz` to land in another module.
+      final saved = _activeLoadGuards.toList();
+      _activeLoadGuards.clear();
+      node.visitChildren(this);
+      addReference(node.targetReference);
+      _activeLoadGuards.addAll(saved);
+      return;
     }
-    node.body.accept(this);
-    if (guard != null) {
-      final last = _activeLoadGuards.removeLast();
-      assert(guard == last);
+    node.visitChildren(this);
+    addReference(node.targetReference);
+    if (_recognizeDeferredLoadingGuard(node) case var guard?) {
+      _activeLoadGuards.add(guard);
     }
   }
 
-  // The references needed by the codegen to handle
-  // {List,Map,Set,Record}Literals are all marked with
-  // @pragma('wasm:entry-point') and do not have to be explicitly
-  // modeled as dependencies (they land in the root unit).
+  // ---------------------------------------------------------------------------
+  // AST Expressions & Statements that have merge points in them which need to
+  // save & restore active load guards.
+  // ---------------------------------------------------------------------------
+
+  @override
+  void visitAssertBlock(AssertBlock node) {
+    if (_assertsEnabled) {
+      node.visitChildren(this);
+      // Either the assert throws (in which case code after the assert is
+      // unreachable) or the load guards produced in the assert evaluation still
+      // hold.
+    }
+  }
+
+  @override
+  void visitAssertStatement(AssertStatement node) {
+    if (_assertsEnabled) {
+      node.visitChildren(this);
+      // Either the assert throws (in which case code after the assert is
+      // unreachable) or the load guards produced in the assert evaluation still
+      // hold.
+    }
+  }
+
+  @override
+  void visitLabeledStatement(LabeledStatement node) {
+    final saved = _activeLoadGuards.length;
+    node.body.accept(this);
+    _activeLoadGuards.length = saved;
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    // We execute the condition at least once.
+    node.condition.accept(this);
+    final saved = _activeLoadGuards.length;
+    node.body.accept(this);
+    _activeLoadGuards.length = saved;
+  }
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    // We execute the body & condition at least once.
+    //
+    // NOTE: If the body contains a `break` it will target a separate
+    // [LabeledStatement] which already handles re-setting guards.
+    node.body.accept(this);
+    node.condition.accept(this);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    // We initialize the variables always.
+    for (final variable in node.variableInitializations) {
+      variable.accept(this);
+    }
+    // We alway execute the condition at least once.
+    node.condition?.accept(this);
+    final saved = _activeLoadGuards.length;
+    node.body.accept(this);
+    // If we perform updates then the body must have successfully been
+    // executed.
+    // (NOTE: break/continue are handled in kernel via lowering to
+    // [LabeledStatement]s which will save&restore guards)
+    for (final update in node.updates) {
+      update.accept(this);
+    }
+    _activeLoadGuards.length = saved;
+  }
+
+  @override
+  void visitForInStatement(ForInStatement node) {
+    node.iterable.accept(this);
+
+    final saved = _activeLoadGuards.length;
+    node.body.accept(this);
+    _activeLoadGuards.length = saved;
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    node.expression.accept(this);
+    final saved = _activeLoadGuards.length;
+    for (final c in node.cases) {
+      for (final expression in c.expressions) {
+        expression.accept(this);
+        _activeLoadGuards.length = saved;
+      }
+      c.body.accept(this);
+      _activeLoadGuards.length = saved;
+    }
+    assert(_activeLoadGuards.length == saved);
+  }
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    node.condition.accept(this);
+
+    final saved = _activeLoadGuards.length;
+    node.then.accept(this);
+    _activeLoadGuards.length = saved;
+    node.otherwise?.accept(this);
+    _activeLoadGuards.length = saved;
+  }
+
+  @override
+  void visitTryCatch(TryCatch node) {
+    final saved = _activeLoadGuards.length;
+    node.body.accept(this);
+    _activeLoadGuards.length = saved;
+    for (final c in node.catches) {
+      c.body.accept(this);
+      _activeLoadGuards.length = saved;
+    }
+  }
+
+  @override
+  void visitTryFinally(TryFinally node) {
+    final saved = _activeLoadGuards.length;
+    node.body.accept(this);
+    _activeLoadGuards.length = saved;
+    node.finalizer.accept(this);
+    // NOTE: Finalizer will always be executed and as such any load guard in it
+    // will continue to hold after the finally block.
+  }
+
+  @override
+  void visitLogicalExpression(LogicalExpression node) {
+    node.left.accept(this);
+    final saved = _activeLoadGuards.length;
+    node.right.accept(this);
+    _activeLoadGuards.length = saved;
+  }
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    node.condition.accept(this);
+
+    final saved = _activeLoadGuards.length;
+    node.then.accept(this);
+    _activeLoadGuards.length = saved;
+    node.otherwise.accept(this);
+    _activeLoadGuards.length = saved;
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    final saved = _activeLoadGuards.length;
+    node.visitChildren(this);
+    _activeLoadGuards.length = saved;
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    final saved = _activeLoadGuards.length;
+    node.visitChildren(this);
+    _activeLoadGuards.length = saved;
+  }
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    // Unreachable after [node].
+  }
+  @override
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
+    // Unreachable after [node].
+  }
+  @override
+  void visitRethrow(Rethrow node) {
+    // Unreachable after [node].
+  }
+  @override
+  void visitThrow(Throw node) {
+    node.expression.accept(this);
+    // Unreachable after [node].
+  }
+
+  @override
+  void visitLoadLibrary(LoadLibrary node) =>
+      throw StateError('Should have been lowered by now');
+
+  @override
+  void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
+      throw StateError('Should have been lowered by now');
+
+  // ---------------------------------------------------------------------------
+  // Expressions that need to collect dependencies, but do not have control flow
+  // in them and therefore don't need load guard handling.
+  // ---------------------------------------------------------------------------
 
   @override
   void visitSuperPropertyGet(SuperPropertyGet node) {
     // NOTE: Super calls are direct calls and as such don't need to call
     // [addSelectorUse]/[addDynamicSelectorUse].
-    super.visitSuperPropertyGet(node);
+    node.visitChildren(this);
     _addSuperTargetReference(node.interfaceTarget, setter: false);
   }
 
@@ -225,7 +456,7 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
   void visitSuperPropertySet(SuperPropertySet node) {
     // NOTE: Super calls are direct calls and as such don't need to call
     // [addSelectorUse]/[addDynamicSelectorUse].
-    super.visitSuperPropertySet(node);
+    node.visitChildren(this);
     _addSuperTargetReference(node.interfaceTarget, setter: true);
   }
 
@@ -233,13 +464,13 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     // NOTE: Super calls are direct calls and as such don't need to call
     // [addSelectorUse]/[addDynamicSelectorUse].
-    super.visitSuperMethodInvocation(node);
+    node.visitChildren(this);
     _addSuperTargetReference(node.interfaceTarget, setter: false);
   }
 
   @override
   void visitInstanceGet(InstanceGet node) {
-    super.visitInstanceGet(node);
+    node.visitChildren(this);
     final target = _devirtualizionOracle.staticDispatchTargetForGet(node);
     if (target != null) {
       addReference(target);
@@ -250,7 +481,7 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
 
   @override
   void visitInstanceSet(InstanceSet node) {
-    super.visitInstanceSet(node);
+    node.visitChildren(this);
     final target = _devirtualizionOracle.staticDispatchTargetForSet(node);
     if (target != null) {
       addReference(target);
@@ -261,7 +492,7 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
 
   @override
   void visitInstanceInvocation(InstanceInvocation node) {
-    super.visitInstanceInvocation(node);
+    node.visitChildren(this);
     final target = _devirtualizionOracle.staticDispatchTargetForCall(node);
     if (target != null) {
       addReference(target);
@@ -272,7 +503,7 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
 
   @override
   void visitInstanceTearOff(InstanceTearOff node) {
-    super.visitInstanceTearOff(node);
+    node.visitChildren(this);
     // There's no [Reference] in pure Kernel AST to represent the tear-off of a
     // method (**). So for the purpose of this code that works on pure Kernel
     // AST and collects dependencies, the method and it's tear-off are one
@@ -288,19 +519,19 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
 
   @override
   void visitDynamicGet(DynamicGet node) {
-    super.visitDynamicGet(node);
+    node.visitChildren(this);
     addDynamicSelectorUse(node.name);
   }
 
   @override
   void visitDynamicSet(DynamicSet node) {
-    super.visitDynamicSet(node);
+    node.visitChildren(this);
     addDynamicSelectorUse(node.name);
   }
 
   @override
   void visitDynamicInvocation(DynamicInvocation node) {
-    super.visitDynamicInvocation(node);
+    node.visitChildren(this);
     addDynamicSelectorUse(node.name);
   }
 
@@ -308,48 +539,42 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
   void visitFunctionInvocation(FunctionInvocation node) {
     // NOTE: [_Closure.call] is marked as `@pragma('wasm:entry-point')` and will
     // therefore be considered a selector use by the root.
-    super.visitFunctionInvocation(node);
+    node.visitChildren(this);
   }
 
   @override
   void visitStaticGet(StaticGet node) {
-    super.visitStaticGet(node);
+    node.visitChildren(this);
     addReference(node.targetReference);
   }
 
   @override
   void visitStaticSet(StaticSet node) {
-    super.visitStaticSet(node);
-    addReference(node.targetReference);
-  }
-
-  @override
-  void visitStaticInvocation(StaticInvocation node) {
-    super.visitStaticInvocation(node);
+    node.visitChildren(this);
     addReference(node.targetReference);
   }
 
   @override
   void visitConstructorInvocation(ConstructorInvocation node) {
-    super.visitConstructorInvocation(node);
+    node.visitChildren(this);
     addReference(node.targetReference);
   }
 
   @override
   void visitSuperInitializer(SuperInitializer node) {
-    super.visitSuperInitializer(node);
+    node.visitChildren(this);
     addReference(node.targetReference);
   }
 
   @override
   void visitRedirectingInitializer(RedirectingInitializer node) {
-    super.visitRedirectingInitializer(node);
+    node.visitChildren(this);
     addReference(node.targetReference);
   }
 
   @override
   void visitStaticTearOff(StaticTearOff node) {
-    super.visitStaticTearOff(node);
+    node.visitChildren(this);
     addReference(node.targetReference);
   }
 
@@ -387,6 +612,11 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
   void visitDoubleLiteral(DoubleLiteral node) {
     addConstant(DoubleConstant(node.value));
   }
+
+  // The references needed by the codegen to handle
+  // {List,Map,Set,Record}Literals are all marked with
+  // @pragma('wasm:entry-point') and do not have to be explicitly
+  // modeled as dependencies (they land in the root unit).
 
   @override
   void visitConstantExpression(ConstantExpression node) {
@@ -464,6 +694,120 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
       (deps.deferredSelectorIds[selectorId] ??= {}).add(_activeLoadGuards.last);
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Expressions & Statements that do not need special handling:
+  //
+  //   * they don't introduce reference/constant/selector depencencies
+  //   * they don't introduce control flow and as such: any load guard valid
+  //     before the node is still valid after the node, any load guard activated
+  //     in the children stays active after the node
+  // ---------------------------------------------------------------------------
+
+  @override
+  void visitExpressionStatement(ExpressionStatement node) =>
+      node.visitChildren(this);
+  @override
+  void visitBlock(Block node) => node.visitChildren(this);
+  @override
+  void visitEmptyStatement(EmptyStatement node) => node.visitChildren(this);
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) =>
+      node.visitChildren(this);
+  @override
+  void visitReturnStatement(ReturnStatement node) => node.visitChildren(this);
+  @override
+  void visitYieldStatement(YieldStatement node) => node.visitChildren(this);
+
+  @override
+  void visitLet(Let node) => node.visitChildren(this);
+  @override
+  void visitAuxiliaryExpression(AuxiliaryExpression node) =>
+      throw UnimplementedError();
+  @override
+  void visitInvalidExpression(InvalidExpression node) =>
+      throw UnimplementedError();
+  @override
+  void visitVariableGet(VariableGet node) => node.visitChildren(this);
+  @override
+  void visitVariableSet(VariableSet node) => node.visitChildren(this);
+  @override
+  void visitFunctionTearOff(FunctionTearOff node) => node.visitChildren(this);
+  @override
+  void visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) =>
+      node.visitChildren(this);
+  @override
+  void visitAbstractSuperPropertySet(AbstractSuperPropertySet node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitLocalFunctionInvocation(LocalFunctionInvocation node) =>
+      node.visitChildren(this);
+  @override
+  void visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
+      node.visitChildren(this);
+  @override
+  void visitEqualsNull(EqualsNull node) => node.visitChildren(this);
+  @override
+  void visitEqualsCall(EqualsCall node) => node.visitChildren(this);
+  @override
+  void visitAbstractSuperMethodInvocation(AbstractSuperMethodInvocation node) =>
+      node.visitChildren(this);
+  @override
+  void visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) =>
+      node.visitChildren(this);
+  @override
+  void visitNot(Not node) => node.visitChildren(this);
+  @override
+  void visitNullCheck(NullCheck node) => node.visitChildren(this);
+  @override
+  void visitStringConcatenation(StringConcatenation node) =>
+      node.visitChildren(this);
+  @override
+  void visitListConcatenation(ListConcatenation node) =>
+      node.visitChildren(this);
+  @override
+  void visitSetConcatenation(SetConcatenation node) => node.visitChildren(this);
+  @override
+  void visitMapConcatenation(MapConcatenation node) => node.visitChildren(this);
+  @override
+  void visitInstanceCreation(InstanceCreation node) => node.visitChildren(this);
+  @override
+  void visitFileUriExpression(FileUriExpression node) =>
+      node.visitChildren(this);
+  @override
+  void visitIsExpression(IsExpression node) => node.visitChildren(this);
+  @override
+  void visitAsExpression(AsExpression node) => node.visitChildren(this);
+  @override
+  void visitSymbolLiteral(SymbolLiteral node) => node.visitChildren(this);
+  @override
+  void visitTypeLiteral(TypeLiteral node) => node.visitChildren(this);
+  @override
+  void visitThisExpression(ThisExpression node) => node.visitChildren(this);
+  @override
+  void visitListLiteral(ListLiteral node) => node.visitChildren(this);
+  @override
+  void visitSetLiteral(SetLiteral node) => node.visitChildren(this);
+  @override
+  void visitMapLiteral(MapLiteral node) => node.visitChildren(this);
+  @override
+  void visitRecordLiteral(RecordLiteral node) => node.visitChildren(this);
+  @override
+  void visitAwaitExpression(AwaitExpression node) => node.visitChildren(this);
+  @override
+  void visitBlockExpression(BlockExpression node) => node.visitChildren(this);
+  @override
+  void visitInstantiation(Instantiation node) => node.visitChildren(this);
+  @override
+  void visitTypedefTearOff(TypedefTearOff node) => node.visitChildren(this);
+  @override
+  void visitRecordIndexGet(RecordIndexGet node) => node.visitChildren(this);
+  @override
+  void visitRecordNameGet(RecordNameGet node) => node.visitChildren(this);
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) =>
+      node.visitChildren(this);
 }
 
 class DirectReferenceDependencies {

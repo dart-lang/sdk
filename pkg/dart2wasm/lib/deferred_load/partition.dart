@@ -23,8 +23,12 @@ import 'import_set.dart';
 
 export 'import_set.dart' show Part;
 
-Partitioning partitionAppplication(CoreTypes coreTypes, Component component,
-    DeferredModuleLoadingMap loadingMap, Set<Reference> roots,
+Partitioning partitionAppplication(
+    CoreTypes coreTypes,
+    Component component,
+    bool assertsEnabled,
+    DeferredModuleLoadingMap loadingMap,
+    Set<Reference> roots,
     {ConstraintData? constraints}) {
   final Map<TreeNode, DirectCallMetadata> directCallMetadata =
       (component.metadata[DirectCallMetadataRepository.repositoryTag]
@@ -65,8 +69,13 @@ Partitioning partitionAppplication(CoreTypes coreTypes, Component component,
       ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   final devirtualizionOracle = DevirtualizionOracle(
       directCallMetadata, procedureAttributeMetadata, selectorMetadata);
-  final depsCollector = DependenciesCollector(procedureAttributeMetadata,
-      coreTypes, classHierarchy, devirtualizionOracle, loadingMap);
+  final depsCollector = DependenciesCollector(
+      procedureAttributeMetadata,
+      coreTypes,
+      classHierarchy,
+      devirtualizionOracle,
+      loadingMap,
+      assertsEnabled);
   final algorithm = _Algorithm(component, depsCollector, constraints);
   return algorithm.run(roots, selectorRoots);
 }

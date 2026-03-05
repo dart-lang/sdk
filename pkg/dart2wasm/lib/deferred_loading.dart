@@ -49,7 +49,11 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
     }
 
     final partition = partitionAppplication(
-        coreTypes, component, loadingMap, findWasmRoots(coreTypes, component),
+        coreTypes,
+        component,
+        options.translatorOptions.enableAsserts,
+        loadingMap,
+        findWasmRoots(coreTypes, component),
         constraints: constraints);
 
     final builder = ModuleMetadataBuilder(options);
