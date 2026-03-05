@@ -441,7 +441,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   COMPILE_ASSERT(
       static_cast<uword>(FfiCallbackMetadata::TrampolineType::kSync) == 0);
-  __ bnez(T3, &something_other_than_sync_callback, Assembler::kNearJump);
+  __ bnez(T3, &something_other_than_sync_callback);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -453,7 +453,53 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // Clobbers TMP, TMP2 and T1 -- all volatile and not holding return values.
   __ EnterFullSafepoint(/*scratch=*/T1);
 
-  __ j(&done, Assembler::kNearJump);
+  if (FLAG_target_memory_sanitizer) {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        (1 << CallingConventions::kReturnFpuReg) |
+            (1 << CallingConventions::kSecondReturnFpuReg));
+    __ PushRegisters(return_registers);
+
+    Label call;
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitSyncCallback, T1, T2);
+    } else {
+      const intptr_t kPCRelativeLoadOffset = 12;
+      intptr_t start = __ CodeSize();
+      __ auipc(T1, 0);
+      __ lx(T1, Address(T1, kPCRelativeLoadOffset));
+      __ j(&call);
+
+      ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
+#if XLEN == 32
+      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitSyncCallback));
+#else
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitSyncCallback));
+#endif
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, T1);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ Bind(&call);
+    __ jalr(T1);
+    __ jalr(A0);  // dart_msan_unpoison_retval
+
+    __ PopRegisters(return_registers);
+
+    __ LeaveFrame();
+    __ j(&done, Assembler::kNearJump);
+  }
+
+  __ j(&done);
 
   __ Bind(&something_other_than_sync_callback);
   __ li(T4, static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync));
@@ -474,7 +520,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     const RegisterSet return_registers(
         (1 << CallingConventions::kReturnReg) |
             (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
+        (1 << CallingConventions::kReturnFpuReg) |
+            (1 << CallingConventions::kSecondReturnFpuReg));
     __ PushRegisters(return_registers);
 
     Label call;
@@ -505,6 +552,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
     __ Bind(&call);
     __ jalr(T1);
+    if (FLAG_target_memory_sanitizer) {
+      __ jalr(A0);  // dart_msan_unpoison_retval
+    }
 
     __ PopRegisters(return_registers);
 
@@ -523,7 +573,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     const RegisterSet return_registers(
         (1 << CallingConventions::kReturnReg) |
             (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
+        (1 << CallingConventions::kReturnFpuReg) |
+            (1 << CallingConventions::kSecondReturnFpuReg));
     __ PushRegisters(return_registers);
 
     Label call;
@@ -554,6 +605,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
     __ Bind(&call);
     __ jalr(T1);
+    if (FLAG_target_memory_sanitizer) {
+      __ jalr(A0);  // dart_msan_unpoison_retval
+    }
 
     __ PopRegisters(return_registers);
 

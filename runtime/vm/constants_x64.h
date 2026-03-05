@@ -574,6 +574,7 @@ class CallingConventions {
   static constexpr Register kReturnReg = RAX;
   static constexpr Register kSecondReturnReg = RDX;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
+  static constexpr FpuRegister kSecondReturnFpuReg = XMM1;
   static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
   // Whether larger than wordsize arguments are aligned to even registers.

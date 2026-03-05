@@ -238,6 +238,8 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   FillRuntimeFunction(
       new_page, kExitSyncCallbackTargetIsolate,
       reinterpret_cast<void*>(DLRT_ExitSyncCallbackTargetIsolate));
+  FillRuntimeFunction(new_page, kExitSyncCallback,
+                      reinterpret_cast<void*>(DLRT_ExitSyncCallback));
 
   // Add all the trampolines to the free list.
   const intptr_t trampolines_per_page = NumCallbackTrampolinesPerPage();

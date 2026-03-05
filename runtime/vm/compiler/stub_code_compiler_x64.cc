@@ -620,11 +620,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ cmpq(RAX,
           Immediate(static_cast<uword>(
               FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
-  __ j(EQUAL, &sync_isolate_group_bound_callback, Assembler::kNearJump);
+  __ j(EQUAL, &sync_isolate_group_bound_callback);
 
   __ testq(RAX,
            Immediate(FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
-  __ j(NOT_ZERO, &sync_callback_isolate_ownership, Assembler::kNearJump);
+  __ j(NOT_ZERO, &sync_callback_isolate_ownership);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -637,6 +637,37 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // Takes care to not clobber *any* registers (besides TMP).
   __ EnterFullSafepoint();
 
+  if (FLAG_target_memory_sanitizer) {
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        (1 << CallingConventions::kReturnFpuReg) |
+            (1 << CallingConventions::kSecondReturnFpuReg));
+    __ PushRegisters(return_registers);
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitSyncCallback, RAX, TMP);
+    } else {
+      __ movq(RAX, Immediate(reinterpret_cast<int64_t>(DLRT_ExitSyncCallback)));
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitSyncCallback, RAX);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ CallCFunction(RAX);
+    __ CallCFunction(RAX);  // dart_msan_unpoison_retval
+
+    __ LeaveFrame();
+
+    __ PopRegisters(return_registers);
+  }
+
   __ jmp(&done);
 
   __ Bind(&sync_callback_isolate_ownership);
@@ -648,7 +679,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     const RegisterSet return_registers(
         (1 << CallingConventions::kReturnReg) |
             (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
+        (1 << CallingConventions::kReturnFpuReg) |
+            (1 << CallingConventions::kSecondReturnFpuReg));
     __ PushRegisters(return_registers);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
@@ -669,6 +701,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ ReserveAlignedFrameSpace(0);
 
     __ CallCFunction(RAX);
+    if (FLAG_target_memory_sanitizer) {
+      __ CallCFunction(RAX);  // dart_msan_unpoison_retval
+    }
 
     __ LeaveFrame();
 
@@ -686,7 +721,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     const RegisterSet return_registers(
         (1 << CallingConventions::kReturnReg) |
             (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
+        (1 << CallingConventions::kReturnFpuReg) |
+            (1 << CallingConventions::kSecondReturnFpuReg));
     __ PushRegisters(return_registers);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
@@ -707,6 +743,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ ReserveAlignedFrameSpace(0);
 
     __ CallCFunction(RAX);
+    if (FLAG_target_memory_sanitizer) {
+      __ CallCFunction(RAX);  // dart_msan_unpoison_retval
+    }
 
     __ LeaveFrame();
 
