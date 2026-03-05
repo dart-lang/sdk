@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
-import 'package:kernel/constructor_tearoff_lowering.dart';
 import 'package:record_use/record_use_internal.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
 
@@ -51,10 +51,14 @@ class InstanceRecorder {
     ast.StaticTearOffConstant constant,
   ) {
     if (isConstructorTearOffLowering(constant.target)) {
+      final cls = constant.target.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
+        definition: _definitionFromMember(
+          getConstructorEffectiveTarget(constant.target),
+        ),
         loadingUnits: [_loadingUnitLookup(context)],
       );
-      _addToUsage(constant.target.enclosingClass as ast.Class, instance);
+      _addToUsage(cls, instance);
     }
   }
 
@@ -62,26 +66,38 @@ class InstanceRecorder {
     ast.ConstantExpression context,
     ast.RedirectingFactoryTearOffConstant constant,
   ) {
+    final cls = constant.target.enclosingClass!;
     final instance = ConstructorTearoffReference(
+      definition: _definitionFromMember(
+        getConstructorEffectiveTarget(constant.target),
+      ),
       loadingUnits: [_loadingUnitLookup(context)],
     );
-    _addToUsage(constant.target.enclosingClass!, instance);
+    _addToUsage(cls, instance);
   }
 
   void _collectConstructorTearOffConstant(
     ast.ConstantExpression context,
     ast.ConstructorTearOffConstant constant,
   ) {
+    final cls = constant.target.enclosingClass as ast.Class;
     final instance = ConstructorTearoffReference(
+      definition: _definitionFromMember(
+        getConstructorEffectiveTarget(constant.target),
+      ),
       loadingUnits: [_loadingUnitLookup(context)],
     );
-    _addToUsage(constant.target.enclosingClass as ast.Class, instance);
+    _addToUsage(cls, instance);
   }
 
   void recordConstructorInvocation(ast.ConstructorInvocation node) {
     final target = node.target;
     if (isBeingRecorded(target)) {
-      _recordCreation(target.enclosingClass, node.arguments, node);
+      _recordCreation(
+        getConstructorEffectiveTarget(target),
+        node.arguments,
+        node,
+      );
     }
   }
 
@@ -89,21 +105,20 @@ class InstanceRecorder {
     final target = node.target;
     assert(target.isRedirectingFactory);
     if (isBeingRecorded(target)) {
-      ast.Member ultimateTarget = target;
-      while (ultimateTarget is ast.Procedure &&
-          ultimateTarget.isRedirectingFactory) {
-        ultimateTarget =
-            ultimateTarget.function.redirectingFactoryTarget!.target!;
-      }
-      _recordCreation(ultimateTarget.enclosingClass!, node.arguments, node);
+      _recordCreation(
+        getConstructorEffectiveTarget(target),
+        node.arguments,
+        node,
+      );
     }
   }
 
   void _recordCreation(
-    ast.Class cls,
+    ast.Member target,
     ast.Arguments arguments,
     ast.TreeNode context,
   ) {
+    final cls = target.enclosingClass!;
     final positionalArguments =
         arguments.positional
             .map((argument) => evaluateExpression(argument))
@@ -114,6 +129,7 @@ class InstanceRecorder {
     }
 
     final instance = InstanceCreationReference(
+      definition: _definitionFromMember(target),
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
       loadingUnits: [_loadingUnitLookup(context)],
@@ -124,36 +140,41 @@ class InstanceRecorder {
   void recordConstructorTearOff(ast.ConstructorTearOff node) {
     final target = node.target;
     if (isBeingRecorded(target)) {
+      final cls = target.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
+        definition: _definitionFromMember(
+          getConstructorEffectiveTarget(target),
+        ),
         loadingUnits: [_loadingUnitLookup(node)],
       );
-      _addToUsage(target.enclosingClass as ast.Class, instance);
+      _addToUsage(cls, instance);
     }
   }
 
   void recordLoweredConstructorTearOff(ast.StaticTearOff node) {
     final target = node.target;
     if (isBeingRecorded(target)) {
+      final cls = target.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
+        definition: _definitionFromMember(
+          getConstructorEffectiveTarget(target),
+        ),
         loadingUnits: [_loadingUnitLookup(node)],
       );
-      _addToUsage(target.enclosingClass as ast.Class, instance);
+      _addToUsage(cls, instance);
     }
   }
 
   void recordRedirectingFactoryTearOff(ast.RedirectingFactoryTearOff node) {
     final target = node.target;
     if (isBeingRecorded(target)) {
-      ast.Member ultimateTarget = target;
-      while (ultimateTarget is ast.Procedure &&
-          ultimateTarget.isRedirectingFactory) {
-        ultimateTarget =
-            ultimateTarget.function.redirectingFactoryTarget!.target!;
-      }
+      final ultimateTarget = getConstructorEffectiveTarget(target);
+      final cls = ultimateTarget.enclosingClass!;
       final instance = ConstructorTearoffReference(
+        definition: _definitionFromMember(ultimateTarget),
         loadingUnits: [_loadingUnitLookup(node)],
       );
-      _addToUsage(ultimateTarget.enclosingClass!, instance);
+      _addToUsage(cls, instance);
     }
   }
 
@@ -202,6 +223,11 @@ class InstanceRecorder {
     loadingUnits: [_loadingUnitLookup(expression)],
   );
 
+  /// Returns a [Definition] for [cls].
+  ///
+  /// Currently only works for top-level classes and enums. If support for more
+  /// complex definition paths is needed (e.g. nested classes), it should be
+  /// added here.
   Definition _definitionFromClass(ast.Class cls) {
     final enclosingLibrary = cls.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
@@ -211,6 +237,24 @@ class InstanceRecorder {
         cls.name,
         kind: cls.isEnum ? DefinitionKind.enumKind : DefinitionKind.classKind,
       ),
+    ]);
+  }
+
+  /// Returns a [Definition] for [target].
+  ///
+  /// Currently only works for constructors and factories in top-level classes
+  /// and enums. If support for more complex definition paths is needed, it
+  /// should be added here.
+  Definition _definitionFromMember(ast.Member target) {
+    final cls = target.enclosingClass!;
+    final importUri = cls.enclosingLibrary.importUri.toString();
+
+    return Definition(importUri, [
+      Name(
+        cls.name,
+        kind: cls.isEnum ? DefinitionKind.enumKind : DefinitionKind.classKind,
+      ),
+      Name(target.name.text, kind: DefinitionKind.constructorKind),
     ]);
   }
 }

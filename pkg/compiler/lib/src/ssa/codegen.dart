@@ -2521,7 +2521,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         .node;
 
     if (irResolved is ir.Procedure && irResolved.isRedirectingFactory) {
-      final ultimate = _getUltimateConstructorTarget(irResolved);
+      final ultimate = _getConstructorEffectiveTarget(irResolved);
       if (ultimate == null) return false;
       resolved = _closedWorld.elementMap.getMember(ultimate);
     }
@@ -2553,7 +2553,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     return false;
   }
 
-  ir.Member? _getUltimateConstructorTarget(ir.Member node) {
+  ir.Member? _getConstructorEffectiveTarget(ir.Member node) {
     ir.Member? current = node;
     while (current is ir.Procedure && current.isRedirectingFactory) {
       current = current.function.redirectingFactoryTarget?.target;
@@ -2568,7 +2568,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   ) {
     ir.Member node =
         _closedWorld.elementMap.getMemberDefinition(element).node as ir.Member;
-    node = _getUltimateConstructorTarget(node)!;
+    node = _getConstructorEffectiveTarget(node)!;
     final resolvedElement =
         _closedWorld.elementMap.getMember(node) as ConstructorEntity;
 
@@ -2592,7 +2592,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     });
 
     return RecordedInstanceCreation(
-      cls: resolvedElement.enclosingClass,
+      constructor: resolvedElement,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
       sourceInformation: sourceInformation,
@@ -2608,11 +2608,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     if (node is ir.Procedure) {
       target = getConstructorTearOffLoweringTarget(node) ?? target;
     }
-    target = _getUltimateConstructorTarget(target)!;
+    target = _getConstructorEffectiveTarget(target)!;
     final constructor = _closedWorld.elementMap.getMember(target);
 
     return RecordedConstructorTearOff(
-      cls: constructor.enclosingClass!,
+      constructor: constructor as ConstructorEntity,
       sourceInformation: sourceInformation,
     );
   }

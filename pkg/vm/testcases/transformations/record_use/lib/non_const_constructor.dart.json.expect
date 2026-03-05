@@ -14,6 +14,19 @@
         }
       ],
       "uri": "package:record_use_test/non_const_constructor.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "A"
+        },
+        {
+          "kind": "constructor",
+          "name": ""
+        }
+      ],
+      "uri": "package:record_use_test/non_const_constructor.dart"
     }
   ],
   "loading_units": [
@@ -31,6 +44,7 @@
         "definition_index": 0,
         "uses": [
           {
+            "definition_index": 1,
             "loading_unit_indices": [
               0
             ],

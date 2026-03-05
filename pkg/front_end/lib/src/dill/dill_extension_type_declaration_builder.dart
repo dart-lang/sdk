@@ -386,13 +386,11 @@ class DillExtensionTypeDeclarationBuilder
   DeclarationNameSpace get nameSpace => _nameSpace;
 
   @override
-  DartType get declaredRepresentationType =>
-      _extensionTypeDeclaration.declaredRepresentationType;
-
-  @override
   TypeBuilder? get declaredRepresentationTypeBuilder =>
       _declaredRepresentationTypeBuilder ??= libraryBuilder.loader
-          .computeTypeBuilder(declaredRepresentationType);
+          .computeTypeBuilder(
+            _extensionTypeDeclaration.declaredRepresentationType,
+          );
 
   @override
   ExtensionTypeDeclaration get extensionTypeDeclaration =>

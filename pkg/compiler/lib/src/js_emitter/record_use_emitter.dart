@@ -102,6 +102,7 @@ class RecordUseCollector {
         break;
       case RecordedInstanceCreation():
         final reference = InstanceCreationReference(
+          definition: _definitionFromMember(recordedUse.constructor),
           loadingUnits: [LoadingUnit(loadingUnit)],
           namedArguments: recordedUse.namedArguments.map(
             (k, v) => MapEntry(k, _converter.findValueOrNonConst(v)),
@@ -114,11 +115,45 @@ class RecordUseCollector {
         break;
       case RecordedConstructorTearOff():
         final reference = ConstructorTearoffReference(
+          definition: _definitionFromMember(recordedUse.constructor),
           loadingUnits: [LoadingUnit(loadingUnit)],
         );
         instanceMap.putIfAbsent(recordedUse.cls, () => []).add(reference);
         break;
     }
+  }
+
+  /// Returns a [Definition] for [cls].
+  ///
+  /// Currently only works for top-level classes and enums. If support for more
+  /// complex definition paths is needed, it should be added here.
+  Definition _definitionFromClass(ClassEntity cls) {
+    return Definition(cls.library.canonicalUri.toString(), [
+      Name(
+        cls.name,
+        kind: _elementEnvironment.isEnumClass(cls)
+            ? DefinitionKind.enumKind
+            : DefinitionKind.classKind,
+      ),
+    ]);
+  }
+
+  /// Returns a [Definition] for [member].
+  ///
+  /// Currently only works for constructors and factories in top-level classes
+  /// and enums. If support for more complex definition paths is needed, it
+  /// should be added here.
+  Definition _definitionFromMember(MemberEntity member) {
+    final cls = member.enclosingClass!;
+    return Definition(cls.library.canonicalUri.toString(), [
+      Name(
+        cls.name,
+        kind: _elementEnvironment.isEnumClass(cls)
+            ? DefinitionKind.enumKind
+            : DefinitionKind.classKind,
+      ),
+      Name(member.name!, kind: DefinitionKind.constructorKind),
+    ]);
   }
 
   Map<String, dynamic> finish() {
@@ -133,17 +168,7 @@ class RecordUseCollector {
     return Recordings(
       calls: calls,
       instances: instanceMap.map((key, value) {
-        return MapEntry(
-          Definition(key.library.canonicalUri.toString(), [
-            Name(
-              key.name,
-              kind: _elementEnvironment.isEnumClass(key)
-                  ? DefinitionKind.enumKind
-                  : DefinitionKind.classKind,
-            ),
-          ]),
-          value,
-        );
+        return MapEntry(_definitionFromClass(key), value);
       }),
     ).toJson();
   }

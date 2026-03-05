@@ -13,6 +13,19 @@
         }
       ],
       "uri": "package:record_use_test/factory_constructor.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "FactoryA"
+        },
+        {
+          "kind": "constructor",
+          "name": ""
+        }
+      ],
+      "uri": "package:record_use_test/factory_constructor.dart"
     }
   ],
   "loading_units": [
@@ -30,6 +43,7 @@
         "definition_index": 0,
         "uses": [
           {
+            "definition_index": 1,
             "loading_unit_indices": [
               0
             ],

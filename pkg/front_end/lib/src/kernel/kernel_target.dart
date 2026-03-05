@@ -552,17 +552,6 @@ class KernelTarget {
 
         benchmarker
         // Coverage-ignore(suite): Not run.
-        ?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
-        loader.checkSupertypes(
-          sortedSourceClassBuilders,
-          sortedSourceExtensionTypeBuilders,
-          objectClass,
-          enumClass,
-          underscoreEnumClass,
-        );
-
-        benchmarker
-        // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
         installSyntheticConstructors(sortedSourceClassBuilders);
 
@@ -623,6 +612,17 @@ class KernelTarget {
         // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
         loader.performTopLevelInference(sortedSourceClassBuilders);
+
+        benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
+        loader.checkSupertypes(
+          sortedSourceClassBuilders,
+          sortedSourceExtensionTypeBuilders,
+          objectClass,
+          enumClass,
+          underscoreEnumClass,
+        );
 
         benchmarker
         // Coverage-ignore(suite): Not run.
