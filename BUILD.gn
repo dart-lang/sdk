@@ -489,7 +489,7 @@ if (is_fuchsia) {
   }
 }
 
-if (is_linux) {
+if (is_linux && current_cpu != "riscv32") {
   group("debian_package") {
     public_deps = [ "tools/debian_package" ]
   }

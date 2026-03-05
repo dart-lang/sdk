@@ -65,6 +65,7 @@ class FfiCallbackMetadata {
     kExitTemporaryIsolate,
     kExitIsolateGroupBoundIsolate,
     kExitSyncCallbackTargetIsolate,
+    kExitSyncCallback,
     kNumRuntimeFunctions,
   };
 
@@ -328,7 +329,7 @@ class FfiCallbackMetadata {
 
 #if defined(TARGET_ARCH_X64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 393;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 417;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
@@ -340,15 +341,15 @@ class FfiCallbackMetadata {
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 480;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 496;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 358;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 368;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 358;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 368;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #else
 #error What architecture?

@@ -516,6 +516,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ SetupDartSP();
 
     __ EnterFrame(0);
+    // This saves too much: we only need the D half of Q registers.
     __ PushRegisters(all_registers);
 
     __ mov(R0, R9);
@@ -601,6 +602,49 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // Clobbers TMP, TMP2 and R9 -- all volatile and not holding return values.
   __ EnterFullSafepoint(/*scratch=*/R9);
 
+  if (FLAG_target_memory_sanitizer) {
+    __ SetupDartSP();
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        (1 << CallingConventions::kReturnFpuReg) |
+            (1 << CallingConventions::kSecondReturnFpuReg) |
+            (1 << CallingConventions::kThirdReturnFpuReg) |
+            (1 << CallingConventions::kFourthReturnFpuReg));
+    // This saves too much: we only need the D half of Q registers.
+    __ PushRegisters(return_registers);
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitSyncCallback, R4, R9);
+    } else {
+      Label call;
+      __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
+      __ b(&call);
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitSyncCallback));
+      __ Bind(&call);
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitSyncCallback, R4);
+#endif
+
+    __ mov(CSP, SP);
+    __ blr(R4);
+    __ blr(R0);  // dart_msan_unpoison_retval
+    __ mov(SP, CSP);
+    __ mov(THR, R0);
+
+    __ PopRegisters(return_registers);
+
+    __ LeaveFrame();
+    __ RestoreCSP();
+  }
+
   __ b(&done);
 
   __ Bind(&sync_callback_isolate_ownership);
@@ -616,7 +660,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     const RegisterSet return_registers(
         (1 << CallingConventions::kReturnReg) |
             (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
+        (1 << CallingConventions::kReturnFpuReg) |
+            (1 << CallingConventions::kSecondReturnFpuReg) |
+            (1 << CallingConventions::kThirdReturnFpuReg) |
+            (1 << CallingConventions::kFourthReturnFpuReg));
+    // This saves too much: we only need the D half of Q registers.
     __ PushRegisters(return_registers);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
@@ -638,6 +686,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
     __ mov(CSP, SP);
     __ blr(R4);
+    if (FLAG_target_memory_sanitizer) {
+      __ blr(R0);  // dart_msan_unpoison_retval
+    }
     __ mov(SP, CSP);
     __ mov(THR, R0);
 
@@ -662,7 +713,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     const RegisterSet return_registers(
         (1 << CallingConventions::kReturnReg) |
             (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
+        (1 << CallingConventions::kReturnFpuReg) |
+            (1 << CallingConventions::kSecondReturnFpuReg) |
+            (1 << CallingConventions::kThirdReturnFpuReg) |
+            (1 << CallingConventions::kFourthReturnFpuReg));
+    // This saves too much: we only need the D half of Q registers.
     __ PushRegisters(return_registers);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
@@ -684,6 +739,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
     __ mov(CSP, SP);
     __ blr(R4);
+    if (FLAG_target_memory_sanitizer) {
+      __ blr(R0);  // dart_msan_unpoison_retval
+    }
     __ mov(SP, CSP);
     __ mov(THR, R0);
 

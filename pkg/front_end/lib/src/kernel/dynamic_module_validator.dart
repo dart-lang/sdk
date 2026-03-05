@@ -127,8 +127,7 @@ class DynamicInterfaceSpecification {
       baseUri,
       component,
       libraryIndex,
-      allowExtensionTypes: false,
-      allowStaticMembers: false,
+      allowStaticDeclarations: false,
       allowInstanceMembers: false,
     );
 
@@ -138,8 +137,7 @@ class DynamicInterfaceSpecification {
       baseUri,
       component,
       libraryIndex,
-      allowExtensionTypes: false,
-      allowStaticMembers: false,
+      allowStaticDeclarations: false,
       allowInstanceMembers: true,
     );
 
@@ -149,8 +147,7 @@ class DynamicInterfaceSpecification {
       baseUri,
       component,
       libraryIndex,
-      allowExtensionTypes: true,
-      allowStaticMembers: true,
+      allowStaticDeclarations: true,
       allowInstanceMembers: true,
     );
   }
@@ -161,8 +158,7 @@ class DynamicInterfaceSpecification {
     Uri baseUri,
     Component component,
     LibraryIndex libraryIndex, {
-    required bool allowExtensionTypes,
-    required bool allowStaticMembers,
+    required bool allowStaticDeclarations,
     required bool allowInstanceMembers,
   }) {
     if (items != null) {
@@ -173,8 +169,7 @@ class DynamicInterfaceSpecification {
           baseUri,
           libraryIndex,
           component,
-          allowExtensionTypes: allowExtensionTypes,
-          allowStaticMembers: allowStaticMembers,
+          allowStaticDeclarations: allowStaticDeclarations,
           allowInstanceMembers: allowInstanceMembers,
         );
       }
@@ -187,16 +182,21 @@ class DynamicInterfaceSpecification {
     Uri baseUri,
     LibraryIndex libraryIndex,
     Component component, {
-    required bool allowExtensionTypes,
-    required bool allowStaticMembers,
+    // Allow extension types, extensions, or static members.
+    required bool allowStaticDeclarations,
     required bool allowInstanceMembers,
   }) {
     final YamlMap yamlMap = yamlNode as YamlMap;
-    final bool allowMembers = allowStaticMembers || allowInstanceMembers;
+    final bool allowMembers = allowStaticDeclarations || allowInstanceMembers;
     final Set<String> keys;
-    if (allowExtensionTypes) {
-      assert(allowMembers);
-      keys = const {'library', 'class', 'extension_type', 'member'};
+    if (allowStaticDeclarations) {
+      keys = const {
+        'library',
+        'class',
+        'extension_type',
+        'extension',
+        'member',
+      };
     } else if (allowMembers) {
       keys = const {'library', 'class', 'member'};
     } else {
@@ -228,7 +228,7 @@ class DynamicInterfaceSpecification {
         );
         _validateSpecifiedMember(
           member,
-          allowStaticMembers: allowStaticMembers,
+          allowStaticMembers: allowStaticDeclarations,
           allowInstanceMembers: allowInstanceMembers,
         );
         result.add(member);
@@ -236,6 +236,38 @@ class DynamicInterfaceSpecification {
       }
 
       result.add(libraryIndex.getExtensionType(libraryUri, extensionSpec));
+      return;
+    }
+
+    if (yamlMap.containsKey('extension')) {
+      final dynamic yamlExtensionNode = yamlMap['extension'];
+      if (yamlExtensionNode is YamlList) {
+        yamlMap.verifyKeys(const {'library', 'extension'});
+        for (dynamic c in yamlExtensionNode) {
+          result.add(libraryIndex.getExtension(libraryUri, c as String));
+        }
+        return;
+      }
+
+      final String extensionSpec = yamlExtensionNode as String;
+
+      if (allowMembers && yamlMap.containsKey('member')) {
+        final String memberSpec = yamlMap['member'] as String;
+        final Member member = libraryIndex.getMember(
+          libraryUri,
+          extensionSpec,
+          memberSpec,
+        );
+        _validateSpecifiedMember(
+          member,
+          allowStaticMembers: allowStaticDeclarations,
+          allowInstanceMembers: allowInstanceMembers,
+        );
+        result.add(member);
+        return;
+      }
+
+      result.add(libraryIndex.getExtension(libraryUri, extensionSpec));
       return;
     }
 
@@ -261,7 +293,7 @@ class DynamicInterfaceSpecification {
         );
         _validateSpecifiedMember(
           member,
-          allowStaticMembers: allowStaticMembers,
+          allowStaticMembers: allowStaticDeclarations,
           allowInstanceMembers: allowInstanceMembers,
         );
         result.add(member);
@@ -281,7 +313,7 @@ class DynamicInterfaceSpecification {
       );
       _validateSpecifiedMember(
         member,
-        allowStaticMembers: allowStaticMembers,
+        allowStaticMembers: allowStaticDeclarations,
         allowInstanceMembers: allowInstanceMembers,
       );
       result.add(member);

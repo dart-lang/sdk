@@ -100,8 +100,9 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(uword trampoline,
                                                uword* out_entry_point,
                                                uword* out_callback_kind);
 extern "C" void DLRT_ExitTemporaryIsolate();
-extern "C" void DLRT_ExitIsolateGroupBoundIsolate();
-extern "C" void DLRT_ExitSyncCallbackTargetIsolate();
+extern "C" void* DLRT_ExitIsolateGroupBoundIsolate();
+extern "C" void* DLRT_ExitSyncCallbackTargetIsolate();
+extern "C" void* DLRT_ExitSyncCallback();
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 
