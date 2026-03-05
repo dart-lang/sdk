@@ -146,8 +146,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       _instructionByPos[pos ~/ step] = block.id;
       pos += step;
       for (final instr in block) {
-        if (instr is Phi) {
-          // All Phis have the same position as their Block.
+        if (instr is Phi || instr is Parameter) {
+          // All Phis and Parameters have the same position as their Block.
           _instructionPos[instr.id] = blockStartPos(block);
         } else {
           _instructionPos[instr.id] = pos;

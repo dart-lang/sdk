@@ -208,7 +208,7 @@ class AstToIr extends ast.RecursiveVisitor {
         if (!field.isStatic) {
           if (field.isLate) {
             if (!initializedFields.contains(field)) {
-              throw 'Unimplemented: _initLateInstanceField';
+              throw 'Unimplemented: initialization of late instance field';
             }
           } else {
             final fieldInitializer = field.initializer;
@@ -499,7 +499,7 @@ class AstToIr extends ast.RecursiveVisitor {
     if (!enableAsserts) {
       return;
     }
-    throw 'unimplemented';
+    throw 'Unsupported node ${node.runtimeType} with enabled asserts';
   }
 
   @override
@@ -742,7 +742,9 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitVariableDeclaration(ast.VariableDeclaration node) {
-    if (node.isLate) throw 'unimplemented';
+    if (node.isLate) {
+      throw 'Unsupported node ${node.runtimeType} for late variable';
+    }
     if (node.isConst) return;
     final local = localVarIndexer.variableForDeclaration(node);
     final initializer = node.initializer;
@@ -762,7 +764,9 @@ class AstToIr extends ast.RecursiveVisitor {
   @override
   void visitVariableGet(ast.VariableGet node) {
     final variable = node.variable;
-    if (variable.isLate) throw 'unimplemented';
+    if (variable.isLate) {
+      throw 'Unsupported node ${node.runtimeType} for late variable';
+    }
     if (variable.isConst) {
       builder.addConstant(
         ConstantValue(
@@ -789,7 +793,9 @@ class AstToIr extends ast.RecursiveVisitor {
   @override
   void visitVariableSet(ast.VariableSet node) {
     final variable = node.variable;
-    if (variable.isLate) throw 'unimplemented';
+    if (variable.isLate) {
+      throw 'Unsupported node ${node.runtimeType} for late variable';
+    }
     _translateNode(node.value);
     if (_handleUnreachableExpression(1)) return;
     final local = localVarIndexer.variableForDeclaration(variable);

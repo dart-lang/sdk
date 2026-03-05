@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/utils/misc.dart';
@@ -22,6 +23,8 @@ sealed class CFunction {
 
   CFunction._(this.member);
 
+  ast.FunctionNode? get functionNode => member.function;
+
   /// Whether this function has a receiver parameter.
   bool get hasReceiverParameter =>
       member.isInstanceMember || member is ast.Constructor;
@@ -36,12 +39,62 @@ sealed class CFunction {
 
   /// Whether this function has function type parameters.
   bool get hasFunctionTypeParameters =>
-      member is ast.Procedure && member.function!.typeParameters.isNotEmpty;
+      functionNode?.typeParameters.isNotEmpty ?? false;
 
-  /// Total number of parameters including function type parameters
-  /// (represented with a single parameter), receiver, closure and
+  /// Number of implicit parameters of this function:
+  /// - function type parameters (represented with a single parameter),
+  /// - receiver,
+  /// - closure.
+  int get numberOfImplicitParameters =>
+      (hasFunctionTypeParameters ? 1 : 0) +
+      (hasReceiverParameter ? 1 : 0) +
+      (hasClosureParameter ? 1 : 0);
+
+  /// Number of required positional parameters including implicit parameters.
+  int get numberOfRequiredPositionalParameters =>
+      numberOfImplicitParameters + (functionNode?.requiredParameterCount ?? 0);
+
+  /// Total number of parameters including implicit parameters and
   /// optional parameters.
-  int get numberOfParameters;
+  int get numberOfParameters =>
+      numberOfImplicitParameters +
+      (functionNode?.positionalParameters.length ?? 0) +
+      (functionNode?.namedParameters.length ?? 0);
+
+  /// Whether this function has optional positional parameters.
+  bool get hasOptionalPositionalParameters =>
+      functionNode != null &&
+      (functionNode!.requiredParameterCount <
+          functionNode!.positionalParameters.length);
+
+  /// Whether this function has named parameters.
+  bool get hasNamedParameters =>
+      functionNode?.namedParameters.isNotEmpty ?? false;
+
+  ast.VariableDeclaration _getOptionalOrNamedParameter(int index) =>
+      hasOptionalPositionalParameters
+      ? functionNode!.positionalParameters[index - numberOfImplicitParameters]
+      : functionNode!.namedParameters[index -
+            numberOfRequiredPositionalParameters];
+
+  /// Default value of the [index]-th optional or named parameter.
+  ConstantValue getParameterDefaultValue(int index) => ConstantValue(
+    (_getOptionalOrNamedParameter(index).initializer as ast.ConstantExpression)
+        .constant,
+  );
+
+  /// Name of the [index]-th named parameter.
+  /// Named parameters are sorted by name and follow required positional parameters.
+  String getParameterName(int index) {
+    assert(hasNamedParameters);
+    return _getOptionalOrNamedParameter(index).name!;
+  }
+
+  /// Whether the [index]-th named parameter is required.
+  bool isRequiredParameter(int index) {
+    assert(hasNamedParameters);
+    return _getOptionalOrNamedParameter(index).isRequired;
+  }
 
   /// Return type of this function.
   CType get returnType;
@@ -55,7 +108,13 @@ final class GetterFunction extends CFunction {
   GetterFunction._(super.member) : assert(member.hasGetter), super._();
 
   @override
-  int get numberOfParameters => member.isInstanceMember ? 1 /* receiver */ : 0;
+  ast.FunctionNode? get functionNode => null;
+
+  @override
+  int get numberOfRequiredPositionalParameters => numberOfImplicitParameters;
+
+  @override
+  int get numberOfParameters => numberOfImplicitParameters;
 
   @override
   late final CType returnType = CType.fromStaticType(member.getterType);
@@ -74,8 +133,14 @@ final class SetterFunction extends CFunction {
   SetterFunction._(super.member) : assert(member.hasSetter), super._();
 
   @override
-  int get numberOfParameters =>
-      member.isInstanceMember ? 2 /* receiver, value */ : 1 /* only value */;
+  ast.FunctionNode? get functionNode => null;
+
+  @override
+  int get numberOfRequiredPositionalParameters =>
+      numberOfImplicitParameters + 1 /* value */;
+
+  @override
+  int get numberOfParameters => numberOfImplicitParameters + 1 /* value */;
 
   @override
   CType get returnType => const TopType(const ast.VoidType());
@@ -99,7 +164,13 @@ final class FieldInitializerFunction extends CFunction {
       super._();
 
   @override
-  int get numberOfParameters => member.isInstanceMember ? 1 /* receiver */ : 0;
+  ast.FunctionNode? get functionNode => null;
+
+  @override
+  int get numberOfRequiredPositionalParameters => numberOfImplicitParameters;
+
+  @override
+  int get numberOfParameters => numberOfImplicitParameters;
 
   @override
   CType get returnType => CType.fromStaticType(member.getterType);
@@ -116,16 +187,7 @@ final class RegularFunction extends CFunction {
       super._();
 
   @override
-  int get numberOfParameters =>
-      (hasFunctionTypeParameters ? 1 : 0) +
-      (hasReceiverParameter ? 1 : 0) +
-      member.function!.positionalParameters.length +
-      member.function!.namedParameters.length;
-
-  @override
-  late final CType returnType = CType.fromStaticType(
-    member.function!.returnType,
-  );
+  late final CType returnType = CType.fromStaticType(functionNode!.returnType);
 
   @override
   String toString() => member.toString();
@@ -134,12 +196,6 @@ final class RegularFunction extends CFunction {
 /// Generative constructor.
 final class GenerativeConstructor extends CFunction {
   GenerativeConstructor._(ast.Constructor super.member) : super._();
-
-  @override
-  int get numberOfParameters =>
-      1 /* receiver */ +
-      member.function!.positionalParameters.length +
-      member.function!.namedParameters.length;
 
   @override
   CType get returnType => const TopType(const ast.VoidType());
@@ -165,23 +221,13 @@ final class LocalFunction extends ClosureFunction {
   LocalFunction._(super.member, this.localFunction) : super._();
 
   @override
+  ast.FunctionNode? get functionNode => localFunction.function;
+
+  @override
   String toString() => 'closure $localFunction at $member';
 
   @override
-  bool get hasFunctionTypeParameters =>
-      localFunction.function.typeParameters.isNotEmpty;
-
-  @override
-  int get numberOfParameters =>
-      (hasFunctionTypeParameters ? 1 : 0) +
-      1 /* closure */ +
-      localFunction.function.positionalParameters.length +
-      localFunction.function.namedParameters.length;
-
-  @override
-  late final CType returnType = CType.fromStaticType(
-    localFunction.function.returnType,
-  );
+  late final CType returnType = CType.fromStaticType(functionNode!.returnType);
 
   @override
   SourcePosition get sourcePosition => SourcePosition(localFunction.fileOffset);
@@ -201,13 +247,6 @@ final class TearOffFunction extends ClosureFunction {
   bool get hasFunctionTypeParameters => member is ast.Constructor
       ? member.enclosingClass!.typeParameters.isNotEmpty
       : member.function!.typeParameters.isNotEmpty;
-
-  @override
-  int get numberOfParameters =>
-      (hasFunctionTypeParameters ? 1 : 0) +
-      1 /* closure */ +
-      member.function!.positionalParameters.length +
-      member.function!.namedParameters.length;
 
   @override
   late final CType returnType = CType.fromStaticType(
