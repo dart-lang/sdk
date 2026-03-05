@@ -8,6 +8,19 @@
         }
       ],
       "uri": "package:record_use_test/non_const_constructor_tearoff.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "NonConstA"
+        },
+        {
+          "kind": "constructor",
+          "name": ""
+        }
+      ],
+      "uri": "package:record_use_test/non_const_constructor_tearoff.dart"
     }
   ],
   "loading_units": [
@@ -25,6 +38,7 @@
         "definition_index": 0,
         "uses": [
           {
+            "definition_index": 1,
             "loading_unit_indices": [
               0
             ],

@@ -1196,3 +1196,22 @@ Member? getConstructorTearOffLoweringTarget(Procedure node) {
   }
   return null;
 }
+
+// Coverage-ignore(suite): Not run.
+/// Returns the effective target of [member], following constructor lowerings
+/// and redirecting factories.
+///
+/// This currently only works for constructors and factories.
+Member getConstructorEffectiveTarget(Member member) {
+  Member ultimateTarget = member;
+  if (member is Procedure) {
+    Member? loweringTarget = getConstructorTearOffLoweringTarget(member);
+    if (loweringTarget != null) {
+      ultimateTarget = loweringTarget;
+    }
+  }
+  while (ultimateTarget is Procedure && ultimateTarget.isRedirectingFactory) {
+    ultimateTarget = ultimateTarget.function.redirectingFactoryTarget!.target!;
+  }
+  return ultimateTarget;
+}

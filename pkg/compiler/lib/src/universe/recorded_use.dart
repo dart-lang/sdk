@@ -303,16 +303,18 @@ class RecordedConstInstance extends RecordedUse {
 /// Dart2js version of [record_use.InstanceCreationReference], with
 /// [ConstantValue]s instead of [record_use.Constant]s.
 class RecordedInstanceCreation extends RecordedUse {
-  final ClassEntity cls;
+  final ConstructorEntity constructor;
   final List<ConstantValue?> positionalArguments;
   final Map<String, ConstantValue?> namedArguments;
 
   RecordedInstanceCreation({
-    required this.cls,
+    required this.constructor,
     required this.positionalArguments,
     required this.namedArguments,
     required super.sourceInformation,
   });
+
+  ClassEntity get cls => constructor.enclosingClass;
 
   @override
   RecordedUseKind get kind => RecordedUseKind.instanceCreation;
@@ -321,11 +323,11 @@ class RecordedInstanceCreation extends RecordedUse {
     SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
-    final cls = source.readClass();
+    final constructor = source.readMember() as ConstructorEntity;
     final positionalArguments = source.readList(source.readConstantOrNull);
     final namedArguments = source.readStringMap(source.readConstantOrNull);
     return RecordedInstanceCreation(
-      cls: cls,
+      constructor: constructor,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
       sourceInformation: sourceInformation,
@@ -334,7 +336,7 @@ class RecordedInstanceCreation extends RecordedUse {
 
   @override
   void _writeFieldsForKind(DataSinkWriter sink) {
-    sink.writeClass(cls);
+    sink.writeMember(constructor);
     sink.writeList(positionalArguments, sink.writeConstantOrNull);
     sink.writeStringMap(namedArguments, sink.writeConstantOrNull);
   }
@@ -342,7 +344,7 @@ class RecordedInstanceCreation extends RecordedUse {
   @override
   bool operator ==(Object other) {
     if (other is! RecordedInstanceCreation) return false;
-    if (cls != other.cls) return false;
+    if (constructor != other.constructor) return false;
     if (positionalArguments.length != other.positionalArguments.length) {
       return false;
     }
@@ -361,7 +363,7 @@ class RecordedInstanceCreation extends RecordedUse {
 
   @override
   int get hashCode => Object.hash(
-    cls,
+    constructor,
     Object.hashAll(positionalArguments),
     Object.hashAll(namedArguments.keys),
     Object.hashAll(namedArguments.values),
@@ -371,12 +373,14 @@ class RecordedInstanceCreation extends RecordedUse {
 
 /// Dart2js version of [record_use.ConstructorTearoffReference].
 class RecordedConstructorTearOff extends RecordedUse {
-  final ClassEntity cls;
+  final ConstructorEntity constructor;
 
   RecordedConstructorTearOff({
-    required this.cls,
+    required this.constructor,
     required super.sourceInformation,
   });
+
+  ClassEntity get cls => constructor.enclosingClass;
 
   @override
   RecordedUseKind get kind => RecordedUseKind.constructorTearOff;
@@ -385,26 +389,27 @@ class RecordedConstructorTearOff extends RecordedUse {
     SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
-    final cls = source.readClass();
+    final constructor = source.readMember() as ConstructorEntity;
     return RecordedConstructorTearOff(
-      cls: cls,
+      constructor: constructor,
       sourceInformation: sourceInformation,
     );
   }
 
   @override
   void _writeFieldsForKind(DataSinkWriter sink) {
-    sink.writeClass(cls);
+    sink.writeMember(constructor);
   }
 
   @override
   bool operator ==(Object other) {
     if (other is! RecordedConstructorTearOff) return false;
-    return cls == other.cls && sourceInformation == other.sourceInformation;
+    return constructor == other.constructor &&
+        sourceInformation == other.sourceInformation;
   }
 
   @override
-  int get hashCode => Object.hash(cls, sourceInformation);
+  int get hashCode => Object.hash(constructor, sourceInformation);
 }
 
 /// [RecordUseValueConverter] transforms dart2js [ConstantValue] objects into the
