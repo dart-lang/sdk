@@ -3739,7 +3739,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitVariableSet(VariableSet node) {
-    final v = node.variable;
+    final v = node.expressionVariable;
 
     _genPushContextIfCaptured(v);
     _generateNode(node.value);
@@ -3781,7 +3781,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitJump(done);
 
       asm.bind(error);
-      asm.emitPushConstant(cp.addName(v.name!));
+      asm.emitPushConstant(cp.addName(v.cosmeticName!));
       _genDirectCall(
           throwLocalAlreadyInitialized, objectTable.getArgDescHandle(1), 1);
       asm.emitDrop1();
@@ -4282,14 +4282,14 @@ class BytecodeGenerator extends RecursiveVisitor {
 
       _enterScope(catchClause);
 
-      final exceptionVar = catchClause.exception;
+      final exceptionVar = catchClause.exceptionCatchVariable;
       if (exceptionVar != null) {
         _genPushContextIfCaptured(exceptionVar);
         asm.emitPush(exception);
         _genStoreVar(exceptionVar);
       }
 
-      final stackTraceVar = catchClause.stackTrace;
+      final stackTraceVar = catchClause.stackTraceCatchVariable;
       if (stackTraceVar != null) {
         tryBlock.needsStackTrace = true;
         _genPushContextIfCaptured(stackTraceVar);

@@ -544,7 +544,7 @@ class _ScopeBuilder extends RecursiveVisitor {
 
   @override
   void visitVariableSet(VariableSet node) {
-    _useVariable(node.variable);
+    _useVariable(node.expressionVariable);
     node.visitChildren(this);
   }
 
@@ -625,7 +625,7 @@ class _ScopeBuilder extends RecursiveVisitor {
     node.iterable.accept(this);
     ++_loopDepth;
     _enterScope(node);
-    node.variable.accept(this);
+    node.expressionVariable.accept(this);
     node.body.accept(this);
     _leaveScope();
     --_loopDepth;
@@ -1087,7 +1087,7 @@ class _Allocator extends RecursiveVisitor {
     node.iterable.accept(this);
 
     _enterScope(node);
-    node.variable.accept(this);
+    node.expressionVariable.accept(this);
     node.body.accept(this);
     _leaveScope();
 
@@ -1196,8 +1196,8 @@ class _Allocator extends RecursiveVisitor {
 
   @override
   void visitVariableSet(VariableSet node) {
-    final bool needsTemp =
-        node.parent is! ExpressionStatement && locals.isCaptured(node.variable);
+    final bool needsTemp = node.parent is! ExpressionStatement &&
+        locals.isCaptured(node.expressionVariable);
     _visit(node, temps: needsTemp ? 1 : 0);
   }
 
