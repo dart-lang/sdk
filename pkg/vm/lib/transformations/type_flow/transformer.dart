@@ -1029,6 +1029,7 @@ class TreeShaker {
   bool isTypedefUsed(Typedef t) => _usedTypedefs.contains(t);
 
   bool retainField(Field f) =>
+      (!f.isStatic && record_use.isBeingRecorded(f)) ||
       isMemberBodyReachable(f) &&
           (!treeShakeWriteOnlyFields ||
               isFieldGetterReachable(f) ||
