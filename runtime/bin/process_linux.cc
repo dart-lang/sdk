@@ -397,8 +397,10 @@ class ProcessStarter {
     // until the process is registered above, and we are ready to receive the
     // exit code.
     char msg = '1';
+    int handshake_write =
+        Process::ModeHasStdio(mode_) ? write_out_[1] : read_in_[1];
     int bytes_written =
-        FDUtils::WriteToBlocking(read_in_[1], &msg, sizeof(msg));
+        FDUtils::WriteToBlocking(handshake_write, &msg, sizeof(msg));
     if (bytes_written != sizeof(msg)) {
       return CleanupAndReturnError();
     }
@@ -490,13 +492,25 @@ class ProcessStarter {
   }
 
   void NewProcess() {
-    // Close the write end of the pipe so that read below EOFs if something
-    // goes wrong in the parent and it closes write end as well.
-    close(read_in_[1]);
-    read_in_[1] = -1;
+    // Close the write end of the handshake pipe so that read below EOFs
+    // if something goes wrong in the parent and it closes its end too.
+    // In stdio modes we use write_out for the handshake because the
+    // child needs read_in[1] later for dup2 to STDOUT_FILENO.
+    // In detached mode write_out_ doesn't exist, but read_in[1] is
+    // not dup2'd so it's safe to close.
+    int handshake_read;
+    if (Process::ModeHasStdio(mode_)) {
+      close(write_out_[1]);
+      write_out_[1] = -1;
+      handshake_read = write_out_[0];
+    } else {
+      close(read_in_[1]);
+      read_in_[1] = -1;
+      handshake_read = read_in_[0];
+    }
     // Wait for parent process before setting up the child process.
     char msg;
-    int bytes_read = FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
+    int bytes_read = FDUtils::ReadFromBlocking(handshake_read, &msg, sizeof(msg));
     if (bytes_read != sizeof(msg)) {
       perror("Failed receiving notification message");
       _exit(1);
