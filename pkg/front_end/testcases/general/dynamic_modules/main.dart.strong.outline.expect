@@ -217,6 +217,18 @@ class C9 extends core::Object /*hasConstConstructor*/  {
 extension Ext1 on core::int {
   get isPositive = mai::Ext1|get#isPositive;
 }
+extension Ext2 on core::int {
+  get isNegative2 = mai::Ext2|get#isNegative2;
+}
+extension Ext3 on core::int {
+  get isNegative3 = mai::Ext3|get#isNegative3;
+}
+extension Ext4 on core::int {
+  get isNegative4 = mai::Ext4|get#isNegative4;
+}
+extension Ext5 on core::int {
+  get isNegative5 = mai::Ext5|get#isNegative5;
+}
 extension type ExtType1(core::int raw) {
   abstract extension-type-member representation-field get raw() → core::int;
   constructor • = mai::ExtType1|constructor#;
@@ -269,6 +281,14 @@ static extension-type-member method ExtType1|constructor#(core::int raw) → mai
 static extension-type-member synthetic method ExtType1|constructor#_#new#tearOff(core::int raw) → mai::ExtType1% /* erasure=core::int, declared=! */
   return mai::ExtType1|constructor#(raw);
 static extension-member method Ext1|get#isPositive(lowered final core::int #this) → core::bool
+  ;
+static extension-member method Ext2|get#isNegative2(lowered final core::int #this) → core::bool
+  ;
+static extension-member method Ext3|get#isNegative3(lowered final core::int #this) → core::bool
+  ;
+static extension-member method Ext4|get#isNegative4(lowered final core::int #this) → core::bool
+  ;
+static extension-member method Ext5|get#isNegative5(lowered final core::int #this) → core::bool
   ;
 static extension-type-member method ExtType2|constructor#(core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */
   ;

@@ -113,6 +113,22 @@ extension Ext1 on int {
   bool get isPositive => this > 0;
 }
 
+extension Ext2 on int {
+  bool get isNegative2 => this < 0;
+}
+
+extension Ext3 on int {
+  bool get isNegative3 => this < 0;
+}
+
+extension Ext4 on int {
+  bool get isNegative4 => this < 0;
+}
+
+extension Ext5 on int {
+  bool get isNegative5 => this < 0;
+}
+
 extension type ExtType2(int raw) {
   bool get isPositive => raw > 0;
 }

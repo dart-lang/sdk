@@ -146,6 +146,21 @@ void test() {
   print(ExtType4(42));
   print(ExtType4(42).isPositive);
 
+  // Allowed - Ext2, Ext3, Ext4 are specified as callable.
+  print(1.isNegative2);
+  print(1.isNegative3);
+  print(1.isNegative4);
+  print(Ext4(1).isNegative4);
+
+  // Not allowed - Ext1 is not exposed.
+  print(Ext1(1).isPositive);
+
+  // Allowed - Ext5.isNegative5 is exposed directly.
+  print(1.isNegative5);
+
+  // Not allowed - Ext5 as an extension is not exposed.
+  print(Ext5(1).isNegative5);
+
   // Not allowed - ExtType5 is not exposed as a whole.
   print(ExtType5);
 

@@ -195,12 +195,17 @@
 //   print(42.isPositive);
 //            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:150:9: Error: Cannot use extension type 'ExtType5' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:156:17: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'Ext1.isPositive' as callable.
+//   print(Ext1(1).isPositive);
+//                 ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:165:9: Error: Cannot use extension type 'ExtType5' in a dynamic module.
 // Try removing the reference to extension type 'ExtType5' or update the dynamic interface to list extension type 'ExtType5' as callable.
 //   print(ExtType5);
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:156:27: Error: Cannot invoke member 'ExtType5.isPositive' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:171:27: Error: Cannot invoke member 'ExtType5.isPositive' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'ExtType5.isPositive' as callable.
 //   print(ExtType5.plus1(3).isPositive);
 //                           ^
@@ -369,6 +374,13 @@ static method test() → void {
   core::print(#C15);
   core::print(mai::ExtType4|constructor#(42));
   core::print(mai::ExtType4|get#isPositive(mai::ExtType4|constructor#(42)));
+  core::print(mai::Ext2|get#isNegative2(1));
+  core::print(mai::Ext3|get#isNegative3(1));
+  core::print(mai::Ext4|get#isNegative4(1));
+  core::print(mai::Ext4|get#isNegative4(1));
+  core::print(mai::Ext1|get#isPositive(1));
+  core::print(mai::Ext5|get#isNegative5(1));
+  core::print(mai::Ext5|get#isNegative5(1));
   core::print(#C15);
   core::print(mai::ExtType5|constructor#plus1(3));
   core::print(mai::ExtType5|get#isPositive(mai::ExtType5|constructor#plus1(3)));
@@ -509,6 +521,18 @@ class C9 extends core::Object /*hasConstConstructor*/  {
 extension Ext1 on core::int {
   get isPositive = mai::Ext1|get#isPositive;
 }
+extension Ext2 on core::int {
+  get isNegative2 = mai::Ext2|get#isNegative2;
+}
+extension Ext3 on core::int {
+  get isNegative3 = mai::Ext3|get#isNegative3;
+}
+extension Ext4 on core::int {
+  get isNegative4 = mai::Ext4|get#isNegative4;
+}
+extension Ext5 on core::int {
+  get isNegative5 = mai::Ext5|get#isNegative5;
+}
 extension type ExtType1(core::int raw) {
   abstract extension-type-member representation-field get raw() → core::int;
   constructor • = mai::ExtType1|constructor#;
@@ -558,6 +582,14 @@ static extension-type-member synthetic method ExtType1|constructor#_#new#tearOff
   return mai::ExtType1|constructor#(raw);
 static extension-member method Ext1|get#isPositive(lowered final core::int #this) → core::bool
   return #this.{core::num::>}(0){(core::num) → core::bool};
+static extension-member method Ext2|get#isNegative2(lowered final core::int #this) → core::bool
+  return #this.{core::num::<}(0){(core::num) → core::bool};
+static extension-member method Ext3|get#isNegative3(lowered final core::int #this) → core::bool
+  return #this.{core::num::<}(0){(core::num) → core::bool};
+static extension-member method Ext4|get#isNegative4(lowered final core::int #this) → core::bool
+  return #this.{core::num::<}(0){(core::num) → core::bool};
+static extension-member method Ext5|get#isNegative5(lowered final core::int #this) → core::bool
+  return #this.{core::num::<}(0){(core::num) → core::bool};
 static extension-type-member method ExtType2|constructor#(core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */ {
   lowered final mai::ExtType2% /* erasure=core::int, declared=! */ #this = raw;
   return #this;

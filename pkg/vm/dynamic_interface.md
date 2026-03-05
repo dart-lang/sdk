@@ -109,7 +109,6 @@ Library member item specifies given top-level member in the given library.
 ```
 
 Class member item specifies given member of the given class.
-
 ## Extension Type member
 
 ```
@@ -119,6 +118,45 @@ Class member item specifies given member of the given class.
 ```
 
 Extension type member item specifies given member of the given extension type.
+
+--
+
+## Extension
+
+```
+  - library: '<library-uri>'
+    extension: '<extension-name>'
+```
+
+Extension item specifies given extension and all _public_ members of such extension.
+
+This item is only allowed in the `callable` section of the dynamic interface.
+
+--
+
+## Extension list
+
+```
+  - library: '<library-uri>'
+    extension: ['<extension-name-1>', ..., 'extension-name-N']
+```
+
+Extension list item specifies given extensions and all _public_ members of these.
+
+
+--
+
+## Extension member
+
+```
+  - library: '<library-uri>'
+    extension: '<extension-name>'
+    member: '<member-name>'
+```
+
+Extension member item specifies given member of the given extension.
+
+--
 
 ## Example
 ```
