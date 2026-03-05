@@ -383,6 +383,11 @@ class LibraryManifestBuilder {
         return;
       }
 
+      // If the class has no name, it was not added to declaredItems.
+      if (element.lookupName?.asLookupName == null) {
+        return;
+      }
+
       // Skip external libraries, already done.
       if (!librarySet.contains(element.library)) {
         return;
