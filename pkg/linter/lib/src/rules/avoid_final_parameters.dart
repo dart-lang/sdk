@@ -38,11 +38,7 @@ class AvoidFinalParameters extends AnalysisRule {
     // as `final` is no longer used to indicate a parameter is final,
     // but rather as a declaring parameter in a primary constructor.
     if (context.isFeatureEnabled(Feature.primary_constructors)) return;
-
-    var visitor = _Visitor(this);
-    registry.addConstructorDeclaration(this, visitor);
-    registry.addFunctionExpression(this, visitor);
-    registry.addMethodDeclaration(this, visitor);
+    registry.addFormalParameterList(this, _Visitor(this));
   }
 }
 
@@ -52,27 +48,17 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) =>
-      _reportApplicableParameters(node.parameters);
+  void visitFormalParameterList(FormalParameterList node) {
+    // A compile-time error is already reported on `GenericFunctionType`s that
+    // have any parameters marked `final`.
+    if (node.parent is GenericFunctionType) return;
 
-  @override
-  void visitFunctionExpression(FunctionExpression node) =>
-      _reportApplicableParameters(node.parameters);
-
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) =>
-      _reportApplicableParameters(node.parameters);
-
-  /// Report the lint for parameters in the [parameters] list that are final.
-  void _reportApplicableParameters(FormalParameterList? parameters) {
-    if (parameters != null) {
-      for (var param in parameters.parameters) {
-        if (param.notDefault
-            case SimpleFormalParameter(:var keyword?) ||
-                FieldFormalParameter(:var keyword?) ||
-                SuperFormalParameter(:var keyword?) when param.isFinal) {
-          rule.reportAtToken(keyword);
-        }
+    for (var param in node.parameters) {
+      if (param.notDefault
+          case SimpleFormalParameter(:var keyword?) ||
+              FieldFormalParameter(:var keyword?) ||
+              SuperFormalParameter(:var keyword?) when param.isFinal) {
+        rule.reportAtToken(keyword);
       }
     }
   }

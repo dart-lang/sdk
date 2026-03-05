@@ -37,7 +37,7 @@ import '../resolution/node_text_expectations.dart';
 import '../resolution/resolution.dart';
 import 'result_printer.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriver_PubPackageTest);
     defineReflectiveTests(AnalysisDriver_BlazeWorkspaceTest);

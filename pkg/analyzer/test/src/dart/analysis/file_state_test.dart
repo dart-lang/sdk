@@ -31,7 +31,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FileSystemStateTest);
     defineReflectiveTests(FileSystemState_BlazeWorkspaceTest);

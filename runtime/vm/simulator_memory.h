@@ -26,20 +26,12 @@ class DirectSimulatorMemory {
 
   template <typename T>
   T Load(uword addr, std::memory_order order) {
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    return reinterpret_cast<std::atomic<T>*>(addr)->load(order);
+    return std::atomic_ref(*reinterpret_cast<T*>(addr)).load(order);
   }
 
   template <typename T>
   void Store(uword addr, T value, std::memory_order order) {
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    reinterpret_cast<std::atomic<T>*>(addr)->store(value, order);
+    std::atomic_ref(*reinterpret_cast<T*>(addr)).store(value, order);
   }
 
   template <typename T>
@@ -47,12 +39,8 @@ class DirectSimulatorMemory {
                        T& old_value,
                        T value,
                        std::memory_order order) {
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    return reinterpret_cast<std::atomic<T>*>(addr)->compare_exchange_weak(
-        old_value, value, order);
+    return std::atomic_ref(*reinterpret_cast<T*>(addr))
+        .compare_exchange_weak(old_value, value, order);
   }
 
   void FlushAddress(uword addr) {}
@@ -112,21 +100,13 @@ class BufferedSimulatorMemory {
   template <typename T>
   T Load(uword addr, std::memory_order order) {
     FlushAddress(addr);
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    return reinterpret_cast<std::atomic<T>*>(addr)->load(order);
+    return std::atomic_ref(*reinterpret_cast<T*>(addr)).load(order);
   }
 
   template <typename T>
   void Store(uword addr, T value, std::memory_order order) {
     FlushAddress(addr);
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    reinterpret_cast<std::atomic<T>*>(addr)->store(value, order);
+    std::atomic_ref(*reinterpret_cast<T*>(addr)).store(value, order);
   }
 
   template <typename T>
@@ -135,12 +115,8 @@ class BufferedSimulatorMemory {
                        T value,
                        std::memory_order order) {
     FlushAddress(addr);
-    // TODO(42074): Once we switch to C++20 we should change this to use use
-    // `std::atomic_ref<T>` which supports performing atomic operations on
-    // non-atomic data.
-    static_assert(sizeof(std::atomic<T>) == sizeof(T));
-    return reinterpret_cast<std::atomic<T>*>(addr)->compare_exchange_weak(
-        old_value, value, order);
+    return std::atomic_ref<T>(*reinterpret_cast<T*>(addr))
+        .compare_exchange_weak(old_value, value, order);
   }
 
   void FlushAddress(uword addr) {
