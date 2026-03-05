@@ -14,6 +14,8 @@ class FindNode {
 
   FindNode(this.content, this.unit);
 
+  BinaryExpression get firstBinaryExpression => _first();
+
   FormalParameter get firstFormalParameter => _first();
 
   FormalParameterList get firstFormalParameterList => _first();

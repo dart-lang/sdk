@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -35,17 +36,61 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var constructor = node.parent;
-    if (constructor is! ConstructorDeclarationImpl) {
-      return;
+    var parent = node.parent;
+    if (parent case ConstructorDeclarationImpl constructor) {
+      var parent = constructor.parent;
+      if (parent is! BlockClassBody && parent is! EnumBody) {
+        return;
+      }
+      await _computeFromPieces(
+        builder,
+        constructor.notInitializedFields,
+        constructor.parameters,
+        constructor.separator,
+        constructor.initializers,
+      );
+    } else if (parent
+        case ClassDeclaration(:var namePart) ||
+            EnumDeclaration(:var namePart)) {
+      if (namePart is! PrimaryConstructorDeclarationImpl) return;
+      var body = namePart.body;
+      await _computeFromPieces(
+        builder,
+        namePart.notInitializedFields,
+        namePart.formalParameters,
+        body?.colon,
+        body?.initializers,
+      );
     }
+  }
 
-    if (constructor.parent is! BlockClassBody &&
-        constructor.parent is! EnumBody) {
-      return;
+  /// Whether [field] can be initialized using an initializing formal.
+  ///
+  /// If not, it is initialized in the constructor initializer list.
+  bool _canUseInitializingFormal(FieldElement field, String? publicName) {
+    switch (_style) {
+      case _Style.base:
+        return true; // Can always use for positional parameters.
+
+      case _Style.requiredNamed:
+        // Can always use for public names.
+        if (!field.isPrivate) {
+          return true;
+        }
+
+        // Can use them for private named parameters, if there is a public name.
+        return isEnabled(Feature.private_named_parameters) &&
+            publicName != null;
     }
+  }
 
-    var notInitializedFields = constructor.notInitializedFields;
+  Future<void> _computeFromPieces(
+    ChangeBuilder builder,
+    List<FieldElement>? notInitializedFields,
+    FormalParameterList parameterList,
+    Token? separator,
+    List<ConstructorInitializer>? existingInitializers,
+  ) async {
     if (notInitializedFields == null) {
       return;
     }
@@ -70,7 +115,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     // Prepare the last required parameter.
     FormalParameter? lastRequiredPositionalParameter;
     FormalParameter? firstNamedParameter;
-    List<FormalParameter> parameters = constructor.parameters.parameters;
+    List<FormalParameter> parameters = parameterList.parameters;
     var containsOptionalPositional = false;
     for (var parameter in parameters) {
       if (parameter.isRequiredPositional) {
@@ -91,8 +136,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       var insertOffset =
-          (lastRequiredPositionalParameter ??
-                  constructor.parameters.leftParenthesis)
+          (lastRequiredPositionalParameter ?? parameterList.leftParenthesis)
               .end;
 
       // Insert the "{" to begin the named parameters if needed.
@@ -113,7 +157,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
         } else {
           insertOffset =
               parameters.lastOrNull?.end ??
-              constructor.parameters.rightParenthesis.offset;
+              parameterList.rightParenthesis.offset;
         }
       }
 
@@ -179,8 +223,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
         }
       });
       insertOffset =
-          parameters.lastOrNull?.end ??
-          constructor.parameters.rightParenthesis.offset;
+          parameters.lastOrNull?.end ?? parameterList.rightParenthesis.offset;
       if (requiredFirst) {
         builder.addInsertion(insertOffset, (builder) {
           for (var (field, :isRequired) in mappedFields) {
@@ -197,11 +240,9 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
 
       // If we need to add any explicit initializers, add them.
       if (initializers.isNotEmpty) {
-        var colonOffset =
-            constructor.separator?.end ??
-            constructor.parameters.rightParenthesis.end;
+        var colonOffset = separator?.end ?? parameterList.rightParenthesis.end;
         builder.addInsertion(colonOffset, (builder) {
-          if (constructor.separator == null) {
+          if (separator == null) {
             builder.write(' :');
           }
           var writeComma = false;
@@ -212,32 +253,12 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
             writeComma = true;
             builder.write(' ${field.name} = $publicName');
           }
-          if (constructor.initializers.isNotEmpty) {
+          if (existingInitializers != null && existingInitializers.isNotEmpty) {
             builder.write(',');
           }
         });
       }
     });
-  }
-
-  /// Whether [field] can be initialized using an initializing formal.
-  ///
-  /// If not, it is initialized in the constructor initializer list.
-  bool _canUseInitializingFormal(FieldElement field, String? publicName) {
-    switch (_style) {
-      case _Style.base:
-        return true; // Can always use for positional parameters.
-
-      case _Style.requiredNamed:
-        // Can always use for public names.
-        if (!field.isPrivate) {
-          return true;
-        }
-
-        // Can use them for private named parameters, if there is a public name.
-        return isEnabled(Feature.private_named_parameters) &&
-            publicName != null;
-    }
   }
 
   bool _isFieldRequired(FieldElement field) => switch (_style) {

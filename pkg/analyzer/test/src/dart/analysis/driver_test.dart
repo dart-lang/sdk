@@ -98724,6 +98724,46 @@ typedef F<Y> = List<Y>;
     );
   }
 
+  test_manifest_unnamedMixinApplication_libraryCycle() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class = Object with M;
+mixin M {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredMixins
+      M: #M0
+        interface: #M1
+    exportMapId: #M2
+    exportMap
+      M: #M0
+''',
+      updatedCode: r'''
+class A = Object with M;
+mixin M {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M3
+        interface: #M4
+    declaredMixins
+      M: #M0
+        interface: #M1
+    exportMapId: #M5
+    exportMap
+      A: #M3
+      M: #M0
+''',
+    );
+  }
+
   test_operation_addFile_change_sameContent() async {
     configuration.withCheckLibraryDiagnosticsRequirements = true;
 
