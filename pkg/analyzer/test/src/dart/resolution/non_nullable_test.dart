@@ -64,6 +64,7 @@ FieldDeclaration
       element: <testLibrary>::@typeAlias::F
       type: T Function<T>(int, T)?
         alias: <testLibrary>::@typeAlias::F
+          nullabilitySuffix: NullabilitySuffix.question
     variables
       VariableDeclaration
         name: f

@@ -9,7 +9,7 @@ import 'package:dartdev/dartdev.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 // Needed to reset the global HTTP client after a test.
-import 'package:pub/src/http.dart' show innerHttpClient;
+import 'package:pub/src/http.dart' as pub show withHttpClient;
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
@@ -92,11 +92,6 @@ void main() {
     });
 
     group('pub', () {
-      setUp(() {
-        // Inside each pub test reset the pub http client.
-        innerHttpClient = http.Client();
-      });
-
       test(
         'get',
         () async {
@@ -136,16 +131,18 @@ void main() {
 
     test('run', () async {
       final p = project(mainSrc: 'void main(List<String> args) => print(args)');
-      final analytics = await p.runLocalWithFakeAnalytics([
-        'run',
-        '--no-pause-isolates-on-exit',
-        '--enable-asserts',
-        'lib/main.dart',
-        '--argument',
-      ]);
-      expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(name: 'run', enabledExperiments: ''),
-      ]);
+      await pub.withHttpClient(client: http.Client(), () async {
+        final analytics = await p.runLocalWithFakeAnalytics([
+          'run',
+          '--no-pause-isolates-on-exit',
+          '--enable-asserts',
+          'lib/main.dart',
+          '--argument',
+        ]);
+        expect(analytics.sentEvents, [
+          Event.dartCliCommandExecuted(name: 'run', enabledExperiments: ''),
+        ]);
+      });
     });
 
     group('run --enable-experiments', () {
@@ -154,17 +151,19 @@ void main() {
           final p = project(mainSrc: experiment.validation);
           {
             for (final no in ['', 'no-']) {
-              final analytics = await p.runLocalWithFakeAnalytics([
-                'run',
-                '--enable-experiment=$no${experiment.name}',
-                'lib/main.dart',
-              ]);
-              expect(analytics.sentEvents, [
-                Event.dartCliCommandExecuted(
-                  name: 'run',
-                  enabledExperiments: '$no${experiment.name}',
-                ),
-              ]);
+              await pub.withHttpClient(client: http.Client(), () async {
+                final analytics = await p.runLocalWithFakeAnalytics([
+                  'run',
+                  '--enable-experiment=$no${experiment.name}',
+                  'lib/main.dart',
+                ]);
+                expect(analytics.sentEvents, [
+                  Event.dartCliCommandExecuted(
+                    name: 'run',
+                    enabledExperiments: '$no${experiment.name}',
+                  ),
+                ]);
+              });
             }
           }
         });

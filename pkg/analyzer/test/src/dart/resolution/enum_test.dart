@@ -1745,6 +1745,7 @@ enum A(int foo) {
 }
 ''',
       [
+        error(diag.constConstructorWithFieldInitializedByNonConst, 5, 1),
         error(diag.lateFinalFieldWithConstConstructor, 28, 4),
         error(diag.undefinedIdentifier, 45, 3),
       ],

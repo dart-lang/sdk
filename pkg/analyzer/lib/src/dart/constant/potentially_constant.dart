@@ -253,6 +253,15 @@ class _Collector {
         if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
           return;
         }
+        var fieldElement = node
+            .thisOrAncestorOfType<VariableDeclaration>()
+            ?.declaredFragment
+            ?.element;
+        if (fieldElement is FieldElement &&
+            !fieldElement.isStatic &&
+            !fieldElement.isLate) {
+          return;
+        }
       }
       nodes.add(node);
       return;

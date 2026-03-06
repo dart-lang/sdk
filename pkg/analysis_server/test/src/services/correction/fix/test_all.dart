@@ -40,7 +40,7 @@ import 'add_null_check_test.dart' as add_null_check;
 import 'add_override_test.dart' as add_override;
 import 'add_redeclare_test.dart' as add_redeclare;
 import 'add_reopen_test.dart' as add_reopen;
-import 'add_required_test.dart' as add_required;
+import 'add_required_keyword_test.dart' as add_required_keyword;
 import 'add_return_null_test.dart' as add_return_null;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_static_test.dart' as add_static;
@@ -359,7 +359,7 @@ void main() {
     add_override.main();
     add_redeclare.main();
     add_reopen.main();
-    add_required.main();
+    add_required_keyword.main();
     add_return_null.main();
     add_return_type.main();
     add_static.main();

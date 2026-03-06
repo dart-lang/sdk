@@ -4227,6 +4227,7 @@ package:analyzer/dart/element/type.dart:
   InstantiatedTypeAliasElement (class extends Object, abstract):
     new (constructor: InstantiatedTypeAliasElement Function())
     element (getter: TypeAliasElement)
+    nullabilitySuffix (getter: NullabilitySuffix)
     typeArguments (getter: List<DartType>)
   InterfaceType (class extends Object implements ParameterizedType, abstract):
     new (constructor: InterfaceType Function())

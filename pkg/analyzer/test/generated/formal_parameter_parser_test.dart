@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/diagnostics/parser_diagnostics.dart';
-import '../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,15 +19,6 @@ main() {
 /// the parsing of formal parameters.
 @reflectiveTest
 class FormalParameterParserTest extends ParserDiagnosticsTest {
-  @override
-  ParseStringResult parseStringWithErrors(String content) {
-    return parseString(
-      content: content,
-      featureSet: FeatureSets.latestWithExperiments,
-      throwIfDiagnostics: false,
-    );
-  }
-
   void test_fieldFormalParameter_optionalPositional_type_namedType_int() {
     var parseResult = parseStringWithErrors(r'''
 class A {

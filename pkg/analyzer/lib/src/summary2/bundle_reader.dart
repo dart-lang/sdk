@@ -1710,6 +1710,7 @@ class ResolutionReader {
     if (aliasElement != null) {
       aliasElement as TypeAliasElementImpl;
       var aliasArguments = _readTypeList();
+      var aliasNullability = _readNullability();
       if (type is DynamicTypeImpl) {
         // TODO(scheglov): add support for `dynamic` aliasing
         return type;
@@ -1722,6 +1723,7 @@ class ResolutionReader {
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,
             typeArguments: aliasArguments,
+            nullabilitySuffix: aliasNullability,
           ),
         );
       } else if (type is InterfaceTypeImpl) {
@@ -1732,6 +1734,7 @@ class ResolutionReader {
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,
             typeArguments: aliasArguments,
+            nullabilitySuffix: aliasNullability,
           ),
         );
       } else if (type is RecordTypeImpl) {
@@ -1742,6 +1745,7 @@ class ResolutionReader {
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,
             typeArguments: aliasArguments,
+            nullabilitySuffix: aliasNullability,
           ),
         );
       } else if (type is TypeParameterTypeImpl) {
@@ -1751,6 +1755,7 @@ class ResolutionReader {
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,
             typeArguments: aliasArguments,
+            nullabilitySuffix: aliasNullability,
           ),
         );
       } else if (type is VoidTypeImpl) {

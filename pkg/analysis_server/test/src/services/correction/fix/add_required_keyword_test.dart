@@ -28,6 +28,43 @@ void function({required String param}) {}
 ''');
   }
 
+  Future<void> test_nonNullable_constructor_factory() async {
+    await resolveTestCode('''
+class C {
+  factory C({String param}) => ._();
+  C._();
+}
+''');
+    await assertHasFix('''
+class C {
+  factory C({required String param}) => ._();
+  C._();
+}
+''');
+  }
+
+  Future<void> test_nonNullable_constructor_new() async {
+    await resolveTestCode('''
+class C {
+  new C({String param});
+}
+''');
+    await assertHasFix('''
+class C {
+  new C({required String param});
+}
+''');
+  }
+
+  Future<void> test_nonNullable_constructor_primary() async {
+    await resolveTestCode('''
+class C({String param});
+''');
+    await assertHasFix('''
+class C({required String param});
+''');
+  }
+
   Future<void> test_nonNullable_superParameter() async {
     await resolveTestCode('''
 class C {
