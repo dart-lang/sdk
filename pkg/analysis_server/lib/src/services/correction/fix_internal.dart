@@ -450,6 +450,9 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unnecessaryLibraryName: [RemoveLibraryName.new],
   diag.unnecessaryNew: [RemoveUnnecessaryNew.new],
   diag.unnecessaryNullAwareAssignments: [RemoveAssignment.new],
+  diag.unnecessaryNullAwareOperatorOnExtensionOnNullable: [
+    ReplaceWithNotNullAware.new,
+  ],
   diag.unnecessaryNullChecks: [RemoveNonNullAssertion.new],
   diag.unnecessaryNullInIfNullOperators: [RemoveIfNullOperator.new],
   diag.unnecessaryNullableForFinalVariableDeclarations: [

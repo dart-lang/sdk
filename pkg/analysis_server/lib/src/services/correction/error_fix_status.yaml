@@ -2472,7 +2472,7 @@ no_wildcard_variable_uses:
 unnecessary_null_aware_assignments:
   status: hasFix
 unnecessary_null_aware_operator_on_extension_on_nullable:
-  status: needsFix
+  status: hasFix
 unnecessary_null_checks:
   status: hasFix
 unnecessary_null_in_if_null_operators:
