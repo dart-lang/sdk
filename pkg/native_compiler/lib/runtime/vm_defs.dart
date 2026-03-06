@@ -7,6 +7,7 @@ export 'vm_offsets.g.dart';
 
 const int smiBit = 0;
 const int heapObjectTag = 1;
+const int smiShift = 1;
 const int barrierOverlapShift = 2;
 
 int objectAlignment(int wordSize) => wordSize * 2;

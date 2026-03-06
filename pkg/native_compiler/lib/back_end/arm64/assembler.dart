@@ -125,6 +125,18 @@ final allocatableRegisters = allRegisters
     .where((r) => !reservedRegisters.contains(r))
     .toList();
 
+final argumentRegisters = allocatableRegisters
+    .where((r) => r != argumentsDescriptorReg)
+    .take(16)
+    .toList();
+
+final prologueScratchRegisters = allocatableRegisters
+    .where(
+      (r) =>
+          r != argumentsDescriptorReg && r.index > argumentRegisters.last.index,
+    )
+    .toList();
+
 /// Floating-point registers.
 const FPRegister V0 = FPRegister(0, 'V0');
 const FPRegister V1 = FPRegister(1, 'V1');

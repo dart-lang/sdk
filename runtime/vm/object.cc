@@ -14611,12 +14611,30 @@ void Library::CopyPragmas(const Library& old_lib) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 static bool ShouldBePrivate(const String& name) {
-  return (name.Length() >= 1 && name.CharAt(0) == '_') ||
-         (name.Length() >= 5 &&
-          (name.CharAt(4) == '_' &&
-           (name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
-           name.CharAt(1) == 'e' && name.CharAt(2) == 't' &&
-           name.CharAt(3) == ':'));
+  // _foo
+  if (name.Length() >= 1 && name.CharAt(0) == '_') {
+    return true;
+  }
+  // get:_foo, set:_foo or dyn:_foo
+  if (name.Length() >= 5 && name.CharAt(3) == ':' && name.CharAt(4) == '_') {
+    if ((name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
+        name.CharAt(1) == 'e' && name.CharAt(2) == 't') {
+      return true;
+    }
+    if (name.CharAt(0) == 'd' && name.CharAt(1) == 'y' &&
+        name.CharAt(2) == 'n') {
+      return true;
+    }
+  }
+  // dyn:get:_foo, dyn:set:_foo
+  if (name.Length() >= 9 && name.CharAt(0) == 'd' && name.CharAt(1) == 'y' &&
+      name.CharAt(2) == 'n' && name.CharAt(3) == ':' &&
+      (name.CharAt(4) == 'g' || name.CharAt(4) == 's') &&
+      name.CharAt(5) == 'e' && name.CharAt(6) == 't' && name.CharAt(7) == ':' &&
+      name.CharAt(8) == '_') {
+    return true;
+  }
+  return false;
 }
 
 void Library::RehashDictionary(const Array& old_dict,

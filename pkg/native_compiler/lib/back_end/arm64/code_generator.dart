@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/functions.dart';
@@ -11,6 +13,7 @@ import 'package:cfg/ir/types.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:native_compiler/back_end/arm64/assembler.dart';
+import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code_generator.dart';
@@ -36,6 +39,234 @@ final class Arm64CodeGenerator extends CodeGenerator {
       stackPointerReg,
       stackFrame.frameSizeToAllocate,
     );
+    final function = graph.function;
+    if (function.hasOptionalPositionalParameters) {
+      _prepareOptionalPositionalParameters(function);
+    } else if (function.hasNamedParameters) {
+      _prepareNamedParameters(function);
+    }
+  }
+
+  /// Load positional required and optional arguments into argument registers,
+  /// filling in the default values if optional arguments are not passed.
+  /// Extra arguments are copied to the shadow parameters area on the stack.
+  void _prepareOptionalPositionalParameters(CFunction function) {
+    final argCountReg = prologueScratchRegisters[0];
+    final argPtrReg = prologueScratchRegisters[1];
+
+    final numRequired = function.numberOfRequiredPositionalParameters;
+    final total = function.numberOfParameters;
+    assert(numRequired < total);
+
+    // TODO: compressed pointers
+    // Load total number of arguments as a Smi.
+    _asm.ldr(
+      argCountReg,
+      _asm.fieldAddress(
+        argumentsDescriptorReg,
+        vmOffsets.ArgumentsDescriptor_count_offset,
+      ),
+    );
+    // Arguments pointer points to the first pair of arguments.
+    assert(Arm64StackFrame.lastParameterOffsetFromFP == 2 * wordSize);
+    _asm.add(
+      argPtrReg,
+      FP,
+      ShiftedRegOperand(argCountReg, .LSL, log2wordSize - smiShift),
+    );
+    // Label for each number of optional arguments passed.
+    final labels = List.generate(total - numRequired, (_) => Label());
+
+    var i = 0;
+    final int numArgsToLoadInPairs = math.min(total, argumentRegisters.length);
+    for (; i + 1 < numArgsToLoadInPairs; i += 2) {
+      if (i >= numRequired) {
+        _asm.cmp(argCountReg, Immediate((i + 1) << smiShift));
+        _asm.b(labels[i - numRequired], .less);
+      }
+      // TODO: pass arguments on registers and avoid these loads
+      _asm.ldp(
+        argumentRegisters[i + 1],
+        argumentRegisters[i],
+        _asm.pairAddress(argPtrReg, -i * wordSize),
+      );
+      if (i >= numRequired) {
+        _asm.b(labels[i + 1 - numRequired], .equal);
+      } else if (i + 1 >= numRequired) {
+        _asm.cmp(argCountReg, Immediate((i + 1) << smiShift));
+        _asm.b(labels[i + 1 - numRequired], .equal);
+      }
+    }
+    for (; i < total; ++i) {
+      if (i >= numRequired) {
+        _asm.cmp(argCountReg, Immediate(i << smiShift));
+        _asm.b(labels[i - numRequired], .equal);
+      }
+      final reg = (i < argumentRegisters.length)
+          ? argumentRegisters[i]
+          : tempReg;
+      _asm.ldr(reg, _asm.address(argPtrReg, -(i - 1) * wordSize));
+      if (i >= argumentRegisters.length) {
+        _asm.str(
+          reg,
+          _asm.address(FP, stackFrame.shadowParameterOffsetFromFP(i)),
+        );
+      }
+    }
+    final done = Label();
+    _asm.b(done);
+    for (var i = numRequired; i < total; ++i) {
+      _asm.bind(labels[i - numRequired]);
+      final reg = (i < argumentRegisters.length)
+          ? argumentRegisters[i]
+          : tempReg;
+      _asm.loadConstant(reg, function.getParameterDefaultValue(i));
+      if (i >= argumentRegisters.length) {
+        _asm.str(
+          reg,
+          _asm.address(FP, stackFrame.shadowParameterOffsetFromFP(i)),
+        );
+      }
+    }
+    _asm.bind(done);
+  }
+
+  /// Load required positional and named arguments into argument registers,
+  /// filling in the default values if optional arguments are not passed.
+  /// Extra arguments are copied to the shadow parameters area on the stack.
+  void _prepareNamedParameters(CFunction function) {
+    final argPtrReg = prologueScratchRegisters[0];
+    final argNameReg = prologueScratchRegisters[1];
+
+    final numRequired = function.numberOfRequiredPositionalParameters;
+    final total = function.numberOfParameters;
+    assert(numRequired < total);
+
+    // TODO: compressed pointers
+    // Load total number of arguments as a Smi.
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(
+        argumentsDescriptorReg,
+        vmOffsets.ArgumentsDescriptor_count_offset,
+      ),
+    );
+    // Arguments pointer points to the first pair of arguments.
+    assert(Arm64StackFrame.lastParameterOffsetFromFP == 2 * wordSize);
+    _asm.add(
+      argPtrReg,
+      FP,
+      ShiftedRegOperand(tempReg, .LSL, log2wordSize - smiShift),
+    );
+
+    var i = 0;
+    final int numArgsToLoadInPairs = math.min(
+      numRequired,
+      argumentRegisters.length,
+    );
+    for (; i + 1 < numArgsToLoadInPairs; i += 2) {
+      // TODO: pass arguments on registers and avoid these loads
+      _asm.ldp(
+        argumentRegisters[i + 1],
+        argumentRegisters[i],
+        _asm.pairAddress(argPtrReg, -i * wordSize),
+      );
+    }
+    for (; i < numRequired; ++i) {
+      final reg = (i < argumentRegisters.length)
+          ? argumentRegisters[i]
+          : tempReg;
+      _asm.ldr(reg, _asm.address(argPtrReg, -(i - 1) * wordSize));
+      if (i >= argumentRegisters.length) {
+        _asm.str(
+          reg,
+          _asm.address(FP, stackFrame.shadowParameterOffsetFromFP(i)),
+        );
+      }
+    }
+
+    // Each argument entry has 2 words: name and position.
+    assert(vmOffsets.ArgumentsDescriptor_name_offset == 0);
+    assert(vmOffsets.ArgumentsDescriptor_position_offset == wordSize);
+    assert(vmOffsets.ArgumentsDescriptor_named_entry_size == 2 * wordSize);
+
+    // argumentsDescriptorReg points to the position field of the current argument.
+    _asm.add(
+      argumentsDescriptorReg,
+      argumentsDescriptorReg,
+      Immediate(
+        vmOffsets.ArgumentsDescriptor_first_named_entry_offset +
+            vmOffsets.ArgumentsDescriptor_position_offset,
+      ),
+    );
+
+    if (!function.isRequiredParameter(numRequired)) {
+      // Load name of the first optional named parameter.
+      _asm.ldr(
+        argNameReg,
+        RegOffsetAddress(
+          argumentsDescriptorReg,
+          -vmOffsets.ArgumentsDescriptor_position_offset +
+              vmOffsets.ArgumentsDescriptor_name_offset,
+        ),
+      );
+    }
+
+    for (i = numRequired; i < total; ++i) {
+      Label? proceed;
+      final destReg = (i < argumentRegisters.length)
+          ? argumentRegisters[i]
+          : tempReg;
+      if (!function.isRequiredParameter(i)) {
+        _asm.loadFromPool(tempReg, function.getParameterName(i));
+        _asm.cmp(argNameReg, tempReg);
+        final passed = Label();
+        _asm.b(passed, .equal);
+
+        _asm.loadConstant(destReg, function.getParameterDefaultValue(i));
+        proceed = Label();
+        _asm.b(proceed);
+
+        _asm.bind(passed);
+      }
+      if (i + 1 < total && !function.isRequiredParameter(i + 1)) {
+        // Load both position of this argument and the name of the next argument.
+        _asm.ldp(
+          tempReg,
+          argNameReg,
+          WritebackRegOffsetAddress(
+            argumentsDescriptorReg,
+            vmOffsets.ArgumentsDescriptor_named_entry_size,
+            isPostIndexed: true,
+          ),
+        );
+      } else {
+        // Only load the position of this argument.
+        _asm.ldr(
+          tempReg,
+          WritebackRegOffsetAddress(
+            argumentsDescriptorReg,
+            vmOffsets.ArgumentsDescriptor_named_entry_size,
+            isPostIndexed: true,
+          ),
+        );
+      }
+      _asm.sub(
+        tempReg,
+        argPtrReg,
+        ShiftedRegOperand(tempReg, .LSL, log2wordSize - smiShift),
+      );
+      _asm.ldr(destReg, RegOffsetAddress(tempReg, wordSize));
+      if (proceed != null) {
+        _asm.bind(proceed);
+      }
+      if (i >= argumentRegisters.length) {
+        _asm.str(
+          destReg,
+          _asm.address(FP, stackFrame.shadowParameterOffsetFromFP(i)),
+        );
+      }
+    }
   }
 
   void _generateBranch(
@@ -298,13 +529,61 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
-  void visitClosureCall(ClosureCall instr) {
-    _asm.unimplemented('Unimplemented: code generation for ClosureCall');
+  void visitDynamicCall(DynamicCall instr) {
+    _passArguments(instr);
+    _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
+    _asm.loadFromPool(R6, graph.function);
+    _asm.ldr(
+      R0,
+      _asm.address(
+        stackPointerReg,
+        (instr.inputCount - 1 - (instr.hasTypeArguments ? 1 : 0)) * wordSize,
+      ),
+    );
+    _asm.loadPairFromPool(
+      inlineCacheDataReg,
+      codeReg,
+      DynamicCallEntry(
+        graph.function,
+        instr.argumentsShape,
+        instr.kind,
+        instr.selector,
+      ),
+    );
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
+    );
+    _asm.blr(tempReg);
   }
 
   @override
-  void visitDynamicCall(DynamicCall instr) {
-    _asm.unimplemented('Unimplemented: code generation for DynamicCall');
+  void visitClosureCall(ClosureCall instr) {
+    _passArguments(instr);
+    _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
+    _asm.ldr(
+      R0,
+      _asm.address(
+        stackPointerReg,
+        (instr.inputCount - 1 - (instr.hasTypeArguments ? 1 : 0)) * wordSize,
+      ),
+    );
+    _asm.ldr(
+      functionReg,
+      _asm.fieldAddress(R0, vmOffsets.Closure_function_offset),
+    );
+    _asm.ldr(
+      codeReg,
+      _asm.fieldAddress(functionReg, vmOffsets.Function_code_offset),
+    );
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(
+        functionReg,
+        vmOffsets.Function_entry_point_offset.first,
+      ),
+    );
+    _asm.blr(tempReg);
   }
 
   @override
