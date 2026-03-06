@@ -707,66 +707,46 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
+    var variableList = node.parent as VariableDeclarationListImpl;
+    var declarationParent = variableList.parent!;
+
     VariableFragmentImpl fragment;
     if (_elementWalker != null) {
       fragment = _elementWalker!.getVariable();
-      node.declaredFragment = fragment;
     } else {
       var localFragment = LocalVariableFragmentImpl(
         name: node.name.nameIfNotEmpty,
         firstTokenOffset: node.offset,
       );
       fragment = localFragment;
-      localFragment.nameOffset = node.name.offsetIfNotEmpty;
-      node.declaredFragment = fragment;
       _elementHolder.enclose(fragment);
 
-      var varList = node.parent as VariableDeclarationListImpl;
+      localFragment.hasImplicitType = variableList.type == null;
       localFragment.hasInitializer = node.initializer != null;
-      if (varList.type == null) {
-        localFragment.hasImplicitType = true;
-      }
+      localFragment.isConst = variableList.isConst;
+      localFragment.isFinal = variableList.isFinal;
+      localFragment.isLate = variableList.isLate;
+      localFragment.nameOffset = node.name.offsetIfNotEmpty;
     }
+    node.declaredFragment = fragment;
+
+    var annotations = switch (declarationParent) {
+      FieldDeclarationImpl() => declarationParent.metadata,
+      TopLevelVariableDeclarationImpl() => declarationParent.metadata,
+      _ => variableList.metadata,
+    };
+    _setOrCreateMetadataElements(fragment, annotations);
+
+    var offset = node == variableList.variables.first
+        ? declarationParent.offset
+        : node.offset;
+    fragment.setCodeRange(offset, node.end - offset);
 
     _withElementWalker(null, () {
       _withElementHolder(ElementHolder(fragment), () {
         super.visitVariableDeclaration(node);
       });
     });
-  }
-
-  @override
-  void visitVariableDeclarationList(
-    covariant VariableDeclarationListImpl node,
-  ) {
-    super.visitVariableDeclarationList(node);
-
-    for (var i = 0; i < node.variables.length; i++) {
-      var variable = node.variables[i];
-      var fragment = variable.declaredFragment!;
-
-      NodeList<AnnotationImpl> annotations;
-      var parent = node.parent;
-      if (parent is FieldDeclarationImpl) {
-        annotations = parent.metadata;
-      } else if (parent is TopLevelVariableDeclarationImpl) {
-        annotations = parent.metadata;
-      } else {
-        annotations = node.metadata;
-      }
-
-      _setOrCreateMetadataElements(fragment, annotations);
-
-      var offset = (i == 0 ? node.parent! : variable).offset;
-      var length = variable.end - offset;
-      fragment.setCodeRange(offset, length);
-
-      if (fragment is LocalVariableFragmentImpl) {
-        fragment.isConst = node.isConst;
-        fragment.isFinal = node.isFinal;
-        fragment.isLate = node.isLate;
-      }
-    }
   }
 
   T _bindFormalParameter<T extends FormalParameterFragmentImpl>(
