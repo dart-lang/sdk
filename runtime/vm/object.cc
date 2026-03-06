@@ -28770,7 +28770,8 @@ RecordShape RecordShape::Register(Thread* thread,
   object_store->set_record_field_names_map(map.Release());
 
   const RecordShape shape(num_fields, index);
-  ASSERT(shape.GetFieldNames(thread) == field_names.ptr());
+  ASSERT(Array::Handle(shape.GetFieldNames(thread))
+             .CanonicalizeEquals(field_names));
   ASSERT(shape.num_fields() == num_fields);
   return shape;
 }
