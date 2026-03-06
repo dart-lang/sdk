@@ -1,0 +1,34 @@
+library #lib;
+import self as self;
+import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
+
+import "package:meta/meta.dart" show RecordUse;
+
+@#C1
+final class C extends core::Object {
+  constructor named(core::int i) → self::C
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=#lib::C]
+  static factory fact(core::int i) → self::C
+    return new self::C::named(i);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final self::C c1 = new self::C::named(42);
+  final (core::int) → self::C f1 = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=dart.core::_Closure (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList] core::_GrowableList::_literal1<(core::int) → self::C>(#C2).{core::List::[]}(0){(core::int) → (core::int) → self::C};
+  core::print(c1);
+  core::print([@vm.inferred-type.metadata=#lib::C (receiver not int)] f1(43){(core::int) → self::C});
+  final self::C c2 = [@vm.inferred-type.metadata=#lib::C] self::C::fact(44);
+  final (core::int) → self::C f2 = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=dart.core::_Closure (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList] core::_GrowableList::_literal1<(core::int) → self::C>(#C3).{core::List::[]}(0){(core::int) → (core::int) → self::C};
+  core::print(c2);
+  core::print([@vm.inferred-type.metadata=#lib::C (receiver not int)] f2(45){(core::int) → self::C});
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = constructor-tearoff self::C::named
+  #C3 = constructor-tearoff self::C::fact
+}
