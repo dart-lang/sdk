@@ -79,7 +79,9 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
     // Extension member tear-offs call the implementation. We skip them here
     // to avoid recording the implementation call as a usage, as the usage is
     // already recorded by the call to the extension member tear-off itself.
-    if (isExtensionMemberTearOff(node) || isTearOffLowering(node)) {
+    if (isExtensionMemberTearOff(node) ||
+        isTearOffLowering(node) ||
+        node.isRedirectingFactory) {
       return;
     }
     super.visitProcedure(node);

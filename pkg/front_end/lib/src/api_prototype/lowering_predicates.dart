@@ -1189,6 +1189,22 @@ Member? getConstructorTearOffLoweringTarget(Procedure node) {
         }
       }
     }
+    if (target == null) {
+      // Fallback: If we couldn't find the target by name, it might be because
+      // the original member (e.g. a redirecting factory) was removed during
+      // optimizations (like TFA). However, the lowering procedure itself
+      // remains. We can extract the target directly from its body, which
+      // is always a single return of a constructor or factory invocation.
+      final Statement? body = node.function.body;
+      if (body is ReturnStatement) {
+        final Expression? expression = body.expression;
+        if (expression is ConstructorInvocation) {
+          target = expression.target;
+        } else if (expression is StaticInvocation) {
+          target = expression.target;
+        }
+      }
+    }
     while (target is Procedure && target.isRedirectingFactory) {
       target = target.function.redirectingFactoryTarget?.target;
     }
