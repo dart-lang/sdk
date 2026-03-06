@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -63,10 +64,13 @@ class ParserDiagnosticsTest {
     );
   }
 
-  ParseStringResult parseStringWithErrors(String content) {
+  ParseStringResult parseStringWithErrors(
+    String content, {
+    FeatureSet? featureSet,
+  }) {
     return parseString(
       content: content,
-      featureSet: FeatureSets.latestWithExperiments,
+      featureSet: featureSet ?? FeatureSets.latestWithExperiments,
       throwIfDiagnostics: false,
     );
   }
