@@ -32,6 +32,7 @@ class AstResolver {
   late final _resolutionVisitor = ResolutionVisitor(
     libraryFragment: _libraryFragment,
     nameScope: _nameScope,
+    docImportLibraries: const [],
     diagnosticListener: _diagnosticListener,
     strictInference: analysisOptions.strictInference,
     strictCasts: analysisOptions.strictCasts,
@@ -39,8 +40,6 @@ class AstResolver {
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
     DiagnosticReporter(_diagnosticListener, _libraryFragment.source),
-    libraryFragment: _libraryFragment,
-    nameScope: _nameScope,
   );
   late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
   late final _flowAnalysis = FlowAnalysisHelper(

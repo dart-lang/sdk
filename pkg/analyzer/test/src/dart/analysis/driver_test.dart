@@ -18613,8 +18613,6 @@ class B extends A {
         exportMap
           A: #M0
           A=: <null>
-          named: <null>
-          named=: <null>
         reExportDeprecatedOnly
           A: false
         interfaces
@@ -18637,8 +18635,6 @@ class B extends A {
         exportMap
           A: #M0
           A=: <null>
-          named: <null>
-          named=: <null>
         reExportDeprecatedOnly
           A: false
         instances
@@ -18704,8 +18700,6 @@ class A {
         exportMap
           A: #M0
           A=: <null>
-          named: <null>
-          named=: <null>
         reExportDeprecatedOnly
           A: false
         interfaces
@@ -18736,8 +18730,6 @@ class A {
         exportMap
           A: #M0
           A=: <null>
-          named: <null>
-          named=: <null>
         reExportDeprecatedOnly
           A: false
         instances
