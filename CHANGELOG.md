@@ -1,3 +1,13 @@
+## 3.11.2
+
+This is a patch release that:
+
+- Fixes a bug in pub's support tag_pattern git dependencies that prevented it to
+  load lightweight tags (as opposed to annotated tags).
+  (issue [dart-lang/pub#4756]).
+
+[dart-lang/pub#4756]: https://github.com/dart-lang/pub/issues/4756
+
 ## 3.11.1
 
 **Released on:** 2026-02-24
