@@ -593,6 +593,7 @@ abstract class _TypeSubstitutor
     return InstantiatedTypeAliasElementImpl(
       element: alias.element,
       typeArguments: _mapList(alias.typeArguments),
+      nullabilitySuffix: alias.nullabilitySuffix,
     );
   }
 

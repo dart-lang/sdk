@@ -1,6 +1,6 @@
 ## 11.1.0-dev
 
-* Internal changes only
+* Added `InstantiatedTypeAliasElement.nullabilitySuffix`.
 
 ## 11.0.0
 

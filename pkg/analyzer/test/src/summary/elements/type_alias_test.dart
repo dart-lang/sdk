@@ -4329,6 +4329,98 @@ library
 ''');
   }
 
+  test_typedef_nonFunction_using_notGeneric_nullability() async {
+    var library = await buildLibrary(r'''
+typedef A1 = String;
+typedef A2 = String?;
+void f1(A1 a) {}
+void f2(A1? a) {}
+void f3(A2 a) {}
+void f4(A2? a) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        #F1 A1 (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@typeAlias::A1
+        #F2 A2 (nameOffset:29) (firstTokenOffset:21) (offset:29)
+          element: <testLibrary>::@typeAlias::A2
+      functions
+        #F3 isOriginDeclaration f1 (nameOffset:48) (firstTokenOffset:43) (offset:48)
+          element: <testLibrary>::@function::f1
+          formalParameters
+            #F4 requiredPositional a (nameOffset:54) (firstTokenOffset:51) (offset:54)
+              element: <testLibrary>::@function::f1::@formalParameter::a
+        #F5 isOriginDeclaration f2 (nameOffset:65) (firstTokenOffset:60) (offset:65)
+          element: <testLibrary>::@function::f2
+          formalParameters
+            #F6 requiredPositional a (nameOffset:72) (firstTokenOffset:68) (offset:72)
+              element: <testLibrary>::@function::f2::@formalParameter::a
+        #F7 isOriginDeclaration f3 (nameOffset:83) (firstTokenOffset:78) (offset:83)
+          element: <testLibrary>::@function::f3
+          formalParameters
+            #F8 requiredPositional a (nameOffset:89) (firstTokenOffset:86) (offset:89)
+              element: <testLibrary>::@function::f3::@formalParameter::a
+        #F9 isOriginDeclaration f4 (nameOffset:100) (firstTokenOffset:95) (offset:100)
+          element: <testLibrary>::@function::f4
+          formalParameters
+            #F10 requiredPositional a (nameOffset:107) (firstTokenOffset:103) (offset:107)
+              element: <testLibrary>::@function::f4::@formalParameter::a
+  typeAliases
+    A1
+      reference: <testLibrary>::@typeAlias::A1
+      firstFragment: #F1
+      aliasedType: String
+    A2
+      reference: <testLibrary>::@typeAlias::A2
+      firstFragment: #F2
+      aliasedType: String?
+  functions
+    isOriginDeclaration f1
+      reference: <testLibrary>::@function::f1
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional a
+          firstFragment: #F4
+          type: String
+            alias: <testLibrary>::@typeAlias::A1
+      returnType: void
+    isOriginDeclaration f2
+      reference: <testLibrary>::@function::f2
+      firstFragment: #F5
+      formalParameters
+        #E1 requiredPositional a
+          firstFragment: #F6
+          type: String?
+            alias: <testLibrary>::@typeAlias::A1
+              nullabilitySuffix: NullabilitySuffix.question
+      returnType: void
+    isOriginDeclaration f3
+      reference: <testLibrary>::@function::f3
+      firstFragment: #F7
+      formalParameters
+        #E2 requiredPositional a
+          firstFragment: #F8
+          type: String?
+            alias: <testLibrary>::@typeAlias::A2
+      returnType: void
+    isOriginDeclaration f4
+      reference: <testLibrary>::@function::f4
+      firstFragment: #F9
+      formalParameters
+        #E3 requiredPositional a
+          firstFragment: #F10
+          type: String?
+            alias: <testLibrary>::@typeAlias::A2
+              nullabilitySuffix: NullabilitySuffix.question
+      returnType: void
+''');
+  }
+
   test_typedef_nonFunction_using_typeParameter_none() async {
     var library = await buildLibrary(r'''
 typedef A<T> = T;
@@ -4394,6 +4486,7 @@ library
 typedef A<T> = T?;
 void f1(A a) {}
 void f2(A<int> a) {}
+void f3(A<int>? a) {}
 ''');
     checkElementText(library, r'''
 library
@@ -4418,6 +4511,11 @@ library
           formalParameters
             #F6 requiredPositional a (nameOffset:50) (firstTokenOffset:43) (offset:50)
               element: <testLibrary>::@function::f2::@formalParameter::a
+        #F7 isOriginDeclaration f3 (nameOffset:61) (firstTokenOffset:56) (offset:61)
+          element: <testLibrary>::@function::f3
+          formalParameters
+            #F8 requiredPositional a (nameOffset:72) (firstTokenOffset:64) (offset:72)
+              element: <testLibrary>::@function::f3::@formalParameter::a
   typeAliases
     A
       reference: <testLibrary>::@typeAlias::A
@@ -4445,6 +4543,18 @@ library
             alias: <testLibrary>::@typeAlias::A
               typeArguments
                 int
+      returnType: void
+    isOriginDeclaration f3
+      reference: <testLibrary>::@function::f3
+      firstFragment: #F7
+      formalParameters
+        #E3 requiredPositional a
+          firstFragment: #F8
+          type: int?
+            alias: <testLibrary>::@typeAlias::A
+              typeArguments
+                int
+              nullabilitySuffix: NullabilitySuffix.question
       returnType: void
 ''');
   }

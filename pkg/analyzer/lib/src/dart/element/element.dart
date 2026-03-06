@@ -10056,6 +10056,7 @@ class TypeAliasElementImpl extends ElementImpl
         alias: InstantiatedTypeAliasElementImpl(
           element: this,
           typeArguments: typeArguments,
+          nullabilitySuffix: nullabilitySuffix,
         ),
       );
     } else if (type is InterfaceTypeImpl) {
@@ -10066,6 +10067,7 @@ class TypeAliasElementImpl extends ElementImpl
         alias: InstantiatedTypeAliasElementImpl(
           element: this,
           typeArguments: typeArguments,
+          nullabilitySuffix: nullabilitySuffix,
         ),
       );
     } else if (type is RecordTypeImpl) {
@@ -10076,6 +10078,7 @@ class TypeAliasElementImpl extends ElementImpl
         alias: InstantiatedTypeAliasElementImpl(
           element: this,
           typeArguments: typeArguments,
+          nullabilitySuffix: nullabilitySuffix,
         ),
       );
     } else if (type is TypeParameterTypeImpl) {
@@ -10085,6 +10088,7 @@ class TypeAliasElementImpl extends ElementImpl
         alias: InstantiatedTypeAliasElementImpl(
           element: this,
           typeArguments: typeArguments,
+          nullabilitySuffix: nullabilitySuffix,
         ),
       );
     } else {

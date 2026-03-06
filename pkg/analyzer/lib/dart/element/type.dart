@@ -247,6 +247,9 @@ abstract class InstantiatedTypeAliasElement {
   /// The alias element that is instantiated to produce a [DartType].
   TypeAliasElement get element;
 
+  /// The nullability suffix with which the [element] was instantiated.
+  NullabilitySuffix get nullabilitySuffix;
+
   /// The type arguments with which the [element] was instantiated.
   /// This list will be empty if the [element] is not generic.
   List<DartType> get typeArguments;

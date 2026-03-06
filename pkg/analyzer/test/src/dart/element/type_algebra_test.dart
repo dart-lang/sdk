@@ -495,6 +495,73 @@ class SubstituteWithNullabilityTest extends _Base {
     );
     _assertSubstitution(type, {U: intNone}, 'A<int>?');
   }
+
+  test_withNullability_updatesAlias_function() {
+    var alias = typeAlias(
+      name: 'A',
+      typeParameters: const [],
+      aliasedType: functionTypeNone(returnType: voidNone),
+    );
+    var type = alias.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+
+    var result = type.withNullability(NullabilitySuffix.none);
+    expect(result.alias?.nullabilitySuffix, NullabilitySuffix.none);
+    expect(result.getDisplayString(preferTypeAlias: true), 'A');
+  }
+
+  test_withNullability_updatesAlias_interface() {
+    var alias = typeAlias(
+      name: 'A',
+      typeParameters: const [],
+      aliasedType: intNone,
+    );
+    var type = alias.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+
+    var result = type.withNullability(NullabilitySuffix.none);
+    expect(result.alias?.nullabilitySuffix, NullabilitySuffix.none);
+    expect(result.getDisplayString(preferTypeAlias: true), 'A');
+  }
+
+  test_withNullability_updatesAlias_record() {
+    var alias = typeAlias(
+      name: 'A',
+      typeParameters: const [],
+      aliasedType: recordTypeNone(positionalTypes: [intNone]),
+    );
+    var type = alias.instantiateImpl(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+
+    var result = type.withNullability(NullabilitySuffix.none);
+    expect(result.alias?.nullabilitySuffix, NullabilitySuffix.none);
+    expect(result.getDisplayString(preferTypeAlias: true), 'A');
+  }
+
+  test_withNullability_updatesAlias_typeParameter() {
+    var T = typeParameter('T');
+    var alias = typeAlias(
+      name: 'A',
+      typeParameters: [T],
+      aliasedType: typeParameterTypeNone(T),
+    );
+
+    var U = typeParameter('U');
+    var type = alias.instantiateImpl(
+      typeArguments: [typeParameterTypeNone(U)],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+
+    var result = type.withNullability(NullabilitySuffix.none);
+    expect(result.alias, isNotNull);
+    expect(result.alias?.nullabilitySuffix, NullabilitySuffix.none);
+  }
 }
 
 class _Base extends AbstractTypeSystemTest {
