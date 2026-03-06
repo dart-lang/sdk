@@ -54,6 +54,12 @@ external bool typeAcceptsNull<T>();
 /// Should only be used for performance in performance critical code.
 external T unsafeCast<T>(dynamic value);
 
+/// VM-only fast path for creating a map from alternating key/value pairs.
+external Object? createMapFromKeyValueListUnsafeNative<K, V>(
+  List keyValuePairs,
+  Object failureSentinel,
+);
+
 // Powers of 10 up to 10^22 are representable as doubles.
 // Powers of 10 above that are only approximate due to lack of precision.
 // Used by double-parsing.

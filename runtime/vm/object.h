@@ -10984,6 +10984,7 @@ class OneByteString : public AllStatic {
   friend class StringHasher;
   friend class Symbols;
   friend class Utf8;
+  friend class NativeStringDataAccess;
   friend class OneByteStringMessageSerializationCluster;
   friend class Deserializer;
   friend class JSONWriter;
@@ -11008,6 +11009,10 @@ class TwoByteString : public AllStatic {
   }
 
   static TwoByteStringPtr EscapeSpecialCharacters(const String& str);
+  static TwoByteStringPtr SubStringUnchecked(const String& str,
+                                             intptr_t begin_index,
+                                             intptr_t length,
+                                             Heap::Space space);
 
   // We use the same maximum elements for all strings.
   static constexpr intptr_t kBytesPerElement = 2;
@@ -11106,6 +11111,7 @@ class TwoByteString : public AllStatic {
   friend class String;
   friend class StringHasher;
   friend class Symbols;
+  friend class NativeStringDataAccess;
   friend class TwoByteStringMessageSerializationCluster;
   friend class JSONWriter;
 };
