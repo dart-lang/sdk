@@ -2952,17 +2952,21 @@ class _InstanceCreationEvaluator {
   Constant evaluateGenerativeConstructorCall() {
     InvalidConstant? error;
 
-    // Start with final fields that are initialized at their declaration site.
-    error = _checkFields();
-    if (error != null) {
-      return error;
-    }
-
     _checkTypeParameters();
 
     error = _checkParameters();
     if (error != null) {
       return error;
+    }
+
+    // Redirecting constructors delegate this to the target constructor.
+    if (!_constructor.baseElement.constantInitializers.any(
+      (e) => e is RedirectingConstructorInvocation,
+    )) {
+      error = _checkFields();
+      if (error != null) {
+        return error;
+      }
     }
 
     var evaluationResult = _checkInitializers();
@@ -2999,15 +3003,16 @@ class _InstanceCreationEvaluator {
   /// Returns an [InvalidConstant] if one is found, or `null` otherwise.
   InvalidConstant? _checkFields() {
     var substitution = Substitution.fromInterfaceType(_constructor.returnType);
-    var fields = _constructor.baseElement.enclosingElement.fields;
-    for (var field in fields) {
+    var interfaceElement = _constructor.baseElement.enclosingElement;
+    var canReuseFieldValue = interfaceElement.primaryConstructor == null;
+    for (var field in interfaceElement.fields) {
       if ((field.isFinal || field.isConst) && !field.isStatic) {
         var initializer = field.constantInitializer;
         if (initializer == null) {
           continue;
         }
 
-        var fieldValue = field.evaluationResult;
+        var fieldValue = canReuseFieldValue ? field.evaluationResult : null;
         fieldValue ??= _initializerVisitor.evaluateConstant(initializer);
 
         if (fieldValue is InvalidConstant) {
@@ -3033,7 +3038,13 @@ class _InstanceCreationEvaluator {
             isRuntimeException: isRuntimeException,
           );
         }
-        _fieldMap[field.name ?? ''] = fieldValue;
+
+        // Skip, if the field was already initialized by an initializing formal.
+        if (field.name case var fieldName?) {
+          if (!_fieldMap.containsKey(fieldName)) {
+            _fieldMap[fieldName] = fieldValue;
+          }
+        }
       }
     }
     return null;
