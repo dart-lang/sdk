@@ -673,10 +673,8 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchStatement(covariant SwitchStatementImpl node) {
-    for (var group in node.memberGroups) {
-      for (var member in group.members) {
-        _buildLabelElements(member.labels, true);
-      }
+    for (var member in node.members) {
+      _buildLabelElements(member.labels, true);
     }
     super.visitSwitchStatement(node);
   }
