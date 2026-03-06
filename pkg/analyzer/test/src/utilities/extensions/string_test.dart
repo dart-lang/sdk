@@ -130,6 +130,34 @@ class StringExtensionTest {
     expect('0123456789abcdef'.elideTo(12), '01234...cdef');
   }
 
+  void test_escapedForSingleQuotes_controlCharacters() {
+    expect('\b'.escapedForSingleQuotes(), r'\b');
+    expect('\t'.escapedForSingleQuotes(), r'\t');
+    expect('\n'.escapedForSingleQuotes(), r'\n');
+    expect('\f'.escapedForSingleQuotes(), r'\f');
+    expect('\r'.escapedForSingleQuotes(), r'\r');
+    expect('\u0000'.escapedForSingleQuotes(), r'\u0000');
+    expect('\u0001'.escapedForSingleQuotes(), r'\u0001');
+    expect('\u001F'.escapedForSingleQuotes(), r'\u001f');
+    expect('\u007F'.escapedForSingleQuotes(), r'\u007f');
+  }
+
+  void test_escapedForSingleQuotes_empty() {
+    expect(''.escapedForSingleQuotes(), '');
+  }
+
+  void test_escapedForSingleQuotes_plainText() {
+    expect('a'.escapedForSingleQuotes(), 'a');
+    expect('abc'.escapedForSingleQuotes(), 'abc');
+    expect('проба'.escapedForSingleQuotes(), 'проба');
+  }
+
+  void test_escapedForSingleQuotes_syntax() {
+    expect(r'$'.escapedForSingleQuotes(), r'\$');
+    expect("'".escapedForSingleQuotes(), r"\'");
+    expect(r'\'.escapedForSingleQuotes(), r'\\');
+  }
+
   void test_ifEqualThen_equal() {
     expect('foo'.ifEqualThen('foo', 'bar'), 'bar');
   }
