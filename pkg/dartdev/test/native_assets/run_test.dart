@@ -43,8 +43,18 @@ void main([List<String> args = const []]) async {
     testModifier += verbose ? ' verbose' : '';
     test('dart run$testModifier', timeout: longTimeout, () async {
       await nativeAssetsTest('dart_app', (dartAppUri) async {
+        final serverInfoFile = File.fromUri(
+          dartAppUri.resolve('.resident-info'),
+        ).path;
         final result = await runDart(
-          arguments: ['run', if (residentCompiler) '-r', if (verbose) '-v'],
+          arguments: [
+            'run',
+            if (residentCompiler) ...[
+              '--resident',
+              '--resident-compiler-info-file=$serverInfoFile',
+            ],
+            if (verbose) '-v',
+          ],
           workingDirectory: dartAppUri,
           logger: logger,
         );
