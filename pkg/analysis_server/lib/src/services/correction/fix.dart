@@ -1414,6 +1414,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     "Remove invalid 'extends' clauses everywhere in file",
   );
+  static const removeKeyword = FixKind(
+    'dart.fix.remove.keyword',
+    DartFixKindPriority.standard,
+    "Remove '{0}'",
+  );
+  static const removeKeywordMulti = FixKind(
+    'dart.fix.remove.keyword.multi',
+    DartFixKindPriority.inFile,
+    "Remove '{0}' everywhere in file",
+  );
   static const removeLexeme = FixKind(
     'dart.fix.remove.lexeme',
     DartFixKindPriority.standard,
