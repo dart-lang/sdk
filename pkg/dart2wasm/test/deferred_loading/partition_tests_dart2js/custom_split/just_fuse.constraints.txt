@@ -2,6 +2,21 @@ Part 0
   ImportSet
      - pkg/compiler/test/custom_split/data/just_fuse/lib1.dart prefix: b1
      - pkg/compiler/test/custom_split/data/just_fuse/lib2.dart prefix: b2
+  References
+     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_010_0
+     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_100_0
+     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_110_0
+     - pkg/compiler/test/custom_split/data/just_fuse/lib_010_0.dart::@methods::g_010_0
+     - pkg/compiler/test/custom_split/data/just_fuse/lib_100_0.dart::@methods::g_100_0
+  Constants
+     - StringConstant("0100")
+     - StringConstant("1000")
+     - StringConstant("1100")
+
+Part 1
+  ImportSet
+     - pkg/compiler/test/custom_split/data/just_fuse/lib1.dart prefix: b1
+     - pkg/compiler/test/custom_split/data/just_fuse/lib2.dart prefix: b2
      - pkg/compiler/test/custom_split/data/just_fuse/lib3.dart prefix: b3
      - pkg/compiler/test/custom_split/data/just_fuse/lib4.dart prefix: b4
   References
@@ -28,15 +43,12 @@ Part 0
      - package:expect/expect.dart::Expect::@methods::package:expect/expect.dart::_truncateString
      - package:expect/expect.dart::ExpectException
      - package:expect/expect.dart::ExpectException::@constructors::
-     - package:expect/expect.dart::ExpectException::@fields::message
-     - package:expect/expect.dart::ExpectException::@fields::name
      - package:expect/expect.dart::ExpectException::@fields::package:expect/expect.dart::_getTestName
      - package:expect/expect.dart::ExpectException::@getters::message
      - package:expect/expect.dart::ExpectException::@getters::name
      - package:expect/expect.dart::ExpectException::@getters::package:expect/expect.dart::_getTestName
      - package:expect/expect.dart::ExpectException::@methods::package:expect/expect.dart::_kEmptyString
      - package:expect/expect.dart::ExpectException::@methods::toString
-     - package:expect/expect.dart::ExpectException::@setters::package:expect/expect.dart::_getTestName
      - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_011_1
      - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_101_1
      - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_111_1
@@ -74,21 +86,6 @@ Part 0
      - StringConstant("at index ")
      - StringConstant("equals")
      - StringConstant("radix")
-
-Part 1
-  ImportSet
-     - pkg/compiler/test/custom_split/data/just_fuse/lib1.dart prefix: b1
-     - pkg/compiler/test/custom_split/data/just_fuse/lib2.dart prefix: b2
-  References
-     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_010_0
-     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_100_0
-     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_110_0
-     - pkg/compiler/test/custom_split/data/just_fuse/lib_010_0.dart::@methods::g_010_0
-     - pkg/compiler/test/custom_split/data/just_fuse/lib_100_0.dart::@methods::g_100_0
-  Constants
-     - StringConstant("0100")
-     - StringConstant("1000")
-     - StringConstant("1100")
 
 Part 2
   ImportSet

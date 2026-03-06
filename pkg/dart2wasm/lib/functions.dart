@@ -282,7 +282,7 @@ class FunctionCollector {
       if (target.isImplicitSetter) {
         return '$memberName= implicit setter';
       }
-      if (target.isFieldInitializer) {
+      if (target.isStaticFieldInitializer) {
         return '$memberName field initializer';
       }
       return '$memberName implicit getter';
@@ -615,15 +615,12 @@ w.FunctionType _makeFunctionType(
   Member member = target.asMember;
 
   if (member is Field && !member.isInstanceMember) {
-    final isGetter = target.isImplicitGetter;
-    final isSetter = target.isImplicitSetter;
-    if (isGetter || isSetter) {
-      final fieldType = translator.translateTypeOfField(member);
-      if (isGetter) {
-        return translator.typesBuilder.defineFunction(const [], [fieldType]);
-      }
-      return translator.typesBuilder.defineFunction([fieldType], const []);
+    final fieldType = translator.translateTypeOfField(member);
+    if (target.isImplicitGetter || target.isStaticFieldInitializer) {
+      return translator.typesBuilder.defineFunction(const [], [fieldType]);
     }
+    assert(target.isImplicitSetter);
+    return translator.typesBuilder.defineFunction([fieldType], const []);
   }
 
   // Translate types differently for imports and exports.

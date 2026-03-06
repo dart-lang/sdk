@@ -247,7 +247,6 @@ class Translator with KernelNodes {
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
-  late final w.FunctionBuilder initFunction;
   late final w.ValueType voidMarker =
       w.RefType.def(w.StructType("void"), nullable: true);
   // Lazily import FFI memory if used.
@@ -595,8 +594,6 @@ class Translator with KernelNodes {
   Map<ModuleMetadata, w.Module> translate(
       Uri Function(String moduleName)? sourceMapUrlGenerator) {
     _initModules(sourceMapUrlGenerator);
-    initFunction = mainModule.startFunction;
-
     closureLayouter.collect();
     classInfoCollector.collect();
 
@@ -637,7 +634,7 @@ class Translator with KernelNodes {
         }
       });
     }
-    _printFunction(initFunction, "init");
+    _printFunction(mainModule.startFunction, "init");
 
     // Remove empty modules.
     _outputToBuilder.removeWhere((outputModule, moduleBuilder) {

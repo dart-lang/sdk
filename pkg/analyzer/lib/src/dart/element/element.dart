@@ -2356,7 +2356,13 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
   }
 
   @override
+  ExecutableFragmentImpl? get nextFragment;
+
+  @override
   int get offset => nameOffset ?? firstTokenOffset!;
+
+  @override
+  ExecutableFragmentImpl? get previousFragment;
 
   @override
   List<TypeParameterFragmentImpl> get typeParameters {
@@ -3670,6 +3676,9 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
     return null;
   }
 
+  @override
+  FragmentImpl? get nextFragment;
+
   /// The version where this SDK API was added.
   ///
   /// A `@Since()` annotation can be applied to a library declaration,
@@ -3748,6 +3757,12 @@ sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
   FunctionFragmentImpl({required this.name, super.firstTokenOffset});
+
+  @override
+  FunctionFragmentImpl? get nextFragment;
+
+  @override
+  FunctionFragmentImpl? get previousFragment;
 }
 
 @elementClass
@@ -3776,6 +3791,12 @@ abstract class FunctionTypedFragmentImpl extends FragmentImpl
 
   @override
   List<FormalParameterFragmentImpl> get formalParameters;
+
+  @override
+  FunctionTypedFragmentImpl? get nextFragment;
+
+  @override
+  FunctionTypedFragmentImpl? get previousFragment;
 
   @override
   List<TypeParameterFragmentImpl> get typeParameters;
@@ -6805,7 +6826,7 @@ class LibraryFragmentImpl extends FragmentImpl
   int? get nameOffset => null;
 
   @override
-  LibraryFragment? get nextFragment {
+  LibraryFragmentImpl? get nextFragment {
     var fragments = library.fragments;
     var index = fragments.indexOf(this);
     return fragments.elementAtOrNull(index + 1);
@@ -8570,6 +8591,12 @@ abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl
   FragmentImpl get enclosingFragment {
     return super.enclosingFragment as FragmentImpl;
   }
+
+  @override
+  NonParameterVariableFragmentImpl? get nextFragment;
+
+  @override
+  NonParameterVariableFragmentImpl? get previousFragment;
 }
 
 class PartIncludeImpl extends ElementDirectiveImpl implements PartInclude {
@@ -8903,6 +8930,9 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
+  PropertyAccessorFragmentImpl? get nextFragment;
+
+  @override
   int get offset {
     if (nameOffset case var nameOffset?) {
       return nameOffset;
@@ -8913,6 +8943,9 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
     }
     return firstTokenOffset!;
   }
+
+  @override
+  PropertyAccessorFragmentImpl? get previousFragment;
 }
 
 @elementClass
@@ -10507,6 +10540,9 @@ abstract class VariableFragmentImpl extends FragmentImpl
   }
 
   @override
+  VariableFragmentImpl? get nextFragment;
+
+  @override
   int get offset {
     if (nameOffset ?? firstTokenOffset case var result?) {
       return result;
@@ -10521,6 +10557,9 @@ abstract class VariableFragmentImpl extends FragmentImpl
     }
     throw StateError('($runtimeType) $this');
   }
+
+  @override
+  VariableFragmentImpl? get previousFragment;
 }
 
 enum _ClassFragmentImplModifiers {

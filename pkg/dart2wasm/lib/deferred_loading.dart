@@ -49,7 +49,11 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
     }
 
     final partition = partitionAppplication(
-        coreTypes, component, loadingMap, findWasmRoots(coreTypes, component),
+        coreTypes,
+        component,
+        options.translatorOptions.enableAsserts,
+        loadingMap,
+        findWasmRoots(coreTypes, component),
         constraints: constraints);
 
     final builder = ModuleMetadataBuilder(options);
@@ -309,7 +313,16 @@ Set<Reference> findWasmRoots(CoreTypes coreTypes, Component component) {
     for (final klass in library.classes) {
       if (check(klass)) exports.add(klass.reference);
       for (final member in klass.members) {
-        if (check(member)) exports.add(member.reference);
+        if (check(member)) {
+          if (member is Field) {
+            exports.add(member.getterReference);
+            if (member.hasSetter) {
+              exports.add(member.setterReference!);
+            }
+          } else {
+            exports.add(member.reference);
+          }
+        }
       }
     }
   }

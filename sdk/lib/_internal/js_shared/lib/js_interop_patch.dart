@@ -559,5 +559,4 @@ JSPromise<JSObject> importModule(JSAny moduleName) =>
 
 @patch
 @pragma('dart2js:prefer-inline')
-bool jsIdentical(Object? a, Object? b) =>
-    foreign_helper.JS('', '# === #', a, b);
+bool jsIdentical(Object? a, Object? b) => identical(a, b);

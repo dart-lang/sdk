@@ -2,27 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// For mixins, an empty body, `{}`, cannot be replaced by `;`. Enums require a
-// non-empty declaration.
+// Enums that have an empty body (i.e. `;`) can be parsed, but will cause a
+// compile-time error when there's no enum constant declared.
 
 // SharedOptions=--enable-experiment=primary-constructors
-
-class C1;
-
-mixin M1;
-//    ^
-// [analyzer] unspecified
-// [cfe] unspecified
-
-mixin M2 implements C1;
-//    ^
-// [analyzer] unspecified
-// [cfe] unspecified
-
-mixin M3 on C1;
-//    ^
-// [analyzer] unspecified
-// [cfe] unspecified
 
 enum E1;
 //   ^
