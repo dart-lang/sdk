@@ -72,6 +72,9 @@ main() {
 - `dart pub cache repair` now by default only repairs the packages referenced
   by the current projects pubspec.lock. For the old behavior of repairing all
   packages use the `--all` flag.
+- `dart pub add` and `dart pub unpack` now accept `@` as an alternative to `:`
+  for seperating a package name from its version constraint.
+- Git dependencies now support LFS.
 
 #### dart2wasm
 
