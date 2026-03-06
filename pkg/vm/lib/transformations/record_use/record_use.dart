@@ -336,16 +336,21 @@ RecordConstant evaluateRecordConstant(ast.RecordConstant constant) {
 UnsupportedConstant _unsupported(String constantType) =>
     UnsupportedConstant('$constantType is not supported for recording.');
 
+Name className(ast.Class cls) => Name(
+  cls.name,
+  kind:
+      cls.isEnum
+          ? DefinitionKind.enumKind
+          : cls.isMixinDeclaration
+          ? DefinitionKind.mixinKind
+          : DefinitionKind.classKind,
+);
+
 Definition _definitionFromClass(ast.Class cls) {
   final enclosingLibrary = cls.enclosingLibrary;
   final importUri = enclosingLibrary.importUri.toString();
 
-  return Definition(importUri, [
-    Name(
-      cls.name,
-      kind: cls.isEnum ? DefinitionKind.enumKind : DefinitionKind.classKind,
-    ),
-  ]);
+  return Definition(importUri, [className(cls)]);
 }
 
 ast.Library? enclosingLibrary(ast.TreeNode node) {

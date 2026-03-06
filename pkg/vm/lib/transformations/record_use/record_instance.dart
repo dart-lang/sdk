@@ -227,12 +227,7 @@ class InstanceRecorder {
     final enclosingLibrary = cls.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
 
-    return Definition(importUri, [
-      Name(
-        cls.name,
-        kind: cls.isEnum ? DefinitionKind.enumKind : DefinitionKind.classKind,
-      ),
-    ]);
+    return Definition(importUri, [className(cls)]);
   }
 
   /// Returns a [Definition] for [target].
@@ -245,10 +240,7 @@ class InstanceRecorder {
     final importUri = cls.enclosingLibrary.importUri.toString();
 
     return Definition(importUri, [
-      Name(
-        cls.name,
-        kind: cls.isEnum ? DefinitionKind.enumKind : DefinitionKind.classKind,
-      ),
+      className(cls),
       Name(target.name.text, kind: DefinitionKind.constructorKind),
     ]);
   }
