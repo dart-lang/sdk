@@ -1,0 +1,73 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 1
+    },
+    {
+      "type": "int",
+      "value": 2
+    },
+    {
+      "definition_index": 0,
+      "index": 0,
+      "name": "a",
+      "type": "enum",
+      "value": {
+        "value": 0
+      }
+    },
+    {
+      "definition_index": 0,
+      "index": 1,
+      "name": "b",
+      "type": "enum",
+      "value": {
+        "value": 1
+      }
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "enum",
+          "name": "MyEnum"
+        }
+      ],
+      "uri": "package:record_use_test/enum_factory_constructor.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "constant_index": 2,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
+          },
+          {
+            "constant_index": 3,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "constant"
+          }
+        ]
+      }
+    ]
+  }
+}
