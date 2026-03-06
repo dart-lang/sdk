@@ -2663,6 +2663,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitDottedName(DottedName node) {}
+
+  @override
   void visitDoubleLiteral(
     DoubleLiteral node, {
     TypeImpl contextType = UnknownInferredType.instance,

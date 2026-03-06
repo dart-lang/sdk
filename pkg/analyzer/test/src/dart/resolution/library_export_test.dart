@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -10,12 +11,18 @@ import 'context_collection_resolution.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExportDirectiveResolutionTest);
+    defineReflectiveTests(ExportDirectiveResolutionTest_NoUseDottedName);
+    defineReflectiveTests(ExportDirectiveResolutionTest_UseDottedName);
   });
 }
 
-@reflectiveTest
-class ExportDirectiveResolutionTest extends PubPackageResolutionTest {
+abstract class ExportDirectiveResolutionTest extends PubPackageResolutionTest {
+  @override
+  Future<void> tearDown() async {
+    useDottedNameInLibraryDirective = false;
+    await super.tearDown();
+  }
+
   test_inLibrary_combinators_hide() async {
     await assertNoErrorsInCode(r'''
 export 'dart:math' hide Random;
@@ -143,7 +150,50 @@ export 'a.dart'
 ''');
 
     var node = findNode.export('a.dart');
-    assertResolvedNodeText(node, r'''
+    if (useDottedNameInLibraryDirective) {
+      assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  configurations
+    Configuration
+      ifKeyword: if
+      leftParenthesis: (
+      name: DottedName
+        tokens
+          dart
+          .
+          library
+          .
+          html
+      rightParenthesis: )
+      uri: SimpleStringLiteral
+        literal: 'a_html.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_html.dart
+    Configuration
+      ifKeyword: if
+      leftParenthesis: (
+      name: DottedName
+        tokens
+          dart
+          .
+          library
+          .
+          io
+      rightParenthesis: )
+      uri: SimpleStringLiteral
+        literal: 'a_io.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_io.dart
+  semicolon: ;
+  libraryExport: LibraryExport
+    uri: DirectiveUriWithLibrary
+      uri: package:test/a.dart
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
   uri: SimpleStringLiteral
@@ -198,6 +248,7 @@ ExportDirective
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
 ''');
+    }
   }
 
   test_inLibrary_configurations_first() async {
@@ -217,7 +268,50 @@ export 'a.dart'
 ''');
 
     var node = findNode.export('a.dart');
-    assertResolvedNodeText(node, r'''
+    if (useDottedNameInLibraryDirective) {
+      assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  configurations
+    Configuration
+      ifKeyword: if
+      leftParenthesis: (
+      name: DottedName
+        tokens
+          dart
+          .
+          library
+          .
+          html
+      rightParenthesis: )
+      uri: SimpleStringLiteral
+        literal: 'a_html.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_html.dart
+    Configuration
+      ifKeyword: if
+      leftParenthesis: (
+      name: DottedName
+        tokens
+          dart
+          .
+          library
+          .
+          io
+      rightParenthesis: )
+      uri: SimpleStringLiteral
+        literal: 'a_io.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_io.dart
+  semicolon: ;
+  libraryExport: LibraryExport
+    uri: DirectiveUriWithLibrary
+      uri: package:test/a_html.dart
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
   uri: SimpleStringLiteral
@@ -272,6 +366,7 @@ ExportDirective
     uri: DirectiveUriWithLibrary
       uri: package:test/a_html.dart
 ''');
+    }
   }
 
   test_inLibrary_configurations_second() async {
@@ -291,7 +386,50 @@ export 'a.dart'
 ''');
 
     var node = findNode.export('a.dart');
-    assertResolvedNodeText(node, r'''
+    if (useDottedNameInLibraryDirective) {
+      assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  configurations
+    Configuration
+      ifKeyword: if
+      leftParenthesis: (
+      name: DottedName
+        tokens
+          dart
+          .
+          library
+          .
+          html
+      rightParenthesis: )
+      uri: SimpleStringLiteral
+        literal: 'a_html.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_html.dart
+    Configuration
+      ifKeyword: if
+      leftParenthesis: (
+      name: DottedName
+        tokens
+          dart
+          .
+          library
+          .
+          io
+      rightParenthesis: )
+      uri: SimpleStringLiteral
+        literal: 'a_io.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_io.dart
+  semicolon: ;
+  libraryExport: LibraryExport
+    uri: DirectiveUriWithLibrary
+      uri: package:test/a_io.dart
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
   uri: SimpleStringLiteral
@@ -346,6 +484,7 @@ ExportDirective
     uri: DirectiveUriWithLibrary
       uri: package:test/a_io.dart
 ''');
+    }
   }
 
   test_inLibrary_library() async {
@@ -780,5 +919,25 @@ ExportDirective
     uri: DirectiveUriWithSource
       source: package:test/c.dart
 ''');
+  }
+}
+
+@reflectiveTest
+class ExportDirectiveResolutionTest_NoUseDottedName
+    extends ExportDirectiveResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    useDottedNameInLibraryDirective = false;
+  }
+}
+
+@reflectiveTest
+class ExportDirectiveResolutionTest_UseDottedName
+    extends ExportDirectiveResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    useDottedNameInLibraryDirective = true;
   }
 }
