@@ -289,29 +289,15 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     var nameToken = node.name;
-
-    FormalParameterFragmentImpl fragment;
-    if (_elementWalker != null) {
-      fragment =
-          _elementWalker!.getParameter() as FieldFormalParameterFragmentImpl;
-    } else {
-      // Only for recovery, this should not happen in valid code.
-      fragment = FieldFormalParameterFragmentImpl(
+    var fragment = _bindFormalParameter(node, () {
+      return FieldFormalParameterFragmentImpl(
         firstTokenOffset: node.offset,
         name: nameToken.nameIfNotEmpty,
         nameOffset: nameToken.offsetIfNotEmpty,
         parameterKind: node.kind,
         privateName: null,
       );
-      _elementHolder.addParameter(fragment);
-      fragment.isConst = node.isConst;
-      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-      fragment.isFinal = node.isFinal;
-      fragment.setCodeRange(node.offset, node.length);
-    }
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
+    });
 
     _withElementHolder(ElementHolder(fragment), () {
       _withElementWalker(
@@ -460,26 +446,14 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     covariant FunctionTypedFormalParameterImpl node,
   ) {
     var nameToken = node.name;
-
-    FormalParameterFragmentImpl fragment;
-    if (_elementWalker != null) {
-      fragment = _elementWalker!.getParameter();
-    } else {
-      fragment = FormalParameterFragmentImpl(
+    var fragment = _bindFormalParameter(node, () {
+      return FormalParameterFragmentImpl(
         firstTokenOffset: node.offset,
         name: nameToken.nameIfNotEmpty,
         nameOffset: nameToken.offsetIfNotEmpty,
         parameterKind: node.kind,
       );
-      _elementHolder.addParameter(fragment);
-      fragment.isConst = node.isConst;
-      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-      fragment.isFinal = node.isFinal;
-      fragment.setCodeRange(node.offset, node.length);
-    }
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
+    });
 
     var holder = ElementHolder(fragment);
     _withElementHolder(holder, () {
@@ -659,59 +633,33 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     var nameToken = node.name;
-
-    FormalParameterFragmentImpl fragment;
-    if (_elementWalker != null) {
-      fragment = _elementWalker!.getParameter();
-    } else {
-      fragment = FormalParameterFragmentImpl(
+    _bindFormalParameter(node, () {
+      var fragment = FormalParameterFragmentImpl(
         firstTokenOffset: node.offset,
         name: nameToken?.nameIfNotEmpty,
         nameOffset: nameToken?.offsetIfNotEmpty,
         parameterKind: node.kind,
       );
-      _elementHolder.addParameter(fragment);
-
-      fragment.setCodeRange(node.offset, node.length);
-      fragment.isConst = node.isConst;
-      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-      fragment.isFinal = node.isFinal;
       if (node.type == null) {
         fragment.hasImplicitType = true;
       }
-    }
-    node.declaredFragment = fragment;
+      return fragment;
+    });
 
     super.visitSimpleFormalParameter(node);
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
   }
 
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     var nameToken = node.name;
-
-    SuperFormalParameterFragmentImpl fragment;
-    if (_elementWalker != null) {
-      fragment =
-          _elementWalker!.getParameter() as SuperFormalParameterFragmentImpl;
-    } else {
-      // Only for recovery, this should not happen in valid code.
-      fragment = SuperFormalParameterFragmentImpl(
+    var fragment = _bindFormalParameter(node, () {
+      return SuperFormalParameterFragmentImpl(
         firstTokenOffset: node.offset,
         name: nameToken.nameIfNotEmpty,
         nameOffset: nameToken.offsetIfNotEmpty,
         parameterKind: node.kind,
       );
-      _elementHolder.addParameter(fragment);
-      fragment.isConst = node.isConst;
-      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-      fragment.isFinal = node.isFinal;
-      fragment.setCodeRange(node.offset, node.length);
-    }
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
+    });
 
     _withElementHolder(ElementHolder(fragment), () {
       _withElementWalker(
@@ -819,6 +767,28 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
         fragment.isLate = node.isLate;
       }
     }
+  }
+
+  T _bindFormalParameter<T extends FormalParameterFragmentImpl>(
+    NormalFormalParameterImpl node,
+    T Function() createFragment,
+  ) {
+    T fragment;
+    if (_elementWalker != null) {
+      fragment = _elementWalker!.getParameter() as T;
+    } else {
+      fragment = createFragment();
+      _elementHolder.addParameter(fragment);
+
+      fragment.setCodeRange(node.offset, node.length);
+      fragment.isConst = node.isConst;
+      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
+      fragment.isFinal = node.isFinal;
+    }
+    node.declaredFragment = fragment;
+
+    _setOrCreateMetadataElements(fragment, node.metadata);
+    return fragment;
   }
 
   /// Builds the label elements associated with [labels] and stores them in the
