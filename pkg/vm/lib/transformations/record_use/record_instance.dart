@@ -51,11 +51,10 @@ class InstanceRecorder {
     ast.StaticTearOffConstant constant,
   ) {
     if (isConstructorTearOffLowering(constant.target)) {
-      final cls = constant.target.enclosingClass as ast.Class;
+      final effectiveTarget = getConstructorEffectiveTarget(constant.target);
+      final cls = effectiveTarget.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
-        definition: _definitionFromMember(
-          getConstructorEffectiveTarget(constant.target),
-        ),
+        definition: _definitionFromMember(effectiveTarget),
         loadingUnits: [_loadingUnitLookup(context)],
       );
       _addToUsage(cls, instance);
@@ -66,11 +65,10 @@ class InstanceRecorder {
     ast.ConstantExpression context,
     ast.RedirectingFactoryTearOffConstant constant,
   ) {
-    final cls = constant.target.enclosingClass!;
+    final effectiveTarget = getConstructorEffectiveTarget(constant.target);
+    final cls = effectiveTarget.enclosingClass!;
     final instance = ConstructorTearoffReference(
-      definition: _definitionFromMember(
-        getConstructorEffectiveTarget(constant.target),
-      ),
+      definition: _definitionFromMember(effectiveTarget),
       loadingUnits: [_loadingUnitLookup(context)],
     );
     _addToUsage(cls, instance);
@@ -80,11 +78,10 @@ class InstanceRecorder {
     ast.ConstantExpression context,
     ast.ConstructorTearOffConstant constant,
   ) {
-    final cls = constant.target.enclosingClass as ast.Class;
+    final effectiveTarget = getConstructorEffectiveTarget(constant.target);
+    final cls = effectiveTarget.enclosingClass as ast.Class;
     final instance = ConstructorTearoffReference(
-      definition: _definitionFromMember(
-        getConstructorEffectiveTarget(constant.target),
-      ),
+      definition: _definitionFromMember(effectiveTarget),
       loadingUnits: [_loadingUnitLookup(context)],
     );
     _addToUsage(cls, instance);
@@ -140,11 +137,10 @@ class InstanceRecorder {
   void recordConstructorTearOff(ast.ConstructorTearOff node) {
     final target = node.target;
     if (isBeingRecorded(target)) {
-      final cls = target.enclosingClass as ast.Class;
+      final effectiveTarget = getConstructorEffectiveTarget(target);
+      final cls = effectiveTarget.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
-        definition: _definitionFromMember(
-          getConstructorEffectiveTarget(target),
-        ),
+        definition: _definitionFromMember(effectiveTarget),
         loadingUnits: [_loadingUnitLookup(node)],
       );
       _addToUsage(cls, instance);
@@ -154,11 +150,10 @@ class InstanceRecorder {
   void recordLoweredConstructorTearOff(ast.StaticTearOff node) {
     final target = node.target;
     if (isBeingRecorded(target)) {
-      final cls = target.enclosingClass as ast.Class;
+      final effectiveTarget = getConstructorEffectiveTarget(target);
+      final cls = effectiveTarget.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
-        definition: _definitionFromMember(
-          getConstructorEffectiveTarget(target),
-        ),
+        definition: _definitionFromMember(effectiveTarget),
         loadingUnits: [_loadingUnitLookup(node)],
       );
       _addToUsage(cls, instance);
@@ -168,10 +163,10 @@ class InstanceRecorder {
   void recordRedirectingFactoryTearOff(ast.RedirectingFactoryTearOff node) {
     final target = node.target;
     if (isBeingRecorded(target)) {
-      final ultimateTarget = getConstructorEffectiveTarget(target);
-      final cls = ultimateTarget.enclosingClass!;
+      final effectiveTarget = getConstructorEffectiveTarget(target);
+      final cls = effectiveTarget.enclosingClass!;
       final instance = ConstructorTearoffReference(
-        definition: _definitionFromMember(ultimateTarget),
+        definition: _definitionFromMember(effectiveTarget),
         loadingUnits: [_loadingUnitLookup(node)],
       );
       _addToUsage(cls, instance);
@@ -232,12 +227,7 @@ class InstanceRecorder {
     final enclosingLibrary = cls.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
 
-    return Definition(importUri, [
-      Name(
-        cls.name,
-        kind: cls.isEnum ? DefinitionKind.enumKind : DefinitionKind.classKind,
-      ),
-    ]);
+    return Definition(importUri, [className(cls)]);
   }
 
   /// Returns a [Definition] for [target].
@@ -250,10 +240,7 @@ class InstanceRecorder {
     final importUri = cls.enclosingLibrary.importUri.toString();
 
     return Definition(importUri, [
-      Name(
-        cls.name,
-        kind: cls.isEnum ? DefinitionKind.enumKind : DefinitionKind.classKind,
-      ),
+      className(cls),
       Name(target.name.text, kind: DefinitionKind.constructorKind),
     ]);
   }

@@ -2428,6 +2428,24 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             node.sourceInformation!,
           );
         }
+        if (_shouldRecordConstructor(element)) {
+          final elementNode = _closedWorld.elementMap
+              .getMemberDefinition(element)
+              .node;
+          if (elementNode is ir.Procedure &&
+              getConstructorTearOffLoweringTarget(elementNode) != null) {
+            recordedMethodUses = _recordConstructorTearOff(
+              element,
+              node.sourceInformation!,
+            );
+          } else {
+            recordedMethodUses = _recordConstructorUses(
+              element,
+              node.inputs,
+              node.sourceInformation!,
+            );
+          }
+        }
       }
       _registry.registerStaticUse(staticUse);
       push(_emitter.staticFunctionAccess(element));
@@ -2505,6 +2523,17 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   bool _shouldRecordConstructor(MemberEntity element) {
+    final callerNode = _closedWorld.elementMap
+        .getMemberDefinition(_member)
+        .node;
+    if (callerNode is ir.Procedure &&
+        (isConstructorTearOffLowering(callerNode) ||
+            callerNode.isRedirectingFactory)) {
+      // If we are currently compiling a constructor tear-off lowering, we
+      // don't want to record the generative constructor calls inside it.
+      return false;
+    }
+
     final node = _closedWorld.elementMap.getMemberDefinition(element).node;
     MemberEntity resolved = element;
     bool isTearOff = false;
@@ -2537,16 +2566,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
 
     if (constructor.isGenerativeConstructor) {
-      if (classAnnotated) {
-        // If we are currently compiling a constructor tear-off lowering, we
-        // don't want to record the generative constructor calls inside it.
-        final callerNode = _closedWorld.elementMap
-            .getMemberDefinition(_member)
-            .node;
-        return callerNode is! ir.Procedure ||
-            !isConstructorTearOffLowering(callerNode);
-      }
-      return false;
+      return classAnnotated;
     }
 
     // Regular factory call. Treat as static call. Don't record instances.
@@ -2562,20 +2582,20 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   RecordedUse _recordConstructorUses(
-    ConstructorEntity element,
+    MemberEntity element,
     List<HInstruction> arguments,
     SourceInformation sourceInformation,
   ) {
     ir.Member node =
         _closedWorld.elementMap.getMemberDefinition(element).node as ir.Member;
     node = _getConstructorEffectiveTarget(node)!;
-    final resolvedElement =
+    final constructor =
         _closedWorld.elementMap.getMember(node) as ConstructorEntity;
 
     final positionalArguments = <ConstantValue?>[];
     final namedArguments = <String, ConstantValue?>{};
     var argumentIndex = 0;
-    _closedWorld.elementEnvironment.forEachParameter(resolvedElement, (
+    _closedWorld.elementEnvironment.forEachParameter(constructor, (
       DartType type,
       String? name,
       ConstantValue? defaultValue,
@@ -2583,7 +2603,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       if (argumentIndex < arguments.length) {
         final value = _findConstant(arguments[argumentIndex++]);
         if (argumentIndex <=
-            resolvedElement.parameterStructure.positionalParameters) {
+            constructor.parameterStructure.positionalParameters) {
           positionalArguments.add(value);
         } else {
           namedArguments[name!] = value;
@@ -2592,7 +2612,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     });
 
     return RecordedInstanceCreation(
-      constructor: resolvedElement,
+      constructor: constructor,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
       sourceInformation: sourceInformation,

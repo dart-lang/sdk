@@ -5,7 +5,7 @@ import "package:meta/meta.dart" as meta;
 
 import "package:meta/meta.dart" show RecordUse;
 
-abstract class A extends core::Object {
+class A extends core::Object {
 }
 @#C1
 final class B extends core::Object implements self::A {

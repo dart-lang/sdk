@@ -50,6 +50,7 @@ class WasmCompilerOptions {
   Uri? loadsIdsUri;
   Uri? programSplitConstraintsUri;
   bool validateDynamicModules = true;
+  String? dynamicModuleLibraryPrefix;
   Map<String, String> environment = {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;

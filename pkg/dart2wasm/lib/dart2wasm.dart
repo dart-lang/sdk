@@ -115,8 +115,8 @@ final List<Option> options = [
       (o, value) => o.translatorOptions.enableDeferredLoading = value,
       defaultsTo: _d.translatorOptions.enableDeferredLoading),
   UriOption("load-ids", (o, value) => o.loadsIdsUri = value),
-  UriOption("read-program-split",
-      (o, value) => o.programSplitConstraintsUri = value),
+  UriOption(
+      "read-program-split", (o, value) => o.programSplitConstraintsUri = value),
   Flag("enable-multi-module-stress-test-mode",
       (o, value) => o.translatorOptions.enableMultiModuleStressTestMode = value,
       defaultsTo: _d.translatorOptions.enableMultiModuleStressTestMode),
@@ -147,6 +147,9 @@ final List<Option> options = [
   Flag("validate-dynamic-modules",
       (o, value) => o.validateDynamicModules = value,
       defaultsTo: true, negatable: true),
+  StringOption("dynamic-module-library-prefix",
+      (o, value) => o.dynamicModuleLibraryPrefix = value),
+
   UriOption("wasm-opt", (o, value) => o.wasmOptPath = value),
   // The maximum number of concurrent wasm-opt processes to run. Defaults to the
   // number of processors on the machine. Use -1 to run with no limit.

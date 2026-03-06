@@ -2199,7 +2199,13 @@ class _TreeShakerPass2 extends RemovingTransformer {
   TreeNode visitLibrary(Library node, TreeNode? removalSentinel) {
     if (!shaker.isLibraryUsed(node) &&
         !shaker.isLibraryReferencedFromNativeCode(node) &&
-        node.importUri.scheme != 'dart') {
+        node.importUri.scheme != 'dart' &&
+        // We're keeping the RecordUse annotation, we need to keep the library
+        // containing it.
+        // TODO(https://github.com/dart-lang/native/issues/2680): Move class
+        // RecordUse to the Dart SDK or `package:record_use`.
+        !(node.importUri.isScheme('package') &&
+            node.importUri.path == 'meta/meta.dart')) {
       return removalSentinel!;
     }
     _additionalDeps.clear();
@@ -2255,7 +2261,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
 
   @override
   TreeNode visitClass(Class node, TreeNode? removalSentinel) {
-    if (!shaker.isClassUsed(node)) {
+    if (!shaker.isClassUsed(node) && !record_use.isRecordUse(node)) {
       debugPrint('Dropped class ${node.name}');
       // Ensure that kernel file writer will not be able to
       // write a dangling reference to the deleted class.
@@ -2269,7 +2275,10 @@ class _TreeShakerPass2 extends RemovingTransformer {
       return removalSentinel!; // Remove the class.
     }
 
-    if (!shaker.isClassUsedInType(node)) {
+    if (!shaker.isClassUsedInType(node) &&
+        // Prevent enums being reported as classes in record_use.
+        !record_use.isBeingRecorded(node) &&
+        !node.members.any(record_use.isBeingRecorded)) {
       debugPrint('Dropped supers from class ${node.name}');
       // The class is only a namespace for static members or
       // unreachable members annotated with entry point pragmas.
@@ -2291,7 +2300,10 @@ class _TreeShakerPass2 extends RemovingTransformer {
       node.annotations = const <Expression>[];
     }
 
-    if (!shaker.isClassAllocated(node)) {
+    if (!shaker.isClassAllocated(node) &&
+        // Prevent enums being reported as classes in record_use.
+        !record_use.isBeingRecorded(node) &&
+        !node.members.any(record_use.isBeingRecorded)) {
       debugPrint('Class ${node.name} converted to abstract');
       node.isAbstract = true;
       node.isEnum = false;
@@ -2304,7 +2316,9 @@ class _TreeShakerPass2 extends RemovingTransformer {
 
   @override
   TreeNode defaultMember(Member node, TreeNode? removalSentinel) {
-    if (!shaker.isMemberUsed(node)) {
+    if (!shaker.isMemberUsed(node) &&
+        (node.enclosingClass == null ||
+            !record_use.isRecordUse(node.enclosingClass!))) {
       // Ensure that kernel file writer will not be able to
       // write a dangling reference to the deleted member.
       if (node is Field) {

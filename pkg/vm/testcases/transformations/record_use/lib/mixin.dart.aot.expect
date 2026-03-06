@@ -1,0 +1,21 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  @#C1
+  static method staticMethod() → void {}
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::MyMixin::staticMethod();
+}
+constants  {
+  #C1 = meta::RecordUse {}
+}

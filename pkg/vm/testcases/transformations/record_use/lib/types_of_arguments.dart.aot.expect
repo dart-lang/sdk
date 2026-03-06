@@ -5,7 +5,7 @@ import "package:meta/meta.dart" as meta;
 
 import "package:meta/meta.dart" show RecordUse;
 
-abstract class SomeClass extends core::Object {
+class SomeClass extends core::Object {
 
   [@vm.inferred-return-type.metadata=!]
   @#C1

@@ -1,0 +1,49 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+class Redirector extends core::Object {
+
+  [@vm.inferred-return-type.metadata=#lib::HasInstances]
+  @#C3
+  @#C5
+  @#C7
+  static const factory •(core::int i) → self::Redirector /* redirection-target: self::HasInstances::• */
+    return new self::HasInstances::•(i);
+}
+@#C8
+final class HasInstances extends core::Object implements self::Redirector /*hasConstConstructor*/  {
+
+  [@vm.inferred-type.metadata=int]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  final field core::int i;
+
+  [@vm.unboxing-info.metadata=(i)->b]
+  @#C3
+  @#C5
+  @#C7
+  const constructor •([@vm.inferred-arg-type.metadata=int] core::int i) → self::HasInstances
+    : self::HasInstances::i = i, super core::Object::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  const (core::int) → self::Redirector f = #C9;
+  core::print([@vm.direct-call.metadata=closure 0 in #lib::Redirector.] [@vm.inferred-type.metadata=#lib::HasInstances (receiver not int)] #C9(42){(core::int) → self::Redirector});
+}
+constants  {
+  #C1 = "vm:never-inline"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "dart2js:noInline"
+  #C5 = core::pragma {name:#C4, options:#C2}
+  #C6 = "wasm:never-inline"
+  #C7 = core::pragma {name:#C6, options:#C2}
+  #C8 = meta::RecordUse {}
+  #C9 = redirecting-factory-tearoff self::Redirector::•
+}

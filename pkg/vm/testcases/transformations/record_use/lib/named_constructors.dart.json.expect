@@ -1,0 +1,100 @@
+{
+  "constants": [
+    {
+      "type": "non_constant"
+    },
+    {
+      "type": "int",
+      "value": 42
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "C"
+        }
+      ],
+      "uri": "package:record_use_test/named_constructors.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "C"
+        },
+        {
+          "kind": "constructor",
+          "name": "fact"
+        }
+      ],
+      "uri": "package:record_use_test/named_constructors.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "C"
+        },
+        {
+          "kind": "constructor",
+          "name": "named"
+        }
+      ],
+      "uri": "package:record_use_test/named_constructors.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "definition_index": 2,
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              0
+            ],
+            "type": "creation"
+          },
+          {
+            "definition_index": 2,
+            "loading_unit_indices": [
+              0
+            ],
+            "positional": [
+              1
+            ],
+            "type": "creation"
+          },
+          {
+            "definition_index": 2,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "tearoff"
+          },
+          {
+            "definition_index": 1,
+            "loading_unit_indices": [
+              0
+            ],
+            "type": "tearoff"
+          }
+        ]
+      }
+    ]
+  }
+}

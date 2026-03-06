@@ -13,6 +13,8 @@ import 'package:vm/transformations/devirtualization.dart';
 import 'package:vm/transformations/dynamic_interface_annotator.dart'
     as dynamic_interface_annotator;
 import 'package:vm/transformations/pragma.dart';
+import 'package:vm/transformations/prefix_library_uris.dart'
+    as library_prefix_uris;
 import 'package:vm/transformations/type_flow/table_selector_assigner.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -255,6 +257,16 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
   }
 
   void _registerLibraries() {
+    final recordLibrary = component.libraries
+        .firstWhere((l) => '${l.importUri}' == dynamicModulesRecordsLibraryUri);
+    if (options.dynamicModuleLibraryPrefix case final uriPrefix?) {
+      library_prefix_uris.prefixLibraryUris(
+          component,
+          component.libraries
+              .where((l) => l.isFromMainModule(coreTypes))
+              .toSet(),
+          uriPrefix);
+    }
     // Register each library with the SDK. This will ensure no duplicate
     // libraries are included across dynamic modules.
     final registerLibraryUris = coreTypes.index
@@ -263,7 +275,7 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
     final libraryUris = ListLiteral([
       ...component
           .getDynamicSubmoduleLibraries(coreTypes)
-          .where((l) => '${l.importUri}' != dynamicModulesRecordsLibraryUri)
+          .where((l) => l != recordLibrary)
           .map((l) => StringLiteral(l.importUri.toString()))
     ], typeArgument: coreTypes.stringNonNullableRawType);
     entryPoint.function.body = Block([

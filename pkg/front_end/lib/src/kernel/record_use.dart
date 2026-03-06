@@ -188,15 +188,27 @@ void _validateRecordUseDeclaration(
     );
   }
 
-  // Non-generative, non-redirecting constructors are treated as static calls.
-  final bool onFactory =
-      node is Procedure && node.isFactory && !node.isRedirectingFactory;
+  final ExtensionTypeMemberDescriptor? descriptor = node is Procedure
+      ? node.extensionTypeMemberDescriptor
+      : null;
+
+  // Validation is performed on Kernel nodes. Some high-level Dart constructs
+  // (like extension type factories or constructor tear-offs) are lowered into
+  // regular static procedures in Kernel. Since annotations are copied from
+  // source to these lowered nodes, we must explicitly check for them to
+  // ensure factories and constructors are consistently disallowed.
+  final bool isExtensionTypeFactory =
+      descriptor != null &&
+      (descriptor.kind == ExtensionTypeMemberKind.Constructor ||
+          descriptor.kind == ExtensionTypeMemberKind.Factory ||
+          descriptor.kind == ExtensionTypeMemberKind.RedirectingFactory);
 
   final bool onStaticMethod =
-      (node is Procedure &&
-          node.isStatic &&
-          node.kind != ProcedureKind.Factory) ||
-      onFactory;
+      node is Procedure &&
+      node.isStatic &&
+      node.kind != ProcedureKind.Factory &&
+      !isExtensionTypeFactory &&
+      !isConstructorTearOffLowering(node);
 
   final bool onClass = node is Class;
 
