@@ -1,0 +1,45 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension Ext on core::String {
+  static get staticGetter = get self::Ext|staticGetter;
+  static set staticSetter = set self::Ext|staticSetter;
+  get instanceGetter = self::Ext|get#instanceGetter;
+  set instanceSetter = self::Ext|set#instanceSetter;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+[@vm.unboxing-info.metadata=()->i]
+@#C1
+static extension-member get Ext|staticGetter() → core::int
+  return 42;
+
+[@vm.unboxing-info.metadata=(i)->b]
+@#C1
+static extension-member set Ext|staticSetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 123)] core::int value) → void {}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi]
+[@vm.unboxing-info.metadata=(b)->i]
+@#C1
+static extension-member method Ext|get#instanceGetter([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "abc")] lowered final core::String #this) → core::int
+  return [@vm.direct-call.metadata=dart.core::_StringBase.length] [@vm.inferred-type.metadata=dart.core::_Smi] #this.{core::String::length}{core::int};
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=(b,i)->b]
+@#C1
+static extension-member method Ext|set#instanceSetter([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "abc")] lowered final core::String #this, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 456)] core::int value) → void {}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::Ext|staticGetter);
+  self::Ext|staticSetter = 123;
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi] self::Ext|get#instanceGetter("abc"));
+  self::Ext|set#instanceSetter("abc", 456);
+}
+constants  {
+  #C1 = meta::RecordUse {}
+}

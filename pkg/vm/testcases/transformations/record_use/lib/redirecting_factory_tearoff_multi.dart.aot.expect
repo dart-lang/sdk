@@ -5,7 +5,7 @@ import "package:meta/meta.dart" as meta;
 
 import "package:meta/meta.dart" show RecordUse;
 
-abstract class Redirector1 extends core::Object {
+class Redirector1 extends core::Object {
 
   [@vm.inferred-return-type.metadata=#lib::HasInstances]
   @#C3
@@ -14,7 +14,7 @@ abstract class Redirector1 extends core::Object {
   static factory •(core::int i) → self::Redirector1 /* redirection-target: self::Redirector2::• */
     return [@vm.inferred-type.metadata=#lib::HasInstances] self::Redirector2::•(i);
 }
-abstract class Redirector2 extends core::Object implements self::Redirector1 {
+class Redirector2 extends core::Object implements self::Redirector1 {
 
   [@vm.inferred-return-type.metadata=#lib::HasInstances]
   [@vm.unboxing-info.metadata=(i)->b]

@@ -6,7 +6,7 @@ import "package:meta/meta.dart" as meta;
 import "package:meta/meta.dart" show RecordUse;
 
 part partfile_helper.dart;
-abstract class SomeClass extends core::Object { // from org-dartlang-test:///testcases/transformations/record_use/lib/partfile_helper.dart
+class SomeClass extends core::Object { // from org-dartlang-test:///testcases/transformations/record_use/lib/partfile_helper.dart
 
   [@vm.inferred-return-type.metadata=int]
   [@vm.unboxing-info.metadata=(i)->i]
