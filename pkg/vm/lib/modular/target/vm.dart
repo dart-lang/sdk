@@ -247,6 +247,7 @@ class VmTarget extends Target {
       coreTypes,
       hierarchy,
       productMode: productMode,
+      isClosureContextLoweringEnabled: flags.isClosureContextLoweringEnabled,
     );
     logger?.call("Lowering transformations performed");
 
@@ -273,6 +274,7 @@ class VmTarget extends Target {
       coreTypes,
       hierarchy,
       productMode: productMode,
+      isClosureContextLoweringEnabled: flags.isClosureContextLoweringEnabled,
     );
     logger?.call("Lowering transformations performed");
   }

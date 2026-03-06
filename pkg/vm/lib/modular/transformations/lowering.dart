@@ -26,8 +26,14 @@ void transformLibraries(
   CoreTypes coreTypes,
   ClassHierarchy hierarchy, {
   required bool productMode,
+  required bool isClosureContextLoweringEnabled,
 }) {
-  final transformer = _Lowering(coreTypes, hierarchy, productMode: productMode);
+  final transformer = _Lowering(
+    coreTypes,
+    hierarchy,
+    productMode: productMode,
+    isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+  );
   libraries.forEach(transformer.visitLibrary);
 }
 
@@ -36,8 +42,14 @@ void transformProcedure(
   CoreTypes coreTypes,
   ClassHierarchy hierarchy, {
   required bool productMode,
+  required bool isClosureContextLoweringEnabled,
 }) {
-  final transformer = _Lowering(coreTypes, hierarchy, productMode: productMode);
+  final transformer = _Lowering(
+    coreTypes,
+    hierarchy,
+    productMode: productMode,
+    isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+  );
   procedure.accept(transformer);
 }
 
@@ -58,11 +70,16 @@ class _Lowering extends Transformer {
     CoreTypes coreTypes,
     ClassHierarchy hierarchy, {
     required bool productMode,
+    required bool isClosureContextLoweringEnabled,
   }) : env = TypeEnvironment(coreTypes, hierarchy),
        lateVarInitTransformer = LateVarInitTransformer(),
        factorySpecializer = FactorySpecializer(coreTypes),
        listLiteralsLowering = ListLiteralsLowering(coreTypes),
-       forInLowering = ForInLowering(coreTypes, productMode: productMode);
+       forInLowering = ForInLowering(
+         coreTypes,
+         productMode: productMode,
+         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+       );
 
   StaticTypeContext get _staticTypeContext =>
       _cachedStaticTypeContext ??= StaticTypeContext(_currentMember!, env);
