@@ -199,8 +199,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     normalParameter.accept(this);
 
-    var fragment =
-        normalParameter.declaredFragment as FormalParameterFragmentImpl;
+    var fragment = normalParameter.declaredFragment!;
     node.declaredFragment = fragment;
 
     var defaultValue = node.defaultValue;
@@ -472,12 +471,12 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitGenericFunctionType(GenericFunctionType node) {
+  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     var fragment = GenericFunctionTypeFragmentImpl(
       firstTokenOffset: node.offset,
     );
     _libraryFragment.encloseElement(fragment);
-    (node as GenericFunctionTypeImpl).declaredFragment = fragment;
+    node.declaredFragment = fragment;
 
     fragment.isNullable = node.question != null;
 
@@ -517,7 +516,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLabeledStatement(LabeledStatement node) {
+  void visitLabeledStatement(covariant LabeledStatementImpl node) {
     _buildLabelElements(node.labels, false);
     super.visitLabeledStatement(node);
   }
@@ -585,7 +584,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPartOfDirective(PartOfDirective node) {
+  void visitPartOfDirective(covariant PartOfDirectiveImpl node) {
     _withElementWalker(null, () {
       super.visitPartOfDirective(node);
     });
@@ -771,9 +770,8 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
   /// Builds the label elements associated with [labels] and stores them in the
   /// element holder.
-  void _buildLabelElements(List<Label> labels, bool onSwitchMember) {
+  void _buildLabelElements(List<LabelImpl> labels, bool onSwitchMember) {
     for (var label in labels) {
-      label as LabelImpl;
       var labelName = label.label;
       var fragment = LabelFragmentImpl(
         name: labelName.name,
