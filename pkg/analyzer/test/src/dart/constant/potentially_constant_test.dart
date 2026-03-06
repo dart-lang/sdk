@@ -1379,7 +1379,48 @@ class A {
 ''', () => findNode.simple('m; // ref'));
   }
 
-  test_simpleIdentifier_parameterOfConstConstructor_inBody() async {
+  test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_instance_late() async {
+    await _assertNotConst(
+      r'''
+class const C(int a) {
+  late final int f = a + 1;
+}
+''',
+      () => findNode.variableDeclaration('f =').initializer!,
+      () => [findNode.simple('a +')],
+    );
+  }
+
+  test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_instance_notLate() async {
+    await _assertConst(r'''
+class const C(int a) {
+  final int f = a + 1;
+}
+''', () => findNode.variableDeclaration('f =').initializer!);
+  }
+
+  test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_static() async {
+    await _assertNotConst(
+      r'''
+class const C(int a) {
+  static final int f = a + 1;
+}
+''',
+      () => findNode.variableDeclaration('f =').initializer!,
+      () => [findNode.simple('a +')],
+    );
+  }
+
+  test_simpleIdentifier_parameterOfConstPrimaryConstructor_inInitializer() async {
+    await _assertConst(r'''
+class const C(int a) {
+  final int f;
+  this : f = a + 1;
+}
+''', () => findNode.constructorFieldInitializer('f =').expression);
+  }
+
+  test_simpleIdentifier_parameterOfConstSecondaryConstructor_inBody() async {
     await _assertNotConst(
       r'''
 class C {
@@ -1393,7 +1434,7 @@ class C {
     );
   }
 
-  test_simpleIdentifier_parameterOfConstConstructor_inInitializer() async {
+  test_simpleIdentifier_parameterOfConstSecondaryConstructor_inInitializer() async {
     await _assertConst(r'''
 class C {
   final int f;
@@ -1402,7 +1443,32 @@ class C {
 ''', () => findNode.constructorFieldInitializer('f =').expression);
   }
 
-  test_simpleIdentifier_parameterOfConstConstructor_notConst() async {
+  test_simpleIdentifier_parameterOfNotConstPrimaryConstructor_inConstructorFieldInitializer() async {
+    await _assertNotConst(
+      r'''
+class C(int a) {
+  final int f;
+  this : f = a + 1;
+}
+''',
+      () => findNode.constructorFieldInitializer('f =').expression,
+      () => [findNode.simple('a +')],
+    );
+  }
+
+  test_simpleIdentifier_parameterOfNotConstPrimaryConstructor_inFieldInitializer() async {
+    await _assertNotConst(
+      r'''
+class C(int a) {
+  final int f = a + 1;
+}
+''',
+      () => findNode.variableDeclaration('f =').initializer!,
+      () => [findNode.simple('a +')],
+    );
+  }
+
+  test_simpleIdentifier_parameterOfNotConstSecondaryConstructor() async {
     await _assertNotConst(
       r'''
 class C {
