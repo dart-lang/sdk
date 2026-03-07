@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -9,12 +10,18 @@ import 'context_collection_resolution.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ImportDirectiveResolutionTest);
+    defineReflectiveTests(ImportDirectiveResolutionTest_UseDottedName);
+    defineReflectiveTests(ImportDirectiveResolutionTest_NoUseDottedName);
   });
 }
 
-@reflectiveTest
-class ImportDirectiveResolutionTest extends PubPackageResolutionTest {
+abstract class ImportDirectiveResolutionTest extends PubPackageResolutionTest {
+  @override
+  Future<void> tearDown() async {
+    useDottedNameInLibraryDirective = false;
+    await super.tearDown();
+  }
+
   test_inLibrary_combinators_hide() async {
     await assertErrorsInCode(
       r'''
@@ -153,7 +160,74 @@ var a = A();
 ''');
 
     var node = findNode.unit;
-    assertResolvedNodeText(node, r'''
+    if (useDottedNameInLibraryDirective) {
+      assertResolvedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'a.dart'
+      configurations
+        Configuration
+          ifKeyword: if
+          leftParenthesis: (
+          name: DottedName
+            tokens
+              dart
+              .
+              library
+              .
+              html
+          rightParenthesis: )
+          uri: SimpleStringLiteral
+            literal: 'a_html.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_html.dart
+        Configuration
+          ifKeyword: if
+          leftParenthesis: (
+          name: DottedName
+            tokens
+              dart
+              .
+              library
+              .
+              io
+          rightParenthesis: )
+          uri: SimpleStringLiteral
+            literal: 'a_io.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_io.dart
+      semicolon: ;
+      libraryImport: LibraryImport
+        uri: DirectiveUriWithLibrary
+          uri: package:test/a.dart
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: a
+            equals: =
+            initializer: InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A
+                  element: package:test/a.dart::@class::A
+                  type: A
+                element: package:test/a.dart::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticType: A
+            declaredFragment: <testLibraryFragment> a@96
+      semicolon: ;
+      declaredFragment: <null>
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 CompilationUnit
   directives
     ImportDirective
@@ -232,6 +306,7 @@ CompilationUnit
       semicolon: ;
       declaredFragment: <null>
 ''');
+    }
   }
 
   test_inLibrary_configurations_first() async {
@@ -253,7 +328,74 @@ var a = A();
 ''');
 
     var node = findNode.unit;
-    assertResolvedNodeText(node, r'''
+    if (useDottedNameInLibraryDirective) {
+      assertResolvedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'a.dart'
+      configurations
+        Configuration
+          ifKeyword: if
+          leftParenthesis: (
+          name: DottedName
+            tokens
+              dart
+              .
+              library
+              .
+              html
+          rightParenthesis: )
+          uri: SimpleStringLiteral
+            literal: 'a_html.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_html.dart
+        Configuration
+          ifKeyword: if
+          leftParenthesis: (
+          name: DottedName
+            tokens
+              dart
+              .
+              library
+              .
+              io
+          rightParenthesis: )
+          uri: SimpleStringLiteral
+            literal: 'a_io.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_io.dart
+      semicolon: ;
+      libraryImport: LibraryImport
+        uri: DirectiveUriWithLibrary
+          uri: package:test/a_html.dart
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: a
+            equals: =
+            initializer: InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A
+                  element: package:test/a_html.dart::@class::A
+                  type: A
+                element: package:test/a_html.dart::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticType: A
+            declaredFragment: <testLibraryFragment> a@96
+      semicolon: ;
+      declaredFragment: <null>
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 CompilationUnit
   directives
     ImportDirective
@@ -332,6 +474,7 @@ CompilationUnit
       semicolon: ;
       declaredFragment: <null>
 ''');
+    }
   }
 
   test_inLibrary_configurations_noRelativeUri() async {
@@ -344,7 +487,22 @@ import 'a.dart'
 ''');
 
     var node = findNode.configuration('if (');
-    assertResolvedNodeText(node, r'''
+    if (useDottedNameInLibraryDirective) {
+      assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    tokens
+      x
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: ':net'
+  resolvedUri: DirectiveUriWithRelativeUriString
+    relativeUriString: :net
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
   leftParenthesis: (
@@ -360,6 +518,7 @@ Configuration
   resolvedUri: DirectiveUriWithRelativeUriString
     relativeUriString: :net
 ''');
+    }
   }
 
   test_inLibrary_configurations_noRelativeUriStr() async {
@@ -372,7 +531,32 @@ import 'a.dart'
 ''');
 
     var node = findNode.configuration('if (');
-    assertResolvedNodeText(node, r'''
+    if (useDottedNameInLibraryDirective) {
+      assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    tokens
+      x
+  rightParenthesis: )
+  uri: StringInterpolation
+    elements
+      InterpolationString
+        contents: '
+      InterpolationExpression
+        leftBracket: ${
+        expression: SimpleStringLiteral
+          literal: 'foo'
+        rightBracket: }
+      InterpolationString
+        contents: .dart'
+    staticType: null
+    stringValue: null
+  resolvedUri: DirectiveUri
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
   leftParenthesis: (
@@ -398,6 +582,7 @@ Configuration
     stringValue: null
   resolvedUri: DirectiveUri
 ''');
+    }
   }
 
   test_inLibrary_configurations_noSource() async {
@@ -410,7 +595,22 @@ import 'a.dart'
 ''');
 
     var node = findNode.configuration('if (');
-    assertResolvedNodeText(node, r'''
+    if (useDottedNameInLibraryDirective) {
+      assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    tokens
+      x
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: 'foo:bar'
+  resolvedUri: DirectiveUriWithRelativeUri
+    relativeUri: foo:bar
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
   leftParenthesis: (
@@ -426,6 +626,7 @@ Configuration
   resolvedUri: DirectiveUriWithRelativeUri
     relativeUri: foo:bar
 ''');
+    }
   }
 
   test_inLibrary_configurations_onlySource_notLibrary() async {
@@ -438,7 +639,22 @@ import 'a.dart'
 ''');
 
     var node = findNode.configuration('if (');
-    assertResolvedNodeText(node, r'''
+    if (useDottedNameInLibraryDirective) {
+      assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    tokens
+      x
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  resolvedUri: DirectiveUriWithSource
+    source: package:test/a.dart
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
   leftParenthesis: (
@@ -454,6 +670,7 @@ Configuration
   resolvedUri: DirectiveUriWithSource
     source: package:test/a.dart
 ''');
+    }
   }
 
   test_inLibrary_configurations_second() async {
@@ -475,7 +692,74 @@ var a = A();
 ''');
 
     var node = findNode.unit;
-    assertResolvedNodeText(node, r'''
+    if (useDottedNameInLibraryDirective) {
+      assertResolvedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'a.dart'
+      configurations
+        Configuration
+          ifKeyword: if
+          leftParenthesis: (
+          name: DottedName
+            tokens
+              dart
+              .
+              library
+              .
+              html
+          rightParenthesis: )
+          uri: SimpleStringLiteral
+            literal: 'a_html.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_html.dart
+        Configuration
+          ifKeyword: if
+          leftParenthesis: (
+          name: DottedName
+            tokens
+              dart
+              .
+              library
+              .
+              io
+          rightParenthesis: )
+          uri: SimpleStringLiteral
+            literal: 'a_io.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_io.dart
+      semicolon: ;
+      libraryImport: LibraryImport
+        uri: DirectiveUriWithLibrary
+          uri: package:test/a_io.dart
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: a
+            equals: =
+            initializer: InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A
+                  element: package:test/a_io.dart::@class::A
+                  type: A
+                element: package:test/a_io.dart::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticType: A
+            declaredFragment: <testLibraryFragment> a@96
+      semicolon: ;
+      declaredFragment: <null>
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
 CompilationUnit
   directives
     ImportDirective
@@ -554,6 +838,7 @@ CompilationUnit
       semicolon: ;
       declaredFragment: <null>
 ''');
+    }
   }
 
   test_inLibrary_library() async {
@@ -979,5 +1264,25 @@ ImportDirective
     uri: DirectiveUriWithSource
       source: package:test/c.dart
 ''');
+  }
+}
+
+@reflectiveTest
+class ImportDirectiveResolutionTest_NoUseDottedName
+    extends ImportDirectiveResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    useDottedNameInLibraryDirective = false;
+  }
+}
+
+@reflectiveTest
+class ImportDirectiveResolutionTest_UseDottedName
+    extends ImportDirectiveResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    useDottedNameInLibraryDirective = true;
   }
 }

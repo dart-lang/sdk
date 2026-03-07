@@ -769,11 +769,20 @@ class LibraryBuilder {
     var nameLength = 0;
     for (var directive in libraryUnitNode.directives) {
       if (directive is ast.LibraryDirectiveImpl) {
-        var nameIdentifier = directive.name;
-        if (nameIdentifier != null) {
-          name = nameIdentifier.components.map((e) => e.name).join('.');
-          nameOffset = nameIdentifier.offset;
-          nameLength = nameIdentifier.length;
+        if (ast.useDottedNameInLibraryDirective) {
+          var nameIdentifier = directive.name2;
+          if (nameIdentifier != null) {
+            name = nameIdentifier.tokens.map((e) => e.lexeme).join();
+            nameOffset = nameIdentifier.offset;
+            nameLength = nameIdentifier.length;
+          }
+        } else {
+          var nameIdentifier = directive.name;
+          if (nameIdentifier != null) {
+            name = nameIdentifier.components.map((e) => e.name).join('.');
+            nameOffset = nameIdentifier.offset;
+            nameLength = nameIdentifier.length;
+          }
         }
         break;
       }

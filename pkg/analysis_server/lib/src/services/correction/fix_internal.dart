@@ -160,6 +160,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_ignored_diag
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_lexeme.dart';
@@ -450,6 +451,9 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unnecessaryLibraryName: [RemoveLibraryName.new],
   diag.unnecessaryNew: [RemoveUnnecessaryNew.new],
   diag.unnecessaryNullAwareAssignments: [RemoveAssignment.new],
+  diag.unnecessaryNullAwareOperatorOnExtensionOnNullable: [
+    ReplaceWithNotNullAware.new,
+  ],
   diag.unnecessaryNullChecks: [RemoveNonNullAssertion.new],
   diag.unnecessaryNullInIfNullOperators: [RemoveIfNullOperator.new],
   diag.unnecessaryNullableForFinalVariableDeclarations: [
@@ -621,6 +625,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     AddAwait.assignment,
   ],
   diag.invalidConstant: [RemoveConst.new],
+  diag.invalidCovariantModifierInPrimaryConstructor: [RemoveKeyword.covariant],
   diag.invalidModifierOnConstructor: [RemoveLexeme.modifier],
   diag.invalidModifierOnSetter: [RemoveLexeme.modifier],
   diag.invalidUseOfCovariant: [RemoveLexeme.keyword],

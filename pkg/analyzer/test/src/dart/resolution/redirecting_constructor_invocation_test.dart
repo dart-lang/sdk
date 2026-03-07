@@ -76,6 +76,35 @@ RedirectingConstructorInvocation
 ''');
   }
 
+  test_named_unresolved_hasFormalParameter() async {
+    await resolveTestCode(r'''
+class C {
+  C(int a);
+  C.other(int named) : this.named(0);
+}
+''');
+
+    var node = findNode.singleRedirectingConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+RedirectingConstructorInvocation
+  thisKeyword: this
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  element: <null>
+''');
+  }
+
   test_unnamed() async {
     await assertNoErrorsInCode(r'''
 class C {

@@ -94,6 +94,8 @@ class DocumentationValidator {
     'part_of_non_part',
     // Produces multiple diagnostics when it should only produce one.
     'prefix_collides_with_top_level_member',
+    // Produces two diagnostics for clarity.
+    'primary_constructor_body_without_declaration',
     // Produces two diagnostic out of necessity.
     'recursive_compile_time_constant',
     // Produces two diagnostic out of necessity.

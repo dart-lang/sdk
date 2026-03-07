@@ -961,7 +961,12 @@ Future<void> main() async {
     expect(pubGetResult.stderr, isEmpty);
     expect(pubGetResult.exitCode, 0);
 
-    ProcessResult result = await p.run(['run', '--resident', 'bin/main.dart']);
+    ProcessResult result = await p.run([
+      'run',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+      'bin/main.dart',
+    ]);
 
     expect(result.stdout, contains('file://'));
     expect(result.exitCode, 0);

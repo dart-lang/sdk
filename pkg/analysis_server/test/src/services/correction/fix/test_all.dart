@@ -208,6 +208,7 @@ import 'remove_ignored_diagnostic_test.dart' as remove_ignored_diagnostic;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_invocation_test.dart' as remove_invocation;
+import 'remove_keyword_test.dart' as remove_keyword;
 import 'remove_late_test.dart' as remove_late;
 import 'remove_leading_underscore_test.dart' as remove_leading_underscore;
 import 'remove_lexeme_test.dart' as remove_lexeme;
@@ -504,6 +505,7 @@ void main() {
     remove_initializer.main();
     remove_interpolation_braces.main();
     remove_invocation.main();
+    remove_keyword.main();
     remove_late.main();
     remove_leading_underscore.main();
     remove_lexeme.main();

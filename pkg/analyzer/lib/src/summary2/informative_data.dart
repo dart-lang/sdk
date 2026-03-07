@@ -1041,11 +1041,19 @@ class _InfoBuilder {
   _InfoLibraryName _buildLibraryName(LibraryDirective? firstLibraryDirective) {
     var nameOffset = -1;
     var nameLength = 0;
-    var libraryName = firstLibraryDirective?.name;
-    if (libraryName != null) {
-      nameOffset = libraryName.offset;
-      nameLength = libraryName.length;
+
+    if (useDottedNameInLibraryDirective) {
+      if (firstLibraryDirective?.name2 case var name?) {
+        nameOffset = name.offset;
+        nameLength = name.length;
+      }
+    } else {
+      if (firstLibraryDirective?.name case var name?) {
+        nameOffset = name.offset;
+        nameLength = name.length;
+      }
     }
+
     return _InfoLibraryName(offset: nameOffset, length: nameLength);
   }
 

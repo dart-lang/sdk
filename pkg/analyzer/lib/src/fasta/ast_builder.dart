@@ -2358,7 +2358,23 @@ class AstBuilder extends StackListener {
     }
     var name = libraryName == null
         ? null
-        : LibraryIdentifierImpl(components: libraryName);
+        : (useDottedNameInLibraryDirective
+              ? null
+              : LibraryIdentifierImpl(components: libraryName));
+    DottedNameImpl? name2;
+    if (useDottedNameInLibraryDirective && libraryName != null) {
+      var tokens = <Token>[];
+      if (libraryName.isNotEmpty) {
+        var t = libraryName.first.beginToken;
+        var end = libraryName.last.endToken;
+        while (t != end) {
+          tokens.add(t);
+          t = t.next!;
+        }
+        tokens.add(end);
+      }
+      name2 = DottedNameImpl(components: libraryName, tokens: tokens);
+    }
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, libraryKeyword);
     directives.add(
@@ -2367,6 +2383,7 @@ class AstBuilder extends StackListener {
         metadata: metadata,
         libraryKeyword: libraryKeyword,
         name: name,
+        name2: name2,
         semicolon: semicolon,
       ),
     );
@@ -2733,15 +2750,36 @@ class AstBuilder extends StackListener {
     debugEvent("PartOf");
     var libraryNameOrUri = pop();
     LibraryIdentifierImpl? name;
+    DottedNameImpl? name2;
     StringLiteralImpl? uri;
     if (libraryNameOrUri is StringLiteralImpl) {
       uri = libraryNameOrUri;
     } else {
-      name = LibraryIdentifierImpl(
-        components: libraryNameOrUri as List<SimpleIdentifierImpl>,
-      );
-      if (_featureSet.isEnabled(Feature.enhanced_parts)) {
-        diagnosticReporter.diagnosticReporter?.report(diag.partOfName.at(name));
+      var components = libraryNameOrUri as List<SimpleIdentifierImpl>;
+      if (useDottedNameInLibraryDirective) {
+        var tokens = <Token>[];
+        if (components.isNotEmpty) {
+          var t = components.first.beginToken;
+          var end = components.last.endToken;
+          while (t != end) {
+            tokens.add(t);
+            t = t.next!;
+          }
+          tokens.add(end);
+        }
+        name2 = DottedNameImpl(components: components, tokens: tokens);
+        if (_featureSet.isEnabled(Feature.enhanced_parts)) {
+          diagnosticReporter.diagnosticReporter?.report(
+            diag.partOfName.at(name2),
+          );
+        }
+      } else {
+        name = LibraryIdentifierImpl(components: components);
+        if (_featureSet.isEnabled(Feature.enhanced_parts)) {
+          diagnosticReporter.diagnosticReporter?.report(
+            diag.partOfName.at(name),
+          );
+        }
       }
     }
     var metadata = pop() as List<AnnotationImpl>?;
@@ -2754,6 +2792,7 @@ class AstBuilder extends StackListener {
         ofKeyword: ofKeyword,
         uri: uri,
         libraryName: name,
+        libraryName2: name2,
         semicolon: semicolon,
       ),
     );
@@ -4054,7 +4093,14 @@ class AstBuilder extends StackListener {
     debugEvent("DottedName");
 
     var components = popTypedList2<SimpleIdentifierImpl>(count);
-    push(DottedNameImpl(components: components));
+    var tokens = <Token>[];
+    for (var i = 0; i < count; i++) {
+      tokens.add(components[i].token);
+      if (i < count - 1) {
+        tokens.add(components[i].token.next!);
+      }
+    }
+    push(DottedNameImpl(components: components, tokens: tokens));
   }
 
   @override

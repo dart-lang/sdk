@@ -325,7 +325,7 @@ class AstBinaryReader {
 
   DottedName _readDottedName() {
     var components = _readNodeList<SimpleIdentifierImpl>();
-    return DottedNameImpl(components: components);
+    return DottedNameImpl(components: components, tokens: const []);
   }
 
   DoubleLiteral _readDoubleLiteral() {

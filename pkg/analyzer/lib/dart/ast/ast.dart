@@ -255,6 +255,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         TypeParameter,
         TypeParameterList,
         UriBasedDirective,
+        useDottedNameInLibraryDirective,
         VariableDeclaration,
         VariableDeclarationList,
         VariableDeclarationStatement,
