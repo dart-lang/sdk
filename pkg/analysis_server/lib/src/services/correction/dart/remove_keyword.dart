@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -13,6 +12,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveKeyword extends ResolvedCorrectionProducer {
   /// The keyword to remove.
   final Keyword _keyword;
+
+  RemoveKeyword.await({required super.context}) : _keyword = Keyword.AWAIT;
 
   RemoveKeyword.covariant({required super.context})
     : _keyword = Keyword.COVARIANT;
@@ -33,15 +34,15 @@ class RemoveKeyword extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
-    for (var token in node.tokens) {
-      if (token.keyword == _keyword) {
+    for (var entity in node.childEntities) {
+      if (entity is Token && entity.keyword == _keyword) {
         await builder.addDartFileEdit(file, (builder) {
-          var next = token.next!;
+          var next = entity.next!;
           var comment = next.precedingComments;
           if (comment != null) {
             next = comment;
           }
-          builder.addDeletion(range.startStart(token, next));
+          builder.addDeletion(range.startStart(entity, next));
         });
         return;
       }

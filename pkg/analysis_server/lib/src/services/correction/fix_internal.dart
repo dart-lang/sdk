@@ -136,7 +136,6 @@ import 'package:analysis_server/src/services/correction/dart/remove_argument.dar
 import 'package:analysis_server/src/services/correction/dart/remove_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_async.dart';
-import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_break.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_character.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comma.dart';
@@ -312,7 +311,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.avoidUnusedConstructorParameters: [RemoveUnusedParameter.new],
   diag.avoidUnnecessaryContainers: [FlutterRemoveWidget.new],
   diag.avoidVoidAsync: [ReplaceReturnTypeFuture.new],
-  diag.awaitOnlyFutures: [RemoveAwait.new],
+  diag.awaitOnlyFutures: [RemoveKeyword.await],
   diag.cascadeInvocations: [ConvertToCascade.new, ConvertRelatedToCascade.new],
   diag.castNullableToNonNullable: [AddNullCheck.withoutAssignabilityCheck],
   diag.combinatorsOrdering: [SortCombinators.new],
@@ -433,7 +432,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.unawaitedFutures: [AddAwait.unawaited, WrapInUnawaited.new],
   diag.unnecessaryAsync: [RemoveAsync.unnecessary],
-  diag.unnecessaryAwaitInReturn: [RemoveAwait.new],
+  diag.unnecessaryAwaitInReturn: [RemoveKeyword.await],
   diag.unnecessaryBraceInStringInterps: [RemoveInterpolationBraces.new],
   diag.unnecessaryBreaks: [RemoveBreak.new],
   diag.unnecessaryConst: [RemoveUnnecessaryConst.new],
