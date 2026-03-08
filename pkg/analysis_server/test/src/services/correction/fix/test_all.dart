@@ -183,7 +183,6 @@ import 'remove_argument_test.dart' as remove_argument;
 import 'remove_assertion_test.dart' as remove_assertion;
 import 'remove_assignment_test.dart' as remove_assignment;
 import 'remove_async_test.dart' as remove_async;
-import 'remove_await_test.dart' as remove_await;
 import 'remove_break_test.dart' as remove_break;
 import 'remove_character_test.dart' as remove_character;
 import 'remove_comma_test.dart' as remove_comma;
@@ -482,7 +481,6 @@ void main() {
     remove_assertion.main();
     remove_assignment.main();
     remove_async.main();
-    remove_await.main();
     remove_break.main();
     remove_character.main();
     remove_comma.main();
