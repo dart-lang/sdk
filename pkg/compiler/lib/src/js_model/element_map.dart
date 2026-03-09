@@ -157,6 +157,9 @@ abstract class JsToElementMap {
     KernelScopeInfo info,
     MemberEntity member,
   );
+
+  /// Returns the library URI of the symbol if [value] represents a [Symbol].
+  Uri? getSymbolLibraryUri(ConstantValue value);
 }
 
 /// Interface for type inference results for kernel IR nodes.

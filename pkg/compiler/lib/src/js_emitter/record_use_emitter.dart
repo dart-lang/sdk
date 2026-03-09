@@ -55,7 +55,7 @@ class RecordUseCollector {
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
   late final RecordUseValueConverter _converter = RecordUseValueConverter(
-    _elementEnvironment,
+    _elementMap,
     _closedWorld.annotationsData,
   );
 

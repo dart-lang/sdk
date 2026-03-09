@@ -240,7 +240,10 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
     'Double literals are not supported for recording.',
   ),
   ast.StringConstant() => StringConstant(constant.value),
-  ast.SymbolConstant() => StringConstant(constant.name),
+  ast.SymbolConstant() => SymbolConstant(
+    constant.name,
+    libraryUri: constant.libraryReference?.asLibrary.importUri.toString(),
+  ),
   ast.MapConstant() => MapConstant(
     constant.entries
         .map(

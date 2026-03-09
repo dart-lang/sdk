@@ -359,7 +359,17 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   @override
   ConstantValue visitSymbolConstant(ir.SymbolConstant node) {
-    return constant_system.createSymbol(elementMap.commonElements, node.name);
+    final value = constant_system.createSymbol(
+      elementMap.commonElements,
+      node.name,
+    );
+    if (node.libraryReference != null) {
+      elementMap.registerSymbolLibrary(
+        value,
+        node.libraryReference!.asLibrary.importUri,
+      );
+    }
+    return value;
   }
 
   @override
