@@ -285,6 +285,7 @@ class _InitializerBuilder {
                       fileOffset: initializer.fileOffset,
                       length: noLength,
                     ),
+                    isSuperInitializer: true,
                   )..parent = initializer.parent;
                 } else if (superParameterArguments != null) {
                   bool insertNamedOnly = false;
@@ -621,6 +622,7 @@ class _InitializerBuilder {
             fileOffset: _bodyBuilderContext.memberNameOffset,
             length: noLength,
           ),
+          isSuperInitializer: true,
         );
       } else {
         MemberBuilder? memberBuilder = result.getable;
@@ -647,6 +649,7 @@ class _InitializerBuilder {
             fileOffset: _bodyBuilderContext.memberNameOffset,
             length: length,
           ),
+          isSuperInitializer: true,
         );
       } else if (_problemReporting.checkArgumentsForFunction(
             function: superTarget.function,
@@ -683,6 +686,7 @@ class _InitializerBuilder {
                       );
                   errorMessageInitializer ??= createInvalidInitializer(
                     errorMessageExpression,
+                    isSuperInitializer: true,
                   );
                 }
                 positionalIndex++;
@@ -700,6 +704,7 @@ class _InitializerBuilder {
                       );
                   errorMessageInitializer ??= createInvalidInitializer(
                     errorMessageExpression,
+                    isSuperInitializer: true,
                   );
                 }
             }
@@ -714,6 +719,7 @@ class _InitializerBuilder {
             fileOffset: argumentIssue.charOffset,
             length: argumentIssue.length,
           ),
+          isSuperInitializer: true,
         );
         initializer = errorMessageInitializer;
       } else {

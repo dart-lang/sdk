@@ -10103,6 +10103,7 @@ class BodyBuilderImpl extends StackListenerImpl
           fileOffset: fileOffset,
           length: length,
         ),
+        isRedirectingInitializer: true,
       );
     } else {
       if (_context.isConstructorCyclic(name.text)) {

@@ -187,6 +187,7 @@ void KernelFingerprintHelper::CalculateInitializerFingerprint() {
     case kInvalidInitializer:
       ReadPosition();                         // read position.
       CalculateStringReferenceFingerprint();  // read message
+      ReadByte();                             // read flags
       return;
     case kFieldInitializer:
       ReadPosition();  // read position.

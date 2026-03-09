@@ -4056,6 +4056,9 @@ class EquivalenceStrategy {
     if (!checkInvalidInitializer_message(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkInvalidInitializer_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkInvalidInitializer_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -8571,6 +8574,11 @@ class EquivalenceStrategy {
   bool checkInvalidInitializer_message(EquivalenceVisitor visitor,
       InvalidInitializer node, InvalidInitializer other) {
     return visitor.checkValues(node.message, other.message, 'message');
+  }
+
+  bool checkInvalidInitializer_flags(EquivalenceVisitor visitor,
+      InvalidInitializer node, InvalidInitializer other) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
   bool checkInvalidInitializer_fileOffset(EquivalenceVisitor visitor,

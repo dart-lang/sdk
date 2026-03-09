@@ -368,7 +368,13 @@ LabeledStatement createLabeledStatement(
   return new LabeledStatement(statement)..fileOffset = fileOffset;
 }
 
-Initializer createInvalidInitializer(InvalidExpression expression) {
+InvalidInitializer createInvalidInitializer(
+  InvalidExpression expression, {
+  bool isSuperInitializer = false,
+  bool isRedirectingInitializer = false,
+}) {
   return new InvalidInitializer(expression.message)
-    ..fileOffset = expression.fileOffset;
+    ..fileOffset = expression.fileOffset
+    ..isSuperInitializer = isSuperInitializer
+    ..isRedirectingInitializer = isRedirectingInitializer;
 }

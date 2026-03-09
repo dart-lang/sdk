@@ -1447,6 +1447,9 @@ class KernelTarget {
           }
           isRedirecting = true;
           break;
+        } else if (initializer.isRedirectingInitializer) {
+          isRedirecting = true;
+          break;
         }
       }
       if (!isRedirecting) {
@@ -1480,7 +1483,8 @@ class KernelTarget {
                   CfeSeverity.error,
                 )
                 .plain;
-            initializer = new InvalidInitializer(text);
+            initializer = new InvalidInitializer(text)
+              ..isSuperInitializer = true;
           } else {
             initializer = new SuperInitializer(
               superTarget,

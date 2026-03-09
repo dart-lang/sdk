@@ -6670,6 +6670,7 @@ class ThisAccessGenerator extends Generator {
               fileOffset: offset,
               length: noLength,
             ),
+            isSuperInitializer: true,
           );
         }
         MemberBuilder? memberBuilder = result.getable;
@@ -6696,6 +6697,7 @@ class ThisAccessGenerator extends Generator {
             fileOffset: fileOffset,
             length: lengthForToken(token),
           ),
+          isSuperInitializer: true,
         );
       } else {
         _helper.readInternalThisVariable();
