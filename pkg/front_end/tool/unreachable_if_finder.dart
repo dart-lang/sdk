@@ -84,7 +84,7 @@ class UnreachableIfFinder extends RecursiveVisitor {
     }
 
     if (condition is VariableGet) {
-      bool? knownValue = knownValues[condition.variable];
+      bool? knownValue = knownValues[condition.expressionVariable];
       if (knownValue != null) {
         if (conditionNegated) knownValue = !knownValue;
         String? hint;
@@ -102,9 +102,9 @@ class UnreachableIfFinder extends RecursiveVisitor {
           ),
         );
       } else {
-        if (condition.variable.isFinal ||
-            unwritten.contains(condition.variable)) {
-          newKnownValueHere = condition.variable;
+        if (condition.expressionVariable.isFinal ||
+            unwritten.contains(condition.expressionVariable)) {
+          newKnownValueHere = condition.expressionVariable;
         }
       }
     }
@@ -135,7 +135,7 @@ class EffectivelyFinal extends RecursiveVisitor {
 
   @override
   void visitVariableSet(VariableSet node) {
-    unwritten.remove(node.variable);
+    unwritten.remove(node.expressionVariable);
     super.visitVariableSet(node);
   }
 }

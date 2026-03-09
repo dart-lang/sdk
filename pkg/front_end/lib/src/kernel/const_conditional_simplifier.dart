@@ -184,7 +184,8 @@ class _ConstantEvaluator extends TryConstantEvaluator {
 
   @override
   Constant visitVariableGet(VariableGet node) =>
-      _lookupVariableGet(node.variable) ?? super.visitVariableGet(node);
+      _lookupVariableGet(node.expressionVariable) ??
+      super.visitVariableGet(node);
 
   // Coverage-ignore(suite): Not run.
   Constant? _evaluateStaticFieldGet(Field field) {
