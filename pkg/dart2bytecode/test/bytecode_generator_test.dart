@@ -201,6 +201,7 @@ main() {
     'optional_params.dart',
     'bootstrapping.dart',
     'ffi.dart',
+    'invisible.dart',
   };
 
   group('gen-bytecode-with-closure-context-lowering', () {

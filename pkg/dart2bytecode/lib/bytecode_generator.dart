@@ -680,6 +680,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (annotations.hasPragma) {
         flags |= FunctionDeclaration.hasPragmaFlag;
         if (pragmaParser
+            .parsedPragmas<ParsedVmInvisiblePragma>(member.annotations)
+            .isNotEmpty) {
+          flags |= FunctionDeclaration.isInvisibleFlag;
+        }
+        if (pragmaParser
             .parsedPragmas<ParsedDynModuleEntryPointPragma>(member.annotations)
             .isNotEmpty) {
           if (dynModuleEntryPoint != null) {
@@ -2621,15 +2626,20 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= ClosureDeclaration.hasParameterFlagsFlag;
     }
 
-    final Annotations annotations = getFunctionAnnotations(
-        node is ast.FunctionDeclaration
-            ? node.variable.annotations
-            : const <Expression>[],
-        function);
+    final List<Expression> astAnnotations = node is ast.FunctionDeclaration
+        ? node.variable.annotations
+        : const <Expression>[];
+    final Annotations annotations =
+        getFunctionAnnotations(astAnnotations, function);
     if (annotations.object != null) {
       flags |= ClosureDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= ClosureDeclaration.hasPragmaFlag;
+        if (pragmaParser
+            .parsedPragmas<ParsedVmInvisiblePragma>(astAnnotations)
+            .isNotEmpty) {
+          flags |= ClosureDeclaration.isInvisibleFlag;
+        }
       }
     }
 
