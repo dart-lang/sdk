@@ -330,7 +330,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     } else {
       final liveRange = LiveRange(constr.registerClass);
       _liveRanges.add(liveRange);
-      liveRange.addInterval(pos, pos + 1);
+      liveRange.addInterval(pos - 1, pos + 1);
       final loc = liveRange.addUse(pos, constr);
       _operandLocations[operandId] = loc;
     }

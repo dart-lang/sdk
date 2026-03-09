@@ -179,6 +179,7 @@ class Deserializer : public ThreadStackResource {
     return stream_.AddressOfCurrentPosition();
   }
   void Advance(intptr_t value) { stream_.Advance(value); }
+  void Align(intptr_t alignment) { stream_.Align(alignment); }
 
   void AddBaseObject(const Object& object) { AssignRefPreLoad(object); }
 
@@ -336,6 +337,7 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t len = d->ReadUnsigned();
+      d->Align(TwoByteString::kBytesPerElement);
       string_ = Symbols::FromUTF16(
           d->thread(),
           reinterpret_cast<const uint16_t*>(d->AddressOfCurrentPosition()),
