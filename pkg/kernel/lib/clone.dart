@@ -741,7 +741,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitInvalidInitializer(InvalidInitializer node) {
-    return new InvalidInitializer(node.message);
+    return new InvalidInitializer(node.message)..flags = node.flags;
   }
 
   @override

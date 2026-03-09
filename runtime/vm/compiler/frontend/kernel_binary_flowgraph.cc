@@ -348,6 +348,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         case kInvalidInitializer: {
           ReadPosition();
           const String& message = H.DartString(ReadStringReference());
+          ReadByte();  // read flags
           // Invalid initializer message has pointer to the source code, no
           // need to report it twice.
           const auto& script = Script::Handle(Z, Script());

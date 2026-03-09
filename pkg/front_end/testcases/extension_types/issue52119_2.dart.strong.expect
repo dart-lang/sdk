@@ -11,14 +11,6 @@ library;
 //   Foo.erroneous() : this.unresolved(); // Error
 //                          ^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/issue52119_2.dart:12:3: Error: Final field 'i' is not initialized by this constructor.
-// Try to initialize the field using an initializing formal or a field initializer.
-//   Foo.erroneous() : this.unresolved(); // Error
-//   ^^^^^^^^^
-// pkg/front_end/testcases/extension_types/issue52119_2.dart:5:26: Context: 'i' is defined here.
-// extension type Foo._(int i) {
-//                          ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -78,7 +70,7 @@ static extension-type-member method Foo|constructor#named(core::int value, {requ
 }
 static extension-type-member synthetic method Foo|constructor#_#named#tearOff(core::int value, {required core::int subtract}) → self::Foo% /* erasure=core::int, declared=! */
   return self::Foo|constructor#named(value, subtract: subtract);
-static extension-type-member erroneous method Foo|constructor#erroneous() → self::Foo% /* erasure=core::int, declared=! */ {
+static extension-type-member method Foo|constructor#erroneous() → self::Foo% /* erasure=core::int, declared=! */ {
   lowered final self::Foo% /* erasure=core::int, declared=! */ #this;
   invalid-expression "pkg/front_end/testcases/extension_types/issue52119_2.dart:12:26: Error: Couldn't find constructor 'Foo.unresolved'.
   Foo.erroneous() : this.unresolved(); // Error

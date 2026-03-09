@@ -1462,6 +1462,7 @@ class BinaryPrinter
     writeByte(Tag.InvalidInitializer);
     writeOffset(node.fileOffset);
     writeStringReference(node.message);
+    writeByte(node.flags);
   }
 
   @override

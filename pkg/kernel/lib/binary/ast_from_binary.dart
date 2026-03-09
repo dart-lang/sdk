@@ -1932,7 +1932,8 @@ class BinaryBuilder {
   Initializer _readInvalidInitializer() {
     int offset = readOffset();
     String message = readStringReference();
-    return new InvalidInitializer(message)..fileOffset = offset;
+    int flags = readByte();
+    return new InvalidInitializer(message)..flags = flags..fileOffset = offset;
   }
 
   Initializer _readFieldInitializer() {

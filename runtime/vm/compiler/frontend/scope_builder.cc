@@ -656,6 +656,7 @@ void ScopeBuilder::VisitInitializer() {
     case kInvalidInitializer:
       helper_.ReadPosition();         // read position.
       helper_.ReadStringReference();  // read message
+      helper_.ReadByte();             // read flags
       return;
     case kFieldInitializer:
       helper_.ReadPosition();                // read position.

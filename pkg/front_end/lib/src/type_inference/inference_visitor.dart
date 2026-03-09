@@ -12671,6 +12671,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           compilerContext: compilerContext,
           message: message,
         ),
+        isRedirectingInitializer: true,
       );
     }
     return new InitializerInferenceResult.fromInvocationInferenceResult(
@@ -12739,6 +12740,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           compilerContext: compilerContext,
           message: message,
         ),
+        isRedirectingInitializer: true,
       );
     }
     return new InitializerInferenceResult.fromInvocationInferenceResult(
@@ -13148,6 +13150,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           compilerContext: compilerContext,
           message: message,
         ),
+        isSuperInitializer: true,
       );
     }
     return new InitializerInferenceResult.fromInvocationInferenceResult(

@@ -174,7 +174,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
         initializer is! AuxiliaryInitializer,
         "Unexpected auxiliary initializer $initializer.",
       );
-      if (initializer is RedirectingInitializer) {
+      if (initializer.isRedirectingInitializer) {
         return true;
       }
     }
@@ -973,7 +973,7 @@ class ExtensionTypeConstructorEncoding
   @override
   bool get isRedirecting {
     for (Initializer initializer in initializers) {
-      if (initializer is ExtensionTypeRedirectingInitializer) {
+      if (initializer.isRedirectingInitializer) {
         return true;
       }
     }

@@ -5184,6 +5184,9 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
     arguments.parent = this;
   }
 
+  @override
+  bool get isRedirectingInitializer => true;
+
   Procedure get target => targetReference.asProcedure;
 
   // Coverage-ignore(suite): Not run.
@@ -5501,6 +5504,10 @@ class InternalRedirectingInitializer extends InternalInitializer {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isRedirectingInitializer => true;
+
+  @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
     return visitor.visitInternalRedirectingInitializer(this);
   }
@@ -5536,6 +5543,10 @@ class InternalSuperInitializer extends InternalInitializer {
   }) {
     arguments.parent = this;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSuperInitializer => true;
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {

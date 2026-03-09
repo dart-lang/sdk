@@ -23,14 +23,6 @@ library;
 //   E4.named(bool it) : it = false, this(it);
 //                          ^
 //
-// pkg/front_end/testcases/extension_types/erroneous_constructors.dart:6:3: Error: Final field 'it' is not initialized by this constructor.
-// Try to initialize the field using an initializing formal or a field initializer.
-//   E1.named(dynamic value) : this(value, value);
-//   ^^^^^
-// pkg/front_end/testcases/extension_types/erroneous_constructors.dart:5:27: Context: 'it' is defined here.
-// extension type E1(dynamic it) {
-//                           ^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -68,7 +60,7 @@ static extension-type-member method E1|constructor#(dynamic it) → self::E1% /*
 }
 static extension-type-member synthetic method E1|constructor#_#new#tearOff(dynamic it) → self::E1% /* erasure=dynamic, declared=! */
   return self::E1|constructor#(it);
-static extension-type-member erroneous method E1|constructor#named(dynamic value) → self::E1% /* erasure=dynamic, declared=! */ {
+static extension-type-member method E1|constructor#named(dynamic value) → self::E1% /* erasure=dynamic, declared=! */ {
   lowered final self::E1% /* erasure=dynamic, declared=! */ #this;
   invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:6:33: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
