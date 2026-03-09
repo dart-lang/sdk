@@ -23277,7 +23277,7 @@ ParserErrorCode:
   representationFieldModifier:
     type: syntacticError
     parameters: none
-    problemMessage: "Representation fields can't have modifiers."
+    problemMessage: "Representation fields can't have the modifier 'var'."
     correctionMessage: Try removing the modifier.
     hasPublishedDocs: false
   representationFieldTrailingComma:
