@@ -252,13 +252,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           }
           TreeNode origNode = node;
           while (origNode is VariableGet &&
-              origNode.variable.name == null &&
-              origNode.variable.initializer != null) {
+              origNode.expressionVariable.cosmeticName == null &&
+              origNode.expressionVariable.initializer != null) {
             // This is a read of a synthetic variable, presumably from a "let".
             // Find the original expression.
             // TODO(johnniwinther): add a general solution for getting the
             // original node for testing.
-            origNode = origNode.variable.initializer!;
+            origNode = origNode.expressionVariable.initializer!;
           }
           dataForTesting!.flowAnalysisResult.nonPromotionReasons[origNode] =
               nonPromotionReasonText;
@@ -2879,7 +2879,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         functionType: null,
       )..fileOffset = fileOffset;
     } else if (receiver is VariableGet) {
-      ExpressionVariable variable = receiver.variable;
+      ExpressionVariable variable = receiver.expressionVariable;
       TreeNode? parent = variable.parent;
       if (parent is FunctionDeclaration) {
         assert(
@@ -4428,11 +4428,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               compilerContext: compilerContext,
               expression: resultExpression,
               message: diag.lateDefinitelyAssignedError.withArguments(
-                variableName: node.variable.name!,
+                variableName: node.expressionVariable.cosmeticName!,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
-              length: node.variable.name!.length,
+              length: node.expressionVariable.cosmeticName!.length,
             ),
           );
         }
@@ -4444,11 +4444,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               compilerContext: compilerContext,
               expression: resultExpression,
               message: diag.finalPossiblyAssignedError.withArguments(
-                variableName: node.variable.name!,
+                variableName: node.expressionVariable.cosmeticName!,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
-              length: node.variable.name!.length,
+              length: node.expressionVariable.cosmeticName!.length,
             ),
           );
         }
@@ -4792,7 +4792,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression? initializer = first.initializer;
     if (initializer is! StaticInvocation) return false;
     if (initializer.target != engine.setFactory) return false;
-    return value.variable == first;
+    return value.expressionVariable == first;
   }
 
   /// Determines if the given [expression]'s type is precisely known at compile

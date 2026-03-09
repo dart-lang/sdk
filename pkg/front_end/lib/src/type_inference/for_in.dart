@@ -93,7 +93,7 @@ class PatternVariableDeclarationForInVariable implements ForInVariable {
   // Coverage-ignore(suite): Not run.
   DartType computeElementType(InferenceVisitorBase visitor) {
     return (patternVariableDeclaration.initializer as VariableGet)
-        .variable
+        .expressionVariable
         .type;
   }
 

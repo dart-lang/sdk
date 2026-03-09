@@ -2561,10 +2561,10 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
     CompilerContext compilerContext,
     Uri fileUri,
   ) {
-    if (knownButUnavailable.contains(node.variable)) {
+    if (knownButUnavailable.contains(node.expressionVariable)) {
       return _returnKnownVariableUnavailable(
         node,
-        node.variable,
+        node.expressionVariable,
         problemReporting,
         compilerContext,
         fileUri,
@@ -2581,10 +2581,10 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
     CompilerContext compilerContext,
     Uri fileUri,
   ) {
-    if (knownButUnavailable.contains(node.variable)) {
+    if (knownButUnavailable.contains(node.expressionVariable)) {
       return _returnKnownVariableUnavailable(
         node,
-        node.variable,
+        node.expressionVariable,
         problemReporting,
         compilerContext,
         fileUri,

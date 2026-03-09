@@ -1399,7 +1399,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   PropertyTarget<Expression> computePropertyTarget(Expression target) {
     if (_enclosingCascade case Cascade(
       :var variable,
-    ) when target is VariableGet && target.variable == variable) {
+    ) when target is VariableGet && target.expressionVariable == variable) {
       // `target` is an implicit reference to the target of a cascade
       // expression; flow analysis uses `CascadePropertyTarget` to represent
       // this situation.
