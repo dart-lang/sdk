@@ -518,6 +518,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEmptyStatement(EmptyStatement node) {
+    _sink.writeln('EmptyStatement');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitEnumBody(EnumBody node) {
     _sink.writeln('EnumBody');
     _sink.withIndent(() {
@@ -1118,6 +1126,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNativeClause(NativeClause node) {
+    _sink.writeln('NativeClause');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitNullAssertPattern(NullAssertPattern node) {
     _sink.writeln('NullAssertPattern');
     _sink.withIndent(() {
@@ -1433,6 +1449,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitScriptTag(ScriptTag node) {
+    _sink.writeln('ScriptTag');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _sink.writeln('SetOrMapLiteral');
     _sink.withIndent(() {
@@ -1737,6 +1761,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void _checkChildrenEntitiesLinking(AstNode node) {
     Token? lastEnd;
     for (var entity in node.childEntities) {
+      if (entity is Comment) {
+        continue;
+      }
       if (lastEnd != null) {
         var begin = _entityBeginToken(entity);
         expect(lastEnd.next, begin);

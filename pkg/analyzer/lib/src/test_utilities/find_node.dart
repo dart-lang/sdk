@@ -16,6 +16,8 @@ class FindNode {
 
   BinaryExpression get firstBinaryExpression => _first();
 
+  Block get firstBlock => _first();
+
   FormalParameter get firstFormalParameter => _first();
 
   FormalParameterList get firstFormalParameterList => _first();
@@ -44,11 +46,15 @@ class FindNode {
 
   Block get singleBlock => _single();
 
+  BlockClassBody get singleBlockClassBody => _single();
+
   BlockFunctionBody get singleBlockFunctionBody => _single();
 
   CascadeExpression get singleCascadeExpression => _single();
 
   ClassDeclaration get singleClassDeclaration => _single();
+
+  ClassMember get singleClassMember => _single();
 
   ConditionalExpression get singleConditionalExpression => _single();
 

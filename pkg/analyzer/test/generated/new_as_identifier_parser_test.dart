@@ -2,435 +2,878 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../util/feature_sets.dart';
-import 'parser_test_base.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NewAsIdentifierParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 /// Tests exercising the fasta parser's handling of generic instantiations.
 @reflectiveTest
-class NewAsIdentifierParserTest extends FastaParserTestCase {
+class NewAsIdentifierParserTest extends ParserDiagnosticsTest {
   void test_constructor_field_initializer() {
-    // Even though `C() : this.new();` is allowed, `C() : this.new = ...;`
-    // should not be.
-    parseCompilationUnit(
-      '''
+    var parseResult = parseStringWithErrors('''
 class C {
   C() : this.new = null;
 }
-''',
-      diagnostics: [
-        error(diag.missingAssignmentInInitializer, 18, 4),
-        error(diag.missingIdentifier, 23, 3),
-        error(diag.missingFunctionBody, 23, 3),
-        error(diag.experimentNotEnabledOffByDefault, 23, 3),
-        error(diag.missingMethodParameters, 23, 3),
-        error(diag.redirectionInNonFactoryConstructor, 27, 1),
-        error(diag.expectedIdentifierButGotKeyword, 29, 4),
-      ],
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.missingAssignmentInInitializer, 18, 4),
+      error(diag.missingIdentifier, 23, 3),
+      error(diag.missingFunctionBody, 23, 3),
+      error(diag.missingMethodParameters, 23, 3),
+      error(diag.redirectionInNonFactoryConstructor, 27, 1),
+      error(diag.expectedIdentifierButGotKeyword, 29, 4),
+    ]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockClassBody
+    leftBracket: {
+    members
+      ConstructorDeclaration
+        typeName: SimpleIdentifier
+          token: C
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        separator: :
+        initializers
+          ConstructorFieldInitializer
+            fieldName: SimpleIdentifier
+              token: <empty> <synthetic>
+            equals: = <synthetic>
+            expression: PropertyAccess
+              target: ThisExpression
+                thisKeyword: this
+              operator: .
+              propertyName: SimpleIdentifier
+                token: <empty> <synthetic>
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+      ConstructorDeclaration
+        newKeyword: new
+        parameters: FormalParameterList
+          leftParenthesis: ( <synthetic>
+          rightParenthesis: ) <synthetic>
+        separator: =
+        redirectedConstructor: ConstructorName
+          type: NamedType
+            name: null
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+''');
   }
 
   void test_constructor_invocation_const() {
-    var instanceCreationExpression =
-        parseExpression('const C.new()') as InstanceCreationExpression;
-    // Parsing treats `new` as an identifier, so `D.new` is classified as a
-    // type.  Resolution will change the type to `D` and the name to `new` if
-    // appropriate.
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.importPrefix!.name.lexeme, 'C');
-    expect(type.name.lexeme, 'new');
-    expect(constructorName.type.typeArguments, isNull);
-    expect(constructorName.name, isNull);
-    expect(instanceCreationExpression.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = const C.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: C
+        period: .
+      name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_const_generic() {
-    var instanceCreationExpression =
-        parseExpression('const C<int>.new()') as InstanceCreationExpression;
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.name.lexeme, 'C');
-    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
-    expect(constructorName.name!.name, 'new');
-    expect(instanceCreationExpression.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = const C<int>.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_const_prefixed() {
-    var instanceCreationExpression =
-        parseExpression('const prefix.C.new()') as InstanceCreationExpression;
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name.lexeme, 'C');
-    expect(constructorName.type.typeArguments, isNull);
-    expect(constructorName.name!.name, 'new');
-    expect(instanceCreationExpression.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = const prefix.C.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: C
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_const_prefixed_generic() {
-    var instanceCreationExpression =
-        parseExpression('const prefix.C<int>.new()')
-            as InstanceCreationExpression;
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name.lexeme, 'C');
-    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
-    expect(constructorName.name!.name, 'new');
-    expect(instanceCreationExpression.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = const prefix.C<int>.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_explicit() {
-    var instanceCreationExpression =
-        parseExpression('new C.new()') as InstanceCreationExpression;
-    // Parsing treats `new` as an identifier, so `D.new` is classified as a
-    // type.  Resolution will change the type to `D` and the name to `new` if
-    // appropriate.
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.importPrefix!.name.lexeme, 'C');
-    expect(type.name.lexeme, 'new');
-    expect(constructorName.type.typeArguments, isNull);
-    expect(constructorName.name, isNull);
-    expect(instanceCreationExpression.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = new C.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: C
+        period: .
+      name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_explicit_generic() {
-    var instanceCreationExpression =
-        parseExpression('new C<int>.new()') as InstanceCreationExpression;
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.name.lexeme, 'C');
-    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
-    expect(constructorName.name!.name, 'new');
-    expect(instanceCreationExpression.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = new C<int>.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_explicit_prefixed() {
-    var instanceCreationExpression =
-        parseExpression('new prefix.C.new()') as InstanceCreationExpression;
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name.lexeme, 'C');
-    expect(constructorName.type.typeArguments, isNull);
-    expect(constructorName.name!.name, 'new');
-    expect(instanceCreationExpression.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = new prefix.C.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: C
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_explicit_prefixed_generic() {
-    var instanceCreationExpression =
-        parseExpression('new prefix.C<int>.new()')
-            as InstanceCreationExpression;
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name.lexeme, 'C');
-    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
-    expect(constructorName.name!.name, 'new');
-    expect(instanceCreationExpression.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = new prefix.C<int>.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_implicit() {
-    var methodInvocation = parseExpression('C.new()') as MethodInvocation;
-    var target = methodInvocation.target as SimpleIdentifier;
-    expect(target.name, 'C');
-    expect(methodInvocation.methodName.name, 'new');
-    expect(methodInvocation.typeArguments, isNull);
-    expect(methodInvocation.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = C.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_implicit_generic() {
-    var instanceCreationExpression =
-        parseExpression('C<int>.new()') as InstanceCreationExpression;
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.name.lexeme, 'C');
-    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
-    expect(constructorName.name!.name, 'new');
-    expect(instanceCreationExpression.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = C<int>.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_implicit_prefixed() {
-    var methodInvocation =
-        parseExpression('prefix.C.new()') as MethodInvocation;
-    var target = methodInvocation.target as PrefixedIdentifier;
-    expect(target.prefix.name, 'prefix');
-    expect(target.identifier.name, 'C');
-    expect(methodInvocation.methodName.name, 'new');
-    expect(methodInvocation.typeArguments, isNull);
-    expect(methodInvocation.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = prefix.C.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+    period: .
+    identifier: SimpleIdentifier
+      token: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_invocation_implicit_prefixed_generic() {
-    var instanceCreationExpression =
-        parseExpression('prefix.C<int>.new()') as InstanceCreationExpression;
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name.lexeme, 'C');
-    expect(constructorName.type.typeArguments!.arguments, hasLength(1));
-    expect(constructorName.name!.name, 'new');
-    expect(instanceCreationExpression.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = prefix.C<int>.new();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_name() {
-    var unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors('''
 class C {
   C.new();
 }
 ''');
-    var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructorDeclaration =
-        classBody.members.single as ConstructorDeclaration;
-    expect(constructorDeclaration.name!.lexeme, 'new');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  period: .
+  name: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_constructor_name_factory() {
-    var unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors('''
 class C {
   factory C.new() => C._();
   C._();
 }
 ''');
-    var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructorDeclaration = classBody.members[0] as ConstructorDeclaration;
-    expect(constructorDeclaration.name!.lexeme, 'new');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.constructor('C.new');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  period: .
+  name: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
+      target: SimpleIdentifier
+        token: C
+      operator: .
+      methodName: SimpleIdentifier
+        token: _
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    semicolon: ;
+''');
   }
 
   void test_constructor_tearoff() {
-    var prefixedIdentifier = parseExpression('C.new') as PrefixedIdentifier;
-    expect(prefixedIdentifier.prefix.name, 'C');
-    expect(prefixedIdentifier.identifier.name, 'new');
+    var parseResult = parseStringWithErrors(r'''
+var x = C.new;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singlePrefixedIdentifier;
+    assertParsedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: C
+  period: .
+  identifier: SimpleIdentifier
+    token: new
+''');
   }
 
   void test_constructor_tearoff_generic() {
-    var propertyAccess = parseExpression('C<int>.new') as PropertyAccess;
-    var target = propertyAccess.target as FunctionReference;
-    var className = target.function as SimpleIdentifier;
-    expect(className.name, 'C');
-    expect(target.typeArguments, isNotNull);
-    expect(propertyAccess.propertyName.name, 'new');
+    var parseResult = parseStringWithErrors(r'''
+var x = C<int>.new;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singlePropertyAccess;
+    assertParsedNodeText(node, r'''
+PropertyAccess
+  target: FunctionReference
+    function: SimpleIdentifier
+      token: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  operator: .
+  propertyName: SimpleIdentifier
+    token: new
+''');
   }
 
   void test_constructor_tearoff_generic_method_invocation() {
-    var methodInvocation =
-        parseExpression('C<int>.new.toString()') as MethodInvocation;
-    var target = methodInvocation.target as PropertyAccess;
-    var functionReference = target.target as FunctionReference;
-    var className = functionReference.function as SimpleIdentifier;
-    expect(className.name, 'C');
-    expect(functionReference.typeArguments, isNotNull);
-    expect(target.propertyName.name, 'new');
-    expect(methodInvocation.methodName.name, 'toString');
-    expect(methodInvocation.typeArguments, isNull);
-    expect(methodInvocation.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = C<int>.new.toString();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  target: PropertyAccess
+    target: FunctionReference
+      function: SimpleIdentifier
+        token: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    operator: .
+    propertyName: SimpleIdentifier
+      token: new
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_tearoff_in_comment_reference() {
-    createParser('');
-    var commentReference = parseCommentReference('C.new', 5)!;
-    var identifier = commentReference.expression as PrefixedIdentifier;
-    expect(identifier.prefix.name, 'C');
-    expect(identifier.identifier.name, 'new');
+    var parseResult = parseStringWithErrors('''
+/// [C.new]
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.commentReference('C.new');
+    assertParsedNodeText(node, r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: C
+    period: .
+    identifier: SimpleIdentifier
+      token: new
+''');
   }
 
   void test_constructor_tearoff_method_invocation() {
-    var methodInvocation =
-        parseExpression('C.new.toString()') as MethodInvocation;
-    var target = methodInvocation.target as PrefixedIdentifier;
-    expect(target.prefix.name, 'C');
-    expect(target.identifier.name, 'new');
-    expect(methodInvocation.methodName.name, 'toString');
-    expect(methodInvocation.typeArguments, isNull);
-    expect(methodInvocation.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = C.new.toString();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: C
+    period: .
+    identifier: SimpleIdentifier
+      token: new
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_tearoff_prefixed() {
-    var propertyAccess = parseExpression('prefix.C.new') as PropertyAccess;
-    var target = propertyAccess.target as PrefixedIdentifier;
-    expect(target.prefix.name, 'prefix');
-    expect(target.identifier.name, 'C');
-    expect(propertyAccess.propertyName.name, 'new');
+    var parseResult = parseStringWithErrors(r'''
+var x = prefix.C.new;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singlePropertyAccess;
+    assertParsedNodeText(node, r'''
+PropertyAccess
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+    period: .
+    identifier: SimpleIdentifier
+      token: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: new
+''');
   }
 
   void test_constructor_tearoff_prefixed_generic() {
-    var propertyAccess = parseExpression('prefix.C<int>.new') as PropertyAccess;
-    var target = propertyAccess.target as FunctionReference;
-    var className = target.function as PrefixedIdentifier;
-    expect(className.prefix.name, 'prefix');
-    expect(className.identifier.name, 'C');
-    expect(target.typeArguments, isNotNull);
-    expect(propertyAccess.propertyName.name, 'new');
+    var parseResult = parseStringWithErrors(r'''
+var x = prefix.C<int>.new;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singlePropertyAccess;
+    assertParsedNodeText(node, r'''
+PropertyAccess
+  target: FunctionReference
+    function: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+      period: .
+      identifier: SimpleIdentifier
+        token: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  operator: .
+  propertyName: SimpleIdentifier
+    token: new
+''');
   }
 
   void test_constructor_tearoff_prefixed_generic_method_invocation() {
-    var methodInvocation =
-        parseExpression('prefix.C<int>.new.toString()') as MethodInvocation;
-    var target = methodInvocation.target as PropertyAccess;
-    var functionReference = target.target as FunctionReference;
-    var className = functionReference.function as PrefixedIdentifier;
-    expect(className.prefix.name, 'prefix');
-    expect(className.identifier.name, 'C');
-    expect(functionReference.typeArguments, isNotNull);
-    expect(target.propertyName.name, 'new');
-    expect(methodInvocation.methodName.name, 'toString');
-    expect(methodInvocation.typeArguments, isNull);
-    expect(methodInvocation.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = prefix.C<int>.new.toString();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  target: PropertyAccess
+    target: FunctionReference
+      function: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: prefix
+        period: .
+        identifier: SimpleIdentifier
+          token: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    operator: .
+    propertyName: SimpleIdentifier
+      token: new
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_constructor_tearoff_prefixed_method_invocation() {
-    var methodInvocation =
-        parseExpression('prefix.C.new.toString()') as MethodInvocation;
-    var target = methodInvocation.target as PropertyAccess;
-    var prefixedIdentifier = target.target as PrefixedIdentifier;
-    expect(prefixedIdentifier.prefix.name, 'prefix');
-    expect(prefixedIdentifier.identifier.name, 'C');
-    expect(target.propertyName.name, 'new');
-    expect(methodInvocation.methodName.name, 'toString');
-    expect(methodInvocation.typeArguments, isNull);
-    expect(methodInvocation.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var x = prefix.C.new.toString();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  target: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+      period: .
+      identifier: SimpleIdentifier
+        token: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: new
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_disabled() {
-    var unit = parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       '''
 class C {
   C.new();
 }
 ''',
-      featureSet: FeatureSets.language_2_13,
-      diagnostics: [expectedError(diag.experimentNotEnabled, 14, 3)],
+      featureSet: FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: Version.parse('2.13.0'),
+        flags: [],
+      ),
     );
-    var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructorDeclaration =
-        classBody.members.single as ConstructorDeclaration;
-    expect(constructorDeclaration.name!.lexeme, 'new');
+    parseResult.assertErrors([error(diag.experimentNotEnabled, 14, 3)]);
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  period: .
+  name: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_factory_redirection() {
-    var unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors('''
 class C {
   factory C() = D.new;
 }
 ''');
-    var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructorDeclaration =
-        classBody.members.single as ConstructorDeclaration;
-    expect(constructorDeclaration.initializers, isEmpty);
-    // Parsing treats `new` as an identifier, so `D.new` is classified as a
-    // type.  Resolution will change the type to `D` and the name to `new` if
-    // appropriate.
-    var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
-    var type = redirectedConstructor.type;
-    expect(type.importPrefix!.name.lexeme, 'D');
-    expect(type.name.lexeme, 'new');
-    expect(redirectedConstructor.type.typeArguments, isNull);
-    expect(redirectedConstructor.name, isNull);
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: D
+        period: .
+      name: new
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_factory_redirection_generic() {
-    var unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors('''
 class C {
   factory C() = D<int>.new;
 }
 ''');
-    var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructorDeclaration =
-        classBody.members.single as ConstructorDeclaration;
-    expect(constructorDeclaration.initializers, isEmpty);
-    var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
-    var type = redirectedConstructor.type;
-    expect(type.name.lexeme, 'D');
-    expect(redirectedConstructor.type.typeArguments!.arguments, hasLength(1));
-    expect(redirectedConstructor.name!.name, 'new');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: D
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_factory_redirection_prefixed() {
-    var unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors('''
 class C {
   factory C() = prefix.D.new;
 }
 ''');
-    var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructorDeclaration =
-        classBody.members.single as ConstructorDeclaration;
-    expect(constructorDeclaration.initializers, isEmpty);
-    var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
-    var type = redirectedConstructor.type;
-    expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name.lexeme, 'D');
-    expect(redirectedConstructor.type.typeArguments, isNull);
-    expect(redirectedConstructor.name!.name, 'new');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: D
+    period: .
+    name: SimpleIdentifier
+      token: new
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_factory_redirection_prefixed_generic() {
-    var unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors('''
 class C {
   factory C() = prefix.D<int>.new;
 }
 ''');
-    var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructorDeclaration =
-        classBody.members.single as ConstructorDeclaration;
-    expect(constructorDeclaration.initializers, isEmpty);
-    var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
-    var type = redirectedConstructor.type;
-    expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name.lexeme, 'D');
-    expect(redirectedConstructor.type.typeArguments!.arguments, hasLength(1));
-    expect(redirectedConstructor.name!.name, 'new');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: D
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: new
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_super_invocation() {
-    var unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors('''
 class C extends B {
   C() : super.new();
 }
 ''');
-    var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructorDeclaration =
-        classBody.members.single as ConstructorDeclaration;
-    expect(constructorDeclaration.redirectedConstructor, isNull);
-    var superConstructorInvocation =
-        constructorDeclaration.initializers.single
-            as SuperConstructorInvocation;
-    expect(superConstructorInvocation.constructorName!.name, 'new');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    SuperConstructorInvocation
+      superKeyword: super
+      period: .
+      constructorName: SimpleIdentifier
+        token: new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_this_redirection() {
-    var unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors('''
 class C {
   C.named() : this.new();
   C();
 }
 ''');
-    var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructorDeclaration = classBody.members[0] as ConstructorDeclaration;
-    expect(constructorDeclaration.redirectedConstructor, isNull);
-    var redirectingConstructorInvocation =
-        constructorDeclaration.initializers.single
-            as RedirectingConstructorInvocation;
-    expect(redirectingConstructorInvocation.constructorName!.name, 'new');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.constructor('named');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    RedirectingConstructorInvocation
+      thisKeyword: this
+      period: .
+      constructorName: SimpleIdentifier
+        token: new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 }

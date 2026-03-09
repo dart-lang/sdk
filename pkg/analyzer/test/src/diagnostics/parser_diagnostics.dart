@@ -21,6 +21,8 @@ import '../dart/resolution/node_text_expectations.dart';
 import '../summary/resolved_ast_printer.dart';
 
 class ParserDiagnosticsTest {
+  FeatureSet get testFeatureSet => FeatureSets.latestWithExperiments;
+
   // TODO(scheglov): Enable [withCheckingLinking] everywhere.
   void assertParsedNodeText(
     AstNode node,
@@ -70,7 +72,7 @@ class ParserDiagnosticsTest {
   }) {
     return parseString(
       content: content,
-      featureSet: featureSet ?? FeatureSets.latestWithExperiments,
+      featureSet: featureSet ?? testFeatureSet,
       throwIfDiagnostics: false,
     );
   }
