@@ -452,9 +452,7 @@ class RecordUseValueConverter {
         'Set literals are not supported for recording.',
       ),
       RecordConstantValue() => _findRecordValue(constant),
-      InstantiationConstantValue() => record_use.UnsupportedConstant(
-        'Generic instantiations are not supported for recording.',
-      ),
+      InstantiationConstantValue() => _findValue(constant.function),
       FunctionConstantValue() => record_use.UnsupportedConstant(
         'Function/Method tear-offs are not supported for recording.',
       ),

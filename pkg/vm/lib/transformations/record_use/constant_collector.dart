@@ -108,7 +108,15 @@ class _ConstantCollector implements ConstantVisitor {
   visitDoubleConstant(DoubleConstant node) {}
 
   @override
-  visitInstantiationConstant(InstantiationConstant node) {}
+  visitInstantiationConstant(InstantiationConstant constant) {
+    assert(_expression != null);
+    final tearOffConstant = constant.tearOffConstant;
+    if (tearOffConstant is TearOffConstant &&
+        record_use.isBeingRecorded(tearOffConstant.target)) {
+      collector(_expression!, constant);
+    }
+    handleConstantReference(constant.tearOffConstant);
+  }
 
   @override
   visitIntConstant(IntConstant node) {}
@@ -144,7 +152,14 @@ class _ConstantCollector implements ConstantVisitor {
   visitTypeLiteralConstant(TypeLiteralConstant node) {}
 
   @override
-  visitTypedefTearOffConstant(TypedefTearOffConstant node) {}
+  visitTypedefTearOffConstant(TypedefTearOffConstant constant) {
+    assert(_expression != null);
+    final tearOffConstant = constant.tearOffConstant;
+    if (record_use.isBeingRecorded(tearOffConstant.target)) {
+      collector(_expression!, constant);
+    }
+    handleConstantReference(constant.tearOffConstant);
+  }
 
   @override
   visitUnevaluatedConstant(UnevaluatedConstant node) {}

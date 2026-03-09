@@ -26,9 +26,12 @@ String typedefTearOffName(String typedefName, String constructorName) {
 }
 
 /// If [name] is the synthesized name of a lowering of a typedef tear off, a
-/// list containing the [String] name of the typedef and the [Name] name of the
-/// corresponding constructor or factory is returned. Returns `null` otherwise.
-List<Object>? extractTypedefNameFromTearOff(Name name) {
+/// record containing the [String] name of the typedef and the [Name] name of
+/// the corresponding constructor or factory is returned. Returns `null`
+/// otherwise.
+({String typedefName, Name constructorName})? extractTypedefNameFromTearOff(
+  Name name,
+) {
   if (name.text.startsWith(_tearOffNamePrefix) &&
       name.text.endsWith(_tearOffNameSuffix) &&
       name.text.length >
@@ -43,7 +46,10 @@ List<Object>? extractTypedefNameFromTearOff(Name name) {
     String typedefName = text.substring(0, hashIndex);
     String constructorName = text.substring(hashIndex + 1);
     constructorName = constructorName == 'new' ? '' : constructorName;
-    return [typedefName, new Name(constructorName, name.library)];
+    return (
+      typedefName: typedefName,
+      constructorName: new Name(constructorName, name.library),
+    );
   }
   return null;
 }

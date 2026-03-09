@@ -120,7 +120,7 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   void visitStaticTearOff(ast.StaticTearOff node) {
     if (_isAnnotation(node)) return;
 
-    if (isConstructorTearOffLowering(node.target)) {
+    if (isTearOffLowering(node.target)) {
       instanceUseRecorder.recordLoweredConstructorTearOff(node);
     } else {
       staticCallRecorder.recordStaticTearOff(node);
@@ -154,6 +154,23 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
     instanceUseRecorder.recordConstructorTearOff(node);
 
     super.visitConstructorTearOff(node);
+  }
+
+  @override
+  void visitTypedefTearOff(ast.TypedefTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    final expression = node.expression;
+    if (expression is ast.ConstructorTearOff) {
+      instanceUseRecorder.recordConstructorTearOff(expression);
+    } else if (expression is ast.RedirectingFactoryTearOff) {
+      instanceUseRecorder.recordRedirectingFactoryTearOff(expression);
+    } else if (expression is ast.StaticTearOff &&
+        isConstructorTearOffLowering(expression.target)) {
+      instanceUseRecorder.recordLoweredConstructorTearOff(expression);
+    }
+
+    super.visitTypedefTearOff(node);
   }
 
   @override
@@ -251,15 +268,11 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   ast.SetConstant() => UnsupportedConstant(
     'Set literals are not supported for recording.',
   ),
-  ast.InstantiationConstant() => UnsupportedConstant(
-    'Generic instantiations are not supported for recording.',
-  ),
+  ast.InstantiationConstant() => evaluateConstant(constant.tearOffConstant),
   ast.TearOffConstant() => UnsupportedConstant(
     'Function/Method tear-offs are not supported for recording.',
   ),
-  ast.TypedefTearOffConstant() => UnsupportedConstant(
-    'Typedef tear-offs are not supported for recording.',
-  ),
+  ast.TypedefTearOffConstant() => evaluateConstant(constant.tearOffConstant),
   ast.TypeLiteralConstant() => UnsupportedConstant(
     'Type literals are not supported for recording.',
   ),

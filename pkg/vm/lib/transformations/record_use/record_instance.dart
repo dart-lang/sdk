@@ -50,7 +50,7 @@ class InstanceRecorder {
     ast.ConstantExpression context,
     ast.StaticTearOffConstant constant,
   ) {
-    if (isConstructorTearOffLowering(constant.target)) {
+    if (isTearOffLowering(constant.target)) {
       final effectiveTarget = getConstructorEffectiveTarget(constant.target);
       final cls = effectiveTarget.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(

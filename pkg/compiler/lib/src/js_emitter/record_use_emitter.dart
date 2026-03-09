@@ -179,10 +179,15 @@ class RecordUseCollector {
   }
 
   Definition _getDefinitionForFunction(FunctionEntity function) {
+    final node = _elementMap.getMemberDefinition(function).node;
+    if (node is ir.Procedure && isTearOffLowering(node)) {
+      final target = getConstructorEffectiveTarget(node);
+      return _definitionFromMember(_elementMap.getMember(target));
+    }
+
     final libraryUri = function.library.canonicalUri.toString();
     final String name = function.name!;
 
-    final node = _elementMap.getMemberDefinition(function).node;
     DefinitionKind kind = DefinitionKind.methodKind;
     if (node is ir.Procedure) {
       if (node.isExtensionMember || node.isExtensionTypeMember) {
