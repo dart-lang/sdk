@@ -1051,27 +1051,93 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitBinaryIntOp(BinaryIntOp instr) {
-    _asm.unimplemented('Unimplemented: code generation for BinaryIntOp');
+    final leftReg = inputReg(instr, 0);
+    final right = instr.right;
+    final resultReg = outputReg(instr);
+    switch (instr.op) {
+      case .add:
+      case .sub:
+        final (rightOperand, negated) = _generateAddSubRightOperand(
+          instr,
+          right,
+        );
+        if ((instr.op == .sub) == negated) {
+          _asm.add(resultReg, leftReg, rightOperand);
+        } else {
+          _asm.sub(resultReg, leftReg, rightOperand);
+        }
+        break;
+      case .mul:
+        Register rightReg;
+        if (right is Constant) {
+          rightReg = tempReg;
+          _asm.loadConstant(rightReg, right.value);
+        } else {
+          rightReg = inputReg(instr, 1);
+        }
+        _asm.mul(resultReg, leftReg, rightReg);
+        break;
+      case .truncatingDiv:
+      case .mod:
+      case .rem:
+        _asm.unimplemented(
+          'Unimplemented: code generation for BinaryIntOp ${instr.op.token}',
+        );
+        break;
+      case .bitOr:
+      case .bitAnd:
+      case .bitXor:
+        final rightOperand = _generateLogicalRightOperand(instr, right);
+        switch (instr.op) {
+          case .bitOr:
+            _asm.orr(resultReg, leftReg, rightOperand);
+            break;
+          case .bitAnd:
+            _asm.and(resultReg, leftReg, rightOperand);
+            break;
+          case .bitXor:
+            _asm.eor(resultReg, leftReg, rightOperand);
+            break;
+          default:
+            throw "Unexpected logical op ${instr.op}";
+        }
+        break;
+      case .shiftLeft:
+      case .shiftRight:
+      case .unsignedShiftRight:
+        _asm.unimplemented(
+          'Unimplemented: code generation for BinaryIntOp ${instr.op.token}',
+        );
+        break;
+    }
   }
 
   @override
   void visitUnaryIntOp(UnaryIntOp instr) {
-    _asm.unimplemented('Unimplemented: code generation for UnaryIntOp');
+    _asm.unimplemented(
+      'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
+    );
   }
 
   @override
   void visitBinaryDoubleOp(BinaryDoubleOp instr) {
-    _asm.unimplemented('Unimplemented: code generation for BinaryDoubleOp');
+    _asm.unimplemented(
+      'Unimplemented: code generation for BinaryDoubleOp ${instr.op.token}',
+    );
   }
 
   @override
   void visitUnaryDoubleOp(UnaryDoubleOp instr) {
-    _asm.unimplemented('Unimplemented: code generation for UnaryDoubleOp');
+    _asm.unimplemented(
+      'Unimplemented: code generation for UnaryDoubleOp ${instr.op.token}',
+    );
   }
 
   @override
   void visitUnaryBoolOp(UnaryBoolOp instr) {
-    _asm.unimplemented('Unimplemented: code generation for UnaryBoolOp');
+    _asm.unimplemented(
+      'Unimplemented: code generation for UnaryBoolOp ${instr.op.token}',
+    );
   }
 
   @override

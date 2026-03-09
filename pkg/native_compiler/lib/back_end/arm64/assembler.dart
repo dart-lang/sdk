@@ -952,6 +952,44 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     );
   }
 
+  void madd(
+    Register rd,
+    Register rn,
+    Register rm,
+    Register ra, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitMul(B24 | B25 | B27 | B28, rd, rn, rm, ra, sz);
+  }
+
+  void mul(
+    Register rd,
+    Register rn,
+    Register rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    madd(rd, rn, rm, ZR, sz);
+  }
+
+  void _emitMul(
+    int opcode,
+    Register rd,
+    Register rn,
+    Register rm,
+    Register ra,
+    OperandSize sz,
+  ) {
+    assert(sz.is32or64);
+    emit(
+      opcode |
+          rd.encodingRd() |
+          rn.encodingRn() |
+          rm.encodingRm() |
+          ra.encodingRa() |
+          (sz.is64 ? B31 : 0),
+    );
+  }
+
   void bfm(
     Register rd,
     Register rn,
@@ -1590,6 +1628,7 @@ extension on Register {
 
   int encodingRd({bool allowSP = false}) => encoding(allowSP: allowSP);
   int encodingRn({bool allowSP = false}) => encoding(allowSP: allowSP) << 5;
+  int encodingRa({bool allowSP = false}) => encoding(allowSP: allowSP) << 10;
   int encodingRm({bool allowSP = false}) => encoding(allowSP: allowSP) << 16;
   int encodingRt({bool allowSP = false}) => encoding(allowSP: allowSP);
   int encodingRt2({bool allowSP = false}) => encoding(allowSP: allowSP) << 10;

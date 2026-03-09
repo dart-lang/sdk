@@ -599,6 +599,45 @@ void main() {
       );
     });
 
+    test('madd', () {
+      asm.madd(R0, R1, R2, R3);
+      asm.madd(R0, R0, R0, R0, .s32);
+      expectDisassembly(
+        'madd r0, r1, r2, r3\n'
+        'maddw r0, r0, r0, r0\n',
+      );
+      expectThrows(() {
+        asm.madd(SP, R1, R2, R3);
+      });
+      expectThrows(() {
+        asm.madd(R0, SP, R2, R3);
+      });
+      expectThrows(() {
+        asm.madd(R0, R1, SP, R3);
+      });
+      expectThrows(() {
+        asm.madd(R0, R1, R2, SP);
+      });
+    });
+
+    test('mul', () {
+      asm.mul(R1, R2, R3);
+      asm.mul(R0, R0, R1, .u32);
+      expectDisassembly(
+        'mul r1, r2, r3\n'
+        'mulw r0, r0, r1\n',
+      );
+      expectThrows(() {
+        asm.mul(SP, R2, R3);
+      });
+      expectThrows(() {
+        asm.mul(R1, SP, R3);
+      });
+      expectThrows(() {
+        asm.mul(R1, R2, SP);
+      });
+    });
+
     test('ubfx', () {
       asm.ubfx(R0, R1, 4, 8);
       expectDisassembly('ubfm r0, r1, #4, #11\n');
