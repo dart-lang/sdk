@@ -14,6 +14,7 @@ void main() {
     defineReflectiveTests(AwaitOnlyFuturesLintTest);
     defineReflectiveTests(InvalidCovariantModifierInPrimaryConstructorBulkTest);
     defineReflectiveTests(InvalidCovariantModifierInPrimaryConstructorTest);
+    defineReflectiveTests(RepresentationFieldModifierTest);
     defineReflectiveTests(UnnecessaryAwaitInReturnLintTest);
   });
 }
@@ -124,6 +125,18 @@ abstract class RemoveKeywordLintTest extends FixProcessorLintTest {
 abstract class RemoveKeywordTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.removeKeyword;
+}
+
+@reflectiveTest
+class RepresentationFieldModifierTest extends RemoveKeywordTest {
+  Future<void> test_requiredPositional() async {
+    await resolveTestCode('''
+extension type E<T>(var T v);
+''');
+    await assertHasFix('''
+extension type E<T>(T v);
+''');
+  }
 }
 
 @reflectiveTest
