@@ -911,8 +911,6 @@ void residentRun() {
         serverInfoDirectory.mainPath,
       ).cachedDillPath,
     );
-    expect(cachedDillFile.existsSync(), false);
-
     final result = await serverInfoDirectory.run([
       'run',
       '--resident',
@@ -921,6 +919,7 @@ void residentRun() {
     ]);
 
     expect(result.exitCode, 0);
+    expect(result.stderr, contains(residentFrontendCompilerPrefix));
     expect(File(serverInfoFile).existsSync(), true);
     expect(cachedDillFile.existsSync(), true);
     cachedDillFile.deleteSync();
@@ -969,6 +968,7 @@ Future<void> main() async {
     ]);
 
     expect(result.stdout, contains('file://'));
+    expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
 
@@ -1191,12 +1191,14 @@ Future<void> main() async {
     ]);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, contains(residentFrontendCompilerPrefix));
+    expect(result.stderr, contains(residentFrontendCompilerPrefix));
     expect(
       result.stderr,
-      'The Dart SDK has been upgraded or downgraded since the Resident '
-      'Frontend Compiler was started, so the Resident Frontend Compiler will '
-      'now be restarted for compatibility reasons.\n',
+      contains(
+        'The Dart SDK has been upgraded or downgraded since the Resident '
+        'Frontend Compiler was started, so the Resident Frontend Compiler will '
+        'now be restarted for compatibility reasons.',
+      ),
     );
     expect(File(serverInfoFile).existsSync(), true);
   });
@@ -1222,12 +1224,14 @@ Future<void> main() async {
       ]);
 
       expect(result.exitCode, 0);
-      expect(result.stdout, contains(residentFrontendCompilerPrefix));
+      expect(result.stderr, contains(residentFrontendCompilerPrefix));
       expect(
         result.stderr,
-        'Error: A connection to the Resident Frontend Compiler could not be '
-        'established. Restarting the Resident Frontend Compiler and retrying '
-        'compilation.\n',
+        contains(
+          'Error: A connection to the Resident Frontend Compiler could not be '
+          'established. Restarting the Resident Frontend Compiler and retrying '
+          'compilation.',
+        ),
       );
       expect(testServerInfoFile.existsSync(), true);
 
@@ -1304,10 +1308,12 @@ Future<void> main() async {
     ]);
 
     expect(runResult1.exitCode, allOf(0, equals(runResult2.exitCode)));
+    expect(runResult1.stderr, isEmpty);
     expect(
       runResult1.stdout,
       allOf(contains('1'), isNot(contains(residentFrontendCompilerPrefix))),
     );
+    expect(runResult2.stderr, isEmpty);
     expect(
       runResult2.stdout,
       allOf(contains('2'), isNot(contains(residentFrontendCompilerPrefix))),
@@ -1389,7 +1395,7 @@ Future<void> main() async {
     ]);
     await deleteDirectory(p2.dir);
     expect(runResult1.exitCode, 0);
-    expect(runResult1.stdout, contains(residentFrontendCompilerPrefix));
+    expect(runResult1.stderr, contains(residentFrontendCompilerPrefix));
 
     await p.run([
       'run',

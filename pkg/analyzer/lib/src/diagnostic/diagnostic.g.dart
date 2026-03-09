@@ -14271,7 +14271,7 @@ replacedLintUse = DiagnosticWithArguments(
 const DiagnosticWithoutArguments representationFieldModifier =
     DiagnosticWithoutArgumentsImpl(
       name: 'representation_field_modifier',
-      problemMessage: "Representation fields can't have modifiers.",
+      problemMessage: "Representation fields can't have the modifier 'var'.",
       correctionMessage: "Try removing the modifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
       uniqueName: 'representation_field_modifier',

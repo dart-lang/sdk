@@ -22,8 +22,9 @@ import 'package:compiler/src/io/source_information.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:record_use/record_use_internal.dart' as record_use;
 
-import '../common/elements.dart' show JElementEnvironment;
+import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../js_backend/annotations.dart';
+import '../js_model/element_map.dart' show JsToElementMap;
 import '../serialization/serialization.dart';
 
 enum RecordedUseKind {
@@ -423,13 +424,20 @@ class RecordedConstructorTearOff extends RecordedUse {
 /// `@RecordUse()` annotations on class or enum instances to prevent recording
 /// fields that might be tree-shaken.
 class RecordUseValueConverter {
-  /// Used to query class properties, such as whether a class is an enum.
+  final JsToElementMap _jsToElementMap;
+
+  /// [ElementEnvironment] for library, class and member lookup.
   final JElementEnvironment _elementEnvironment;
+
+  /// Access to the commonly used elements and types.
+  final JCommonElements _commonElements;
 
   /// Used to verify if a class or enum is annotated with `@RecordUse()`.
   final AnnotationsData _annotationsData;
 
-  RecordUseValueConverter(this._elementEnvironment, this._annotationsData);
+  RecordUseValueConverter(this._jsToElementMap, this._annotationsData)
+    : _elementEnvironment = _jsToElementMap.elementEnvironment,
+      _commonElements = _jsToElementMap.commonElements;
 
   record_use.MaybeConstant findValueOrNonConst(ConstantValue? constant) {
     if (constant == null) return const record_use.NonConstant();
@@ -452,9 +460,7 @@ class RecordUseValueConverter {
         'Set literals are not supported for recording.',
       ),
       RecordConstantValue() => _findRecordValue(constant),
-      InstantiationConstantValue() => record_use.UnsupportedConstant(
-        'Generic instantiations are not supported for recording.',
-      ),
+      InstantiationConstantValue() => _findValue(constant.function),
       FunctionConstantValue() => record_use.UnsupportedConstant(
         'Function/Method tear-offs are not supported for recording.',
       ),
@@ -503,6 +509,26 @@ class RecordUseValueConverter {
 
   record_use.Constant findInstanceValue(ConstructedConstantValue constant) {
     final cls = constant.type.element;
+
+    if (cls == _commonElements.symbolImplementationClass) {
+      final nameValue = constant.fields[_commonElements.symbolField];
+      if (nameValue is StringConstantValue) {
+        final name = nameValue.stringValue;
+        Uri? libraryUri = _jsToElementMap.getSymbolLibraryUri(constant);
+
+        // We only record the library URI for symbols if they are from a
+        // 'package:' library. This is because symbols from other schemes (like
+        // 'file:') are not stable across environments, and thus not relevant
+        // for 'package:record_use'.
+        if (libraryUri != null && !libraryUri.isScheme('package')) {
+          libraryUri = null;
+        }
+        return record_use.SymbolConstant(
+          name,
+          libraryUri: libraryUri?.toString(),
+        );
+      }
+    }
 
     if (!_annotationsData.shouldRecordConstInstances(cls)) {
       final libraryUri = cls.library.canonicalUri.toString();

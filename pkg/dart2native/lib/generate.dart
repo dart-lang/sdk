@@ -46,6 +46,7 @@ extension type KernelGenerator._(_Generator _generator) {
     bool verbose = false,
     String verbosity = 'all',
     required Directory tempDir,
+    bool progressUpdatesOnStderr = false,
   }) : _generator = _Generator(
           genSnapshot: genSnapshot,
           targetDartAotRuntime: targetDartAotRuntime,
@@ -62,6 +63,7 @@ extension type KernelGenerator._(_Generator _generator) {
           verbose: verbose,
           verbosity: verbosity,
           depFile: depFile,
+          progressUpdatesOnStderr: progressUpdatesOnStderr,
         );
 
   /// Generate a kernel file,
@@ -71,10 +73,12 @@ extension type KernelGenerator._(_Generator _generator) {
   Future<SnapshotGenerator> generate({
     String? recordedUsagesFile,
     List<String>? extraOptions,
+    bool progressUpdatesOnStderr = false,
   }) =>
       _generator.generateKernel(
         recordedUsagesFile: recordedUsagesFile,
         extraOptions: extraOptions,
+        progressUpdatesOnStderr: progressUpdatesOnStderr,
       );
 }
 
@@ -132,6 +136,7 @@ class _Generator {
   ///
   final bool _enableAsserts;
   final bool _verbose;
+  final bool _progressUpdatesOnStderr;
 
   /// Specifies the logging verbosity of the CFE.
   final String _verbosity;
@@ -176,6 +181,7 @@ class _Generator {
     required bool verbose,
     required String verbosity,
     required Directory tempDir,
+    bool progressUpdatesOnStderr = false,
   })  : _kind = kind,
         _verbose = verbose,
         _tempDir = tempDir,
@@ -187,6 +193,7 @@ class _Generator {
         _outputFile = outputFile,
         _defines = defines,
         _depFile = depFile,
+        _progressUpdatesOnStderr = progressUpdatesOnStderr,
         _programKernelFile = path.join(tempDir.path, 'program.dill'),
         _sourcePath = _normalize(sourceFile)!,
         _packages = _normalize(packages),
@@ -199,15 +206,24 @@ class _Generator {
     }
   }
 
+  void _log(String message) {
+    if (_progressUpdatesOnStderr) {
+      stderr.writeln(message);
+    } else {
+      print(message);
+    }
+  }
+
   Future<SnapshotGenerator> generateKernel({
     String? recordedUsagesFile,
     List<String>? extraOptions,
+    bool progressUpdatesOnStderr = false,
   }) async {
     if (_verbose) {
       if (_targetOS != null) {
-        print('Specializing Platform getters for target OS $_targetOS.');
+        _log('Specializing Platform getters for target OS $_targetOS.');
       }
-      print('Generating AOT kernel dill.');
+      _log('Generating AOT kernel dill.');
     }
 
     final kernelResult = await generateKernelHelper(
@@ -294,23 +310,24 @@ class _Generator {
 
     if (_kind == Kind.exe) {
       if (_verbose) {
-        print('Generating executable.');
+        _log('Generating executable.');
       }
       await writeAppendedExecutable(
           _targetDartAotRuntime, snapshotFile, outputPath, _targetOS!);
 
       if (Platform.isLinux || Platform.isMacOS) {
         if (_verbose) {
-          print('Marking binary executable.');
+          _log('Marking binary executable.');
         }
         await markExecutable(outputPath);
       }
     }
 
     if (_verbosity != Verbosity.error.name) {
-      print('Generated: $outputPath');
+      _log('Generated: $outputPath');
     }
   }
+
 
   Future<String> _concatenateAssetsToKernel(String? nativeAssets) async {
     if (nativeAssets == null) {
@@ -403,6 +420,7 @@ Future<void> generateKernel({
   String? recordedUsagesFile,
   String? depFile,
   List<String>? extraOptions,
+  bool progressUpdatesOnStderr = false,
 }) async {
   final sourcePath = _normalize(sourceFile)!;
   final outputPath = _normalize(outputFile)!;

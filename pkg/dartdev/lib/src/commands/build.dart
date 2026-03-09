@@ -218,6 +218,7 @@ then that is used instead.''',
     required List<String> enabledExperiments,
     required bool verbose,
     required String verbosity,
+    bool progressUpdatesOnStderr = false,
     String? depFile,
   }) async {
     if (executables.length >= 2) {
@@ -280,13 +281,18 @@ then that is used instead.''',
       includeDevDependencies: false,
       verbose: verbose,
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
+      progressUpdatesOnStderr: progressUpdatesOnStderr,
     );
     final showProgress = verbosity != Verbosity.error.name;
     BuildResult? buildResult;
     final hasHooks = await builder.hasHooks();
     if (hasHooks) {
       buildResult = await (showProgress
-          ? progress('Running build hooks', builder.buildNativeAssetsAOT)
+          ? progress(
+              'Running build hooks',
+              builder.buildNativeAssetsAOT,
+              progressUpdatesOnStderr: progressUpdatesOnStderr,
+            )
           : builder.buildNativeAssetsAOT());
       if (buildResult == null) {
         stderr.writeln('Running build hooks failed.');
@@ -321,6 +327,7 @@ then that is used instead.''',
           enableExperiment: enabledExperiments.join(','),
           tempDir: tempDir,
           depFile: depFile,
+          progressUpdatesOnStderr: progressUpdatesOnStderr,
         );
 
         final snapshotGenerator = await generator.generate(
@@ -338,6 +345,7 @@ then that is used instead.''',
                       recordedUsagesPath: recordedUsagesPath,
                       buildResult: buildResult!,
                     ),
+                    progressUpdatesOnStderr: progressUpdatesOnStderr,
                   )
                 : builder.linkNativeAssetsAOT(
                     recordedUsagesPath: recordedUsagesPath,

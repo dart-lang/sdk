@@ -271,6 +271,30 @@ final class Arm64Constraints extends Constraints {
       ]);
 
   @override
+  InstructionConstraints? visitBoxInt(BoxInt instr) =>
+      const InstructionConstraints(
+        anyCpuRegister,
+        [anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitBoxDouble(BoxDouble instr) =>
+      const InstructionConstraints(
+        anyCpuRegister,
+        [anyFpuRegister],
+        [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitUnboxInt(UnboxInt instr) =>
+      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitUnboxDouble(UnboxDouble instr) =>
+      const InstructionConstraints(anyFpuRegister, [anyCpuRegister]);
+
+  @override
   InstructionConstraints? visitBinaryIntOp(BinaryIntOp instr) =>
       InstructionConstraints(anyCpuRegister, [
         anyCpuRegister,

@@ -1897,6 +1897,18 @@ class KernelToElementMap implements IrToElementMap {
       isConst: isConst,
     );
   }
+
+  final Map<ConstantValue, Uri> _symbolLibraries = {};
+
+  @override
+  void registerSymbolLibrary(ConstantValue value, Uri libraryUri) {
+    _symbolLibraries[value] = libraryUri;
+  }
+
+  @override
+  Uri? getSymbolLibraryUri(ConstantValue value) {
+    return _symbolLibraries[value];
+  }
 }
 
 class KernelElementEnvironment extends ElementEnvironment

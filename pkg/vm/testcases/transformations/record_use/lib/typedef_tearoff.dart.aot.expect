@@ -1,0 +1,39 @@
+library #lib;
+import self as self;
+import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
+
+import "package:meta/meta.dart" show RecordUse;
+
+@#C1
+final class C<T extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  final field self::C::T% t;
+
+  [@vm.inferred-type.metadata=int]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=()->i]
+  final field self::C::U% u;
+
+  [@vm.unboxing-info.metadata=(b,i)->b]
+  constructor •(self::C::T% t, [@vm.inferred-arg-type.metadata=int] self::C::U% u) → self::C<self::C::T%, self::C::U%>
+    : self::C::t = t, self::C::u = u, super core::Object::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final <T extends core::Object? = dynamic>(T%, core::int) → self::C<T%, core::int> f = #C2;
+  final self::C<core::String, core::int> tc = [@vm.direct-call.metadata=closure 0 in #lib::_#TC#new#tearOff] [@vm.inferred-type.metadata=#lib::C (receiver not int)] f<core::String>("hello", 42){(core::String, core::int) → self::C<core::String, core::int>};
+  core::print([@vm.direct-call.metadata=#lib::C.t] tc.{self::C::t}{core::String});
+  core::print([@vm.direct-call.metadata=#lib::C.u] [@vm.inferred-type.metadata=int] tc.{self::C::u}{core::int});
+}
+
+[@vm.inferred-return-type.metadata=#lib::C]
+static synthetic method _#TC#new#tearOff<T extends core::Object? = dynamic>(self::_#TC#new#tearOff::T% t, core::int u) → self::C<self::_#TC#new#tearOff::T%, core::int>
+  return new self::C::•<self::_#TC#new#tearOff::T%, core::int>(t, u);
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = static-tearoff self::_#TC#new#tearOff
+}

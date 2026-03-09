@@ -101,7 +101,7 @@ bool isBeingRecorded(Annotatable node) {
       if (cls != null && isBeingRecorded(cls)) return true;
     }
 
-    if (isConstructorTearOffLowering(node)) {
+    if (isConstructorTearOffLowering(node) || isTypedefTearOffLowering(node)) {
       final Member? target = getConstructorTearOffLoweringTarget(node);
       if (target != null) {
         return isBeingRecorded(target);
@@ -208,7 +208,7 @@ void _validateRecordUseDeclaration(
       node.isStatic &&
       node.kind != ProcedureKind.Factory &&
       !isExtensionTypeFactory &&
-      !isConstructorTearOffLowering(node);
+      !isTearOffLowering(node);
 
   final bool onClass = node is Class;
 

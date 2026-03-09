@@ -321,6 +321,7 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
         embedSources: args.flag('embed-sources'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
+        progressUpdatesOnStderr: false,
       );
       return 0;
     } catch (e, st) {
@@ -752,6 +753,7 @@ Remove debugging information from the output and save it separately to the speci
         targetOS: target?.os ?? OS.current,
         tempDir: tempDir,
         depFile: args.option('depfile'),
+        progressUpdatesOnStderr: false,
       );
       final snapshotGenerator = await kernelGenerator.generate(
         extraOptions: args.multiOption('extra-gen-kernel-options'),

@@ -28,6 +28,9 @@ const String dartVersionFilePrefix2_9 = '''
 // @dart = 2.9
 ''';
 
+const residentFrontendCompilerPrefix =
+    'The Resident Frontend Compiler is listening at 127.0.0.1:';
+
 /// Return the root URI of the SDK by walking up from the pkg/dartdev folder.
 final sdkRootUri = resolveDartDevUri('../../');
 
@@ -216,10 +219,14 @@ class TestProject {
 
     void onStderr(event) async {
       print('stderr: $event');
+      if (event.contains(residentFrontendCompilerPrefix)) {
+        onStdout(event);
+        return;
+      }
       await subError.cancel();
       await sub.cancel();
       completer.complete();
-      fail('stderr is expected to be empty');
+      fail('stderr is expected to be empty, but got: $event');
     }
 
     void onError(error) async {

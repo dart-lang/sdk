@@ -280,6 +280,18 @@ final class Simplification extends Pass
   Instruction visitSetListElement(SetListElement instr) => instr;
 
   @override
+  Instruction visitBoxInt(BoxInt instr) => instr;
+
+  @override
+  Instruction visitBoxDouble(BoxDouble instr) => instr;
+
+  @override
+  Instruction visitUnboxInt(UnboxInt instr) => instr;
+
+  @override
+  Instruction visitUnboxDouble(UnboxDouble instr) => instr;
+
+  @override
   Instruction visitParallelMove(ParallelMove instr) => instr;
 
   @override

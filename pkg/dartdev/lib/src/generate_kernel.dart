@@ -54,10 +54,15 @@ Future<DartExecutableWithPackageConfig> generateKernel(
   required bool quiet,
   bool aot = false,
   String? nativeAssetsYaml,
+  bool progressUpdatesOnStderr = false,
 }) async {
   // Locates the package_config.json and cached kernel file, makes sure the
   // resident frontend server is up and running, and computes a kernel.
-  await ensureCompilationServerIsRunning(serverInfoFile, quiet: quiet);
+  await ensureCompilationServerIsRunning(
+    serverInfoFile,
+    quiet: quiet,
+    progressUpdatesOnStderr: progressUpdatesOnStderr,
+  );
 
   final packageRoot = _packageRootFor(executable);
   final packageConfig = packageRoot != null
@@ -110,6 +115,7 @@ Future<DartExecutableWithPackageConfig> generateKernel(
 Future<void> ensureCompilationServerIsRunning(
   File serverInfoFile, {
   required bool quiet,
+  bool progressUpdatesOnStderr = false,
 }) async {
   if (serverInfoFile.existsSync()) {
     final residentCompilerInfo = ResidentCompilerInfo.fromFile(serverInfoFile);
@@ -154,12 +160,11 @@ Future<void> ensureCompilationServerIsRunning(
       throw StateError(serverOutput);
     }
     if (!quiet) {
+      final sink = progressUpdatesOnStderr ? log.stderr : log.stdout;
       // Prints the server's address and port information
-      log.stdout(serverOutput);
-      log.stdout('');
-      log.stdout(
-        'Run dart compilation-server shutdown to terminate the process.',
-      );
+      sink(serverOutput);
+      sink('');
+      sink('Run dart compilation-server shutdown to terminate the process.');
     }
   } catch (e) {
     throw FrontendCompilerException._(

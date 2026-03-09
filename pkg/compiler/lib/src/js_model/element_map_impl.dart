@@ -367,6 +367,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     );
     source.end(nestedClosuresTag);
 
+    _symbolLibraries.addAll(source.readConstantMap(() => source.readUri()));
+
     source.end(tag);
   }
 
@@ -459,6 +461,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       sink.writeMembers(value);
     });
     sink.end(nestedClosuresTag);
+
+    sink.writeConstantMap(_symbolLibraries, (Uri uri) => sink.writeUri(uri));
 
     sink.end(tag);
   }
@@ -1032,6 +1036,18 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     return data.getVariances();
+  }
+
+  final Map<ConstantValue, Uri> _symbolLibraries = {};
+
+  @override
+  void registerSymbolLibrary(ConstantValue value, Uri libraryUri) {
+    _symbolLibraries[value] = libraryUri;
+  }
+
+  @override
+  Uri? getSymbolLibraryUri(ConstantValue value) {
+    return _symbolLibraries[value];
   }
 
   DartType _getTypeVariableDefaultType(JTypeVariable typeVariable) {

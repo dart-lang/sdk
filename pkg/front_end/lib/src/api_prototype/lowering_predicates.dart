@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/constructor_tearoff_lowering.dart'
-    show extractConstructorNameFromTearOff;
+    show extractConstructorNameFromTearOff, extractTypedefNameFromTearOff;
 
 import '../kernel/late_lowering.dart';
 import '../source/name_scheme.dart';
@@ -1153,29 +1153,51 @@ const String enumNameFieldName = '_name';
 // Coverage-ignore(suite): Not run.
 /// Returns the target member for a lowered constructor or factory tear-off.
 Member? getConstructorTearOffLoweringTarget(Procedure node) {
-  final String? constructorName = extractConstructorNameFromTearOff(node.name);
-  if (constructorName != null) {
+  final String? constructorNameFromTearOff = extractConstructorNameFromTearOff(
+    node.name,
+  );
+  final ({String typedefName, Name constructorName})? typedefNameFromTearOff =
+      extractTypedefNameFromTearOff(node.name);
+  if (constructorNameFromTearOff != null || typedefNameFromTearOff != null) {
+    final String? constructorName =
+        constructorNameFromTearOff ??
+        typedefNameFromTearOff?.constructorName.text;
     Member? target;
-    final Class? cls = node.enclosingClass;
-    if (cls != null) {
-      for (final Constructor constructor in cls.constructors) {
-        if (constructor.name.text == constructorName) {
-          target = constructor;
-          break;
-        }
-      }
-      if (target == null) {
-        for (final Procedure procedure in cls.procedures) {
-          if (procedure.isFactory && procedure.name.text == constructorName) {
-            target = procedure;
+    if (constructorName != null) {
+      Class? cls = node.enclosingClass;
+      ExtensionTypeDeclaration? extensionTypeDeclaration =
+          node.extensionTypeDeclaration;
+      if (cls == null &&
+          extensionTypeDeclaration == null &&
+          typedefNameFromTearOff != null) {
+        for (final Typedef typedef in node.enclosingLibrary.typedefs) {
+          if (typedef.name == typedefNameFromTearOff.typedefName) {
+            final DartType? type = typedef.type?.unalias;
+            if (type is InterfaceType) {
+              cls = type.classNode;
+            } else if (type is ExtensionType) {
+              extensionTypeDeclaration = type.extensionTypeDeclaration;
+            }
             break;
           }
         }
       }
-    } else {
-      final ExtensionTypeDeclaration? extensionTypeDeclaration =
-          node.extensionTypeDeclaration;
-      if (extensionTypeDeclaration != null) {
+      if (cls != null) {
+        for (final Constructor constructor in cls.constructors) {
+          if (constructor.name.text == constructorName) {
+            target = constructor;
+            break;
+          }
+        }
+        if (target == null) {
+          for (final Procedure procedure in cls.procedures) {
+            if (procedure.isFactory && procedure.name.text == constructorName) {
+              target = procedure;
+              break;
+            }
+          }
+        }
+      } else if (extensionTypeDeclaration != null) {
         for (final ExtensionTypeMemberDescriptor descriptor
             in extensionTypeDeclaration.memberDescriptors) {
           if (descriptor.name.text == constructorName &&
@@ -1195,7 +1217,10 @@ Member? getConstructorTearOffLoweringTarget(Procedure node) {
       // optimizations (like TFA). However, the lowering procedure itself
       // remains. We can extract the target directly from its body, which
       // is always a single return of a constructor or factory invocation.
-      final Statement? body = node.function.body;
+      Statement? body = node.function.body;
+      if (body is Block && body.statements.length == 1) {
+        body = body.statements.first;
+      }
       if (body is ReturnStatement) {
         final Expression? expression = body.expression;
         if (expression is ConstructorInvocation) {

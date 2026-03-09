@@ -3233,8 +3233,7 @@ redirection_in_non_factory_constructor:
   notes: |-
     Remove the redirection.
 representation_field_modifier:
-  status: needsFix
-  notes: Remove it.
+  status: hasFix
 representation_field_trailing_comma:
   status: hasFix
 sealed_enum:

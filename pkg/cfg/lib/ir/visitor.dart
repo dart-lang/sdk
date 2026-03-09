@@ -51,6 +51,10 @@ abstract interface class InstructionVisitor<R> {
   R visitCompareAndBranch(CompareAndBranch instr);
   R visitAllocateList(AllocateList instr);
   R visitSetListElement(SetListElement instr);
+  R visitBoxInt(BoxInt instr);
+  R visitBoxDouble(BoxDouble instr);
+  R visitUnboxInt(UnboxInt instr);
+  R visitUnboxDouble(UnboxDouble instr);
   R visitParallelMove(ParallelMove instr);
 }
 
@@ -120,6 +124,10 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitAllocateList(AllocateList instr) => defaultBackendInstruction(instr);
   R visitSetListElement(SetListElement instr) =>
       defaultBackendInstruction(instr);
+  R visitBoxInt(BoxInt instr) => defaultBackendInstruction(instr);
+  R visitBoxDouble(BoxDouble instr) => defaultBackendInstruction(instr);
+  R visitUnboxInt(UnboxInt instr) => defaultBackendInstruction(instr);
+  R visitUnboxDouble(UnboxDouble instr) => defaultBackendInstruction(instr);
   R visitParallelMove(ParallelMove instr) => defaultBackendInstruction(instr);
 }
 

@@ -539,6 +539,7 @@ class FunctionDeclaration {
   static const hasPragmaFlag = 1 << 22;
   static const hasCustomScriptFlag = 1 << 23;
   static const isExtensionTypeMemberFlag = 1 << 24;
+  static const isInvisibleFlag = 1 << 25;
 
   final int flags;
   final ObjectHandle name;
@@ -723,6 +724,9 @@ class FunctionDeclaration {
     }
     if ((flags & isExternalFlag) != 0) {
       sb.write(', external');
+    }
+    if ((flags & isInvisibleFlag) != 0) {
+      sb.write(', invisible');
     }
     if ((flags & hasPragmaFlag) != 0) {
       sb.write(', has-pragma');
@@ -984,6 +988,7 @@ class ClosureDeclaration {
   static const hasParameterFlagsFlag = 1 << 8;
   static const hasAnnotationsFlag = 1 << 9;
   static const hasPragmaFlag = 1 << 10;
+  static const isInvisibleFlag = 1 << 11;
 
   int flags;
   final ObjectHandle parent;
@@ -1122,6 +1127,9 @@ class ClosureDeclaration {
   String toString() {
     final StringBuffer sb = new StringBuffer();
     sb.write('Closure $parent::$name');
+    if ((flags & isInvisibleFlag) != 0) {
+      sb.write(' invisible');
+    }
     if ((flags & isAsyncFlag) != 0) {
       sb.write(' async');
     }

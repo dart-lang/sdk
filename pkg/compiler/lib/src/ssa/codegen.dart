@@ -12,9 +12,8 @@ import 'package:front_end/src/api_prototype/lowering_predicates.dart'
         isExtensionMemberTearOff,
         getExtensionMemberImplementation,
         isExtensionThisName,
+        isTearOffLowering,
         getConstructorTearOffLoweringTarget;
-import 'package:kernel/constructor_tearoff_lowering.dart'
-    show isConstructorTearOffLowering;
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
@@ -2527,8 +2526,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         .getMemberDefinition(_member)
         .node;
     if (callerNode is ir.Procedure &&
-        (isConstructorTearOffLowering(callerNode) ||
-            callerNode.isRedirectingFactory)) {
+        (isTearOffLowering(callerNode) || callerNode.isRedirectingFactory)) {
       // If we are currently compiling a constructor tear-off lowering, we
       // don't want to record the generative constructor calls inside it.
       return false;

@@ -78,7 +78,9 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   LinearScanRegisterAllocator(super.backEndState, this.constraints);
 
   RegisterClass registerClass(Definition instr) =>
-      instr.type is DoubleType ? RegisterClass.fpu : RegisterClass.cpu;
+      instr.type is DoubleType && backEndState.unboxing.hasUnboxedResult(instr)
+      ? RegisterClass.fpu
+      : RegisterClass.cpu;
 
   int instructionPos(Instruction instr) => _instructionPos[instr.id];
   int blockStartPos(Block block) => instructionPos(block);

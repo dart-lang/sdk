@@ -29,7 +29,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
   Arm64CodeGenerator(super.backEndState, this.functionRegistry);
 
   @override
-  Assembler createAssembler() => _asm = Arm64Assembler(backEndState.vmOffsets);
+  Assembler createAssembler() =>
+      _asm = Arm64Assembler(backEndState.vmOffsets, backEndState.objectLayout);
 
   @override
   void enterFrame() {
@@ -856,6 +857,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       AllocationStub.scratch2Reg,
       instanceSize,
       slowPath,
+      initializeFields: true,
     );
 
     if (typeArgsField != null) {
@@ -914,6 +916,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       AllocationStub.scratch2Reg,
       instanceSize,
       slowPath,
+      initializeFields: true,
     );
 
     _asm.bind(initializeObject);
@@ -935,6 +938,115 @@ final class Arm64CodeGenerator extends CodeGenerator {
   @override
   void visitSetListElement(SetListElement instr) {
     _asm.unimplemented('Unimplemented: code generation for SetListElement');
+  }
+
+  @override
+  void visitBoxInt(BoxInt instr) {
+    final operandReg = inputReg(instr, 0);
+    final tagsReg = temporaryReg(instr, 0);
+    final scratch1Reg = temporaryReg(instr, 1);
+    final scratch2Reg = temporaryReg(instr, 2);
+    final resultReg = outputReg(instr);
+    final done = Label();
+    final cls = GlobalContext.instance.coreTypes.index.getClass(
+      'dart:core',
+      '_Mint',
+    );
+    final instanceSize = vmOffsets.Mint_InstanceSize;
+
+    Label slowPath = addSlowPath(() {
+      _asm.unimplemented('Unimplemented: code generation for BoxInt slow path');
+      _asm.b(done);
+    });
+
+    _asm.adds(resultReg, operandReg, operandReg);
+    _asm.b(done, .noOverflow);
+
+    // TODO: compute tags at compile time.
+    _asm.loadFromPool(tagsReg, NewObjectTags(cls));
+    _asm.inlineAllocation(
+      resultReg,
+      tagsReg,
+      scratch1Reg,
+      scratch2Reg,
+      instanceSize,
+      slowPath,
+      initializeFields: false,
+    );
+    _asm.str(
+      operandReg,
+      _asm.fieldAddress(resultReg, vmOffsets.Mint_value_offset),
+    );
+    _asm.bind(done);
+  }
+
+  @override
+  void visitBoxDouble(BoxDouble instr) {
+    final operandReg = inputFPReg(instr, 0);
+    final tagsReg = temporaryReg(instr, 0);
+    final scratch1Reg = temporaryReg(instr, 1);
+    final scratch2Reg = temporaryReg(instr, 2);
+    final resultReg = outputReg(instr);
+    final done = Label();
+    final cls = GlobalContext.instance.coreTypes.index.getClass(
+      'dart:core',
+      '_Double',
+    );
+    final instanceSize = vmOffsets.Double_InstanceSize;
+
+    Label slowPath = addSlowPath(() {
+      _asm.unimplemented(
+        'Unimplemented: code generation for BoxDouble slow path',
+      );
+      _asm.b(done);
+    });
+
+    // TODO: compute tags at compile time.
+    _asm.loadFromPool(tagsReg, NewObjectTags(cls));
+    _asm.inlineAllocation(
+      resultReg,
+      tagsReg,
+      scratch1Reg,
+      scratch2Reg,
+      instanceSize,
+      slowPath,
+      initializeFields: false,
+    );
+    _asm.fstr(
+      operandReg,
+      _asm.fieldAddress(resultReg, vmOffsets.Double_value_offset),
+    );
+    _asm.bind(done);
+  }
+
+  @override
+  void visitUnboxInt(UnboxInt instr) {
+    var operandReg = inputReg(instr, 0);
+    final resultReg = outputReg(instr);
+    final done = Label();
+
+    if (operandReg == resultReg) {
+      _asm.mov(tempReg, operandReg);
+      operandReg = tempReg;
+    }
+
+    _asm.asr(resultReg, operandReg, smiShift);
+    _asm.tbz(operandReg, smiBit, done);
+    _asm.ldr(
+      resultReg,
+      _asm.fieldAddress(operandReg, vmOffsets.Mint_value_offset),
+    );
+    _asm.bind(done);
+  }
+
+  @override
+  void visitUnboxDouble(UnboxDouble instr) {
+    final operandReg = inputReg(instr, 0);
+    final resultReg = outputFPReg(instr);
+    _asm.fldr(
+      resultReg,
+      _asm.fieldAddress(operandReg, vmOffsets.Double_value_offset),
+    );
   }
 
   @override

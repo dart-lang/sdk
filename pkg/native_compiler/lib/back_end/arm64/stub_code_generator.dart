@@ -8,14 +8,15 @@ import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
+import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
 abstract base class Arm64StubCodeGenerator implements StubCodeGenerator {
   final Arm64Assembler _asm;
 
-  Arm64StubCodeGenerator(VMOffsets vmOffsets)
-    : _asm = Arm64Assembler(vmOffsets);
+  Arm64StubCodeGenerator(VMOffsets vmOffsets, ObjectLayout objectLayout)
+    : _asm = Arm64Assembler(vmOffsets, objectLayout);
 
   void _generate();
 
@@ -44,7 +45,7 @@ final class AllocationStub extends Arm64StubCodeGenerator {
 
   final ast.Class cls;
 
-  AllocationStub(super.vmOffsets, this.cls);
+  AllocationStub(super.vmOffsets, super.objectLayout, this.cls);
 
   @override
   void _generate() {
@@ -89,7 +90,12 @@ final class WriteBarrierStub extends Arm64StubCodeGenerator {
   final Register objectReg;
   final Register valueReg;
 
-  WriteBarrierStub(super.vmOffsets, this.objectReg, this.valueReg);
+  WriteBarrierStub(
+    super.vmOffsets,
+    super.objectLayout,
+    this.objectReg,
+    this.valueReg,
+  );
 
   @override
   void _generate() {
@@ -104,15 +110,20 @@ final class WriteBarrierStub extends Arm64StubCodeGenerator {
 
 final class Arm64StubFactory extends StubFactory {
   final VMOffsets vmOffsets;
-  Arm64StubFactory(this.vmOffsets, super.consumeGeneratedCode);
+  final ObjectLayout objectLayout;
+  Arm64StubFactory(
+    this.vmOffsets,
+    this.objectLayout,
+    super.consumeGeneratedCode,
+  );
 
   @override
   StubCodeGenerator allocationStubGenerator(ast.Class cls) =>
-      AllocationStub(vmOffsets, cls);
+      AllocationStub(vmOffsets, objectLayout, cls);
 
   @override
   StubCodeGenerator writeBarrierStubGenerator(
     Register objectReg,
     Register valueReg,
-  ) => WriteBarrierStub(vmOffsets, objectReg, valueReg);
+  ) => WriteBarrierStub(vmOffsets, objectLayout, objectReg, valueReg);
 }

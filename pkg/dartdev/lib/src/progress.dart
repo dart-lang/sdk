@@ -17,13 +17,20 @@ import 'dart:io';
 /// The progress indicator is only animated if output is going to a terminal.
 /// When the [callback] completes, the progress indicator is stopped and the
 /// final time is shown.
-Future<T> progress<T>(String message, Future<T> Function() callback) async {
-  final progress = _Progress(message);
+Future<T> progress<T>(
+  String message,
+  Future<T> Function() callback, {
+  bool progressUpdatesOnStderr = false,
+}) async {
+  final progress = _Progress(message, progressUpdatesOnStderr);
   return callback().whenComplete(progress._stop);
 }
 
 /// A live-updating progress indicator for long-running log entries.
 class _Progress {
+  /// Whether progress updates should be printed to [stderr] instead of [stdout].
+  final bool _progressUpdatesOnStderr;
+
   /// The timer used to write "..." during a progress log.
   late final Timer _timer;
 
@@ -41,17 +48,24 @@ class _Progress {
   /// The length of the most recently-printed [_time] string.
   var _timeLength = 0;
 
+  /// The output sink for progress updates.
+  IOSink get _sink => _progressUpdatesOnStderr ? stderr : stdout;
+
+  /// Whether the output sink should be treated as a terminal.
+  bool get _terminalOutput =>
+      _progressUpdatesOnStderr ? stderr.hasTerminal : stdout.hasTerminal;
+
   /// Creates a new progress indicator.
-  _Progress(this._message) {
+  _Progress(this._message, this._progressUpdatesOnStderr) {
     _stopwatch.start();
 
     // The animation is only shown when it would be meaningful to a human.
     // That means we're writing a visible message to a TTY at normal log levels
     // with non-JSON output.
-    if (!_terminalOutputForStdout) {
+    if (!_terminalOutput) {
       // Not animating, so just log the start and wait until the task is
       // completed.
-      stdout.write('$_message...');
+      _sink.write('$_message...');
       return;
     }
 
@@ -59,15 +73,15 @@ class _Progress {
       _update();
     });
 
-    stdout.write('$_message... ');
+    _sink.write('$_message... ');
   }
 
   /// Stops the progress indicator.
   void _stop() {
-    if (!_terminalOutputForStdout) {
+    if (!_terminalOutput) {
       // Not animating, so just log the start and wait until the task is
       // completed.
-      stdout.write('$_message...');
+      _sink.write('$_message...');
       return;
     }
 
@@ -75,7 +89,7 @@ class _Progress {
     _timer.cancel();
     // print one final update to show the user the final time.
     _update();
-    stdout.writeln();
+    _sink.writeln();
   }
 
   /// Refreshes the progress line.
@@ -86,15 +100,12 @@ class _Progress {
     // Erase the last time that was printed. Erasing just the time using `\b`
     // rather than using `\r` to erase the entire line ensures that we don't
     // spam progress lines if they're wider than the terminal width.
-    stdout.write('\b' * _timeLength);
+    _sink.write('\b' * _timeLength);
     final time = _time;
     _timeLength = time.length;
-    stdout.write(gray(time));
+    _sink.write(gray(time, _progressUpdatesOnStderr));
   }
 }
-
-/// Returns `true` if [stdout] should be treated as a terminal.
-bool get _terminalOutputForStdout => stdout.hasTerminal;
 
 /// Returns a human-friendly representation of [duration].
 String _niceDuration(Duration duration) {
@@ -123,12 +134,16 @@ String _padLeft(String source, int length, [String char = ' ']) {
 /// that supports that.
 ///
 /// Use this for text that's less important than the text around it.
-String gray(String text) => '$_gray$text$_none';
+String gray(String text, bool progressUpdatesOnStderr) =>
+    '${_gray(progressUpdatesOnStderr)}$text${_none(progressUpdatesOnStderr)}';
 
-final _none = _getAnsi('\u001b[0m');
-final _gray = _getAnsi('\u001b[38;5;245m');
+String _none(bool progressUpdatesOnStderr) =>
+    _getAnsi('\u001b[0m', progressUpdatesOnStderr);
+String _gray(bool progressUpdatesOnStderr) =>
+    _getAnsi('\u001b[38;5;245m', progressUpdatesOnStderr);
 
-String _getAnsi(String ansiCode) => canUseAnsiCodes ? ansiCode : '';
+String _getAnsi(String ansiCode, bool progressUpdatesOnStderr) =>
+    canUseAnsiCodes(progressUpdatesOnStderr) ? ansiCode : '';
 
 /// Whether ansi codes such as color escapes are safe to use.
 ///
@@ -136,8 +151,11 @@ String _getAnsi(String ansiCode) => canUseAnsiCodes ? ansiCode : '';
 ///
 /// Tests should make sure to run the subprocess with or without an attached
 /// terminal to decide if colors will be provided.
-bool get canUseAnsiCodes {
-  return (!Platform.environment.containsKey('NO_COLOR')) &&
-      _terminalOutputForStdout &&
-      stdout.supportsAnsiEscapes;
+bool canUseAnsiCodes(bool progressUpdatesOnStderr) {
+  if (Platform.environment.containsKey('NO_COLOR')) return false;
+  if (progressUpdatesOnStderr) {
+    return stderr.hasTerminal && stderr.supportsAnsiEscapes;
+  } else {
+    return stdout.hasTerminal && stdout.supportsAnsiEscapes;
+  }
 }

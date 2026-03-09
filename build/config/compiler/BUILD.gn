@@ -974,6 +974,7 @@ config("symbols") {
       "-g3",
       "-ggdb3",
     ]
+    asmflags = [ "-g" ]
   }
 }
 

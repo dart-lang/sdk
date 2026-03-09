@@ -100,6 +100,8 @@ class ModuleSnapshot : public AllStatic {
     kStaticFieldOffset,
     kInterfaceCall,
     kDynamicCall,
+    kUnboxedInt,
+    kUnboxedDouble,
   };
 };
 
@@ -1194,6 +1196,18 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             pool->untag()->entry_bits()[j] = tagged_entry_bits;
             UntaggedObjectPool::Entry& entry2 = pool->untag()->data()[j];
             entry2.raw_obj_ = StubCode::OneArgOptimizedCheckInlineCache().ptr();
+            break;
+          }
+          case ModuleSnapshot::kUnboxedInt: {
+            pool->untag()->entry_bits()[j] = immediate_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_value_ = d.Read<int64_t>();
+            break;
+          }
+          case ModuleSnapshot::kUnboxedDouble: {
+            pool->untag()->entry_bits()[j] = immediate_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_value_ = bit_cast<int64_t>(d.Read<double>());
             break;
           }
         }

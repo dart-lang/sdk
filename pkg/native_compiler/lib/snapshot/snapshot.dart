@@ -106,6 +106,8 @@ enum ObjectPoolEntryKind {
   staticFieldOffset,
   interfaceCall,
   dynamicCall,
+  unboxedInt,
+  unboxedDouble,
 }
 
 abstract base class SerializationCluster {
@@ -1292,7 +1294,7 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
           case ReservedEntry():
             break;
         }
-      } else {
+      } else if (entry is! UnboxedConstant) {
         serializer.push(entry);
       }
     }
@@ -1333,6 +1335,12 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
               serializer.writeRefId(icDatas[entry]);
             case ReservedEntry():
           }
+        } else if (entry is UnboxedIntConstant) {
+          serializer.writeUint(ObjectPoolEntryKind.unboxedInt.index);
+          serializer.out.writeInt(entry.value);
+        } else if (entry is UnboxedDoubleConstant) {
+          serializer.writeUint(ObjectPoolEntryKind.unboxedDouble.index);
+          serializer.out.writeDouble(entry.value);
         } else {
           serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
           serializer.writeRefId(entry);
