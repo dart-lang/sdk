@@ -18,8 +18,6 @@ import 'package:native_compiler/runtime/object_layout.dart';
 /// Can replace instructions with multiple low-level
 /// instructions or combine instructions and their inputs
 /// into a single low-level instruction.
-///
-/// TODO: insert boxing/unboxing
 final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   final FunctionRegistry functionRegistry;
   final ObjectLayout objectLayout;

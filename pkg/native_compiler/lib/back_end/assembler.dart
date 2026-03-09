@@ -18,11 +18,13 @@ enum OperandSize {
   s8,
   s16,
   s32,
-  s64;
+  s64,
+  simd128;
 
   bool get is32 => (this == u32) || (this == s32);
   bool get is64 => (this == u64) || (this == s64);
   bool get is32or64 => is32 || is64;
+  bool get is128 => (this == simd128);
 
   bool get isSigned =>
       (this == s8) || (this == s16) || (this == s32) || (this == s64);
@@ -32,6 +34,7 @@ enum OperandSize {
     u16 || s16 => 16,
     u32 || s32 => 32,
     u64 || s64 => 64,
+    simd128 => 128,
   };
 
   int get sizeInBytes => switch (this) {
@@ -39,6 +42,7 @@ enum OperandSize {
     u16 || s16 => 2,
     u32 || s32 => 4,
     u64 || s64 => 8,
+    simd128 => 16,
   };
 
   int get log2sizeInBytes => switch (this) {
@@ -46,6 +50,7 @@ enum OperandSize {
     u16 || s16 => 1,
     u32 || s32 => 2,
     u64 || s64 => 3,
+    simd128 => 4,
   };
 }
 

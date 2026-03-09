@@ -34,6 +34,7 @@ import 'package:native_compiler/back_end/regalloc_checker.dart';
 import 'package:native_compiler/back_end/register_allocator.dart';
 import 'package:native_compiler/passes/lowering.dart';
 import 'package:native_compiler/passes/reorder_blocks.dart';
+import 'package:native_compiler/passes/unboxing.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:test/test.dart';
@@ -170,6 +171,8 @@ class CompileAndDumpIr extends RecursiveVisitor {
       ConstantPropagation(),
       ControlFlowOptimizations(),
       Lowering(functionRegistry, objectLayout),
+      Unboxing(),
+      ValueNumbering(simplification: Simplification()),
       ReorderBlocks(backEndState),
       LinearScanRegisterAllocator(backEndState, constraints),
       RegisterAllocationChecker(backEndState, constraints),
