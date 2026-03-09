@@ -378,6 +378,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     required bool shouldRetryOnFrontendCompilerException,
     required bool quiet,
     String? nativeAssetsYaml,
+    bool progressUpdatesOnStderr = false,
   }) async {
     final executableFile = File(executable.executable);
     assert(
@@ -394,6 +395,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         createCompileJitJson,
         quiet: quiet,
         nativeAssetsYaml: nativeAssetsYaml,
+        progressUpdatesOnStderr: progressUpdatesOnStderr,
       );
     } on FrontendCompilerException catch (e) {
       if (e.issue == CompilationIssue.serverError) {
@@ -415,6 +417,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
             shouldRetryOnFrontendCompilerException: false,
             quiet: quiet,
             nativeAssetsYaml: nativeAssetsYaml,
+            progressUpdatesOnStderr: progressUpdatesOnStderr,
           );
         } else {
           log.stderr(
@@ -510,6 +513,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           includeDevDependencies: true,
           verbose: verbose,
           dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
+          progressUpdatesOnStderr: true,
         );
         if (!nativeAssetsExperimentEnabled) {
           if (await builder.warnOnNativeAssets()) {
@@ -522,6 +526,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
               ? progress(
                   'Running build hooks',
                   builder.compileNativeAssetsJitYamlFile,
+                  progressUpdatesOnStderr: true,
                 )
               : builder.compileNativeAssetsJitYamlFile());
           if (assetsYamlFileUri == null) {
@@ -571,6 +576,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         await ensureCompilationServerIsRunning(
           residentCompilerInfoFile,
           quiet: args[quietOption] ?? false,
+          progressUpdatesOnStderr: true,
         );
         final succeeded = await invokeReplaceCachedDill(
           replacementDillPath: executableFile.absolute.path,
@@ -594,6 +600,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           shouldRetryOnFrontendCompilerException: true,
           quiet: args[quietOption] ?? false,
           nativeAssetsYaml: nativeAssets,
+          progressUpdatesOnStderr: true,
         );
         if (compiledKernelFile == null) {
           return errorExitCode;
@@ -720,6 +727,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
             sourcePackagePubspecFile,
             verbose,
             verbosity,
+            progressUpdatesOnStderr: true,
           );
 
           await InstallCommand.createAppBundleDirectory(

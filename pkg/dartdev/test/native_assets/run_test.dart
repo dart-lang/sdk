@@ -58,13 +58,13 @@ void main([List<String> args = const []]) async {
           workingDirectory: dartAppUri,
           logger: logger,
         );
-        expect(result.stdout, contains('Running build hooks'));
-        expect(result.stdout, isNot(contains('Running link hooks')));
+        expect(result.stderr, contains('Running build hooks'));
+        expect(result.stderr, isNot(contains('Running link hooks')));
         expectDartAppStdout(result.stdout);
         if (verbose) {
-          expect(result.stdout, contains('build.dart'));
+          expect(result.stderr, contains('build.dart'));
         } else {
-          expect(result.stdout, isNot(contains('build.dart')));
+          expect(result.stderr, isNot(contains('build.dart')));
         }
       });
     });
@@ -77,7 +77,7 @@ void main([List<String> args = const []]) async {
         workingDirectory: dartAppUri,
         logger: logger,
       );
-      expect(result.stdout, isNot(contains('Running build hooks')));
+      expect(result.stderr, isNot(contains('Running build hooks')));
       expectDartAppStdout(result.stdout);
     });
   });
@@ -124,7 +124,7 @@ void main([List<String> args = const []]) async {
         logger: logger,
       );
       // It should not build native_add for running ffigen.
-      expect(result.stdout, isNot(contains('Running build hooks')));
+      expect(result.stderr, isNot(contains('Running build hooks')));
     });
   });
 
