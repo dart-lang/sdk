@@ -7,8 +7,8 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/parser_test_base.dart' show ParserTestCase;
 import '../../../util/ast_type_matchers.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,11 +17,15 @@ main() {
 }
 
 @reflectiveTest
-class NodeLocator2Test extends ParserTestCase {
+class NodeLocator2Test extends ParserDiagnosticsTest {
   AstNode? locate(CompilationUnit unit, int start, [int? end]) {
     var locator = NodeLocator2(start, end);
     var node = locator.searchWithin(unit)!;
     return node;
+  }
+
+  CompilationUnit parseCompilationUnit(String code) {
+    return parseStringWithErrors(code).unit;
   }
 
   void test_onlyStartOffset() {

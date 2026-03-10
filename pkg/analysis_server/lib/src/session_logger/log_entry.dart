@@ -7,9 +7,9 @@ import 'package:analysis_server/src/session_logger/entry_kind.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:language_server_protocol/protocol_special.dart' show Either2;
 
-/// A representation of an entry in a [Log].
+/// A representation of an entry in a log.
 ///
-/// Every entry has a [time] and a [kind]. Other properties are dependent on the
+/// Every entry has a time and a [kind]. Other properties are dependent on the
 /// [kind]. See [EntryKind] for a description of the properties associated with
 /// each [kind].
 extension type LogEntry(JsonMap map) {

@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/feature_sets.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class UnitApiSignatureTest {
+class UnitApiSignatureTest extends ParserDiagnosticsTest {
   test_class_annotation() async {
     _assertNotSameSignature(
       r'''
@@ -2053,19 +2052,11 @@ typedef F = void Function(double);
   }
 
   void _assertSignature(String oldCode, String newCode, {required bool same}) {
-    var oldResult = parseString(
-      content: oldCode,
-      featureSet: FeatureSets.latestWithExperiments,
-      throwIfDiagnostics: false,
-    );
+    var oldResult = parseStringWithErrors(oldCode);
     var oldUnit = oldResult.unit;
     var oldSignature = computeUnlinkedApiSignature(oldUnit);
 
-    var newResult = parseString(
-      content: newCode,
-      featureSet: FeatureSets.latestWithExperiments,
-      throwIfDiagnostics: false,
-    );
+    var newResult = parseStringWithErrors(newCode);
     var newUnit = newResult.unit;
     var newSignature = computeUnlinkedApiSignature(newUnit);
 

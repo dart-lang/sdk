@@ -8,7 +8,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/node_text_expectations.dart';
 import '../src/diagnostics/parser_diagnostics.dart';
-import 'parser_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -1267,7 +1266,6 @@ CompilationUnit
   }
 
   void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
-    ParserTestCase.parseFunctionBodies = false;
     var parseResult = parseStringWithErrors(r'''
 f() {
   "${n}";

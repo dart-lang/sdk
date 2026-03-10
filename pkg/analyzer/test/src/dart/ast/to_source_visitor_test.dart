@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -4067,12 +4066,8 @@ void f() sync* {
     expect(buffer.toString(), expectedSource);
   }
 
-  // TODO(scheglov): Use [parseStringWithErrors] everywhere? Or just there?
   FindNode _parseStringToFindNode(String content, {FeatureSet? featureSet}) {
-    var parseResult = parseString(
-      content: content,
-      featureSet: featureSet ?? FeatureSets.latestWithExperiments,
-    );
-    return FindNode(parseResult.content, parseResult.unit);
+    var parseResult = parseStringWithErrors(content, featureSet: featureSet);
+    return parseResult.findNode;
   }
 }

@@ -678,13 +678,13 @@ template("bin_to_assembly") {
       invoker.symbol,
       "--target_os",
       current_os,
+      "--target_arch",
+      current_cpu,
     ]
     if (defined(invoker.size_symbol)) {
       args += [
         "--size_symbol_name",
         invoker.size_symbol,
-        "--target_arch",
-        current_cpu,
       ]
     }
     if (invoker.executable) {

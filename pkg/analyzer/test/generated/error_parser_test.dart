@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -3519,10 +3518,9 @@ int x; ; int y;
   }
 
   void test_unnamedLibraryDirective() {
-    parseString(
-      content: 'library;',
+    parseStringWithErrors(
+      'library;',
       featureSet: FeatureSets.language_2_18,
-      throwIfDiagnostics: false,
     ).assertErrors([error(diag.experimentNotEnabled, 0, 7)]);
   }
 

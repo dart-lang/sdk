@@ -661,6 +661,19 @@ class ContextManagerImpl implements ContextManager {
           }
         }
 
+        // Add package roots to the SessionLogger.
+        for (var i = 0; i < collection.contexts.length; i++) {
+          var analysisContext = collection.contexts[i];
+          var packages = analysisContext.contextRoot.workspace.packages;
+          _sessionLogger.addPackageRoots(
+            index: i,
+            packageRoots: {
+              for (var package in packages.packages)
+                package.name: package.rootFolder.toUri().toString(),
+            },
+          );
+        }
+
         // Finally, wait for the new contexts watchers to all become ready so we
         // can ensure they will not lose any future events before we continue.
         await Future.wait(watchers.map((watcher) => watcher.ready));
