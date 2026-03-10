@@ -23,6 +23,7 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core
 import 'package:analyzer_plugin/src/utilities/charcodes.dart';
 import 'package:analyzer_plugin/src/utilities/directive_sort.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
+import 'package:analyzer_plugin/src/utilities/formatter.dart';
 import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -1895,16 +1896,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    var languageVersion = resolvedUnit.libraryElement.languageVersion.effective;
-    var formattedResult = DartFormatter(languageVersion: languageVersion)
-        .formatSource(
-          SourceCode(
-            newContent,
-            isCompilationUnit: true,
-            selectionStart: newRangeOffset,
-            selectionLength: newRangeLength,
-          ),
-        );
+    var formatter = createFormatter(resolvedUnit);
+    var formattedResult = formatter.formatSource(
+      SourceCode(
+        newContent,
+        selectionStart: newRangeOffset,
+        selectionLength: newRangeLength,
+      ),
+    );
 
     replaceEdits(
       range,
