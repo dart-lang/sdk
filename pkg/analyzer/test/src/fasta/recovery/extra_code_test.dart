@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'recovery_test_support.dart';
+import '../../dart/resolution/node_text_expectations.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,393 +16,939 @@ main() {
     defineReflectiveTests(MultipleTypeTest);
     defineReflectiveTests(PunctuationTest);
     defineReflectiveTests(VarianceModifierTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 /// Test how well the parser recovers when annotations are included in places
 /// where they are not allowed.
 @reflectiveTest
-class AnnotationTest extends AbstractRecoveryTest {
+class AnnotationTest extends ParserDiagnosticsTest {
   void test_typeArgument() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 const annotation = null;
 class A<E> {}
 class C {
   m() => new A<@annotation C>();
 }
-''',
-      [diag.annotationOnTypeArgument],
-      '''
-const annotation = null;
-class A<E> {}
-class C {
-  m() => new A<C>();
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.annotationOnTypeArgument, 64, 11)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: const
+        variables
+          VariableDeclaration
+            name: annotation
+            equals: =
+            initializer: NullLiteral
+              literal: null
+      semicolon: ;
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: E
+          rightBracket: >
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            name: m
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: InstanceCreationExpression
+                keyword: new
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: C
+                      rightBracket: >
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              semicolon: ;
+        rightBracket: }
+''');
   }
 }
 
 /// Test how well the parser recovers in other cases.
 @reflectiveTest
-class MiscellaneousTest extends AbstractRecoveryTest {
+class MiscellaneousTest extends ParserDiagnosticsTest {
   void test_classTypeAlias_withBody() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class B = Object with A {}
-''',
-      // TODO(danrubel): Consolidate and improve error message.
-      [diag.expectedExecutable, diag.expectedToken],
-      '''
-class B = Object with A;
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 22, 1),
+      error(diag.expectedExecutable, 24, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassTypeAlias
+      typedefKeyword: class
+      name: B
+      equals: =
+      superclass: NamedType
+        name: Object
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: A
+      semicolon: ; <synthetic>
+''');
   }
 
   void test_getter_parameters() {
-    var content = '''
+    var parseResult = parseStringWithErrors(r'''
 int get g(x) => 0;
-''';
-    var unit = parseCompilationUnit(
-      content,
-      codes: [diag.getterWithParameters],
-    );
-    validateTokenStream(unit.beginToken);
-
-    var g = unit.declarations.first as FunctionDeclaration;
-    var parameters = g.functionExpression.parameters!;
-    expect(parameters.parameters, hasLength(1));
+''');
+    parseResult.assertErrors([
+      error(diag.getterWithParameters, 9, 1), // Let's guess
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      returnType: NamedType
+        name: int
+      propertyKeyword: get
+      name: g
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            name: x
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+''');
   }
 
-  @failingTest
   void test_identifier_afterNamedArgument() {
-    // https://github.com/dart-lang/sdk/issues/30370
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 a() {
   b(c: c(d: d(e: null f,),),);
 }
-''',
-      [],
-      '''
-a() {
-  b(c: c(d: d(e: null,),),);
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 28, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: a
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: b
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      NamedExpression
+                        name: Label
+                          label: SimpleIdentifier
+                            token: c
+                          colon: :
+                        expression: MethodInvocation
+                          methodName: SimpleIdentifier
+                            token: c
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            arguments
+                              NamedExpression
+                                name: Label
+                                  label: SimpleIdentifier
+                                    token: d
+                                  colon: :
+                                expression: MethodInvocation
+                                  methodName: SimpleIdentifier
+                                    token: d
+                                  argumentList: ArgumentList
+                                    leftParenthesis: (
+                                    arguments
+                                      NamedExpression
+                                        name: Label
+                                          label: SimpleIdentifier
+                                            token: e
+                                          colon: :
+                                        expression: NullLiteral
+                                          literal: null
+                                      SimpleIdentifier
+                                        token: f
+                                    rightParenthesis: )
+                            rightParenthesis: )
+                    rightParenthesis: )
+                semicolon: ;
+            rightBracket: }
+''');
   }
 
   void test_invalidRangeCheck() {
-    parseCompilationUnit(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f(x) {
   while (1 < x < 3) {}
 }
-''',
-      codes: [diag.equalityCannotBeEqualityOperand],
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.equalityCannotBeEqualityOperand, 22, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition: BinaryExpression
+                  leftOperand: BinaryExpression
+                    leftOperand: IntegerLiteral
+                      literal: 1
+                    operator: <
+                    rightOperand: SimpleIdentifier
+                      token: x
+                  operator: <
+                  rightOperand: IntegerLiteral
+                    literal: 3
+                rightParenthesis: )
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+            rightBracket: }
+''');
   }
 
-  @failingTest
   void test_listLiteralType() {
-    // https://github.com/dart-lang/sdk/issues/4348
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 List<int> ints = List<int>[];
-''',
-      [],
-      '''
-List<int> ints = <int>[];
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.literalWithClass, 17, 4)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        type: NamedType
+          name: List
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: int
+            rightBracket: >
+        variables
+          VariableDeclaration
+            name: ints
+            equals: =
+            initializer: ListLiteral
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                rightBracket: >
+              leftBracket: [
+              rightBracket: ]
+      semicolon: ;
+''');
   }
 
-  @failingTest
   void test_mapLiteralType() {
-    // https://github.com/dart-lang/sdk/issues/4348
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 Map<int, int> map = Map<int, int>{};
-''',
-      [],
-      '''
-Map<int, int> map = <int, int>{};
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.literalWithClass, 20, 3)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        type: NamedType
+          name: Map
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: int
+              NamedType
+                name: int
+            rightBracket: >
+        variables
+          VariableDeclaration
+            name: map
+            equals: =
+            initializer: SetOrMapLiteral
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                  NamedType
+                    name: int
+                rightBracket: >
+              leftBracket: {
+              rightBracket: }
+              isMap: false
+      semicolon: ;
+''');
   }
 
   void test_mixin_using_with_clause() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 mixin M {}
 mixin N with M {}
-''',
-      [diag.mixinWithClause],
-      '''
-mixin M {}
-mixin N {}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.mixinWithClause, 19, 4)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: M
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: N
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_multipleRedirectingInitializers() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   A() : this.a(), this.b();
   A.a() {}
   A.b() {}
 }
-''',
-      [],
-      '''
-class A {
-  A() : this.a(), this.b();
-  A.a() {}
-  A.b() {}
-}
-''',
-    );
+''');
+    parseResult.assertErrors([]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              RedirectingConstructorInvocation
+                thisKeyword: this
+                period: .
+                constructorName: SimpleIdentifier
+                  token: a
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              RedirectingConstructorInvocation
+                thisKeyword: this
+                period: .
+                constructorName: SimpleIdentifier
+                  token: b
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: A
+            period: .
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: A
+            period: .
+            name: b
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
   }
 
-  @failingTest
   void test_parenInMapLiteral() {
-    // https://github.com/dart-lang/sdk/issues/12100
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {}
 final Map v = {
   'a': () => new C(),
   'b': () => new C()),
   'c': () => new C(),
 };
-''',
-      [diag.unexpectedToken],
-      '''
-class C {}
-final Map v = {
-  'a': () => new C(),
-  'b': () => new C(),
-  'c': () => new C(),
-};
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 69, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: final
+        type: NamedType
+          name: Map
+        variables
+          VariableDeclaration
+            name: v
+            equals: =
+            initializer: SetOrMapLiteral
+              leftBracket: {
+              elements
+                MapLiteralEntry
+                  key: SimpleStringLiteral
+                    literal: 'a'
+                  separator: :
+                  value: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: ExpressionFunctionBody
+                      functionDefinition: =>
+                      expression: InstanceCreationExpression
+                        keyword: new
+                        constructorName: ConstructorName
+                          type: NamedType
+                            name: C
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                MapLiteralEntry
+                  key: SimpleStringLiteral
+                    literal: 'b'
+                  separator: :
+                  value: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: ExpressionFunctionBody
+                      functionDefinition: =>
+                      expression: InstanceCreationExpression
+                        keyword: new
+                        constructorName: ConstructorName
+                          type: NamedType
+                            name: C
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+              rightBracket: }
+              isMap: false
+      semicolon: ;
+''');
   }
 }
 
 /// Test how well the parser recovers when extra modifiers are provided.
 @reflectiveTest
-class ModifiersTest extends AbstractRecoveryTest {
+class ModifiersTest extends ParserDiagnosticsTest {
   void test_classDeclaration_static() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 static class A {}
-''',
-      [diag.extraneousModifier],
-      '''
-class A {}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_methodDeclaration_const_getter() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 main() {}
 const int get foo => 499;
-''',
-      [diag.extraneousModifier],
-      '''
-main() {}
-int get foo => 499;
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 10, 5)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: main
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    FunctionDeclaration
+      returnType: NamedType
+        name: int
+      propertyKeyword: get
+      name: foo
+      functionExpression: FunctionExpression
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 499
+          semicolon: ;
+''');
   }
 
   void test_methodDeclaration_const_method() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 main() {}
 const int foo() => 499;
-''',
-      [diag.extraneousModifier],
-      '''
-main() {}
-int foo() => 499;
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 10, 5)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: main
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    FunctionDeclaration
+      returnType: NamedType
+        name: int
+      name: foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 499
+          semicolon: ;
+''');
   }
 
   void test_methodDeclaration_const_setter() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 main() {}
 const set foo(v) => 499;
-''',
-      [diag.extraneousModifier],
-      '''
-main() {}
-set foo(v) => 499;
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 10, 5)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: main
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    FunctionDeclaration
+      propertyKeyword: set
+      name: foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            name: v
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 499
+          semicolon: ;
+''');
   }
 }
 
 /// Test how well the parser recovers when multiple type annotations are
 /// provided.
 @reflectiveTest
-class MultipleTypeTest extends AbstractRecoveryTest {
-  @failingTest
+class MultipleTypeTest extends ParserDiagnosticsTest {
   void test_topLevelVariable() {
-    // https://github.com/dart-lang/sdk/issues/25875
-    // Recovers with 'void bar() {}', which seems wrong. Seems like we should
-    // keep the first type, not the second.
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 String void bar() { }
-''',
-      [diag.unexpectedToken],
-      '''
-String bar() { }
-''',
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.missingConstFinalVarOrType, 0, 6),
+      error(diag.expectedToken, 0, 6),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: String
+      semicolon: ; <synthetic>
+    FunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: bar
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 }
 
 /// Test how well the parser recovers when there is extra punctuation.
 @reflectiveTest
-class PunctuationTest extends AbstractRecoveryTest {
-  @failingTest
+class PunctuationTest extends ParserDiagnosticsTest {
   void test_extraComma_extendsClause() {
-    // https://github.com/dart-lang/sdk/issues/22313
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A { }
 class B { }
 class Foo extends A, B {
   Foo() { }
 }
-''',
-      [diag.unexpectedToken, diag.unexpectedToken],
-      '''
-class A { }
-class B { }
-class Foo extends A {
-  Foo() { }
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.multipleExtendsClauses, 43, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: B
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: A
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
   }
 
   void test_extraSemicolon_afterLastClassMember() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {
   foo() {};
 }
-''',
-      [diag.expectedClassMember],
-      '''
-class C {
-  foo() {}
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedClassMember, 20, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            name: foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
   }
 
   void test_extraSemicolon_afterLastTopLevelMember() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 foo() {};
-''',
-      [diag.unexpectedToken],
-      '''
-foo() {}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 8, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_extraSemicolon_beforeFirstClassMember() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {
   ;foo() {}
 }
-''',
-      [diag.expectedClassMember],
-      '''
-class C {
-  foo() {}
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedClassMember, 12, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            name: foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
   }
 
-  @failingTest
   void test_extraSemicolon_beforeFirstTopLevelMember() {
-    // This test fails because the beginning token for the invalid unit is the
-    // semicolon, despite the fact that it was skipped.
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 ;foo() {}
-''',
-      [diag.expectedExecutable],
-      '''
-foo() {}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 0, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 
   void test_extraSemicolon_betweenClassMembers() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {
   foo() {};
   bar() {}
 }
-''',
-      [diag.expectedClassMember],
-      '''
-class C {
-  foo() {}
-  bar() {}
-}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.expectedClassMember, 20, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            name: foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          MethodDeclaration
+            name: bar
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
   }
 
   void test_extraSemicolon_betweenTopLevelMembers() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 foo() {};
 bar() {}
-''',
-      [diag.unexpectedToken],
-      '''
-foo() {}
-bar() {}
-''',
-    );
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 8, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    FunctionDeclaration
+      name: bar
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+''');
   }
 }
 
 /// Test how well the parser recovers when there is extra variance modifiers.
 @reflectiveTest
-class VarianceModifierTest extends AbstractRecoveryTest {
+class VarianceModifierTest extends ParserDiagnosticsTest {
   void test_extraModifier_inClass() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A<in out X> {}
-''',
-      [diag.multipleVarianceModifiers],
-      '''
-class A<in X> {}
-''',
-      featureSet: FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: [Feature.variance.enableString],
-      ),
-    );
+''');
+    parseResult.assertErrors([error(diag.multipleVarianceModifiers, 11, 3)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              varianceKeyword: in
+              name: X
+          rightBracket: >
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 }
