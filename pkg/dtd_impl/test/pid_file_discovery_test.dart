@@ -132,12 +132,30 @@ void main() {
       expect(file.existsSync(), isTrue);
 
       final content = file.readAsStringSync();
-      final json = jsonDecode(content) as Map<String, dynamic>;
+      final json = jsonDecode(content) as Map<String, Object?>;
       final info = DTDConnectionInfo.fromJson(json);
 
       expect(info.wsUri, uri);
       expect(info.pid, processPid);
       expect(info.dartVersion, Platform.version);
+      expect(info.workspaceRoot, Directory.current.path);
+
+      process.kill();
+      expect(await process.exitCode, isNot(0));
+    });
+
+    test('connection info contains correct workspaceRoot', () async {
+      final (process, _) = await startDtdProcess();
+
+      final String dataHome = getDartDataHome(dtdDirName, environment: env);
+      final file = File(p.join(dataHome, process.pid.toString()));
+      expect(file.existsSync(), isTrue);
+
+      final content = file.readAsStringSync();
+      final json = jsonDecode(content) as Map<String, Object?>;
+      final info = DTDConnectionInfo.fromJson(json);
+
+      // Verify that workspaceRoot matches the current working directory of the process.
       expect(info.workspaceRoot, Directory.current.path);
 
       process.kill();
