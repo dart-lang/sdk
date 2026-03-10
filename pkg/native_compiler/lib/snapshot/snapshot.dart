@@ -709,7 +709,8 @@ final class TwoByteStringSerializationCluster extends SerializationCluster {
     for (final string in _objects) {
       serializer.assignRef(string);
       serializer.writeUint(string.length);
-      serializer.out.writeUint16List(string.codeUnits);
+      serializer.out.align(2);
+      serializer.out.writeUtf16String(string);
     }
   }
 }
@@ -1442,12 +1443,13 @@ class SnapshotStreamWriter {
   }
 
   @pragma('vm:prefer-inline')
-  void writeUint16List(List<int> src) {
-    _ensureCapacity(src.length << 1);
-    _currentBuffer.buffer
-        .asUint16List(_currentLength)
-        .setRange(0, src.length, src);
-    _currentLength += src.length << 1;
+  void writeUtf16String(String string) {
+    _ensureCapacity(string.length << 1);
+    for (var i = 0; i < string.length; ++i) {
+      int utf16codeUnit = string.codeUnitAt(i);
+      _currentBuffer[_currentLength++] = utf16codeUnit & 0xff;
+      _currentBuffer[_currentLength++] = utf16codeUnit >> 8;
+    }
   }
 
   @pragma('vm:prefer-inline')

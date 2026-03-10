@@ -232,15 +232,6 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities {
-    return <SyntacticEntity>[
-      ?_documentationComment,
-      ..._metadata,
-      ...super.childEntities,
-    ];
-  }
-
-  @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
   }
@@ -31579,7 +31570,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   @mustCallSuper
   ChildEntities get _childEntities {
     return ChildEntities()
-      ..addNode('documentationComment', documentationComment)
+      ..addNode('documentationComment', _documentationComment)
       ..addNodeList('metadata', metadata);
   }
 

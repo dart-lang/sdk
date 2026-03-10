@@ -3,24 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'parser_test_base.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(VarianceParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class VarianceParserTest extends FastaParserTestCase {
+class VarianceParserTest extends ParserDiagnosticsTest {
   final FeatureSet _disabledFeatureSet = FeatureSet.latestLanguageVersion();
 
   final FeatureSet _enabledFeatureSet = FeatureSet.fromEnableFlags2(
@@ -28,196 +26,439 @@ class VarianceParserTest extends FastaParserTestCase {
     flags: [Feature.variance.enableString],
   );
 
-  @override
-  CompilationUnitImpl parseCompilationUnit(
-    String content, {
-    List<DiagnosticCode>? codes,
-    List<ExpectedDiagnostic>? diagnostics,
-    FeatureSet? featureSet,
-  }) {
-    return super.parseCompilationUnit(
-      content,
-      codes: codes,
-      diagnostics: diagnostics,
-      featureSet: featureSet ?? _enabledFeatureSet,
-    );
-  }
-
   void test_class_disabled_multiple() {
-    parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'class A<in T, inout U, out V> { }',
-      diagnostics: [
-        expectedError(diag.experimentNotEnabledOffByDefault, 8, 2),
-        expectedError(diag.experimentNotEnabledOffByDefault, 14, 5),
-        expectedError(diag.experimentNotEnabledOffByDefault, 23, 3),
-      ],
       featureSet: _disabledFeatureSet,
     );
+    parseResult.assertErrors([
+      error(diag.experimentNotEnabledOffByDefault, 8, 2),
+      error(diag.experimentNotEnabledOffByDefault, 14, 5),
+      error(diag.experimentNotEnabledOffByDefault, 23, 3),
+    ]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: in
+          name: T
+        TypeParameter
+          varianceKeyword: inout
+          name: U
+        TypeParameter
+          varianceKeyword: out
+          name: V
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_class_disabled_single() {
-    parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'class A<out T> { }',
-      diagnostics: [expectedError(diag.experimentNotEnabledOffByDefault, 8, 3)],
       featureSet: _disabledFeatureSet,
     );
+    parseResult.assertErrors([
+      error(diag.experimentNotEnabledOffByDefault, 8, 3),
+    ]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: out
+          name: T
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_class_enabled_multiple() {
-    var unit = parseCompilationUnit('class A<in T, inout U, out V, W> { }');
-    expect(unit.declarations, hasLength(1));
-    var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.namePart.typeName.lexeme, 'A');
+    var parseResult = parseStringWithErrors(
+      'class A<in T, inout U, out V, W> { }',
+      featureSet: _enabledFeatureSet,
+    );
+    parseResult.assertNoErrors();
 
-    var typeParameters = classDecl.namePart.typeParameters!;
-    expect(typeParameters.typeParameters, hasLength(4));
-    expect(typeParameters.typeParameters[0].name.lexeme, 'T');
-    expect(typeParameters.typeParameters[1].name.lexeme, 'U');
-    expect(typeParameters.typeParameters[2].name.lexeme, 'V');
-    expect(typeParameters.typeParameters[3].name.lexeme, 'W');
-
-    var typeParameterImplList = typeParameters.typeParameters;
-    expect(
-      (typeParameterImplList[0] as TypeParameterImpl).varianceKeyword,
-      isNotNull,
-    );
-    expect(
-      (typeParameterImplList[0] as TypeParameterImpl).varianceKeyword!.lexeme,
-      "in",
-    );
-    expect(
-      (typeParameterImplList[1] as TypeParameterImpl).varianceKeyword,
-      isNotNull,
-    );
-    expect(
-      (typeParameterImplList[1] as TypeParameterImpl).varianceKeyword!.lexeme,
-      "inout",
-    );
-    expect(
-      (typeParameterImplList[2] as TypeParameterImpl).varianceKeyword,
-      isNotNull,
-    );
-    expect(
-      (typeParameterImplList[2] as TypeParameterImpl).varianceKeyword!.lexeme,
-      "out",
-    );
-    expect(
-      (typeParameterImplList[3] as TypeParameterImpl).varianceKeyword,
-      isNull,
-    );
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: in
+          name: T
+        TypeParameter
+          varianceKeyword: inout
+          name: U
+        TypeParameter
+          varianceKeyword: out
+          name: V
+        TypeParameter
+          name: W
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_class_enabled_multipleVariances() {
-    var unit = parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'class A<in out inout T> { }',
-      diagnostics: [
-        expectedError(diag.multipleVarianceModifiers, 11, 3),
-        expectedError(diag.multipleVarianceModifiers, 15, 5),
-      ],
+      featureSet: _enabledFeatureSet,
     );
-    expect(unit.declarations, hasLength(1));
-    var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.namePart.typeName.lexeme, 'A');
+    parseResult.assertErrors([
+      error(diag.multipleVarianceModifiers, 11, 3),
+      error(diag.multipleVarianceModifiers, 15, 5),
+    ]);
 
-    var typeParameters = classDecl.namePart.typeParameters!;
-    expect(typeParameters.typeParameters, hasLength(1));
-    expect(typeParameters.typeParameters[0].name.lexeme, 'T');
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: in
+          name: T
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_class_enabled_single() {
-    var unit = parseCompilationUnit('class A<in T> { }');
-    expect(unit.declarations, hasLength(1));
-    var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.namePart.typeName.lexeme, 'A');
+    var parseResult = parseStringWithErrors(
+      'class A<in T> { }',
+      featureSet: _enabledFeatureSet,
+    );
+    parseResult.assertNoErrors();
 
-    var typeParameters = classDecl.namePart.typeParameters!;
-    expect(typeParameters.typeParameters, hasLength(1));
-    expect(typeParameters.typeParameters[0].name.lexeme, 'T');
-
-    var typeParameterImpl =
-        typeParameters.typeParameters[0] as TypeParameterImpl;
-    expect(typeParameterImpl.varianceKeyword, isNotNull);
-    expect(typeParameterImpl.varianceKeyword!.lexeme, "in");
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: in
+          name: T
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_function_disabled() {
-    parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'void A(in int value) {}',
-      diagnostics: [
-        expectedError(diag.expectedIdentifierButGotKeyword, 7, 2),
-        expectedError(diag.expectedToken, 10, 3),
-      ],
       featureSet: _disabledFeatureSet,
     );
+    parseResult.assertErrors([
+      error(diag.expectedIdentifierButGotKeyword, 7, 2),
+      error(diag.expectedToken, 10, 3),
+    ]);
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: A
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        name: in
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: value
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_function_enabled() {
-    parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'void A(in int value) {}',
-      diagnostics: [
-        expectedError(diag.expectedIdentifierButGotKeyword, 7, 2),
-        expectedError(diag.expectedToken, 10, 3),
-      ],
+      featureSet: _enabledFeatureSet,
     );
+    parseResult.assertErrors([
+      error(diag.expectedIdentifierButGotKeyword, 7, 2),
+      error(diag.expectedToken, 10, 3),
+    ]);
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: A
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        name: in
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: value
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_list_disabled() {
-    parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'List<out String> stringList = [];',
-      diagnostics: [expectedError(diag.expectedToken, 9, 6)],
       featureSet: _disabledFeatureSet,
     );
+    parseResult.assertErrors([error(diag.expectedToken, 9, 6)]);
+
+    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    assertParsedNodeText(node, r'''
+TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    type: NamedType
+      name: List
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: out
+          NamedType
+            name: String
+        rightBracket: >
+    variables
+      VariableDeclaration
+        name: stringList
+        equals: =
+        initializer: ListLiteral
+          leftBracket: [
+          rightBracket: ]
+  semicolon: ;
+''');
   }
 
   void test_list_enabled() {
-    parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'List<out String> stringList = [];',
-      diagnostics: [expectedError(diag.expectedToken, 9, 6)],
+      featureSet: _enabledFeatureSet,
     );
+    parseResult.assertErrors([error(diag.expectedToken, 9, 6)]);
+
+    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    assertParsedNodeText(node, r'''
+TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    type: NamedType
+      name: List
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: out
+          NamedType
+            name: String
+        rightBracket: >
+    variables
+      VariableDeclaration
+        name: stringList
+        equals: =
+        initializer: ListLiteral
+          leftBracket: [
+          rightBracket: ]
+  semicolon: ;
+''');
   }
 
   void test_mixin_disabled_multiple() {
-    parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'mixin A<inout T, out U> { }',
-      diagnostics: [
-        expectedError(diag.experimentNotEnabledOffByDefault, 8, 5),
-        expectedError(diag.experimentNotEnabledOffByDefault, 17, 3),
-      ],
       featureSet: _disabledFeatureSet,
     );
+    parseResult.assertErrors([
+      error(diag.experimentNotEnabledOffByDefault, 8, 5),
+      error(diag.experimentNotEnabledOffByDefault, 17, 3),
+    ]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        varianceKeyword: inout
+        name: T
+      TypeParameter
+        varianceKeyword: out
+        name: U
+    rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_mixin_disabled_single() {
-    parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'mixin A<inout T> { }',
-      diagnostics: [expectedError(diag.experimentNotEnabledOffByDefault, 8, 5)],
       featureSet: _disabledFeatureSet,
     );
+    parseResult.assertErrors([
+      error(diag.experimentNotEnabledOffByDefault, 8, 5),
+    ]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        varianceKeyword: inout
+        name: T
+    rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_mixin_enabled_single() {
-    var unit = parseCompilationUnit('mixin A<inout T> { }');
-    expect(unit.declarations, hasLength(1));
-    var mixinDecl = unit.declarations[0] as MixinDeclaration;
-    expect(mixinDecl.name.lexeme, 'A');
+    var parseResult = parseStringWithErrors(
+      'mixin A<inout T> { }',
+      featureSet: _enabledFeatureSet,
+    );
+    parseResult.assertNoErrors();
 
-    var typeParameters = mixinDecl.typeParameters!;
-    expect(typeParameters.typeParameters, hasLength(1));
-    expect(typeParameters.typeParameters[0].name.lexeme, 'T');
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        varianceKeyword: inout
+        name: T
+    rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_typedef_disabled() {
-    parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'typedef A<inout X> = X Function(X);',
-      diagnostics: [expectedError(diag.expectedToken, 16, 1)],
       featureSet: _disabledFeatureSet,
     );
+    parseResult.assertErrors([error(diag.expectedToken, 16, 1)]);
+
+    var node = parseResult.findNode.singleGenericTypeAlias;
+    assertParsedNodeText(node, r'''
+GenericTypeAlias
+  typedefKeyword: typedef
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: inout
+      TypeParameter
+        name: X
+    rightBracket: >
+  equals: =
+  type: GenericFunctionType
+    returnType: NamedType
+      name: X
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: X
+      rightParenthesis: )
+  semicolon: ;
+''');
   }
 
   void test_typedef_enabled() {
-    parseCompilationUnit(
+    var parseResult = parseStringWithErrors(
       'typedef A<inout X> = X Function(X);',
-      diagnostics: [expectedError(diag.expectedToken, 16, 1)],
+      featureSet: _enabledFeatureSet,
     );
+    parseResult.assertErrors([error(diag.expectedToken, 16, 1)]);
+
+    var node = parseResult.findNode.singleGenericTypeAlias;
+    assertParsedNodeText(node, r'''
+GenericTypeAlias
+  typedefKeyword: typedef
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: inout
+      TypeParameter
+        name: X
+    rightBracket: >
+  equals: =
+  type: GenericFunctionType
+    returnType: NamedType
+      name: X
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: X
+      rightParenthesis: )
+  semicolon: ;
+''');
   }
 }

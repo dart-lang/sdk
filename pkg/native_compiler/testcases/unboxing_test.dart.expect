@@ -31,8 +31,8 @@ B10 = TargetBlock() idom:B5 in-loop:B5
   v19 = BinaryIntOp +(v25, v29)   # RA: R2 <- (R2, -)
   Goto(B5)
 B11 = TargetBlock() idom:B5
-  v30 = BoxInt(v24)   # RA: R0 <- (R1) temps: [R1, R2, R3]
-  ParallelMove input(vloc:R0 -> R0)
+  v30 = BoxInt(v24)   # RA: R1 <- (R1) temps: [R0, R2, R3]
+  ParallelMove input(vloc:R1 -> R0)
   Return(v30)   # RA: (R0)
 
 --- test3

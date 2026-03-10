@@ -2,464 +2,1348 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../util/feature_sets.dart';
-import 'parser_test_base.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionReferenceParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 /// Tests exercising the fasta parser's handling of generic instantiations.
 @reflectiveTest
-class FunctionReferenceParserTest extends FastaParserTestCase {
-  /// Verifies that the given [node] matches `f<a, b>`.
-  void expect_f_a_b(AstNode node) {
-    var functionReference = node as FunctionReference;
-    expect((functionReference.function as SimpleIdentifier).name, 'f');
-    var typeArgs = functionReference.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
-  }
-
-  void expect_two_args(MethodInvocation methodInvocation) {
-    var arguments = methodInvocation.argumentList.arguments;
-    expect(arguments, hasLength(2));
-    expect(arguments[0], TypeMatcher<BinaryExpression>());
-    expect(arguments[1], TypeMatcher<BinaryExpression>());
-  }
-
+class FunctionReferenceParserTest extends ParserDiagnosticsTest {
   void test_feature_disabled() {
-    expect_f_a_b(
-      (parseStatement('f<a, b>;', featureSet: FeatureSets.language_2_13)
-              as ExpressionStatement)
-          .expression,
+    var parseResult = parseStringWithErrors(
+      'void f() { f<a, b>; }',
+      featureSet: FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: Version.parse('2.13.0'),
+        flags: [],
+      ),
     );
-    listener.assertErrors([expectedError(diag.experimentNotEnabled, 1, 6)]);
+    parseResult.assertErrors([error(diag.experimentNotEnabled, 12, 6)]);
+
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_accepted_closeBrace() {
-    expect_f_a_b((parseExpression('{f<a, b>}') as SetOrMapLiteral).elements[0]);
+    var parseResult = parseStringWithErrors(r'''
+var x = {f<a, b>};
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleSetOrMapLiteral.elements[0];
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_accepted_closeBracket() {
-    expect_f_a_b((parseExpression('[f<a, b>]') as ListLiteral).elements[0]);
+    var parseResult = parseStringWithErrors(r'''
+var x = [f<a, b>];
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleListLiteral.elements[0];
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_accepted_closeParen() {
-    expect_f_a_b(
-      (parseExpression('g(f<a, b>)') as MethodInvocation)
-          .argumentList
-          .arguments[0],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = g(f<a, b>);
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleMethodInvocation.argumentList.arguments[0];
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_accepted_colon() {
-    expect_f_a_b(
-      ((parseExpression('{f<a, b>: null}') as SetOrMapLiteral).elements[0]
-              as MapLiteralEntry)
-          .key,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = {f<a, b>: null};
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.mapLiteralEntry('null').key;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_accepted_comma() {
-    expect_f_a_b(
-      (parseExpression('[f<a, b>, null]') as ListLiteral).elements[0],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = [f<a, b>, null];
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleListLiteral.elements[0];
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_accepted_equals() {
-    expect_f_a_b(
-      (parseExpression('f<a, b> == null') as BinaryExpression).leftOperand,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f<a, b> == null;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleBinaryExpression.leftOperand;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_accepted_not_equals() {
-    expect_f_a_b(
-      (parseExpression('f<a, b> != null') as BinaryExpression).leftOperand,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f<a, b> != null;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleBinaryExpression.leftOperand;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_accepted_openParen() {
-    // This is a special case because when a `(` follows `<typeArguments>` it is
-    // parsed as a MethodInvocation rather than a GenericInstantiation.
-    var methodInvocation = parseExpression('f<a, b>()') as MethodInvocation;
-    expect(methodInvocation.methodName.name, 'f');
-    var typeArgs = methodInvocation.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
-    expect(methodInvocation.argumentList.arguments, isEmpty);
+    var parseResult = parseStringWithErrors(r'''
+var x = f<a, b>();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_accepted_period_methodInvocation() {
-    // This is a special case because `f<a, b>.methodName(...)` is parsed as an
-    // InstanceCreationExpression.
-    var instanceCreationExpression =
-        parseExpression('f<a, b>.toString()') as InstanceCreationExpression;
-    var constructorName = instanceCreationExpression.constructorName;
-    var type = constructorName.type;
-    expect(type.name.lexeme, 'f');
-    var typeArgs = type.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
-    expect(constructorName.name!.name, 'toString');
-    expect(instanceCreationExpression.argumentList.arguments, isEmpty);
+    var parseResult = parseStringWithErrors(r'''
+var x = f<a, b>.toString();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleInstanceCreationExpression;
+    assertParsedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: f
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: a
+          NamedType
+            name: b
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_accepted_period_methodInvocation_generic() {
-    expect_f_a_b(
-      (parseExpression('f<a, b>.foo<c>()') as MethodInvocation).target!,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f<a, b>.foo<c>();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation.target!;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_accepted_period_propertyAccess() {
-    expect_f_a_b(
-      (parseExpression('f<a, b>.hashCode') as PropertyAccess).target!,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f<a, b>.hashCode;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singlePropertyAccess.target!;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_accepted_semicolon() {
-    expect_f_a_b(
-      (parseStatement('f<a, b>;') as ExpressionStatement).expression,
-    );
-    listener.assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  f<a, b>;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleExpressionStatement.expression;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_followingToken_rejected_ampersand() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>&d)',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>&d);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 1)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: &
+          rightOperand: SimpleIdentifier
+            token: d
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_as() {
-    expect_two_args(parseExpression('f(a<b,c>as)') as MethodInvocation);
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a < b, c > as);
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: SimpleIdentifier
+          token: as
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_asterisk() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>*d)',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>*d);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 1)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: *
+          rightOperand: SimpleIdentifier
+            token: d
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_bang_openBracket() {
-    expect_two_args(parseExpression('f(a<b,c>![d])') as MethodInvocation);
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a < b, c > ![d]);
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: PrefixExpression
+          operator: !
+          operand: ListLiteral
+            leftBracket: [
+            elements
+              SimpleIdentifier
+                token: d
+            rightBracket: ]
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_bang_paren() {
-    expect_two_args(parseExpression('f(a<b,c>!(d))') as MethodInvocation);
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a < b, c > !(d));
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: PrefixExpression
+          operator: !
+          operand: ParenthesizedExpression
+            leftParenthesis: (
+            expression: SimpleIdentifier
+              token: d
+            rightParenthesis: )
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_bar() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>|d)',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>|d);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 1)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: |
+          rightOperand: SimpleIdentifier
+            token: d
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_caret() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>^d)',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>^d);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 1)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: ^
+          rightOperand: SimpleIdentifier
+            token: d
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_is() {
-    var methodInvocation =
-        parseExpression(
-              'f(a<b,c> is int)',
-              diagnostics: [expectedError(diag.missingIdentifier, 9, 2)],
-            )
-            as MethodInvocation;
-    var arguments = methodInvocation.argumentList.arguments;
-    expect(arguments, hasLength(2));
-    expect(arguments[0], TypeMatcher<BinaryExpression>());
-    expect(arguments[1], TypeMatcher<IsExpression>());
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c> is int);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 17, 2)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      IsExpression
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: c
+          operator: >
+          rightOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+        isOperator: is
+        type: NamedType
+          name: int
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_lessThan() {
-    // Note: in principle we could parse this as a generic instantiation of a
-    // generic instantiation, but such an expression would be meaningless so we
-    // reject it at the parser level.
-    parseExpression(
-      'f<a><b>',
-      diagnostics: [
-        expectedError(diag.equalityCannotBeEqualityOperand, 3, 1),
-        expectedError(diag.expectedToken, 7, 0),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f<a><b>;
+''');
+    parseResult.assertErrors([
+      error(diag.equalityCannotBeEqualityOperand, 11, 1),
+      error(diag.expectedToken, 15, 1),
+    ]);
+    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    assertParsedNodeText(node, r'''
+BinaryExpression
+  leftOperand: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: f
+    operator: <
+    rightOperand: SimpleIdentifier
+      token: a
+  operator: >
+  rightOperand: ListLiteral
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: b
+      rightBracket: >
+    leftBracket: [ <synthetic>
+    rightBracket: ] <synthetic>
+''');
   }
 
   void test_followingToken_rejected_minus() {
-    expect_two_args(parseExpression('f(a<b,c>-d)') as MethodInvocation);
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a < b, c > -d);
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: PrefixExpression
+          operator: -
+          operand: SimpleIdentifier
+            token: d
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_openBracket() {
-    expect_two_args(parseExpression('f(a<b,c>[d])') as MethodInvocation);
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a < b, c > [d]);
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: ListLiteral
+          leftBracket: [
+          elements
+            SimpleIdentifier
+              token: d
+          rightBracket: ]
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_openBracket_error() {
-    // Note that theoretically this could be successfully parsed by interpreting
-    // `<` and `>` as delimiting type arguments, but the parser doesn't have
-    // enough lookahead to see that this is the only possible error-free parse;
-    // it commits to interpreting `<` and `>` as operators when it sees the `[`.
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>[d]>e)',
-            diagnostics: [
-              expectedError(diag.equalityCannotBeEqualityOperand, 11, 1),
-            ],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>[d]>e);
+''');
+    parseResult.assertErrors([
+      error(diag.equalityCannotBeEqualityOperand, 19, 1),
+    ]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: c
+          operator: >
+          rightOperand: ListLiteral
+            leftBracket: [
+            elements
+              SimpleIdentifier
+                token: d
+            rightBracket: ]
+        operator: >
+        rightOperand: SimpleIdentifier
+          token: e
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_openBracket_unambiguous() {
-    expect_two_args(parseExpression('f(a<b,c>[d, e])') as MethodInvocation);
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a < b, c > [d, e]);
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: ListLiteral
+          leftBracket: [
+          elements
+            SimpleIdentifier
+              token: d
+            SimpleIdentifier
+              token: e
+          rightBracket: ]
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_percent() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>%d)',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>%d);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 1)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: %
+          rightOperand: SimpleIdentifier
+            token: d
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_period_period() {
-    var methodInvocation =
-        parseExpression(
-              'f(a<b,c>..toString())',
-              diagnostics: [expectedError(diag.missingIdentifier, 8, 2)],
-            )
-            as MethodInvocation;
-    var arguments = methodInvocation.argumentList.arguments;
-    expect(arguments, hasLength(2));
-    expect(arguments[0], TypeMatcher<BinaryExpression>());
-    expect(arguments[1], TypeMatcher<CascadeExpression>());
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>..toString());
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 2)]);
+    var node = parseResult.findNode.methodInvocation('f(');
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      CascadeExpression
+        target: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: c
+          operator: >
+          rightOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+        cascadeSections
+          MethodInvocation
+            operator: ..
+            methodName: SimpleIdentifier
+              token: toString
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_plus() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>+d)',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>+d);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 1)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: +
+          rightOperand: SimpleIdentifier
+            token: d
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_question() {
-    var methodInvocation =
-        parseExpression(
-              'f(a<b,c> ? null : null)',
-              diagnostics: [expectedError(diag.missingIdentifier, 9, 1)],
-            )
-            as MethodInvocation;
-    var arguments = methodInvocation.argumentList.arguments;
-    expect(arguments, hasLength(2));
-    expect(arguments[0], TypeMatcher<BinaryExpression>());
-    expect(arguments[1], TypeMatcher<ConditionalExpression>());
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c> ? null : null);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 17, 1)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      ConditionalExpression
+        condition: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: c
+          operator: >
+          rightOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+        question: ?
+        thenExpression: NullLiteral
+          literal: null
+        colon: :
+        elseExpression: NullLiteral
+          literal: null
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_question_period_methodInvocation() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>?.toString())',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 2)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>?.toString());
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 2)]);
+    var node = parseResult.findNode.methodInvocation('f(');
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: MethodInvocation
+          target: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: ?.
+          methodName: SimpleIdentifier
+            token: toString
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_question_period_methodInvocation_generic() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>?.foo<c>())',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 2)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>?.foo<c>());
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 2)]);
+    var node = parseResult.findNode.methodInvocation('f(');
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: MethodInvocation
+          target: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: ?.
+          methodName: SimpleIdentifier
+            token: foo
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: c
+            rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_question_period_period() {
-    var methodInvocation =
-        parseExpression(
-              'f(a<b,c>?..toString())',
-              diagnostics: [
-                expectedError(diag.missingIdentifier, 8, 3),
-                expectedError(diag.expectedToken, 11, 8),
-              ],
-            )
-            as MethodInvocation;
-    var arguments = methodInvocation.argumentList.arguments;
-    expect(arguments, hasLength(3));
-    expect(arguments[0], TypeMatcher<BinaryExpression>());
-    expect(arguments[1], TypeMatcher<BinaryExpression>());
-    expect(arguments[2], TypeMatcher<MethodInvocation>());
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>?..toString());
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 16, 3),
+      error(diag.expectedToken, 19, 8),
+    ]);
+    var node = parseResult.findNode.methodInvocation('f(');
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: SimpleIdentifier
+          token: <empty> <synthetic>
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: toString
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_question_period_propertyAccess() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>?.hashCode)',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 2)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>?.hashCode);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 2)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: PropertyAccess
+          target: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: ?.
+          propertyName: SimpleIdentifier
+            token: hashCode
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_question_question() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c> ?? d)',
-            diagnostics: [expectedError(diag.missingIdentifier, 9, 2)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c> ?? d);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 17, 2)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: c
+          operator: >
+          rightOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+        operator: ??
+        rightOperand: SimpleIdentifier
+          token: d
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_slash() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>/d)',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>/d);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 1)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: /
+          rightOperand: SimpleIdentifier
+            token: d
+    rightParenthesis: )
+''');
   }
 
   void test_followingToken_rejected_tilde_slash() {
-    expect_two_args(
-      parseExpression(
-            'f(a<b,c>~/d)',
-            diagnostics: [expectedError(diag.missingIdentifier, 8, 2)],
-          )
-          as MethodInvocation,
-    );
+    var parseResult = parseStringWithErrors(r'''
+var x = f(a<b,c>~/d);
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 2)]);
+    var node = parseResult.findNode.singleMethodInvocation;
+    assertParsedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: b
+      BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: c
+        operator: >
+        rightOperand: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: <empty> <synthetic>
+          operator: ~/
+          rightOperand: SimpleIdentifier
+            token: d
+    rightParenthesis: )
+''');
   }
 
   void test_functionReference_after_indexExpression() {
-    // Note: this is not legal Dart, but it's important that we do error
-    // recovery and don't crash the parser.
-    var functionReference = parseExpression('x[0]<a, b>') as FunctionReference;
-    expect(functionReference.function, TypeMatcher<IndexExpression>());
-    var typeArgs = functionReference.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
+    var parseResult = parseStringWithErrors(r'''
+var x = x[0]<a, b>;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: IndexExpression
+    target: SimpleIdentifier
+      token: x
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_functionReference_after_indexExpression_bang() {
-    // Note: this is not legal Dart, but it's important that we do error
-    // recovery and don't crash the parser.
-    var functionReference = parseExpression('x[0]!<a, b>') as FunctionReference;
-    expect(functionReference.function, TypeMatcher<PostfixExpression>());
-    var typeArgs = functionReference.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
+    var parseResult = parseStringWithErrors(r'''
+var x = x[0]!<a, b>;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: PostfixExpression
+    operand: IndexExpression
+      target: SimpleIdentifier
+        token: x
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+      rightBracket: ]
+    operator: !
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_functionReference_after_indexExpression_functionCall() {
-    // Note: this is not legal Dart, but it's important that we do error
-    // recovery and don't crash the parser.
-    var functionReference =
-        parseExpression('x[0]()<a, b>') as FunctionReference;
-    expect(
-      functionReference.function,
-      TypeMatcher<FunctionExpressionInvocation>(),
-    );
-    var typeArgs = functionReference.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
+    var parseResult = parseStringWithErrors(r'''
+var x = x[0]()<a, b>;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: FunctionExpressionInvocation
+    function: IndexExpression
+      target: SimpleIdentifier
+        token: x
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+      rightBracket: ]
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_functionReference_after_indexExpression_nullAware() {
-    // Note: this is not legal Dart, but it's important that we do error
-    // recovery and don't crash the parser.
-    var functionReference = parseExpression('x?[0]<a, b>') as FunctionReference;
-    expect(functionReference.function, TypeMatcher<IndexExpression>());
-    var typeArgs = functionReference.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
+    var parseResult = parseStringWithErrors(r'''
+var x = x?[0]<a, b>;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: IndexExpression
+    target: SimpleIdentifier
+      token: x
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_methodTearoff() {
-    var functionReference = parseExpression('f().m<a, b>') as FunctionReference;
-    var function = functionReference.function as PropertyAccess;
-    var target = function.target as MethodInvocation;
-    expect(target.methodName.name, 'f');
-    expect(function.propertyName.name, 'm');
-    var typeArgs = functionReference.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
+    var parseResult = parseStringWithErrors(r'''
+var x = f().m<a, b>;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: PropertyAccess
+    target: MethodInvocation
+      methodName: SimpleIdentifier
+        token: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    operator: .
+    propertyName: SimpleIdentifier
+      token: m
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_methodTearoff_cascaded() {
-    var cascadeExpression =
-        parseExpression('f()..m<a, b>') as CascadeExpression;
-    var functionReference =
-        cascadeExpression.cascadeSections[0] as FunctionReference;
-    var function = functionReference.function as PropertyAccess;
-    expect(function.target, isNull);
-    expect(function.propertyName.name, 'm');
-    var typeArgs = functionReference.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
+    var parseResult = parseStringWithErrors(r'''
+var x = f()..m<a, b>;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleCascadeExpression.cascadeSections[0];
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: m
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_prefixedIdentifier() {
-    var functionReference =
-        parseExpression('prefix.f<a, b>') as FunctionReference;
-    var function = functionReference.function as PrefixedIdentifier;
-    expect(function.prefix.name, 'prefix');
-    expect(function.identifier.name, 'f');
-    var typeArgs = functionReference.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
+    var parseResult = parseStringWithErrors(r'''
+var x = prefix.f<a, b>;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+    period: .
+    identifier: SimpleIdentifier
+      token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 
   void test_three_identifiers() {
-    var functionReference =
-        parseExpression('prefix.ClassName.m<a, b>') as FunctionReference;
-    var function = functionReference.function as PropertyAccess;
-    var target = function.target as PrefixedIdentifier;
-    expect(target.prefix.name, 'prefix');
-    expect(target.identifier.name, 'ClassName');
-    expect(function.propertyName.name, 'm');
-    var typeArgs = functionReference.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect((typeArgs[0] as NamedType).name.lexeme, 'a');
-    expect((typeArgs[1] as NamedType).name.lexeme, 'b');
+    var parseResult = parseStringWithErrors(r'''
+var x = prefix.ClassName.m<a, b>;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    assertParsedNodeText(node, r'''
+FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+      period: .
+      identifier: SimpleIdentifier
+        token: ClassName
+    operator: .
+    propertyName: SimpleIdentifier
+      token: m
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+''');
   }
 }
