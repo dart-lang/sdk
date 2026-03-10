@@ -404,8 +404,7 @@ void main() {
         await client.close();
 
         // TODO: replace this polling when notification streams are implemented.
-
-        dynamic client2RegisterResult;
+        Object? client2RegisterResult;
         for (var i = 0; i < 10; i++) {
           try {
             // The service method registration should succeed once the other
