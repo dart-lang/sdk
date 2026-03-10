@@ -8,21 +8,29 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
+import '../extensions.dart';
 
 const _desc = r'Avoid slow asynchronous `dart:io` methods.';
 
-const Set<String> _fileSystemEntityMethodNames = <String>{
+const List<String> _dirMethodNames = <String>['exists', 'stat'];
+
+const List<String> _fileMethodNames = <String>[
+  'lastModified',
   'exists',
+  'stat',
+];
+
+const List<String> _fileSystemEntityMethodNames = <String>[
   'isDirectory',
   'isFile',
   'isLink',
-  'stat',
   'type',
-};
+];
 
 class AvoidSlowAsyncIo extends AnalysisRule {
   AvoidSlowAsyncIo()
@@ -48,25 +56,41 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    var methodName = node.methodName;
-    var element = methodName.element;
-    if (element is! MethodElement) return;
+    if (node.argumentList.arguments.isEmpty) {
+      var type = node.target?.staticType;
+      _checkFileMethods(node, type);
+      _checkDirectoryMethods(node, type);
+      return;
+    } else {
+      _checkFileSystemEntityMethods(node);
+      return;
+    }
+  }
 
-    var enclosingElement = element.enclosingElement;
-    if (enclosingElement is! ClassElement) return;
-
-    var library = enclosingElement.library;
-    if (library.name != 'dart.io') return;
-
-    var name = methodName.name;
-    var className = enclosingElement.name;
-    if (className == 'File') {
-      if (name == 'lastModified') {
+  void _checkDirectoryMethods(MethodInvocation node, DartType? type) {
+    if (type.extendsClass('Directory', 'dart.io')) {
+      if (_dirMethodNames.contains(node.methodName.name)) {
         rule.reportAtNode(node);
       }
-    } else if (className == 'FileSystemEntity') {
-      if (_fileSystemEntityMethodNames.contains(name)) {
+    }
+  }
+
+  void _checkFileMethods(MethodInvocation node, DartType? type) {
+    if (type.extendsClass('File', 'dart.io')) {
+      if (_fileMethodNames.contains(node.methodName.name)) {
         rule.reportAtNode(node);
+      }
+    }
+  }
+
+  void _checkFileSystemEntityMethods(MethodInvocation node) {
+    var target = node.target;
+    if (target is Identifier) {
+      var element = target.element;
+      if (element is ClassElement && element.name == 'FileSystemEntity') {
+        if (_fileSystemEntityMethodNames.contains(node.methodName.name)) {
+          rule.reportAtNode(node);
+        }
       }
     }
   }
