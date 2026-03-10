@@ -12,6 +12,7 @@ resolution: workspace
 dependencies:
   args: any
   collection: any
+  dart_data_home: any
   dart_service_protocol_shared: any
   dds: any
   dtd: any
