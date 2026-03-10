@@ -19,7 +19,7 @@ import 'server_driver.dart';
 /// analysis server, or reads them from stdin.
 ///
 /// Note that a limited number of bytes at a time can be sent manually through
-/// interactive terminals (4096 bytes on linux, 1028 on mac), which limites the
+/// interactive terminals (4096 bytes on linux, 1028 on mac), which limits the
 /// size of the messages that can be sent that way.
 ///
 /// This is useful for manually testing the analysis server, or a given log.
@@ -56,7 +56,7 @@ void replayLogFile(String path, ServerDriver driver) {
 
   print('ready, hit enter to send next message');
   var entriesIterator = log.entries.iterator;
-  stdin.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
+  stdin.transform(utf8.decoder).transform(const LineSplitter()).listen((_) {
     while (true) {
       if (!entriesIterator.moveNext()) {
         print('no more entries');

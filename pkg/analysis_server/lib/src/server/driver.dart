@@ -28,7 +28,6 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/perf_witness/perf_witness.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
-import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/performance_logger.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
@@ -346,12 +345,8 @@ class Driver implements ServerStarter {
 
     // Initialize the session logging service.
     var sessionLogFilePath = results.option(sessionLogOption);
-    _sessionLogger = SessionLogger();
-    var inMemorySink = SessionLoggerInMemorySink(maxBufferLength: 1024);
-    _sessionLogger.sink = inMemorySink;
-    if (sessionLogFilePath != null) {
-      inMemorySink.nextLogger = SessionLoggerFileSink(sessionLogFilePath);
-    }
+    _sessionLogger = SessionLogger(filePath: sessionLogFilePath);
+    _sessionLogger.normalizer.addReplacement(defaultSdkPath, '{{dartSdkRoot}}');
     _sessionLogger.logCommandLine(arguments: arguments);
 
     int? diagnosticServerPort;

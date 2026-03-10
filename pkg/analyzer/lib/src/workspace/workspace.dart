@@ -27,6 +27,9 @@ abstract class Workspace {
   @internal
   bool get isConsistentWithFileSystem => true;
 
+  /// Information about packages available in the workspace.
+  Packages get packages;
+
   /// The [UriResolver] that can resolve `package` URIs.
   UriResolver get packageUriResolver;
 

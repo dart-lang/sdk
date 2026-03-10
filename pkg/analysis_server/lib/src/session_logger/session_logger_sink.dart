@@ -6,20 +6,23 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/session_logger/log_entry.dart';
+import 'package:analysis_server/src/session_logger/log_normalizer.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:language_server_protocol/protocol_special.dart' show Either2;
 
 /// A sink for a session logger that will write entries to a file.
-class SessionLoggerFileSink extends SessionLoggerSink {
+final class SessionLoggerFileSink extends SessionLoggerSink {
   /// The sink used to write to the file.
-  late final IOSink _sink;
+  final IOSink _sink;
 
-  /// Initialize a newly created sink to write to the file at the given
+  @override
+  final LogNormalizer _normalizer;
+
+  /// Initializes a newly created sink to write to the file at the given
   /// [filePath].
-  SessionLoggerFileSink(String filePath) {
-    File file = File(filePath);
-    _sink = file.openWrite();
-  }
+  SessionLoggerFileSink(String filePath, {required LogNormalizer normalizer})
+    : _normalizer = normalizer,
+      _sink = File(filePath).openWrite();
 
   @override
   Future<void> close() async {
@@ -28,7 +31,9 @@ class SessionLoggerFileSink extends SessionLoggerSink {
 
   @override
   void writeLogEntry(JsonMap entry) {
-    _sink.writeln(json.encode(entry));
+    var jsonString = json.encode(entry);
+    jsonString = _normalizer.normalize(jsonString);
+    _sink.writeln(jsonString);
   }
 }
 
@@ -41,7 +46,7 @@ class SessionLoggerFileSink extends SessionLoggerSink {
 /// - workspace configuration, and
 /// - text documents
 /// until capturing is enabled.
-class SessionLoggerInMemorySink extends SessionLoggerSink {
+final class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// The maximum number of entries stored in the [_sessionBuffer].
   int maxBufferLength;
 
@@ -50,7 +55,7 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
 
   /// A session logger to which requests should be forwarded, or `null` if there
   /// is no logger to forward requests to.
-  SessionLoggerSink? nextLogger;
+  final SessionLoggerSink? _nextLogger;
 
   /// The buffer in which initialization related entries are stored.
   final List<LogEntry> _initializationBuffer = [];
@@ -67,8 +72,18 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// The buffer in which normal entries are stored.
   final List<LogEntry> _sessionBuffer = [];
 
+  @override
+  final LogNormalizer _normalizer;
+
   /// Initialize a newly created sink to store up to [maxBufferLength] entries.
-  SessionLoggerInMemorySink({required this.maxBufferLength});
+  SessionLoggerInMemorySink({
+    required this.maxBufferLength,
+    required LogNormalizer normalizer,
+    String? filePath,
+  }) : _normalizer = normalizer,
+       _nextLogger = filePath == null
+           ? null
+           : SessionLoggerFileSink(filePath, normalizer: normalizer);
 
   /// Returns a list of the entries that have been captured.
   ///
@@ -86,9 +101,12 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// Whether entries are currently being captured in the buffer.
   bool get isCapturingEntries => _capturingEntries;
 
+  /// Returns the session logger to which requests should be forwarded.
+  SessionLoggerSink? get nextLogger => _nextLogger;
+
   @override
   Future<void> close() async {
-    await nextLogger?.close();
+    await _nextLogger?.close();
   }
 
   /// Stops the capturing of entries.
@@ -104,8 +122,9 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
 
   @override
   void writeLogEntry(JsonMap entry) {
-    nextLogger?.writeLogEntry(entry);
-    var logEntry = LogEntry(entry);
+    var normalizedEntry = _normalize(entry);
+    _nextLogger?.writeLogEntry(normalizedEntry);
+    var logEntry = LogEntry(normalizedEntry);
     if (_isInitializationEntry(logEntry)) {
       _initializationBuffer.add(logEntry);
       return;
@@ -141,7 +160,8 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// A configuration entry is defined as an entry that records the
   /// configuration of the workspace.
   ///
-  /// Configuration entries are captured even when [captureEntries] is `false`.
+  /// Configuration entries are captured even when [_capturingEntries] is
+  /// `false`.
   bool _isConfigurationEntry(LogEntry entry) {
     // TODO(brianwilkerson): Make this method support the legacy protocol.
     if (entry.isMessage) {
@@ -163,7 +183,8 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// An initialization entry is defined as an entry that records the
   /// initialization process.
   ///
-  /// Initialization entries are captured even when [captureEntries] is `false`.
+  /// Initialization entries are captured even when [_capturingEntries] is
+  /// `false`.
   bool _isInitializationEntry(LogEntry entry) {
     // TODO(brianwilkerson): Make this method support the legacy protocol.
     if (entry.isCommandLine) return true;
@@ -186,7 +207,8 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// A text document entry is defined as an entry that records an operation
   /// on a text document.
   ///
-  /// Text document entries are captured even when [captureEntries] is `false`.
+  /// Text document entries are captured even when [_capturingEntries] is
+  /// `false`.
   bool _isTextDocumentEntry(LogEntry entry) {
     if (entry.isMessage) {
       var message = entry.message;
@@ -198,9 +220,18 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
 
 /// Used to write information about a session to a log.
 sealed class SessionLoggerSink {
-  /// Close any resources being held by this sink.
+  /// The normalizer used to normalize paths in log entries.
+  LogNormalizer get _normalizer;
+
+  /// Closes any resources being held by this sink.
   Future<void> close();
 
-  /// Write the given log [entry] to this sink.
+  /// Writes the given log [entry] to this sink.
   void writeLogEntry(JsonMap entry);
+
+  /// Returns the given [entry] after normalizing any paths in it.
+  JsonMap _normalize(JsonMap entry) {
+    var normalizedJsonString = _normalizer.normalize(json.encode(entry));
+    return json.decode(normalizedJsonString) as JsonMap;
+  }
 }
