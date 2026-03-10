@@ -11,6 +11,7 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:dart_data_home/dart_data_home.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
@@ -172,6 +173,7 @@ enum _DartToolingDaemonOptionKind {
 /// A service that facilitates communication between dart tools.
 class DartToolingDaemon {
   /// Used to override the environment variables for `dart_data_home` during tests.
+  @visibleForTesting
   static Map<String, String>? environmentOverride;
 
   DartToolingDaemon._({

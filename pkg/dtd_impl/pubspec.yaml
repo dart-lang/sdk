@@ -18,6 +18,7 @@ dependencies:
   dtd: any
   file: any
   json_rpc_2: any
+  meta: any
   path: any
   shelf: any
   shelf_web_socket: any
