@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/parser_test_base.dart' show ParserTestCase;
+import '../../src/diagnostics/parser_diagnostics.dart';
 import '../../util/ast_type_matchers.dart';
 
 main() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class BreadthFirstVisitorTest extends ParserTestCase {
+class BreadthFirstVisitorTest extends ParserDiagnosticsTest {
   void test_it() {
     String source = r'''
 class A {
@@ -38,7 +38,7 @@ A f(p) {
     return null;
   }
 }''';
-    CompilationUnit unit = parseCompilationUnit(source);
+    CompilationUnit unit = parseStringWithErrors(source).unit;
     List<AstNode> nodes = <AstNode>[];
     _BreadthFirstVisitorTestHelper visitor = _BreadthFirstVisitorTestHelper(
       nodes,

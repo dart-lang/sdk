@@ -12,7 +12,6 @@ import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/parser_test_base.dart' show ParserTestCase;
 import '../../src/diagnostics/parser_diagnostics.dart';
 import '../../util/feature_sets.dart';
 
@@ -133,7 +132,7 @@ class A {
 }
 
 @reflectiveTest
-class FormalParameterIsExplicitlyTypedTest extends ParserTestCase {
+class FormalParameterIsExplicitlyTypedTest extends ParserDiagnosticsTest {
   test_field_functionTyped_explicitReturn() {
     _checkExplicitlyTyped('''
 class C {
@@ -724,7 +723,7 @@ void f() {
 }
 
 @reflectiveTest
-class InterpolationStringTest extends ParserTestCase {
+class InterpolationStringTest extends ParserDiagnosticsTest {
   /// This field is updated in [_parseStringInterpolation].
   /// It is used in [_assertContentsOffsetEnd].
   var _baseOffset = 0;
@@ -1090,7 +1089,7 @@ final y = 42;
 }
 
 @reflectiveTest
-class NormalFormalParameterTest extends ParserTestCase {
+class NormalFormalParameterTest extends ParserDiagnosticsTest {
   test_sortedCommentAndAnnotations_noComment() {
     var result = parseString(
       content: '''
