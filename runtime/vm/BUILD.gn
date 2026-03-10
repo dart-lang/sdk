@@ -73,10 +73,7 @@ library_for_all_configs("libdart_vm") {
   target_type = "source_set"
   extra_product_deps = []
   extra_nonproduct_deps = []
-  extra_deps = [
-    "//third_party/icu:icui18n",
-    "//third_party/icu:icuuc",
-  ]
+  extra_deps = [ "//third_party/icu:icuuc" ]
   if (dart_support_perfetto) {
     extra_deps += [ "//third_party/perfetto:libprotozero" ]
   }
@@ -273,7 +270,6 @@ executable("gen_regexp_special_case") {
   ]
   deps = [
     "../platform:libdart_platform_jit",
-    "//third_party/icu:icui18n",
     "//third_party/icu:icuuc",
   ]
   sources = [ "regexp/gen_regexp_special_case.cc" ]

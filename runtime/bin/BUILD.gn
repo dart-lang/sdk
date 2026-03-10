@@ -886,7 +886,6 @@ template("dart_executable") {
       ":crashpad",
       ":icudtl_cc",
       "//third_party/boringssl",
-      "//third_party/icu:icui18n",
       "//third_party/icu:icuuc",
       "//third_party/zlib",
     ]
