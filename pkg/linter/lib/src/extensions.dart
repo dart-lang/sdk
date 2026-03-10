@@ -289,7 +289,7 @@ extension DartTypeExtension on DartType? {
 
   /// Whether this [DartType] extends [className], declared in [library].
   bool extendsClass(String? className, String library) {
-    var self = this?.typeForInterfaceCheck;
+    var self = this;
     return self is InterfaceType &&
         _extendsClass(self, <InterfaceElement>{}, className, library);
   }

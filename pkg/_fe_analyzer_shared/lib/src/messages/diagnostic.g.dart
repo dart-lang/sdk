@@ -2567,6 +2567,16 @@ const MessageCode recordTypeZeroFieldsButTrailingComma = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+redirectGenerativeToNonGenerativeConstructor = const MessageCode(
+  "RedirectGenerativeToNonGenerativeConstructor",
+  sharedCode: SharedCode.redirectGenerativeToNonGenerativeConstructor,
+  problemMessage:
+      """Generative constructors can't redirect to a factory constructor.""",
+  correctionMessage: """Try redirecting to a different constructor.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode redirectingConstructorWithBody = const MessageCode(
   "RedirectingConstructorWithBody",
   sharedCode: SharedCode.redirectingConstructorWithBody,
@@ -3187,6 +3197,7 @@ enum SharedCode {
   primaryConstructorBodyWithoutDeclaration,
   recordLiteralOnePositionalNoTrailingComma,
   recordTypeOnePositionalNoTrailingComma,
+  redirectGenerativeToNonGenerativeConstructor,
   redirectingConstructorWithBody,
   redirectionInNonFactoryConstructor,
   sealedEnum,

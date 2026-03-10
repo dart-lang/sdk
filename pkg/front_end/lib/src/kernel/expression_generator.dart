@@ -6664,7 +6664,7 @@ class ThisAccessGenerator extends Generator {
           return createInvalidInitializer(
             LookupResult.createDuplicateExpression(
               result,
-              context: _helper.libraryBuilder.loader.target.context,
+              context: _helper.compilerContext,
               name: name.text,
               fileUri: _helper.uri,
               fileOffset: offset,

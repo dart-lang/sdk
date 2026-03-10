@@ -502,7 +502,7 @@ enum NoConstructorCalls {
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR
   //                                            ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_NON_CONST_CONSTRUCTOR
-  // [cfe] Couldn't find constructor 'NoConstructorCalls.factory'.
+  // [cfe] Generative constructors can't redirect to a factory constructor.
 
   factory NoConstructorCalls.factory() => e1; // Valid.
 

@@ -1287,6 +1287,7 @@ final sharedAnalyzerCodes = <DiagnosticCode>[
   diag.primaryConstructorBodyWithoutDeclaration,
   diag.recordLiteralOnePositionalNoTrailingComma,
   diag.recordTypeOnePositionalNoTrailingComma,
+  diag.redirectGenerativeToNonGenerativeConstructor,
   diag.redirectingConstructorWithBody,
   diag.redirectionInNonFactoryConstructor,
   diag.sealedEnum,
