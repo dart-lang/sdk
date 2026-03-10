@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -13,7 +11,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../src/diagnostics/parser_diagnostics.dart';
-import '../../util/feature_sets.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -534,7 +531,7 @@ class C extends B {
   }
 
   void _checkExplicitlyTyped(String input, bool expected) {
-    var parseResult = parseString(content: input);
+    var parseResult = parseStringWithErrors(input);
     var class_ = parseResult.unit.declarations[0] as ClassDeclaration;
     var body = class_.body as BlockClassBody;
     var constructor = body.members[0] as ConstructorDeclaration;
@@ -868,7 +865,7 @@ class InterpolationStringTest extends ParserDiagnosticsTest {
     var unitCode = 'var x = ';
     _baseOffset = unitCode.length;
     unitCode += code;
-    var unit = parseString(content: unitCode, throwIfDiagnostics: false).unit;
+    var unit = parseStringWithErrors(unitCode).unit;
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     return declaration.variables.variables[0].initializer
         as StringInterpolation;
@@ -1091,11 +1088,9 @@ final y = 42;
 @reflectiveTest
 class NormalFormalParameterTest extends ParserDiagnosticsTest {
   test_sortedCommentAndAnnotations_noComment() {
-    var result = parseString(
-      content: '''
+    var result = parseStringWithErrors('''
 void f(int i) {}
-''',
-    );
+''');
     var function = result.unit.declarations[0] as FunctionDeclaration;
     var parameters = function.functionExpression.parameters;
     var parameter = parameters?.parameters[0] as NormalFormalParameter;
@@ -1116,7 +1111,7 @@ class C {}
 }
 
 @reflectiveTest
-class PreviousTokenTest {
+class PreviousTokenTest extends ParserDiagnosticsTest {
   static final String contents = '''
 class A {
   B foo(C c) {
@@ -1130,7 +1125,7 @@ E f() => g;
   CompilationUnit? _unit;
 
   CompilationUnit get unit {
-    return _unit ??= parseString(content: contents).unit;
+    return _unit ??= parseStringWithErrors(contents).unit;
   }
 
   Token findToken(String lexeme) {
@@ -1173,10 +1168,7 @@ E f() => g;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
 
-    var missing = parseString(
-      content: 'missing',
-      throwIfDiagnostics: false,
-    ).unit.beginToken;
+    var missing = parseStringWithErrors('missing').unit.beginToken;
     expect(statement.findPrevious(missing), null);
   }
 
@@ -1937,21 +1929,10 @@ class _AssignmentKind {
   String toString() => name;
 }
 
-class _AstTest {
-  ParseStringResult parseStringWithErrors(String content) {
-    return parseString(
-      content: content,
-      featureSet: FeatureSets.latestWithExperiments,
-      throwIfDiagnostics: false,
-    );
-  }
-
+class _AstTest extends ParserDiagnosticsTest {
   FindNode _parseStringToFindNode(String content) {
-    var parseResult = parseString(
-      content: content,
-      featureSet: FeatureSets.latestWithExperiments,
-    );
-    return FindNode(parseResult.content, parseResult.unit);
+    var parseResult = parseStringWithErrors(content);
+    return parseResult.findNode;
   }
 
   T _parseStringToNode<T extends AstNode>(String codeWithMark) {
@@ -1965,10 +1946,7 @@ class _AstTest {
     var codeAfter = codeWithMark.substring(offset + 1);
     var code = codeBefore + codeAfter;
 
-    var parseResult = parseString(
-      content: code,
-      featureSet: FeatureSets.latestWithExperiments,
-    );
+    var parseResult = parseStringWithErrors(code);
 
     var node = NodeLocator2(offset).searchWithin(parseResult.unit);
     if (node == null) {
