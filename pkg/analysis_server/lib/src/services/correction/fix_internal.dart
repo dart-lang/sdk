@@ -626,6 +626,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.invalidConstant: [RemoveConst.new],
   diag.invalidCovariantModifierInPrimaryConstructor: [
     RemoveKeyword.covariantKeyword,
+    ReplaceFinalWithVar.new,
   ],
   diag.invalidModifierOnConstructor: [RemoveLexeme.modifier],
   diag.invalidModifierOnSetter: [RemoveLexeme.modifier],
