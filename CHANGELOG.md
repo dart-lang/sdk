@@ -1,5 +1,7 @@
 ## 3.11.2
 
+**Released on:** 2026-03-10
+
 This is a patch release that:
 
 - Fixes a bug in pub's support tag_pattern git dependencies that prevented it to
