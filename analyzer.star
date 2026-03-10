@@ -17,7 +17,7 @@ dart.ci_sandbox_builder(
     "flutter-analyze",
     category = "analyzer|fa",
     channels = ["try"],
-    location_filters = paths.to_location_filters(paths.analyzer_only),
+    location_filters = paths.to_location_filters(paths.analyzer_end_user),
 )
 dart.ci_sandbox_builder(
     "analyzer-analysis-server-linux",

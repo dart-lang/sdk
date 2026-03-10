@@ -74,16 +74,19 @@ _DDC_PATHS = _WEB_PATHS + [
     "pkg/(js|modular_test|sourcemap_testing)/.+",
 ]
 
-_ANALYZER_PATHS_ONLY = [
-    "pkg/(analyzer|analyzer_cli|_fe_analyzer_shared)/.+",
-]
-
 _ANALYZER_PATHS = _STANDARD_PATHS + [
     # "analyzer" bots analyze everything under pkg
     "pkg/.+",
     # "analyzer-analysis-server-linux" bot also analyzes dartfuzz and iso-stress
     "runtime/tests/concurrency/.+",
     "runtime/tools/dartfuzz/.+",
+]
+
+# Path which can affect end-users of analyzer (e.g. dart analyze and
+# flutter analyze CLI) and change analysis results (e.g. cause more errors to
+# be reported when analyzing a code base).
+_ANALYZER_END_USER_PATHS = [
+    "pkg/(analyzer(|_cli|_utilities)|_fe_analyzer_shared|linter|analysis_server(|_client|_plugin))/.+",
 ]
 
 _DART2WASM_PATHS = _CFE_PATHS + [
@@ -114,7 +117,7 @@ def _to_location_filters(paths):
 
 paths = struct(
     analyzer = _ANALYZER_PATHS,
-    analyzer_only = _ANALYZER_PATHS_ONLY,
+    analyzer_end_user = _ANALYZER_END_USER_PATHS,
     cfe = _CFE_PATHS,
     cfe_only = _CFE_PATHS_ONLY,
     dart2bytecode = _DART2BYTECODE_PATHS,
