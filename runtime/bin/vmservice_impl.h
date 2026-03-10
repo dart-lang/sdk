@@ -64,6 +64,12 @@ class VmService {
       // argument to this parameter should be null.
       const char* resident_compiler_info_file_path);
 
+  // Specifies that the experimental VM service implementation should be used.
+  // TODO(bkonyi): remove this variable when the experimental service is
+  // stable. This was only added as a public static to avoid temporarily
+  // modifying the signature of Setup(...).
+  static bool enable_experimental_vm_service;
+
   static void SetNativeResolver();
 
   // Error message if startup failed.

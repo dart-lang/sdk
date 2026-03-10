@@ -280,6 +280,10 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     if not args.platform_sdk:
         gn_args['dart_platform_sdk'] = args.platform_sdk
 
+    if args.include_experimental_vm_service:
+        gn_args[
+            'include_experimental_vm_service'] = args.include_experimental_vm_service
+
     # We don't support stripping on Windows
     if host_os != 'win':
         gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
@@ -555,6 +559,11 @@ def AddCommonGnOptionArgs(parser):
                         help='Sign executables using the given identity.',
                         default='',
                         type=str)
+    parser.add_argument(
+        '--include-experimental-vm-service',
+        help='Use the Dart Runtime Service based VM service implementation.',
+        default=False,
+        action='store_true')
 
 
 def AddCommonConfigurationArgs(parser):

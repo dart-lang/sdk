@@ -245,6 +245,10 @@ config("dart_config") {
     defines += [ "DART_DYNAMIC_MODULES" ]
   }
 
+  if (include_experimental_vm_service) {
+    defines += [ "EXPERIMENTAL_VM_SERVICE" ]
+  }
+
   if (is_fuchsia) {
     lib_dirs = [ "${fuchsia_arch_root}/lib" ]
 

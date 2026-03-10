@@ -1065,22 +1065,10 @@ void main(int argc, char** argv) {
 
   Loader::InitOnce();
 
-  // Setup script_name to point to the dartdev AOT snapshot.
-  auto dartdev_path = DartDev::ResolvedSnapshotPath();
-  char* script_name = dartdev_path.get();
-  if (script_name == nullptr || !CheckForInvalidPath(script_name)) {
-    Syslog::PrintErr("Unable to find AOT snapshot for dartdev\n");
+  auto [app_snapshot, script_name] =
+      Snapshot::TryReadSDKSnapshot("dartdev_aot.dart.snapshot");
+  if (app_snapshot == nullptr) {
     FreeConvertedArgs(argc, argv, argv_converted);
-    Platform::Exit(kErrorExitCode);
-  }
-  AppSnapshot* app_snapshot = Snapshot::TryReadAppSnapshot(
-      script_name, /*force_load_from_memory*/ false, /*decode_uri*/ false);
-  if (app_snapshot == nullptr || !app_snapshot->IsAOT()) {
-    Syslog::PrintErr("%s is not an AOT snapshot\n", script_name);
-    FreeConvertedArgs(argc, argv, argv_converted);
-    if (app_snapshot != nullptr) {
-      delete app_snapshot;
-    }
     Platform::Exit(kErrorExitCode);
   }
   app_snapshot->SetBuffers(
@@ -1152,7 +1140,7 @@ void main(int argc, char** argv) {
   // - Exit the process due to some command parsing errors
   // - Run the Dart script in a JIT mode by execing the JIT runtime
   // - Run the Dart AOT snapshot by creating a new Isolate
-  DartDev::RunDartDev(script_name, &dart_vm_options, &dart_options);
+  DartDev::RunDartDev(script_name.get(), &dart_vm_options, &dart_options);
 
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();

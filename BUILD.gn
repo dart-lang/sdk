@@ -61,6 +61,7 @@ group("runtime") {
     deps += [
       "runtime/bin:dartaotruntime",
       "runtime/bin:dartaotruntime_product",
+      "utils/dart_runtime_service_vm:dart_runtime_service_vm_aot_snapshot",
       "utils/dartdev:dartdev_aot_snapshot",
       "utils/dds:dds_aot",
       "utils/dtd:dtd_aot",
@@ -68,6 +69,7 @@ group("runtime") {
     ]
   } else {
     deps += [
+      "utils/dart_runtime_service_vm",
       "utils/dds",
       "utils/dtd",
       "utils/kernel-service:frontend_server",

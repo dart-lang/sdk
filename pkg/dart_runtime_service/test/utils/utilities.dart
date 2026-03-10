@@ -22,7 +22,7 @@ Future<DartRuntimeService> createDartRuntimeServiceForTest({
   DartRuntimeService? service;
   addTearDown(() async => await service?.shutdown());
 
-  service = await DartRuntimeService.start(
+  service = await DartRuntimeService.initialize(
     config: config,
     backend: FakeDartRuntimeServiceBackend(),
   );

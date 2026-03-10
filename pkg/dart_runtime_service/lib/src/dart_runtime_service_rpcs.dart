@@ -15,7 +15,6 @@ import 'event_streams.dart';
 import 'rpc_exceptions.dart';
 import 'utils.dart';
 
-typedef RpcResponse = Map<String, Object?>;
 typedef RpcHandlerWithNoParameters = FutureOr<RpcResponse> Function();
 typedef RpcHandlerWithParameters =
     FutureOr<RpcResponse> Function(json_rpc.Parameters);
@@ -80,7 +79,9 @@ final class DartRuntimeServiceRpcs {
         }
       });
     }
+  }
 
+  void registerServiceExtensionForwarder(json_rpc.Peer clientPeer) {
     clientPeer.registerFallback(serviceExtensionForwarderFallback);
   }
 

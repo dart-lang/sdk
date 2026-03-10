@@ -11,6 +11,7 @@
 #include "bin/dfe.h"
 #include "bin/elf_loader.h"
 #include "bin/error_exit.h"
+#include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/macho_loader.h"
 #include "bin/platform.h"
@@ -845,6 +846,67 @@ static void WriteSnapshotFile(const char* filename,
   file->Release();
 }
 #endif
+
+// TODO(bkonyi): dedup
+static bool CheckForInvalidPath(const char* path) {
+  // TODO(zichangguo): "\\?\" is a prefix for paths on Windows.
+  // Arguments passed are parsed as an URI. "\\?\" causes problems as a part
+  // of URIs. This is a temporary workaround to prevent VM from crashing.
+  // Issue: https://github.com/dart-lang/sdk/issues/42779
+  if (strncmp(path, R"(\\?\)", 4) == 0) {
+    Syslog::PrintErr(R"(\\?\ prefix is not supported)");
+    return false;
+  }
+  return true;
+}
+
+std::pair<AppSnapshot*, CStringUniquePtr> Snapshot::TryReadSDKSnapshot(
+    const char* snapshot_name) {
+  auto try_resolve_path = [&](CStringUniquePtr dir_prefix) {
+    // |dir_prefix| includes the last path separator.
+    // First assume we're in dart-sdk/bin.
+    char* snapshot_path =
+        Utils::SCreate("%ssnapshots/%s", dir_prefix.get(), snapshot_name);
+    if (File::Exists(nullptr, snapshot_path)) {
+      return CStringUniquePtr(snapshot_path);
+    }
+    free(snapshot_path);
+
+    // If we're not in dart-sdk/bin, we might be in one of the $SDK/out*/
+    // directories, Try to use a snapshot from that directory.
+    snapshot_path = Utils::SCreate("%s%s", dir_prefix.get(), snapshot_name);
+    if (File::Exists(nullptr, snapshot_path)) {
+      return CStringUniquePtr(snapshot_path);
+    }
+    free(snapshot_path);
+    return CStringUniquePtr(nullptr);
+  };
+
+  auto script_path =
+      try_resolve_path(EXEUtils::GetDirectoryPrefixFromResolvedExeName());
+  if (script_path == nullptr) {
+    script_path =
+        try_resolve_path(EXEUtils::GetDirectoryPrefixFromUnresolvedExeName());
+  }
+  if (script_path == nullptr || !CheckForInvalidPath(script_path.get())) {
+    Syslog::PrintErr("Unable to find snapshot: %s\n", snapshot_name);
+    return std::make_pair(static_cast<AppSnapshot*>(nullptr),
+                          std::move(script_path));
+  }
+
+  AppSnapshot* app_snapshot =
+      TryReadAppSnapshot(script_path.get(), /*force_load_from_memory*/ false,
+                         /*decode_uri*/ false);
+  if (app_snapshot == nullptr) {
+    Syslog::PrintErr("%s is not a valid snapshot\n", script_path.get());
+    if (app_snapshot != nullptr) {
+      delete app_snapshot;
+    }
+    return std::make_pair(static_cast<AppSnapshot*>(nullptr),
+                          std::move(script_path));
+  }
+  return std::make_pair(app_snapshot, std::move(script_path));
+}
 
 static bool WriteInt64(File* file, int64_t size) {
   return file->WriteFully(&size, sizeof(size));
