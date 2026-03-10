@@ -35,7 +35,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -86,8 +85,11 @@ import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
 import '../builder/void_type_builder.dart';
 import '../codes/cfe_codes.dart' as cfe;
+import '../codes/diagnostic.dart' as diag;
 import '../source/check_helper.dart';
 import '../source/diet_parser.dart';
+import '../source/source_constructor_builder.dart';
+import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
@@ -10088,8 +10090,8 @@ class BodyBuilderImpl extends StackListenerImpl
     ActualArguments arguments, {
     required int fileOffset,
   }) {
-    Builder? constructorBuilder = _context.lookupConstructor(name);
-    if (constructorBuilder == null) {
+    MemberLookupResult? result = _context.lookupConstructor(name);
+    if (result == null) {
       int length = name.text.length;
       if (length == 0) {
         // The constructor is unnamed so the offset points to 'this'.
@@ -10105,30 +10107,66 @@ class BodyBuilderImpl extends StackListenerImpl
         ),
         isRedirectingInitializer: true,
       );
+    } else if (result.isInvalidLookup) {
+      return createInvalidInitializer(
+        LookupResult.createDuplicateExpression(
+          result,
+          context: compilerContext,
+          name: name.text,
+          fileUri: uri,
+          fileOffset: fileOffset,
+          length: noLength,
+        ),
+        isRedirectingInitializer: true,
+      );
     } else {
-      if (_context.isConstructorCyclic(name.text)) {
-        int length = name.text.length;
-        if (length == 0) length = "this".length;
-        addProblem(diag.constructorCyclic, fileOffset, length);
-        // TODO(askesc): Produce invalid initializer.
-      }
-      if (_context.formals != null) {
-        for (FormalParameterBuilder formal in _context.formals!) {
-          if (formal.isSuperInitializingFormal) {
-            addProblem(
-              diag.unexpectedSuperParametersInGenerativeConstructors,
-              formal.fileOffset,
-              noLength,
-            );
-            _context.markAsErroneous();
+      MemberBuilder builder = result.getable!;
+      if (builder is SourceFactoryBuilder) {
+        return createInvalidInitializer(
+          buildProblem(
+            message: diag.redirectGenerativeToNonGenerativeConstructor,
+            fileUri: uri,
+            fileOffset: fileOffset,
+            length: noLength,
+          ),
+          isRedirectingInitializer: true,
+        );
+      } else {
+        assert(
+          builder is SourceConstructorBuilder,
+          "Unexpected constructor builder $builder.",
+        );
+        if (_context.isConstructorCyclic(name.text)) {
+          int length = name.text.length;
+          if (length == 0) length = "this".length;
+          return createInvalidInitializer(
+            buildProblem(
+              message: diag.constructorCyclic,
+              fileUri: uri,
+              fileOffset: fileOffset,
+              length: length,
+            ),
+            isRedirectingInitializer: true,
+          );
+        }
+        if (_context.formals != null) {
+          for (FormalParameterBuilder formal in _context.formals!) {
+            if (formal.isSuperInitializingFormal) {
+              addProblem(
+                diag.unexpectedSuperParametersInGenerativeConstructors,
+                formal.fileOffset,
+                noLength,
+              );
+              _context.markAsErroneous();
+            }
           }
         }
+        return _context.buildRedirectingInitializer(
+          builder,
+          arguments,
+          fileOffset: fileOffset,
+        );
       }
-      return _context.buildRedirectingInitializer(
-        constructorBuilder,
-        arguments,
-        fileOffset: fileOffset,
-      );
     }
   }
 

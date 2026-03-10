@@ -61,8 +61,6 @@ extension type ET2.named(int x) {
 
 class C3(int x) {
   C3.other(int x) : this(x);
-  //                ^
-  // [cfe] Couldn't find constructor 'C3'.
   factory C3(int x) => C3.other(x);
   //      ^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
@@ -71,8 +69,6 @@ class C3(int x) {
 
 class C4.named(int x) {
   C4.other(int x) : this.named(x);
-  //                     ^
-  // [cfe] Couldn't find constructor 'C4.named'.
   factory C4.named(int x) => C4.other(x);
   //      ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR

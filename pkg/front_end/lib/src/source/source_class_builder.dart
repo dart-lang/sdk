@@ -642,16 +642,12 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
-  SourceConstructorBuilder? lookupConstructor(Name name) {
+  MemberLookupResult? lookupConstructor(Name name) {
     if (name.text == "new") {
       name = new Name("", name.library);
     }
 
-    Builder? builder = nameSpace.lookupConstructor(name.text)?.getable;
-    if (builder is SourceConstructorBuilder) {
-      return builder;
-    }
-    return null;
+    return nameSpace.lookupConstructor(name.text);
   }
 
   /// Looks up the super constructor by [name] on the superclass of the class
