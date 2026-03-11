@@ -2598,15 +2598,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       String? name,
       ConstantValue? defaultValue,
     ) {
-      if (argumentIndex < arguments.length) {
-        final value = _findConstant(arguments[argumentIndex++]);
-        if (argumentIndex <=
-            constructor.parameterStructure.positionalParameters) {
-          positionalArguments.add(value);
-        } else {
-          namedArguments[name!] = value;
-        }
+      final value = argumentIndex < arguments.length
+          ? _findConstant(arguments[argumentIndex])
+          : defaultValue;
+      if (argumentIndex < constructor.parameterStructure.positionalParameters) {
+        positionalArguments.add(value);
+      } else {
+        namedArguments[name!] = value;
       }
+      argumentIndex++;
     });
 
     return RecordedInstanceCreation(
@@ -2667,11 +2667,16 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     ) {
       if (argumentIndex == 0 && definitionHasReceiver) {
         constantReceiver = _findConstant(arguments[argumentIndex++]);
-      } else if (argumentIndex <
-          originalParameterStructure.positionalParameters) {
-        positionalArguments.add(_findConstant(arguments[argumentIndex++]));
       } else {
-        namedArguments[name!] = _findConstant(arguments[argumentIndex++]);
+        final value = argumentIndex < arguments.length
+            ? _findConstant(arguments[argumentIndex])
+            : defaultValue;
+        if (argumentIndex < originalParameterStructure.positionalParameters) {
+          positionalArguments.add(value);
+        } else {
+          namedArguments[name!] = value;
+        }
+        argumentIndex++;
       }
     });
 

@@ -1,0 +1,34 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension type ExtType(core::int i) {
+  method extTypeMethod = self::ExtType|extTypeMethod;
+  constructor • = self::ExtType|constructor#;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::ExtType|extTypeMethod([@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::ExtType|constructor#());
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
+[@vm.unboxing-info.metadata=()->i]
+static extension-type-member const method ExtType|constructor#() → self::ExtType% /* erasure=core::int, declared=! */ {
+  lowered final self::ExtType% /* erasure=core::int, declared=! */ #this = #C1;
+  return #this;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 16)]
+[@vm.unboxing-info.metadata=(i)->i]
+@#C2
+static extension-type-member method ExtType|extTypeMethod([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 0)] lowered final self::ExtType% /* erasure=core::int, declared=! */ #this, {[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 16)] core::int i = #C3}) → core::int
+  return i;
+constants  {
+  #C1 = 0
+  #C2 = meta::RecordUse {}
+  #C3 = 16
+}

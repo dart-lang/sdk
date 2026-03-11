@@ -107,7 +107,7 @@ Future<void> main() async {
         final goldenFile = File(testFile.file.path + '.json.expect');
         const update = bool.fromEnvironment('updateExpectations');
         if (!goldenFile.existsSync() || update) {
-          await goldenFile.create();
+          await goldenFile.create(recursive: true);
           await goldenFile.writeAsString(recordedUsages!);
         } else {
           final actual = Recordings.fromJson(jsonDecode(recordedUsages!));

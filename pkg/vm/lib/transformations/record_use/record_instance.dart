@@ -125,6 +125,32 @@ class InstanceRecorder {
       namedArguments[argument.name] = evaluateExpression(argument.value);
     }
 
+    // Fill up with the default values
+    final function =
+        target is ast.Procedure
+            ? target.function
+            : (target as ast.Constructor).function;
+    for (final parameter in function.namedParameters) {
+      final initializer = parameter.initializer;
+      final name = parameter.name;
+      if (initializer != null &&
+          name != null &&
+          !namedArguments.containsKey(name)) {
+        namedArguments[name] = evaluateExpression(initializer);
+      }
+    }
+    for (
+      var i = positionalArguments.length;
+      i < function.positionalParameters.length;
+      i++
+    ) {
+      final parameter = function.positionalParameters[i];
+      final initializer = parameter.initializer;
+      if (initializer != null) {
+        positionalArguments.add(evaluateExpression(initializer));
+      }
+    }
+
     final instance = InstanceCreationReference(
       definition: _definitionFromMember(target),
       positionalArguments: positionalArguments,

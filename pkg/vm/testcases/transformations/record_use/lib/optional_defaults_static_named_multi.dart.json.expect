@@ -1,0 +1,86 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 2
+    },
+    {
+      "type": "int",
+      "value": 3
+    },
+    {
+      "type": "int",
+      "value": 13
+    },
+    {
+      "type": "int",
+      "value": 18
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "staticNamedBoth"
+        }
+      ],
+      "uri": "package:record_use_test/optional_defaults_static_named_multi.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "named": {
+              "i": 2,
+              "k": 3
+            },
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "named": {
+              "i": 0,
+              "k": 3
+            },
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_indices": [
+              0
+            ],
+            "named": {
+              "i": 2,
+              "k": 1
+            },
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}
