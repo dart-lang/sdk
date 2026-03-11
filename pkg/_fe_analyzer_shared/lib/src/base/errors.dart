@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/base/diagnostic_message.dart';
 import 'package:_fe_analyzer_shared/src/base/source.dart';
 import 'package:_fe_analyzer_shared/src/base/source_range.dart';
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:source_span/source_span.dart';
 
 import 'customized_codes.dart';
@@ -30,11 +31,39 @@ String formatList(String pattern, List<Object?>? arguments) {
     );
     return pattern;
   }
-  return pattern.replaceAllMapped(new RegExp(r'\{(\d+)\}'), (match) {
-    String indexStr = match.group(1)!;
-    int index = int.parse(indexStr);
-    return arguments[index].toString();
-  });
+  StringBuffer sb = new StringBuffer();
+  int from = 0;
+  int patternLengthMinus1 = pattern.length - 1;
+  for (int i = 0; i < pattern.length; i++) {
+    int char = pattern.codeUnitAt(i);
+    if (char == $OPEN_CURLY_BRACKET) {
+      int j = i;
+      int num = 0;
+      while (j < patternLengthMinus1) {
+        int char = pattern.codeUnitAt(++j);
+        if (char < $0 || char > $9) break;
+        num = num * 10 + (char - $0);
+      }
+      if (j > i + 1 && pattern.codeUnitAt(j) == $CLOSE_CURLY_BRACKET) {
+        // Found {\d+}.
+        int to = i;
+        if (to > from) {
+          sb.write(pattern.substring(from, to));
+        }
+        sb.write(arguments[num]);
+        from = j + 1;
+      }
+    }
+  }
+  if (sb.isEmpty) {
+    // No numbers found.
+    return pattern;
+  }
+  int to = pattern.length;
+  if (to > from) {
+    sb.write(pattern.substring(from, to));
+  }
+  return sb.toString();
 }
 
 /// A diagnostic, as defined by the [Diagnostic Design Guidelines][guidelines]:
