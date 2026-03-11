@@ -14,5 +14,6 @@ main() {
     expect(formatList('John Doe', ['Foo']), 'John Doe');
     expect(formatList('{0123456789', ['John Doe']), '{0123456789');
     expect(formatList('{}', ['John Doe']), '{}');
+    expect(formatList('{1{0}2}', ['John Doe']), '{1John Doe2}');
   });
 }
