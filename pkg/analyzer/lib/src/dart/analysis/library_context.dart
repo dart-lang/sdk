@@ -154,6 +154,8 @@ class LibraryContext {
   /// Remove libraries represented by the [removed] files.
   /// If we need these libraries later, we will relink and reattach them.
   void remove(Set<FileState> removed, Set<String> removedKeys) {
+    if (removed.isEmpty) return;
+
     elementFactory.removeLibraries(removed.map((e) => e.uri).toSet());
 
     loadedBundles.removeWhere((cycle) {
