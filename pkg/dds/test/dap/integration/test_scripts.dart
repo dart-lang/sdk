@@ -291,6 +291,21 @@ const simpleTestProgram = '''
   }
 ''';
 
+/// A simple package:test script that has a multiple tests but one has
+/// `solo: true` so it's the only one run.
+const soloTestProgram = '''
+  import 'package:test/test.dart';
+
+  void main() {
+    test('solo test', () {
+      expect(1, equals(1));
+    }, solo: true);
+    test('other test', () {
+      expect(1, equals(1));
+    });
+  }
+''';
+
 /// A simple package:test script with a single failing test.
 const simpleFailingTestProgram = '''
   import 'package:test/test.dart';

@@ -127,6 +127,20 @@ mixin TestAdapter {
 
       case 'print':
         final message = testNotification['message'] as String?;
+        final messageType = testNotification['messageType'] as String?;
+
+        // Don't send output for print messages that are skip reasons as a
+        // result of running with `solo: true` / @soloTest because for suites
+        // with many tests, this will bury the useful information in the debug
+        // console between lots of repeated skip messages.
+        //
+        // The JSON messages will have still been forwarded, so the tests can
+        // still show up as skipped in the UI, etc.
+        const soloSkipMessage = 'Skip: does not have "solo"';
+        if (messageType == 'skip' && message == soloSkipMessage) {
+          break;
+        }
+
         if (message != null) {
           sendOutput('stdout', '${message.trimRight()}\n');
         }
