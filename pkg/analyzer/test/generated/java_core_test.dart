@@ -8,5 +8,11 @@ import 'package:test/test.dart';
 main() {
   test('formatList', () {
     expect(formatList('Hello, {0} {1}!', ['John', 'Doe']), 'Hello, John Doe!');
+    expect(formatList('{0}', ['John Doe']), 'John Doe');
+    expect(formatList('{00}', ['John Doe']), 'John Doe');
+    expect(formatList('{1}', ['', 'John Doe']), 'John Doe');
+    expect(formatList('John Doe', ['Foo']), 'John Doe');
+    expect(formatList('{0123456789', ['John Doe']), '{0123456789');
+    expect(formatList('{}', ['John Doe']), '{}');
   });
 }
