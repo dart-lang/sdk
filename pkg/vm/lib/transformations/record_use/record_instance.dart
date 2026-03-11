@@ -20,19 +20,30 @@ class InstanceRecorder {
   /// A function to look up the loading unit for a reference.
   final LoadingUnitLookup _loadingUnitLookup;
 
-  /// A visitor traversing and collecting constants.
-  late final ConstantCollector collector;
+  /// A map to look up the collector for each loading unit.
+  ///
+  /// This is used to correctly record constants shared across multiple loading
+  /// units. Each unit's collector maintains its own set of "seen" constants.
+  // TODO: A more efficient approach would be to cache the results per constant
+  // and "replay" them for new loading units instead of re-traversing. But this
+  // would require a deep integration between the ConstantCollector and
+  // InstanceRecorder.
+  final Map<LoadingUnit, ConstantCollector> _collectorsByUnit = {};
 
   /// Whether to save line and column info as well as the URI.
   //TODO(mosum): add verbose mode to enable this
   bool exactLocation = false;
 
-  InstanceRecorder(this._loadingUnitLookup) {
-    collector = ConstantCollector.collectWith(_handleConstant);
-  }
+  InstanceRecorder(this._loadingUnitLookup);
 
-  void recordConstantExpression(ast.ConstantExpression node) =>
-      collector.collect(node);
+  void recordConstantExpression(ast.ConstantExpression node) {
+    final unit = _loadingUnitLookup(node);
+    final collector = _collectorsByUnit.putIfAbsent(
+      unit,
+      () => ConstantCollector.collectWith(_handleConstant),
+    );
+    collector.collect(node);
+  }
 
   void _handleConstant(ast.ConstantExpression context, ast.Constant constant) {
     if (constant is ast.InstanceConstant) {
@@ -125,6 +136,32 @@ class InstanceRecorder {
       namedArguments[argument.name] = evaluateExpression(argument.value);
     }
 
+    // Fill up with the default values
+    final function =
+        target is ast.Procedure
+            ? target.function
+            : (target as ast.Constructor).function;
+    for (final parameter in function.namedParameters) {
+      final initializer = parameter.initializer;
+      final name = parameter.name;
+      if (initializer != null &&
+          name != null &&
+          !namedArguments.containsKey(name)) {
+        namedArguments[name] = evaluateExpression(initializer);
+      }
+    }
+    for (
+      var i = positionalArguments.length;
+      i < function.positionalParameters.length;
+      i++
+    ) {
+      final parameter = function.positionalParameters[i];
+      final initializer = parameter.initializer;
+      if (initializer != null) {
+        positionalArguments.add(evaluateExpression(initializer));
+      }
+    }
+
     final instance = InstanceCreationReference(
       definition: _definitionFromMember(target),
       positionalArguments: positionalArguments,
@@ -203,6 +240,8 @@ class InstanceRecorder {
   /// shared across multiple calls to the same method.
   void _addToUsage(ast.Class cls, InstanceReference instance) {
     final identifier = _definitionFromClass(cls);
+    // TODO: Merge loading units if an identical InstanceReference already
+    // exists.
     instancesForClass.update(
       identifier,
       (usage) => usage..add(instance),

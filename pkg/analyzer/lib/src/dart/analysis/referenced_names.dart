@@ -182,9 +182,11 @@ class _LocalNameScope {
 
   void addFormalParameters(FormalParameterList? parameterList) {
     if (parameterList != null) {
-      parameterList.parameters
-          .map((p) => p is NormalFormalParameter ? p.name : null)
-          .forEach(add);
+      for (var p in parameterList.parameters) {
+        if (p is NormalFormalParameter) {
+          add(p.name);
+        }
+      }
     }
   }
 

@@ -1218,7 +1218,14 @@ class InheritanceManager3 {
     }
 
     var firstType = first.type;
-    if (validOverrides.every((e) => e.type == firstType)) {
+    var allFirstType = true;
+    for (var e in validOverrides) {
+      if (e.type != firstType) {
+        allFirstType = false;
+        break;
+      }
+    }
+    if (allFirstType) {
       return first;
     }
 

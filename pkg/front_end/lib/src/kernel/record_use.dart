@@ -17,24 +17,41 @@ import 'package:kernel/ast.dart';
 
 import 'constant_evaluator.dart' show ErrorReporter;
 
+// Coverage-ignore(suite): Not run.
 /// Get all of the `@RecordUse` annotations from `package:meta`
 /// that are attached to the specified [node].
 Iterable<InstanceConstant> findRecordUseAnnotation(Annotatable node) {
   List<InstanceConstant>? result;
-  for (int i = 0; i < node.annotations.length; i++) {
-    Expression annotation = node.annotations[i];
+  List<Expression> annotations = node.annotations;
+  final int length = annotations.length;
+  if (length == 0) return const [];
+
+  for (int i = 0; i < length; i++) {
+    Expression annotation = annotations[i];
     if (annotation is! ConstantExpression) continue;
     Constant constant = annotation.constant;
     if (constant is! InstanceConstant) continue;
     if (!isRecordUse(constant.classNode)) continue;
-    // Coverage-ignore-block(suite): Not run.
     (result ??= []).add(constant);
   }
   return result ?? const [];
 }
 
-bool hasRecordUseAnnotation(Annotatable node) =>
-    findRecordUseAnnotation(node).isNotEmpty;
+bool hasRecordUseAnnotation(Annotatable node) {
+  List<Expression> annotations = node.annotations;
+  final int length = annotations.length;
+  if (length == 0) return false;
+
+  for (int i = 0; i < length; i++) {
+    Expression annotation = annotations[i];
+    if (annotation is! ConstantExpression) continue;
+    Constant constant = annotation.constant;
+    if (constant is! InstanceConstant) continue;
+    if (!isRecordUse(constant.classNode)) continue;
+    return true;
+  }
+  return false;
+}
 
 // Coverage-ignore(suite): Not run.
 final Uri _metaLibraryUri = new Uri(scheme: 'package', path: 'meta/meta.dart');
@@ -121,17 +138,25 @@ Uri? _getFileUri(Annotatable node) {
 }
 
 /// Performs all validations for `@RecordUse` on the given [node].
-void validateAnnotations(Annotatable node, ErrorReporter errorReporter) {
-  final Iterable<InstanceConstant> annotations = findRecordUseAnnotation(node);
-
-  if (annotations.isNotEmpty) {
-    // Coverage-ignore-block(suite): Not run.
-    _validateRecordUseDeclaration(node, errorReporter, annotations);
-    _validateClassIsFinal(node, errorReporter);
+void validateAnnotations(
+  List<Expression> annotations,
+  Annotatable parent,
+  ErrorReporter errorReporter,
+) {
+  if (annotations.length > 0) {
+    if (hasRecordUseAnnotation(parent)) {
+      // Coverage-ignore-block(suite): Not run.
+      _validateRecordUseDeclaration(
+        parent,
+        errorReporter,
+        findRecordUseAnnotation(parent),
+      );
+      _validateClassIsFinal(parent, errorReporter);
+    }
   }
 
-  if (node is Class) {
-    _validateSubtyping(node, errorReporter);
+  if (parent is Class) {
+    _validateSubtyping(parent, errorReporter);
   }
 }
 
@@ -151,21 +176,38 @@ void _validateClassIsFinal(Annotatable node, ErrorReporter errorReporter) {
   }
 }
 
-void _validateSubtyping(Class node, ErrorReporter errorReporter) {
-  final List<Class> supertypes = node.supers.map((e) => e.classNode).toList();
-
-  for (final Class supertype in supertypes) {
-    if (isBeingRecorded(supertype)) {
-      // Coverage-ignore-block(suite): Not run.
-      final Uri? fileUri = _getFileUri(node);
-      if (fileUri != null) {
-        errorReporter.report(
-          diag.recordUseSubtypingNotSupported
-              .withArguments(name: supertype.name)
-              .withLocation(fileUri, node.fileOffset, node.name.length),
-        );
-      }
+void _validateSuper(
+  Supertype superType,
+  Class node,
+  ErrorReporter errorReporter,
+) {
+  Class classNode = superType.classNode;
+  // TODO(jensj): Consider if we should add a flag on class.
+  // See also https://dart-review.googlesource.com/c/sdk/+/486201.
+  if (isBeingRecorded(classNode)) {
+    // Coverage-ignore-block(suite): Not run.
+    final Uri? fileUri = _getFileUri(node);
+    if (fileUri != null) {
+      errorReporter.report(
+        diag.recordUseSubtypingNotSupported
+            .withArguments(name: classNode.name)
+            .withLocation(fileUri, node.fileOffset, node.name.length),
+      );
     }
+  }
+}
+
+void _validateSubtyping(Class node, ErrorReporter errorReporter) {
+  Supertype? supertype = node.supertype;
+  if (supertype != null) {
+    _validateSuper(supertype, node, errorReporter);
+  }
+  Supertype? mixedInType = node.mixedInType;
+  if (mixedInType != null) {
+    _validateSuper(mixedInType, node, errorReporter);
+  }
+  for (final Supertype supertype in node.implementedTypes) {
+    _validateSuper(supertype, node, errorReporter);
   }
 }
 

@@ -42,6 +42,9 @@ enum RecordedUseKind {
 sealed class RecordedUse {
   static const String tag = 'record-use';
 
+  // TODO(dcharkes): Remove this field if we decide to not support source
+  // information in the recorded uses output. Currently it is not used in the
+  // output, but it is mentioned in the documentation.
   final SourceInformation sourceInformation;
 
   RecordedUseKind get kind;

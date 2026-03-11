@@ -366,7 +366,11 @@ class ConstantsTransformer extends RemovingTransformer {
           );
         }
       }
-      RecordUse.validateAnnotations(parent, constantEvaluator.errorReporter);
+      RecordUse.validateAnnotations(
+        nodes,
+        parent,
+        constantEvaluator.errorReporter,
+      );
     }
   }
 

@@ -173,7 +173,7 @@ class RecordUseCollector {
     return Recordings(
       calls: calls,
       instances: instanceMap.map((key, value) {
-        return MapEntry(_definitionFromClass(key), value);
+        return MapEntry(_definitionFromClass(key), value.toSet().toList());
       }),
     ).toJson();
   }
