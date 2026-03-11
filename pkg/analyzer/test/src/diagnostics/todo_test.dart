@@ -62,6 +62,23 @@ main() {
     );
   }
 
+  test_todo_multiLineComment2() async {
+    await assertErrorsInCode(
+      r'''
+main() {
+/*
+TODO: Implement1
+TODO: Implement2
+*/
+}
+''',
+      [
+        error(diag.todo, 12, 16, text: 'TODO: Implement1'),
+        error(diag.todo, 29, 16, text: 'TODO: Implement2'),
+      ],
+    );
+  }
+
   test_todo_multiLineCommentWrapped() async {
     await assertErrorsInCode(
       r'''
@@ -109,6 +126,61 @@ main() {
           diag.todo,
           362,
           61,
+          text: 'TODO: Implement something that is too long for one line',
+        ),
+      ],
+    );
+  }
+
+  test_todo_multiLineCommentWrapped_windows_line_endings() async {
+    await assertErrorsInCode(
+      r'''
+main() {
+  /* TODO(a): Implement something
+   *  that is too long for one line
+   * This line is not part of the todo
+   */
+  /* TODO: Implement something
+   *  that is too long for one line
+   * This line is not part of the todo
+   */
+  /* TODO(a): Implement something
+   *  that is too long for one line
+   *
+   *  This line is not part of the todo
+   */
+  /* TODO: Implement something
+   *  that is too long for one line
+   *
+   *  This line is not part of the todo
+   */
+}
+'''
+          .split("\n")
+          .join("\r\n"),
+      [
+        error(
+          diag.todo,
+          15,
+          65,
+          text: 'TODO(a): Implement something that is too long for one line',
+        ),
+        error(
+          diag.todo,
+          134,
+          62,
+          text: 'TODO: Implement something that is too long for one line',
+        ),
+        error(
+          diag.todo,
+          250,
+          65,
+          text: 'TODO(a): Implement something that is too long for one line',
+        ),
+        error(
+          diag.todo,
+          376,
+          62,
           text: 'TODO: Implement something that is too long for one line',
         ),
       ],
