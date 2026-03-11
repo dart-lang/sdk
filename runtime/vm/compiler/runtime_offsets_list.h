@@ -502,7 +502,8 @@
   PAYLOAD_SIZEOF(TypedData, InstanceSize, HeaderSize)                          \
   ENUM(StubCode, StubCode::StubNames)                                          \
   ENUM(RuntimeEntry, RuntimeEntry::RuntimeEntryNames)                          \
-  ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)
+  ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)                  \
+  ENUM(ClassId, kClassIdNames)
 
 #define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
                          RANGE, CONSTANT, ENUM)                                \

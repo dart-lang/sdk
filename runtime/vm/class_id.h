@@ -290,53 +290,58 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
   V(GrowableObjectArray)                                                       \
   V(String)
 
+#undef CID
+#define DEFINE_CLASS_ID(clazz) CID(clazz##Cid)
+#define DEFINE_FFI_CLASS_ID(clazz) CID(Ffi##clazz##Cid)
+#define DEFINE_TYPED_DATA_CLASS_ID(clazz)                                      \
+  CID(TypedData##clazz##Cid)                                                   \
+  CID(TypedData##clazz##ViewCid)                                               \
+  CID(ExternalTypedData##clazz##Cid)                                           \
+  CID(UnmodifiableTypedData##clazz##ViewCid)
+
+#define CLASS_ID_LIST                                                          \
+  /* Illegal class id. */                                                      \
+  CID(IllegalCid)                                                              \
+  /* Pseudo class id for native pointers, the heap should never see an */      \
+  /* object with this class id. */                                             \
+  CID(NativePointer)                                                           \
+  /* The following entries describes classes for pseudo-objects in the heap */ \
+  /* that should never be reachable from live objects. Free list elements */   \
+  /* maintain the free list for old space, and forwarding corpses are used */  \
+  /* to implement one-way become. */                                           \
+  CID(FreeListElement)                                                         \
+  CID(ForwardingCorpse)                                                        \
+  CLASS_LIST(DEFINE_CLASS_ID)                                                  \
+  CLASS_LIST_FFI(DEFINE_FFI_CLASS_ID)                                          \
+  CLASS_LIST_TYPED_DATA(DEFINE_TYPED_DATA_CLASS_ID)                            \
+  CID(ByteDataViewCid)                                                         \
+  CID(UnmodifiableByteDataViewCid)                                             \
+  CID(ByteBufferCid)                                                           \
+  /* The following entries do not describe a predefined class, but instead */  \
+  /* are class indexes for pre-allocated instances */                          \
+  /* (Null, dynamic, void, Never). */                                          \
+  CID(NullCid)                                                                 \
+  CID(DynamicCid)                                                              \
+  CID(VoidCid)                                                                 \
+  CID(NeverCid)
+
 enum ClassId : intptr_t {
-  // Illegal class id.
-  kIllegalCid = 0,
-
-  // Pseudo class id for native pointers, the heap should never see an
-  // object with this class id.
-  kNativePointer,
-
-  // The following entries describes classes for pseudo-objects in the heap
-  // that should never be reachable from live objects. Free list elements
-  // maintain the free list for old space, and forwarding corpses are used to
-  // implement one-way become.
-  kFreeListElement,
-  kForwardingCorpse,
-
-// List of Ids for predefined classes.
-#define DEFINE_OBJECT_KIND(clazz) k##clazz##Cid,
-  CLASS_LIST(DEFINE_OBJECT_KIND)
-#undef DEFINE_OBJECT_KIND
-
-// clang-format off
-#define DEFINE_OBJECT_KIND(clazz) kFfi##clazz##Cid,
-  CLASS_LIST_FFI(DEFINE_OBJECT_KIND)
-#undef DEFINE_OBJECT_KIND
-
-#define DEFINE_OBJECT_KIND(clazz)                                              \
-  kTypedData##clazz##Cid,                                                      \
-  kTypedData##clazz##ViewCid,                                                  \
-  kExternalTypedData##clazz##Cid,                                              \
-  kUnmodifiableTypedData##clazz##ViewCid,
-  CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
-#undef DEFINE_OBJECT_KIND
-  kByteDataViewCid,
-  kUnmodifiableByteDataViewCid,
-
-  kByteBufferCid,
-  // clang-format on
-
-  // The following entries do not describe a predefined class, but instead
-  // are class indexes for pre-allocated instances (Null, dynamic, void, Never).
-  kNullCid,
-  kDynamicCid,
-  kVoidCid,
-  kNeverCid,
-
-  kNumPredefinedCids,
+#define CID(cid) k##cid,
+  CLASS_ID_LIST
+#undef CID
+      kNumPredefinedCids,
 };
+
+static constexpr const char* kClassIdNames[] = {
+#define CID(cid) #cid,
+    CLASS_ID_LIST
+#undef CID
+};
+
+#undef DEFINE_CLASS_ID
+#undef DEFINE_FFI_CLASS_ID
+#undef DEFINE_TYPED_DATA_CLASS_ID
+#undef CLASS_ID_LIST
 
 // Keep these in sync with the cid numbering above.
 const int kTypedDataCidRemainderInternal = 0;
