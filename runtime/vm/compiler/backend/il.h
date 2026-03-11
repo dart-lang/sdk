@@ -7553,7 +7553,8 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   static bool WillAllocateNewOrRemembered(const Class& cls) {
-    return IsAllocatableInNewSpace(cls.target_instance_size());
+    return compiler::target::Heap::IsAllocatableInNewSpace(
+        cls.target_instance_size());
   }
 
   virtual const Slot* SlotForInput(intptr_t pos) {
@@ -7665,7 +7666,8 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
   }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return IsAllocatableInNewSpace(compiler::target::Closure::InstanceSize());
+    return compiler::target::Heap::IsAllocatableInNewSpace(
+        compiler::target::Closure::InstanceSize());
   }
 
 #define FIELD_LIST(F)                                                          \
@@ -7732,7 +7734,7 @@ class AllocateRecordInstr : public TemplateAllocation<0> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return IsAllocatableInNewSpace(
+    return compiler::target::Heap::IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 
@@ -7784,7 +7786,7 @@ class AllocateSmallRecordInstr : public TemplateAllocation<3> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return IsAllocatableInNewSpace(
+    return compiler::target::Heap::IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 

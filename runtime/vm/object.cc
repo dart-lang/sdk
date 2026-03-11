@@ -2903,7 +2903,7 @@ void Object::InitializeObject(uword address,
   ASSERT(ptr_field_end < end);
   bool needs_init = true;
   if (IsTypedDataBaseClassId(class_id) || class_id == kArrayCid) {
-    // If the size is greater than both kNewAllocatableSize and
+    // If the size is greater than both Heap::kNewAllocatableSize and
     // kAllocatablePageSize, the object must have been allocated to a new
     // large page, which must already have been zero initialized by the OS.
     // Note that zero is a GC-safe value.
@@ -2912,7 +2912,7 @@ void Object::InitializeObject(uword address,
     // safepoint checks to avoid blocking for the full duration of
     // initializing this array.
     needs_init =
-        IsAllocatableInNewSpace(size) || IsAllocatableViaFreeLists(size);
+        Heap::IsAllocatableInNewSpace(size) || IsAllocatableViaFreeLists(size);
   }
   if (needs_init) {
     // Initialize the memory prior to any pointer fields with 0. (This loop

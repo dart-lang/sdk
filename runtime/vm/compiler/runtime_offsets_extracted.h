@@ -64,6 +64,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x0;
 static constexpr dart::compiler::target::word
@@ -117,6 +119,34 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -787,6 +817,8 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -841,6 +873,37 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -1514,6 +1577,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x6;
 static constexpr dart::compiler::target::word
@@ -1567,6 +1632,34 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -2236,6 +2329,8 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -2290,6 +2385,37 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -2966,6 +3092,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -3019,6 +3147,37 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
@@ -3692,6 +3851,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -3745,6 +3906,37 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
@@ -4419,6 +4611,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x6;
 static constexpr dart::compiler::target::word
@@ -4472,6 +4666,34 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -5143,6 +5365,8 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x6;
 static constexpr dart::compiler::target::word
@@ -5197,6 +5421,37 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -5868,6 +6123,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x0;
 static constexpr dart::compiler::target::word
@@ -5921,6 +6178,34 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -6583,6 +6868,8 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -6637,6 +6924,37 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -7302,6 +7620,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x6;
 static constexpr dart::compiler::target::word
@@ -7355,6 +7675,34 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -8016,6 +8364,8 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -8070,6 +8420,37 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -8738,6 +9119,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -8791,6 +9174,37 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
@@ -9456,6 +9870,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -9509,6 +9925,37 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
@@ -10175,6 +10622,8 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x6;
 static constexpr dart::compiler::target::word
@@ -10228,6 +10677,34 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -10891,6 +11368,8 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetJIT = 0x6;
 static constexpr dart::compiler::target::word
@@ -10945,6 +11424,37 @@ static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagPos = 0x8;
+static constexpr dart::compiler::target::word UntaggedObject_kSizeTagSize = 0x4;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
+    0xc;
+static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
+    0x14;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
+static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -11616,6 +12126,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x0;
 static constexpr dart::compiler::target::word
@@ -11671,6 +12183,36 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -12420,6 +12962,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -12475,6 +13019,40 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
+    0x20;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -13231,6 +13809,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -13286,6 +13866,40 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
+    0x20;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -14038,6 +14652,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -14093,6 +14709,40 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
+    0x20;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -14845,6 +15495,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -14900,6 +15552,40 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
+    0x20;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -15654,6 +16340,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x6;
 static constexpr dart::compiler::target::word
@@ -15709,6 +16397,36 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -16459,6 +17177,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x6;
 static constexpr dart::compiler::target::word
@@ -16514,6 +17234,40 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
+    0x20;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -17262,6 +18016,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x0;
 static constexpr dart::compiler::target::word
@@ -17317,6 +18073,36 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -18057,6 +18843,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -18112,6 +18900,40 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
+    0x20;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -18859,6 +19681,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -18914,6 +19738,40 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
+    0x20;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -19657,6 +20515,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -19712,6 +20572,40 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
+    0x20;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -20455,6 +21349,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x8;
 static constexpr dart::compiler::target::word
@@ -20510,6 +21406,40 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
+    0x20;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -21255,6 +22185,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x6;
 static constexpr dart::compiler::target::word
@@ -21310,6 +22242,36 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -22051,6 +23013,8 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
+    0x40000;
 static constexpr dart::compiler::target::word
     AOT_Instructions_kMonomorphicEntryOffsetJIT = 0x6;
 static constexpr dart::compiler::target::word
@@ -22106,6 +23070,40 @@ static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kCardRememberedBit = 0x0;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kCanonicalBit =
+    0x1;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kNotMarkedBit =
+    0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kNewOrEvacuationCandidateBit = 0x3;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kAlwaysSetBit =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kOldAndNotRememberedBit = 0x5;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kIncrementalBarrierMask = 0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kGenerationalBarrierMask = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kBarrierOverlapShift = 0x2;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kShallowImmutableBit = 0x6;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kDeeplyImmutableBit = 0x7;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagPos =
+    0x8;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kSizeTagSize =
+    0x4;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagPos = 0xc;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
+    0x20;
+static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
+    0x20;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =

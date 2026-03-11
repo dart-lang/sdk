@@ -1156,7 +1156,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // R3: new object end address.
     // R9: allocation size.
     {
-      const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
+      const intptr_t shift = target::UntaggedObject::kSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2;
 
       __ CompareImmediate(R9, target::UntaggedObject::kSizeTagMaxSizeTag);
@@ -1587,7 +1587,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
   // R1: number of context variables.
   // R2: object size.
   // R3: next object start.
-  const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
+  const intptr_t shift = target::UntaggedObject::kSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2;
   __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
   // If no size tag overflow, shift R2 left, else set R2 to zero.
@@ -3563,7 +3563,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
       __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
       __ mov(R3,
              Operand(R2, LSL,
-                     target::UntaggedObject::kTagBitsSizeTagPos -
+                     target::UntaggedObject::kSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2),
              LS);
       __ mov(R3, Operand(0), HI);

@@ -257,7 +257,7 @@ class Interpreter {
                                             ObjectPtr* result) {
     ASSERT(instance_size > 0);
     ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
-    ASSERT(IsAllocatableInNewSpace(instance_size));
+    ASSERT(Heap::IsAllocatableInNewSpace(instance_size));
 
 #if !defined(PRODUCT)
     auto* const class_table = thread->isolate_group()->class_table();

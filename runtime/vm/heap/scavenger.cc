@@ -450,7 +450,7 @@ class ScavengerVisitor : public ObjectPointerVisitor,
       new_obj = ForwardedObj(header);
     } else {
       intptr_t size = obj->untag()->HeapSize(header);
-      ASSERT(IsAllocatableInNewSpace(size));
+      ASSERT(Heap::IsAllocatableInNewSpace(size));
       uword new_addr = 0;
       // Check whether object should be promoted.
       if (!Page::Of(obj)->IsSurvivor(raw_addr)) {

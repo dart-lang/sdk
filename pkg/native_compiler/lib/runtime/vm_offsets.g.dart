@@ -16,6 +16,7 @@ base class VMOffsets {
   int get Array_kMaxElements => throw 'Unknown';
   int get Array_kMaxNewSpaceElements => throw 'Unknown';
   int get Context_kMaxElements => throw 'Unknown';
+  int get Heap_kNewAllocatableSize => throw 'Unknown';
   int get Instructions_kMonomorphicEntryOffsetJIT => throw 'Unknown';
   int get Instructions_kPolymorphicEntryOffsetJIT => throw 'Unknown';
   int get Instructions_kMonomorphicEntryOffsetAOT => throw 'Unknown';
@@ -47,6 +48,23 @@ base class VMOffsets {
   int get SubtypeTestCache_kMaxInputs => throw 'Unknown';
   int get SubtypeTestCache_kTestResult => throw 'Unknown';
   int get TypeArguments_kMaxElements => throw 'Unknown';
+  int get UntaggedObject_kCardRememberedBit => throw 'Unknown';
+  int get UntaggedObject_kCanonicalBit => throw 'Unknown';
+  int get UntaggedObject_kNotMarkedBit => throw 'Unknown';
+  int get UntaggedObject_kNewOrEvacuationCandidateBit => throw 'Unknown';
+  int get UntaggedObject_kAlwaysSetBit => throw 'Unknown';
+  int get UntaggedObject_kOldAndNotRememberedBit => throw 'Unknown';
+  int get UntaggedObject_kIncrementalBarrierMask => throw 'Unknown';
+  int get UntaggedObject_kGenerationalBarrierMask => throw 'Unknown';
+  int get UntaggedObject_kBarrierOverlapShift => throw 'Unknown';
+  int get UntaggedObject_kShallowImmutableBit => throw 'Unknown';
+  int get UntaggedObject_kDeeplyImmutableBit => throw 'Unknown';
+  int get UntaggedObject_kSizeTagPos => throw 'Unknown';
+  int get UntaggedObject_kSizeTagSize => throw 'Unknown';
+  int get UntaggedObject_kClassIdTagPos => throw 'Unknown';
+  int get UntaggedObject_kClassIdTagSize => throw 'Unknown';
+  int get UntaggedObject_kHashTagPos => throw 'Unknown';
+  int get UntaggedObject_kHashTagSize => throw 'Unknown';
   int get AbstractType_flags_offset => throw 'Unknown';
   int get AbstractType_hash_offset => throw 'Unknown';
   int get AbstractType_type_test_stub_entry_point_offset => throw 'Unknown';
@@ -576,6 +594,8 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get Heap_kNewAllocatableSize => 0x40000;
+  @override
   int get Instructions_kMonomorphicEntryOffsetJIT => 0x8;
   @override
   int get Instructions_kPolymorphicEntryOffsetJIT => 0x34;
@@ -633,6 +653,40 @@ final class Arm64VMOffsets extends VMOffsets {
   int get SubtypeTestCache_kTestResult => 0x7;
   @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
+  @override
+  int get UntaggedObject_kCardRememberedBit => 0x0;
+  @override
+  int get UntaggedObject_kCanonicalBit => 0x1;
+  @override
+  int get UntaggedObject_kNotMarkedBit => 0x2;
+  @override
+  int get UntaggedObject_kNewOrEvacuationCandidateBit => 0x3;
+  @override
+  int get UntaggedObject_kAlwaysSetBit => 0x4;
+  @override
+  int get UntaggedObject_kOldAndNotRememberedBit => 0x5;
+  @override
+  int get UntaggedObject_kIncrementalBarrierMask => 0x4;
+  @override
+  int get UntaggedObject_kGenerationalBarrierMask => 0x8;
+  @override
+  int get UntaggedObject_kBarrierOverlapShift => 0x2;
+  @override
+  int get UntaggedObject_kShallowImmutableBit => 0x6;
+  @override
+  int get UntaggedObject_kDeeplyImmutableBit => 0x7;
+  @override
+  int get UntaggedObject_kSizeTagPos => 0x8;
+  @override
+  int get UntaggedObject_kSizeTagSize => 0x4;
+  @override
+  int get UntaggedObject_kClassIdTagPos => 0xc;
+  @override
+  int get UntaggedObject_kClassIdTagSize => 0x14;
+  @override
+  int get UntaggedObject_kHashTagPos => 0x20;
+  @override
+  int get UntaggedObject_kHashTagSize => 0x20;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override
@@ -1491,6 +1545,8 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get Heap_kNewAllocatableSize => 0x40000;
+  @override
   int get Instructions_kMonomorphicEntryOffsetJIT => 0x8;
   @override
   int get Instructions_kPolymorphicEntryOffsetJIT => 0x34;
@@ -1548,6 +1604,40 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get SubtypeTestCache_kTestResult => 0x7;
   @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
+  @override
+  int get UntaggedObject_kCardRememberedBit => 0x0;
+  @override
+  int get UntaggedObject_kCanonicalBit => 0x1;
+  @override
+  int get UntaggedObject_kNotMarkedBit => 0x2;
+  @override
+  int get UntaggedObject_kNewOrEvacuationCandidateBit => 0x3;
+  @override
+  int get UntaggedObject_kAlwaysSetBit => 0x4;
+  @override
+  int get UntaggedObject_kOldAndNotRememberedBit => 0x5;
+  @override
+  int get UntaggedObject_kIncrementalBarrierMask => 0x4;
+  @override
+  int get UntaggedObject_kGenerationalBarrierMask => 0x8;
+  @override
+  int get UntaggedObject_kBarrierOverlapShift => 0x2;
+  @override
+  int get UntaggedObject_kShallowImmutableBit => 0x6;
+  @override
+  int get UntaggedObject_kDeeplyImmutableBit => 0x7;
+  @override
+  int get UntaggedObject_kSizeTagPos => 0x8;
+  @override
+  int get UntaggedObject_kSizeTagSize => 0x4;
+  @override
+  int get UntaggedObject_kClassIdTagPos => 0xc;
+  @override
+  int get UntaggedObject_kClassIdTagSize => 0x14;
+  @override
+  int get UntaggedObject_kHashTagPos => 0x20;
+  @override
+  int get UntaggedObject_kHashTagSize => 0x20;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override

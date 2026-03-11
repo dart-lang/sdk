@@ -1800,7 +1800,7 @@ static void TryAllocateString(Assembler* assembler,
   // T1: new object end address.
   // A1: allocation size.
   {
-    const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
+    const intptr_t shift = target::UntaggedObject::kSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
 
     __ CompareImmediate(A1, target::UntaggedObject::kSizeTagMaxSizeTag);

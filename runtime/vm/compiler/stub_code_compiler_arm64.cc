@@ -1583,7 +1583,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // AllocateArrayABI::kLengthReg: array length as Smi.
     // R3: array size.
     // R7: new object end address.
-    const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
+    const intptr_t shift = target::UntaggedObject::kSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
     __ CompareImmediate(R3, target::UntaggedObject::kSizeTagMaxSizeTag);
     // If no size tag overflow, shift R3 left, else set R3 to zero.
@@ -2050,7 +2050,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // R0: new object.
   // R1: number of context variables.
   // R2: object size.
-  const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
+  const intptr_t shift = target::UntaggedObject::kSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2;
   __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
   // If no size tag overflow, shift R2 left, else set R2 to zero.
@@ -4102,7 +4102,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     {
       __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
       __ LslImmediate(R2, R2,
-                      target::UntaggedObject::kTagBitsSizeTagPos -
+                      target::UntaggedObject::kSizeTagPos -
                           target::ObjectAlignment::kObjectAlignmentLog2);
       __ csel(R2, ZR, R2, HI);
 

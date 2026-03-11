@@ -408,6 +408,7 @@ class UntaggedObject : public AllStatic {
   static const word kCardRememberedBit;
   static const word kCanonicalBit;
   static const word kNewOrEvacuationCandidateBit;
+  static const word kAlwaysSetBit;
   static const word kOldAndNotRememberedBit;
   static const word kNotMarkedBit;
   static const word kShallowImmutableBit;
@@ -421,7 +422,6 @@ class UntaggedObject : public AllStatic {
   static const word kHashTagSize;
 #endif
   static const word kSizeTagMaxSizeTag;
-  static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
   static const word kGenerationalBarrierMask;
   static const word kIncrementalBarrierMask;
@@ -1502,6 +1502,8 @@ class Page : public AllStatic {
 
 class Heap : public AllStatic {
  public:
+  static const word kNewAllocatableSize;
+
   // Return true if an object with the given instance size is allocatable
   // in new space on the target.
   static bool IsAllocatableInNewSpace(intptr_t instance_size);
