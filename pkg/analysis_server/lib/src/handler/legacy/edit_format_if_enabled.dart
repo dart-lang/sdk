@@ -36,6 +36,9 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
     var originalContent = file.readAsStringSync();
     var code = SourceCode(originalContent);
 
+    // TODO(dantup): Consider using createFormatter() which takes a result and
+    //  correctly applies settings like page_width, trailing_commas, and enabled
+    //  experiments.
     var formatter = DartFormatter(
       languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion,
     );

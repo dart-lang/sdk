@@ -11,6 +11,7 @@ class DartRuntimeServiceOptions {
     this.port = 0,
     this.disableAuthCodes = false,
     this.sseHandlerPath,
+    this.autoStart = true,
   });
 
   /// If true, enables log output for the service.
@@ -33,17 +34,22 @@ class DartRuntimeServiceOptions {
   /// Defaults to null.
   final String? sseHandlerPath;
 
+  /// If true, the HTTP server will be started on initialization.
+  final bool autoStart;
+
   DartRuntimeServiceOptions copyWith({
     bool? enableLogging,
     int? port,
     bool? disableAuthCodes,
     String? sseHandlerPath,
+    bool? autoStart,
   }) {
     return DartRuntimeServiceOptions(
       enableLogging: enableLogging ?? this.enableLogging,
       port: port ?? this.port,
       disableAuthCodes: disableAuthCodes ?? this.disableAuthCodes,
       sseHandlerPath: sseHandlerPath ?? this.sseHandlerPath,
+      autoStart: autoStart ?? this.autoStart,
     );
   }
 }

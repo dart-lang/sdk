@@ -13850,6 +13850,7 @@ abstract final class FunctionExpressionInvocation
   ],
 )
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
+    with DotShorthandMixin
     implements RewrittenMethodInvocationImpl, FunctionExpressionInvocation {
   @generated
   ExpressionImpl _function;

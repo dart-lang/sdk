@@ -532,8 +532,6 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 
 // Returns newly created Service Isolate on success, nullptr on failure.
-// For now we only support the service isolate coming up from sources
-// which are compiled by the VM parser.
 static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                                  const char* packages_config,
                                                  Dart_IsolateFlags* flags,
@@ -547,30 +545,48 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                            packages_config, nullptr, false);
   ASSERT(flags != nullptr);
 
+  const uint8_t* isolate_snapshot_data = nullptr;
+  const uint8_t* isolate_snapshot_instructions = nullptr;
+
+#if defined(EXPERIMENTAL_VM_SERVICE)
+  if (Options::experimental_vm_service()) {
+    VmService::enable_experimental_vm_service = true;
+    auto [app_snapshot, script_name] = Snapshot::TryReadSDKSnapshot(
+#if defined(DART_PRECOMIPLED_RUNTIME)
+        "dart_runtime_service_vm_aot.dart.snapshot");
+#else
+        "dart_runtime_service_vm.dart.snapshot");
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+    if (app_snapshot == nullptr) {
+      Platform::Exit(kErrorExitCode);
+    }
+    const uint8_t* ignore_vm_snapshot_data;
+    const uint8_t* ignore_vm_snapshot_instructions;
+    app_snapshot->SetBuffers(
+        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+        &isolate_snapshot_data, &isolate_snapshot_instructions);
+  } else {
+#endif  // defined(EXPERIMENTAL_VM_SERVICE)
 #if defined(DART_PRECOMPILED_RUNTIME)
-  // AOT: The service isolate is included in any AOT snapshot in non-PRODUCT
-  // mode - so we launch the vm-service from the main app AOT snapshot.
-  const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      app_isolate_snapshot_instructions;
-  isolate = Dart_CreateIsolateGroup(
-      script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
-      isolate_snapshot_instructions, flags, isolate_group_data,
-      /*isolate_data=*/nullptr, error);
+    // AOT: The service isolate is included in any AOT snapshot in non-PRODUCT
+    // mode - so we launch the vm-service from the main app AOT snapshot.
+    isolate_snapshot_data = app_isolate_snapshot_data;
+    isolate_snapshot_instructions = app_isolate_snapshot_instructions;
 #else
   // JIT: Service isolate uses the core libraries snapshot.
-
   // Set flag to load and retain the vmservice library.
   flags->load_vmservice_library = true;
   flags->null_safety = true;  // Service isolate runs in sound null safe mode.
-  const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      core_isolate_snapshot_instructions;
+  isolate_snapshot_data = core_isolate_snapshot_data;
+  isolate_snapshot_instructions = core_isolate_snapshot_instructions;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#if defined(EXPERIMENTAL_VM_SERVICE)
+  }
+#endif  // defined(EXPERIMENTAL_VM_SERVICE)
   isolate = Dart_CreateIsolateGroup(
       script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
       isolate_snapshot_instructions, flags, isolate_group_data,
       /*isolate_data=*/nullptr, error);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (isolate == nullptr) {
     delete isolate_group_data;
     return nullptr;

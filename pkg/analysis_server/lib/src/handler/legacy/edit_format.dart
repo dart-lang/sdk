@@ -7,9 +7,9 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
-import 'package:analysis_server/src/utilities/extensions/formatter_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/src/utilities/formatter.dart';
 import 'package:dart_style/dart_style.dart' hide TrailingCommas;
 
 /// The handler for the `edit.format` request.
@@ -47,25 +47,17 @@ class EditFormatHandler extends LegacyHandler {
       length = null;
     }
 
+    var formatter = createFormatter(unit, defaultPageWidth: params.lineLength);
     var unformattedCode = unit.content;
-    var code = SourceCode(
-      unformattedCode,
-      selectionStart: start,
-      selectionLength: length,
-    );
-
-    var formatterOptions = unit.analysisOptions.formatterOptions;
-    var effectivePageWidth = formatterOptions.pageWidth ?? params.lineLength;
-    var effectiveTrailingCommas = formatterOptions.dartStyleTrailingCommas;
-    var effectiveLanguageVersion = unit.unit.languageVersion.effective;
-    var formatter = DartFormatter(
-      pageWidth: effectivePageWidth,
-      trailingCommas: effectiveTrailingCommas,
-      languageVersion: effectiveLanguageVersion,
-    );
     SourceCode formattedResult;
     try {
-      formattedResult = formatter.formatSource(code);
+      formattedResult = formatter.formatSource(
+        SourceCode(
+          unformattedCode,
+          selectionStart: start,
+          selectionLength: length,
+        ),
+      );
     } on FormatterException {
       sendResponse(Response.formatWithErrors(request));
       return;

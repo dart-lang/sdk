@@ -4042,16 +4042,14 @@ class AstBuilder extends StackListener {
     var dotShorthand = pop() as ExpressionImpl;
     if (dotShorthand is DotShorthandMixin) {
       dotShorthand.isDotShorthand = true;
+    } else {
+      assert(
+        false,
+        "'$dotShorthand' must be a 'DotShorthandMixin' because we "
+        "should only call 'handleDotShorthandContext' after parsing "
+        "expressions that have a context type we can cache.",
+      );
     }
-    // TODO(kallentu): Add this assert once we've applied the DotShorthandMixin
-    // on all possible expressions that can be a dot shorthand.
-    // } else {
-    //   assert(
-    //       false,
-    //       "'$dotShorthand' must be a 'DotShorthandMixin' because we "
-    //       "should only call 'handleDotShorthandContext' after parsing "
-    //       "expressions that have a context type we can cache.");
-    // }
     push(dotShorthand);
   }
 

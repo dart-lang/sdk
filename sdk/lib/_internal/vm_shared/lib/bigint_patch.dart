@@ -86,6 +86,7 @@ class _DivRemResult {
     int remUsed,
     int rem_nsh,
   ) {
+    _dividendDigits = dividendDigits;
     _dividendUsed = dividendUsed;
     _divisorDigits = divisorDigits;
     _divisorUsed = divisorUsed;

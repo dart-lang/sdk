@@ -7,6 +7,8 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:stream_channel/stream_channel.dart';
 
+import 'dart_runtime_service.dart';
+import 'dart_runtime_service_backend.dart';
 import 'dart_runtime_service_rpcs.dart';
 import 'event_streams.dart';
 import 'rpc_exceptions.dart';
@@ -22,6 +24,7 @@ base class Client {
     required StreamChannel<String> connection,
     required UnmodifiableNamedLookup<Client> clients,
     required EventStreamMethods eventStreamMethods,
+    required this.backend,
   }) {
     _clientPeer = json_rpc.Peer(connection, strictProtocolChecks: false);
     _internalRpcs = DartRuntimeServiceRpcs(
@@ -35,6 +38,7 @@ base class Client {
 
   late json_rpc.Peer _clientPeer;
   late final DartRuntimeServiceRpcs _internalRpcs;
+  final DartRuntimeServiceBackend backend;
 
   /// The logger to be used when handling requests from this client.
   Logger get logger => Logger('Client ($name)');
@@ -66,6 +70,9 @@ base class Client {
   @mustCallSuper
   void registerRpcHandlers() {
     _internalRpcs.registerRpcsWithPeer(_clientPeer);
+    backend.registerRpcs(_clientPeer);
+    _internalRpcs.registerServiceExtensionForwarder(_clientPeer);
+    backend.registerFallbacks(_clientPeer);
   }
 
   /// Attempts to register a [service] to be provided by this client.
@@ -159,10 +166,10 @@ base class Client {
 ///
 /// Call [addClient] when a client connects to your service.
 base class ClientManager {
-  ClientManager({required this.eventStreamMethods});
+  ClientManager({required this.backend, required this.eventStreamMethods});
 
   static const _kServicePrologue = 's';
-
+  final DartRuntimeServiceBackend backend;
   final EventStreamMethods eventStreamMethods;
 
   /// The set of [Client]s currently connected to the service.
@@ -183,6 +190,7 @@ base class ClientManager {
       connection: connection,
       clients: UnmodifiableNamedLookup(clients),
       eventStreamMethods: eventStreamMethods,
+      backend: backend,
     );
     final namespace = clients.add(client);
     client.initialize(namespace: namespace).then((_) {

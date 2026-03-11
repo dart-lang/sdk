@@ -38,6 +38,12 @@ declare_args() {
   # can significantly improve iteration time when iteration on changes in
   # core libraries.
   precompile_tools = false
+
+  # When set to `true`, the Dart Runtime Service based implementation of the
+  # VM service will be included in the build. By default, the legacy VM
+  # service implementation will be launched by the VM, unless the
+  # --include-experimental-vm-service VM flag is provided.
+  include_experimental_vm_service = false
 }
 
 if (default_git_folder == "") {

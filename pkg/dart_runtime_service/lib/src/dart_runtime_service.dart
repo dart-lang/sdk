@@ -18,6 +18,8 @@ import 'exceptions.dart';
 import 'handlers.dart';
 import 'utils.dart';
 
+typedef RpcResponse = Map<String, Object?>;
+
 class DartRuntimeService {
   DartRuntimeService._({required this.config, required this.backend})
     : authCode = config.disableAuthCodes ? null : generateSecret() {
@@ -26,12 +28,12 @@ class DartRuntimeService {
     }
   }
 
-  static Future<DartRuntimeService> start({
+  static Future<DartRuntimeService> initialize({
     required DartRuntimeServiceOptions config,
     required DartRuntimeServiceBackend backend,
   }) async {
     final service = DartRuntimeService._(config: config, backend: backend);
-    await service._startService();
+    await service._initialize();
     return service;
   }
 
@@ -40,10 +42,31 @@ class DartRuntimeService {
   final DartRuntimeServiceBackend backend;
 
   /// The ws:// URI pointing to this [DartRuntimeService]'s server.
-  Uri get uri => _uri!;
+  ///
+  /// Throws [DartRuntimeServiceServerNotRunning] if the HTTP server is not
+  /// active.
+  Uri get uri {
+    if (_server == null) {
+      throw const DartRuntimeServiceServerNotRunning();
+    }
+    return _uri!;
+  }
+
   Uri? _uri;
 
+  /// The http:// URI pointing to this [DartRuntimeService]'s server.
+  ///
+  /// Throws [DartRuntimeServiceServerNotRunning] if the HTTP server is not
+  /// active.
+  Uri get httpUri => uri.replace(scheme: 'http');
+
   /// The sse:// URI pointing to this [DartRuntimeService]'s server.
+  ///
+  /// Throws [StateError] if [DartRuntimeServiceOptions.sseHandlerPath] is not
+  /// set.
+  ///
+  /// Throws [DartRuntimeServiceServerNotRunning] if the HTTP server is not
+  /// active.
   Uri get sseUri {
     if (config.sseHandlerPath == null) {
       throw StateError('SSE handler path not configured.');
@@ -63,6 +86,7 @@ class DartRuntimeService {
 
   @visibleForTesting
   late final ClientManager clientManager = ClientManager(
+    backend: backend,
     eventStreamMethods: eventStreamManager,
   );
 
@@ -73,15 +97,42 @@ class DartRuntimeService {
 
   HttpServer? _server;
 
+  /// Initializes the service's state without starting the web server.
+  Future<void> _initialize() async {
+    await backend.initialize();
+
+    if (config.autoStart) {
+      _logger.info('Autostart enabled. Starting server.');
+      await _startServer();
+    }
+    await backend.onServiceReady(this);
+  }
+
   /// Shuts down the service and cleans up backend state.
   Future<void> shutdown() async {
-    await _server?.close(force: true);
-    await clientManager.shutdown();
+    await backend.clearState();
     await backend.shutdown();
+    await _shutdownServer();
+    await clientManager.shutdown();
     Logger.root.clearListeners();
   }
 
-  Future<void> _startService() async {
+  Future<void> toggleServer() async {
+    // TODO(bkonyi): verify there's no race conditions
+    if (_server != null) {
+      await _shutdownServer();
+    } else {
+      await _startServer();
+    }
+  }
+
+  Future<void> _startServer() async {
+    if (_server != null) {
+      _logger.warning(
+        "Attempted to start the HTTP server, but it's already running.",
+      );
+      throw const DartRuntimeServiceServerAlreadyRunning();
+    }
     // TODO(bkonyi): support IPv6
     final host = InternetAddress.loopbackIPv4.host;
 
@@ -120,9 +171,26 @@ class DartRuntimeService {
       port: server.port,
       path: authCode != null ? '/$authCode' : '',
     );
+    await backend.onServerStarted(httpUri: httpUri, wsUri: uri);
     _logger.info(
-      'Dart Runtime Service started successfully and is listening at $uri.',
+      'Dart Runtime Service HTTP server started successfully and is listening '
+      'at $uri.',
     );
+  }
+
+  Future<void> _shutdownServer() async {
+    final server = _server;
+    if (server == null) {
+      _logger.warning(
+        "Attempting to shut down the HTTP server, but it's not "
+        'running.',
+      );
+      throw const DartRuntimeServiceServerNotRunning();
+    }
+    _logger.info('Dart Runtime Service HTTP server is shutting down.');
+    _server = null;
+    _uri = null;
+    await server.close();
   }
 
   shelf.Handler _handlers() {

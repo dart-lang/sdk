@@ -13663,6 +13663,58 @@ LinterLintCode:
       stable: "2.19"
     categories: [brevity]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `library` directive
+      doesn't have a documentation comment or any annotations.
+
+      If no documentation comment or annotation precedes the library directive,
+      then either it's unnecessary or the documentation comment and/or
+      annotations are misplaced and should be moved.
+
+      #### Examples
+
+      The following code produces this diagnostic because the `library`
+      directive doesn't have a documentation comment or annotation:
+
+      ```dart
+      [!library;!]
+
+      class C {}
+      ```
+
+      The following code produces this diagnostic because the library's
+      documentation comment is below the `library` directive:
+
+      ```dart
+      [!library;!]
+
+      /// This library provides the [C] class.
+
+      /// The [C] class.
+      class C {}
+      ```
+
+      #### Common fixes
+
+      If you don't want to add a documentation comment or annotation
+      to the library, then remove the `library` directive:
+
+      ```dart
+      class C {}
+      ```
+
+      If you intend to add a documentation comment or annotation,
+      then add or move it to the `library` directive:
+
+      ```dart
+      /// This library provides the [C] class.
+      library;
+
+      /// The [C] class.
+      class C {}
+      ```
     deprecatedDetails: |-
       **DO** use library directives if you want to document a library and/or annotate
       a library.
