@@ -33,6 +33,16 @@ keyword and identifiers that are not. As a result, we treat all of these as
 keywords whenever they serve the function of a keyword, and treat them as
 identifiers when they don't.
 
+#### The `new` keyword in constructor declarations
+
+For the case where the `new` is introducing a constructor, it's acting as a
+keyword, similar to `class`, that indicates that what follows is a constructor
+declaration.
+
+For the case where `.new` follows a class name, it's not acting as a keyword,
+but as an alternative to omitting the name. In those cases it should be
+highlighted as an identifier.
+
 ## Semantic highlighting
 
 Semantic highlighting covers highlighting that is dependent on knowing the
