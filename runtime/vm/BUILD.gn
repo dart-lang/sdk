@@ -92,6 +92,7 @@ library_for_all_configs("libdart_vm") {
       "$fuchsia_sdk/pkg/inspect_component_cpp",
       "$fuchsia_sdk/pkg/sys_cpp",
       "$fuchsia_sdk/pkg/trace-engine",
+      "//third_party/icu:icui18n",
     ]
   }
   public_configs = [ ":libdart_vm_config" ]
