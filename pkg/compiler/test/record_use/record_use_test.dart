@@ -120,8 +120,22 @@ Future<void> main() async {
             // Ensure test coverage of tear offs, add pragmas to prevent
             // optimiations if necessary.
             allowTearoffToStaticPromotion: false,
-            loadingUnitMapping: (String unit) =>
-                const <String, String>{'out': '1', 'out_1': '2'}[unit] ?? unit,
+            loadingUnitMapping: (String unit) {
+              // dart2js and VM assign loading units differently. Work around
+              // this for now, we'll need a more robust testing solution later.
+              if (testFile.basename == 'loading_units_shared_constant.dart' ||
+                  testFile.basename ==
+                      'loading_units_nested_shared_constant.dart') {
+                if (unit == 'out_1') return '2';
+                if (unit == 'out_3') return '3';
+              }
+              return const <String, String>{
+                    'out': '1',
+                    'out_1': '2',
+                    'out_2': '3',
+                  }[unit] ??
+                  unit;
+            },
           );
           if (!semanticEquals) {
             // Print the error message based on string representation.
@@ -231,4 +245,13 @@ Future<String?> compileWithUsages({
       .toString();
 }
 
-const Set<String> dart2jsNotSupported = {'external_function.dart'};
+const Set<String> dart2jsNotSupported = {
+  'external_function.dart',
+
+  // There is an extra loading unit out_2 which contains the shared stuff
+  // between out_1 and out_3. Either of those loads out_2. We need a more robust
+  // semanticEquality solution than mapping loading unit names. We might only be
+  // able to make that solution if we include the actual graph of loading units
+  // in the format.
+  'loading_units_nested_shared_constant.dart',
+};

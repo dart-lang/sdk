@@ -94,6 +94,7 @@ class CallRecorder {
   /// shared across multiple calls to the same method.
   void _addToUsage(ast.Procedure target, CallReference call) {
     final identifier = _definitionFromMember(target);
+    // TODO: Merge loading units if an identical CallReference already exists.
     callsForMethod.update(
       identifier,
       (usage) => usage..add(call),
