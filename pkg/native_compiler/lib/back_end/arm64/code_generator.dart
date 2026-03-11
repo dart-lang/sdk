@@ -674,7 +674,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
     _asm.and(
       scratch1Reg,
       scratch2Reg,
-      ShiftedRegOperand(scratch1Reg, .LSR, barrierOverlapShift),
+      ShiftedRegOperand(
+        scratch1Reg,
+        .LSR,
+        vmOffsets.UntaggedObject_kBarrierOverlapShift,
+      ),
     );
     _asm.tst(scratch1Reg, ShiftedRegOperand(heapBitsReg, .LSR, 32));
     _asm.b(slowPath, .notEqual);
@@ -908,7 +912,14 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.b(initializeObject);
     });
 
-    _asm.loadFromPool(AllocationStub.tagsReg, NewObjectTags(cls));
+    _asm.loadImmediate(
+      AllocationStub.tagsReg,
+      vmOffsets.computeNewObjectTags(
+        ClassId.ClosureCid,
+        instanceSize,
+        log2wordSize,
+      ),
+    );
     _asm.inlineAllocation(
       resultReg,
       AllocationStub.tagsReg,
@@ -948,10 +959,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final scratch2Reg = temporaryReg(instr, 2);
     final resultReg = outputReg(instr);
     final done = Label();
-    final cls = GlobalContext.instance.coreTypes.index.getClass(
-      'dart:core',
-      '_Mint',
-    );
     final instanceSize = vmOffsets.Mint_InstanceSize;
 
     Label slowPath = addSlowPath(() {
@@ -967,8 +974,14 @@ final class Arm64CodeGenerator extends CodeGenerator {
     _asm.adds(resultReg, operandReg, operandReg);
     _asm.b(done, .noOverflow);
 
-    // TODO: compute tags at compile time.
-    _asm.loadFromPool(tagsReg, NewObjectTags(cls));
+    _asm.loadImmediate(
+      tagsReg,
+      vmOffsets.computeNewObjectTags(
+        ClassId.MintCid,
+        instanceSize,
+        log2wordSize,
+      ),
+    );
     _asm.inlineAllocation(
       resultReg,
       tagsReg,
@@ -993,10 +1006,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final scratch2Reg = temporaryReg(instr, 2);
     final resultReg = outputReg(instr);
     final done = Label();
-    final cls = GlobalContext.instance.coreTypes.index.getClass(
-      'dart:core',
-      '_Double',
-    );
     final instanceSize = vmOffsets.Double_InstanceSize;
 
     Label slowPath = addSlowPath(() {
@@ -1006,8 +1015,14 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.b(done);
     });
 
-    // TODO: compute tags at compile time.
-    _asm.loadFromPool(tagsReg, NewObjectTags(cls));
+    _asm.loadImmediate(
+      tagsReg,
+      vmOffsets.computeNewObjectTags(
+        ClassId.DoubleCid,
+        instanceSize,
+        log2wordSize,
+      ),
+    );
     _asm.inlineAllocation(
       resultReg,
       tagsReg,
