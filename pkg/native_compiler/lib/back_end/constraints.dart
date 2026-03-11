@@ -40,6 +40,16 @@ final class AnyLocation implements Constraint {
 /// Register allocation constraints for locations of instruction inputs,
 /// result and temporaries needed to generate code for the instruction.
 ///
+/// Code generated for each instruction should read inputs and
+/// then write output. It may also clobber temporaries.
+///
+/// Output may be allocated to the same register as one of the inputs
+/// (if it was the last use of the input). Unless output is allocated
+/// to the same location as input, instruction should not modify inputs.
+///
+/// Temporaries are allocated to the registers which are different from
+/// both inputs and outputs.
+///
 /// TODO: encode constraints as int/Uint32List.
 class InstructionConstraints {
   final Constraint? result;
