@@ -7,6 +7,7 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
@@ -20,12 +21,12 @@ const String _serverDir = ".dartServer";
 /// ANALYZER_STATE_LOCATION_OVERRIDE environment variable, in which case this
 /// method will return the contents of that environment variable.
 String? _getStandardStateLocation() {
-  Map<String, String> env = io.Platform.environment;
+  Map<String, String> env = platform.environment;
   if (env.containsKey('ANALYZER_STATE_LOCATION_OVERRIDE')) {
     return env['ANALYZER_STATE_LOCATION_OVERRIDE'];
   }
 
-  var home = io.Platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];
+  var home = platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];
   return home != null && io.FileSystemEntity.isDirectorySync(home)
       ? join(home, _serverDir)
       : null;

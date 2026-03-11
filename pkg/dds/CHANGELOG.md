@@ -1,8 +1,9 @@
-# 5.2.0-wip
+# 5.2.0
 
 - [DAP] `Stopped(reason: 'entry')` events will no longer be lost if an isolate has not yet reached the `PauseStart` state when connecting to the VM.
 - **Breaking change:** [DAP] Support for the custom `supportsDartUris` client capability and `dart-macro+file:///` mappings that supported the Dart macros experiment have been removed.
 - [DAP] `evaluateName` will now be correctly set on child variables of variables in the `Globals` scope.
+- [DAP] Test skips as a result of using `solo` no longer produce `output` events, reducing noisy output when running individual tests. The `dart.testNotification` events themselves are still forwarded.
 
 # 5.1.0
 - Update to version 2.1 of the DDS protocol.

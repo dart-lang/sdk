@@ -31,39 +31,49 @@ String formatList(String pattern, List<Object?>? arguments) {
     );
     return pattern;
   }
-  StringBuffer sb = new StringBuffer();
+  final List<String> buffer = <String>[];
   int from = 0;
-  int patternLengthMinus1 = pattern.length - 1;
-  for (int i = 0; i < pattern.length; i++) {
-    int char = pattern.codeUnitAt(i);
+  int i = 0;
+  while (i < pattern.length) {
+    int char = pattern.codeUnitAt(i++);
     if (char == $OPEN_CURLY_BRACKET) {
-      int j = i;
-      int num = 0;
-      while (j < patternLengthMinus1) {
-        int char = pattern.codeUnitAt(++j);
-        if (char < $0 || char > $9) break;
-        num = num * 10 + (char - $0);
-      }
-      if (j > i + 1 && pattern.codeUnitAt(j) == $CLOSE_CURLY_BRACKET) {
-        // Found {\d+}.
-        int to = i;
-        if (to > from) {
-          sb.write(pattern.substring(from, to));
+      int to = i - 1; // End of substring before brace.
+      int number = 0;
+      while (i < pattern.length) {
+        char = pattern.codeUnitAt(i++);
+        int digit = char ^ $0;
+        if (digit <= 9) {
+          number = number * 10 + digit;
+        } else if (char == $CLOSE_CURLY_BRACKET) {
+          int end = i;
+          // Found {\d*}, check that there is at least one digit.
+          if (end > to + 2) {
+            // Found {\d+}.
+            if (to > from) {
+              buffer.add(pattern.substring(from, to));
+            }
+            buffer.add(arguments[number].toString());
+            from = i;
+          }
+          break;
+        } else if (char == $OPEN_CURLY_BRACKET) {
+          // Found next `{` before closing previous. Restart.
+          to = i - 1;
+          number = 0;
+        } else {
+          break;
         }
-        sb.write(arguments[num]);
-        from = j + 1;
       }
     }
   }
-  if (sb.isEmpty) {
+  if (from == 0) {
     // No numbers found.
     return pattern;
   }
-  int to = pattern.length;
-  if (to > from) {
-    sb.write(pattern.substring(from, to));
+  if (from < pattern.length) {
+    buffer.add(pattern.substring(from));
   }
-  return sb.toString();
+  return buffer.join();
 }
 
 /// A diagnostic, as defined by the [Diagnostic Design Guidelines][guidelines]:
