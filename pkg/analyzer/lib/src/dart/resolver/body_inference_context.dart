@@ -160,7 +160,11 @@ class BodyInferenceContext {
       }
       // TODO(paulberry): eliminate this cast by changing the type of
       // `_returnTypes` to `List<TypeImpl>`.
-      return _returnTypes.cast<TypeImpl>().reduce(_typeSystem.leastUpperBound);
+      TypeImpl value = _returnTypes[0] as TypeImpl;
+      for (var i = 1; i < _returnTypes.length; i++) {
+        value = _typeSystem.leastUpperBound(value, _returnTypes[i] as TypeImpl);
+      }
+      return value;
     }
 
     var initialType = endOfBlockIsReachable
@@ -168,10 +172,11 @@ class BodyInferenceContext {
         : _typeProvider.neverType;
     // TODO(paulberry): eliminate this cast by changing the type of
     // `_returnTypes` to `List<TypeImpl>`.
-    return _returnTypes.cast<TypeImpl>().fold(
-      initialType,
-      _typeSystem.leastUpperBound,
-    );
+    TypeImpl value = initialType;
+    for (var i = 0; i < _returnTypes.length; i++) {
+      value = _typeSystem.leastUpperBound(value, _returnTypes[i] as TypeImpl);
+    }
+    return value;
   }
 
   static TypeImpl? _argumentOf(TypeImpl type, InterfaceElement element) {

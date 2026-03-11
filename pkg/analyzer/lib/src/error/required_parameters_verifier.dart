@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:collection/collection.dart';
 
 /// Checks for missing arguments for required named parameters.
 class RequiredParametersVerifier extends SimpleAstVisitor<void> {
@@ -229,9 +228,13 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   static _RequiredAnnotation? _requiredAnnotation(
     FormalParameterElement element,
   ) {
-    var annotation =
-        element.metadata.annotations.firstWhereOrNull((e) => e.isRequired)
-            as ElementAnnotationImpl?;
+    ElementAnnotationImpl? annotation;
+    for (var a in element.metadata.annotations) {
+      if (a.isRequired) {
+        annotation = a as ElementAnnotationImpl;
+        break;
+      }
+    }
     if (annotation != null) {
       return _RequiredAnnotation(annotation);
     }

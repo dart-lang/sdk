@@ -4354,7 +4354,10 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      return fields.firstWhereOrNull((e) => e.name == name);
+      for (var e in fields) {
+        if (e.name == name) return e;
+      }
+      return null;
     });
   }
 
@@ -4367,7 +4370,10 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      return getters.firstWhereOrNull((e) => e.name == name);
+      for (var e in getters) {
+        if (e.name == name) return e;
+      }
+      return null;
     });
   }
 
@@ -4380,7 +4386,10 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      return methods.firstWhereOrNull((e) => e.lookupName == name);
+      for (var e in methods) {
+        if (e.lookupName == name) return e;
+      }
+      return null;
     });
   }
 
@@ -4993,7 +5002,10 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      return constructors.firstWhereOrNull((e) => e.name == name);
+      for (var e in constructors) {
+        if (e.name == name) return e;
+      }
+      return null;
     });
   }
 
