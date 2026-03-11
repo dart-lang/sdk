@@ -22,7 +22,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
 import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart' as pool;
-import 'package:record_use/record_use_internal.dart' as record_use;
+import 'package:record_use/record_use.dart' as record_use;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformLibraries;

@@ -32,9 +32,7 @@
         "uses": [
           {
             "constant_index": 0,
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "type": "constant"
           }
         ]

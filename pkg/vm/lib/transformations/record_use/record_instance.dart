@@ -5,7 +5,7 @@
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
 
 import 'constant_collector.dart';
@@ -66,7 +66,7 @@ class InstanceRecorder {
       final cls = effectiveTarget.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
         definition: _definitionFromMember(effectiveTarget),
-        loadingUnits: [_loadingUnitLookup(context)],
+        loadingUnit: _loadingUnitLookup(context),
       );
       _addToUsage(cls, instance);
     }
@@ -80,7 +80,7 @@ class InstanceRecorder {
     final cls = effectiveTarget.enclosingClass!;
     final instance = ConstructorTearoffReference(
       definition: _definitionFromMember(effectiveTarget),
-      loadingUnits: [_loadingUnitLookup(context)],
+      loadingUnit: _loadingUnitLookup(context),
     );
     _addToUsage(cls, instance);
   }
@@ -93,7 +93,7 @@ class InstanceRecorder {
     final cls = effectiveTarget.enclosingClass as ast.Class;
     final instance = ConstructorTearoffReference(
       definition: _definitionFromMember(effectiveTarget),
-      loadingUnits: [_loadingUnitLookup(context)],
+      loadingUnit: _loadingUnitLookup(context),
     );
     _addToUsage(cls, instance);
   }
@@ -166,7 +166,7 @@ class InstanceRecorder {
       definition: _definitionFromMember(target),
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
-      loadingUnits: [_loadingUnitLookup(context)],
+      loadingUnit: _loadingUnitLookup(context),
     );
     _addToUsage(cls, instance);
   }
@@ -178,7 +178,7 @@ class InstanceRecorder {
       final cls = effectiveTarget.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
         definition: _definitionFromMember(effectiveTarget),
-        loadingUnits: [_loadingUnitLookup(node)],
+        loadingUnit: _loadingUnitLookup(node),
       );
       _addToUsage(cls, instance);
     }
@@ -191,7 +191,7 @@ class InstanceRecorder {
       final cls = effectiveTarget.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
         definition: _definitionFromMember(effectiveTarget),
-        loadingUnits: [_loadingUnitLookup(node)],
+        loadingUnit: _loadingUnitLookup(node),
       );
       _addToUsage(cls, instance);
     }
@@ -204,7 +204,7 @@ class InstanceRecorder {
       final cls = effectiveTarget.enclosingClass!;
       final instance = ConstructorTearoffReference(
         definition: _definitionFromMember(effectiveTarget),
-        loadingUnits: [_loadingUnitLookup(node)],
+        loadingUnit: _loadingUnitLookup(node),
       );
       _addToUsage(cls, instance);
     }
@@ -220,7 +220,7 @@ class InstanceRecorder {
         if (constant is ast.InstanceConstant) {
           final instance = InstanceConstantReference(
             instanceConstant: evaluateConstant(constant),
-            loadingUnits: [_loadingUnitLookup(node)],
+            loadingUnit: _loadingUnitLookup(node),
           );
           _addToUsage(constant.classNode, instance);
         }
@@ -254,7 +254,7 @@ class InstanceRecorder {
     ast.InstanceConstant constant,
   ) => InstanceConstantReference(
     instanceConstant: evaluateConstant(constant),
-    loadingUnits: [_loadingUnitLookup(expression)],
+    loadingUnit: _loadingUnitLookup(expression),
   );
 
   /// Returns a [Definition] for [cls].

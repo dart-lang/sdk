@@ -13,7 +13,7 @@ library;
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart' as ir;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 
 import '../common/elements.dart';
 import '../constants/values.dart';
@@ -70,7 +70,7 @@ class RecordUseCollector {
     switch (recordedUse) {
       case RecordedCallWithArguments():
         final reference = CallWithArguments(
-          loadingUnits: [LoadingUnit(loadingUnit)],
+          loadingUnit: LoadingUnit(loadingUnit),
           receiver: recordedUse.receiverInRecordUseFormat(_converter),
           namedArguments: recordedUse.namedArgumentsInRecordUseFormat(
             _converter,
@@ -83,7 +83,7 @@ class RecordUseCollector {
         break;
       case RecordedTearOff():
         final reference = CallTearoff(
-          loadingUnits: [LoadingUnit(loadingUnit)],
+          loadingUnit: LoadingUnit(loadingUnit),
           receiver: recordedUse.receiverInRecordUseFormat(_converter),
         );
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
@@ -94,7 +94,7 @@ class RecordUseCollector {
         );
         final reference = InstanceConstantReference(
           instanceConstant: instanceValue,
-          loadingUnits: [LoadingUnit(loadingUnit)],
+          loadingUnit: LoadingUnit(loadingUnit),
         );
         instanceMap
             .putIfAbsent(recordedUse.constantClass, () => [])
@@ -103,7 +103,7 @@ class RecordUseCollector {
       case RecordedInstanceCreation():
         final reference = InstanceCreationReference(
           definition: _definitionFromMember(recordedUse.constructor),
-          loadingUnits: [LoadingUnit(loadingUnit)],
+          loadingUnit: LoadingUnit(loadingUnit),
           namedArguments: recordedUse.namedArguments.map(
             (k, v) => MapEntry(k, _converter.findValueOrNonConst(v)),
           ),
@@ -116,7 +116,7 @@ class RecordUseCollector {
       case RecordedConstructorTearOff():
         final reference = ConstructorTearoffReference(
           definition: _definitionFromMember(recordedUse.constructor),
-          loadingUnits: [LoadingUnit(loadingUnit)],
+          loadingUnit: LoadingUnit(loadingUnit),
         );
         instanceMap.putIfAbsent(recordedUse.cls, () => []).add(reference);
         break;

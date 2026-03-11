@@ -39,9 +39,7 @@
         "uses": [
           {
             "definition_index": 1,
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "type": "tearoff"
           }
         ]

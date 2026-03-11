@@ -9,7 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 import 'package:vm/metadata/loading_units.dart' as vm_metadata;
 import 'package:vm/transformations/record_use/record_call.dart';
 import 'package:vm/transformations/record_use/record_instance.dart';

@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 
 import 'util.dart';
 

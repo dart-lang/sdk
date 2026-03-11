@@ -20,7 +20,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/source_information.dart';
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:record_use/record_use_internal.dart' as record_use;
+import 'package:record_use/record_use.dart' as record_use;
 
 import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../js_backend/annotations.dart';

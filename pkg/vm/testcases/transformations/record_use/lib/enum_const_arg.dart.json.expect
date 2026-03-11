@@ -51,17 +51,13 @@
         "definition_index": 0,
         "uses": [
           {
-            "constant_index": 1,
-            "loading_unit_indices": [
-              0
-            ],
+            "constant_index": 0,
+            "loading_unit_index": 0,
             "type": "constant"
           },
           {
-            "constant_index": 0,
-            "loading_unit_indices": [
-              0
-            ],
+            "constant_index": 1,
+            "loading_unit_index": 0,
             "type": "constant"
           }
         ]
@@ -72,9 +68,7 @@
         "definition_index": 1,
         "uses": [
           {
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "positional": [
               1
             ],

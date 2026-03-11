@@ -42,16 +42,12 @@
         "uses": [
           {
             "constant_index": 1,
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "type": "constant"
           },
           {
             "constant_index": 1,
-            "loading_unit_indices": [
-              1
-            ],
+            "loading_unit_index": 1,
             "type": "constant"
           }
         ]
