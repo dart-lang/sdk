@@ -82,9 +82,7 @@
         "definition_index": 0,
         "uses": [
           {
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "type": "with_arguments"
           }
         ]
@@ -93,9 +91,7 @@
         "definition_index": 1,
         "uses": [
           {
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "positional": [
               0
             ],
@@ -107,9 +103,7 @@
         "definition_index": 2,
         "uses": [
           {
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "type": "with_arguments"
           }
         ]
@@ -118,9 +112,7 @@
         "definition_index": 3,
         "uses": [
           {
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "positional": [
               1
             ],

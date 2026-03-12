@@ -16,6 +16,7 @@ base class VMOffsets {
   int get Array_kMaxElements => throw 'Unknown';
   int get Array_kMaxNewSpaceElements => throw 'Unknown';
   int get Context_kMaxElements => throw 'Unknown';
+  int get Heap_kNewAllocatableSize => throw 'Unknown';
   int get Instructions_kMonomorphicEntryOffsetJIT => throw 'Unknown';
   int get Instructions_kPolymorphicEntryOffsetJIT => throw 'Unknown';
   int get Instructions_kMonomorphicEntryOffsetAOT => throw 'Unknown';
@@ -47,6 +48,23 @@ base class VMOffsets {
   int get SubtypeTestCache_kMaxInputs => throw 'Unknown';
   int get SubtypeTestCache_kTestResult => throw 'Unknown';
   int get TypeArguments_kMaxElements => throw 'Unknown';
+  int get UntaggedObject_kCardRememberedBit => throw 'Unknown';
+  int get UntaggedObject_kCanonicalBit => throw 'Unknown';
+  int get UntaggedObject_kNotMarkedBit => throw 'Unknown';
+  int get UntaggedObject_kNewOrEvacuationCandidateBit => throw 'Unknown';
+  int get UntaggedObject_kAlwaysSetBit => throw 'Unknown';
+  int get UntaggedObject_kOldAndNotRememberedBit => throw 'Unknown';
+  int get UntaggedObject_kIncrementalBarrierMask => throw 'Unknown';
+  int get UntaggedObject_kGenerationalBarrierMask => throw 'Unknown';
+  int get UntaggedObject_kBarrierOverlapShift => throw 'Unknown';
+  int get UntaggedObject_kShallowImmutableBit => throw 'Unknown';
+  int get UntaggedObject_kDeeplyImmutableBit => throw 'Unknown';
+  int get UntaggedObject_kSizeTagPos => throw 'Unknown';
+  int get UntaggedObject_kSizeTagSize => throw 'Unknown';
+  int get UntaggedObject_kClassIdTagPos => throw 'Unknown';
+  int get UntaggedObject_kClassIdTagSize => throw 'Unknown';
+  int get UntaggedObject_kHashTagPos => throw 'Unknown';
+  int get UntaggedObject_kHashTagSize => throw 'Unknown';
   int get AbstractType_flags_offset => throw 'Unknown';
   int get AbstractType_hash_offset => throw 'Unknown';
   int get AbstractType_type_test_stub_entry_point_offset => throw 'Unknown';
@@ -576,6 +594,8 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get Heap_kNewAllocatableSize => 0x40000;
+  @override
   int get Instructions_kMonomorphicEntryOffsetJIT => 0x8;
   @override
   int get Instructions_kPolymorphicEntryOffsetJIT => 0x34;
@@ -633,6 +653,40 @@ final class Arm64VMOffsets extends VMOffsets {
   int get SubtypeTestCache_kTestResult => 0x7;
   @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
+  @override
+  int get UntaggedObject_kCardRememberedBit => 0x0;
+  @override
+  int get UntaggedObject_kCanonicalBit => 0x1;
+  @override
+  int get UntaggedObject_kNotMarkedBit => 0x2;
+  @override
+  int get UntaggedObject_kNewOrEvacuationCandidateBit => 0x3;
+  @override
+  int get UntaggedObject_kAlwaysSetBit => 0x4;
+  @override
+  int get UntaggedObject_kOldAndNotRememberedBit => 0x5;
+  @override
+  int get UntaggedObject_kIncrementalBarrierMask => 0x4;
+  @override
+  int get UntaggedObject_kGenerationalBarrierMask => 0x8;
+  @override
+  int get UntaggedObject_kBarrierOverlapShift => 0x2;
+  @override
+  int get UntaggedObject_kShallowImmutableBit => 0x6;
+  @override
+  int get UntaggedObject_kDeeplyImmutableBit => 0x7;
+  @override
+  int get UntaggedObject_kSizeTagPos => 0x8;
+  @override
+  int get UntaggedObject_kSizeTagSize => 0x4;
+  @override
+  int get UntaggedObject_kClassIdTagPos => 0xc;
+  @override
+  int get UntaggedObject_kClassIdTagSize => 0x14;
+  @override
+  int get UntaggedObject_kHashTagPos => 0x20;
+  @override
+  int get UntaggedObject_kHashTagSize => 0x20;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override
@@ -1491,6 +1545,8 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get Heap_kNewAllocatableSize => 0x40000;
+  @override
   int get Instructions_kMonomorphicEntryOffsetJIT => 0x8;
   @override
   int get Instructions_kPolymorphicEntryOffsetJIT => 0x34;
@@ -1548,6 +1604,40 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get SubtypeTestCache_kTestResult => 0x7;
   @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
+  @override
+  int get UntaggedObject_kCardRememberedBit => 0x0;
+  @override
+  int get UntaggedObject_kCanonicalBit => 0x1;
+  @override
+  int get UntaggedObject_kNotMarkedBit => 0x2;
+  @override
+  int get UntaggedObject_kNewOrEvacuationCandidateBit => 0x3;
+  @override
+  int get UntaggedObject_kAlwaysSetBit => 0x4;
+  @override
+  int get UntaggedObject_kOldAndNotRememberedBit => 0x5;
+  @override
+  int get UntaggedObject_kIncrementalBarrierMask => 0x4;
+  @override
+  int get UntaggedObject_kGenerationalBarrierMask => 0x8;
+  @override
+  int get UntaggedObject_kBarrierOverlapShift => 0x2;
+  @override
+  int get UntaggedObject_kShallowImmutableBit => 0x6;
+  @override
+  int get UntaggedObject_kDeeplyImmutableBit => 0x7;
+  @override
+  int get UntaggedObject_kSizeTagPos => 0x8;
+  @override
+  int get UntaggedObject_kSizeTagSize => 0x4;
+  @override
+  int get UntaggedObject_kClassIdTagPos => 0xc;
+  @override
+  int get UntaggedObject_kClassIdTagSize => 0x14;
+  @override
+  int get UntaggedObject_kHashTagPos => 0x20;
+  @override
+  int get UntaggedObject_kHashTagSize => 0x20;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override
@@ -2652,4 +2742,182 @@ enum LeafRuntimeEntry {
   TsanFuncExit,
   TryDoubleAsInteger,
   MemoryMove,
+}
+
+enum ClassId {
+  IllegalCid,
+  NativePointer,
+  FreeListElement,
+  ForwardingCorpse,
+  ObjectCid,
+  ClassCid,
+  PatchClassCid,
+  FunctionCid,
+  TypeParametersCid,
+  ClosureDataCid,
+  FfiTrampolineDataCid,
+  FieldCid,
+  ScriptCid,
+  LibraryCid,
+  NamespaceCid,
+  KernelProgramInfoCid,
+  WeakSerializationReferenceCid,
+  WeakArrayCid,
+  CodeCid,
+  BytecodeCid,
+  InstructionsCid,
+  InstructionsSectionCid,
+  InstructionsTableCid,
+  ObjectPoolCid,
+  PcDescriptorsCid,
+  CodeSourceMapCid,
+  CompressedStackMapsCid,
+  LocalVarDescriptorsCid,
+  ExceptionHandlersCid,
+  ContextCid,
+  ContextScopeCid,
+  SentinelCid,
+  SingleTargetCacheCid,
+  MonomorphicSmiableCallCid,
+  CallSiteDataCid,
+  UnlinkedCallCid,
+  ICDataCid,
+  MegamorphicCacheCid,
+  SubtypeTestCacheCid,
+  LoadingUnitCid,
+  ErrorCid,
+  ApiErrorCid,
+  LanguageErrorCid,
+  UnhandledExceptionCid,
+  UnwindErrorCid,
+  InstanceCid,
+  LibraryPrefixCid,
+  TypeArgumentsCid,
+  AbstractTypeCid,
+  TypeCid,
+  FunctionTypeCid,
+  RecordTypeCid,
+  TypeParameterCid,
+  FinalizerBaseCid,
+  FinalizerCid,
+  NativeFinalizerCid,
+  FinalizerEntryCid,
+  ClosureCid,
+  NumberCid,
+  IntegerCid,
+  SmiCid,
+  MintCid,
+  DoubleCid,
+  BoolCid,
+  Float32x4Cid,
+  Int32x4Cid,
+  Float64x2Cid,
+  RecordCid,
+  TypedDataBaseCid,
+  TypedDataCid,
+  ExternalTypedDataCid,
+  TypedDataViewCid,
+  PointerCid,
+  DynamicLibraryCid,
+  CapabilityCid,
+  ReceivePortCid,
+  SendPortCid,
+  StackTraceCid,
+  SuspendStateCid,
+  RegExpCid,
+  WeakPropertyCid,
+  WeakReferenceCid,
+  MirrorReferenceCid,
+  FutureOrCid,
+  UserTagCid,
+  TransferableTypedDataCid,
+  MapCid,
+  ConstMapCid,
+  SetCid,
+  ConstSetCid,
+  ArrayCid,
+  ImmutableArrayCid,
+  GrowableObjectArrayCid,
+  StringCid,
+  OneByteStringCid,
+  TwoByteStringCid,
+  FfiNativeFunctionCid,
+  FfiInt8Cid,
+  FfiInt16Cid,
+  FfiInt32Cid,
+  FfiInt64Cid,
+  FfiUint8Cid,
+  FfiUint16Cid,
+  FfiUint32Cid,
+  FfiUint64Cid,
+  FfiFloatCid,
+  FfiDoubleCid,
+  FfiVoidCid,
+  FfiHandleCid,
+  FfiBoolCid,
+  FfiNativeTypeCid,
+  FfiStructCid,
+  TypedDataInt8ArrayCid,
+  TypedDataInt8ArrayViewCid,
+  ExternalTypedDataInt8ArrayCid,
+  UnmodifiableTypedDataInt8ArrayViewCid,
+  TypedDataUint8ArrayCid,
+  TypedDataUint8ArrayViewCid,
+  ExternalTypedDataUint8ArrayCid,
+  UnmodifiableTypedDataUint8ArrayViewCid,
+  TypedDataUint8ClampedArrayCid,
+  TypedDataUint8ClampedArrayViewCid,
+  ExternalTypedDataUint8ClampedArrayCid,
+  UnmodifiableTypedDataUint8ClampedArrayViewCid,
+  TypedDataInt16ArrayCid,
+  TypedDataInt16ArrayViewCid,
+  ExternalTypedDataInt16ArrayCid,
+  UnmodifiableTypedDataInt16ArrayViewCid,
+  TypedDataUint16ArrayCid,
+  TypedDataUint16ArrayViewCid,
+  ExternalTypedDataUint16ArrayCid,
+  UnmodifiableTypedDataUint16ArrayViewCid,
+  TypedDataInt32ArrayCid,
+  TypedDataInt32ArrayViewCid,
+  ExternalTypedDataInt32ArrayCid,
+  UnmodifiableTypedDataInt32ArrayViewCid,
+  TypedDataUint32ArrayCid,
+  TypedDataUint32ArrayViewCid,
+  ExternalTypedDataUint32ArrayCid,
+  UnmodifiableTypedDataUint32ArrayViewCid,
+  TypedDataInt64ArrayCid,
+  TypedDataInt64ArrayViewCid,
+  ExternalTypedDataInt64ArrayCid,
+  UnmodifiableTypedDataInt64ArrayViewCid,
+  TypedDataUint64ArrayCid,
+  TypedDataUint64ArrayViewCid,
+  ExternalTypedDataUint64ArrayCid,
+  UnmodifiableTypedDataUint64ArrayViewCid,
+  TypedDataFloat32ArrayCid,
+  TypedDataFloat32ArrayViewCid,
+  ExternalTypedDataFloat32ArrayCid,
+  UnmodifiableTypedDataFloat32ArrayViewCid,
+  TypedDataFloat64ArrayCid,
+  TypedDataFloat64ArrayViewCid,
+  ExternalTypedDataFloat64ArrayCid,
+  UnmodifiableTypedDataFloat64ArrayViewCid,
+  TypedDataFloat32x4ArrayCid,
+  TypedDataFloat32x4ArrayViewCid,
+  ExternalTypedDataFloat32x4ArrayCid,
+  UnmodifiableTypedDataFloat32x4ArrayViewCid,
+  TypedDataInt32x4ArrayCid,
+  TypedDataInt32x4ArrayViewCid,
+  ExternalTypedDataInt32x4ArrayCid,
+  UnmodifiableTypedDataInt32x4ArrayViewCid,
+  TypedDataFloat64x2ArrayCid,
+  TypedDataFloat64x2ArrayViewCid,
+  ExternalTypedDataFloat64x2ArrayCid,
+  UnmodifiableTypedDataFloat64x2ArrayViewCid,
+  ByteDataViewCid,
+  UnmodifiableByteDataViewCid,
+  ByteBufferCid,
+  NullCid,
+  DynamicCid,
+  VoidCid,
+  NeverCid,
 }

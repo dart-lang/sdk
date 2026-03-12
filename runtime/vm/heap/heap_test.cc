@@ -1120,7 +1120,7 @@ ISOLATE_UNIT_TEST_CASE(WeakArray_Generations) {
 ISOLATE_UNIT_TEST_CASE(WeakArray_Large_Generations) {
   FLAG_early_tenuring_threshold = 100;  // I.e., off.
 
-  intptr_t length = kNewAllocatableSize / kCompressedWordSize;
+  intptr_t length = Heap::kNewAllocatableSize / kCompressedWordSize;
   WeakArray_Generations(length, kNew, kNew, true, true, true);
   WeakArray_Generations(length, kNew, kOld, false, true, true);
   WeakArray_Generations(length, kNew, kImm, false, false, false);
@@ -1258,7 +1258,8 @@ ISOLATE_UNIT_TEST_CASE(SweepDontNeed) {
 #endif  // !defined(PRODUCT) && !defined(DART_HOST_OS_LINUX)
 
 static void TestCardRememberedArray(bool immutable, bool compact) {
-  constexpr intptr_t kNumElements = kNewAllocatableSize / kCompressedWordSize;
+  constexpr intptr_t kNumElements =
+      Heap::kNewAllocatableSize / kCompressedWordSize;
   Array& array = Array::Handle(Array::New(kNumElements));
   EXPECT(array.ptr()->untag()->IsCardRemembered());
   EXPECT(Page::Of(array.ptr())->is_large());
@@ -1291,7 +1292,8 @@ static void TestCardRememberedArray(bool immutable, bool compact) {
 }
 
 static void TestCardRememberedWeakArray(bool compact) {
-  constexpr intptr_t kNumElements = kNewAllocatableSize / kCompressedWordSize;
+  constexpr intptr_t kNumElements =
+      Heap::kNewAllocatableSize / kCompressedWordSize;
   WeakArray& weak = WeakArray::Handle(WeakArray::New(kNumElements));
   EXPECT(!weak.ptr()->untag()->IsCardRemembered());
   EXPECT(Page::Of(weak.ptr())->is_large());

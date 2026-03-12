@@ -1538,7 +1538,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
       Label size_tag_overflow, done;
       __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+      __ shlq(RDI, Immediate(target::UntaggedObject::kSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 
@@ -2025,7 +2025,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
     __ cmpq(R13, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(R13, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+    __ shlq(R13, Immediate(target::UntaggedObject::kSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done);
 
@@ -4032,7 +4032,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
       Label size_tag_overflow, done;
       __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+      __ shlq(RDI, Immediate(target::UntaggedObject::kSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 

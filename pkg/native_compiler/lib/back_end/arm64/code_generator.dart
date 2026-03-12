@@ -663,12 +663,12 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     _asm.ldr(
       scratch1Reg,
-      _asm.address(objectReg, vmOffsets.Object_tags_offset),
+      _asm.address(objectReg, vmOffsets.Object_tags_offset, .u8),
       .u8,
     );
     _asm.ldr(
       scratch2Reg,
-      _asm.address(valueReg, vmOffsets.Object_tags_offset),
+      _asm.address(valueReg, vmOffsets.Object_tags_offset, .u8),
       .u8,
     );
     _asm.and(
@@ -942,7 +942,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitBoxInt(BoxInt instr) {
-    final operandReg = inputReg(instr, 0);
+    var operandReg = inputReg(instr, 0);
     final tagsReg = temporaryReg(instr, 0);
     final scratch1Reg = temporaryReg(instr, 1);
     final scratch2Reg = temporaryReg(instr, 2);
@@ -958,6 +958,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.unimplemented('Unimplemented: code generation for BoxInt slow path');
       _asm.b(done);
     });
+
+    if (operandReg == resultReg) {
+      _asm.mov(tempReg, operandReg);
+      operandReg = tempReg;
+    }
 
     _asm.adds(resultReg, operandReg, operandReg);
     _asm.b(done, .noOverflow);

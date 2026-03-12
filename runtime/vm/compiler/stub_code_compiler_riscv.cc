@@ -1376,7 +1376,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // AllocateArrayABI::kLengthReg: array length as Smi.
     // T3: array size.
     // T4: new object end address.
-    const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
+    const intptr_t shift = target::UntaggedObject::kSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
     __ li(T5, 0);
     __ CompareImmediate(T3, target::UntaggedObject::kSizeTagMaxSizeTag);
@@ -1712,7 +1712,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // A0: new object.
   // T1: number of context variables.
   // T2: object size.
-  const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
+  const intptr_t shift = target::UntaggedObject::kSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2;
   __ li(T3, 0);
   __ CompareImmediate(T2, target::UntaggedObject::kSizeTagMaxSizeTag);
@@ -3628,7 +3628,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
       compiler::Label zero_tags;
       __ BranchIf(HI, &zero_tags);
       __ slli(T5, T3,
-              target::UntaggedObject::kTagBitsSizeTagPos -
+              target::UntaggedObject::kSizeTagPos -
                   target::ObjectAlignment::kObjectAlignmentLog2);
       __ Bind(&zero_tags);
 

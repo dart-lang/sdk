@@ -62,40 +62,38 @@ void main() {
     test('address', () {
       asm.ldr(R0, asm.address(R0, -256));
       asm.str(R1, asm.address(R0, 0x7ff8));
-      // TODO: support large offsets
-      expectThrows(() {
-        asm.address(R0, -257);
-      });
-      expectThrows(() {
-        asm.address(R0, 257);
-      });
-      expectThrows(() {
-        asm.address(R0, 0x8000);
-      });
+      asm.ldr(R2, asm.address(R0, -257));
+      asm.str(R3, asm.address(R0, 257));
+      asm.ldr(R4, asm.address(R0, 0x8002, .u16), .u16);
       expectDisassembly(
         'ldr r0, [r0, #-256]\n'
-        'str r1, [r0, #32760]\n',
+        'str r1, [r0, #32760]\n'
+        'sub r17, r0, #0x200\n'
+        'ldr r2, [r17, #255]\n'
+        'add r17, r0, #0x100\n'
+        'str r3, [r17, #1]\n'
+        'add r17, r0, #0x8000\n'
+        'ldrh r4, [r17, #2]\n',
       );
     });
     test('pairAddress', () {
       asm.ldp(R1, R2, asm.pairAddress(R0, -0x200));
       asm.stp(R1, R2, asm.pairAddress(R0, 0x1f8));
-      // TODO: support large and unaligned offsets
-      expectThrows(() {
-        asm.pairAddress(R0, 3);
-      });
-      expectThrows(() {
-        asm.pairAddress(R0, -1);
-      });
-      expectThrows(() {
-        asm.pairAddress(R0, -0x208);
-      });
-      expectThrows(() {
-        asm.pairAddress(R0, 0x200);
-      });
+      asm.ldp(R1, R2, asm.pairAddress(R0, 3));
+      asm.stp(R1, R2, asm.pairAddress(R0, -1));
+      asm.ldp(R1, R2, asm.pairAddress(R0, -0x208));
+      asm.stp(R1, R2, asm.pairAddress(R0, 0x204, .s32), .s32);
       expectDisassembly(
         'ldp r1, r2, [r0, #-512]\n'
-        'stp r1, r2, [r0, #504]\n',
+        'stp r1, r2, [r0, #504]\n'
+        'add r17, r0, #0x3\n'
+        'ldp r1, r2, [r17, #0]\n'
+        'sub r17, r0, #0x1\n'
+        'stp r1, r2, [r17, #0]\n'
+        'sub r17, r0, #0x400\n'
+        'ldp r1, r2, [r17, #504]\n'
+        'add r17, r0, #0x200\n'
+        'stpw r1, r2, [r17, #4]\n',
       );
     });
     test('enterDartFrame', () {
@@ -190,10 +188,16 @@ void main() {
         asm.loadFromPool(R0, ConstantValue.fromString('$offs') as Object);
         expected.write('ldr r0, [pp, #$offs]\n');
       }
-      // TODO: support large offsets
-      expectThrows(() {
-        asm.loadFromPool(R0, ConstantValue.fromString('oops') as Object);
-      });
+      asm.loadFromPool(R0, ConstantValue.fromString('oops1') as Object);
+      expected.write(
+        'add r17, pp, #0x8000\n'
+        'ldr r0, [r17]\n',
+      );
+      asm.loadFromPool(R0, ConstantValue.fromString('oops2') as Object);
+      expected.write(
+        'add r17, pp, #0x8000\n'
+        'ldr r0, [r17, #8]\n',
+      );
       expectDisassembly(expected.toString());
     });
     test('loadConstant', () {
@@ -266,16 +270,16 @@ void main() {
         'sub r1, r2, #0xabc\n'
         'add r1, r2, #0xabc000\n'
         'sub r1, r2, #0xabc000\n'
-        'movz tmp, #0x7788\n'
-        'movk tmp, #0x5566 lsl 16\n'
-        'movk tmp, #0x3344 lsl 32\n'
-        'movk tmp, #0x1122 lsl 48\n'
-        'add r1, r2, tmp\n'
-        'movz tmp, #0x7788\n'
-        'movk tmp, #0x5566 lsl 16\n'
-        'movk tmp, #0x3344 lsl 32\n'
-        'movk tmp, #0x1122 lsl 48\n'
-        'add csp, fp, tmp uxtx 0\n',
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'add r1, r2, r17\n'
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'add csp, fp, r17 uxtx 0\n',
       );
     });
     test('subImmediate', () {
@@ -295,16 +299,16 @@ void main() {
         'add r1, r2, #0xabc\n'
         'sub r1, r2, #0xabc000\n'
         'add r1, r2, #0xabc000\n'
-        'movz tmp, #0x7788\n'
-        'movk tmp, #0x5566 lsl 16\n'
-        'movk tmp, #0x3344 lsl 32\n'
-        'movk tmp, #0x1122 lsl 48\n'
-        'sub r1, r2, tmp\n'
-        'movz tmp, #0x7788\n'
-        'movk tmp, #0x5566 lsl 16\n'
-        'movk tmp, #0x3344 lsl 32\n'
-        'movk tmp, #0x1122 lsl 48\n'
-        'sub csp, fp, tmp uxtx 0\n',
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'sub r1, r2, r17\n'
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'sub csp, fp, r17 uxtx 0\n',
       );
     });
     test('andImmediate', () {
@@ -320,11 +324,11 @@ void main() {
         'mov r1, r2\n'
         'movw r1, r2\n'
         'and r1, r2, 0xff\n'
-        'movz tmp, #0x7788\n'
-        'movk tmp, #0x5566 lsl 16\n'
-        'movk tmp, #0x3344 lsl 32\n'
-        'movk tmp, #0x1122 lsl 48\n'
-        'and r1, r2, tmp\n',
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'and r1, r2, r17\n',
       );
     });
     test('callRuntime', () {

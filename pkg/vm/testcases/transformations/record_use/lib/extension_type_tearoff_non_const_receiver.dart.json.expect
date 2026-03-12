@@ -37,9 +37,7 @@
         "definition_index": 0,
         "uses": [
           {
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "receiver": 0,
             "type": "tearoff"
           }

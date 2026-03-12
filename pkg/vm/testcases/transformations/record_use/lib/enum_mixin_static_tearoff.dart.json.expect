@@ -48,9 +48,7 @@
         "definition_index": 0,
         "uses": [
           {
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "type": "tearoff"
           }
         ]
@@ -59,9 +57,7 @@
         "definition_index": 1,
         "uses": [
           {
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "type": "tearoff"
           }
         ]

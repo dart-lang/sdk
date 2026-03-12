@@ -1458,7 +1458,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
       __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
       __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
       __ LslImmediate(temp_reg,
-                      target::UntaggedObject::kTagBitsSizeTagPos -
+                      target::UntaggedObject::kSizeTagPos -
                           target::ObjectAlignment::kObjectAlignmentLog2);
       __ Jump(&done, Assembler::kNearJump);
 
@@ -1988,7 +1988,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
     __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
     __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
     __ LslImmediate(temp_reg,
-                    target::UntaggedObject::kTagBitsSizeTagPos -
+                    target::UntaggedObject::kSizeTagPos -
                         target::ObjectAlignment::kObjectAlignmentLog2);
     __ Jump(&done, Assembler::kNearJump);
 

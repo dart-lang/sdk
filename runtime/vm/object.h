@@ -10872,7 +10872,8 @@ class OneByteString : public AllStatic {
   static constexpr intptr_t kBytesPerElement = 1;
   static constexpr intptr_t kMaxElements = String::kMaxElements;
   static constexpr intptr_t kMaxNewSpaceElements =
-      (kNewAllocatableSize - sizeof(UntaggedOneByteString)) / kBytesPerElement;
+      (Heap::kNewAllocatableSize - sizeof(UntaggedOneByteString)) /
+      kBytesPerElement;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
@@ -11013,7 +11014,8 @@ class TwoByteString : public AllStatic {
   static constexpr intptr_t kBytesPerElement = 2;
   static constexpr intptr_t kMaxElements = String::kMaxElements;
   static constexpr intptr_t kMaxNewSpaceElements =
-      (kNewAllocatableSize - sizeof(UntaggedTwoByteString)) / kBytesPerElement;
+      (Heap::kNewAllocatableSize - sizeof(UntaggedTwoByteString)) /
+      kBytesPerElement;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
@@ -11147,7 +11149,7 @@ class Array : public Instance {
   // Returns `true` if we use card marking for arrays of length [array_length].
   static constexpr bool UseCardMarkingForAllocation(
       const intptr_t array_length) {
-    return Array::InstanceSize(array_length) > kNewAllocatableSize;
+    return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
   }
 
   // WB invariant restoration code only applies to arrives which have at most
@@ -11272,7 +11274,7 @@ class Array : public Instance {
   static constexpr intptr_t kBytesPerElement = ArrayTraits::kElementSize;
   static constexpr intptr_t kMaxElements = kSmiMax / kBytesPerElement;
   static constexpr intptr_t kMaxNewSpaceElements =
-      (kNewAllocatableSize - sizeof(UntaggedArray)) / kBytesPerElement;
+      (Heap::kNewAllocatableSize - sizeof(UntaggedArray)) / kBytesPerElement;
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(UntaggedArray, type_arguments_);
@@ -12038,7 +12040,7 @@ class TypedData : public TypedDataBase {
 
   static intptr_t MaxNewSpaceElements(intptr_t class_id) {
     ASSERT(IsTypedDataClassId(class_id));
-    return (kNewAllocatableSize - sizeof(UntaggedTypedData)) /
+    return (Heap::kNewAllocatableSize - sizeof(UntaggedTypedData)) /
            ElementSizeInBytes(class_id);
   }
 

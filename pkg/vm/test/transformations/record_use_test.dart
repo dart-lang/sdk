@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 import 'package:test/test.dart';
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector, KernelCompilationArguments;

@@ -5,7 +5,7 @@
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
 
 /// Record calls and their constant arguments. Currently tracks
@@ -45,7 +45,7 @@ class CallRecorder {
         CallWithArguments(
           positionalArguments: [],
           namedArguments: {},
-          loadingUnits: [_loadingUnitLookup(node)],
+          loadingUnit: _loadingUnitLookup(node),
         ),
       );
     }
@@ -60,7 +60,7 @@ class CallRecorder {
         CallWithArguments(
           positionalArguments: [_evaluateLiteral(node.value)],
           namedArguments: {},
-          loadingUnits: [_loadingUnitLookup(node)],
+          loadingUnit: _loadingUnitLookup(node),
         ),
       );
     }
@@ -71,7 +71,7 @@ class CallRecorder {
     if (isBeingRecorded(node.target)) {
       _addToUsage(
         node.target,
-        CallTearoff(loadingUnits: [_loadingUnitLookup(node)]),
+        CallTearoff(loadingUnit: _loadingUnitLookup(node)),
       );
     }
   }
@@ -84,7 +84,7 @@ class CallRecorder {
       if (isBeingRecorded(constant.target)) {
         _addToUsage(
           constant.target,
-          CallTearoff(loadingUnits: [_loadingUnitLookup(node)]),
+          CallTearoff(loadingUnit: _loadingUnitLookup(node)),
         );
       }
     }
@@ -122,7 +122,7 @@ class CallRecorder {
 
     if (isTearOffLowering) {
       return CallTearoff(
-        loadingUnits: [_loadingUnitLookup(node)],
+        loadingUnit: _loadingUnitLookup(node),
         receiver: receiver,
       );
     }
@@ -165,7 +165,7 @@ class CallRecorder {
     return CallWithArguments(
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
-      loadingUnits: [_loadingUnitLookup(node)],
+      loadingUnit: _loadingUnitLookup(node),
       receiver: receiver,
     );
   }

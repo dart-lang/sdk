@@ -179,6 +179,7 @@ class UntaggedObject {
 
  public:
   using CardRememberedBit = BitField<decltype(tags_), bool>;
+  static constexpr intptr_t kCardRememberedBit = CardRememberedBit::shift();
   // The bit in the Smi tag position must be something that can be set to 0
   // for a dead filler object of either generation.
   // See Object::MakeUnusedSpaceTraversable.
@@ -186,21 +187,28 @@ class UntaggedObject {
 
   using CanonicalBit =
       BitField<decltype(tags_), bool, CardRememberedBit::kNextBit>;
+  static constexpr intptr_t kCanonicalBit = CanonicalBit::shift();
 
   // Incremental barrier target.
   using NotMarkedBit = BitField<decltype(tags_), bool, CanonicalBit::kNextBit>;
+  static constexpr intptr_t kNotMarkedBit = NotMarkedBit::shift();
 
   // Generational barrier target.
   using NewOrEvacuationCandidateBit =
       BitField<decltype(tags_), bool, NotMarkedBit::kNextBit>;
+  static constexpr intptr_t kNewOrEvacuationCandidateBit =
+      NewOrEvacuationCandidateBit::shift();
 
   // Incremental barrier source.
   using AlwaysSetBit =
       BitField<decltype(tags_), bool, NewOrEvacuationCandidateBit::kNextBit>;
+  static constexpr intptr_t kAlwaysSetBit = AlwaysSetBit::shift();
 
   // Generational barrier source.
   using OldAndNotRememberedBit =
       BitField<decltype(tags_), bool, AlwaysSetBit::kNextBit>;
+  static constexpr intptr_t kOldAndNotRememberedBit =
+      OldAndNotRememberedBit::shift();
 
   static constexpr intptr_t kIncrementalBarrierMask =
       NotMarkedBit::mask_in_place();
@@ -237,14 +245,18 @@ class UntaggedObject {
   // See also Class::kIsDeeplyImmutableBit.
   using ShallowImmutableBit =
       BitField<decltype(tags_), bool, OldAndNotRememberedBit::kNextBit>;
+  static constexpr intptr_t kShallowImmutableBit = ShallowImmutableBit::shift();
 
   using DeeplyImmutableBit =
       BitField<decltype(tags_), bool, ShallowImmutableBit::kNextBit>;
+  static constexpr intptr_t kDeeplyImmutableBit = DeeplyImmutableBit::shift();
 
   // The rest of the initial byte is currently reserved, so the next bitfield
   // starts at the byte boundary.
   COMPILE_ASSERT(DeeplyImmutableBit::kNextBit <= kBitsPerInt8);
   using SizeTagBits = BitField<decltype(tags_), intptr_t, kBitsPerInt8, 4>;
+  static constexpr intptr_t kSizeTagPos = SizeTagBits::shift();
+  static constexpr intptr_t kSizeTagSize = SizeTagBits::bitsize();
 
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
@@ -286,6 +298,7 @@ class UntaggedObject {
   using ClassIdTag =
       BitField<decltype(tags_), ClassIdTagType, SizeTagBits::kNextBit, 20>;
   COMPILE_ASSERT(kClassIdTagMax == ClassIdTag::max());
+  static constexpr intptr_t kClassIdTagPos = ClassIdTag::shift();
   static constexpr intptr_t kClassIdTagSize = ClassIdTag::bitsize();
 
 #if defined(HASH_IN_OBJECT_HEADER)
@@ -297,6 +310,8 @@ class UntaggedObject {
   using HashTag = BitField<decltype(tags_), uint32_t, kBitsPerInt32>;
   // Make sure the hash value won't be truncated.
   COMPILE_ASSERT(HashTag::bitsize() == kBitsPerInt32);
+  static constexpr intptr_t kHashTagPos = HashTag::shift();
+  static constexpr intptr_t kHashTagSize = HashTag::bitsize();
 #endif
 
   // Assumes this is a heap object.

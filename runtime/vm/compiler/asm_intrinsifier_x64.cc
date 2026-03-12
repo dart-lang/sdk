@@ -1664,7 +1664,7 @@ static void TryAllocateString(Assembler* assembler,
     Label size_tag_overflow, done;
     __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+    __ shlq(RDI, Immediate(target::UntaggedObject::kSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 
