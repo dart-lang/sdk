@@ -4,6 +4,7 @@
 
 import 'dart:collection' show LinkedHashMap;
 
+import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
@@ -12,7 +13,7 @@ import 'async.dart';
 import 'class_info.dart';
 import 'closures.dart';
 import 'dispatch_table.dart';
-import 'dynamic_forwarders.dart';
+import 'functions.dart' show CallShape, makeDynamicForwarderSignature;
 import 'globals.dart';
 import 'intrinsics.dart';
 import 'param_info.dart';
@@ -3219,10 +3220,6 @@ CodeGenerator? getInlinableMemberCodeGenerator(Translator translator,
     return TearOffCodeGenerator(translator, functionType, member);
   }
 
-  if (reference.isTypeCheckerReference) {
-    return TypeCheckerCodeGenerator(translator, functionType, member);
-  }
-
   if (member is Constructor) {
     if (reference.isConstructorBodyReference) {
       return ConstructorCodeGenerator(translator, functionType, member);
@@ -3433,199 +3430,228 @@ class TearOffCodeGenerator extends AstCodeGenerator {
   }
 }
 
-class TypeCheckerCodeGenerator extends AstCodeGenerator {
-  final Member member;
+/// Generates code for a dynamic forwarder function.
+///
+/// Dynamic forwarders are functions that
+///   * may have to populate default type arguments
+///   * may have to check argument types
+///   * may have to unbox arguments
+///   * call the normal getter/setter/method target
+///   * may have to box the result value
+///
+/// We generate them for each [CallShape] and the caller guarantees that the
+/// [CallShape] is valid for the given target [reference]. The signature for
+/// such a forwarder function is determined by [makeDynamicForwarderSignature].
+class DynamicForwarderCodeGenerator extends AstCodeGenerator {
+  final Reference reference;
+  final CallShape callShape;
 
-  TypeCheckerCodeGenerator(
-      Translator translator, w.FunctionType functionType, this.member)
-      : super(translator, functionType, member);
+  DynamicForwarderCodeGenerator(Translator translator,
+      w.FunctionType functionType, this.reference, this.callShape)
+      : super(translator, functionType, reference.asMember);
 
   @override
   void generateInternal() {
+    final member = reference.asMember;
+
     // Initialize [Closures] without [Closures.captures]: Similar to
     // [TearOffCodeGenerator], type parameters will be loaded from the `this`
     // struct.
     closures = translator.getClosures(member, findCaptures: false);
-    if (member is Field ||
-        (member is Procedure && (member as Procedure).isSetter)) {
-      _generateFieldSetterTypeCheckerMethod();
+    if (member is Field) {
+      if (reference.isImplicitGetter) {
+        _generateDynamicGetterForwarder();
+      } else {
+        assert(reference.isImplicitSetter);
+        _generateDynamicSetterForwarder();
+      }
     } else {
-      _generateProcedureTypeCheckerMethod();
+      member as Procedure;
+      if (member.isSetter) {
+        _generateDynamicSetterForwarder();
+      } else if (member.isGetter) {
+        _generateDynamicGetterForwarder();
+      } else {
+        _generateDynamicMethodForwarder();
+      }
     }
   }
 
-  /// Generate type checker method for a method.
-  ///
-  /// This function will be called by an invocation forwarder in a dynamic
-  /// invocation to type check parameters before calling the actual method.
-  void _generateProcedureTypeCheckerMethod() {
-    final receiverLocal = paramLocals[0];
-    final typeArgsLocal = paramLocals[1];
-    final positionalArgsLocal = paramLocals[2];
-    final namedArgsLocal = paramLocals[3];
+  void _generateDynamicMethodForwarder() {
+    // The offsets of arguments passed by the caller.
+    const int argReceiverOffset = 0;
+    const int argTypesOffset = argReceiverOffset + 1;
+    final int argPositionalsOffset = argTypesOffset + callShape.typeCount;
+    final int argNamedOffset = argPositionalsOffset + callShape.positionalCount;
 
-    _initializeThis(member.reference);
+    final targetProcedure = reference.asMember as Procedure;
+    final targetFunction = targetProcedure.function;
+    assert(callShape.matchesTarget(targetFunction));
+
+    final target = translator.getFunctionEntry(targetProcedure.reference,
+        uncheckedEntry: false);
+    final targetSignature = translator.signatureForDirectCall(target);
+
+    _initializeThis(reference);
 
     final typeType =
         translator.classInfo[translator.typeClass]!.nonNullableType;
-
-    final target =
-        translator.getFunctionEntry(member.reference, uncheckedEntry: false);
     final targetParamInfo = translator.paramInfoForDirectCall(target);
 
-    final procedure = member as Procedure;
-
-    // Bind type parameters
-    final memberTypeParams = procedure.function.typeParameters;
-    assert(memberTypeParams.length == targetParamInfo.typeParamCount);
-
-    if (memberTypeParams.isNotEmpty) {
-      // Type argument list is either empty or have the right number of types
-      // (checked by the forwarder).
-      b.local_get(typeArgsLocal);
-      b.array_len();
-      b.i32_eqz();
-      b.if_([], List.generate(memberTypeParams.length, (_) => typeType));
-      // No type arguments passed, initialize with defaults
-      for (final typeParam in memberTypeParams) {
-        types.makeType(this, typeParam.defaultType);
-      }
-      b.else_();
-      for (int typeParamIdx = 0;
-          typeParamIdx < memberTypeParams.length;
-          typeParamIdx += 1) {
-        b.local_get(typeArgsLocal);
-        b.i32_const(typeParamIdx);
-        b.array_get(translator.typeArrayType);
-      }
-      b.end();
-
-      // Create locals for type parameters. These will be used by `makeType`
-      // below when generating types of parameters, for type checks, and when
-      // pushing the type parameters when calling the actual member.
-      for (int typeParamIdx = memberTypeParams.length - 1;
-          typeParamIdx >= 0;
-          typeParamIdx -= 1) {
-        final local = addLocal(typeType);
-        b.local_set(local);
-        typeLocals[memberTypeParams[typeParamIdx]] = local;
-      }
-    }
-
-    if (!translator.options.omitImplicitTypeChecks) {
-      // Check type parameter bounds
-      for (TypeParameter typeParameter in memberTypeParams) {
-        if (typeParameter.bound != translator.coreTypes.objectNullableRawType) {
-          _generateTypeArgumentBoundCheck(typeParameter.name!,
-              typeLocals[typeParameter]!, typeParameter.bound);
-        }
-      }
-
-      // Check positional argument types
-      final List<VariableDeclaration> memberPositionalParams =
-          procedure.function.positionalParameters;
-
-      for (int positionalParamIdx = 0;
-          positionalParamIdx < memberPositionalParams.length;
-          positionalParamIdx += 1) {
-        final param = memberPositionalParams[positionalParamIdx];
-        b.local_get(positionalArgsLocal);
-        b.i32_const(positionalParamIdx);
-        b.array_get(translator.nullableObjectArrayType);
-        _generateArgumentTypeCheck(param.name!, translator.topType, param.type);
-      }
-
-      // Check named argument types
-      final memberNamedParams = procedure.function.namedParameters;
-
-      /// Maps a named parameter in the member's signature to the parameter's
-      /// index in the array [namedArgsLocal].
-      int mapNamedParameterToArrayIndex(String name) {
-        int? idx;
-        for (int i = 0; i < targetParamInfo.names.length; i += 1) {
-          if (targetParamInfo.names[i] == name) {
-            idx = i;
-            break;
-          }
-        }
-        return idx!;
-      }
-
-      for (int namedParamIdx = 0;
-          namedParamIdx < memberNamedParams.length;
-          namedParamIdx += 1) {
-        final param = memberNamedParams[namedParamIdx];
-        b.local_get(namedArgsLocal);
-        b.i32_const(mapNamedParameterToArrayIndex(param.name!));
-        b.array_get(translator.nullableObjectArrayType);
-        _generateArgumentTypeCheck(param.name!, translator.topType, param.type);
-      }
-    }
-
-    // Argument types are as expected, call the member function
-    final w.FunctionType memberWasmFunctionType =
-        translator.signatureForDirectCall(target);
-    final List<w.ValueType> memberWasmInputs = memberWasmFunctionType.inputs;
-
+    // Load the receiver
+    final receiverLocal = paramLocals[argReceiverOffset];
     b.local_get(receiverLocal);
-    translator.convertType(b, receiverLocal.type, memberWasmInputs[0]);
+    translator.convertType(b, receiverLocal.type, targetSignature.inputs[0]);
 
-    for (final typeParam in memberTypeParams) {
-      b.local_get(typeLocals[typeParam]!);
+    // Load type parameters for target.
+    final targetTypeParams = targetFunction.typeParameters;
+    assert(targetTypeParams.length == targetParamInfo.typeParamCount);
+    if (targetTypeParams.isNotEmpty) {
+      if (callShape.typeCount != 0) {
+        // Provided by caller.
+        for (int i = 0; i < targetTypeParams.length; ++i) {
+          final param = targetTypeParams[i];
+          final paramValue = paramLocals[argTypesOffset + i];
+          b.local_get(paramValue);
+          typeLocals[param] = paramValue;
+        }
+      } else {
+        // Use default-to-bounds.
+        for (int i = 0; i < targetTypeParams.length; ++i) {
+          final param = targetTypeParams[i];
+          types.makeType(this, param.defaultType);
+          final paramValue = b.addLocal(typeType);
+          b.local_tee(paramValue);
+          typeLocals[param] = paramValue;
+        }
+      }
     }
 
-    int memberParamIdx =
-        1 + targetParamInfo.typeParamCount; // skip receiver and type args
-
-    void pushArgument(w.Local listLocal, int listIdx, int wasmInputIdx) {
-      b.local_get(listLocal);
-      b.i32_const(listIdx);
-      b.array_get(translator.nullableObjectArrayType);
-      translator.convertType(
-          b, translator.topType, memberWasmInputs[wasmInputIdx]);
+    // Check type parameter bounds.
+    if (!translator.options.omitImplicitTypeChecks) {
+      for (int i = 0; i < targetTypeParams.length; ++i) {
+        final param = targetTypeParams[i];
+        if (param.bound != translator.coreTypes.objectNullableRawType) {
+          final paramValue = typeLocals[param]!;
+          _generateTypeArgumentBoundCheck(param.name!, paramValue, param.bound);
+        }
+      }
     }
 
-    for (int positionalParamIdx = 0;
-        positionalParamIdx < targetParamInfo.positional.length;
-        positionalParamIdx += 1) {
-      pushArgument(positionalArgsLocal, positionalParamIdx, memberParamIdx);
-      memberParamIdx += 1;
+    // Load positional parameters for the target (and check types if needed).
+    final targetPositionalParams = targetFunction.positionalParameters;
+    for (int i = 0; i < targetParamInfo.positional.length; i++) {
+      final targetParamType =
+          targetSignature.inputs[1 + targetParamInfo.typeParamCount + i];
+      if (i < callShape.positionalCount) {
+        // Provided by the caller.
+        final paramValue = paramLocals[argPositionalsOffset + i];
+        b.local_get(paramValue);
+        if (!translator.options.omitImplicitTypeChecks) {
+          final param = targetPositionalParams[i];
+          b.local_get(paramValue);
+          _generateArgumentTypeCheck(
+              param.name!, translator.topType, param.type);
+        }
+        translator.convertType(b, paramValue.type, targetParamType);
+      } else {
+        // Default to use if the callee has the `i` parameter.
+        final defaultFunctionValue = i < targetPositionalParams.length
+            ? (targetPositionalParams[i].initializer as ConstantExpression?)
+                ?.constant
+            : null;
+        // Default to use if callee doesn't have the `i` parameter.
+        final defaultValue = targetParamInfo.positional[i];
+        // The target wasm function corresponding to an instance method may have
+        // a selector signature (which is based on all implementations of a
+        // selector) and therefore may have more parameters than the actual
+        // target needs (the others are ignored in the callee).
+        final value = defaultFunctionValue ?? defaultValue!;
+        translator.constants.instantiateConstant(b, value, targetParamType);
+      }
     }
 
-    for (int namedParamIdx = 0;
-        namedParamIdx < targetParamInfo.names.length;
-        namedParamIdx += 1) {
-      pushArgument(namedArgsLocal, namedParamIdx, memberParamIdx);
-      memberParamIdx += 1;
+    // Load named arguments (and check types if needed).
+    final targetNamedParams = targetFunction.namedParameters;
+    for (int i = 0; i < targetParamInfo.names.length; ++i) {
+      final targetParamType = targetSignature.inputs[1 +
+          targetParamInfo.typeParamCount +
+          targetParamInfo.positional.length +
+          i];
+      final name = targetParamInfo.names[i];
+      final namedParam =
+          targetNamedParams.firstWhereOrNull((n) => n.name == name);
+      final callerIndex = callShape.named.indexOf(name);
+      if (0 <= callerIndex) {
+        // Provided by the caller.
+        final paramValue = paramLocals[argNamedOffset + callerIndex];
+        b.local_get(paramValue);
+        if (!translator.options.omitImplicitTypeChecks) {
+          b.local_get(paramValue);
+          _generateArgumentTypeCheck(
+              name, translator.topType, namedParam!.type);
+        }
+        translator.convertType(b, paramValue.type, targetParamType);
+      } else {
+        // Default to use if callee has the `name` parameter.
+        final defaultFunctionValue =
+            (namedParam?.initializer as ConstantExpression?)?.constant;
+        // Default to use if callee doesn't have `name` parameter.
+        final defaultValue = targetParamInfo.named[name];
+        // The target wasm function corresponding to an instance method may have
+        // a selector signature (which is based on all implementations of a
+        // selector) and therefore may have more parameters than the actual
+        // target needs (the others are ignored in the callee).
+        final value = (defaultFunctionValue ?? defaultValue)!;
+        translator.constants.instantiateConstant(b, value, targetParamType);
+      }
     }
 
     call(target);
-
-    translator.convertType(
-        b,
-        translator.outputOrVoid(memberWasmFunctionType.outputs),
+    translator.convertType(b, translator.outputOrVoid(targetSignature.outputs),
         translator.topType);
-
     b.return_();
     b.end();
   }
 
-  /// Generate type checker method for a setter.
-  ///
-  /// This function will be called by a setter forwarder in a dynamic set to
-  /// type check the setter argument before calling the actual setter.
-  void _generateFieldSetterTypeCheckerMethod() {
+  void _generateDynamicGetterForwarder() {
+    final receiverLocal = paramLocals[0];
+    _initializeThis(reference);
+
+    final member = reference.asMember;
+    final info = translator.classInfo[member.enclosingClass]!;
+    if (member is Field) {
+      int fieldIndex = translator.fieldIndex[member]!;
+      b.local_get(receiverLocal);
+      b.struct_get(info.struct, fieldIndex);
+      translator.convertType(
+          b, info.struct.fields[fieldIndex].type.unpacked, translator.topType);
+    } else {
+      final target =
+          translator.getFunctionEntry(reference, uncheckedEntry: false);
+      final getterProcedureWasmType = translator.signatureForDirectCall(target);
+      final getterWasmOutputs = getterProcedureWasmType.outputs;
+      assert(getterWasmOutputs.length == 1);
+      b.local_get(receiverLocal);
+      call(target);
+      translator.convertType(b, outputs.single, translator.topType);
+    }
+
+    b.end(); // end function
+  }
+
+  void _generateDynamicSetterForwarder() {
     final receiverLocal = paramLocals[0];
     final positionalArgLocal = paramLocals[1];
 
-    _initializeThis(member.reference);
+    _initializeThis(reference);
 
-    final member_ = member;
+    final member = reference.asMember;
     DartType paramType;
-    if (member_ is Field) {
-      paramType = member_.type;
+    if (member is Field) {
+      paramType = member.type;
     } else {
-      paramType = (member_ as Procedure).setterType;
+      paramType = (member as Procedure).setterType;
     }
 
     if (!translator.options.omitImplicitTypeChecks) {
@@ -3637,9 +3663,9 @@ class TypeCheckerCodeGenerator extends AstCodeGenerator {
       );
     }
 
-    ClassInfo info = translator.classInfo[member_.enclosingClass]!;
-    if (member_ is Field) {
-      int fieldIndex = translator.fieldIndex[member_]!;
+    ClassInfo info = translator.classInfo[member.enclosingClass]!;
+    if (member is Field) {
+      int fieldIndex = translator.fieldIndex[member]!;
       b.local_get(receiverLocal);
       translator.convertType(b, receiverLocal.type, info.nonNullableType);
       b.local_get(positionalArgLocal);
@@ -3647,9 +3673,8 @@ class TypeCheckerCodeGenerator extends AstCodeGenerator {
           info.struct.fields[fieldIndex].type.unpacked);
       b.struct_set(info.struct, fieldIndex);
     } else {
-      final setterProcedure = member_ as Procedure;
-      final target = translator.getFunctionEntry(setterProcedure.reference,
-          uncheckedEntry: false);
+      final target =
+          translator.getFunctionEntry(reference, uncheckedEntry: false);
       final setterProcedureWasmType = translator.signatureForDirectCall(target);
       final setterWasmInputs = setterProcedureWasmType.inputs;
       assert(setterWasmInputs.length == 2);
@@ -3663,6 +3688,78 @@ class TypeCheckerCodeGenerator extends AstCodeGenerator {
     b.local_get(positionalArgLocal);
     b.end(); // end function
   }
+}
+
+/// Creates [Invocation] object based on a [CallShape].
+class InvocationCreationStubGenerator implements CodeGenerator {
+  final Translator translator;
+  final CallShape callShape;
+
+  InvocationCreationStubGenerator(this.translator, this.callShape);
+
+  @override
+  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
+      w.Label? returnLabel) {
+    assert(returnLabel == null);
+
+    int argumentIterator = 0;
+
+    final typeArgs =
+        b.addLocal(w.RefType(translator.typeArrayType, nullable: false));
+    for (int i = 0; i < callShape.typeCount; ++i) {
+      b.local_get(paramLocals[argumentIterator++]);
+    }
+    b.array_new_fixed(translator.typeArrayType, callShape.typeCount);
+    b.local_set(typeArgs);
+
+    final posArgs = b.addLocal(
+        w.RefType(translator.nullableObjectArrayType, nullable: false));
+    for (int i = 0; i < callShape.positionalCount; ++i) {
+      b.local_get(paramLocals[argumentIterator++]);
+    }
+    b.array_new_fixed(
+        translator.nullableObjectArrayType, callShape.positionalCount);
+    b.local_set(posArgs);
+
+    final namedArgs = b.addLocal(
+        w.RefType(translator.nullableObjectArrayType, nullable: false));
+    for (int i = 0; i < callShape.named.length; ++i) {
+      final name = callShape.named[i];
+      translator.constants.instantiateConstant(b,
+          translator.symbols.symbolForNamedParameter(name), translator.topType);
+      b.local_get(paramLocals[argumentIterator++]);
+    }
+    b.array_new_fixed(
+        translator.nullableObjectArrayType, callShape.named.length * 2);
+    b.local_set(namedArgs);
+
+    createInvocationObject(
+        translator, b, callShape.name, typeArgs, posArgs, namedArgs);
+    b.return_();
+    b.end();
+  }
+}
+
+void createInvocationObject(
+    Translator translator,
+    w.InstructionsBuilder b,
+    Name memberName,
+    w.Local typeArgsLocal,
+    w.Local positionalArgsLocal,
+    w.Local namedArgsLocal) {
+  translator.constants.instantiateConstant(
+      b,
+      translator.symbols.methodSymbolFromName(memberName),
+      translator.classInfo[translator.symbolClass]!.nonNullableType);
+
+  b.local_get(typeArgsLocal);
+  translator.callReference(translator.typeArgumentsToList.reference, b);
+  b.local_get(positionalArgsLocal);
+  translator.callReference(translator.positionalParametersToList.reference, b);
+  b.local_get(namedArgsLocal);
+  translator.callReference(translator.namedParametersToMap.reference, b);
+  translator.callReference(
+      translator.invocationGenericMethodFactory.reference, b);
 }
 
 class InitializerListCodeGenerator extends AstCodeGenerator {

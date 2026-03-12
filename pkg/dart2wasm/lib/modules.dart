@@ -135,8 +135,7 @@ class ModuleOutputData {
       }
     } else {
       node as Procedure;
-      if (reference.isTypeCheckerReference ||
-          reference.isCheckedEntryReference ||
+      if (reference.isCheckedEntryReference ||
           reference.isUncheckedEntryReference ||
           reference.isBodyReference ||
           reference.isTearOffReference) {
