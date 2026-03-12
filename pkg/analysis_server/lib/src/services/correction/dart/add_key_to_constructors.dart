@@ -36,7 +36,12 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     var node = this.node;
     var parent = node.parent;
     if (parent is ClassDeclaration) {
-      await _computeClassDeclaration(builder, parent);
+      var namePart = parent.namePart;
+      if (namePart is PrimaryConstructorDeclaration) {
+        await _computePrimaryConstructorDeclaration(builder, namePart);
+      } else {
+        await _computeClassDeclaration(builder, parent);
+      }
     } else if (node is ConstructorDeclaration) {
       await _computeConstructorDeclaration(builder, node);
     } else if (parent is ConstructorDeclaration) {
@@ -119,6 +124,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     }
     var superParameters = isEnabled(Feature.super_parameters);
 
+    /// Write the parameter named `key`.
     void writeKey(DartEditBuilder builder) {
       if (superParameters) {
         builder.write('super.key');
@@ -161,6 +167,46 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
           builder.write(', ');
         });
         _updateSuper(builder, node, superParameters);
+      });
+    }
+  }
+
+  /// The lint is reported on a class definition when the primary constructor
+  /// doesn't have a `key` parameter.
+  Future<void> _computePrimaryConstructorDeclaration(
+    ChangeBuilder builder,
+    PrimaryConstructorDeclaration namePart,
+  ) async {
+    var keyType = await _getKeyType();
+    if (keyType == null) {
+      return;
+    }
+    var parameterList = namePart.formalParameters;
+    var parameters = parameterList.parameters;
+    var body = namePart.body;
+    if (parameters.isEmpty) {
+      // There are no parameters, so add the first parameter.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(
+          parameterList.leftParenthesis.end,
+          '{super.key}',
+        );
+        _updateSuperInBody(builder, body);
+      });
+      return;
+    }
+    var leftDelimiter = parameterList.leftDelimiter;
+    if (leftDelimiter == null) {
+      // There are no named parameters, so add the delimiters.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(parameters.last.end, ', {super.key}');
+        _updateSuperInBody(builder, body);
+      });
+    } else if (leftDelimiter.type == TokenType.OPEN_CURLY_BRACKET) {
+      // There are other named parameters, so add the new named parameter.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(leftDelimiter.end, 'super.key, ');
+        _updateSuperInBody(builder, body);
       });
     }
   }
@@ -261,6 +307,47 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
         });
       } else {
         // There is an existing 'key' argument, so we leave it alone.
+      }
+    }
+  }
+
+  void _updateSuperInBody(
+    DartFileEditBuilder builder,
+    PrimaryConstructorBody? body,
+  ) {
+    if (body == null) {
+      return;
+    }
+    var initializers = body.initializers;
+    SuperConstructorInvocation? invocation;
+    for (var initializer in initializers) {
+      if (initializer is SuperConstructorInvocation) {
+        invocation = initializer;
+      } else if (initializer is RedirectingConstructorInvocation) {
+        return;
+      }
+    }
+    if (invocation != null && invocation.argumentList.arguments.isEmpty) {
+      if (initializers.length == 1) {
+        if (body.body is EmptyFunctionBody) {
+          builder.addDeletion(range.endStart(body.thisKeyword, body.body));
+        } else {
+          builder.addSimpleReplacement(
+            range.endStart(body.thisKeyword, body.body),
+            ' ',
+          );
+        }
+      } else {
+        var invocationIndex = initializers.indexOf(invocation);
+        if (invocationIndex == 0) {
+          builder.addDeletion(
+            range.startStart(invocation, initializers[invocationIndex + 1]),
+          );
+        } else {
+          builder.addDeletion(
+            range.endEnd(initializers[invocationIndex - 1], invocation),
+          );
+        }
       }
     }
   }
