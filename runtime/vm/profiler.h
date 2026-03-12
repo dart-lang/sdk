@@ -71,11 +71,11 @@ class Profiler : public AllStatic {
   static void Cleanup();
 
   struct Config {
-    bool enabled = FLAG_profiler;
+    RelaxedAtomic<bool> enabled = FLAG_profiler;
     intptr_t period_us = FLAG_profile_period;
     RelaxedAtomic<intptr_t> max_depth = FLAG_max_profile_depth;
 #if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
-    bool stream_to_timeline = false;
+    RelaxedAtomic<bool> stream_to_timeline = false;
 #endif
   };
 
