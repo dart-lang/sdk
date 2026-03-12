@@ -20,9 +20,8 @@ final class SessionLoggerFileSink extends SessionLoggerSink {
 
   /// Initializes a newly created sink to write to the file at the given
   /// [filePath].
-  SessionLoggerFileSink(String filePath, {required LogNormalizer normalizer})
-    : _normalizer = normalizer,
-      _sink = File(filePath).openWrite();
+  SessionLoggerFileSink(String filePath, {required this._normalizer})
+    : _sink = File(filePath).openWrite();
 
   @override
   Future<void> close() async {

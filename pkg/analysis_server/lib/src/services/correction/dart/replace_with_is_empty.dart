@@ -57,10 +57,9 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
     required super.context,
     required this.fixKind,
     required this.multiFixKind,
-    required BinaryExpression? binary,
-    required _Replacement? replacement,
-  }) : _binary = binary,
-       _replacement = replacement;
+    required this._binary,
+    required this._replacement,
+  });
 
   @override
   CorrectionApplicability get applicability =>
