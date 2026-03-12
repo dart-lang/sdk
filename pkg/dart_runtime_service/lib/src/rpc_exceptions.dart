@@ -21,7 +21,11 @@ enum RpcException {
   const RpcException({required this.code, required this.message});
 
   /// Throws a [json_rpc.RpcException] with [code] and [message].
-  Never throwException() => throw json_rpc.RpcException(code, message);
+  Never throwException() => throw toException();
+
+  /// Builds a [json_rpc.RpcException] with [code] and [message] without
+  /// throwing.
+  json_rpc.RpcException toException() => json_rpc.RpcException(code, message);
 
   /// The JSON-RPC error code.
   final int code;

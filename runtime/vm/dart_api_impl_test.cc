@@ -10559,11 +10559,11 @@ TEST_CASE(DartAPI_InvokeImportedFunction) {
       "NoSuchMethodError: No top-level method 'getCurrentTag' declared.");
 }
 
-TEST_CASE(DartAPI_InvokeVMServiceMethod) {
+static void InvokeVMServiceMethodCommon() {
   char buffer[1024];
   Utils::SNPrint(buffer, sizeof(buffer),
                  R"({
-                  "jsonrpc": 2.0,
+                  "jsonrpc": "2.0",
                   "id": "foo",
                   "method": "getVM",
                   "params": { }
@@ -10618,6 +10618,16 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod) {
   EXPECT(result == Dart_True());
 }
 
+TEST_CASE(DartAPI_InvokeVMServiceMethod) {
+  InvokeVMServiceMethodCommon();
+}
+
+#if defined(EXPERIMENTAL_VM_SERVICE)
+TEST_CASE(DartAPI_InvokeVMServiceMethod_Exp) {
+  InvokeVMServiceMethodCommon();
+}
+#endif  // defined(EXPERIMENTAL_VM_SERVICE)
+
 static Monitor* loop_test_lock = new Monitor();
 static bool loop_test_exit = false;
 static bool loop_reset_count = false;
@@ -10630,7 +10640,7 @@ static void InvokeServiceMessages(uword param) {
   char buffer[1024];
   Utils::SNPrint(buffer, sizeof(buffer),
                  R"({
-                  "jsonrpc": 2.0,
+                  "jsonrpc": "2.0",
                   "id": "foo",
                   "method": "getVM",
                   "params": { }
@@ -10661,7 +10671,7 @@ static void InvokeServiceMessages(uword param) {
   } while (count < 100);
 }
 
-TEST_CASE(DartAPI_InvokeVMServiceMethod_Loop) {
+static void InvokeVMServiceMethodLoopCommon() {
   {
     MonitorLocker ml(loop_test_lock);
     loop_test_exit = false;
@@ -10673,6 +10683,16 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod_Loop) {
   }
   OSThread::Join(loop_test_join_id);
 }
+
+TEST_CASE(DartAPI_InvokeVMServiceMethod_Loop) {
+  InvokeVMServiceMethodLoopCommon();
+}
+
+#if defined(EXPERIMENTAL_VM_SERVICE)
+TEST_CASE(DartAPI_InvokeVMServiceMethod_Loop_Exp) {
+  InvokeVMServiceMethodLoopCommon();
+}
+#endif  // defined(EXPERIMENTAL_VM_SERVICE)
 #endif  // !defined(PRODUCT)
 
 static void HandleResponse(Dart_Port dest_port_id, Dart_CObject* message) {

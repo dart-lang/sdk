@@ -3,7 +3,7 @@ name: dart_runtime_service_vm
 publish_to: none
 
 environment:
-  sdk: ^3.8.0
+  sdk: ^3.12.0-edge
 
 resolution: workspace
 
@@ -12,3 +12,5 @@ dependencies:
   dart_runtime_service: any
   json_rpc_2: any
   logging: any
+  stream_channel: any
+  vm_service: any

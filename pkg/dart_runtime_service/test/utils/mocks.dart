@@ -36,4 +36,21 @@ base class FakeDartRuntimeServiceBackend extends Fake
 
   @override
   void registerFallbacks(json_rpc.Peer clientPeer) {}
+
+  @override
+  DartRuntimeService get frontend => throw UnimplementedError();
+
+  @override
+  IsolateManager get isolateManager => throw UnimplementedError();
+
+  @override
+  void onStreamCancel({required String streamId}) {}
+
+  @override
+  bool onStreamListen({
+    required String streamId,
+    required Map<String, Object?> params,
+  }) {
+    return true;
+  }
 }

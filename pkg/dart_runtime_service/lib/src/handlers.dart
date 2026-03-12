@@ -61,7 +61,7 @@ Handler webSocketClientHandler({required ClientManager clientManager}) =>
       // package:shelf_web_socket v2.
       final logger = Logger('WebSocketHandler');
       logger.info('New web socket connection. Creating $Client.');
-      clientManager.addClient(ws.cast<String>());
+      clientManager.addClient(connection: ws.cast<String>());
     });
 
 /// Creates a [Handler] for incoming SSE connections.
@@ -82,7 +82,7 @@ Handler sseClientHandler({
 
   handler.connections.rest.listen((sseConnection) {
     logger.info('New SSE connection. Creating $Client.');
-    clientManager.addClient(sseConnection);
+    clientManager.addClient(connection: sseConnection);
   });
 
   return handler.handler;

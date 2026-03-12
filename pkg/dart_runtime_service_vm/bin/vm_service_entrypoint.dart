@@ -4,9 +4,11 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dart_runtime_service_vm/dart_runtime_service_vm.dart';
+import 'package:dart_runtime_service_vm/src/vm_isolate_manager.dart';
 
 // ignore: unreachable_from_main
 const entrypoint = pragma(
@@ -63,6 +65,19 @@ bool _isFuchsia = false;
 Stream<ProcessSignal> Function(ProcessSignal signal)? _signalWatch;
 
 @entrypoint
+RawReceivePort boot() => DartRuntimeServiceVMBackend.isolateControlPort;
+
+final _isolateRegistrationStreamController = StreamController<VmRunningIsolate>(
+  sync: true,
+);
+
+@entrypoint
+// ignore: unused_element
+void _registerIsolate(int portId, SendPort sendPort, String name) =>
+    _isolateRegistrationStreamController.sink.add(
+      VmRunningIsolate(id: portId, name: name, sendPort: sendPort),
+    );
+
 // ignore: unused_element
 StreamSubscription<ProcessSignal>? _signalSubscription;
 
@@ -108,6 +123,10 @@ Future<void> main([List<String> args = const []]) async {
       disableAuthCodes: _authCodesDisabled,
       autoStart: _autoStart,
     ),
-    backend: DartRuntimeServiceVMBackend(signalWatch: _signalWatch!),
+    backendBuilder: (frontend) => DartRuntimeServiceVMBackend(
+      frontend: frontend,
+      signalWatch: _signalWatch!,
+      runningIsolatesStream: _isolateRegistrationStreamController.stream,
+    ),
   );
 }
