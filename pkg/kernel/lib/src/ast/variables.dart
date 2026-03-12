@@ -1543,9 +1543,7 @@ class SyntheticVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isSynthesized {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get isSynthesized => true;
 
   @override
   void set isSynthesized(bool value) {
@@ -1553,9 +1551,7 @@ class SyntheticVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isConst {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get isConst => false;
 
   @override
   void set isConst(bool value) {
@@ -1624,7 +1620,7 @@ class SyntheticVariable extends ExpressionVariable {
   bool get hasIsFinal => true;
 
   @override
-  bool get hasIsConst => false;
+  bool get hasIsConst => true;
 
   @override
   bool get hasIsLate => false;
@@ -1633,7 +1629,7 @@ class SyntheticVariable extends ExpressionVariable {
   bool get hasIsInitializingFormal => false;
 
   @override
-  bool get hasIsSynthesized => false;
+  bool get hasIsSynthesized => true;
 
   @override
   bool get hasIsHoisted => true;

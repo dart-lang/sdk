@@ -1334,6 +1334,48 @@ class InternalCatchVariable extends TreeNode
   String get catchVariableName => astVariable.catchVariableName;
 }
 
+class InternalSyntheticVariable extends TreeNode
+    with InternalExpressionVariableMixin, DelegatingVariableMixin
+    implements SyntheticVariable, InternalExpressionVariable {
+  @override
+  SyntheticVariable astVariable;
+
+  @override
+  final bool forSyntheticToken;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  @override
+  final bool isLocalFunction;
+
+  InternalSyntheticVariable({
+    required this.astVariable,
+    required this.isImplicitlyTyped,
+    this.forSyntheticToken = false,
+    this.isLocalFunction = false,
+  });
+
+  @override
+  String toString() {
+    return "InternalSyntheticVariable(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(astVariable);
+    List<String> modifiers = [
+      if (forSyntheticToken) "forSyntheticToken",
+      if (isImplicitlyTyped) "isImplicitlyTyped",
+      if (isLocalFunction) "isLocalFunction",
+    ];
+    if (modifiers.isNotEmpty) {
+      printer.write("[${modifiers.join(",")}]");
+    }
+  }
+}
+
 mixin DelegatingVariableMixin on InternalExpressionVariableMixin
     implements InternalExpressionVariable {
   @override

@@ -38,13 +38,12 @@ class _EntityToIdMapper {
     if (reference.isTearOffReference) return 2;
     if (reference.isConstructorBodyReference) return 3;
     if (reference.isInitializerReference) return 4;
-    if (reference.isTypeCheckerReference) return 5;
-    if (reference.isCheckedEntryReference) return 6;
-    if (reference.isUncheckedEntryReference) return 7;
-    if (reference.isBodyReference) return 8;
-    if (reference.isStaticFieldInitializer) return 9;
+    if (reference.isCheckedEntryReference) return 5;
+    if (reference.isUncheckedEntryReference) return 6;
+    if (reference.isBodyReference) return 7;
+    if (reference.isStaticFieldInitializer) return 8;
     assert(reference == reference.asMember.reference);
-    return 10;
+    return 9;
   }
 }
 
@@ -85,12 +84,11 @@ class _IdToEntityMapper {
     if (flag == 2) return (member as Procedure).tearOffReference;
     if (flag == 3) return (member as Constructor).constructorBodyReference;
     if (flag == 4) return (member as Constructor).initializerReference;
-    if (flag == 5) return member.typeCheckerReference;
-    if (flag == 6) return member.checkedEntryReference;
-    if (flag == 7) return member.uncheckedEntryReference;
-    if (flag == 8) return member.bodyReference;
-    if (flag == 9) return (member as Field).staticFieldInitializer;
-    assert(flag == 10);
+    if (flag == 5) return member.checkedEntryReference;
+    if (flag == 6) return member.uncheckedEntryReference;
+    if (flag == 7) return member.bodyReference;
+    if (flag == 8) return (member as Field).staticFieldInitializer;
+    assert(flag == 9);
     return member.reference;
   }
 }
