@@ -788,6 +788,29 @@ Message _withArgumentsClassShouldBeListedAsCallableInDynamicInterface({
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String name})>
+classShouldBeListedAsCanBeUsedAsTypeInDynamicInterface = const Template(
+  "ClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface",
+  withArguments:
+      _withArgumentsClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface({
+  required String name,
+}) {
+  var name_0 = conversions.validateAndDemangleName(name);
+  return new Message(
+    classShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
+    problemMessage:
+        """Cannot use class '${name_0}' as a type in a dynamic module.""",
+    correctionMessage:
+        """Try removing the reference to class '${name_0}' or update the dynamic interface to list class '${name_0}' as can-be-used-as-type.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
 classShouldBeListedAsExtendableInDynamicInterface = const Template(
   "ClassShouldBeListedAsExtendableInDynamicInterface",
   withArguments:
@@ -3336,23 +3359,24 @@ const MessageCode extensionTypeRepresentationTypeBottom = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String name})>
-extensionTypeShouldBeListedAsCallableInDynamicInterface = const Template(
-  "ExtensionTypeShouldBeListedAsCallableInDynamicInterface",
+extensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface = const Template(
+  "ExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface",
   withArguments:
-      _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface,
+      _withArgumentsExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface({
+Message
+_withArgumentsExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface({
   required String name,
 }) {
   var name_0 = conversions.validateAndDemangleName(name);
   return new Message(
-    extensionTypeShouldBeListedAsCallableInDynamicInterface,
+    extensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
     problemMessage:
-        """Cannot use extension type '${name_0}' in a dynamic module.""",
+        """Cannot use extension type '${name_0}' as a type in a dynamic module.""",
     correctionMessage:
-        """Try removing the reference to extension type '${name_0}' or update the dynamic interface to list extension type '${name_0}' as callable.""",
+        """Try removing the reference to extension type '${name_0}' or update the dynamic interface to list extension type '${name_0}' as can-be-used-as-type.""",
     arguments: {'name': name},
   );
 }

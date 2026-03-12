@@ -19,6 +19,7 @@ extension /* unnamed */ _extension#2 on core::String {
   method addSuffix3 = self::_extension#2|addSuffix3;
   method tearoff addSuffix3 = self::_extension#2|get#addSuffix3;
 }
+@#C3
 extension type E3(core::int _info) {
   abstract extension-type-member representation-field get _info() → core::int;
   get info = self::E3|get#info;

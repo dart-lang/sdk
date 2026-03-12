@@ -530,6 +530,7 @@ class ObjectPointerVisitor;
   V(dyn_module_callable, "dyn-module:callable")                                \
   V(dyn_module_extendable, "dyn-module:extendable")                            \
   V(dyn_module_implicitly_callable, "dyn-module:implicitly-callable")          \
+  V(dyn_module_can_be_used_as_type, "dyn-module:can-be-used-as-type")          \
   V(end, "end")                                                                \
   V(executable, "executable")                                                  \
   V(from, "from")                                                              \

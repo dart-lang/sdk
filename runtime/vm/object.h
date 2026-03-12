@@ -3038,7 +3038,8 @@ enum class EntryPointPragma {
   kNever,
   kGetterOnly,
   kSetterOnly,
-  kCallOnly
+  kCallOnly,
+  kTypeOnly
 };
 
 struct EntryPointPragmaUtils : public AllStatic {
@@ -3057,10 +3058,16 @@ struct EntryPointPragmaUtils : public AllStatic {
            pragma == EntryPointPragma::kSetterOnly;
   }
 
+  static constexpr bool AllowsTypeAccess(EntryPointPragma pragma) {
+    return pragma == EntryPointPragma::kAlways ||
+           pragma == EntryPointPragma::kTypeOnly;
+  }
+
   static constexpr bool AllowsAccess(EntryPointPragma pragma) {
     // The CFE should ensure that non-kAlways annotations are appropriate
     // for the given member.
-    return pragma != EntryPointPragma::kNever;
+    return pragma != EntryPointPragma::kNever &&
+           pragma != EntryPointPragma::kTypeOnly;
   }
 };
 

@@ -692,12 +692,6 @@ memberShouldBeListedAsCallableInDynamicInterface:
   problemMessage: "Cannot invoke member '#name' from a dynamic module."
   correctionMessage: "Try removing the call or update the dynamic interface to list member '#name' as callable."
 
-extensionTypeShouldBeListedAsCallableInDynamicInterface:
-  parameters:
-    Name name: Extension type name.
-  problemMessage: "Cannot use extension type '#name' in a dynamic module."
-  correctionMessage: "Try removing the reference to extension type '#name' or update the dynamic interface to list extension type '#name' as callable."
-
 classShouldBeListedAsCallableInDynamicInterface:
   parameters:
     Name name: Class name.
@@ -716,6 +710,18 @@ memberShouldBeListedAsCanBeOverriddenInDynamicInterface:
     Name memberName: The name of the problematic member.
   problemMessage: "Cannot override member '#className.#memberName' in a dynamic module."
   correctionMessage: "Try removing the override or update the dynamic interface to list member '#className.#memberName' as can-be-overridden."
+
+classShouldBeListedAsCanBeUsedAsTypeInDynamicInterface:
+  parameters:
+    Name name: Class name.
+  problemMessage: "Cannot use class '#name' as a type in a dynamic module."
+  correctionMessage: "Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as can-be-used-as-type."
+
+extensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface:
+  parameters:
+    Name name: Extension type name.
+  problemMessage: "Cannot use extension type '#name' as a type in a dynamic module."
+  correctionMessage: "Try removing the reference to extension type '#name' or update the dynamic interface to list extension type '#name' as can-be-used-as-type."
 
 nonAsciiIdentifier:
   pseudoSharedCode: ILLEGAL_CHARACTER
