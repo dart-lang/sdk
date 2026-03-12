@@ -138,7 +138,7 @@ String componentToString(Component node) {
 
 class NameSystem {
   final Namer<ExpressionVariable> variables =
-      new NormalNamer<VariableDeclaration>('#t');
+      new NormalNamer<ExpressionVariable>('#t');
   final Namer<Reference> libraries = new NormalNamer<Reference>('#lib');
   final Namer<TypeParameter> typeParameters =
       new NormalNamer<TypeParameter>('#T');

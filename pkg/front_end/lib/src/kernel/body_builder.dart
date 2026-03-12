@@ -8236,13 +8236,22 @@ class BodyBuilderImpl extends StackListenerImpl
         lvalue.isConst = false;
       }
     } else {
-      VariableDeclaration variable = elements.syntheticVariableDeclaration =
-          forest.createVariableDeclaration(
-            offsetForToken(forToken),
-            null,
-            isFinal: true,
-            isSynthesized: true,
-          );
+      ExpressionVariable astVariable = isClosureContextLoweringEnabled
+          ? new SyntheticVariable(type: const DynamicType())
+          : forest.createVariableDeclaration(
+              offsetForToken(forToken),
+              null,
+              isFinal: true,
+              isSynthesized: true,
+            );
+
+      ExpressionVariable variable = elements.syntheticVariableDeclaration =
+          isClosureContextLoweringEnabled
+          ? new InternalSyntheticVariable(
+              astVariable: astVariable as SyntheticVariable,
+              isImplicitlyTyped: false,
+            )
+          : astVariable;
       if (lvalue is Generator) {
         /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
         ///
@@ -8255,7 +8264,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ///       body;
         ///     }
         elements.syntheticAssignment = lvalue.buildAssignment(
-          new VariableGet(variable)..fileOffset = inToken.offset,
+          new VariableGet(astVariable)..fileOffset = inToken.offset,
           voidContext: true,
         );
       } else if (lvalue is Pattern) {
