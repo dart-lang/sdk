@@ -826,28 +826,51 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     ArgumentList argumentList, {
     List<TypeParameterElement>? typeParametersInScope,
   }) {
-    // TODO(brianwilkerson): Handle the case when there are required parameters
-    // after named parameters.
     var usedNames = <String>{};
-    var arguments = argumentList.arguments;
-    var hasNamedParameters = false;
+    var positionalArguments = <(int, Expression)>[];
+    var namedArguments = <(int, NamedExpression)>[];
+
     for (var i = 0; i < argumentList.arguments.length; i++) {
-      var argument = arguments[i];
-      if (i > 0) {
-        write(', ');
+      var argument = argumentList.arguments[i];
+      switch (argument) {
+        case NamedExpression():
+          namedArguments.add((i, argument));
+        default:
+          positionalArguments.add((i, argument));
       }
-      if (argument is NamedExpression && !hasNamedParameters) {
-        hasNamedParameters = true;
-        write('{');
+    }
+
+    var wroteParameter = false;
+    for (var (index, argument) in positionalArguments) {
+      if (wroteParameter) {
+        write(', ');
       }
       writeParameterMatchingArgument(
         argument,
-        i,
+        index,
         usedNames,
         typeParametersInScope: typeParametersInScope,
       );
+      wroteParameter = true;
     }
-    if (hasNamedParameters) {
+
+    if (namedArguments.isNotEmpty) {
+      if (wroteParameter) {
+        write(', ');
+      }
+      write('{');
+      for (var i = 0; i < namedArguments.length; i++) {
+        if (i > 0) {
+          write(', ');
+        }
+        var (index, argument) = namedArguments[i];
+        writeParameterMatchingArgument(
+          argument,
+          index,
+          usedNames,
+          typeParametersInScope: typeParametersInScope,
+        );
+      }
       write('}');
     }
   }

@@ -1562,6 +1562,34 @@ f(int i, String s) {
     );
   }
 
+  Future<void> test_writeParametersMatchingArguments_namedArgumentsAnywhere() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
+f(bool b, int i, String s) {
+  g(first: b, i, third: s);
+}''';
+    addSource(path, content);
+    var unit = (await resolveFile(path)).unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var body = f.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var invocation = statement.expression as MethodInvocation;
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParametersMatchingArguments(invocation.argumentList);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace(
+        'int i, {required bool first, required String third}',
+      ),
+    );
+  }
+
   Future<void> test_writeParametersMatchingArguments_required() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '''
