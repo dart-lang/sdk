@@ -3,11 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// @docImport 'src/dart_data_home.dart';
+/// @docImport 'src/pid_files.dart';
 
 /// A package providing [getDartDataHome], a standardized way to access a
 /// user-specific data directory for Dart and Flutter tooling, defaulting to
 /// OS-conventions and configurable via the `DART_DATA_HOME` environment
 /// variable.
+///
+/// This package also provides utilities [createPidFile] and [listPidFiles]
+/// for managing pid files for service processes.
 library;
 
 export 'src/dart_data_home.dart';
+export 'src/pid_files.dart';
