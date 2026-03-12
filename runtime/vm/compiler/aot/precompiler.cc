@@ -1525,11 +1525,14 @@ void Precompiler::AddAnnotatedRoots() {
       // Check for @pragma on the class itself.
       if (cls.has_pragma()) {
         metadata ^= lib.GetMetadata(cls);
-        if (EntryPointPragmaUtils::AllowsAccess(
-                FindEntryPointPragma(IG, metadata, &reusable_field_handle,
-                                     &reusable_object_handle))) {
+        EntryPointPragma pragma = FindEntryPointPragma(
+            IG, metadata, &reusable_field_handle, &reusable_object_handle);
+        if (EntryPointPragmaUtils::AllowsAccess(pragma)) {
           AddInstantiatedClass(cls);
           AddApiUse(cls);
+        } else if (EntryPointPragmaUtils::AllowsTypeAccess(pragma)) {
+          AddApiUse(cls);
+          AddTypesOf(cls);
         }
       }
 

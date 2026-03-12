@@ -25,7 +25,9 @@ base class Client {
     required UnmodifiableNamedLookup<Client> clients,
     required EventStreamMethods eventStreamMethods,
     required this.backend,
+    String? name,
   }) {
+    _name = name ?? defaultClientName;
     _clientPeer = json_rpc.Peer(connection, strictProtocolChecks: false);
     _internalRpcs = DartRuntimeServiceRpcs(
       clients: clients,
@@ -47,12 +49,15 @@ base class Client {
   late final Future<void> done;
 
   Future<void> initialize({required String namespace}) {
+    logger.info('Initializing...');
     this.namespace = namespace;
     registerRpcHandlers();
     done = _listen().then((_) {
+      logger.info('Client connection closed.');
       // Cleanup stream subscription state when the client disconnects.
       _internalRpcs.eventStreamMethods.onClientDisconnect(this);
     });
+    logger.info('Initialization complete.');
     return done;
   }
 
@@ -64,6 +69,7 @@ base class Client {
   /// Called if the connection to the client should be closed.
   @mustCallSuper
   Future<void> close() async {
+    logger.info('Cleaning up.');
     await _clientPeer.close();
   }
 
@@ -157,8 +163,13 @@ base class Client {
   /// Sets the name associated with this client.
   ///
   /// If [n] is null, the client name is reset to [defaultClientName].
-  void setName(String? n) => _name = n ?? defaultClientName;
-  late String _name = defaultClientName;
+  void setName(String? n) {
+    final updated = n ?? defaultClientName;
+    logger.info('Changing client name to $updated.');
+    _name = updated;
+  }
+
+  late String _name;
 }
 
 /// Used for keeping track and managing clients that are connected to a given
@@ -185,12 +196,13 @@ base class ClientManager {
   ///
   /// This should be called when a client connects to the service.
   @mustCallSuper
-  Client addClient(StreamChannel<String> connection) {
+  Client addClient({required StreamChannel<String> connection, String? name}) {
     final client = Client(
       connection: connection,
       clients: UnmodifiableNamedLookup(clients),
       eventStreamMethods: eventStreamMethods,
       backend: backend,
+      name: name,
     );
     final namespace = clients.add(client);
     client.initialize(namespace: namespace).then((_) {

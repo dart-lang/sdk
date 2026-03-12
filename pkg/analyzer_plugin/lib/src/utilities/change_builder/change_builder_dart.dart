@@ -2162,6 +2162,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     void Function(DartEditBuilder builder) buildEdit, {
     bool Function(ClassMember existingMember)? lastMemberFilter,
   }) {
+    if (compilationUnitMember
+        case ClassDeclaration(:var body) ||
+            ExtensionTypeDeclaration(:var body)) {
+      if (body is EmptyClassBody) {
+        addReplacement(body.sourceRange, (builder) {
+          builder.writeln(' {');
+          builder.write('  ');
+          buildEdit(builder);
+          builder.writeln();
+          builder.write('}');
+        });
+        return;
+      }
+    }
     var preparer = _InsertionPreparer(
       compilationUnitMember,
       resolvedUnit.lineInfo,
@@ -3339,6 +3353,8 @@ extension on CompilationUnitMember {
       case ClassDeclaration():
         if (self.body case BlockClassBody body) {
           return body.members;
+        } else if (self.body case EmptyClassBody()) {
+          return const [];
         }
       case EnumDeclaration():
         // Enum constants are handled separately; not considered members.

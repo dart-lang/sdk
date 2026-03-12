@@ -145,3 +145,25 @@ extension type ExtType5._(int raw) {
   ExtType5.plus1(int n) : this._(n + 1);
   bool get isPositive => raw > 0;
 }
+
+class C10 {}
+
+extension type ExtType10(int raw) {}
+
+class C11 {}
+
+extension type ExtType11(int raw) {}
+
+class C12 {}
+
+extension type ExtType12(int raw) {}
+
+class C13 {}
+
+extension type ExtType13(int raw) {}
+
+class C14 {} // Not exposed
+
+class C15 implements C14 {}
+
+class C16 implements C14 {}

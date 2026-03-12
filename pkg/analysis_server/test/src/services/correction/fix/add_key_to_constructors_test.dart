@@ -515,6 +515,102 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_newConstructor_namedParameters_withoutSuper() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  new ({required String s});
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  new ({super.key, required String s});
+}
+''');
+  }
+
+  Future<void> test_noConstructor_emptyClassBody() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget;
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_emptyClassBody() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget() extends StatelessWidget;
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget({super.key}) extends StatelessWidget;
+''');
+  }
+
+  Future<void> test_primaryConstructor_namedParameters_withoutSuper() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget({required String s}) extends StatelessWidget {
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget({super.key, required String s}) extends StatelessWidget {
+}
+''');
+  }
+
+  Future<void>
+  test_primaryConstructor_namedParameters_withSuper_withBody() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget({required String s}) extends StatelessWidget {
+  this : super() {}
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget({super.key, required String s}) extends StatelessWidget {
+  this {}
+}
+''');
+  }
+
+  Future<void>
+  test_primaryConstructor_namedParameters_withSuper_withoutBody() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget({required String s}) extends StatelessWidget {
+  this : super();
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget({super.key, required String s}) extends StatelessWidget {
+  this;
+}
+''');
+  }
+
   Future<void> test_super_not_constant() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';

@@ -43,3 +43,21 @@ Object? sfield9;
 Object? _sfield10;
 void smethod10() {}
 void _smethod11() {}
+
+abstract class F {
+  F();
+  F._();
+  factory F.factory1() = G;
+  void imethod1();
+  static void smethod1() {}
+}
+
+class G extends F {
+  G();
+  void imethod1() {}
+  static void smethod2() {}
+}
+
+extension type H(F v) {
+  void imethod2() => v.imethod1();
+}

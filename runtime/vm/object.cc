@@ -28047,6 +28047,11 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
     *reusable_field_handle = IG->object_store()->pragma_name();
     const auto pragma_name =
         Instance::Cast(*pragma).GetField(*reusable_field_handle);
+
+    if (pragma_name == Symbols::dyn_module_can_be_used_as_type().ptr()) {
+      return EntryPointPragma::kTypeOnly;
+    }
+
     if ((pragma_name != Symbols::vm_entry_point().ptr()) &&
         (pragma_name != Symbols::dyn_module_callable().ptr()) &&
         (pragma_name != Symbols::dyn_module_implicitly_callable().ptr()) &&

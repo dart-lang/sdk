@@ -30,6 +30,11 @@ can-be-overridden:
   - item 1
   ...
   - item N
+
+can-be-used-as-type:
+  - item 1
+  ...
+  - item N
 ```
 
 `callable` section specifies members which can be
@@ -41,6 +46,10 @@ extend, mix-in or implement.
 
 `can-be-overridden` section specifies instance members which
 dynamic module can override.
+
+`can-be-used-as-type` section specifies classes and extension types
+which can be used in dynamic module in `is` checks, `as` casts,
+type parameters, or type literals.
 
 ## Library
 
@@ -194,4 +203,12 @@ can-be-overridden:
   - library: 'package:flutter/src/widgets/framework.dart'
     class: 'StatelessWidget'
     member: 'build'
+
+can-be-used-as-type:
+  # All public classes in `dart:core`.
+  - library: 'dart:core'
+
+  # `MyClass` in `package:my_app/lib/my_app.dart`.
+  - library: 'package:my_app/lib/my_app.dart'
+    class: 'MyClass'
 ```

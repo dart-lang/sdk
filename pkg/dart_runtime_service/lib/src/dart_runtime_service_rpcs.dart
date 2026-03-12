@@ -201,9 +201,13 @@ final class DartRuntimeServiceRpcs {
   ///
   /// If the stream ID does not correspond with a known stream, an error
   /// response may be returned.
-  RpcResponse streamListen(json_rpc.Parameters parameters) {
+  Future<RpcResponse> streamListen(json_rpc.Parameters parameters) async {
     final stream = parameters[_kStreamId].asString;
-    eventStreamMethods.streamListen(client: client, streamId: stream);
+    eventStreamMethods.streamListen(
+      client: client,
+      streamId: stream,
+      params: parameters.asMap.cast<String, Object?>(),
+    );
     return Success().toJson();
   }
 
@@ -214,7 +218,7 @@ final class DartRuntimeServiceRpcs {
   ///
   /// If the stream ID does not correspond with a known stream, an error
   /// response may be returned.
-  RpcResponse streamCancel(json_rpc.Parameters parameters) {
+  Future<RpcResponse> streamCancel(json_rpc.Parameters parameters) async {
     final streamId = parameters[_kStreamId].asString;
     eventStreamMethods.streamCancel(client: client, streamId: streamId);
     return Success().toJson();

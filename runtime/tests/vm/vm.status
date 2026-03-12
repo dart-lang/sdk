@@ -162,6 +162,7 @@ cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
+dart/stream_timeline_to_test: SkipByDesign # VM service isn't supported in PRODUCT mode.
 dart/symbolized_crash_test: Skip # Stack dump code excluded from product mode
 dart/symbolized_dart_crash_test: Skip # Stack dump code excluded from product mode
 
@@ -381,6 +382,7 @@ dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself
 dart/kernel_determinism_test: SkipSlow
 dart/regress_48196_test: SkipSlow
 dart/regress_52703_test: SkipSlow
+dart/stream_timeline_to_test: SkipSlow
 dart/use_dwarf_stack_traces_flag_deferred_test: SkipSlow
 dart/use_dwarf_stack_traces_flag_test: SkipSlow
 dart/use_macho_reduce_padding_flag_test: SkipSlow

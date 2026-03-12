@@ -248,6 +248,10 @@ Future<String?> compileWithUsages({
 const Set<String> dart2jsNotSupported = {
   'external_function.dart',
 
+  // JavaScript cannot exactly represent 64-bit integers. The front-end reports
+  // a compile-time error for these literals when targeting the web.
+  'large_integers.dart',
+
   // There is an extra loading unit out_2 which contains the shared stuff
   // between out_1 and out_3. Either of those loads out_2. We need a more robust
   // semanticEquality solution than mapping loading unit names. We might only be

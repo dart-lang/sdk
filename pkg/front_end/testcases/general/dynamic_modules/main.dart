@@ -4,6 +4,7 @@
 
 import 'main_lib1.dart';
 import 'main_lib2.dart';
+import 'main_lib4.dart';
 
 dynamic x;
 
@@ -177,6 +178,73 @@ void test() {
   print(Lib3ExtType);
   print(Lib3ExtType(42));
   print(42.lib3IsPositive);
+}
+
+void testCanBeUsedAsType(Object? o) {
+  // Allowed, exposed as types individually or in groups
+  o is C10;
+  o as C10;
+  List<C10> list1;
+  print(C10);
+  print(<C10>[]);
+
+  o is ExtType10;
+  o as ExtType10;
+  List<ExtType10> list2;
+  print(ExtType10);
+  print(<ExtType10>[]);
+
+  o is C11;
+  o as C11;
+  List<C11> list3;
+  print(C11);
+  print(<C11>[]);
+
+  o is ExtType11;
+  o as ExtType11;
+  List<ExtType11> list4;
+  print(ExtType11);
+  print(<ExtType11>[]);
+
+  o is C12;
+  o as C12;
+  List<C12> list5;
+  print(C12);
+  print(<C12>[]);
+
+  o is ExtType12;
+  o as ExtType12;
+  List<ExtType12> list6;
+  print(ExtType12);
+  print(<ExtType12>[]);
+
+  // Allowed, exposed as types from the library level
+  o is Lib4Class;
+  o as Lib4Class;
+  List<Lib4Class> list7;
+  print(Lib4Class);
+  print(<Lib4Class>[]);
+
+  o is Lib4ExtType;
+  o as Lib4ExtType;
+  List<Lib4ExtType> list8;
+  print(Lib4ExtType);
+  print(<Lib4ExtType>[]);
+
+  // Not allowed - type is not automatically callable
+  print(C10());
+  print(ExtType10(20));
+
+  // Not allowed - type is not exposed as type or callable.
+  o is C13;
+  o as C13;
+  List<C13> list9;
+  print(C13);
+  print(<C13>[]);
+  print(<ExtType13>[]);
+
+  // Not allowed - inferred LUB type (C14) is not exposed.
+  final inferredList = [C15(), C16()];
 }
 
 void main() {}

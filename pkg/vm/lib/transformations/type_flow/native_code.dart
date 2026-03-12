@@ -123,6 +123,8 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         nativeCodeOracle.addClassWithDynamicallyExtendableSubtype(klass);
       } else if (type == PragmaEntryPointType.ImplicitlyExtendable) {
         nativeCodeOracle.addClassWithDynamicallyExtendableSubtype(klass);
+      } else if (type == PragmaEntryPointType.CanBeUsedAsType) {
+        nativeCodeOracle.addClassReferencedFromNativeCode(klass);
       } else {
         throw "Error: The argument to an entry-point pragma annotation "
             "on a class must evaluate to null, true, or false.\n"
@@ -196,6 +198,8 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         case PragmaEntryPointType.CanBeOverridden:
           nativeCodeOracle.addDynamicallyOverriddenMember(proc);
           break;
+        case PragmaEntryPointType.CanBeUsedAsType:
+          throw "Error: only class or extension type can be used-as-type";
       }
     }
 
@@ -271,6 +275,8 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         case PragmaEntryPointType.CanBeOverridden:
           nativeCodeOracle.addDynamicallyOverriddenMember(field);
           break;
+        case PragmaEntryPointType.CanBeUsedAsType:
+          throw "Error: only class or extension type can be used-as-type";
       }
     }
 
