@@ -402,6 +402,25 @@ class DartEditBuilderImplTest extends AbstractContextTest
     expect(edit.replacement, equalsIgnoringWhitespace('var f;'));
   }
 
+  Future<void> test_insertField_enum_multiline_trailingComma() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'enum E {\n  one,\n}';
+    addSource(path, content);
+
+    var resolvedUnit = await resolveFile(path);
+    var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
+    var enumNode = findNode.enumDeclaration('E {\n  one,\n}');
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.insertField(enumNode, (builder) {
+        builder.writeFieldDeclaration('f');
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace(';\n\n  var f;'));
+  }
+
   Future<void> test_writeClassDeclaration_interfaces() async {
     var path = convertPath('$testPackageRootPath/lib/test.dart');
     addSource(path, 'class A {}');

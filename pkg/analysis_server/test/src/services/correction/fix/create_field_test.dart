@@ -102,6 +102,35 @@ int f(E e) {
 ''');
   }
 
+  Future<void> test_usedAsGetter_multiline_withoutSemicolon() async {
+    await resolveTestCode('''
+enum E {
+  longEnumName,
+  anotherLongEnumName,
+  yetAnotherLongEnumName,
+  thisOneIsLongToo,
+}
+
+int f(E e) {
+  return e.a;
+}
+''');
+    await assertHasFix('''
+enum E {
+  longEnumName,
+  anotherLongEnumName,
+  yetAnotherLongEnumName,
+  thisOneIsLongToo;
+
+  final int a;
+}
+
+int f(E e) {
+  return e.a;
+}
+''');
+  }
+
   Future<void> test_usedAsGetter_dotShorthand() async {
     await resolveTestCode('''
 enum E {

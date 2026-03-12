@@ -261,6 +261,35 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_enum_multiline_withoutSemicolon() async {
+    await resolveTestCode('''
+enum E {
+  longEnumName,
+  anotherLongEnumName,
+  yetAnotherLongEnumName,
+  thisOneIsLongToo,
+}
+
+int f(E e) {
+  return e.test;
+}
+''');
+    await assertHasFix('''
+enum E {
+  longEnumName,
+  anotherLongEnumName,
+  yetAnotherLongEnumName,
+  thisOneIsLongToo;
+
+  int get test => null;
+}
+
+int f(E e) {
+  return e.test;
+}
+''');
+  }
+
   Future<void> test_futureIterable_int() async {
     await resolveTestCode('''
 class C {

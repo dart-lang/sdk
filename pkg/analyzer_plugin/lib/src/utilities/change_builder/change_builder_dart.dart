@@ -3091,8 +3091,8 @@ class _InsertionPreparer {
       if (semicolon != null) {
         return semicolon.end;
       } else if (declaration.body.constants.isNotEmpty) {
-        var lastConstant = declaration.body.constants.last;
-        return lastConstant.end;
+        var tokenBeforeRightBracket = declaration.body.rightBracket.previous;
+        return tokenBeforeRightBracket?.end ?? declaration.body.constants.last.end;
       }
     }
 
