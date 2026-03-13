@@ -161,14 +161,13 @@ class LibraryContext {
 
     elementFactory.removeLibraries(removed.map((e) => e.uri).toSet());
 
-    loadedBundles.removeWhere((cycle) {
-      var cycleFiles = cycle.libraries.map((e) => e.file);
-      if (cycleFiles.any(removed.contains)) {
-        removedKeys.add(cycle.linkedKey);
-        return true;
-      }
-      return false;
-    });
+    var removedCycles = removed
+        .map((file) => file.kind.library?.internal_libraryCycle)
+        .nonNulls
+        .where(loadedBundles.contains)
+        .toSet();
+    loadedBundles.removeAll(removedCycles);
+    removedKeys.addAll(removedCycles.map((cycle) => cycle.linkedKey));
   }
 
   /// Unloads all loaded bundles.
