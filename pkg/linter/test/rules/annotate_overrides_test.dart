@@ -92,6 +92,29 @@ augment class B {
 ''');
   }
 
+  test_class_declaringParameter_withAnnotation() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int get x => 4;
+}
+
+class B(@override var int x) extends A {}
+''');
+  }
+
+  test_class_declaringParameter_withoutAnnotation() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  int get x => 4;
+}
+
+class B(var int x) extends A {}
+''',
+      [lint(47, 1)],
+    );
+  }
+
   test_class_fieldWithAnnotation() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -193,6 +216,33 @@ class B extends A {
 }
 ''',
       [lint(54, 1)],
+    );
+  }
+
+  test_enum_declaringParameter_withAnnotation() async {
+    await assertNoDiagnostics(r'''
+enum E(@override final int x) implements I {
+  e(0)
+}
+
+class I {
+  int get x => 4;
+}
+''');
+  }
+
+  test_enum_declaringParameter_withoutAnnotation() async {
+    await assertDiagnostics(
+      r'''
+enum E(final int x) implements I {
+  e(0)
+}
+
+class I {
+  int get x => 4;
+}
+''',
+      [lint(17, 1)],
     );
   }
 
