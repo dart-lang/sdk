@@ -12790,7 +12790,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType = const NullType();
     }
     closureContext.handleReturn(node, inferredType, node.isArrow);
-    flowAnalysis.handleExit();
+    flowAnalysis.handleReturn();
     return const StatementInferenceResult();
   }
 

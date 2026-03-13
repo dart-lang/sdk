@@ -55,8 +55,7 @@ class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
 class _DeprecatedElementUsageReporter extends ElementUsageReporter<String> {
   final MultiAnalysisRule _rule;
 
-  _DeprecatedElementUsageReporter({required MultiAnalysisRule rule})
-    : _rule = rule;
+  _DeprecatedElementUsageReporter({required this._rule});
 
   @override
   void report(

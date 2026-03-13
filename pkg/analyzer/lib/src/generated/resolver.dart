@@ -1888,9 +1888,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant AnonymousBlockBodyImpl node, {
     TypeImpl? imposedType,
   }) {
-    throw UnimplementedError(
-      'The anonymous-method feature is not fully implemented',
-    );
+    var oldBodyContext = _bodyContext;
+    try {
+      _bodyContext = BodyInferenceContext.forAnonymousBlockBody(
+        typeSystem: typeSystem,
+        node: node,
+        imposedType: imposedType,
+      );
+
+      flowAnalysis.flow?.anonymousBlockBody_begin();
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      var returnType = _finishFunctionBodyInference();
+      flowAnalysis.flow?.anonymousBlockBody_end();
+      return returnType;
+    } finally {
+      _bodyContext = oldBodyContext;
+    }
   }
 
   @override
@@ -2661,9 +2675,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitDottedName(DottedName node) {}
-
-  @override
   void visitDoubleLiteral(
     DoubleLiteral node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -2843,7 +2854,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
       popRewrite();
 
-      flowAnalysis.flow?.handleExit();
+      flowAnalysis.flow?.handleReturn();
 
       bodyContext.addReturnExpression(node.expression);
       return _finishFunctionBodyInference();
@@ -4062,7 +4073,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     bodyContext?.addReturnExpression(expression);
-    flowAnalysis.flow?.handleExit();
+    flowAnalysis.flow?.handleReturn();
     inferenceLogWriter?.exitStatement(node);
   }
 

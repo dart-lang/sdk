@@ -61,12 +61,11 @@ class _ConstructorChecker {
   _ConstructorChecker(
     this._rule,
     this._constructor, {
-    required bool privateNamedParametersEnabled,
+    required this._privateNamedParametersEnabled,
   }) : _parameters = _constructor.parameters.parameters
            .where((param) => param.notDefault is! SuperFormalParameter)
            .map((param) => param.declaredFragment?.element)
-           .toList(),
-       _privateNamedParametersEnabled = privateNamedParametersEnabled;
+           .toList();
 
   void check() {
     // Don't lint initializers from parameters that are already initializing

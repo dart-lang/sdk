@@ -47,7 +47,7 @@ class LibraryCycle {
   final Set<String> transitivePackages;
 
   /// The library cycles that this cycle references directly.
-  final Set<LibraryCycle> directDependencies;
+  final List<LibraryCycle> directDependencies;
 
   /// The cycles that use this cycle, used to [dispose] transitively.
   final List<LibraryCycle> directUsers = [];
@@ -87,7 +87,7 @@ class LibraryCycle {
     required this.apiSignature,
     required this.manifestSignature,
     required this.nonTransitiveApiSignature,
-  }) {
+  }) : assert(directDependencies.toSet().length == directDependencies.length) {
     for (var directDependency in directDependencies) {
       directDependency.directUsers.add(this);
     }
@@ -256,7 +256,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       libraries: libraries.toFixedList(),
       libraryUris: libraryUris,
       transitivePackages: transitivePackages,
-      directDependencies: directDependencies,
+      directDependencies: directDependencies.toFixedList(),
       apiSignature: apiSignature.toHex(),
       manifestSignature: manifestSignature,
       nonTransitiveApiSignature: nonTransitiveApiSignature,

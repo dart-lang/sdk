@@ -54,6 +54,23 @@ class BodyInferenceContext {
     return bodyContext;
   }
 
+  factory BodyInferenceContext.forAnonymousBlockBody({
+    required TypeSystemImpl typeSystem,
+    required AnonymousBlockBodyImpl node,
+    required TypeImpl? imposedType,
+  }) {
+    var bodyContext = BodyInferenceContext._(
+      typeSystem: typeSystem,
+      isAsynchronous: false,
+      isGenerator: false,
+      imposedType: imposedType,
+      contextType: imposedType,
+    );
+    node.bodyContext = bodyContext;
+
+    return bodyContext;
+  }
+
   BodyInferenceContext._({
     required TypeSystemImpl typeSystem,
     required this.isAsynchronous,

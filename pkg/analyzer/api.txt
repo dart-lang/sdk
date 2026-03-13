@@ -567,8 +567,6 @@ package:analyzer/dart/analysis/utilities.dart:
   parseString (function: ParseStringResult Function({required String content, FeatureSet? featureSet, String? path, bool throwIfDiagnostics}))
   resolveFile (function: Future<SomeResolvedUnitResult> Function({required String path, ResourceProvider? resourceProvider}))
 package:analyzer/dart/ast/ast.dart:
-  useDottedNameInLibraryDirective (static getter: bool)
-  useDottedNameInLibraryDirective= (static setter: bool)
   AdjacentStrings (class extends Object implements StringLiteral, abstract, final):
     strings (getter: NodeList<StringLiteral>)
   AnnotatedNode (class extends Object implements AstNode, abstract, final):
@@ -594,6 +592,7 @@ package:analyzer/dart/ast/ast.dart:
   AnonymousMethodBody (class extends Object implements AstNode, abstract, final, experimental)
   AnonymousMethodInvocation (class extends Object implements Expression, abstract, final, experimental):
     body (getter: AnonymousMethodBody)
+    declaredFragment (getter: LocalFunctionFragment?)
     isCascaded (getter: bool)
     isNullAware (getter: bool)
     operator (getter: Token)
@@ -1042,7 +1041,6 @@ package:analyzer/dart/ast/ast.dart:
     propertyName (getter: SimpleIdentifier)
   DottedName (class extends Object implements AstNode, abstract, final):
     components (getter: NodeList<SimpleIdentifier>)
-    tokens (getter: List<Token>)
   DoubleLiteral (class extends Object implements Literal, abstract, final):
     literal (getter: Token)
     value (getter: double)
@@ -1355,7 +1353,6 @@ package:analyzer/dart/ast/ast.dart:
     element (getter: LibraryElement?)
     libraryKeyword (getter: Token)
     name (getter: LibraryIdentifier?)
-    name2 (getter: DottedName?)
     semicolon (getter: Token)
   LibraryIdentifier (class extends Object implements Identifier, abstract, final):
     components (getter: NodeList<SimpleIdentifier>)
@@ -1501,7 +1498,6 @@ package:analyzer/dart/ast/ast.dart:
     semicolon (getter: Token)
   PartOfDirective (class extends Object implements Directive, abstract, final):
     libraryName (getter: LibraryIdentifier?)
-    libraryName2 (getter: DottedName?)
     ofKeyword (getter: Token)
     partKeyword (getter: Token)
     semicolon (getter: Token)

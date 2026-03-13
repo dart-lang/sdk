@@ -2373,6 +2373,69 @@ class IntLiteral extends ConstExpression {
   }
 }
 
+/// Representation of an anonymous method invocation in the pseudo-Dart language
+/// used for flow analysis testing.
+class InvokeAnonymousMethod extends Expression {
+  /// The expression before the `.`.
+  final Expression target;
+
+  /// The body of the anonymous method.
+  final Block body;
+
+  /// The return type of the anonymous method.
+  ///
+  /// This must be supplied by the test because the mini-AST framework doesn't
+  /// support type inference.
+  final Type returnType;
+
+  final bool isNullAware;
+
+  InvokeAnonymousMethod._(
+    this.target,
+    this.body, {
+    required this.returnType,
+    required this.isNullAware,
+    required super.location,
+  });
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
+    body.preVisit(visitor);
+  }
+
+  @override
+  String toString() {
+    var q = isNullAware ? '?' : '';
+    return '$target$q.$body';
+  }
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    // Analyze the target, and generate its IR.
+    var targetResult = h.typeAnalyzer.analyzeExpression(
+      target,
+      h.operations.unknownType,
+      continueNullShorting: true,
+    );
+    if (isNullAware) {
+      targetResult = h.typeAnalyzer.createNullAwareGuard(target, targetResult);
+    }
+    h.flow.anonymousBlockBody_begin();
+    // Analyze the block, and generate its IR.
+    body.visit(h);
+    h.flow.anonymousBlockBody_end();
+    // Form the IR for the anonymous method invocation.
+    h.irBuilder.apply(
+      'anonymous-method',
+      [Kind.expression, Kind.statement],
+      Kind.expression,
+      location: location,
+    );
+    return new ExpressionTypeAnalysisResult(type: SharedTypeView(returnType));
+  }
+}
+
 /// Representation of a method invocation in the pseudo-Dart language used for
 /// flow analysis testing.
 class InvokeMethod extends Expression {
@@ -4777,6 +4840,23 @@ mixin ProtoExpression
     );
   }
 
+  /// If `this` is an expression `x`, creates the block-bodied anonymous method
+  /// invocation `x.{ ... }`.
+  Expression invokeAnonymousMethod(
+    List<ProtoStatement> body, {
+    required String returnType,
+    bool isNullAware = false,
+  }) {
+    var location = computeLocation();
+    return new InvokeAnonymousMethod._(
+      asExpression(location: location),
+      Block._(body, location: location),
+      returnType: Type(returnType),
+      isNullAware: isNullAware,
+      location: location,
+    );
+  }
+
   /// If `this` is an expression `x`, creates a method invocation with `x` as
   /// the target, [name] as the method name, and [arguments] as the method
   /// arguments. Named arguments are not supported.
@@ -6854,7 +6934,7 @@ class _MiniAstTypeAnalyzer
   }
 
   void analyzeReturnStatement() {
-    flow.handleExit();
+    flow.handleReturn();
   }
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {

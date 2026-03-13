@@ -374,14 +374,45 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     covariant AnonymousMethodInvocationImpl node,
   ) {
     var target = node.target;
-    if (target != null) checkForUseOfVoidResult(target);
+    if (target != null) {
+      checkForUseOfVoidResult(target);
+      target.accept(this);
+    }
     _constArgumentsVerifier.visitAnonymousMethodInvocation(node);
-    if (node.parameters == null) {
-      _withThisContext(ThisContext.instanceMemberBody, () {
-        super.visitAnonymousMethodInvocation(node);
-      });
+
+    void visitRest() {
+      node.parameters?.accept(this);
+      node.body.accept(this);
+    }
+
+    void visitWithThisContext() {
+      if (node.parameters == null) {
+        _withThisContext(ThisContext.instanceMemberBody, visitRest);
+      } else {
+        visitRest();
+      }
+    }
+
+    if (node.body case AnonymousBlockBodyImpl body) {
+      var parent = body.parent as AnonymousMethodInvocationImpl;
+      var returnType = parent.staticType ?? _typeProvider.dynamicType;
+      var fragment = node.declaredFragment!.element;
+      fragment.returnType = returnType;
+      var outerExecutable = _enclosingExecutable;
+      try {
+        _enclosingExecutable = EnclosingExecutableContext(
+          node.declaredFragment!.element,
+          isAsynchronous: false,
+          isGenerator: false,
+        );
+        _returnTypeVerifier.enclosingExecutable = _enclosingExecutable;
+        visitWithThisContext();
+      } finally {
+        _enclosingExecutable = outerExecutable;
+        _returnTypeVerifier.enclosingExecutable = _enclosingExecutable;
+      }
     } else {
-      super.visitAnonymousMethodInvocation(node);
+      visitWithThisContext();
     }
   }
 

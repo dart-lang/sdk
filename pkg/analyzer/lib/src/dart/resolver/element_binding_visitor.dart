@@ -47,6 +47,31 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAnonymousMethodInvocation(
+    covariant AnonymousMethodInvocationImpl node,
+  ) {
+    var fragment = LocalFunctionFragmentImpl(
+      name: null,
+      firstTokenOffset: node.offset,
+    );
+
+    _elementHolder.enclose(fragment);
+    node.declaredFragment = fragment;
+    fragment.hasImplicitReturnType = true;
+    fragment.isAsynchronous = false;
+    fragment.isGenerator = false;
+
+    var holder = ElementHolder(fragment);
+    _withElementHolder(holder, () {
+      super.visitAnonymousMethodInvocation(node);
+      fragment.typeParameters = [];
+      fragment.formalParameters = holder.formalParameters;
+    });
+
+    fragment.setCodeRange(node.offset, node.length);
+  }
+
+  @override
   void visitCatchClause(covariant CatchClauseImpl node) {
     _withElementWalker(null, () {
       var exceptionNode = node.exceptionParameter;
