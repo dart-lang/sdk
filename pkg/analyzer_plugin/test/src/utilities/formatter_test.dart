@@ -28,7 +28,7 @@ class FormatterTest extends AbstractSingleUnitTest {
   Future<void> test_languageVersion_default() async {
     await resolveTestCode('');
     var formatter = createFormatter(result);
-    expect(formatter.languageVersion, DartFormatter.latestLanguageVersion);
+    expect(formatter.languageVersion, defaultFormatterVersion);
   }
 
   Future<void> test_languageVersion_override() async {
