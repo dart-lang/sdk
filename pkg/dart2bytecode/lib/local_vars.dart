@@ -192,7 +192,7 @@ class LocalVariables {
 }
 
 class VarDesc {
-  final VariableDeclaration declaration;
+  final ExpressionVariable declaration;
   Scope scope;
   bool isCaptured = false;
   int? index;
@@ -219,7 +219,7 @@ class VarDesc {
     scope = newScope;
   }
 
-  String toString() => 'var ${declaration.name}';
+  String toString() => 'var ${declaration.cosmeticName}';
 }
 
 class Frame {
@@ -463,7 +463,7 @@ class _ScopeBuilder extends RecursiveVisitor {
     _currentScopeInternal = _currentScope.parent;
   }
 
-  void _declareVariable(VariableDeclaration variable, [Scope? scope]) {
+  void _declareVariable(ExpressionVariable variable, [Scope? scope]) {
     if (scope == null) {
       scope = _currentScope;
     }
@@ -530,6 +530,30 @@ class _ScopeBuilder extends RecursiveVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    _handleVariableInitialization(node);
+  }
+
+  @override
+  void visitVariableInitialization(VariableInitialization node) {
+    _handleVariableInitialization(node);
+  }
+
+  void _handleVariableInitialization(VariableInitialization node) {
+    _declareVariable(node.variable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPositionalParameter(PositionalParameter node) {
+    _handleFunctionParameter(node);
+  }
+
+  @override
+  void visitNamedParameter(NamedParameter node) {
+    _handleFunctionParameter(node);
+  }
+
+  void _handleFunctionParameter(FunctionParameter node) {
     _declareVariable(node);
     node.visitChildren(this);
   }
@@ -826,7 +850,7 @@ class _Allocator extends RecursiveVisitor {
             _currentScope.tempsUsed, _currentScope.tempsUsed + count)));
   }
 
-  void _allocateVariable(VariableDeclaration variable, {int? paramSlotIndex}) {
+  void _allocateVariable(ExpressionVariable variable, {int? paramSlotIndex}) {
     final VarDesc v = locals._getVarDesc(variable);
 
     assert(!v.isAllocated);
@@ -865,7 +889,7 @@ class _Allocator extends RecursiveVisitor {
     }
   }
 
-  void _allocateParameter(VariableDeclaration node, int i) {
+  void _allocateParameter(ExpressionVariable node, int i) {
     final numParameters = _currentFrame.numParameters;
     assert(0 <= i && i < numParameters);
     assert(_currentScope.localsUsed ==
@@ -1038,7 +1062,16 @@ class _Allocator extends RecursiveVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    _allocateVariable(node);
+    _handleVariableInitialization(node);
+  }
+
+  @override
+  void visitVariableInitialization(VariableInitialization node) {
+    _handleVariableInitialization(node);
+  }
+
+  void _handleVariableInitialization(VariableInitialization node) {
+    _allocateVariable(node.variable);
     node.visitChildren(this);
   }
 

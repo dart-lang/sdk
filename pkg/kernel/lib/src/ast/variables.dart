@@ -309,9 +309,7 @@ class LocalVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isSynthesized {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get isSynthesized => false;
 
   @override
   void set isSynthesized(bool value) {
@@ -381,7 +379,7 @@ class LocalVariable extends ExpressionVariable {
   bool get hasIsInitializingFormal => false;
 
   @override
-  bool get hasIsSynthesized => false;
+  bool get hasIsSynthesized => true;
 
   @override
   bool get hasIsHoisted => true;
