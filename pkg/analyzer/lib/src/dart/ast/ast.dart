@@ -558,6 +558,10 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   @generated
   BlockImpl _block;
 
+  /// The [BodyInferenceContext] that was used during type inference of this
+  /// function body, or `null` if resolution hasn't yet been performed.
+  BodyInferenceContext? bodyContext;
+
   @generated
   AnonymousBlockBodyImpl({required BlockImpl block}) : _block = block {
     _becomeParentOf(block);
@@ -775,6 +779,11 @@ abstract final class AnonymousMethodInvocation implements Expression {
   /// The body of the anonymous method being invoked.
   AnonymousMethodBody get body;
 
+  /// The fragment declared by this function expression.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  LocalFunctionFragment? get declaredFragment;
+
   /// Whether this expression is cascaded.
   ///
   /// If it is, then the target of this expression isn't stored locally but is
@@ -829,6 +838,10 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
 
   @generated
   AnonymousMethodBodyImpl _body;
+
+  @generated
+  @override
+  LocalFunctionFragmentImpl? declaredFragment;
 
   @generated
   AnonymousMethodInvocationImpl({

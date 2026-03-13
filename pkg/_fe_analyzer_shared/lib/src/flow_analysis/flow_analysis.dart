@@ -239,6 +239,14 @@ abstract class FlowAnalysis<
 
   FlowAnalysisOperations<Variable> get operations;
 
+  /// Call this method before visiting an anonymous block body.
+  ///
+  /// Call [anonymousBlockBody_end] after visiting the statement.
+  void anonymousBlockBody_begin(Node node);
+
+  /// Call this method after visiting an anonymous block body.
+  void anonymousBlockBody_end();
+
   /// Call this method after visiting an "as" expression.
   ///
   /// [subExpressionInfo] should be the expression info for the expression to
@@ -612,21 +620,21 @@ abstract class FlowAnalysis<
 
   /// Call this method when visiting a break statement.
   ///
-  /// [target] should be the statement targeted by the break.
+  /// [target] should be the statement or node targeted by the break.
   ///
   /// To facilitate error recovery, [target] is allowed to be `null`; if this
   /// happens, the break statement is analyzed as though it's an unconditional
   /// branch to nowhere (i.e. similar to a `return` or `throw`).
-  void handleBreak(Statement? target);
+  void handleBreak(Node? target);
 
   /// Call this method when visiting a continue statement.
   ///
-  /// [target] should be the statement targeted by the continue.
+  /// [target] should be the statement or node targeted by the continue.
   ///
   /// To facilitate error recovery, [target] is allowed to be `null`; if this
   /// happens, the continue statement is analyzed as though it's an
   /// unconditional branch to nowhere (i.e. similar to a `return` or `throw`).
-  void handleContinue(Statement? target);
+  void handleContinue(Node? target);
 
   /// Register the fact that the current state definitely exits, e.g. returns
   /// from the body, throws an exception, etc.
@@ -1455,6 +1463,22 @@ class FlowAnalysisDebug<
   FlowAnalysisOperations<Variable> get operations => _wrapped.operations;
 
   @override
+  void anonymousBlockBody_begin(Node node) {
+    return _wrap(
+      'anonymousBlockBody_begin($node)',
+      () => _wrapped.anonymousBlockBody_begin(node),
+    );
+  }
+
+  @override
+  void anonymousBlockBody_end() {
+    return _wrap(
+      'anonymousBlockBody_end()',
+      () => _wrapped.anonymousBlockBody_end(),
+    );
+  }
+
+  @override
   void asExpression_end(
     ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
@@ -1824,12 +1848,12 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void handleBreak(Statement? target) {
+  void handleBreak(Node? target) {
     _wrap('handleBreak($target)', () => _wrapped.handleBreak(target));
   }
 
   @override
-  void handleContinue(Statement? target) {
+  void handleContinue(Node? target) {
     _wrap('handleContinue($target)', () => _wrapped.handleContinue(target));
   }
 
@@ -5078,10 +5102,10 @@ class _FlowAnalysisImpl<
   /// expressions that are currently being visited.
   final List<_FlowContext> _stack = [];
 
-  /// The mapping from [Statement]s that can act as targets for `break` and
-  /// `continue` statements (i.e. loops and switch statements) to the to their
-  /// context information.
-  final Map<Statement, _BranchTargetContext> _statementToContext = {};
+  /// The mapping from [Node]s that can act as targets for `break` and
+  /// `continue` statements (i.e. loops, switch statements, and anonymous block
+  /// bodies) to the to their context information.
+  final Map<Node, _BranchTargetContext> _nodeToContext = {};
 
   FlowModel _current = new FlowModel(Reachability.initial);
 
@@ -5136,6 +5160,22 @@ class _FlowAnalysisImpl<
 
   @override
   FlowAnalysisTypeOperations get typeOperations => operations;
+
+  @override
+  void anonymousBlockBody_begin(Node node) {
+    _current = _current.split();
+    _BranchTargetContext context = new _BranchTargetContext(
+      _current.reachable.parent!,
+    );
+    _stack.add(context);
+    _nodeToContext[node] = context;
+  }
+
+  @override
+  void anonymousBlockBody_end() {
+    _BranchTargetContext context = _stack.removeLast() as _BranchTargetContext;
+    _current = _join(_current, context._breakModel).unsplit();
+  }
 
   @override
   void asExpression_end(
@@ -5417,7 +5457,7 @@ class _FlowAnalysisImpl<
       info.written,
       info.captured,
     );
-    _statementToContext[doStatement] = context;
+    _nodeToContext[doStatement] = context;
   }
 
   @override
@@ -5531,7 +5571,7 @@ class _FlowAnalysisImpl<
     );
     _stack.add(context);
     if (node != null) {
-      _statementToContext[node] = context;
+      _nodeToContext[node] = context;
     }
     _current = conditionInfo.ifTrue;
   }
@@ -5605,8 +5645,8 @@ class _FlowAnalysisImpl<
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
 
   @override
-  void handleBreak(Statement? target) {
-    _BranchTargetContext? context = _statementToContext[target];
+  void handleBreak(Node? target) {
+    _BranchTargetContext? context = _nodeToContext[target];
     if (context != null) {
       context._breakModel = _join(
         context._breakModel,
@@ -5617,8 +5657,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void handleContinue(Statement? target) {
-    _BranchTargetContext? context = _statementToContext[target];
+  void handleContinue(Node? target) {
+    _BranchTargetContext? context = _nodeToContext[target];
     if (context != null) {
       context._continueModel = _join(
         context._continueModel,
@@ -5849,7 +5889,7 @@ class _FlowAnalysisImpl<
       _current.reachable.parent!,
     );
     _stack.add(context);
-    _statementToContext[node] = context;
+    _nodeToContext[node] = context;
   }
 
   @override
@@ -6542,7 +6582,7 @@ class _FlowAnalysisImpl<
     );
     _stack.add(context);
     if (switchStatement != null) {
-      _statementToContext[switchStatement] = context;
+      _nodeToContext[switchStatement] = context;
     }
   }
 
@@ -6711,7 +6751,7 @@ class _FlowAnalysisImpl<
       conditionInfo.ifFalse,
     );
     _stack.add(context);
-    _statementToContext[whileStatement] = context;
+    _nodeToContext[whileStatement] = context;
     _current = conditionInfo.ifTrue;
   }
 

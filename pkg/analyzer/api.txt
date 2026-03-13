@@ -594,6 +594,7 @@ package:analyzer/dart/ast/ast.dart:
   AnonymousMethodBody (class extends Object implements AstNode, abstract, final, experimental)
   AnonymousMethodInvocation (class extends Object implements Expression, abstract, final, experimental):
     body (getter: AnonymousMethodBody)
+    declaredFragment (getter: LocalFunctionFragment?)
     isCascaded (getter: bool)
     isNullAware (getter: bool)
     operator (getter: Token)

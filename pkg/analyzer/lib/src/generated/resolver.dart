@@ -1888,9 +1888,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant AnonymousBlockBodyImpl node, {
     TypeImpl? imposedType,
   }) {
-    throw UnimplementedError(
-      'The anonymous-method feature is not fully implemented',
-    );
+    var oldBodyContext = _bodyContext;
+    try {
+      _bodyContext = BodyInferenceContext.forAnonymousBlockBody(
+        typeSystem: typeSystem,
+        node: node,
+        imposedType: imposedType,
+      );
+
+      flowAnalysis.flow?.anonymousBlockBody_begin(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      var returnType = _finishFunctionBodyInference();
+      flowAnalysis.flow?.anonymousBlockBody_end();
+      return returnType;
+    } finally {
+      _bodyContext = oldBodyContext;
+    }
   }
 
   @override
@@ -4062,7 +4076,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     bodyContext?.addReturnExpression(expression);
-    flowAnalysis.flow?.handleExit();
+
+    var enclosingBody = node.thisOrAncestorMatching(
+      (n) => n is FunctionBody || n is AnonymousBlockBody,
+    );
+    if (enclosingBody is AnonymousBlockBodyImpl) {
+      // TODO(paulberry): add a `FlowAnalysis.handleReturn` method so that the resolver
+      // doesn't have to pretend that this is a break statement in order to get correct
+      // behavior.
+      flowAnalysis.flow?.handleBreak(enclosingBody);
+    } else {
+      flowAnalysis.flow?.handleExit();
+    }
     inferenceLogWriter?.exitStatement(node);
   }
 
