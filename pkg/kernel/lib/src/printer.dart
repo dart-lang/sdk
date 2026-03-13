@@ -98,7 +98,7 @@ class AstPrinter {
   int _indentationLevel = 0;
   late final Map<LabeledStatement, String> _labelNames = {};
   late final Map<VariableDeclaration, String> _variableDeclarationNames = {};
-  late final Map<Variable, String> _variableNames = {};
+  late final Map<VariableBase, String> _variableNames = {};
 
   AstPrinter(this._strategy);
 
@@ -203,7 +203,7 @@ class AstPrinter {
     return _labelNames[node] ??= 'label${_labelNames.length}';
   }
 
-  String getVariableName(Variable node) {
+  String getVariableName(VariableBase node) {
     switch (node) {
       case NamedParameter(parameterName: var name):
       case PositionalParameter(cosmeticName: var name?):
@@ -513,7 +513,7 @@ class AstPrinter {
   ///
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
-  void writeExpressionVariable(ExpressionVariable node,
+  void writeExpressionVariable(Variable node,
       {bool includeModifiersAndType = true, bool? isLate, DartType? type}) {
     if (includeModifiersAndType) {
       if (node is FunctionParameter && node.isRequired) {

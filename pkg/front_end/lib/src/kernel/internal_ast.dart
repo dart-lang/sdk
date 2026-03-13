@@ -33,7 +33,7 @@ import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 
 typedef SharedMatchContext =
-    shared.MatchContext<TreeNode, Expression, Pattern, ExpressionVariable>;
+    shared.MatchContext<TreeNode, Expression, Pattern, Variable>;
 
 mixin InternalTreeNode implements TreeNode {
   @override
@@ -99,7 +99,7 @@ abstract class InternalStatement extends AuxiliaryStatement {
 }
 
 class ForInStatementWithSynthesizedVariable extends InternalStatement {
-  ExpressionVariable? variable;
+  Variable? variable;
   Expression iterable;
   Expression? syntheticAssignment;
   Statement? expressionEffects;
@@ -924,10 +924,10 @@ class ReturnStatementImpl extends ReturnStatement {
 
 /// Front end specific implementation of [VariableDeclaration].
 class VariableDeclarationImpl extends VariableStatement
-    with InternalExpressionVariableMixin
-    implements InternalExpressionVariable {
+    with InternalVariableMixin
+    implements InternalVariable {
   @override
-  ExpressionVariable get astVariable => this;
+  Variable get astVariable => this;
 
   @override
   final bool forSyntheticToken;
@@ -1019,8 +1019,8 @@ class VariableDeclarationImpl extends VariableStatement
 }
 
 class InternalLocalVariable extends TreeNode
-    with InternalExpressionVariableMixin, DelegatingVariableMixin
-    implements LocalVariable, InternalExpressionVariable {
+    with InternalVariableMixin, DelegatingVariableMixin
+    implements LocalVariable, InternalVariable {
   @override
   LocalVariable astVariable;
 
@@ -1061,8 +1061,8 @@ class InternalLocalVariable extends TreeNode
 }
 
 class InternalPositionalParameter extends TreeNode
-    with InternalExpressionVariableMixin, DelegatingVariableMixin
-    implements PositionalParameter, InternalExpressionVariable {
+    with InternalVariableMixin, DelegatingVariableMixin
+    implements PositionalParameter, InternalVariable {
   @override
   PositionalParameter astVariable;
 
@@ -1161,17 +1161,17 @@ class InternalPositionalParameter extends TreeNode
 
   @override
   // Coverage-ignore(suite): Not run.
-  ExpressionVariable get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(ExpressionVariable value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
 
 class InternalNamedParameter extends TreeNode
-    with InternalExpressionVariableMixin, DelegatingVariableMixin
-    implements NamedParameter, InternalExpressionVariable {
+    with InternalVariableMixin, DelegatingVariableMixin
+    implements NamedParameter, InternalVariable {
   @override
   NamedParameter astVariable;
 
@@ -1280,17 +1280,17 @@ class InternalNamedParameter extends TreeNode
 
   @override
   // Coverage-ignore(suite): Not run.
-  ExpressionVariable get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(ExpressionVariable value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
 
 class InternalCatchVariable extends TreeNode
-    with InternalExpressionVariableMixin, DelegatingVariableMixin
-    implements CatchVariable, InternalExpressionVariable {
+    with InternalVariableMixin, DelegatingVariableMixin
+    implements CatchVariable, InternalVariable {
   @override
   CatchVariable astVariable;
 
@@ -1335,8 +1335,8 @@ class InternalCatchVariable extends TreeNode
 }
 
 class InternalSyntheticVariable extends TreeNode
-    with InternalExpressionVariableMixin, DelegatingVariableMixin
-    implements SyntheticVariable, InternalExpressionVariable {
+    with InternalVariableMixin, DelegatingVariableMixin
+    implements SyntheticVariable, InternalVariable {
   @override
   SyntheticVariable astVariable;
 
@@ -1376,8 +1376,8 @@ class InternalSyntheticVariable extends TreeNode
   }
 }
 
-mixin DelegatingVariableMixin on InternalExpressionVariableMixin
-    implements InternalExpressionVariable {
+mixin DelegatingVariableMixin on InternalVariableMixin
+    implements InternalVariable {
   @override
   String? get cosmeticName => astVariable.cosmeticName;
 
@@ -1718,8 +1718,7 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 }
 
-abstract interface class InternalExpressionVariable
-    implements IExpressionVariable, Annotatable {
+abstract interface class InternalVariable implements IVariable, Annotatable {
   /// This is the output variable that the clients receive.
   ///
   /// Most of the calls to variable properties are delegated to [astVariable],
@@ -1730,15 +1729,15 @@ abstract interface class InternalExpressionVariable
   /// * using [astVariable] as a part of the generated AST,
   /// * checking semantic properties of an AST node, such as [isExtensionThis]
   ///   in `lowering_predicates.dart`.
-  ExpressionVariable get astVariable;
+  Variable get astVariable;
 
   bool get forSyntheticToken;
 
-  /// Determine whether the given [InternalExpressionVariable] had an implicit
+  /// Determine whether the given [InternalVariable] had an implicit
   /// type.
   bool get isImplicitlyTyped;
 
-  /// Determines whether the given [InternalExpressionVariable] represents a
+  /// Determines whether the given [InternalVariable] represents a
   /// local function.
   bool get isLocalFunction;
 
@@ -1785,8 +1784,7 @@ abstract interface class InternalExpressionVariable
   abstract List<Expression> annotations;
 }
 
-mixin InternalExpressionVariableMixin on TreeNode
-    implements InternalExpressionVariable {
+mixin InternalVariableMixin on TreeNode implements InternalVariable {
   @override
   bool get forSyntheticToken;
 
@@ -1815,7 +1813,7 @@ mixin InternalExpressionVariableMixin on TreeNode
   String? lateName;
 
   @override
-  ExpressionVariable get asExpressionVariable => this as ExpressionVariable;
+  Variable get asExpressionVariable => this as Variable;
 }
 
 /// Front end specific implementation of [LoadLibrary].
@@ -2740,7 +2738,7 @@ class ExtensionIncDec extends InternalExpression {
 ///
 class LocalIncDec extends InternalExpression {
   /// The accessed variable.
-  final InternalExpressionVariable variable;
+  final InternalVariable variable;
 
   /// `true` if the inc/dec is a postfix expression, i.e. of the form `a++` as
   /// opposed the prefix expression `++a`.

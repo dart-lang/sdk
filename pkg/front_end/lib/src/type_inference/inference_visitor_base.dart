@@ -148,8 +148,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
-  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
-  get flowAnalysis => _inferrer.flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, Variable> get flowAnalysis =>
+      _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
   /// [isAssignable] and for caching types.
@@ -2311,8 +2311,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
-      InternalExpressionVariable formal =
-          formals[i] as InternalExpressionVariable;
+      InternalVariable formal = formals[i] as InternalVariable;
       if (formal.isImplicitlyTyped) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
@@ -2367,8 +2366,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       VariableDeclaration parameter = positionalParameters[i];
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
-      ExpressionVariable parameterAstVariable =
-          (parameter as InternalExpressionVariable).astVariable;
+      Variable parameterAstVariable =
+          (parameter as InternalVariable).astVariable;
       flowAnalysis.declare(
         parameterAstVariable,
         new SharedTypeView(parameterAstVariable.type),
@@ -2387,8 +2386,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     for (VariableDeclaration parameter in function.namedParameters) {
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
-      ExpressionVariable parameterAstVariable =
-          (parameter as InternalExpressionVariable).astVariable;
+      Variable parameterAstVariable =
+          (parameter as InternalVariable).astVariable;
       flowAnalysis.declare(
         parameterAstVariable,
         new SharedTypeView(parameterAstVariable.type),
@@ -2406,8 +2405,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     for (VariableDeclaration parameter in function.namedParameters) {
-      InternalExpressionVariable formal =
-          parameter as InternalExpressionVariable;
+      InternalVariable formal = parameter as InternalVariable;
       // Required named parameters shouldn't have initializers.
       if (formal.isRequired && formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
@@ -2879,7 +2877,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         functionType: null,
       )..fileOffset = fileOffset;
     } else if (receiver is VariableGet) {
-      ExpressionVariable variable = receiver.expressionVariable;
+      Variable variable = receiver.expressionVariable;
       TreeNode? parent = variable.parent;
       if (parent is FunctionDeclaration) {
         assert(
@@ -4226,7 +4224,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If [node] is provided, it is used as the basis for the resulting
   /// expression, otherwise a new [VariableGet] is created.
   ExpressionInferenceResult inferVariableGet({
-    required InternalExpressionVariable variable,
+    required InternalVariable variable,
     required DartType typeContext,
     required int nameOffset,
     VariableGet? node,
@@ -4352,7 +4350,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// Computes the possible promoted variable type of [variable] and the type
   /// context for the value expression in a local set to [variable].
   (DartType variableType, DartType writeContext)
-  computeVariableSetTypeAndWriteContext(InternalExpressionVariable variable) {
+  computeVariableSetTypeAndWriteContext(InternalVariable variable) {
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     DartType? promotedType = flowAnalysis
         .promotedType(variable.astVariable)
@@ -4366,7 +4364,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If [node] is provided, it is used as the basis for the resulting
   /// expression, otherwise a new [VariableSet] is created.
   ExpressionInferenceResult inferVariableSet({
-    required InternalExpressionVariable variable,
+    required InternalVariable variable,
     required DartType variableType,
     required ExpressionInferenceResult rhsResult,
     required int assignOffset,
@@ -4843,7 +4841,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     if (expression is VariableGet) {
-      ExpressionVariable variable = expression.expressionVariable;
+      Variable variable = expression.expressionVariable;
       if (variable is VariableDeclarationImpl && variable.isLocalFunction) {
         return diag.invalidCastLocalFunction;
       }
@@ -5595,12 +5593,7 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
 }
 
 class _WhyNotPromotedVisitor
-    implements
-        NonPromotionReasonVisitor<
-          List<LocatedMessage>,
-          Node,
-          ExpressionVariable
-        > {
+    implements NonPromotionReasonVisitor<List<LocatedMessage>, Node, Variable> {
   final InferenceVisitorBase inferrer;
 
   Member? propertyReference;
@@ -5609,7 +5602,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<ExpressionVariable> reason,
+    DemoteViaExplicitWrite<Variable> reason,
   ) {
     TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {

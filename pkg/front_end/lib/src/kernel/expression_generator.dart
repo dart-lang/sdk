@@ -433,7 +433,7 @@ abstract class Generator {
 /// If the variable is final or read-only (like a parameter in a catch clause) a
 /// [ReadOnlyAccessGenerator] is created instead.
 class VariableUseGenerator extends Generator {
-  final ExpressionVariable variable;
+  final Variable variable;
 
   VariableUseGenerator(
     ExpressionGeneratorHelper helper,
@@ -523,7 +523,7 @@ class VariableUseGenerator extends Generator {
     _helper.registerVariableRead(variable);
     _helper.registerVariableAssignment(variable);
     return new LocalIncDec(
-      variable: variable as InternalExpressionVariable,
+      variable: variable as InternalVariable,
       forEffect: forEffect,
       isPost: isPost,
       isInc: binaryOperator == plusName,
@@ -629,7 +629,7 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   ForInLateFinalVariableUseGenerator(
     ExpressionGeneratorHelper helper,
     Token token,
-    ExpressionVariable variable,
+    Variable variable,
   ) : super(helper, token, variable);
 
   @override

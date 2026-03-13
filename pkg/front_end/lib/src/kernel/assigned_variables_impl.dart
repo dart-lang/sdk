@@ -6,11 +6,10 @@ import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:kernel/ast.dart';
 
-class AssignedVariablesImpl
-    implements AssignedVariables<TreeNode, ExpressionVariable> {
-  final AssignedVariables<TreeNode, ExpressionVariable> _delegate;
-  final AssignedVariables<TreeNode, ExpressionVariable>? _insideAsserts;
-  final AssignedVariables<TreeNode, ExpressionVariable>? _outsideAsserts;
+class AssignedVariablesImpl implements AssignedVariables<TreeNode, Variable> {
+  final AssignedVariables<TreeNode, Variable> _delegate;
+  final AssignedVariables<TreeNode, Variable>? _insideAsserts;
+  final AssignedVariables<TreeNode, Variable>? _outsideAsserts;
   int _assertDepth = 0;
   final Map<AssignedVariablesNodeInfo, AssignedVariablesNodeInfo>?
   _deferredInsideAssertsByDeferredDelegate;
@@ -21,10 +20,10 @@ class AssignedVariablesImpl
     this._delegate, {
     required bool isClosureContextLoweringEnabled,
   }) : _insideAsserts = isClosureContextLoweringEnabled
-           ? new AssignedVariables<TreeNode, ExpressionVariable>()
+           ? new AssignedVariables<TreeNode, Variable>()
            : null,
        _outsideAsserts = isClosureContextLoweringEnabled
-           ? new AssignedVariables<TreeNode, ExpressionVariable>()
+           ? new AssignedVariables<TreeNode, Variable>()
            : null,
        _deferredInsideAssertsByDeferredDelegate =
            isClosureContextLoweringEnabled
@@ -72,7 +71,7 @@ class AssignedVariablesImpl
   }
 
   @override
-  void declare(ExpressionVariable variable, {bool ignoreDuplicates = false}) {
+  void declare(Variable variable, {bool ignoreDuplicates = false}) {
     _delegate.declare(variable, ignoreDuplicates: ignoreDuplicates);
     _insideAsserts?.declare(variable, ignoreDuplicates: ignoreDuplicates);
     _outsideAsserts?.declare(variable, ignoreDuplicates: ignoreDuplicates);
@@ -153,7 +152,7 @@ class AssignedVariablesImpl
   }
 
   @override
-  PromotionKeyStore<ExpressionVariable> get promotionKeyStore {
+  PromotionKeyStore<Variable> get promotionKeyStore {
     return _delegate.promotionKeyStore;
   }
 
@@ -165,7 +164,7 @@ class AssignedVariablesImpl
   }
 
   @override
-  void read(ExpressionVariable variable) {
+  void read(Variable variable) {
     _delegate.read(variable);
     if (_isInsideAssert) {
       _insideAsserts?.read(variable);
@@ -203,7 +202,7 @@ class AssignedVariablesImpl
   }
 
   @override
-  void write(ExpressionVariable variable) {
+  void write(Variable variable) {
     _delegate.write(variable);
     if (_isInsideAssert) {
       // Coverage-ignore-block(suite): Not run.

@@ -2183,7 +2183,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
   @override
   TreeNode visitVariableGet(VariableGet node, TreeNode? removalSentinel) {
-    final ExpressionVariable variable = node.expressionVariable;
+    final Variable variable = node.expressionVariable;
     if (variable.isConst) {
       variable.initializer = evaluateAndTransformWithContext(
         variable,
@@ -4785,7 +4785,7 @@ class ConstantEvaluator
     //
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
-    final ExpressionVariable variable = node.expressionVariable;
+    final Variable variable = node.expressionVariable;
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
       return env.lookupVariable(variable) ??
           // Coverage-ignore(suite): Not run.
@@ -4822,7 +4822,7 @@ class ConstantEvaluator
   @override
   Constant visitVariableSet(VariableSet node) {
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
-      final ExpressionVariable variable = node.expressionVariable;
+      final Variable variable = node.expressionVariable;
       Constant value = _evaluateSubexpression(node.value);
       if (value is AbortConstant) return value;
       Constant? result = env.updateVariableValue(variable, value);
@@ -6416,15 +6416,14 @@ class EvaluationEnvironment {
       <TypeParameter, DartType>{};
 
   /// The references to values of the parameters/variables in scope.
-  final Map<ExpressionVariable, EvaluationReference> _variables =
-      <ExpressionVariable, EvaluationReference>{};
+  final Map<Variable, EvaluationReference> _variables =
+      <Variable, EvaluationReference>{};
 
   /// The variables that hold unevaluated constants.
   ///
   /// Variables are removed from this set when looked up, leaving only the
   /// unread variables at the end.
-  final Set<ExpressionVariable> _unreadUnevaluatedVariables =
-      new Set<ExpressionVariable>();
+  final Set<Variable> _unreadUnevaluatedVariables = new Set<Variable>();
 
   final EvaluationEnvironment? _parent;
 
@@ -6445,14 +6444,14 @@ class EvaluationEnvironment {
     _typeParameters[parameter] = value;
   }
 
-  void addVariableValue(ExpressionVariable variable, Constant value) {
+  void addVariableValue(Variable variable, Constant value) {
     _variables[variable] = new EvaluationReference(value);
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.add(variable);
     }
   }
 
-  Constant? updateVariableValue(ExpressionVariable variable, Constant value) {
+  Constant? updateVariableValue(Variable variable, Constant value) {
     EvaluationReference? reference = _variables[variable];
     if (reference != null) {
       reference.value = value;
@@ -6461,7 +6460,7 @@ class EvaluationEnvironment {
     return _parent?.updateVariableValue(variable, value);
   }
 
-  Constant? lookupVariable(ExpressionVariable variable) {
+  Constant? lookupVariable(Variable variable) {
     Constant? value = _variables[variable]?.value;
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.remove(variable);
@@ -6476,8 +6475,7 @@ class EvaluationEnvironment {
     if (_unreadUnevaluatedVariables.isEmpty) return const [];
     // Coverage-ignore(suite): Not run.
     return _unreadUnevaluatedVariables.map<UnevaluatedConstant>(
-      (ExpressionVariable variable) =>
-          _variables[variable]!.value as UnevaluatedConstant,
+      (Variable variable) => _variables[variable]!.value as UnevaluatedConstant,
     );
   }
 
@@ -6770,7 +6768,7 @@ class HasUninstantiatedVisitor extends FindTypeVisitor {
   }
 }
 
-bool _isFormalParameter(ExpressionVariable variable) {
+bool _isFormalParameter(Variable variable) {
   final TreeNode? parent = variable.parent;
   if (parent is FunctionNode) {
     return parent.positionalParameters.contains(variable) ||

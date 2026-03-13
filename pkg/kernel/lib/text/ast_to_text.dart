@@ -137,8 +137,8 @@ String componentToString(Component node) {
 }
 
 class NameSystem {
-  final Namer<ExpressionVariable> variables =
-      new NormalNamer<ExpressionVariable>('#t');
+  final Namer<Variable> variables =
+      new NormalNamer<Variable>('#t');
   final Namer<Reference> libraries = new NormalNamer<Reference>('#lib');
   final Namer<TypeParameter> typeParameters =
       new NormalNamer<TypeParameter>('#T');
@@ -151,7 +151,7 @@ class NameSystem {
   final Disambiguator<Reference, CanonicalName> prefixes =
       new Disambiguator<Reference, CanonicalName>();
 
-  String nameVariable(ExpressionVariable node) => variables.getName(node);
+  String nameVariable(Variable node) => variables.getName(node);
   String nameLibrary(Reference node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
   String nameStructuralParameter(StructuralParameter node) =>
@@ -347,11 +347,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  String getVariableName(ExpressionVariable node) {
+  String getVariableName(Variable node) {
     return node.cosmeticName ?? syntheticNames.nameVariable(node);
   }
 
-  String getVariableReference(ExpressionVariable node) {
+  String getVariableReference(Variable node) {
     return getVariableName(node);
   }
 
@@ -1049,7 +1049,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeWord(getTypedefReference(typedefNode));
   }
 
-  void writeVariableReference(ExpressionVariable variable) {
+  void writeVariableReference(Variable variable) {
     final bool highlight = shouldHighlight(variable);
     if (highlight) {
       startHighlight(variable);
@@ -1183,7 +1183,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     endLine(';');
   }
 
-  void writeExpressionVariable(ExpressionVariable node) {
+  void writeExpressionVariable(Variable node) {
     if (node is VariableDeclaration && node is! FunctionParameter) {
       writeVariableDeclaration(node);
     } else {

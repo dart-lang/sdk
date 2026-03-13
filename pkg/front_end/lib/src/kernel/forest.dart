@@ -347,7 +347,7 @@ class Forest {
 
   ForInElement createForInElement(
     int fileOffset,
-    ExpressionVariable variable,
+    Variable variable,
     Expression iterable,
     Expression? synthesizedAssignment,
     Statement? expressionEffects,
@@ -368,7 +368,7 @@ class Forest {
 
   ForInMapEntry createForInMapEntry(
     int fileOffset,
-    ExpressionVariable variable,
+    Variable variable,
     Expression iterable,
     Expression? synthesizedAssignment,
     Statement? expressionEffects,
@@ -952,7 +952,7 @@ class Forest {
 
   AssignedVariablePattern createAssignedVariablePattern(
     int fileOffset,
-    ExpressionVariable variable,
+    Variable variable,
   ) {
     return new AssignedVariablePattern(variable)..fileOffset = fileOffset;
   }

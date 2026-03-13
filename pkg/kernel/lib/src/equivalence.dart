@@ -10014,34 +10014,34 @@ class EquivalenceStrategy {
         node.annotations, other.annotations, visitor.checkNodes, 'annotations');
   }
 
-  bool checkVariable_flags(
-      EquivalenceVisitor visitor, Variable node, Variable other) {
+  bool checkVariableBase_flags(
+      EquivalenceVisitor visitor, VariableBase node, VariableBase other) {
     return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
-  bool checkExpressionVariable_flags(EquivalenceVisitor visitor,
-      ExpressionVariable node, ExpressionVariable other) {
-    return checkVariable_flags(visitor, node, other);
+  bool checkVariable_flags(
+      EquivalenceVisitor visitor, Variable node, Variable other) {
+    return checkVariableBase_flags(visitor, node, other);
   }
 
   bool checkCatchVariable_flags(
       EquivalenceVisitor visitor, CatchVariable node, CatchVariable other) {
-    return checkExpressionVariable_flags(visitor, node, other);
+    return checkVariable_flags(visitor, node, other);
+  }
+
+  bool checkVariableBase_fileOffset(
+      EquivalenceVisitor visitor, VariableBase node, VariableBase other) {
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkVariable_fileOffset(
       EquivalenceVisitor visitor, Variable node, Variable other) {
-    return checkTreeNode_fileOffset(visitor, node, other);
-  }
-
-  bool checkExpressionVariable_fileOffset(EquivalenceVisitor visitor,
-      ExpressionVariable node, ExpressionVariable other) {
-    return checkVariable_fileOffset(visitor, node, other);
+    return checkVariableBase_fileOffset(visitor, node, other);
   }
 
   bool checkCatchVariable_fileOffset(
       EquivalenceVisitor visitor, CatchVariable node, CatchVariable other) {
-    return checkExpressionVariable_fileOffset(visitor, node, other);
+    return checkVariable_fileOffset(visitor, node, other);
   }
 
   bool checkLocalVariable_cosmeticName(
@@ -10069,12 +10069,12 @@ class EquivalenceStrategy {
 
   bool checkLocalVariable_flags(
       EquivalenceVisitor visitor, LocalVariable node, LocalVariable other) {
-    return checkExpressionVariable_flags(visitor, node, other);
+    return checkVariable_flags(visitor, node, other);
   }
 
   bool checkLocalVariable_fileOffset(
       EquivalenceVisitor visitor, LocalVariable node, LocalVariable other) {
-    return checkExpressionVariable_fileOffset(visitor, node, other);
+    return checkVariable_fileOffset(visitor, node, other);
   }
 
   bool checkPositionalParameter_cosmeticName(EquivalenceVisitor visitor,
@@ -10119,7 +10119,7 @@ class EquivalenceStrategy {
 
   bool checkFunctionParameter_flags(EquivalenceVisitor visitor,
       FunctionParameter node, FunctionParameter other) {
-    return checkExpressionVariable_flags(visitor, node, other);
+    return checkVariable_flags(visitor, node, other);
   }
 
   bool checkPositionalParameter_flags(EquivalenceVisitor visitor,
@@ -10129,7 +10129,7 @@ class EquivalenceStrategy {
 
   bool checkFunctionParameter_fileOffset(EquivalenceVisitor visitor,
       FunctionParameter node, FunctionParameter other) {
-    return checkExpressionVariable_fileOffset(visitor, node, other);
+    return checkVariable_fileOffset(visitor, node, other);
   }
 
   bool checkPositionalParameter_fileOffset(EquivalenceVisitor visitor,
@@ -10194,12 +10194,12 @@ class EquivalenceStrategy {
 
   bool checkThisVariable_flags(
       EquivalenceVisitor visitor, ThisVariable node, ThisVariable other) {
-    return checkExpressionVariable_flags(visitor, node, other);
+    return checkVariable_flags(visitor, node, other);
   }
 
   bool checkThisVariable_fileOffset(
       EquivalenceVisitor visitor, ThisVariable node, ThisVariable other) {
-    return checkExpressionVariable_fileOffset(visitor, node, other);
+    return checkVariable_fileOffset(visitor, node, other);
   }
 
   bool checkSyntheticVariable_cosmeticName(EquivalenceVisitor visitor,
@@ -10227,12 +10227,12 @@ class EquivalenceStrategy {
 
   bool checkSyntheticVariable_flags(EquivalenceVisitor visitor,
       SyntheticVariable node, SyntheticVariable other) {
-    return checkExpressionVariable_flags(visitor, node, other);
+    return checkVariable_flags(visitor, node, other);
   }
 
   bool checkSyntheticVariable_fileOffset(EquivalenceVisitor visitor,
       SyntheticVariable node, SyntheticVariable other) {
-    return checkExpressionVariable_fileOffset(visitor, node, other);
+    return checkVariable_fileOffset(visitor, node, other);
   }
 
   bool checkTypeVariable_cosmeticName(
@@ -10255,12 +10255,12 @@ class EquivalenceStrategy {
 
   bool checkTypeVariable_flags(
       EquivalenceVisitor visitor, TypeVariable node, TypeVariable other) {
-    return checkVariable_flags(visitor, node, other);
+    return checkVariableBase_flags(visitor, node, other);
   }
 
   bool checkTypeVariable_fileOffset(
       EquivalenceVisitor visitor, TypeVariable node, TypeVariable other) {
-    return checkVariable_fileOffset(visitor, node, other);
+    return checkVariableBase_fileOffset(visitor, node, other);
   }
 
   bool checkNominalParameter_flags(EquivalenceVisitor visitor,

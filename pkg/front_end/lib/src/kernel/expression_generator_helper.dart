@@ -85,7 +85,7 @@ abstract class ExpressionGeneratorHelper {
 
   LibraryFeatures get libraryFeatures;
 
-  bool isDeclaredInEnclosingCase(ExpressionVariable variable);
+  bool isDeclaredInEnclosingCase(Variable variable);
 
   Generator processLookupResult({
     required LookupResult? lookupResult,
@@ -229,17 +229,17 @@ abstract class ExpressionGeneratorHelper {
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
-  Expression createVariableGet(ExpressionVariable variable, int charOffset);
+  Expression createVariableGet(Variable variable, int charOffset);
 
   /// Registers that [variable] is read from.
   ///
   /// This is needed for type promotion.
-  void registerVariableRead(ExpressionVariable variable);
+  void registerVariableRead(Variable variable);
 
   /// Registers that [variable] is assigned to.
   ///
   /// This is needed for type promotion.
-  void registerVariableAssignment(ExpressionVariable variable);
+  void registerVariableAssignment(Variable variable);
 
   TypeEnvironment get typeEnvironment;
 

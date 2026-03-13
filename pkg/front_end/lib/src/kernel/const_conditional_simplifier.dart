@@ -128,7 +128,7 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   // TODO(fishythefish): Do caches need to be invalidated when the static type
   // context changes?
   /// Cache for local variables in the current method.
-  Map<ExpressionVariable, Constant?> _variableCache = {};
+  Map<Variable, Constant?> _variableCache = {};
   final Map<Field, Constant?> _staticFieldCache = {};
   final Map<FunctionNode, Constant?> _functionCache = {};
   final Map<FunctionNode, Constant?> _localFunctionCache = {};
@@ -168,7 +168,7 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     return _evaluate(expression);
   }
 
-  Constant? _evaluateVariableGet(ExpressionVariable variable) {
+  Constant? _evaluateVariableGet(Variable variable) {
     // A function parameter can be declared final with an initializer, but
     // doesn't necessarily have the initializer's value.
     if (variable.parent is FunctionNode) return null;
@@ -179,8 +179,10 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     return _evaluate(initializer);
   }
 
-  Constant? _lookupVariableGet(ExpressionVariable variable) => _variableCache
-      .putIfAbsent(variable, () => _evaluateVariableGet(variable));
+  Constant? _lookupVariableGet(Variable variable) => _variableCache.putIfAbsent(
+    variable,
+    () => _evaluateVariableGet(variable),
+  );
 
   @override
   Constant visitVariableGet(VariableGet node) =>
@@ -259,7 +261,7 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     //
     // This can occur when calling const extension type constructors since these
     // are lowered into top level functions.
-    Map<ExpressionVariable, Constant?> oldCache = _variableCache;
+    Map<Variable, Constant?> oldCache = _variableCache;
     _variableCache = {};
     Constant result =
         _lookupStaticInvocation(node.target) ??

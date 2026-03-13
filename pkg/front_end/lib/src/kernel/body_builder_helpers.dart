@@ -431,13 +431,13 @@ class Label {
 }
 
 class ForInElements {
-  ExpressionVariable? explicitVariableDeclaration;
-  ExpressionVariable? syntheticVariableDeclaration;
+  Variable? explicitVariableDeclaration;
+  Variable? syntheticVariableDeclaration;
   Expression? syntheticAssignment;
   Expression? expressionProblem;
   Statement? expressionEffects;
 
-  ExpressionVariable get variable =>
+  Variable get variable =>
       (explicitVariableDeclaration ?? syntheticVariableDeclaration)!;
 }
 

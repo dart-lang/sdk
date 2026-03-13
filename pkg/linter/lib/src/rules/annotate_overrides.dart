@@ -10,6 +10,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -32,6 +34,7 @@ class AnnotateOverrides extends AnalysisRule {
     var visitor = _Visitor(this, context);
     registry.addFieldDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -45,7 +48,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null) return;
     if (element.metadata.hasOverride) return;
 
-    var member = element.overriddenMember;
+    var memberElement = element;
+    if (memberElement case FieldFormalParameterElement(:var field?)) {
+      memberElement = field;
+    }
+    var member = memberElement.overriddenMember;
     if (member != null) {
       rule.reportAtToken(target, arguments: [member.name!]);
     }
@@ -69,5 +76,26 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.parent?.parent is ExtensionTypeDeclaration) return;
 
     check(node.declaredFragment?.element, node.name);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (node.isAugmentation) return;
+
+    var parent = node.parent;
+    if (parent is ClassDeclaration || parent is EnumDeclaration) {
+      for (var parameter in node.formalParameters.parameters) {
+        if (parameter.notDefault case SimpleFormalParameter(
+          :var name,
+          keyword: var keywordToken,
+        )) {
+          if (keywordToken case Token(keyword: var keyword?)) {
+            if (keyword == Keyword.FINAL || keyword == Keyword.VAR) {
+              check(parameter.declaredFragment?.element, name ?? keywordToken);
+            }
+          }
+        }
+      }
+    }
   }
 }

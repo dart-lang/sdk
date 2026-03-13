@@ -1482,7 +1482,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genPushContextForVariable(ExpressionVariable variable,
+  void _genPushContextForVariable(Variable variable,
       {int? currentContextLevel}) {
     currentContextLevel ??= locals.currentContextLevel;
     int depth = currentContextLevel - locals.getContextLevelOfVar(variable);
@@ -1496,13 +1496,13 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genPushContextIfCaptured(ExpressionVariable variable) {
+  void _genPushContextIfCaptured(Variable variable) {
     if (locals.isCaptured(variable)) {
       _genPushContextForVariable(variable);
     }
   }
 
-  void _genLoadVar(ExpressionVariable v, {int? currentContextLevel}) {
+  void _genLoadVar(Variable v, {int? currentContextLevel}) {
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v, currentContextLevel: currentContextLevel);
       asm.emitLoadContextVar(
@@ -1520,7 +1520,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   // Stores value into variable.
   // If variable is captured, context should be pushed before value.
-  void _genStoreVar(ExpressionVariable variable) {
+  void _genStoreVar(Variable variable) {
     if (locals.isCaptured(variable)) {
       asm.emitStoreContextVar(locals.getVarContextId(variable),
           locals.getVarIndexInContext(variable));
@@ -2184,7 +2184,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   void _declareLocalVariable(
-      ExpressionVariable variable, int initializedPosition) {
+      Variable variable, int initializedPosition) {
     bool isCaptured = locals.isCaptured(variable);
     asm.localVariableTable.declareVariable(
         asm.offset,
