@@ -401,10 +401,10 @@ enum DiagnosticParameterType {
 
   const DiagnosticParameterType({
     required this.messagesYamlName,
-    String? analyzerName,
+    this._analyzerName,
     this.cfeName,
     this.cfeConversion,
-  }) : _analyzerName = analyzerName;
+  });
 
   /// Decodes a type name from `messages.yaml` into a [DiagnosticParameterType].
   factory DiagnosticParameterType.fromMessagesYamlName(String name) =>
