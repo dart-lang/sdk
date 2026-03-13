@@ -1,4 +1,4 @@
-Want to contribute? Great! First, read this page (including the small print at the end).
+Want to contribute? Great! First, read this page (including [the small print](#the-small-print) and [AI contribution guidelines](#ai-contribution-guidelines)  at the end).
 
 ## Ways you can contribute
 
@@ -139,6 +139,81 @@ All files in the Dart project must start with the following header. If you add a
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 ```
+
+## AI contribution guidelines
+
+PRs prepared using AI tools must follow these requirements:
+
+1. You must review all AI-generated code before uploading it for review, and before requesting
+   re-review of any updates to the uploaded change.
+   * You are responsible for ensuring that code you submit meets coding standards.
+   * Unmodified AI output generally does _not_ meet those standards.
+2. You must ensure that uploaded code compiles and passes at least the tests you have yourself
+   added as part of the change.
+3. You must understand and be able to discuss the code you are uploading for review.
+   * Non-trivial changes require discussion and iteration during review. If you do not understand the
+     code, you cannot meaningfully respond to review feedback.
+   * In our experience, simply feeding review feedback into an AI agent and uncritically reposting
+     its output will not lead to a constructive review.
+4. You must verify the accuracy of any AI-generated text you include in the change description or
+   review discussion comments.
+   * If an AI provides you incorrect information, it is just hallucinating; if you choose to paste
+     that text into GitHub, you are misrepresenting your change to your reviewer.
+   * In particular, do not tell a reviewer that you have addressed their feedback just because
+     AI output says so. It is your responsibility to make sure that review feedback has actually
+     been addressed.
+
+### Reviewer guidelines
+
+Because the Dart team’s time is limited, and the capacity for people outside the team to generate
+plausible-looking code is unlimited, be mindful as a reviewer about what code you choose to review.
+Consider immediately closing changes that have any of the following red flags:
+
+* The change description has entirely replaced our template with AI-generated output.
+  * If the contributor did not follow our process from the outset, they are unlikely to
+    understand what is expected of them during review.
+* The change description does not match the changes.
+  * If the contributor did not review both the changes and the description enough to notice this,
+    they have not followed the AI contribution policy.
+* The change contains irrelevant AI-generated files, such as agent planning .md files.
+  * If the contributor did not review the changes enough to notice and remove these files, they
+    have not followed the AI contribution policy.
+
+As always when closing a change, explain why and provide next steps.
+
+As a guiding principle, if at any point in the process you feel that you are getting unfiltered
+or minimally filtered AI output as code and/or comment responses, ask yourself:
+
+* If this change weren’t here, would I choose to spend my time fixing this issue?
+* Would I choose to fix it using an AI agent that took hours or days to respond to every prompt?
+
+Unless the answer to both questions is yes, the review is not a good use of your time.
+
+This applies even if you are multiple rounds into the review: if the contributor closed the change,
+would you take it over using an extremely high-latency agent? Beware the sunk cost fallacy.
+
+### Philosophy
+
+A common question in discussions around AI policies for open source projects is: “Why have an
+AI policy at all? Why does it matter how the code was created; shouldn’t the code speak for itself?”
+
+In general, we agree, which is why our policy focuses on behaviors rather than tools. The behaviors
+that led to the creation of this policy are problematic regardless of whether they are AI-generated
+or human-generated. However, it is useful to highlight these policies in the context of AI because
+we have seen that these behaviors are orders of magnitude more common when AI is involved. For example:
+
+* Submitting a change containing hundreds of lines of code that the contributor doesn't understand is
+  always a problem. This was rare before the widespread use of AI agents, but is more common with
+  AI-assisted development.
+* Having several rounds of exchanges where a reviewer asks for a change, and the contributor says
+  that they have made that change but haven't, is always a waste of reviewer time. It’s very rare
+  for a contributor to deliberately and obviously lie to a reviewer, but unfortunately common
+  for contributors to uncritically repeat AI agent hallucinations.
+* Changes that ignore our process have always been problematic, because standardizing the change process
+  is an important part of how we keep our review load manageable. However, a contributor who has
+  spent hours or days on a change is much more likely to take some time to learn and follow our process
+  to avoid having that effort be wasted than someone who spent a few minutes generating the change.
+
 
 ## The small print
 
