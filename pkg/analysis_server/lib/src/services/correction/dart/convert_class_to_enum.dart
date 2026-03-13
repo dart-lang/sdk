@@ -181,11 +181,10 @@ class _EnumDescription {
 
   _EnumDescription({
     required this.classDeclaration,
-    required Map<_Constructor, _Parameter>? constructorMap,
+    required this._constructorMap,
     required this.fieldsToConvert,
-    required _Field? indexField,
-  }) : _indexField = indexField,
-       _constructorMap = constructorMap;
+    required this._indexField,
+  });
 
   /// Return the offset immediately following the opening brace for the class
   /// body.

@@ -69,9 +69,9 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
 
   CreateMethodOrFunction._({
     required super.context,
-    Element? targetElement,
+    this._targetElement,
     required this.fixKind,
-  }) : _targetElement = targetElement;
+  });
 
   @override
   CorrectionApplicability get applicability =>

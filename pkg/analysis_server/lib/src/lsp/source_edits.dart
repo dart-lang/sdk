@@ -296,16 +296,13 @@ class _MinimalEditComputer {
 
   _MinimalEditComputer({
     required ParsedUnitResult result,
-    required LineInfo lineInfo,
+    required this._lineInfo,
     required String unformatted,
     required String formatted,
-    required int? rangeStart,
-    required int? rangeEnd,
-  }) : _lineInfo = lineInfo,
-       _unformatted = unformatted,
+    required this._rangeStart,
+    required this._rangeEnd,
+  }) : _unformatted = unformatted,
        _formatted = formatted,
-       _rangeStart = rangeStart,
-       _rangeEnd = rangeEnd,
        _parsedUnformatted = _parse(unformatted, result.unit.featureSet),
        _parsedFormatted = _parse(formatted, result.unit.featureSet);
 

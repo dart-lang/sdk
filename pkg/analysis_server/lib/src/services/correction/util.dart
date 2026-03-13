@@ -393,8 +393,7 @@ class ReturnTypeComputer extends RecursiveAstVisitor<void> {
 
   DartType? returnType;
 
-  ReturnTypeComputer(this._typeSystem, {bool isGenerator = false})
-    : _isGenerator = isGenerator;
+  ReturnTypeComputer(this._typeSystem, {this._isGenerator = false});
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}

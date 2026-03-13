@@ -35,8 +35,7 @@ class RefactoringProcessor {
 
   final Stopwatch _timer = Stopwatch();
 
-  RefactoringProcessor(this.context, {RefactoringPerformance? performance})
-    : _performance = performance;
+  RefactoringProcessor(this.context, {this._performance});
 
   /// Return a list containing one code action for each of the refactorings that
   /// are available in the current context.

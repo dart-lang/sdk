@@ -49,12 +49,10 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
 
   ReplaceFinalWithVar._({
     required super.context,
-    required Token? finalKeyword,
-    required bool removeFinal,
-    required bool canBeBulkApplied,
-  }) : _finalKeyword = finalKeyword,
-       _removeFinal = removeFinal,
-       _canBeBulkApplied = canBeBulkApplied;
+    required this._finalKeyword,
+    required this._removeFinal,
+    required this._canBeBulkApplied,
+  });
 
   @override
   CorrectionApplicability get applicability =>
