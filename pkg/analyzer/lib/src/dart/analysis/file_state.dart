@@ -942,42 +942,21 @@ class FileState {
       } else if (directive is LibraryDirective) {
         libraryDirective = UnlinkedLibraryDirective(
           docImports: buildDocImports(directive),
-          name: useDottedNameInLibraryDirective
-              ? directive.name2?.tokens.map((e) => e.lexeme).join()
-              : directive.name?.name,
+          name: directive.name?.name,
         );
       } else if (directive is PartDirective) {
         var unlinked = _serializePart(directive);
         parts.add(unlinked);
       } else if (directive is PartOfDirective) {
-        ({String name, int offset, int length})? nameInfo;
-        if (useDottedNameInLibraryDirective) {
-          var libraryName2 = directive.libraryName2;
-          if (libraryName2 != null) {
-            nameInfo = (
-              name: libraryName2.tokens.map((e) => e.lexeme).join(),
-              offset: libraryName2.offset,
-              length: libraryName2.length,
-            );
-          }
-        } else {
-          var libraryName = directive.libraryName;
-          if (libraryName != null) {
-            nameInfo = (
-              name: libraryName.name,
-              offset: libraryName.offset,
-              length: libraryName.length,
-            );
-          }
-        }
+        var libraryName = directive.libraryName;
         var uri = directive.uri;
-        if (nameInfo != null) {
+        if (libraryName != null) {
           partOfNameDirective ??= UnlinkedPartOfNameDirective(
             docImports: buildDocImports(directive),
-            name: nameInfo.name,
+            name: libraryName.name,
             nameRange: UnlinkedSourceRange(
-              offset: nameInfo.offset,
-              length: nameInfo.length,
+              offset: libraryName.offset,
+              length: libraryName.length,
             ),
           );
         } else if (uri != null) {
@@ -1095,11 +1074,11 @@ class FileState {
     List<Configuration> configurations,
   ) {
     return configurations.map((configuration) {
+      var name = configuration.name.components.join('.');
+      var value = configuration.value?.stringValue ?? '';
       return UnlinkedNamespaceDirectiveConfiguration(
-        name: useDottedNameInLibraryDirective
-            ? configuration.name.tokens.map((e) => e.lexeme).join()
-            : configuration.name.components.join('.'),
-        value: configuration.value?.stringValue ?? '',
+        name: name,
+        value: value,
         uri: configuration.uri.stringValue,
       );
     }).toFixedList();

@@ -55,23 +55,6 @@ part 'ast.g.dart';
 /// Marker for declarations that are code generated.
 const generated = _Generated();
 
-/// Controls which AST API represents dotted library names during migration.
-///
-/// Set to `false` (legacy mode) to use:
-/// - [LibraryDirective.name]
-/// - [PartOfDirective.libraryName]
-/// - [DottedName.components]
-///
-/// Set to `true` (new mode) to use:
-/// - [LibraryDirective.name2]
-/// - [PartOfDirective.libraryName2]
-/// - [DottedName.tokens]
-///
-/// Inactive getters throw a [StateError]. This flag should be configured once
-/// and then left unchanged while AST nodes are being read or visited.
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-bool useDottedNameInLibraryDirective = false;
-
 /// The type alias that allows using nullable type as type literals.
 typedef _TypeLiteral<X> = X;
 
@@ -8309,106 +8292,41 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 abstract final class DottedName implements AstNode {
   /// The components of the identifier.
   NodeList<SimpleIdentifier> get components;
-
-  /// The tokens comprising the identifier (including periods).
-  List<Token> get tokens;
 }
 
-@GenerateNodeImpl(
-  childEntitiesOrder: [
-    GenerateNodeProperty(
-      'components',
-      flagFalse: 'useDottedNameInLibraryDirective',
-      flagFalseOther: 'tokens',
-    ),
-    GenerateNodeProperty(
-      'tokens',
-      flagTrue: 'useDottedNameInLibraryDirective',
-      flagTrueOther: 'components',
-    ),
-  ],
-)
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('components')])
 final class DottedNameImpl extends AstNodeImpl implements DottedName {
   @generated
-  final NodeListImpl<SimpleIdentifierImpl> _components = NodeListImpl._();
+  @override
+  final NodeListImpl<SimpleIdentifierImpl> components = NodeListImpl._();
 
   @generated
-  final List<Token> _tokens;
-
-  @generated
-  DottedNameImpl({
-    required List<SimpleIdentifierImpl> components,
-    required List<Token> tokens,
-  }) : _tokens = tokens {
-    _components._initialize(this, components);
+  DottedNameImpl({required List<SimpleIdentifierImpl> components}) {
+    this.components._initialize(this, components);
   }
 
   @generated
   @override
   Token get beginToken {
-    if (!useDottedNameInLibraryDirective) {
-      if (components.beginToken case var result?) {
-        return result;
-      }
-    }
-    if (useDottedNameInLibraryDirective) {
-      if (tokens.firstOrNull case var result?) {
-        return result;
-      }
+    if (components.beginToken case var result?) {
+      return result;
     }
     throw StateError('Expected at least one non-null');
-  }
-
-  @generated
-  @override
-  NodeListImpl<SimpleIdentifierImpl> get components {
-    if (useDottedNameInLibraryDirective) {
-      throw StateError(
-        'When useDottedNameInLibraryDirective is true, use tokens',
-      );
-    }
-    return _components;
   }
 
   @generated
   @override
   Token get endToken {
-    if (useDottedNameInLibraryDirective) {
-      if (tokens.lastOrNull case var result?) {
-        return result;
-      }
-    }
-    if (!useDottedNameInLibraryDirective) {
-      if (components.endToken case var result?) {
-        return result;
-      }
+    if (components.endToken case var result?) {
+      return result;
     }
     throw StateError('Expected at least one non-null');
   }
 
   @generated
   @override
-  List<Token> get tokens {
-    if (!useDottedNameInLibraryDirective) {
-      throw StateError(
-        'When useDottedNameInLibraryDirective is false, use components',
-      );
-    }
-    return _tokens;
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    var result = ChildEntities();
-    if (!useDottedNameInLibraryDirective) {
-      result.addNodeList('components', components);
-    }
-    if (useDottedNameInLibraryDirective) {
-      result.addTokenList('tokens', tokens);
-    }
-    return result;
-  }
+  ChildEntities get _childEntities =>
+      ChildEntities()..addNodeList('components', components);
 
   @generated
   @override
@@ -8424,10 +8342,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    if (!useDottedNameInLibraryDirective) {
-      components.accept(visitor);
-    }
-    if (useDottedNameInLibraryDirective) {}
+    components.accept(visitor);
   }
 
   /// Visits the children of this node.
@@ -8440,26 +8355,20 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
     AstVisitor visitor, {
     void Function(NodeListImpl<SimpleIdentifierImpl>)? visitComponents,
   }) {
-    if (!useDottedNameInLibraryDirective) {
-      if (visitComponents != null) {
-        visitComponents(components);
-      } else {
-        components.accept(visitor);
-      }
+    if (visitComponents != null) {
+      visitComponents(components);
+    } else {
+      components.accept(visitor);
     }
-    if (useDottedNameInLibraryDirective) {}
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (!useDottedNameInLibraryDirective) {
-      if (components._elementContainingRange(rangeOffset, rangeEnd)
-          case var result?) {
-        return result;
-      }
+    if (components._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
     }
-    if (useDottedNameInLibraryDirective) {}
     return null;
   }
 }
@@ -14663,26 +14572,6 @@ class GenerateNodeProperty {
   /// Whether the child is in a ValueExpression slot.
   final bool isInValueExpressionSlot;
 
-  /// The name of the flag that guards this property.
-  ///
-  /// This is used for gradual migration of the AST structure.
-  /// If the flag is `true`, this property can be read and written.
-  /// If the flag is `false`, access will throw [StateError].
-  final String? flagTrue;
-
-  /// The name of the property to suggest when [flagTrue] is not satisfied.
-  final String? flagTrueOther;
-
-  /// The name of the flag that guards this property.
-  ///
-  /// This is used for gradual migration of the AST structure.
-  /// If the flag is `false`, this property can be read and written.
-  /// If the flag is `true`, access will throw [StateError].
-  final String? flagFalse;
-
-  /// The name of the property to suggest when [flagFalse] is not satisfied.
-  final String? flagFalseOther;
-
   const GenerateNodeProperty(
     this.name, {
     this.isSuper = false,
@@ -14693,10 +14582,6 @@ class GenerateNodeProperty {
     this.tokenGroupId,
     this.type,
     this.isInValueExpressionSlot = false,
-    this.flagTrue,
-    this.flagTrueOther,
-    this.flagFalse,
-    this.flagFalseOther,
   });
 }
 
@@ -17950,9 +17835,6 @@ abstract final class LibraryDirective implements Directive {
   /// The name of the library being defined.
   LibraryIdentifier? get name;
 
-  /// The name of the library being defined.
-  DottedName? get name2;
-
   /// The semicolon terminating the directive.
   Token get semicolon;
 }
@@ -17960,8 +17842,7 @@ abstract final class LibraryDirective implements Directive {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('libraryKeyword'),
-    GenerateNodeProperty('name', flagFalse: 'useDottedNameInLibraryDirective'),
-    GenerateNodeProperty('name2', flagTrue: 'useDottedNameInLibraryDirective'),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -17973,9 +17854,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 
   @generated
   LibraryIdentifierImpl? _name;
-
-  @generated
-  DottedNameImpl? _name2;
 
   @generated
   @override
@@ -17990,12 +17868,9 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     required super.metadata,
     required this.libraryKeyword,
     required LibraryIdentifierImpl? name,
-    required DottedNameImpl? name2,
     required this.semicolon,
-  }) : _name = name,
-       _name2 = name2 {
+  }) : _name = name {
     _becomeParentOf(name);
-    _becomeParentOf(name2);
   }
 
   @generated
@@ -18012,60 +17887,19 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
-  LibraryIdentifierImpl? get name {
-    if (useDottedNameInLibraryDirective) {
-      throw StateError(
-        'When useDottedNameInLibraryDirective is true, name cannot be used',
-      );
-    }
-    return _name;
-  }
+  LibraryIdentifierImpl? get name => _name;
 
   @generated
   set name(LibraryIdentifierImpl? name) {
-    if (useDottedNameInLibraryDirective) {
-      throw StateError(
-        'When useDottedNameInLibraryDirective is true, name cannot be used',
-      );
-    }
     _name = _becomeParentOf(name);
   }
 
   @generated
   @override
-  DottedNameImpl? get name2 {
-    if (!useDottedNameInLibraryDirective) {
-      throw StateError(
-        'When useDottedNameInLibraryDirective is false, name2 cannot be used',
-      );
-    }
-    return _name2;
-  }
-
-  @generated
-  set name2(DottedNameImpl? name2) {
-    if (!useDottedNameInLibraryDirective) {
-      throw StateError(
-        'When useDottedNameInLibraryDirective is false, name2 cannot be used',
-      );
-    }
-    _name2 = _becomeParentOf(name2);
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    var result = super._childEntities;
-    result.addToken('libraryKeyword', libraryKeyword);
-    if (!useDottedNameInLibraryDirective) {
-      result.addNode('name', name);
-    }
-    if (useDottedNameInLibraryDirective) {
-      result.addNode('name2', name2);
-    }
-    result.addToken('semicolon', semicolon);
-    return result;
-  }
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('libraryKeyword', libraryKeyword)
+    ..addNode('name', name)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -18082,12 +17916,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    if (!useDottedNameInLibraryDirective) {
-      name?.accept(visitor);
-    }
-    if (useDottedNameInLibraryDirective) {
-      name2?.accept(visitor);
-    }
+    name?.accept(visitor);
   }
 
   /// Visits the children of this node.
@@ -18099,25 +17928,13 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   void visitChildrenWithHooks(
     AstVisitor visitor, {
     void Function(LibraryIdentifierImpl)? visitName,
-    void Function(DottedNameImpl)? visitName2,
   }) {
     super.visitChildren(visitor);
-    if (!useDottedNameInLibraryDirective) {
-      if (name case var name?) {
-        if (visitName != null) {
-          visitName(name);
-        } else {
-          name.accept(visitor);
-        }
-      }
-    }
-    if (useDottedNameInLibraryDirective) {
-      if (name2 case var name2?) {
-        if (visitName2 != null) {
-          visitName2(name2);
-        } else {
-          name2.accept(visitor);
-        }
+    if (name case var name?) {
+      if (visitName != null) {
+        visitName(name);
+      } else {
+        name.accept(visitor);
       }
     }
   }
@@ -18128,18 +17945,9 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (!useDottedNameInLibraryDirective) {
-      if (name case var name?) {
-        if (name._containsOffset(rangeOffset, rangeEnd)) {
-          return name;
-        }
-      }
-    }
-    if (useDottedNameInLibraryDirective) {
-      if (name2 case var name2?) {
-        if (name2._containsOffset(rangeOffset, rangeEnd)) {
-          return name2;
-        }
+    if (name case var name?) {
+      if (name._containsOffset(rangeOffset, rangeEnd)) {
+        return name;
       }
     }
     return null;
@@ -22506,11 +22314,6 @@ abstract final class PartOfDirective implements Directive {
   /// provided).
   LibraryIdentifier? get libraryName;
 
-  /// The name of the library that the containing compilation unit is part of,
-  /// or `null` if no name was given (typically because a library URI was
-  /// provided).
-  DottedName? get libraryName2;
-
   /// The token representing the `of` keyword.
   Token get ofKeyword;
 
@@ -22530,16 +22333,7 @@ abstract final class PartOfDirective implements Directive {
     GenerateNodeProperty('partKeyword'),
     GenerateNodeProperty('ofKeyword'),
     GenerateNodeProperty('uri'),
-    GenerateNodeProperty(
-      'libraryName',
-      flagFalse: 'useDottedNameInLibraryDirective',
-      flagFalseOther: 'libraryName2',
-    ),
-    GenerateNodeProperty(
-      'libraryName2',
-      flagTrue: 'useDottedNameInLibraryDirective',
-      flagTrueOther: 'libraryName',
-    ),
+    GenerateNodeProperty('libraryName'),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -22560,13 +22354,8 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   LibraryIdentifierImpl? _libraryName;
 
   @generated
-  DottedNameImpl? _libraryName2;
-
-  @generated
   @override
   final Token semicolon;
-
-  LibraryElementImpl? element;
 
   @generated
   PartOfDirectiveImpl({
@@ -22576,14 +22365,11 @@ final class PartOfDirectiveImpl extends DirectiveImpl
     required this.ofKeyword,
     required StringLiteralImpl? uri,
     required LibraryIdentifierImpl? libraryName,
-    required DottedNameImpl? libraryName2,
     required this.semicolon,
   }) : _uri = uri,
-       _libraryName = libraryName,
-       _libraryName2 = libraryName2 {
+       _libraryName = libraryName {
     _becomeParentOf(uri);
     _becomeParentOf(libraryName);
-    _becomeParentOf(libraryName2);
   }
 
   @generated
@@ -22600,44 +22386,11 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
-  LibraryIdentifierImpl? get libraryName {
-    if (useDottedNameInLibraryDirective) {
-      throw StateError(
-        'When useDottedNameInLibraryDirective is true, use libraryName2',
-      );
-    }
-    return _libraryName;
-  }
+  LibraryIdentifierImpl? get libraryName => _libraryName;
 
   @generated
   set libraryName(LibraryIdentifierImpl? libraryName) {
-    if (useDottedNameInLibraryDirective) {
-      throw StateError(
-        'When useDottedNameInLibraryDirective is true, use libraryName2',
-      );
-    }
     _libraryName = _becomeParentOf(libraryName);
-  }
-
-  @generated
-  @override
-  DottedNameImpl? get libraryName2 {
-    if (!useDottedNameInLibraryDirective) {
-      throw StateError(
-        'When useDottedNameInLibraryDirective is false, use libraryName',
-      );
-    }
-    return _libraryName2;
-  }
-
-  @generated
-  set libraryName2(DottedNameImpl? libraryName2) {
-    if (!useDottedNameInLibraryDirective) {
-      throw StateError(
-        'When useDottedNameInLibraryDirective is false, use libraryName',
-      );
-    }
-    _libraryName2 = _becomeParentOf(libraryName2);
   }
 
   @generated
@@ -22651,20 +22404,12 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
-  ChildEntities get _childEntities {
-    var result = super._childEntities;
-    result.addToken('partKeyword', partKeyword);
-    result.addToken('ofKeyword', ofKeyword);
-    result.addNode('uri', uri);
-    if (!useDottedNameInLibraryDirective) {
-      result.addNode('libraryName', libraryName);
-    }
-    if (useDottedNameInLibraryDirective) {
-      result.addNode('libraryName2', libraryName2);
-    }
-    result.addToken('semicolon', semicolon);
-    return result;
-  }
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('partKeyword', partKeyword)
+    ..addToken('ofKeyword', ofKeyword)
+    ..addNode('uri', uri)
+    ..addNode('libraryName', libraryName)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -22682,12 +22427,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     uri?.accept(visitor);
-    if (!useDottedNameInLibraryDirective) {
-      libraryName?.accept(visitor);
-    }
-    if (useDottedNameInLibraryDirective) {
-      libraryName2?.accept(visitor);
-    }
+    libraryName?.accept(visitor);
   }
 
   /// Visits the children of this node.
@@ -22700,7 +22440,6 @@ final class PartOfDirectiveImpl extends DirectiveImpl
     AstVisitor visitor, {
     void Function(StringLiteralImpl)? visitUri,
     void Function(LibraryIdentifierImpl)? visitLibraryName,
-    void Function(DottedNameImpl)? visitLibraryName2,
   }) {
     super.visitChildren(visitor);
     if (uri case var uri?) {
@@ -22710,22 +22449,11 @@ final class PartOfDirectiveImpl extends DirectiveImpl
         uri.accept(visitor);
       }
     }
-    if (!useDottedNameInLibraryDirective) {
-      if (libraryName case var libraryName?) {
-        if (visitLibraryName != null) {
-          visitLibraryName(libraryName);
-        } else {
-          libraryName.accept(visitor);
-        }
-      }
-    }
-    if (useDottedNameInLibraryDirective) {
-      if (libraryName2 case var libraryName2?) {
-        if (visitLibraryName2 != null) {
-          visitLibraryName2(libraryName2);
-        } else {
-          libraryName2.accept(visitor);
-        }
+    if (libraryName case var libraryName?) {
+      if (visitLibraryName != null) {
+        visitLibraryName(libraryName);
+      } else {
+        libraryName.accept(visitor);
       }
     }
   }
@@ -22741,18 +22469,9 @@ final class PartOfDirectiveImpl extends DirectiveImpl
         return uri;
       }
     }
-    if (!useDottedNameInLibraryDirective) {
-      if (libraryName case var libraryName?) {
-        if (libraryName._containsOffset(rangeOffset, rangeEnd)) {
-          return libraryName;
-        }
-      }
-    }
-    if (useDottedNameInLibraryDirective) {
-      if (libraryName2 case var libraryName2?) {
-        if (libraryName2._containsOffset(rangeOffset, rangeEnd)) {
-          return libraryName2;
-        }
+    if (libraryName case var libraryName?) {
+      if (libraryName._containsOffset(rangeOffset, rangeEnd)) {
+        return libraryName;
       }
     }
     return null;
@@ -28991,10 +28710,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   @generated
   @override
   Token get endToken {
-    if (components.lastOrNull case var result?) {
-      return result;
-    }
-    return poundSign;
+    return components[components.length - 1];
   }
 
   @generated

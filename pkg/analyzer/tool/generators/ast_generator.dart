@@ -106,14 +106,6 @@ class AstNodeImplGenerator {
               .getField('isInValueExpressionSlot')!
               .toBoolValue()!;
 
-          var flagTrue = entity.getField('flagTrue')!.toStringValue();
-          var flagTrueOther = entity.getField('flagTrueOther')!.toStringValue();
-
-          var flagFalse = entity.getField('flagFalse')!.toStringValue();
-          var flagFalseOther = entity
-              .getField('flagFalseOther')!
-              .toStringValue();
-
           if (type == null) {
             var member = inheritanceManager.getMember(
               interfaceElement,
@@ -143,10 +135,6 @@ class AstNodeImplGenerator {
             withOverrideSuperNotNull: superNullAssertOverride,
             type: type,
             typeKind: kind,
-            flagTrue: flagTrue,
-            flagTrueOther: flagTrueOther,
-            flagFalse: flagFalse,
-            flagFalseOther: flagFalseOther,
           );
         })
         .nonNulls
@@ -250,12 +238,6 @@ if (Token.lexicallyFirst($names) case var result?) {
         }
       }
 
-      if (property.flagTrue case var flagTrue?) {
-        buffer.writeln('if ($flagTrue) {');
-      } else if (property.flagFalse case var flagFalse?) {
-        buffer.writeln('if (!$flagFalse) {');
-      }
-
       switch (property.typeKind) {
         case _PropertyTypeKindToken():
           if (property.isNullable) {
@@ -267,15 +249,10 @@ if (Token.lexicallyFirst($names) case var result?) {
           } else {
             buffer.write('return ${property.name};');
             foundNonNullProperty = true;
-            if (property.flagTrue == null && property.flagFalse == null) {
-              break propertiesLoop;
-            }
+            break propertiesLoop;
           }
         case _PropertyTypeKindTokenList():
-          buffer.write('''
-if (${property.name}.firstOrNull case var result?) {
-  return result;
-}''');
+          throw UnimplementedError();
         case _PropertyTypeKindNode():
           if (property.isNullable) {
             buffer.writeln(
@@ -286,9 +263,7 @@ if (${property.name}.firstOrNull case var result?) {
           } else {
             buffer.write('return ${property.name}.beginToken;');
             foundNonNullProperty = true;
-            if (property.flagTrue == null && property.flagFalse == null) {
-              break propertiesLoop;
-            }
+            break propertiesLoop;
           }
         case _PropertyTypeKindNodeList():
           buffer.write('''
@@ -297,10 +272,6 @@ if (${property.name}.beginToken case var result?) {
 }''');
         case _PropertyTypeKindOther():
         // nothing
-      }
-
-      if (property.flagTrue != null || property.flagFalse != null) {
-        buffer.writeln('}');
       }
     }
 
@@ -333,12 +304,6 @@ if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
     }
 
     for (var property in implClass.properties) {
-      if (property.flagTrue case var flagTrue?) {
-        buffer.writeln('if ($flagTrue) {');
-      } else if (property.flagFalse case var flagFalse?) {
-        buffer.writeln('if (!$flagFalse) {');
-      }
-
       switch (property.typeKind) {
         case _PropertyTypeKindToken():
         case _PropertyTypeKindTokenList():
@@ -371,10 +336,6 @@ if ($propertyName.$invocation case var result?) {
         case _PropertyTypeKindOther():
         // nothing
       }
-
-      if (property.flagTrue != null || property.flagFalse != null) {
-        buffer.writeln('}');
-      }
     }
 
     buffer.write('''
@@ -385,49 +346,6 @@ if ($propertyName.$invocation case var result?) {
 
   void _generateChildEntities(_ImplClass implClass, StringBuffer buffer) {
     if (implClass.doNotGenerateLookupNames.contains('_childEntities')) {
-      return;
-    }
-
-    var hasFlags = implClass.properties.any((property) {
-      return property.flagTrue != null || property.flagFalse != null;
-    });
-    if (hasFlags) {
-      buffer.write('''
-\n@generated
-@override
-ChildEntities get _childEntities {
-  var result = ${implClass.isAnnotatedNodeSubclass ? 'super._childEntities' : 'ChildEntities()'};
-''');
-      propertiesLoop:
-      for (var property in implClass.properties) {
-        var propertyName = property.name;
-        String statement;
-        switch (property.typeKind) {
-          case _PropertyTypeKindToken():
-            statement = "result.addToken('$propertyName', $propertyName);";
-          case _PropertyTypeKindTokenList():
-            statement = "result.addTokenList('$propertyName', $propertyName);";
-          case _PropertyTypeKindNode():
-            statement = "result.addNode('$propertyName', $propertyName);";
-          case _PropertyTypeKindNodeList():
-            statement = "result.addNodeList('$propertyName', $propertyName);";
-          case _PropertyTypeKindOther():
-            continue propertiesLoop;
-        }
-
-        if (property.flagTrue case var flagTrue?) {
-          buffer.writeln('  if ($flagTrue) {');
-          buffer.writeln('    $statement');
-          buffer.writeln('  }');
-        } else if (property.flagFalse case var flagFalse?) {
-          buffer.writeln('  if (!$flagFalse) {');
-          buffer.writeln('    $statement');
-          buffer.writeln('  }');
-        } else {
-          buffer.writeln('  $statement');
-        }
-      }
-      buffer.writeln('  return result;\n}');
       return;
     }
 
@@ -489,11 +407,7 @@ required super.metadata,''');
         case _PropertyTypeKindToken():
         case _PropertyTypeKindTokenList():
         case _PropertyTypeKindOther():
-          if (property.flagTrue != null || property.flagFalse != null) {
-            buffer.writeln('required ${property.typeCode} $propertyName,');
-          } else {
-            buffer.writeln('required this.$propertyName,');
-          }
+          buffer.writeln('required this.$propertyName,');
         case _PropertyTypeKindNode():
           var typeCode = property.typeCode;
           buffer.writeln('required $typeCode $propertyName,');
@@ -517,17 +431,8 @@ required super.metadata,''');
           buffer.write(',\n');
         }
         isFirstFieldInitializer = false;
-        buffer.write('_${property.name} = ${property.name}');
-      } else if (property.flagTrue != null || property.flagFalse != null) {
-        if (property.typeKind is! _PropertyTypeKindNodeList) {
-          if (isFirstFieldInitializer) {
-            buffer.write(' : ');
-          } else {
-            buffer.write(',\n');
-          }
-          isFirstFieldInitializer = false;
-          buffer.write('_${property.name} = ${property.name}');
-        }
+        var propertyName = property.name;
+        buffer.write('_$propertyName = $propertyName');
       }
     }
 
@@ -546,11 +451,7 @@ required super.metadata,''');
           buffer.writeln('_becomeParentOf(${property.name});');
         case _PropertyTypeKindNodeList():
           var name = property.name;
-          if (property.flagTrue != null || property.flagFalse != null) {
-            buffer.writeln('_$name._initialize(this, $name);');
-          } else {
-            buffer.writeln('this.$name._initialize(this, $name);');
-          }
+          buffer.writeln('this.$name._initialize(this, $name);');
       }
     }
 
@@ -584,12 +485,6 @@ Token get endToken {
         continue;
       }
 
-      if (property.flagTrue case var flagTrue?) {
-        buffer.writeln('if ($flagTrue) {');
-      } else if (property.flagFalse case var flagFalse?) {
-        buffer.writeln('if (!$flagFalse) {');
-      }
-
       switch (property.typeKind) {
         case _PropertyTypeKindToken():
           if (property.isNullable) {
@@ -599,15 +494,13 @@ Token get endToken {
           } else {
             buffer.write('return $propertyName;');
             foundNonNullProperty = true;
-            if (property.flagTrue == null && property.flagFalse == null) {
-              break propertiesLoop;
-            }
+            break propertiesLoop;
           }
         case _PropertyTypeKindTokenList():
-          buffer.write('''
-if ($propertyName.lastOrNull case var result?) {
-  return result;
-}''');
+          var lastIndexStr = '$propertyName.length - 1';
+          buffer.write('return $propertyName[$lastIndexStr];');
+          foundNonNullProperty = true;
+          break propertiesLoop;
         case _PropertyTypeKindNode():
           if (property.isNullable) {
             buffer.writeln('if ($propertyName case var $propertyName?) {');
@@ -616,9 +509,7 @@ if ($propertyName.lastOrNull case var result?) {
           } else {
             buffer.write('return $propertyName.endToken;');
             foundNonNullProperty = true;
-            if (property.flagTrue == null && property.flagFalse == null) {
-              break propertiesLoop;
-            }
+            break propertiesLoop;
           }
         case _PropertyTypeKindNodeList():
           buffer.write('''
@@ -627,10 +518,6 @@ if ($propertyName.endToken case var result?) {
 }''');
         case _PropertyTypeKindOther():
         // nothing
-      }
-
-      if (property.flagTrue != null || property.flagFalse != null) {
-        buffer.writeln('}');
       }
     }
 
@@ -655,33 +542,19 @@ if ($propertyName.endToken case var result?) {
 
       switch (property.typeKind) {
         case _PropertyTypeKindToken kind:
-          if (property.flagTrue != null || property.flagFalse != null) {
-            buffer.write('''
-\n@generated
-${property.typeCode} _$propertyName;
-''');
-          } else {
-            var maybeOverride = property.withOverride ? '@override' : '';
-            var finalKeyword = kind.isWritable ? '' : 'final ';
-            buffer.write('''
+          var maybeOverride = property.withOverride ? '@override' : '';
+          var finalKeyword = kind.isWritable ? '' : 'final ';
+          buffer.write('''
 \n@generated
 $maybeOverride
 $finalKeyword ${property.typeCode} $propertyName;
 ''');
-          }
         case _PropertyTypeKindTokenList():
-          if (property.flagTrue != null || property.flagFalse != null) {
-            buffer.write('''
-\n@generated
-final ${property.typeCode} _$propertyName;
-''');
-          } else {
-            buffer.write('''
+          buffer.write('''
 \n@generated
 @override
 final ${property.typeCode} $propertyName;
 ''');
-          }
         case _PropertyTypeKindNode():
           var typeCode = property.typeCode;
           buffer.write('''
@@ -690,31 +563,17 @@ $typeCode _$propertyName;
 ''');
         case _PropertyTypeKindNodeList kind:
           var finalKeyword = kind.isWritable ? '' : 'final ';
-          if (property.flagTrue != null || property.flagFalse != null) {
-            buffer.write('''
-\n@generated
-$finalKeyword ${property.typeCode} _$propertyName = NodeListImpl._();
-''');
-          } else {
-            buffer.write('''
+          buffer.write('''
 \n@generated
 @override
 $finalKeyword ${property.typeCode} $propertyName = NodeListImpl._();
 ''');
-          }
         case _PropertyTypeKindOther():
-          if (property.flagTrue != null || property.flagFalse != null) {
-            buffer.write('''
-\n@generated
-final ${property.typeCode} _$propertyName;
-''');
-          } else {
-            buffer.write('''
+          buffer.write('''
 \n@generated
 @override
 final ${property.typeCode} $propertyName;
 ''');
-          }
       }
     }
   }
@@ -824,81 +683,17 @@ ${property.typeCode} get ${property.name} => super.${property.name}!;
       }
       if (property.typeKind is _PropertyTypeKindNode) {
         var maybeOverride = property.withOverride ? '@override' : '';
-        if (property.flagTrue case var flagTrue?) {
-          buffer.write('''
-\n@generated
-$maybeOverride
-${property.typeCode} get $propertyName {
-  if (!$flagTrue) {
-    throw StateError('${property.errorMessageFlagTrue}');
-  }
-  return _$propertyName;
-}
-''');
-        } else if (property.flagFalse case var flagFalse?) {
-          buffer.write('''
-\n@generated
-$maybeOverride
-${property.typeCode} get $propertyName {
-  if ($flagFalse) {
-    throw StateError('${property.errorMessageFlagFalse}');
-  }
-  return _$propertyName;
-}
-''');
-        } else {
-          buffer.write('''
+        buffer.write('''
 \n@generated
 $maybeOverride
 ${property.typeCode} get $propertyName => _$propertyName;
 ''');
-        }
         buffer.write('''
 \n@generated
 set $propertyName(${property.typeCode} $propertyName) {
-''');
-        if (property.flagTrue case var flagTrue?) {
-          buffer.write('''
-  if (!$flagTrue) {
-    throw StateError('${property.errorMessageFlagTrue}');
-  }
-''');
-        } else if (property.flagFalse case var flagFalse?) {
-          buffer.write('''
-  if ($flagFalse) {
-    throw StateError('${property.errorMessageFlagFalse}');
-  }
-''');
-        }
-        buffer.write('''
   _$propertyName = _becomeParentOf($propertyName);
 }
 ''');
-      } else if (property.flagTrue != null || property.flagFalse != null) {
-        var maybeOverride = property.withOverride ? '@override' : '';
-        if (property.flagTrue case var flagTrue?) {
-          buffer.write('''
-\n@generated
-$maybeOverride
-${property.typeCode} get $propertyName {
-  if (!$flagTrue) {
-    throw StateError('${property.errorMessageFlagTrue}');
-  }
-  return _$propertyName;
-}
-''');
-        } else if (property.flagFalse case var flagFalse?) {
-          buffer.write('''
-\n@generated
-$maybeOverride
-${property.typeCode} get $propertyName {
-  if ($flagFalse) {
-    throw StateError('${property.errorMessageFlagFalse}');
-  }
-  return _$propertyName;
-}
-''');
-        }
       }
     }
   }
@@ -950,28 +745,18 @@ void visitChildren(AstVisitor visitor) {''');
     }
 
     for (var property in implClass.properties) {
-      if (property.flagTrue case var flagTrue?) {
-        buffer.writeln('if ($flagTrue) {');
-      } else if (property.flagFalse case var flagFalse?) {
-        buffer.writeln('if (!$flagFalse) {');
-      }
-
       switch (property.typeKind) {
         case _PropertyTypeKindToken():
         case _PropertyTypeKindTokenList():
         case _PropertyTypeKindOther():
-          break; // ignored
+          break; // nothing
         case _PropertyTypeKindNode():
           var propertyName = property.name;
           var maybeQuestion = property.isNullable ? '?' : '';
-          buffer.write('$propertyName$maybeQuestion.accept(visitor);');
+          buffer.write('\n$propertyName$maybeQuestion.accept(visitor);');
         case _PropertyTypeKindNodeList():
           var propertyName = property.name;
-          buffer.write('$propertyName.accept(visitor);');
-      }
-
-      if (property.flagTrue != null || property.flagFalse != null) {
-        buffer.writeln('}');
+          buffer.write('\n$propertyName.accept(visitor);');
       }
     }
 
@@ -1020,12 +805,6 @@ void visitChildrenWithHooks(AstVisitor visitor, {
     }
 
     for (var property in implClass.properties) {
-      if (property.flagTrue case var flagTrue?) {
-        buffer.writeln('if ($flagTrue) {');
-      } else if (property.flagFalse case var flagFalse?) {
-        buffer.writeln('if (!$flagFalse) {');
-      }
-
       var propertyName = property.name;
       var hookName = 'visit${propertyName.capitalize()}';
       switch (property.typeKind) {
@@ -1058,10 +837,6 @@ if ($hookName != null) {
 } else {
   $propertyName.accept(visitor);
 }''');
-      }
-
-      if (property.flagTrue != null || property.flagFalse != null) {
-        buffer.writeln('}');
       }
     }
 
@@ -1205,8 +980,6 @@ class _ImplClass {
       if (property.typeKind is _PropertyTypeKindNode) {
         generatedLookupNames.add('_$propertyName');
         generatedLookupNames.add('$propertyName=');
-      } else if (property.flagTrue != null || property.flagFalse != null) {
-        generatedLookupNames.add('_$propertyName');
       }
     }
     return generatedLookupNames;
@@ -1263,10 +1036,6 @@ class _Property {
   final bool isInValueExpressionSlot;
   final bool withOverride;
   final bool withOverrideSuperNotNull;
-  final String? flagTrue;
-  final String? flagTrueOther;
-  final String? flagFalse;
-  final String? flagFalseOther;
 
   _Property({
     required this.name,
@@ -1276,23 +1045,7 @@ class _Property {
     required this.isInValueExpressionSlot,
     required this.withOverride,
     required this.withOverrideSuperNotNull,
-    required this.flagTrue,
-    required this.flagTrueOther,
-    required this.flagFalse,
-    required this.flagFalseOther,
   });
-
-  String get errorMessageFlagFalse {
-    return flagFalseOther != null
-        ? 'When $flagFalse is true, use $flagFalseOther'
-        : 'When $flagFalse is true, $name cannot be used';
-  }
-
-  String get errorMessageFlagTrue {
-    return flagTrueOther != null
-        ? 'When $flagTrue is false, use $flagTrueOther'
-        : 'When $flagTrue is false, $name cannot be used';
-  }
 
   bool get isNullable {
     return type.nullabilitySuffix == NullabilitySuffix.question;

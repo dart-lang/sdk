@@ -2,45 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LibraryDirectiveResolutionTest_UseDottedName);
-    defineReflectiveTests(LibraryDirectiveResolutionTest_NoUseDottedName);
+    defineReflectiveTests(LibraryDirectiveResolutionTest);
   });
 }
 
-abstract class LibraryDirectiveResolutionTest extends PubPackageResolutionTest {
-  @override
-  Future<void> tearDown() async {
-    useDottedNameInLibraryDirective = false;
-    await super.tearDown();
-  }
-
+@reflectiveTest
+class LibraryDirectiveResolutionTest extends PubPackageResolutionTest {
   test_named() async {
     await assertNoErrorsInCode(r'''
 library foo.bar;
 ''');
 
     var node = findNode.singleLibraryDirective;
-    if (useDottedNameInLibraryDirective) {
-      assertResolvedNodeText(node, r'''
-LibraryDirective
-  libraryKeyword: library
-  name2: DottedName
-    tokens
-      foo
-      .
-      bar
-  semicolon: ;
-  element: <testLibrary>
-''');
-    } else {
-      assertResolvedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
   name: LibraryIdentifier
@@ -58,7 +38,6 @@ LibraryDirective
   semicolon: ;
   element: <testLibrary>
 ''');
-    }
   }
 
   test_unnamed() async {
@@ -73,25 +52,5 @@ LibraryDirective
   semicolon: ;
   element: <testLibrary>
 ''');
-  }
-}
-
-@reflectiveTest
-class LibraryDirectiveResolutionTest_NoUseDottedName
-    extends LibraryDirectiveResolutionTest {
-  @override
-  void setUp() {
-    super.setUp();
-    useDottedNameInLibraryDirective = false;
-  }
-}
-
-@reflectiveTest
-class LibraryDirectiveResolutionTest_UseDottedName
-    extends LibraryDirectiveResolutionTest {
-  @override
-  void setUp() {
-    super.setUp();
-    useDottedNameInLibraryDirective = true;
   }
 }

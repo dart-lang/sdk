@@ -1,10 +1,6 @@
 ## 11.1.0-dev
 
 * Added `InstantiatedTypeAliasElement.nullabilitySuffix`.
-* Add `useDottedNameInLibraryDirective` configuration flag.
-* Add `tokens` to `DottedName`, will replace `components`.
-* Add `name2` to `LibraryDirective`, will replace `name`.
-* Add `libraryName2` to `PartOfDirective`, will replace `libraryName`.
 
 ## 11.0.0
 
