@@ -134,9 +134,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
   Set<StructuralParameter> structuralParametersInScope =
       new Set<StructuralParameter>();
-  Set<ExpressionVariable> variableDeclarationsInScope =
-      new Set<ExpressionVariable>();
-  final List<ExpressionVariable> variableStack = <ExpressionVariable>[];
+  Set<Variable> variableDeclarationsInScope =
+      new Set<Variable>();
+  final List<Variable> variableStack = <Variable>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
   final Set<Constant> seenConstants = <Constant>{};
 
@@ -243,7 +243,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   // TODO(cstefantsova): Remove this method when the new variable model is
   //  supported.
   bool _isNewModelVariable(TreeNode node) {
-    return node is ExpressionVariable && node is! VariableDeclaration ||
+    return node is Variable && node is! VariableDeclaration ||
         node is FunctionParameter;
   }
 
@@ -294,7 +294,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitTreeNode(node);
   }
 
-  void declareVariable(ExpressionVariable variable) {
+  void declareVariable(Variable variable) {
     if (variableDeclarationsInScope.contains(variable)) {
       problem(variable, "Variable '$variable' declared more than once.");
     }
@@ -302,7 +302,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     variableStack.add(variable);
   }
 
-  void undeclareVariable(ExpressionVariable variable) {
+  void undeclareVariable(Variable variable) {
     variableDeclarationsInScope.remove(variable);
   }
 
@@ -350,7 +350,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     structuralParametersInScope.removeAll(parameters);
   }
 
-  void checkVariableInScope(ExpressionVariable variable, TreeNode where) {
+  void checkVariableInScope(Variable variable, TreeNode where) {
     if (!variableDeclarationsInScope.contains(variable)) {
       problem(where, "Variable '$variable' used out of scope.");
     }

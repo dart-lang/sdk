@@ -629,7 +629,7 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
 
-  ExpressionVariable expressionVariable;
+  Variable expressionVariable;
 
   // Has no initializer.
   VariableDeclaration get variable => expressionVariable as VariableDeclaration;
@@ -1441,7 +1441,7 @@ abstract interface class VariableDeclaration
     implements
         Annotatable,
         Statement,
-        ExpressionVariable,
+        Variable,
         VariableInitialization,
         CatchVariable {
   /// The name of the variable as provided in the source code.
@@ -1983,13 +1983,13 @@ class VariableStatement extends Statement implements VariableDeclaration {
   }
 
   @override
-  ExpressionVariable get asExpressionVariable => this;
+  Variable get asExpressionVariable => this;
 
   @override
-  ExpressionVariable get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(ExpressionVariable value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -2104,7 +2104,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 /// an initializer.
 class VariableInitialization extends Statement
     implements Annotatable, ContextConsumer {
-  ExpressionVariable variable;
+  Variable variable;
 
   Expression? initializer;
 
@@ -2311,5 +2311,5 @@ class VariableInitialization extends Statement
 
   VariableContext get context => variable.context;
 
-  ExpressionVariable get asExpressionVariable => variable;
+  Variable get asExpressionVariable => variable;
 }

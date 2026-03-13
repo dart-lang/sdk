@@ -15,7 +15,7 @@ import 'package:kernel/ast.dart'
         NamedParameter,
         NullLiteral,
         PositionalParameter,
-        Variable,
+        VariableBase,
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
@@ -68,7 +68,7 @@ abstract class ParameterBuilder {
 
   int get fileOffset;
 
-  Variable build(SourceLibraryBuilder library);
+  VariableBase build(SourceLibraryBuilder library);
 }
 
 abstract class ParameterVariableBuilder
@@ -492,7 +492,7 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   }
 
   @override
-  Variable build(SourceLibraryBuilder library) {
+  VariableBase build(SourceLibraryBuilder library) {
     throw new UnsupportedError("${this.runtimeType}.build");
   }
 }

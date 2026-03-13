@@ -272,14 +272,15 @@ class ForInLowering {
     final Block body = Block([syncForLoopVariableInitialization, stmt.body])
       ..fileOffset = stmt.bodyOffset;
 
-    final forStatement = ForStatement([], condition, [], body)
-      ..scope = stmt.scope
-      ..fileOffset = stmt.fileOffset;
+    final forStatement =
+        ForStatement([], condition, [], body)
+          ..scope = stmt.scope
+          ..fileOffset = stmt.fileOffset;
 
     return Block([syncForIteratorVariableInitialization, forStatement]);
   }
 
-  (ExpressionVariable, VariableInitialization)
+  (Variable, VariableInitialization)
   _createSyncForIteratorVariableAndInitialization({
     required Expression initializer,
     required DartType type,
@@ -307,7 +308,7 @@ class ForInLowering {
   }
 
   VariableInitialization _ensureSyncForLoopVariableInitialization({
-    required ExpressionVariable variable,
+    required Variable variable,
     required Expression initializer,
   }) {
     if (isClosureContextLoweringEnabled) {

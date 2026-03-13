@@ -189,7 +189,7 @@ class InvalidExpression extends Expression {
 
 class VariableGet extends Expression {
   /// The target variable.
-  ExpressionVariable expressionVariable;
+  Variable expressionVariable;
 
   /// Null if not promoted.
   DartType? promotedType;
@@ -263,7 +263,7 @@ class VariableSet extends Expression {
   VariableDeclaration get variable => expressionVariable as VariableDeclaration;
 
   /// The target variable.
-  ExpressionVariable expressionVariable;
+  Variable expressionVariable;
 
   Expression value;
 
@@ -5307,9 +5307,9 @@ class TypedefTearOff extends Expression {
 /// [VariableRead] nodes are the replacement for the VariableGet nodes.
 ///
 /// Despite of the  name, [VariableRead] can't read [TypeVariable]s,
-/// which are also [Variable]s.
+/// which are also [VariableBase]s.
 class VariableRead extends Expression {
-  final ExpressionVariable variable;
+  final Variable variable;
 
   VariableRead({required this.variable});
 
@@ -5360,9 +5360,9 @@ class VariableRead extends Expression {
 /// [VariableWrite] nodes are the replacement for the VariableSet nodes.
 ///
 /// Despite of the  name, [VariableWrite] can't write into
-/// [TypeVariable]s, which are also [Variable]s.
+/// [TypeVariable]s, which are also [VariableBase]s.
 class VariableWrite extends Expression {
-  final ExpressionVariable variable;
+  final Variable variable;
   final Expression value;
 
   VariableWrite({required this.variable, required this.value});

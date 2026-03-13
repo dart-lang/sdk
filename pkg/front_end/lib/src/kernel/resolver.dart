@@ -837,7 +837,7 @@ class Resolver {
     required LookupScope scope,
     required Token token,
     required Procedure procedure,
-    required List<ExpressionVariable> extraKnownVariables,
+    required List<Variable> extraKnownVariables,
     required ExpressionEvaluationHelper expressionEvaluationHelper,
     required VariableDeclaration? extensionThis,
   }) {
@@ -934,7 +934,7 @@ class Resolver {
         );
       }
     }
-    for (ExpressionVariable extraVariable in extraKnownVariables) {
+    for (Variable extraVariable in extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
         extraVariable,
         new SharedTypeView(extraVariable.type),
@@ -1197,7 +1197,7 @@ class Resolver {
   /// [fileOffset] as the file offset.
   VariableGet _createVariableGet({
     required AssignedVariables assignedVariables,
-    required InternalExpressionVariable variable,
+    required InternalVariable variable,
     required int fileOffset,
   }) {
     if (!variable.isLocalFunction && !variable.isWildcard) {
@@ -1228,7 +1228,7 @@ class Resolver {
         // TODO(62401): Remove the cast when the flow analysis uses
         // [InternalExpressionVariable]s.
         typeInferrer.flowAnalysis.declare(
-          (variable as InternalExpressionVariable).astVariable,
+          (variable as InternalVariable).astVariable,
           new SharedTypeView(variable.type),
           initialized: true,
         );

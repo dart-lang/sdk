@@ -5,7 +5,7 @@
 part of '../../ast.dart';
 
 /// Generalized notion of a variable.
-sealed class Variable extends TreeNode implements Annotatable {
+sealed class VariableBase extends TreeNode implements Annotatable {
   VariableContext get context => parent as VariableContext;
 
   /// The cosmetic name of the variable from the source code, if exists.
@@ -22,10 +22,10 @@ sealed class Variable extends TreeNode implements Annotatable {
 }
 
 /// This is a helper class to enable mixing a mixin into concrete
-/// implementations of the sealed class [ExpressionVariable]. It's not supposed
+/// implementations of the sealed class [Variable]. It's not supposed
 /// to be used as a type annotation, but purely for declaring the class
 /// hierarchy.
-abstract interface class IExpressionVariable implements TreeNode {
+abstract interface class IVariable implements TreeNode {
   abstract DartType type;
   abstract String? cosmeticName;
   abstract VariableInitialization? variableInitialization;
@@ -59,12 +59,11 @@ abstract interface class IExpressionVariable implements TreeNode {
   bool get hasIsWildcard;
   bool get hasIsSuperInitializingFormal;
   bool get hasIsErroneouslyInitialized;
-  ExpressionVariable get asExpressionVariable;
+  Variable get asExpressionVariable;
 }
 
 /// The root of the sealed hierarchy of non-type variables.
-sealed class ExpressionVariable extends Variable
-    implements IExpressionVariable {
+sealed class Variable extends VariableBase implements IVariable {
   /// Static type of the variable.
   @override
   abstract DartType type;
@@ -141,14 +140,14 @@ sealed class ExpressionVariable extends Variable
   bool get isAssignable;
 
   @override
-  ExpressionVariable get asExpressionVariable => this;
+  Variable get asExpressionVariable => this;
 }
 
 /// Local variables. They aren't Statements. A [LocalVariable] is "declared" in
 /// the [VariableContext] it appears in. [VariableInitialization]
 /// (which is a [Statement]) marks the spot of the original variable declaration
 /// in the Dart program.
-class LocalVariable extends ExpressionVariable {
+class LocalVariable extends Variable {
   @override
   String? cosmeticName;
 
@@ -420,7 +419,7 @@ class LocalVariable extends ExpressionVariable {
 ///     } catch (e, s) {
 ///       bar();
 ///     }
-class CatchVariable extends ExpressionVariable {
+class CatchVariable extends Variable {
   final String catchVariableName;
 
   @override
@@ -680,8 +679,7 @@ class CatchVariable extends ExpressionVariable {
 }
 
 /// Abstract parameter class, the parent for positional and named parameters.
-sealed class FunctionParameter extends ExpressionVariable
-    implements VariableDeclaration {
+sealed class FunctionParameter extends Variable implements VariableDeclaration {
   Expression? defaultValue;
 
   FunctionParameter(
@@ -1013,10 +1011,10 @@ class PositionalParameter extends FunctionParameter {
   int fileEqualsOffset = TreeNode.noOffset;
 
   @override
-  ExpressionVariable get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(ExpressionVariable value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
@@ -1162,16 +1160,16 @@ class NamedParameter extends FunctionParameter {
   }
 
   @override
-  ExpressionVariable get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(ExpressionVariable value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
 
 /// The variable storage for `this`.
-class ThisVariable extends ExpressionVariable {
+class ThisVariable extends Variable {
   @override
   String get cosmeticName => "this-variable";
 
@@ -1417,7 +1415,7 @@ class ThisVariable extends ExpressionVariable {
 
 /// A variable introduced during desugaring. Such variables don't correspond to
 /// any variable declared by the programmer.
-class SyntheticVariable extends ExpressionVariable {
+class SyntheticVariable extends Variable {
   @override
   String? cosmeticName;
 
@@ -1671,11 +1669,11 @@ enum CaptureKind {
 /// environments.
 class VariableContext extends TreeNode {
   final CaptureKind captureKind;
-  final List<Variable> variables;
+  final List<VariableBase> variables;
 
   VariableContext({required this.captureKind, required this.variables});
 
-  void addVariable(Variable variable) {
+  void addVariable(VariableBase variable) {
     variable.parent = this;
     variables.add(variable);
   }
