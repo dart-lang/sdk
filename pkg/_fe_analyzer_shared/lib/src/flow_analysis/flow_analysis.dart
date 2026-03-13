@@ -242,7 +242,7 @@ abstract class FlowAnalysis<
   /// Call this method before visiting an anonymous block body.
   ///
   /// Call [anonymousBlockBody_end] after visiting the statement.
-  void anonymousBlockBody_begin(Node node);
+  void anonymousBlockBody_begin();
 
   /// Call this method after visiting an anonymous block body.
   void anonymousBlockBody_end();
@@ -620,27 +620,30 @@ abstract class FlowAnalysis<
 
   /// Call this method when visiting a break statement.
   ///
-  /// [target] should be the statement or node targeted by the break.
+  /// [target] should be the statement targeted by the break.
   ///
   /// To facilitate error recovery, [target] is allowed to be `null`; if this
   /// happens, the break statement is analyzed as though it's an unconditional
   /// branch to nowhere (i.e. similar to a `return` or `throw`).
-  void handleBreak(Node? target);
+  void handleBreak(Statement? target);
 
   /// Call this method when visiting a continue statement.
   ///
-  /// [target] should be the statement or node targeted by the continue.
+  /// [target] should be the statement targeted by the continue.
   ///
   /// To facilitate error recovery, [target] is allowed to be `null`; if this
   /// happens, the continue statement is analyzed as though it's an
   /// unconditional branch to nowhere (i.e. similar to a `return` or `throw`).
-  void handleContinue(Node? target);
+  void handleContinue(Statement? target);
 
   /// Register the fact that the current state definitely exits, e.g. returns
   /// from the body, throws an exception, etc.
   ///
   /// Should also be called if a subexpression's type is Never.
   void handleExit();
+
+  /// Call this method when visiting a return statement.
+  void handleReturn();
 
   /// Call this method after visiting the scrutinee expression of an if-case
   /// statement.
@@ -1463,10 +1466,10 @@ class FlowAnalysisDebug<
   FlowAnalysisOperations<Variable> get operations => _wrapped.operations;
 
   @override
-  void anonymousBlockBody_begin(Node node) {
+  void anonymousBlockBody_begin() {
     return _wrap(
-      'anonymousBlockBody_begin($node)',
-      () => _wrapped.anonymousBlockBody_begin(node),
+      'anonymousBlockBody_begin()',
+      () => _wrapped.anonymousBlockBody_begin(),
     );
   }
 
@@ -1848,18 +1851,23 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void handleBreak(Node? target) {
+  void handleBreak(Statement? target) {
     _wrap('handleBreak($target)', () => _wrapped.handleBreak(target));
   }
 
   @override
-  void handleContinue(Node? target) {
+  void handleContinue(Statement? target) {
     _wrap('handleContinue($target)', () => _wrapped.handleContinue(target));
   }
 
   @override
   void handleExit() {
     _wrap('handleExit()', () => _wrapped.handleExit());
+  }
+
+  @override
+  void handleReturn() {
+    _wrap('handleReturn()', () => _wrapped.handleReturn());
   }
 
   @override
@@ -4947,6 +4955,35 @@ class TrivialVariableReference extends _Reference {
 
 class WhyNotPromotedInfo {}
 
+/// [_FlowContext] representing a block-bodied anonymous method.
+class _AnonymousBlockContext extends _FlowContext {
+  /// Accumulated flow model for all `return` statements seen so far, or `null`
+  /// if no `return` statements have been seen yet.
+  FlowModel? _returnModel;
+
+  /// The reachability checkpoint associated with this block-bodied anonymous
+  /// method. When analyzing deeply nested `return` statements, their flow
+  /// models need to be unsplit to this point before joining them to
+  /// [_returnModel].
+  final Reachability _checkpoint;
+
+  /// The [_AnonymousBlockContext] for the immediately enclosing block-bodied
+  /// anonymous method, or `null` if there is no enclosing block-bodied
+  /// anonymous method.
+  final _AnonymousBlockContext? _previousAnonymousBlockContext;
+
+  _AnonymousBlockContext(this._checkpoint, this._previousAnonymousBlockContext);
+
+  @override
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['returnModel'] = _returnModel
+    ..['checkpoint'] = _checkpoint
+    ..['previousAnonymousBlockContext'] = _previousAnonymousBlockContext;
+
+  @override
+  String get _debugType => '_AnonymousBlockContext';
+}
+
 /// [_FlowContext] representing an assert statement or assert initializer.
 class _AssertContext extends _SimpleContext {
   /// Flow model if the condition being asserted is true.
@@ -5102,10 +5139,10 @@ class _FlowAnalysisImpl<
   /// expressions that are currently being visited.
   final List<_FlowContext> _stack = [];
 
-  /// The mapping from [Node]s that can act as targets for `break` and
-  /// `continue` statements (i.e. loops, switch statements, and anonymous block
-  /// bodies) to the to their context information.
-  final Map<Node, _BranchTargetContext> _nodeToContext = {};
+  /// The mapping from [Statement]s that can act as targets for `break` and
+  /// `continue` statements (i.e. loops and switch statements) to the to their
+  /// context information.
+  final Map<Statement, _BranchTargetContext> _statementToContext = {};
 
   FlowModel _current = new FlowModel(Reachability.initial);
 
@@ -5142,6 +5179,10 @@ class _FlowAnalysisImpl<
   @override
   final List<_Reference> _cascadeTargetStack = [];
 
+  /// The [_AnonymousBlockContext] for the immediately enclosing block-bodied
+  /// anonymous method, if there is one. Otherwise `null`.
+  _AnonymousBlockContext? _anonymousBlockContext;
+
   _FlowAnalysisImpl(
     this.operations,
     this._assignedVariables, {
@@ -5162,19 +5203,22 @@ class _FlowAnalysisImpl<
   FlowAnalysisTypeOperations get typeOperations => operations;
 
   @override
-  void anonymousBlockBody_begin(Node node) {
+  void anonymousBlockBody_begin() {
     _current = _current.split();
-    _BranchTargetContext context = new _BranchTargetContext(
+    _AnonymousBlockContext context = new _AnonymousBlockContext(
       _current.reachable.parent!,
+      _anonymousBlockContext,
     );
     _stack.add(context);
-    _nodeToContext[node] = context;
+    _anonymousBlockContext = context;
   }
 
   @override
   void anonymousBlockBody_end() {
-    _BranchTargetContext context = _stack.removeLast() as _BranchTargetContext;
-    _current = _join(_current, context._breakModel).unsplit();
+    _AnonymousBlockContext context =
+        _stack.removeLast() as _AnonymousBlockContext;
+    _current = _join(_current, context._returnModel).unsplit();
+    _anonymousBlockContext = context._previousAnonymousBlockContext;
   }
 
   @override
@@ -5457,7 +5501,7 @@ class _FlowAnalysisImpl<
       info.written,
       info.captured,
     );
-    _nodeToContext[doStatement] = context;
+    _statementToContext[doStatement] = context;
   }
 
   @override
@@ -5571,7 +5615,7 @@ class _FlowAnalysisImpl<
     );
     _stack.add(context);
     if (node != null) {
-      _nodeToContext[node] = context;
+      _statementToContext[node] = context;
     }
     _current = conditionInfo.ifTrue;
   }
@@ -5645,8 +5689,8 @@ class _FlowAnalysisImpl<
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
 
   @override
-  void handleBreak(Node? target) {
-    _BranchTargetContext? context = _nodeToContext[target];
+  void handleBreak(Statement? target) {
+    _BranchTargetContext? context = _statementToContext[target];
     if (context != null) {
       context._breakModel = _join(
         context._breakModel,
@@ -5657,8 +5701,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void handleContinue(Node? target) {
-    _BranchTargetContext? context = _nodeToContext[target];
+  void handleContinue(Statement? target) {
+    _BranchTargetContext? context = _statementToContext[target];
     if (context != null) {
       context._continueModel = _join(
         context._continueModel,
@@ -5670,6 +5714,19 @@ class _FlowAnalysisImpl<
 
   @override
   void handleExit() {
+    _current = _current.setUnreachable();
+  }
+
+  @override
+  void handleReturn() {
+    if (_anonymousBlockContext case var anonymousMethodContext?) {
+      // There is a control flow path from the current point to the
+      // exit of the anonymous method.
+      anonymousMethodContext._returnModel = _join(
+        anonymousMethodContext._returnModel,
+        _current.unsplitTo(anonymousMethodContext._checkpoint),
+      );
+    }
     _current = _current.setUnreachable();
   }
 
@@ -5889,7 +5946,7 @@ class _FlowAnalysisImpl<
       _current.reachable.parent!,
     );
     _stack.add(context);
-    _nodeToContext[node] = context;
+    _statementToContext[node] = context;
   }
 
   @override
@@ -6582,7 +6639,7 @@ class _FlowAnalysisImpl<
     );
     _stack.add(context);
     if (switchStatement != null) {
-      _nodeToContext[switchStatement] = context;
+      _statementToContext[switchStatement] = context;
     }
   }
 
@@ -6751,7 +6808,7 @@ class _FlowAnalysisImpl<
       conditionInfo.ifFalse,
     );
     _stack.add(context);
-    _nodeToContext[whileStatement] = context;
+    _statementToContext[whileStatement] = context;
     _current = conditionInfo.ifTrue;
   }
 
@@ -7112,7 +7169,10 @@ class _FlowAnalysisImpl<
   void _functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
     _current = _current.conservativeJoin(this, const [], info.written);
-    _stack.add(new _FunctionExpressionContext(_current));
+    _stack.add(
+      new _FunctionExpressionContext(_current, _anonymousBlockContext),
+    );
+    _anonymousBlockContext = null;
     _current = _current.conservativeJoin(
       this,
       _assignedVariables.anywhere.written,
@@ -7121,8 +7181,10 @@ class _FlowAnalysisImpl<
   }
 
   void _functionExpression_end() {
-    _SimpleContext context = _stack.removeLast() as _FunctionExpressionContext;
+    _FunctionExpressionContext context =
+        _stack.removeLast() as _FunctionExpressionContext;
     _current = context._previous;
+    _anonymousBlockContext = context._previousAnonymousBlockContext;
   }
 
   /// Gets the matched value type that should be used to type check the pattern
@@ -7778,7 +7840,20 @@ abstract class _FlowContext {
 
 /// [_FlowContext] representing a function expression.
 class _FunctionExpressionContext extends _SimpleContext {
-  _FunctionExpressionContext(super.previous);
+  /// The [_AnonymousBlockContext] for the immediately enclosing block-bodied
+  /// anonymous method, or `null` if there is no enclosing block-bodied
+  /// anonymous method.
+  final _AnonymousBlockContext? _previousAnonymousBlockContext;
+
+  _FunctionExpressionContext(
+    super.previous,
+    this._previousAnonymousBlockContext,
+  );
+
+  @override
+  Map<String, Object?> get _debugFields =>
+      super._debugFields
+        ..['previousAnonymousBlockContext'] = _previousAnonymousBlockContext;
 
   @override
   String get _debugType => '_FunctionExpressionContext';

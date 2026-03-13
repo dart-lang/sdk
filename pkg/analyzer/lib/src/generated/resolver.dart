@@ -1896,7 +1896,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         imposedType: imposedType,
       );
 
-      flowAnalysis.flow?.anonymousBlockBody_begin(node);
+      flowAnalysis.flow?.anonymousBlockBody_begin();
       checkUnreachableNode(node);
       node.visitChildren(this);
       var returnType = _finishFunctionBodyInference();
@@ -2857,7 +2857,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
       popRewrite();
 
-      flowAnalysis.flow?.handleExit();
+      flowAnalysis.flow?.handleReturn();
 
       bodyContext.addReturnExpression(node.expression);
       return _finishFunctionBodyInference();
@@ -4076,18 +4076,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     bodyContext?.addReturnExpression(expression);
-
-    var enclosingBody = node.thisOrAncestorMatching(
-      (n) => n is FunctionBody || n is AnonymousBlockBody,
-    );
-    if (enclosingBody is AnonymousBlockBodyImpl) {
-      // TODO(paulberry): add a `FlowAnalysis.handleReturn` method so that the resolver
-      // doesn't have to pretend that this is a break statement in order to get correct
-      // behavior.
-      flowAnalysis.flow?.handleBreak(enclosingBody);
-    } else {
-      flowAnalysis.flow?.handleExit();
-    }
+    flowAnalysis.flow?.handleReturn();
     inferenceLogWriter?.exitStatement(node);
   }
 
