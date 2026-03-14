@@ -9,6 +9,16 @@ import 'package:analyzer/src/dart/analysis/experiments.dart'
 import 'package:analyzer_plugin/src/utilities/extensions/formatter_options.dart';
 import 'package:dart_style/dart_style.dart';
 
+/// The default version to use for formatting code when there is no better
+/// effective language version for the code.
+///
+/// This is the minimum of the latest version supported by the formatter or
+/// the current language version.
+final defaultFormatterVersion =
+    DartFormatter.latestLanguageVersion < ExperimentStatus.currentVersion
+    ? DartFormatter.latestLanguageVersion
+    : ExperimentStatus.currentVersion;
+
 /// A list of all features that are currently enabled by an experiment flag.
 final _allowedExperiments = ExperimentStatus.knownFeatures.values
     .where((feature) => feature.status == FeatureStatus.future)
