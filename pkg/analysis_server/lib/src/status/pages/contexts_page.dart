@@ -63,9 +63,9 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</nav>');
     buf.writeln('</div>');
 
-    buf.writeln(writeOption('Context location', escape(contextPath)));
+    buf.writeln(formatOption('Context location', escape(contextPath)));
     buf.writeln(
-      writeOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)),
+      formatOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)),
     );
 
     h3('Analysis options');
@@ -79,29 +79,29 @@ class ContextsPage extends DiagnosticPageWithNav {
     );
     ul(foldersInContextRoot, (folder) {
       buf.write(escape(folder.path));
-      var optionsPath = path.join(folder.path, 'analysis_options.yaml');
-      var contentsPath =
-          '/contents?file=${Uri.encodeQueryComponent(optionsPath)}';
-      buf.writeln(' <a href="$contentsPath">analysis_options.yaml</a>');
+      buf.write('$separator<wbr>');
+      var optionsPath = path.join(folder.path, file_paths.analysisOptionsYaml);
+      buf.writeln(
+        formatContentsLink(optionsPath, file_paths.analysisOptionsYaml),
+      );
     }, classes: 'scroll-table');
 
     h3('Workspace');
     var workspace = driver.analysisContext!.contextRoot.workspace;
     buf.writeln('<p>');
-    buf.writeln(writeOption('Workspace root', escape(workspace.root)));
+    buf.writeln(formatOption('Workspace root', escape(workspace.root)));
     var workspaceFolder = folder.provider.getFolder(workspace.root);
 
     void writePackage(WorkspacePackageImpl package) {
-      buf.writeln(writeOption('Package root', escape(package.root.path)));
+      buf.writeln(formatOption('Package root', escape(package.root.path)));
       if (package is PubPackage) {
-        buf.writeln(
-          writeOption(
-            'pubspec file',
-            escape(
-              workspaceFolder.getChildAssumingFile(file_paths.pubspecYaml).path,
-            ),
-          ),
-        );
+        buf.write('pubspec file: ');
+        buf.write(escape(workspaceFolder.path));
+        buf.write('$separator<wbr>');
+        var pubspecPath = workspaceFolder
+            .getChildAssumingFile(file_paths.pubspecYaml)
+            .path;
+        buf.writeln(formatContentsLink(pubspecPath, file_paths.pubspecYaml));
       }
     }
 
@@ -109,7 +109,7 @@ class ContextsPage extends DiagnosticPageWithNav {
         .getChildAssumingFolder(file_paths.dotDartTool)
         .getChildAssumingFile(file_paths.packageConfigJson);
     buf.writeln(
-      writeOption('Has package_config.json file', packageConfig.exists),
+      formatOption('Has package_config.json file', packageConfig.exists),
     );
 
     String lenCounter(int length) {
@@ -226,10 +226,11 @@ class ContextsPage extends DiagnosticPageWithNav {
     );
     buf.write('<p>There are ${cycles.length} library cycles. ');
     if (cyclesToDisplay < 10) {
-      buf.write(
-        '$cyclesToDisplay of these have more than one library. '
-        'They contain</p>',
-      );
+      buf.write('$cyclesToDisplay of these have more than one library.');
+      if (cyclesToDisplay > 0) {
+        buf.write(' They contain');
+      }
+      buf.write('</p>');
     } else {
       buf.write('The $cyclesToDisplay largest contain</p>');
     }
