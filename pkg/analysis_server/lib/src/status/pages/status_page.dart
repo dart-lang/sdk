@@ -26,22 +26,22 @@ class StatusPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="column one-half">');
     h3('Status');
-    buf.writeln(writeOption('Server type', server.runtimeType));
+    buf.writeln(formatOption('Server type', server.runtimeType));
     // buf.writeln(writeOption('Instrumentation enabled',
     //     AnalysisEngine.instance.instrumentationService.isActive));
     buf.writeln(
-      writeOption(
+      formatOption(
         '(Scheduler) allow overlapping message handlers:',
         MessageScheduler.allowOverlappingHandlers,
       ),
     );
-    buf.writeln(writeOption('Server process ID', pid));
+    buf.writeln(formatOption('Server process ID', pid));
     buf.writeln('</div>');
 
     buf.writeln('<div class="column one-half">');
     h3('Versions');
-    buf.writeln(writeOption('Analysis server version', PROTOCOL_VERSION));
-    buf.writeln(writeOption('Dart SDK', platform.version));
+    buf.writeln(formatOption('Analysis server version', PROTOCOL_VERSION));
+    buf.writeln(formatOption('Dart SDK', platform.version));
     buf.writeln('</div>');
 
     buf.writeln('</div>');
