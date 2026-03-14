@@ -17,7 +17,6 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/formatter.dart';
-import 'package:dart_style/dart_style.dart' hide TrailingCommas;
 
 /// Checks whether a string contains only characters that are allowed to differ
 /// between unformattedformatted code (such as whitespace, commas, semicolons).
@@ -131,16 +130,7 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
   var unformattedSource = result.content;
 
   var formatter = createFormatter(result, defaultPageWidth: defaultPageWidth);
-  String formattedSource;
-  try {
-    formattedSource = formatter.format(unformattedSource);
-  } on FormatterException {
-    // If the document fails to parse, just return no edits to avoid the
-    // use seeing edits on every save with invalid code (if LSP gains the
-    // ability to pass a context to know if the format was manually invoked
-    // we may wish to change this to return an error for that case).
-    return success(null);
-  }
+  var formattedSource = formatter.formatSafely(unformattedSource).text;
 
   if (formattedSource == unformattedSource) {
     return success(null);

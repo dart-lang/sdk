@@ -2650,6 +2650,22 @@ void functionAfter() {
 ''');
   }
 
+  Future<void> test_format_syntaxError_doesNotThrow() async {
+    var initialCode = r'''
+err
+''';
+    var path = convertPath('/home/test/lib/test.dart');
+    newFile(path, initialCode);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.format(SourceRange(0, 3));
+    });
+
+    var edits = getEdits(builder);
+    expect(edits, isEmpty);
+  }
+
   Future<void> test_importElementLibrary_libElement() async {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
 
