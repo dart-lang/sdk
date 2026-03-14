@@ -50,3 +50,25 @@ List<String> _getExperiments(FeatureSet featureSet) {
       .map((feature) => feature.enableString)
       .toList();
 }
+
+extension DartFormatterExtension on DartFormatter {
+  /// Formats the content, returning the original content if any error occurs
+  /// (for example a parse error) during formatting.
+  SourceCode formatSafely(
+    String content, {
+    int? selectionStart,
+    int? selectionLength,
+  }) {
+    var source = SourceCode(
+      content,
+      selectionStart: selectionStart,
+      selectionLength: selectionLength,
+    );
+    try {
+      return formatSource(source);
+    } catch (_) {
+      // Return the original source if formatting failed for any reason.
+      return source;
+    }
+  }
+}

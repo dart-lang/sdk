@@ -19,6 +19,21 @@ class MoveSelectedFormalParametersLeftTest extends RefactoringTest {
   @override
   String get refactoringName => MoveSelectedFormalParametersLeft.commandName;
 
+  /// This refactor uses the formatter internally, ensure the refactor doesn't
+  /// fail because of sytnax errors elsewhere in the file.
+  Future<void> test_afterUnrelatedSyntaxError() async {
+    addTestSource(r'''
+err
+void test(int a, int ^b) {}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+err
+void test(int b, int a) {}
+''');
+  }
+
   Future<void> test_multiple_requiredNamed_first() async {
     addTestSource(r'''
 void test({

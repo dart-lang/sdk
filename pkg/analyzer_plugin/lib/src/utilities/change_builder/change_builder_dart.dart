@@ -30,7 +30,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
-import 'package:dart_style/dart_style.dart';
 
 /// An [EditBuilder] used to build edits in Dart files.
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
@@ -1897,18 +1896,18 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     var formatter = createFormatter(resolvedUnit);
-    var formattedResult = formatter.formatSource(
-      SourceCode(
-        newContent,
-        selectionStart: newRangeOffset,
-        selectionLength: newRangeLength,
-      ),
+    var formattedResult = formatter.formatSafely(
+      newContent,
+      selectionStart: newRangeOffset,
+      selectionLength: newRangeLength,
     );
 
-    replaceEdits(
-      range,
-      SourceEdit(range.offset, range.length, formattedResult.selectedText),
-    );
+    if (formattedResult.text != newContent) {
+      replaceEdits(
+        range,
+        SourceEdit(range.offset, range.length, formattedResult.selectedText),
+      );
+    }
   }
 
   /// Arranges to have an import added that makes [element] available.
