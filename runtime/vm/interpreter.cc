@@ -439,6 +439,54 @@ DART_NOINLINE void Interpreter::WriteInstructionToTrace(const KBCInstr* pc) {
   }
 }
 
+void Interpreter::PrintStackFrames(const ObjectPtr* FP,
+                                   const ObjectPtr* SP,
+                                   intptr_t depth) {
+  const word *fp = reinterpret_cast<const word*>(FP),
+             *sp = reinterpret_cast<const word*>(SP);
+  for (intptr_t i = 0; i < depth; i++) {
+    const word caller_pc = fp[kKBCSavedCallerPcSlotFromFp];
+    const bool is_entry_frame = caller_pc == kEntryFramePcMarker;
+    // The entry frame slots are printed separately from the rest of the frame.
+    auto* const frame_end = fp + (is_entry_frame ? kKBCEntrySavedSlots : 0);
+
+    THR_Print("Frame %" Pd "%s:\n", i, is_entry_frame ? " (entry)" : "");
+    for (auto* current = sp; current >= frame_end; --current) {
+      THR_Print("  %#" Px ": %#" Px "\n", reinterpret_cast<uword>(current),
+                *current);
+    }
+
+    if (is_entry_frame) {
+      THR_Print("  %#" Px ": %#" Px " (pool pointer)\n",
+                reinterpret_cast<uword>(fp + kKBCSavedPpSlotFromEntryFp),
+                fp[kKBCSavedPpSlotFromEntryFp]);
+      THR_Print("  %#" Px ": %#" Px " (args descriptor)\n",
+                reinterpret_cast<uword>(fp + kKBCSavedArgDescSlotFromEntryFp),
+                fp[kKBCSavedArgDescSlotFromEntryFp]);
+      THR_Print("  %#" Px ": %#" Px " (exit link)\n",
+                reinterpret_cast<uword>(fp + kKBCExitLinkSlotFromEntryFp),
+                fp[kKBCExitLinkSlotFromEntryFp]);
+    }
+
+    THR_Print("  %#" Px ": %#" Px " (saved caller fp)\n",
+              reinterpret_cast<uword>(fp + kKBCSavedCallerFpSlotFromFp),
+              fp[kKBCSavedCallerFpSlotFromFp]);
+    THR_Print("  %#" Px ": %#" Px " (saved caller pc)\n",
+              reinterpret_cast<uword>(fp + kKBCSavedCallerPcSlotFromFp),
+              fp[kKBCSavedCallerPcSlotFromFp]);
+    if (is_entry_frame) break;
+    THR_Print("  %#" Px ": %#" Px " (caller pc)\n",
+              reinterpret_cast<uword>(fp + kKBCPcMarkerSlotFromFp),
+              fp[kKBCPcMarkerSlotFromFp]);
+    THR_Print("  %#" Px ": %#" Px " (called function)\n",
+              reinterpret_cast<uword>(fp + kKBCFunctionSlotFromFp),
+              fp[kKBCFunctionSlotFromFp]);
+    sp = fp + kKBCCallerSpSlotFromFp;
+    fp = reinterpret_cast<const word*>(fp[kKBCSavedCallerFpSlotFromFp]);
+    THR_Print("\n");
+  }
+}
+
 #endif  // defined(DEBUG)
 
 // Calls into the Dart runtime are based on this interface.
