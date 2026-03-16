@@ -1407,6 +1407,21 @@ final Matcher isPluginDetails = LazyMatcher(
   }),
 );
 
+/// PluginPrint
+///
+///     {
+///       "pluginName": String
+///       "message": String
+///       "timestamp": int
+///     }
+final Matcher isPluginPrint = LazyMatcher(
+  () => MatchesJsonObject('PluginPrint', {
+    'pluginName': isString,
+    'message': isString,
+    'timestamp': isInt,
+  }),
+);
+
 /// Position
 ///
 ///     {

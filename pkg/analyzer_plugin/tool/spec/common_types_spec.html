@@ -1387,6 +1387,32 @@
       </field>
     </object>
   </type>
+  <type name="PluginPrint">
+    <p>
+      A message printed from a plugin with 'print'.
+    </p>
+    <object>
+      <field name="pluginName">
+        <ref>String</ref>
+        <p>
+          The name of the plugin which called 'print'.
+        </p>
+      </field>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          The message which has been printed.
+        </p>
+      </field>
+      <field name="timestamp">
+        <ref>int</ref>
+        <p>
+          The timestamp, in milliseconds since the epoch, of when the message
+          was requested to be printed.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="Position">
     <p>
       A position within a file.

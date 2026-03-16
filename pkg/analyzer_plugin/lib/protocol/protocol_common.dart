@@ -3590,6 +3590,95 @@ class PluginDetails implements HasToJson {
   );
 }
 
+/// PluginPrint
+///
+///     {
+///       "pluginName": String
+///       "message": String
+///       "timestamp": int
+///     }
+///
+/// Clients may not extend, implement or mix-in this class.
+class PluginPrint implements HasToJson {
+  /// The name of the plugin which called 'print'.
+  String pluginName;
+
+  /// The message which has been printed.
+  String message;
+
+  /// The timestamp, in milliseconds since the epoch, of when the message was
+  /// requested to be printed.
+  int timestamp;
+
+  PluginPrint(this.pluginName, this.message, this.timestamp);
+
+  factory PluginPrint.fromJson(
+    JsonDecoder jsonDecoder,
+    String jsonPath,
+    Object? json, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    json ??= {};
+    if (json is Map) {
+      String pluginName;
+      if (json.containsKey('pluginName')) {
+        pluginName = jsonDecoder.decodeString(
+          '$jsonPath.pluginName',
+          json['pluginName'],
+        );
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "'pluginName'", json);
+      }
+      String message;
+      if (json.containsKey('message')) {
+        message = jsonDecoder.decodeString(
+          '$jsonPath.message',
+          json['message'],
+        );
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "'message'", json);
+      }
+      int timestamp;
+      if (json.containsKey('timestamp')) {
+        timestamp = jsonDecoder.decodeInt(
+          '$jsonPath.timestamp',
+          json['timestamp'],
+        );
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "'timestamp'", json);
+      }
+      return PluginPrint(pluginName, message, timestamp);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "'PluginPrint'", json);
+    }
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    result['pluginName'] = pluginName;
+    result['message'] = message;
+    result['timestamp'] = timestamp;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is PluginPrint) {
+      return pluginName == other.pluginName &&
+          message == other.message &&
+          timestamp == other.timestamp;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(pluginName, message, timestamp);
+}
+
 /// Position
 ///
 ///     {

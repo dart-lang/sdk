@@ -91,6 +91,24 @@ class PluginsPage extends DiagnosticPageWithNav {
         for (var plugin in details.plugins) {
           h3(plugin.name);
 
+          var prints = isolate.pluginPrints[plugin.name];
+          if (prints != null) {
+            h3('Debug print output:');
+            pre(() {
+              var discardedPrintCount =
+                  isolate.discardedPluginPrintCount[plugin.name];
+              if (discardedPrintCount != null && discardedPrintCount > 0) {
+                buf.write('(... $discardedPrintCount previous messages)');
+              }
+              for (var print in prints) {
+                var timestamp = DateTime.fromMillisecondsSinceEpoch(
+                  print.timestamp,
+                );
+                buf.write('$timestamp: ${print.message}\n');
+              }
+            });
+          }
+
           if (plugin.lintRules.isNotEmpty) {
             p('Lint rules:');
             ul(plugin.lintRules, (rule) {

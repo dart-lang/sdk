@@ -160,6 +160,19 @@
       </field>
     </params>
   </notification>
+  <notification event="print">
+    <p>
+      Contains a message printed by a plugin.
+    </p>
+    <params>
+      <field name="pluginPrint">
+        <ref>PluginPrint</ref>
+        <p>
+          Information about the message being printed.
+        </p>
+      </field>
+    </params>
+  </notification>
   <notification event="status">
     <p>
       Reports the current status of the plugin. Parameters are omitted if there
