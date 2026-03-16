@@ -432,12 +432,22 @@ extension type JSIteratorResult<T extends JSAny?>._(JSObject _)
   }
 
   // Wrap this to hide the distinction between undefined and false from users.
+  //
+  // This is a getter/setter pair to work around the bug described in
+  // https://dart-review.googlesource.com/c/sdk/+/478704/12..14/sdk/lib/js_interop/js_interop.dart#b585.
   @JS('done')
-  external bool? _done;
+  external bool? get _done;
+  @JS('done')
+  external set _done(bool? value);
 
   /// Wrap this so that the setter is private.
+  //
+  // This is a getter/setter pair to work around the bug described in
+  // https://dart-review.googlesource.com/c/sdk/+/478704/12..14/sdk/lib/js_interop/js_interop.dart#b585.
   @JS('value')
-  external T? _value;
+  external T? get _value;
+  @JS('value')
+  external set _value(T? value);
 
   /// See [`done`].
   ///
