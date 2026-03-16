@@ -57,7 +57,7 @@
       local.get $var0
       local.get $var1
       call $"Invocation creator (CallShape(toString names:a))"
-      call $NoSuchMethodError._throwWithInvocation
+      call $Object._invokeNoSuchMethod
       unreachable
     end $label0
     local.set $var2
@@ -95,14 +95,13 @@
     local.get $var2
     local.get $var1
     call $"Invocation creator (CallShape(toString names:a))"
-    call $Object.noSuchMethod
+    call $Object._invokeNoSuchMethod
   )
   (func $Foo.toString (CallShape(toString names:a)) (param $this (ref $#Top)) (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $Invocation creator (CallShape(toString names:a)) (param $var0 (ref null $#Top)) (result (ref $_Invocation)) <...>)
   (func $Bar (result (ref $Object)) <...>)
   (func $Foo (result (ref $Object)) <...>)
-  (func $NoSuchMethodError._throwWithInvocation (param $receiver (ref null $#Top)) (param $invocation (ref $_Invocation)) (result (ref none)) <...>)
-  (func $Object.noSuchMethod (param $this (ref $#Top)) (param $invocation (ref $_Invocation)) (result (ref null $#Top)) <...>)
+  (func $Object._invokeNoSuchMethod (param $receiver (ref null $#Top)) (param $invocation (ref $_Invocation)) (result (ref null $#Top)) <...>)
   (func $confuse (param $a (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $main (result (ref null $#Top))
     (local $var0 (ref null $#Top))

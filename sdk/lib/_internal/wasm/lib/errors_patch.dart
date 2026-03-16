@@ -154,11 +154,6 @@ class NoSuchMethodError {
        _existingArgumentNames = existingArgumentNames;
 
   @pragma("wasm:entry-point")
-  static Never _throwWithInvocation(Object? receiver, Invocation invocation) {
-    throw NoSuchMethodError.withInvocation(receiver, invocation);
-  }
-
-  @pragma("wasm:entry-point")
   static Never _throwUnimplementedExternalMemberError(
     Object? receiver,
     Symbol memberName,

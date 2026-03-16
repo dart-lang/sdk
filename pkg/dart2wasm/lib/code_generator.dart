@@ -1726,7 +1726,7 @@ abstract class AstCodeGenerator
             b.ref_null(translator.topType.heapType);
             // Invocation invocation
             _visitArguments(node.arguments, signature, paramInfo, 1);
-            call(translator.noSuchMethodErrorThrowWithInvocation.reference);
+            call(translator.invokeNoSuchMethod.reference);
           });
         default:
           unimplemented(node, "Nullable invocation of ${target.name.text}",
@@ -2244,7 +2244,7 @@ abstract class AstCodeGenerator
         case "noSuchMethod":
           translateExpression(
               ConstantExpression(
-                  StaticTearOffConstant(translator.nullNoSuchMethod)),
+                  StaticTearOffConstant(translator.invokeNullNoSuchMethod)),
               resultType);
           break;
         default:

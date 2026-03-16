@@ -174,9 +174,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
       // have a `Null` class in dart2wasm so we throw directly.
       b.local_get(nullableReceiverLocal);
       createGetterInvocationObject(translator, b, callerShape.name);
-
-      translator.callReference(
-          translator.noSuchMethodErrorThrowWithInvocation.reference, b);
+      translator.callReference(translator.invokeNoSuchMethod.reference, b);
       b.unreachable();
       b.end(); // nullBlock
       b.local_set(receiverLocal);
@@ -207,8 +205,9 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
       translator.convertType(
           b, targetFunction.type.outputs.single, outputs.single);
     }, () {
-      generateNoSuchMethodCall(translator, b, () => b.local_get(receiverLocal),
-          () => createGetterInvocationObject(translator, b, callerShape.name));
+      b.local_get(nullableReceiverLocal);
+      createGetterInvocationObject(translator, b, callerShape.name);
+      translator.callReference(translator.invokeNoSuchMethod.reference, b);
     });
 
     b.return_();
@@ -244,8 +243,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
       createSetterInvocationObject(
           translator, b, callerShape.name, positionalArgLocal);
 
-      translator.callReference(
-          translator.noSuchMethodErrorThrowWithInvocation.reference, b);
+      translator.callReference(translator.invokeNoSuchMethod.reference, b);
       b.unreachable();
       b.end(); // nullBlock
       b.local_set(receiverLocal);
@@ -259,12 +257,10 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
       translator.callFunction(
           translator.functions.getDynamicForwarder(target, callerShape), b);
     }, () {
-      generateNoSuchMethodCall(
-          translator,
-          b,
-          () => b.local_get(receiverLocal),
-          () => createSetterInvocationObject(
-              translator, b, callerShape.name, positionalArgLocal));
+      b.local_get(receiverLocal);
+      createSetterInvocationObject(
+          translator, b, callerShape.name, positionalArgLocal);
+      translator.callReference(translator.invokeNoSuchMethod.reference, b);
 
       b.drop(); // drop noSuchMethod return value
       b.local_get(positionalArgLocal);
@@ -290,8 +286,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
       }
       translator.callFunction(
           translator.functions.getInvocationCreatorStub(callerShape), b);
-      translator.callReference(
-          translator.noSuchMethodErrorThrowWithInvocation.reference, b);
+      translator.callReference(translator.invokeNoSuchMethod.reference, b);
       b.unreachable();
 
       b.end(); // nullBlock
@@ -617,14 +612,13 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
     b.end(); // noSuchMethodBlock
 
     // Unable to find a matching member, call `noSuchMethod`
-    generateNoSuchMethodCall(translator, b, () => b.local_get(receiverLocal),
-        () {
-      for (int i = 0; i < callerShape.totalArgumentCount; ++i) {
-        b.local_get(function.locals[1 + i]);
-      }
-      translator.callFunction(
-          translator.functions.getInvocationCreatorStub(callerShape), b);
-    });
+    b.local_get(receiverLocal);
+    for (int i = 0; i < callerShape.totalArgumentCount; ++i) {
+      b.local_get(function.locals[1 + i]);
+    }
+    translator.callFunction(
+        translator.functions.getInvocationCreatorStub(callerShape), b);
+    translator.callReference(translator.invokeNoSuchMethod.reference, b);
 
     b.end();
   }
@@ -826,81 +820,4 @@ void createSetterInvocationObject(
 
   b.local_get(positionalArgLocal);
   translator.callReference(translator.invocationSetterFactory.reference, b);
-}
-
-void generateNoSuchMethodCall(
-  Translator translator,
-  w.InstructionsBuilder b,
-  void Function() pushReceiver,
-  void Function() pushInvocationObject,
-) {
-  final SelectorInfo noSuchMethodSelector = translator.dispatchTable
-      .selectorForTarget(translator.objectNoSuchMethod.reference);
-  translator.functions.recordSelectorUse(noSuchMethodSelector, false);
-  final signature = noSuchMethodSelector.signature;
-
-  final targetRanges =
-      noSuchMethodSelector.targets(unchecked: false).allTargetRanges;
-  final staticDispatchRanges =
-      noSuchMethodSelector.targets(unchecked: false).staticDispatchRanges;
-
-  // NOTE: Keep this in sync with
-  // `code_generator.dart:AstCodeGenerator._virtualCall`.
-  final bool directCall =
-      targetRanges.length == 1 && staticDispatchRanges.length == 1;
-  final callPolymorphicDispatcher =
-      !directCall && staticDispatchRanges.isNotEmpty;
-
-  final noSuchMethodParamInfo = noSuchMethodSelector.paramInfo;
-  final noSuchMethodWasmFunctionType = signature;
-
-  pushReceiver();
-  if (callPolymorphicDispatcher) {
-    b.loadClassId(translator, translator.topTypeNonNullable);
-    pushReceiver();
-  }
-  pushInvocationObject();
-
-  final invocationFactory = translator.functions
-      .getFunction(translator.invocationGenericMethodFactory.reference);
-  translator.convertType(
-      b, invocationFactory.type.outputs[0], signature.inputs[1]);
-
-  // `noSuchMethod` can have extra parameters as long as they are optional.
-  // Push any optional positional parameters.
-  int wasmArgIdx = 2;
-  for (int positionalArgIdx = 1;
-      positionalArgIdx < noSuchMethodParamInfo.positional.length;
-      positionalArgIdx += 1) {
-    final positionalParameterValue =
-        noSuchMethodParamInfo.positional[positionalArgIdx]!;
-    translator.constants.instantiateConstant(b, positionalParameterValue,
-        noSuchMethodWasmFunctionType.inputs[wasmArgIdx]);
-    wasmArgIdx += 1;
-  }
-
-  // Push any optional named parameters
-  for (String namedParameterName in noSuchMethodParamInfo.names) {
-    final namedParameterValue =
-        noSuchMethodParamInfo.named[namedParameterName]!;
-    translator.constants.instantiateConstant(b, namedParameterValue,
-        noSuchMethodWasmFunctionType.inputs[wasmArgIdx]);
-    wasmArgIdx += 1;
-  }
-
-  assert(wasmArgIdx == noSuchMethodWasmFunctionType.inputs.length);
-
-  if (directCall) {
-    translator.callReference(targetRanges[0].target, b);
-  } else if (callPolymorphicDispatcher) {
-    b.invoke(translator
-        .getPolymorphicDispatchersForModule(b.moduleBuilder)
-        .getPolymorphicDispatcher(noSuchMethodSelector,
-            useUncheckedEntry: false));
-  } else {
-    pushReceiver();
-    translator.callDispatchTable(b, noSuchMethodSelector,
-        interfaceTarget: translator.objectNoSuchMethod.reference,
-        useUncheckedEntry: false);
-  }
 }
