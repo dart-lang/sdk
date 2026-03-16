@@ -76,10 +76,11 @@ base class Client {
 
   @mustCallSuper
   void registerRpcHandlers() {
-    _internalRpcs.registerRpcsWithPeer(_clientPeer);
-    backend.registerRpcs(_clientPeer);
-    _internalRpcs.registerServiceExtensionForwarder(_clientPeer);
-    backend.registerFallbacks(_clientPeer);
+    _internalRpcs
+      ..addBackendRpcs(backend: backend)
+      ..registerRpcsWithPeer(_clientPeer)
+      ..registerServiceExtensionForwarder(_clientPeer)
+      ..registerBackendFallbacks(_clientPeer);
   }
 
   /// Attempts to register a [service] to be provided by this client.

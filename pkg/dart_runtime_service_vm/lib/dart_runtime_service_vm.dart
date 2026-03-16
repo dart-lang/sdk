@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
@@ -13,6 +14,7 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:logging/logging.dart';
 import 'package:stream_channel/stream_channel.dart';
 
+import 'src/dart_runtime_service_vm_rpcs.dart';
 import 'src/native_bindings.dart';
 import 'src/vm_expression_evaluator.dart';
 import 'src/vm_isolate_manager.dart';
@@ -72,6 +74,20 @@ class DartRuntimeServiceVMBackend
 
   @override
   late final VmExpressionEvaluator expressionEvaluator;
+
+  final _vmServiceRpcs = DartRuntimeServiceVmRpcs();
+
+  @override
+  UnmodifiableListView<ServiceRpcHandler> get rpcs =>
+      UnmodifiableListView(_vmServiceRpcs.rpcs);
+
+  @override
+  UnmodifiableListView<RpcHandlerWithParameters>
+  get fallbacks => UnmodifiableListView([
+    // If the registered Dart RPC handlers can't handle a request, forward it
+    // it to the native VM service implementation for processing.
+    sendToRuntime,
+  ]);
 
   @override
   Future<void> initialize() async {
@@ -146,18 +162,6 @@ class DartRuntimeServiceVMBackend
   @override
   void onStreamCancel({required String streamId}) {
     _nativeBindings.streamCancel(streamId: streamId);
-  }
-
-  @override
-  void registerRpcs(json_rpc.Peer clientPeer) {
-    // The VM service handles its service requests in service.cc.
-  }
-
-  @override
-  void registerFallbacks(json_rpc.Peer clientPeer) {
-    // If the registered Dart RPC handlers can't handle a request, forward it
-    // it to the native VM service implementation for processing.
-    clientPeer.registerFallback(sendToRuntime);
   }
 
   /// Sends service requests to the Dart VM runtime for processing.

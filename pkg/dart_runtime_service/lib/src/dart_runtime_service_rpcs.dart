@@ -11,6 +11,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'clients.dart';
 import 'dart_runtime_service.dart';
+import 'dart_runtime_service_backend.dart';
 import 'event_streams.dart';
 import 'expression_evaluator.dart';
 import 'rpc_exceptions.dart';
@@ -19,6 +20,8 @@ import 'utils.dart';
 typedef RpcHandlerWithNoParameters = FutureOr<RpcResponse> Function();
 typedef RpcHandlerWithParameters =
     FutureOr<RpcResponse> Function(json_rpc.Parameters);
+
+typedef ServiceRpcHandler = (String, Function?);
 
 /// Manages requests made to platform-agnostic RPCs provided by
 /// [DartRuntimeService] by a single [Client].
@@ -49,7 +52,7 @@ final class DartRuntimeServiceRpcs {
   // Parameters for streamListen
   static const _kStreamId = 'streamId';
 
-  late final _commonRpcs = <(String, Function?)>[
+  late final _commonRpcs = <ServiceRpcHandler>[
     ('getClientName', getClientName),
     ('registerService', registerService),
     ('setClientName', setClientName),
@@ -59,9 +62,22 @@ final class DartRuntimeServiceRpcs {
     ('evaluateInFrame', expressionEvaluator?.evaluateInFrame),
   ];
 
-  /// Registers the set of platform-agnostic RPCs for use by [client].
+  final _backendRpcs = <ServiceRpcHandler>[];
+  final _backendFallbacks = <RpcHandlerWithParameters>[];
+
+  void addBackendRpcs({required DartRuntimeServiceBackend backend}) {
+    _backendRpcs.addAll(backend.rpcs);
+    _backendFallbacks.addAll(backend.fallbacks);
+  }
+
+  void addBackendFallbacks({
+    required List<RpcHandlerWithParameters> fallbacks,
+  }) => _backendFallbacks.addAll(fallbacks);
+
+  /// Registers the set of platform-agnostic and backend RPCs for use by
+  /// [client].
   void registerRpcsWithPeer(json_rpc.Peer clientPeer) {
-    for (final (method, callback) in _commonRpcs) {
+    for (final (method, callback) in [..._commonRpcs, ..._backendRpcs]) {
       if (callback == null) continue;
       if (callback is! RpcHandlerWithNoParameters &&
           callback is! RpcHandlerWithParameters) {
@@ -90,6 +106,12 @@ final class DartRuntimeServiceRpcs {
 
   void registerServiceExtensionForwarder(json_rpc.Peer clientPeer) {
     clientPeer.registerFallback(serviceExtensionForwarderFallback);
+  }
+
+  void registerBackendFallbacks(json_rpc.Peer clientPeer) {
+    for (final fallback in _backendFallbacks) {
+      clientPeer.registerFallback(fallback);
+    }
   }
 
   /// Attempts to [parse] [parameters] into an instance of [T].

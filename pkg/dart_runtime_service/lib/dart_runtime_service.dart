@@ -6,6 +6,11 @@ export 'src/clients.dart';
 export 'src/dart_runtime_service.dart';
 export 'src/dart_runtime_service_backend.dart';
 export 'src/dart_runtime_service_options.dart';
+export 'src/dart_runtime_service_rpcs.dart'
+    show
+        RpcHandlerWithNoParameters,
+        RpcHandlerWithParameters,
+        ServiceRpcHandler;
 export 'src/event_streams.dart';
 export 'src/exceptions.dart';
 export 'src/expression_evaluator.dart';

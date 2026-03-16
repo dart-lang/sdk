@@ -133,10 +133,16 @@ class NativeBindings {
     const kData = 'data';
 
     final Object? converted;
-    if (value case [final Uint8List utf8String]) {
+    if (value case final String string) {
+      converted = json.decode(string);
+    } else if (value case [final Uint8List utf8String]) {
       converted = jsonUtf8Decoder.decode(utf8String);
     } else {
-      RpcException.internalError.throwException();
+      RpcException.internalError.throwException(
+        data: {
+          'details': 'Unknown response type (${value.runtimeType}: $value)',
+        },
+      );
     }
     if (converted case {kResult: final Map<String, Object?> result}) {
       return result;
