@@ -69,6 +69,43 @@ CommentReference
 ''');
   }
 
+  test_emptyBody() async {
+    await assertNoErrorsInCode(r'''
+mixin M;
+''');
+
+    var node = findNode.singleMixinDeclaration;
+    assertResolvedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  body: EmptyClassBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> M@6
+''');
+  }
+
+  test_emptyBody_language310() async {
+    var code = r'''
+// @dart = 3.10
+mixin M;
+''';
+
+    await assertErrorsInCode(code, [
+      error(diag.experimentNotEnabledOffByDefault, 23, 1),
+    ]);
+
+    var node = findNode.singleMixinDeclaration;
+    assertResolvedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  body: EmptyClassBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> M@22
+''');
+  }
+
   test_field() async {
     await assertNoErrorsInCode(r'''
 mixin M<T> {

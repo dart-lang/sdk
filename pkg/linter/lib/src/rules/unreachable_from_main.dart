@@ -73,12 +73,12 @@ class _DeclarationGatherer {
         } else if (declaration is EnumDeclaration) {
           _addMembers(
             containerElement: declaration.declaredFragment?.element,
-            members: declaration.body.members,
+            members: declaration.body.tryCast<BlockEnumBody>()?.members ?? [],
           );
         } else if (declaration is ExtensionDeclaration) {
           _addMembers(
             containerElement: null,
-            members: declaration.body.members,
+            members: declaration.body.tryCast<BlockClassBody>()?.members ?? [],
           );
         } else if (declaration is ExtensionTypeDeclaration) {
           if (declaration.body case BlockClassBody body) {
@@ -87,7 +87,7 @@ class _DeclarationGatherer {
         } else if (declaration is MixinDeclaration) {
           _addMembers(
             containerElement: declaration.declaredFragment?.element,
-            members: declaration.body.members,
+            members: declaration.body.tryCast<BlockClassBody>()?.members ?? [],
           );
         }
       }

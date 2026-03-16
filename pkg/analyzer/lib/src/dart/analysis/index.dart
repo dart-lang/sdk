@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
@@ -898,7 +899,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       node.namePart.typeName.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members,
+      memberNodes: node.body.tryCast<BlockEnumBody>()?.members ?? [],
     );
 
     super.visitEnumDeclaration(node);
@@ -995,9 +996,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {}
-
-  @override
   void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     var element = name.element;
@@ -1017,7 +1015,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     _addSubtypeForMixinDeclaration(node);
     super.visitMixinDeclaration(node);
   }
@@ -1325,7 +1323,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   /// Record the given mixin as a subclass of its direct superclasses.
-  void _addSubtypeForMixinDeclaration(MixinDeclaration node) {
+  void _addSubtypeForMixinDeclaration(MixinDeclarationImpl node) {
     _addSubtype(
       node.name.lexeme,
       onClause: node.onClause,

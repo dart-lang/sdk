@@ -72,6 +72,8 @@ class FindNode {
 
   DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
 
+  DottedName get singleDottedName => _single();
+
   EnumDeclaration get singleEnumDeclaration => _single();
 
   ExportDirective get singleExportDirective => _single();
@@ -391,6 +393,10 @@ class FindNode {
     return _node(search, (n) => n is DotShorthandPropertyAccess);
   }
 
+  DottedName dottedName(String search) {
+    return _node(search, (n) => n is DottedName);
+  }
+
   DoubleLiteral doubleLiteral(String search) {
     return _node(search, (n) => n is DoubleLiteral);
   }
@@ -600,10 +606,6 @@ class FindNode {
 
   LibraryDirective library(String search) {
     return _node(search, (n) => n is LibraryDirective);
-  }
-
-  LibraryIdentifier libraryIdentifier(String search) {
-    return _node(search, (n) => n is LibraryIdentifier);
   }
 
   ListLiteral listLiteral(String search) {

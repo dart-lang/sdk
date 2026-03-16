@@ -88,7 +88,12 @@ class RemoveUnusedElement extends _RemoveUnused {
           return;
         }
       case EnumDeclaration enumDeclaration:
-        members = enumDeclaration.body.members;
+        switch (enumDeclaration.body) {
+          case BlockEnumBody body:
+            members = body.members;
+          default:
+            return;
+        }
       case _:
         return;
     }

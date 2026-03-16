@@ -420,10 +420,9 @@ CompilationUnit
     PartOfDirective
       partKeyword: part
       ofKeyword: of
-      libraryName: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: foo
+      libraryName: DottedName
+        tokens
+          foo
       semicolon: ;
   declarations
     ClassDeclaration
@@ -453,10 +452,9 @@ CompilationUnit
       semicolon: ;
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }
@@ -478,10 +476,9 @@ CompilationUnit
       semicolon: ;
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }
@@ -503,10 +500,9 @@ CompilationUnit
       semicolon: ;
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }

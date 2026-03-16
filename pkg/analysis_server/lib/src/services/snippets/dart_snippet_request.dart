@@ -192,7 +192,10 @@ class DartSnippetRequest {
       }
 
       if (node is EnumDeclaration) {
-        var semicolon = node.body.semicolon;
+        var semicolon = switch (node.body) {
+          BlockEnumBody body => body.semicolon,
+          EmptyEnumBody body => body.semicolon,
+        };
         return semicolon == null || target.offset <= semicolon.offset
             ? SnippetContext.inEnumConstants
             : SnippetContext.inEnumMembers;

@@ -38,6 +38,14 @@ class B {
     );
   }
 
+  test_classMemberNames_enum_empty() {
+    DefinedNames names = _computeDefinedNames('''
+enum E;
+''');
+    expect(names.topLevelNames, unorderedEquals(['E']));
+    expect(names.classMemberNames, isEmpty);
+  }
+
   test_classMemberNames_extension() {
     DefinedNames names = _computeDefinedNames('''
 extension E on int {
@@ -49,6 +57,14 @@ extension E on int {
 ''');
     expect(names.topLevelNames, unorderedEquals(['E']));
     expect(names.classMemberNames, unorderedEquals(['a', 'b', 'c', 'd']));
+  }
+
+  test_classMemberNames_extension_empty() {
+    DefinedNames names = _computeDefinedNames('''
+extension E on int;
+''');
+    expect(names.topLevelNames, unorderedEquals(['E']));
+    expect(names.classMemberNames, isEmpty);
   }
 
   test_classMemberNames_extensionType() {
@@ -89,6 +105,14 @@ mixin B {
       names.classMemberNames,
       unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']),
     );
+  }
+
+  test_classMemberNames_mixin_empty() {
+    DefinedNames names = _computeDefinedNames('''
+mixin M;
+''');
+    expect(names.topLevelNames, unorderedEquals(['M']));
+    expect(names.classMemberNames, isEmpty);
   }
 
   test_topLevelNames() {

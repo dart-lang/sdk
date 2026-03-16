@@ -178,6 +178,119 @@ library
 ''');
   }
 
+  test_emptyBody() async {
+    var library = await buildLibrary(r'''
+enum E;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_0
+                ListLiteral
+                  leftBracket: [ @0
+                  rightBracket: ] @0
+                  staticType: List<E>
+          constructors
+            #F3 const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+          getters
+            #F4 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F2
+          type: List<E>
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        const isOriginImplicitDefault new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F3
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F4
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+''');
+  }
+
+  test_emptyBody_language310() async {
+    var library = await buildLibrary(r'''
+// @dart = 3.10
+enum E;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:21) (firstTokenOffset:16) (offset:21)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_0
+                ListLiteral
+                  leftBracket: [ @0
+                  rightBracket: ] @0
+                  staticType: List<E>
+          constructors
+            #F3 const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+          getters
+            #F4 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@enum::E::@getter::values
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F2
+          type: List<E>
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        const isOriginImplicitDefault new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F3
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F4
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+''');
+  }
+
   test_enum_constant_arguments_symbolLiteral() async {
     var library = await buildLibrary(r'''
 enum E {
@@ -211,10 +324,8 @@ library
                       SymbolLiteral
                         poundSign: # @13
                         components
-                          foo
-                            offset: 14
-                          bar
-                            offset: 18
+                          foo @14
+                          bar @18
                     rightParenthesis: ) @21
                   staticType: E
             #F3 isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -18347,7 +18458,6 @@ augment enum A {;
   augment const A.named();
 }
 ''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18565,7 +18675,7 @@ library
 
   test_inferTypes_method_ofAugment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-abstract class A {
+class A {
   int foo(String a);
 }
 ''');

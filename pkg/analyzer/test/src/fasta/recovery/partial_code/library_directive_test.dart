@@ -31,10 +31,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     ClassDeclaration
@@ -61,10 +60,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -94,17 +92,16 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -127,10 +124,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
 ''');
   }
@@ -149,10 +145,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
     ExportDirective
       exportKeyword: export
@@ -176,10 +171,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -206,10 +200,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: int
+      name: DottedName
+        tokens
+          int
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -239,10 +232,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -271,10 +263,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: int
+      name: DottedName
+        tokens
+          int
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -303,10 +294,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
     ImportDirective
       importKeyword: import
@@ -330,10 +320,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     MixinDeclaration
@@ -359,10 +348,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
     PartDirective
       partKeyword: part
@@ -386,10 +374,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -422,10 +409,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     GenericTypeAlias
@@ -463,10 +449,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -490,10 +475,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     ClassDeclaration
@@ -517,10 +501,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -547,17 +530,16 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -577,10 +559,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
 ''');
   }
@@ -596,10 +577,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
     ExportDirective
       exportKeyword: export
@@ -620,10 +600,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -650,10 +629,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -682,10 +660,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -714,10 +691,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -745,10 +721,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
     ImportDirective
       importKeyword: import
@@ -769,10 +744,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     MixinDeclaration
@@ -795,10 +769,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
     PartDirective
       partKeyword: part
@@ -819,10 +792,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -852,10 +824,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     GenericTypeAlias
@@ -890,10 +861,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
+      name: DottedName
+        tokens
+          lib
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -920,12 +890,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     ClassDeclaration
@@ -952,12 +921,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -987,19 +955,18 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -1022,12 +989,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
 ''');
   }
@@ -1046,12 +1012,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
     ExportDirective
       exportKeyword: export
@@ -1075,12 +1040,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -1107,12 +1071,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: int
+      name: DottedName
+        tokens
+          lib
+          .
+          int
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -1142,12 +1105,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -1176,12 +1138,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: int
+      name: DottedName
+        tokens
+          lib
+          .
+          int
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -1210,12 +1171,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
     ImportDirective
       importKeyword: import
@@ -1239,12 +1199,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     MixinDeclaration
@@ -1270,12 +1229,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
     PartDirective
       partKeyword: part
@@ -1299,12 +1257,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -1337,12 +1294,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     GenericTypeAlias
@@ -1380,12 +1336,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: <empty> <synthetic>
+      name: DottedName
+        tokens
+          lib
+          .
+          <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -1409,12 +1364,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     ClassDeclaration
@@ -1438,12 +1392,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -1470,19 +1423,18 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -1502,12 +1454,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
 ''');
   }
@@ -1523,12 +1474,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
     ExportDirective
       exportKeyword: export
@@ -1549,12 +1499,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration
@@ -1581,12 +1530,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -1615,12 +1563,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -1649,12 +1596,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -1682,12 +1628,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
     ImportDirective
       importKeyword: import
@@ -1708,12 +1653,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     MixinDeclaration
@@ -1736,12 +1680,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
     PartDirective
       partKeyword: part
@@ -1762,12 +1705,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     FunctionDeclaration
@@ -1797,12 +1739,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     GenericTypeAlias
@@ -1837,12 +1778,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: lib
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          lib
+          .
+          a
       semicolon: ; <synthetic>
   declarations
     TopLevelVariableDeclaration

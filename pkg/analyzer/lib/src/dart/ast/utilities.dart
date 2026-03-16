@@ -337,6 +337,24 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool visitBlockClassBody(covariant BlockClassBodyImpl node) {
+    if (_replaceInList(node.members)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitBlockEnumBody(covariant BlockEnumBodyImpl node) {
+    if (_replaceInList(node.constants)) {
+      return true;
+    } else if (_replaceInList(node.members)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitBlockFunctionBody(covariant BlockFunctionBodyImpl node) {
     if (identical(node.block, _oldNode)) {
       node.block = _newNode as BlockImpl;
@@ -622,9 +640,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitDottedName(covariant DottedNameImpl node) {
-    if (_replaceInList(node.components)) {
-      return true;
-    }
     return visitNode(node);
   }
 
@@ -636,16 +651,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitEmptyStatement(EmptyStatement node) => visitNode(node);
-
-  @override
-  bool? visitEnumBody(covariant EnumBodyImpl node) {
-    if (_replaceInList(node.constants)) {
-      return true;
-    } else if (_replaceInList(node.members)) {
-      return true;
-    }
-    return super.visitEnumBody(node);
-  }
 
   @override
   bool visitEnumConstantArguments(EnumConstantArguments node) {
@@ -1114,18 +1119,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     if (identical(node.name, _oldNode)) {
-      node.name = _newNode as LibraryIdentifierImpl;
+      node.name = _newNode as DottedNameImpl;
       return true;
     }
     return visitAnnotatedNode(node);
-  }
-
-  @override
-  bool visitLibraryIdentifier(covariant LibraryIdentifierImpl node) {
-    if (_replaceInList(node.components)) {
-      return true;
-    }
-    return visitNode(node);
   }
 
   @override
@@ -1255,7 +1252,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitPartOfDirective(covariant PartOfDirectiveImpl node) {
     if (identical(node.libraryName, _oldNode)) {
-      node.libraryName = _newNode as LibraryIdentifierImpl;
+      node.libraryName = _newNode as DottedNameImpl;
       return true;
     }
     return visitAnnotatedNode(node);

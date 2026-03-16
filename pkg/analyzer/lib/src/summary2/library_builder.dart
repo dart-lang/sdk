@@ -771,7 +771,7 @@ class LibraryBuilder {
       if (directive is ast.LibraryDirectiveImpl) {
         var nameIdentifier = directive.name;
         if (nameIdentifier != null) {
-          name = nameIdentifier.components.map((e) => e.name).join('.');
+          name = nameIdentifier.tokens.map((e) => e.lexeme).join();
           nameOffset = nameIdentifier.offset;
           nameLength = nameIdentifier.length;
         }

@@ -54,6 +54,8 @@ abstract class AstVisitor<R> {
 
   R? visitBlockClassBody(BlockClassBody node);
 
+  R? visitBlockEnumBody(BlockEnumBody node);
+
   R? visitBlockFunctionBody(BlockFunctionBody node);
 
   R? visitBooleanLiteral(BooleanLiteral node);
@@ -120,11 +122,11 @@ abstract class AstVisitor<R> {
 
   R? visitEmptyClassBody(EmptyClassBody node);
 
+  R? visitEmptyEnumBody(EmptyEnumBody node);
+
   R? visitEmptyFunctionBody(EmptyFunctionBody node);
 
   R? visitEmptyStatement(EmptyStatement node);
-
-  R? visitEnumBody(EnumBody node);
 
   R? visitEnumConstantArguments(EnumConstantArguments node);
 
@@ -221,8 +223,6 @@ abstract class AstVisitor<R> {
   R? visitLabeledStatement(LabeledStatement node);
 
   R? visitLibraryDirective(LibraryDirective node);
-
-  R? visitLibraryIdentifier(LibraryIdentifier node);
 
   R? visitListLiteral(ListLiteral node);
 

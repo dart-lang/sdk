@@ -185,6 +185,49 @@ ExtensionDeclaration
 ''');
   }
 
+  test_declaration_emptyBody() {
+    var parseResult = parseStringWithErrors(r'''
+extension E on int;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: EmptyClassBody
+    semicolon: ;
+''');
+  }
+
+  test_emptyBody_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+extension E on int;
+''');
+    parseResult.assertErrors([
+      error(diag.experimentNotEnabledOffByDefault, 34, 1),
+    ]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: EmptyClassBody
+    semicolon: ;
+''');
+  }
+
   test_primaryConstructorBody() {
     var parseResult = parseStringWithErrors(r'''
 extension A on int {

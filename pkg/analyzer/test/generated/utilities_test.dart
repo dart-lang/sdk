@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -1120,18 +1120,6 @@ library foo;
       destination: node,
       source: node,
       childAccessors: [(node) => node.name!],
-    );
-  }
-
-  void test_libraryIdentifier() {
-    var findNode = _parseStringToFindNode(r'''
-library foo.bar;
-''');
-    var node = findNode.libraryIdentifier('foo');
-    _assertReplaceInList(
-      destination: node,
-      child: node.components[0],
-      replacement: node.components[1],
     );
   }
 

@@ -1412,7 +1412,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _enclosingClass = declaredElement;
 
-      List<ClassMember> members = node.body.members;
       _checkForBuiltInIdentifierAsName(
         node.name,
         diag.builtInIdentifierAsTypeName,
@@ -1428,7 +1427,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       _checkForConflictingClassMembers(declaredFragment);
-      _checkForNotInitializedFieldDeclarations(declaredFragment, members);
+      _checkForNotInitializedFieldDeclarations(
+        declaredFragment,
+        node.body.members,
+      );
       _checkForMainFunction1(node.name, firstFragment);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);

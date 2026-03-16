@@ -187,6 +187,15 @@ void main() {
 ''');
   }
 
+  test_locate_DottedName_libraryDirective() async {
+    await resolveTestCode('library foo.bar;');
+    var node = findNode.singleDottedName;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>
+''');
+  }
+
   test_locate_EnumConstantDeclaration() async {
     await resolveTestCode(r'''
 enum E {
@@ -348,15 +357,6 @@ void f(int a) {
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
-''');
-  }
-
-  test_locate_Identifier_libraryDirective() async {
-    await resolveTestCode('library foo.bar;');
-    var node = findNode.simple('foo');
-    var element = ElementLocator.locate(node);
-    _assertElement(element, r'''
-<testLibrary>
 ''');
   }
 

@@ -172,15 +172,12 @@ void sendAnalysisNotificationOverrides(
 String? _computeLibraryName(CompilationUnit unit) {
   for (var directive in unit.directives) {
     if (directive is LibraryDirective) {
-      return directive.name?.name;
+      return directive.name?.tokens.join();
     }
   }
   for (var directive in unit.directives) {
     if (directive is PartOfDirective) {
-      var libraryName = directive.libraryName;
-      if (libraryName != null) {
-        return libraryName.name;
-      }
+      return directive.libraryName?.tokens.join();
     }
   }
   return null;

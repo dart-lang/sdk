@@ -942,7 +942,7 @@ class FileState {
       } else if (directive is LibraryDirective) {
         libraryDirective = UnlinkedLibraryDirective(
           docImports: buildDocImports(directive),
-          name: directive.name?.name,
+          name: directive.name?.tokens.map((e) => e.lexeme).join(),
         );
       } else if (directive is PartDirective) {
         var unlinked = _serializePart(directive);
@@ -953,7 +953,7 @@ class FileState {
         if (libraryName != null) {
           partOfNameDirective ??= UnlinkedPartOfNameDirective(
             docImports: buildDocImports(directive),
-            name: libraryName.name,
+            name: libraryName.tokens.map((e) => e.lexeme).join(),
             nameRange: UnlinkedSourceRange(
               offset: libraryName.offset,
               length: libraryName.length,
@@ -1074,7 +1074,7 @@ class FileState {
     List<Configuration> configurations,
   ) {
     return configurations.map((configuration) {
-      var name = configuration.name.components.join('.');
+      var name = configuration.name.tokens.map((e) => e.lexeme).join();
       var value = configuration.value?.stringValue ?? '';
       return UnlinkedNamespaceDirectiveConfiguration(
         name: name,

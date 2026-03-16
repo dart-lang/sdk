@@ -323,6 +323,49 @@ EnumConstantDeclaration
 ''');
   }
 
+  test_emptyBody() async {
+    await assertErrorsInCode(
+      r'''
+enum E;
+''',
+      [error(diag.enumWithoutConstants, 5, 1)],
+    );
+
+    var node = findNode.singleEnumDeclaration;
+    assertResolvedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EmptyEnumBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> E@5
+''');
+  }
+
+  test_emptyBody_language310() async {
+    var code = r'''
+// @dart = 3.10
+enum E;
+''';
+
+    await assertErrorsInCode(code, [
+      error(diag.enumWithoutConstants, 21, 1),
+      error(diag.experimentNotEnabledOffByDefault, 22, 1),
+    ]);
+
+    var node = findNode.singleEnumDeclaration;
+    assertResolvedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EmptyEnumBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> E@21
+''');
+  }
+
   test_field() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -592,7 +635,7 @@ EnumDeclaration
           declaredFragment: <testLibraryFragment> T@7
             defaultType: int
       rightBracket: >
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -619,7 +662,7 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: A
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -670,7 +713,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function({int a})
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -734,7 +777,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function({required int a})
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -803,7 +846,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function(int Function(String))
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -853,7 +896,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function(int)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -906,7 +949,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function(int)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1051,7 +1094,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> named@10
       element: <testLibrary>::@enum::A::@constructor::named
         type: A<T> Function(T)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1116,7 +1159,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A<T> Function(T)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1170,7 +1213,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> named@7
       element: <testLibrary>::@enum::A::@constructor::named
         type: A Function(int)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1223,7 +1266,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function(int)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1419,7 +1462,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function(bool, bool)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration

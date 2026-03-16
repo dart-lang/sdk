@@ -107,7 +107,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -566,7 +566,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -963,7 +963,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -1310,9 +1310,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1351,9 +1350,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1395,9 +1393,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1408,7 +1405,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -1439,9 +1436,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1472,9 +1468,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1510,9 +1505,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1554,9 +1548,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1600,9 +1593,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1646,9 +1638,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1691,9 +1682,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1729,9 +1719,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1769,9 +1758,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1807,9 +1795,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1854,9 +1841,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1906,9 +1892,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: ( <synthetic>
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1946,9 +1931,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -1986,9 +1970,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2029,9 +2012,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2042,7 +2024,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -2072,9 +2054,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2104,9 +2085,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2141,9 +2121,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2184,9 +2163,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2229,9 +2207,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2274,9 +2251,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2318,9 +2294,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2355,9 +2330,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2394,9 +2368,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2431,9 +2404,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2477,9 +2449,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2528,9 +2499,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2569,9 +2539,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2613,9 +2582,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2660,9 +2628,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2676,7 +2643,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -2707,9 +2674,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2743,9 +2709,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2784,9 +2749,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2831,9 +2795,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2880,9 +2843,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2929,9 +2891,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -2977,9 +2938,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3018,9 +2978,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3061,9 +3020,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3102,9 +3060,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3152,9 +3109,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3207,9 +3163,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3251,9 +3206,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3292,9 +3246,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3336,9 +3289,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3349,7 +3301,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -3380,9 +3332,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3413,9 +3364,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3451,9 +3401,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3495,9 +3444,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3541,9 +3489,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3587,9 +3534,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3632,9 +3578,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3670,9 +3615,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3710,9 +3654,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3748,9 +3691,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3795,9 +3737,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3847,9 +3788,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: b
+            tokens
+              b
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3889,9 +3829,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3931,9 +3870,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3976,9 +3914,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -3989,7 +3926,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -4021,9 +3958,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4055,9 +3991,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4094,9 +4029,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4138,9 +4072,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: int
+            tokens
+              int
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4183,9 +4116,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4229,9 +4161,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: int
+            tokens
+              int
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4273,9 +4204,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4312,9 +4242,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4353,9 +4282,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4391,9 +4319,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: set
+            tokens
+              set
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4438,9 +4365,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4491,9 +4417,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: <empty> <synthetic>
+            tokens
+              <empty> <synthetic>
           rightParenthesis: ) <synthetic>
           uri: SimpleStringLiteral
             literal: "" <synthetic>
@@ -4591,7 +4516,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -5051,7 +4976,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration

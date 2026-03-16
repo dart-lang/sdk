@@ -33,35 +33,34 @@ class DartUnitOutlineComputer {
         );
       } else if (unitMember is MixinDeclaration) {
         unitContents.add(
-          _newMixinOutline(
-            unitMember,
-            _outlinesForMembers(unitMember.body.members),
-          ),
+          _newMixinOutline(unitMember, [
+            if (unitMember.body case BlockClassBody body)
+              ..._outlinesForMembers(body.members),
+          ]),
         );
       } else if (unitMember is EnumDeclaration) {
         unitContents.add(
           _newEnumOutline(unitMember, [
-            for (var constant in unitMember.body.constants)
-              _newEnumConstant(constant),
-            ..._outlinesForMembers(unitMember.body.members),
+            if (unitMember.body case BlockEnumBody body) ...[
+              for (var constant in body.constants) _newEnumConstant(constant),
+              ..._outlinesForMembers(body.members),
+            ],
           ]),
         );
       } else if (unitMember is ExtensionDeclaration) {
         unitContents.add(
-          _newExtensionOutline(
-            unitMember,
-            _outlinesForMembers(unitMember.body.members),
-          ),
+          _newExtensionOutline(unitMember, [
+            if (unitMember.body case BlockClassBody body)
+              ..._outlinesForMembers(body.members),
+          ]),
         );
       } else if (unitMember is ExtensionTypeDeclaration) {
-        if (unitMember.body case BlockClassBody body) {
-          unitContents.add(
-            _newExtensionTypeOutline(
-              unitMember,
-              _outlinesForMembers(body.members),
-            ),
-          );
-        }
+        unitContents.add(
+          _newExtensionTypeOutline(unitMember, [
+            if (unitMember.body case BlockClassBody body)
+              ..._outlinesForMembers(body.members),
+          ]),
+        );
       } else if (unitMember is TopLevelVariableDeclaration) {
         var fieldDeclaration = unitMember;
         var fields = fieldDeclaration.variables;

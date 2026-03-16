@@ -19,6 +19,51 @@ main() {
 }
 
 abstract class ExtensionElementTest extends ElementsBaseTest {
+  test_emptyBody() async {
+    var library = await buildLibrary(r'''
+extension E on int;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::E
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+''');
+  }
+
+  test_emptyBody_language310() async {
+    var library = await buildLibrary(r'''
+// @dart = 3.10
+extension E on int;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E (nameOffset:26) (firstTokenOffset:16) (offset:26)
+          element: <testLibrary>::@extension::E
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+''');
+  }
+
   test_extendedType_recordType() async {
     var library = await buildLibrary('''
 extension E on (int, String) {}

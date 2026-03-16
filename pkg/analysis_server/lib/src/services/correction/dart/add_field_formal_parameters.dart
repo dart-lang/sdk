@@ -39,7 +39,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     var parent = node.parent;
     if (parent case ConstructorDeclarationImpl constructor) {
       var parent = constructor.parent;
-      if (parent is! BlockClassBody && parent is! EnumBody) {
+      if (parent is! BlockClassBody && parent is! BlockEnumBody) {
         return;
       }
       await _computeFromPieces(

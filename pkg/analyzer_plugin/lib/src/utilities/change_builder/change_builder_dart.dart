@@ -3086,12 +3086,22 @@ class _InsertionPreparer {
     final declaration = _declaration;
     if (declaration is EnumDeclaration) {
       // After the last enum value.
-      var semicolon = declaration.body.semicolon;
+      Token? semicolon;
+      var hasConstants = false;
+      EnumConstantDeclaration? lastConstant;
+      var body = declaration.body;
+      if (body is BlockEnumBody) {
+        semicolon = body.semicolon;
+        hasConstants = body.constants.isNotEmpty;
+        lastConstant = body.constants.lastOrNull;
+      } else if (body is EmptyEnumBody) {
+        semicolon = body.semicolon;
+      }
+
       if (semicolon != null) {
         return semicolon.end;
-      } else if (declaration.body.constants.isNotEmpty) {
-        var lastConstant = declaration.body.constants.last;
-        return lastConstant.end;
+      } else if (hasConstants) {
+        return lastConstant!.end;
       }
     }
 
@@ -3120,8 +3130,21 @@ class _InsertionPreparer {
       builder.write(' {');
     }
     var declaration = _declaration;
-    if (declaration is EnumDeclaration && declaration.body.semicolon == null) {
+    var hasSemicolon = false;
+    if (declaration is EnumDeclaration) {
+      var body = declaration.body;
+      hasSemicolon =
+          body is BlockEnumBody && body.semicolon != null ||
+          body is EmptyEnumBody;
+    }
+    if (declaration is EnumDeclaration && !hasSemicolon) {
       builder.write(';');
+    }
+
+    var hasConstants = false;
+    if (declaration is EnumDeclaration) {
+      var body = declaration.body;
+      hasConstants = body is BlockEnumBody && body.constants.isNotEmpty;
     }
 
     if (_foundTargetMember) {
@@ -3129,8 +3152,7 @@ class _InsertionPreparer {
       builder.writeln();
       builder.writeln();
       builder.writeIndent();
-    } else if (declaration is EnumDeclaration &&
-        declaration.body.constants.isNotEmpty) {
+    } else if (declaration is EnumDeclaration && hasConstants) {
       // After the last constant (and the semicolon), write two newlines.
       builder.writeln();
       builder.writeln();
@@ -3153,8 +3175,12 @@ class _InsertionPreparer {
     }
 
     var declaration = _declaration;
-    if (declaration is EnumDeclaration &&
-        declaration.body.constants.isNotEmpty) {
+    var hasConstants = false;
+    if (declaration is EnumDeclaration) {
+      var body = declaration.body;
+      hasConstants = body is BlockEnumBody && body.constants.isNotEmpty;
+    }
+    if (declaration is EnumDeclaration && hasConstants) {
       return;
     }
 
@@ -3330,15 +3356,18 @@ extension on CompilationUnitMember {
           return body.leftBracket;
         }
       case EnumDeclaration():
-        return self.body.leftBracket;
+        var body = self.body;
+        return body is BlockEnumBody ? body.leftBracket : null;
       case ExtensionDeclaration():
-        return self.body.leftBracket;
+        var body = self.body;
+        return body is BlockClassBody ? body.leftBracket : null;
       case ExtensionTypeDeclaration():
         if (self.body case BlockClassBody body) {
           return body.leftBracket;
         }
       case MixinDeclaration():
-        return self.body.leftBracket;
+        var body = self.body;
+        return body is BlockClassBody ? body.leftBracket : null;
       default:
     }
     return null;
@@ -3357,15 +3386,18 @@ extension on CompilationUnitMember {
         }
       case EnumDeclaration():
         // Enum constants are handled separately; not considered members.
-        return self.body.members;
+        var body = self.body;
+        return body is BlockEnumBody ? body.members : const [];
       case ExtensionDeclaration():
-        return self.body.members;
+        var body = self.body;
+        return body is BlockClassBody ? body.members : const [];
       case ExtensionTypeDeclaration():
         if (self.body case BlockClassBody body) {
           return body.members;
         }
       case MixinDeclaration():
-        return self.body.members;
+        var body = self.body;
+        return body is BlockClassBody ? body.members : const [];
     }
     return null;
   }
@@ -3380,15 +3412,18 @@ extension on CompilationUnitMember {
           return body.rightBracket;
         }
       case EnumDeclaration():
-        return self.body.rightBracket;
+        var body = self.body;
+        return body is BlockEnumBody ? body.rightBracket : null;
       case ExtensionDeclaration():
-        return self.body.rightBracket;
+        var body = self.body;
+        return body is BlockClassBody ? body.rightBracket : null;
       case ExtensionTypeDeclaration():
         if (self.body case BlockClassBody body) {
           return body.rightBracket;
         }
       case MixinDeclaration():
-        return self.body.rightBracket;
+        var body = self.body;
+        return body is BlockClassBody ? body.rightBracket : null;
     }
     return null;
   }
