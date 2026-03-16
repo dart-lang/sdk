@@ -1555,9 +1555,7 @@ class SyntheticVariable extends Variable {
   }
 
   @override
-  bool get isLate {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
+  bool get isLate => false;
 
   @override
   void set isLate(bool value) {
@@ -1619,7 +1617,7 @@ class SyntheticVariable extends Variable {
   bool get hasIsConst => true;
 
   @override
-  bool get hasIsLate => false;
+  bool get hasIsLate => true;
 
   @override
   bool get hasIsInitializingFormal => false;

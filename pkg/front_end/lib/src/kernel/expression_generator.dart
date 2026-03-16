@@ -111,7 +111,15 @@ abstract class Generator {
   ///
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
-  Expression buildAssignment(Expression value, {bool voidContext = false});
+  ///
+  /// If [forOutput] is true, the assignment is emitted in the form it will be
+  /// given to the backends, skipping the internal representation stage, which
+  /// might be required, for example, by type inference.
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  });
 
   /// Returns an [Expression] representing a null-aware assignment (`??=`) with
   /// the generator on the LHS and [value] on the RHS.
@@ -461,8 +469,12 @@ class VariableUseGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    return _createWrite(fileOffset, value);
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
+    return _createWrite(fileOffset, value, forOutput: forOutput);
   }
 
   void _checkAssignment(int offset) {
@@ -476,10 +488,18 @@ class VariableUseGenerator extends Generator {
     }
   }
 
-  Expression _createWrite(int offset, Expression value) {
+  Expression _createWrite(
+    int offset,
+    Expression value, {
+    bool forOutput = false,
+  }) {
     _checkAssignment(offset);
     _helper.registerVariableAssignment(variable);
-    return new VariableSet(variable, value)..fileOffset = offset;
+    if (variable case InternalVariable(:var astVariable) when forOutput) {
+      return new VariableSet(astVariable, value)..fileOffset = offset;
+    } else {
+      return new VariableSet(variable, value)..fileOffset = offset;
+    }
   }
 
   @override
@@ -637,7 +657,11 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   String get _debugName => "ForInLateFinalVariableUseGenerator";
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     InvalidExpression error = _helper.buildProblem(
       message: diag.cannotAssignToFinalVariable.withArguments(
         variableName: variable.cosmeticName!,
@@ -735,7 +759,11 @@ class PropertyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _helper.forest.createPropertySet(
       fileOffset,
       receiver,
@@ -954,7 +982,11 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _createWrite(fileOffset, value, forEffect: voidContext);
   }
 
@@ -1128,7 +1160,11 @@ class NullAwarePropertyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _forest.createPropertySet(
       fileOffset,
       receiver,
@@ -1309,7 +1345,11 @@ class SuperPropertyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _createWrite(fileOffset, value);
   }
 
@@ -1531,7 +1571,11 @@ class IndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _forest.createIndexSet(
       fileOffset,
       receiver,
@@ -1708,7 +1752,11 @@ class ThisIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     _helper.readInternalThisVariable();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return _forest.createIndexSet(
@@ -1876,7 +1924,11 @@ class SuperIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     Procedure? setter = this.setter;
     if (setter == null) {
       return _helper.buildUnresolvedError(
@@ -2161,7 +2213,11 @@ class StaticAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _createWrite(fileOffset, value);
   }
 
@@ -2524,7 +2580,11 @@ class ExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _createWrite(fileOffset, value, forEffect: voidContext);
   }
 
@@ -2954,7 +3014,11 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _createWrite(
       fileOffset,
       receiver,
@@ -3304,7 +3368,11 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     Procedure? setter = writeTarget;
     if (setter == null) {
       // Coverage-ignore-block(suite): Not run.
@@ -3512,7 +3580,11 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _makeInvalidWrite();
   }
 
@@ -3788,7 +3860,11 @@ class LoadLibraryGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _makeInvalidWrite();
   }
 
@@ -3900,7 +3976,11 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _helper.wrapInDeferredCheck(
       suffixGenerator.buildAssignment(value, voidContext: voidContext),
       prefixGenerator.prefix,
@@ -4982,7 +5062,11 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _makeInvalidWrite();
   }
 
@@ -5128,7 +5212,11 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return buildError(kind: UnresolvedKind.Setter);
   }
 
@@ -5426,7 +5514,11 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _buildUnresolvedVariableAssignment(false, value);
   }
 
@@ -5512,7 +5604,11 @@ abstract class ContextAwareGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _makeInvalidWrite();
   }
 
@@ -5824,7 +5920,11 @@ class PrefixUseGenerator extends Generator {
   Expression buildSimpleRead() => _makeInvalidRead();
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _makeInvalidWrite();
   }
 
@@ -6022,7 +6122,11 @@ class UnexpectedQualifiedUseGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _makeInvalidWrite(errorHasBeenReported: errorHasBeenReported);
   }
 
@@ -6209,7 +6313,11 @@ class ParserErrorGenerator extends Generator {
   Expression buildSimpleRead() => buildProblem();
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return buildProblem();
   }
 
@@ -6720,7 +6828,11 @@ class ThisAccessGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return buildAssignmentError();
   }
 
@@ -7198,7 +7310,11 @@ class AugmentSuperAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+  Expression buildAssignment(
+    Expression value, {
+    bool voidContext = false,
+    bool forOutput = false,
+  }) {
     return _createWrite(fileOffset, value, forEffect: voidContext);
   }
 
