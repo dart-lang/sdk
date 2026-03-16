@@ -8234,22 +8234,26 @@ class BodyBuilderImpl extends StackListenerImpl
         lvalue.isConst = false;
       }
     } else {
-      Variable astVariable = isClosureContextLoweringEnabled
-          ? new SyntheticVariable(type: const DynamicType())
-          : forest.createVariableDeclaration(
-              offsetForToken(forToken),
-              null,
-              isFinal: true,
-              isSynthesized: true,
-            );
-
-      Variable variable = elements.syntheticVariableDeclaration =
-          isClosureContextLoweringEnabled
-          ? new InternalSyntheticVariable(
-              astVariable: astVariable as SyntheticVariable,
-              isImplicitlyTyped: false,
-            )
-          : astVariable;
+      Variable astVariable;
+      Variable variable;
+      if (isClosureContextLoweringEnabled) {
+        SyntheticVariable syntheticAstVariable = new SyntheticVariable(
+          type: const DynamicType(),
+        );
+        astVariable = syntheticAstVariable;
+        variable = new InternalSyntheticVariable(
+          astVariable: syntheticAstVariable,
+          isImplicitlyTyped: false,
+        );
+      } else {
+        variable = astVariable = forest.createVariableDeclaration(
+          offsetForToken(forToken),
+          null,
+          isFinal: true,
+          isSynthesized: true,
+        );
+      }
+      elements.syntheticVariableDeclaration = variable;
       if (lvalue is Generator) {
         /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
         ///
@@ -8261,9 +8265,14 @@ class BodyBuilderImpl extends StackListenerImpl
         ///       lvalue = #t;
         ///       body;
         ///     }
+        ///
+        /// The value of [forOutput] is `true`, since the synthetic assignment
+        /// will not be inferred, but will present in the output directly as
+        /// generated.
         elements.syntheticAssignment = lvalue.buildAssignment(
           new VariableGet(astVariable)..fileOffset = inToken.offset,
           voidContext: true,
+          forOutput: true,
         );
       } else if (lvalue is Pattern) {
         /// We are in the case where `lvalue` is a pattern:

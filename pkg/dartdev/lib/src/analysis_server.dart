@@ -38,13 +38,12 @@ class AnalysisServer {
     this.cacheDirectoryPath,
     required this.commandName,
     required this.argResults,
-    required bool usePlugins,
+    required this._usePlugins,
     this.enabledExperiments = const [],
     this.disableStatusNotificationDebouncing = false,
     this.suppressAnalytics = false,
-    bool useAotSnapshot = false,
-  }) : _useAotSnapshot = useAotSnapshot,
-       _usePlugins = usePlugins;
+    this._useAotSnapshot = false,
+  });
 
   final String? cacheDirectoryPath;
   final File? packagesFile;
