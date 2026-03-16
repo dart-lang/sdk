@@ -223,50 +223,39 @@ B0 = EntryBlock()
   v17 = DirectCall _GrowableList._literal3(v13, v14, v15, v16)   # RA: R0 <- (-, -, -, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v17)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  v40 = AllocateList(v24)   # RA: R1 <- (-) temps: [R3, R2, R0]
+  ParallelMove input(IntConstant(1) -> vloc:R3)
+  SetListElement(v40, v6, v14)   # RA: (R1, -, R3) temps: [R2, R0]
+  ParallelMove input(IntConstant(2) -> vloc:R3)
+  SetListElement(v40, v14, v15)   # RA: (R1, -, R3) temps: [R2, R0]
+  ParallelMove input(IntConstant(3) -> vloc:R0)
+  SetListElement(v40, v15, v16)   # RA: (R1, -, R0) temps: [R3, R2]
+  ParallelMove input(IntConstant(4) -> vloc:R3)
+  SetListElement(v40, v16, v19)   # RA: (R1, -, R3) temps: [R2, R0]
+  ParallelMove input(IntConstant(5) -> vloc:R3)
+  SetListElement(v40, v19, v20)   # RA: (R1, -, R3) temps: [R2, R0]
+  ParallelMove input(IntConstant(6) -> vloc:R2)
+  SetListElement(v40, v20, v21)   # RA: (R1, -, R2) temps: [R3, R0]
+  ParallelMove input(IntConstant(7) -> vloc:R2)
+  SetListElement(v40, v21, v22)   # RA: (R1, -, R2) temps: [R0, R3]
+  ParallelMove input(IntConstant(8) -> vloc:R0)
+  SetListElement(v40, v22, v23)   # RA: (R1, -, R0) temps: [R2, R3]
   ParallelMove input(IntConstant(9) -> vloc:R0)
-  v40 = AllocateList(v24)   # RA: R0 <- (R0)
-  ParallelMove input(IntConstant(0) -> vloc:R2, IntConstant(1) -> vloc:R1)
-  SetListElement(v40, v6, v14)   # RA: (R0, R2, R1)
-  ParallelMove input(IntConstant(1) -> vloc:R2, IntConstant(2) -> vloc:R1)
-  SetListElement(v40, v14, v15)   # RA: (R0, R2, R1)
-  ParallelMove input(IntConstant(2) -> vloc:R2, IntConstant(3) -> vloc:R1)
-  SetListElement(v40, v15, v16)   # RA: (R0, R2, R1)
-  ParallelMove input(IntConstant(3) -> vloc:R2, IntConstant(4) -> vloc:R1)
-  SetListElement(v40, v16, v19)   # RA: (R0, R2, R1)
-  ParallelMove input(IntConstant(4) -> vloc:R1, IntConstant(5) -> vloc:R2)
-  SetListElement(v40, v19, v20)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(5) -> vloc:R1, IntConstant(6) -> vloc:R2)
-  SetListElement(v40, v20, v21)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(6) -> vloc:R1, IntConstant(7) -> vloc:R2)
-  SetListElement(v40, v21, v22)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(7) -> vloc:R2, IntConstant(8) -> vloc:R1)
-  SetListElement(v40, v22, v23)   # RA: (R0, R2, R1)
-  ParallelMove input(IntConstant(8) -> vloc:R1, IntConstant(9) -> vloc:R2)
-  SetListElement(v40, v23, v24)   # RA: (R0, R1, R2)
-  v50 = DirectCall _GrowableList._literal(v13, v40)   # RA: R0 <- (-, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  SetListElement(v40, v23, v24)   # RA: (R1, -, R0) temps: [R2, R3]
+  v50 = DirectCall _GrowableList._literal(v13, v40)   # RA: R0 <- (-, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v50)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove input(IntConstant(9) -> vloc:R0)
-  v51 = AllocateList(v24)   # RA: R0 <- (R0)
-  ParallelMove split(param[1] -> R2)
-  ParallelMove input(IntConstant(0) -> vloc:R1)
-  SetListElement(v51, v6, v2)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(1) -> vloc:R1)
-  SetListElement(v51, v14, v2)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(2) -> vloc:R1)
-  SetListElement(v51, v15, v2)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(3) -> vloc:R1)
-  SetListElement(v51, v16, v2)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(4) -> vloc:R1)
-  SetListElement(v51, v19, v2)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(5) -> vloc:R1)
-  SetListElement(v51, v20, v2)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(6) -> vloc:R1)
-  SetListElement(v51, v21, v2)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(7) -> vloc:R1)
-  SetListElement(v51, v22, v2)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(8) -> vloc:R1)
-  SetListElement(v51, v23, v2)   # RA: (R0, R1, R2)
+  v51 = AllocateList(v24)   # RA: R0 <- (-) temps: [R1, R2, R3]
+  ParallelMove split(param[1] -> R3)
+  SetListElement(v51, v6, v2)   # RA: (R0, -, R3) temps: [R1, R2]
+  SetListElement(v51, v14, v2)   # RA: (R0, -, R3) temps: [R1, R2]
+  SetListElement(v51, v15, v2)   # RA: (R0, -, R3) temps: [R2, R1]
+  SetListElement(v51, v16, v2)   # RA: (R0, -, R3) temps: [R2, R1]
+  SetListElement(v51, v19, v2)   # RA: (R0, -, R3) temps: [R2, R1]
+  SetListElement(v51, v20, v2)   # RA: (R0, -, R3) temps: [R1, R2]
+  SetListElement(v51, v21, v2)   # RA: (R0, -, R3) temps: [R2, R1]
+  SetListElement(v51, v22, v2)   # RA: (R0, -, R3) temps: [R2, R1]
+  SetListElement(v51, v23, v2)   # RA: (R0, -, R3) temps: [R2, R1]
   ParallelMove split(stack[0] -> R1)
   v61 = DirectCall _GrowableList._literal(v10, v51)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
@@ -290,15 +279,15 @@ B0 = EntryBlock()
   v40 = Constant(2)
   v42 = Constant(3)
   v1 = Parameter(#functionTypeParameters)   # RA: param[0] <- ()
-  ParallelMove output(param[0] -> vloc:R0)
+  ParallelMove output(param[0] -> vloc:R4)
   v2 = Parameter(key)   # RA: param[1] <- ()
-  ParallelMove output(param[1] -> vloc:R1)
+  ParallelMove output(param[1] -> vloc:R0)
   v3 = Parameter(value)   # RA: param[2] <- ()
-  ParallelMove output(param[2] -> vloc:R2)
+  ParallelMove output(param[2] -> vloc:R1)
   v4 = Parameter(key2)   # RA: param[3] <- ()
-  ParallelMove output(param[3] -> vloc:R3)
+  ParallelMove output(param[3] -> vloc:R2)
   v5 = Parameter(value2)   # RA: param[4] <- ()
-  ParallelMove output(param[4] -> vloc:R4)
+  ParallelMove output(param[4] -> vloc:R3)
   v32 = DirectCall Map._fromLiteral(v8, v31)   # RA: R0 <- (-, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v32)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
@@ -308,37 +297,31 @@ B0 = EntryBlock()
   v33 = DirectCall Map._fromLiteral(v12, v31)   # RA: R0 <- (R0, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v33)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove input(IntConstant(4) -> vloc:R1)
-  v35 = AllocateList(v34)   # RA: R0 <- (R1)
-  ParallelMove input(IntConstant(0) -> vloc:R1, StringConstant("a") -> vloc:R2)
-  SetListElement(v35, v36, v16)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(1) -> vloc:R1, StringConstant("aa") -> vloc:R2)
-  SetListElement(v35, v38, v17)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(2) -> vloc:R1, StringConstant("b") -> vloc:R2)
-  SetListElement(v35, v40, v18)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(3) -> vloc:R1, StringConstant("bb") -> vloc:R2)
-  SetListElement(v35, v42, v19)   # RA: (R0, R1, R2)
-  v44 = DirectCall Map._fromLiteral(v15, v35)   # RA: R0 <- (-, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  v35 = AllocateList(v34)   # RA: R1 <- (-) temps: [R3, R2, R0]
+  ParallelMove input(StringConstant("a") -> vloc:R3)
+  SetListElement(v35, v36, v16)   # RA: (R1, -, R3) temps: [R2, R0]
+  ParallelMove input(StringConstant("aa") -> vloc:R2)
+  SetListElement(v35, v38, v17)   # RA: (R1, -, R2) temps: [R0, R3]
+  ParallelMove input(StringConstant("b") -> vloc:R3)
+  SetListElement(v35, v40, v18)   # RA: (R1, -, R3) temps: [R2, R0]
+  ParallelMove input(StringConstant("bb") -> vloc:R0)
+  SetListElement(v35, v42, v19)   # RA: (R1, -, R0) temps: [R3, R2]
+  v44 = DirectCall Map._fromLiteral(v15, v35)   # RA: R0 <- (-, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v44)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove split(param[2] -> R1)
   v25 = ClosureCall(v3)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R0)
-  ParallelMove input(IntConstant(4) -> vloc:R1)
-  v45 = AllocateList(v34)   # RA: R1 <- (R1)
+  ParallelMove output(R0 -> vloc:R2)
+  v45 = AllocateList(v34)   # RA: R4 <- (-) temps: [R1, R3, R0]
   ParallelMove split(param[1] -> R3)
-  ParallelMove input(IntConstant(0) -> vloc:R2)
-  SetListElement(v45, v36, v2)   # RA: (R1, R2, R3)
-  ParallelMove input(IntConstant(1) -> vloc:R2)
-  SetListElement(v45, v38, v25)   # RA: (R1, R2, R0)
+  SetListElement(v45, v36, v2)   # RA: (R4, -, R3) temps: [R1, R0]
+  SetListElement(v45, v38, v25)   # RA: (R4, -, R2) temps: [R1, R0]
   ParallelMove split(param[3] -> R2)
-  ParallelMove input(IntConstant(2) -> vloc:R0)
-  SetListElement(v45, v40, v4)   # RA: (R1, R0, R2)
+  SetListElement(v45, v40, v4)   # RA: (R4, -, R2) temps: [R1, R0]
   ParallelMove split(param[4] -> R2)
-  ParallelMove input(IntConstant(3) -> vloc:R0)
-  SetListElement(v45, v42, v5)   # RA: (R1, R0, R2)
+  SetListElement(v45, v42, v5)   # RA: (R4, -, R2) temps: [R1, R0]
   ParallelMove split(stack[0] -> R0)
-  v50 = DirectCall Map._fromLiteral(v12, v45)   # RA: R0 <- (R0, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  v50 = DirectCall Map._fromLiteral(v12, v45)   # RA: R0 <- (R0, R4) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v50)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove input(NullConstant(null) -> R0)
@@ -366,23 +349,19 @@ B0 = EntryBlock()
   v17 = DirectCall _StringBase._interpolateSingle(v3)   # RA: R0 <- (R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v17)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove input(IntConstant(6) -> vloc:R1)
-  v19 = AllocateList(v18)   # RA: R0 <- (R1)
-  ParallelMove input(IntConstant(0) -> vloc:R1, StringConstant("Hey, x=") -> vloc:R2)
-  SetListElement(v19, v20, v7)   # RA: (R0, R1, R2)
-  ParallelMove split(param[0] -> R2)
-  ParallelMove input(IntConstant(1) -> vloc:R1)
-  SetListElement(v19, v22, v1)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(2) -> vloc:R1, StringConstant(", s=") -> vloc:R2)
-  SetListElement(v19, v24, v9)   # RA: (R0, R1, R2)
-  ParallelMove split(param[1] -> R2)
-  ParallelMove input(IntConstant(3) -> vloc:R1)
-  SetListElement(v19, v26, v2)   # RA: (R0, R1, R2)
-  ParallelMove input(IntConstant(4) -> vloc:R1, StringConstant(", o=") -> vloc:R2)
-  SetListElement(v19, v28, v11)   # RA: (R0, R1, R2)
-  ParallelMove split(param[2] -> R2)
-  ParallelMove input(IntConstant(5) -> vloc:R1)
-  SetListElement(v19, v30, v3)   # RA: (R0, R1, R2)
+  v19 = AllocateList(v18)   # RA: R0 <- (-) temps: [R1, R2, R3]
+  ParallelMove input(StringConstant("Hey, x=") -> vloc:R1)
+  SetListElement(v19, v20, v7)   # RA: (R0, -, R1) temps: [R2, R3]
+  ParallelMove split(param[0] -> R3)
+  SetListElement(v19, v22, v1)   # RA: (R0, -, R3) temps: [R1, R2]
+  ParallelMove input(StringConstant(", s=") -> vloc:R1)
+  SetListElement(v19, v24, v9)   # RA: (R0, -, R1) temps: [R2, R3]
+  ParallelMove split(param[1] -> R3)
+  SetListElement(v19, v26, v2)   # RA: (R0, -, R3) temps: [R1, R2]
+  ParallelMove input(StringConstant(", o=") -> vloc:R1)
+  SetListElement(v19, v28, v11)   # RA: (R0, -, R1) temps: [R2, R3]
+  ParallelMove split(param[2] -> R3)
+  SetListElement(v19, v30, v3)   # RA: (R0, -, R3) temps: [R1, R2]
   v32 = DirectCall _StringBase._interpolate(v19)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v32)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]

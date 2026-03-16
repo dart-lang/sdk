@@ -943,12 +943,77 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitAllocateList(AllocateList instr) {
-    _asm.unimplemented('Unimplemented: code generation for AllocateList');
+    final tagsReg = temporaryReg(instr, 0);
+    final scratch1Reg = temporaryReg(instr, 1);
+    final scratch2Reg = temporaryReg(instr, 2);
+    final resultReg = outputReg(instr);
+    // TODO: support AllocateList with non-constant length
+    final length = (instr.length as Constant).value.intValue;
+    assert(objectLayout.isSmi(length));
+    final instanceSize = roundUp(
+      vmOffsets.Array_data_offset + length * objectLayout.compressedWordSize,
+      objectAlignment(wordSize),
+    );
+    assert(outputReg(instr) == resultReg);
+
+    final done = Label();
+    Label slowPath = addSlowPath(() {
+      _asm.unimplemented(
+        'Unimplemented: code generation for AllocateList slow path',
+      );
+      _asm.b(done);
+    });
+
+    _asm.loadImmediate(
+      tagsReg,
+      vmOffsets.computeNewObjectTags(
+        ClassId.ArrayCid,
+        instanceSize,
+        log2wordSize,
+      ),
+    );
+    _asm.inlineAllocation(
+      resultReg,
+      tagsReg,
+      scratch1Reg,
+      scratch2Reg,
+      instanceSize,
+      slowPath,
+      initializeFields: true,
+    );
+
+    _asm.bind(done);
+    _asm.loadImmediate(scratch1Reg, length << smiShift);
+    _asm.str(
+      scratch1Reg,
+      _asm.fieldAddress(resultReg, vmOffsets.Array_length_offset),
+    );
   }
 
   @override
   void visitSetListElement(SetListElement instr) {
-    _asm.unimplemented('Unimplemented: code generation for SetListElement');
+    final listReg = inputReg(instr, 0);
+    final valueReg = inputReg(instr, 2);
+    final scratch1Reg = temporaryReg(instr, 0);
+    final scratch2Reg = temporaryReg(instr, 1);
+    // TODO: support SetListElement with non-constant index
+    final index = (instr.index as Constant).value.intValue;
+    _asm.str(
+      valueReg,
+      _asm.fieldAddress(
+        listReg,
+        vmOffsets.Array_data_offset + index * objectLayout.compressedWordSize,
+      ),
+    );
+    if (!_canSkipWriteBarrier(instr.list, instr.value)) {
+      _writeBarrier(
+        listReg,
+        valueReg,
+        scratch1Reg,
+        scratch2Reg,
+        valueCanBeSmi: _canBeSmi(instr.value),
+      );
+    }
   }
 
   @override
