@@ -180,13 +180,11 @@ class DartToolingDaemon {
     required this.secret,
     required bool unrestrictedMode,
     bool disableServiceAuthCodes = false,
-    bool ipv6 = false,
-    bool shouldLogRequests = false,
+    this._ipv6 = false,
+    this._shouldLogRequests = false,
     bool useFakeAnalytics = false,
     this.pingInterval,
-  })  : _ipv6 = ipv6,
-        _uriAuthCode = disableServiceAuthCodes ? null : _generateSecret(),
-        _shouldLogRequests = shouldLogRequests {
+  })  : _uriAuthCode = disableServiceAuthCodes ? null : _generateSecret() {
     streamManager = DTDStreamManager(this);
     clientManager = DTDClientManager();
 
