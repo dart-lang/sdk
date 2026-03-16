@@ -259,6 +259,7 @@ class PageSpace {
   bool ShouldPerformIdleMarkCompact(int64_t deadline);
   void IncrementalMarkWithSizeBudget(intptr_t size);
   void IncrementalMarkWithTimeBudget(int64_t deadline);
+  void IncrementalSweepWithSizeBudget(intptr_t size);
   void AssistTasks(MonitorLocker* ml);
 
   void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }
@@ -426,7 +427,7 @@ class PageSpace {
   void SweepExecutable();
   void SweepNew();
   void SweepLarge();
-  void Sweep(bool exclusive);
+  void Sweep(bool exclusive, bool one_page = false);
   void ConcurrentSweep(IsolateGroup* isolate_group);
   void Compact(Thread* thread);
 
