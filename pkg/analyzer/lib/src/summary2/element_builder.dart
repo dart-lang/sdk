@@ -1171,11 +1171,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       // Build fields for all enum constants.
-      var constants = node.body.constants;
       var valuesElements = <SimpleIdentifierImpl>[];
       var valuesNames = <String>{};
-      for (var i = 0; i < constants.length; ++i) {
-        var constant = constants[i];
+      for (var constant in node.body.constants) {
         var nameToken = constant.name;
         var name = nameToken.lexeme;
         var field = FieldFragmentImpl(name: _getFragmentName(nameToken))
@@ -1208,13 +1206,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
                   )
                 : null,
           ),
-          argumentList: constantArguments != null
-              ? constantArguments.argumentList
-              : ArgumentListImpl(
-                  leftParenthesis: Tokens.openParenthesis(),
-                  arguments: [],
-                  rightParenthesis: Tokens.closeParenthesis(),
-                ),
+          argumentList:
+              constantArguments?.argumentList ??
+              ArgumentListImpl(
+                leftParenthesis: Tokens.openParenthesis(),
+                arguments: [],
+                rightParenthesis: Tokens.closeParenthesis(),
+              ),
           typeArguments: null,
         );
 
@@ -1310,7 +1308,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       );
 
       node.namePart.accept(this);
-      node.body.members.accept(this);
+      for (var member in node.body.members) {
+        member.accept(this);
+      }
     });
 
     fragment.typeParameters = holder.typeParameters;
@@ -1346,7 +1346,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
-      node.body.members.accept(this);
+      for (var member in node.body.members) {
+        member.accept(this);
+      }
     });
     fragment.typeParameters = holder.typeParameters;
 
@@ -1751,7 +1753,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
-      node.body.members.accept(this);
+      node.body.accept(this);
     });
     fragment.typeParameters = holder.typeParameters;
 

@@ -30,7 +30,7 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -54,7 +54,7 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -79,7 +79,7 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -112,7 +112,7 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     semicolon: ;
     members
@@ -127,6 +127,24 @@ EnumDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_blockBody_empty() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
     rightBracket: }
 ''');
   }
@@ -417,24 +435,6 @@ ConstructorDeclaration
 ''');
   }
 
-  test_declaration_empty() {
-    var parseResult = parseStringWithErrors(r'''
-enum E {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleEnumDeclaration;
-    assertParsedNodeText(node, r'''
-EnumDeclaration
-  enumKeyword: enum
-  namePart: NameWithTypeParameters
-    typeName: E
-  body: EnumBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
   test_declaration_noConstants_semicolon() {
     var parseResult = parseStringWithErrors(r'''
 enum E {;}
@@ -447,7 +447,7 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     semicolon: ;
     rightBracket: }
@@ -468,7 +468,7 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     semicolon: ;
     members
@@ -484,6 +484,43 @@ EnumDeclaration
             leftBracket: {
             rightBracket: }
     rightBracket: }
+''');
+  }
+
+  test_emptyBody() {
+    var parseResult = parseStringWithErrors(r'''
+enum E;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EmptyEnumBody
+    semicolon: ;
+''');
+  }
+
+  test_emptyBody_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+enum E;
+''');
+    parseResult.assertErrors([
+      error(diag.experimentNotEnabledOffByDefault, 22, 1),
+    ]);
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EmptyEnumBody
+    semicolon: ;
 ''');
   }
 
@@ -507,7 +544,7 @@ EnumDeclaration
         TypeParameter
           name: U
       rightBracket: >
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -528,7 +565,7 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -564,7 +601,7 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -597,7 +634,7 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -625,7 +662,7 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -650,7 +687,7 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -673,7 +710,7 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -710,7 +747,7 @@ EnumDeclaration
           literal: 0
       rightDelimiter: }
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -753,7 +790,7 @@ EnumDeclaration
           literal: 0
       rightDelimiter: }
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -796,7 +833,7 @@ EnumDeclaration
             name: x
           rightParenthesis: )
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -826,7 +863,7 @@ EnumDeclaration
           name: int
         name: a
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -862,7 +899,7 @@ EnumDeclaration
           name: int
         name: a
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -893,7 +930,7 @@ EnumDeclaration
           name: int
         name: it
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -932,7 +969,7 @@ EnumDeclaration
           name: int
         name: it
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -969,7 +1006,7 @@ EnumDeclaration
           name: int
         name: it
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1011,7 +1048,7 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1043,7 +1080,7 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1070,7 +1107,7 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1094,7 +1131,7 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration

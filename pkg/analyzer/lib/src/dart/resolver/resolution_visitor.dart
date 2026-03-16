@@ -368,6 +368,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEmptyClassBody(EmptyClassBody node) {}
+
+  @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {}
+
+  @override
   void visitEmptyFunctionBody(covariant EmptyFunctionBodyImpl node) {
     node.localVariableInfo = _localVariableInfo;
     super.visitEmptyFunctionBody(node);
@@ -652,9 +658,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
     super.visitLibraryDirective(node);
   }
-
-  @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {

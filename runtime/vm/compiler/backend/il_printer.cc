@@ -34,7 +34,7 @@ DECLARE_FLAG(bool, trace_inlining_intervals);
 
 static bool IsRedundant(Instruction* instr) {
   if (auto constant = instr->AsConstant()) {
-    return !constant->HasUses();
+    return constant->HasSSATemp() && !constant->HasUses();
   } else if (auto move = instr->AsParallelMove()) {
     return move->IsRedundant();
   } else {

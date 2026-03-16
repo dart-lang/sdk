@@ -439,6 +439,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleNoMixinBody(Token semicolonToken) {
+    seen(semicolonToken);
+    doPrint(
+      'handleNoMixinBody('
+      '$semicolonToken)',
+    );
+  }
+
+  @override
   void endMixinDeclaration(Token beginToken, Token endToken) {
     indent--;
     seen(beginToken);
@@ -506,6 +515,15 @@ class ParserTestListener implements Listener {
       '$extensionKeyword, '
       '$onKeyword, '
       '$endToken)',
+    );
+  }
+
+  @override
+  void handleNoExtensionBody(Token semicolonToken) {
+    seen(semicolonToken);
+    doPrint(
+      'handleNoExtensionBody('
+      '$semicolonToken)',
     );
   }
 
@@ -887,6 +905,15 @@ class ParserTestListener implements Listener {
       'endEnumBody('
       '$beginToken, '
       '$endToken)',
+    );
+  }
+
+  @override
+  void handleNoEnumBody(Token semicolonToken) {
+    seen(semicolonToken);
+    doPrint(
+      'handleNoEnumBody('
+      '$semicolonToken)',
     );
   }
 

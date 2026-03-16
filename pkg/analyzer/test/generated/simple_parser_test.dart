@@ -1195,11 +1195,10 @@ Configuration
   ifKeyword: if
   leftParenthesis: (
   name: DottedName
-    components
-      SimpleIdentifier
-        token: a
-      SimpleIdentifier
-        token: b
+    tokens
+      a
+      .
+      b
   rightParenthesis: )
   uri: SimpleStringLiteral
     literal: 'c.dart'
@@ -1218,9 +1217,8 @@ Configuration
   ifKeyword: if
   leftParenthesis: (
   name: DottedName
-    components
-      SimpleIdentifier
-        token: a
+    tokens
+      a
   rightParenthesis: )
   uri: SimpleStringLiteral
     literal: 'b.dart'
@@ -1239,11 +1237,10 @@ Configuration
   ifKeyword: if
   leftParenthesis: (
   name: DottedName
-    components
-      SimpleIdentifier
-        token: a
-      SimpleIdentifier
-        token: b
+    tokens
+      a
+      .
+      b
   equalToken: ==
   value: SimpleStringLiteral
     literal: 'c'
@@ -1265,9 +1262,8 @@ Configuration
   ifKeyword: if
   leftParenthesis: (
   name: DottedName
-    components
-      SimpleIdentifier
-        token: a
+    tokens
+      a
   equalToken: ==
   value: SimpleStringLiteral
     literal: 'b'
@@ -1989,10 +1985,9 @@ library $name;
     assertParsedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
-  name: LibraryIdentifier
-    components
-      SimpleIdentifier
-        token: $name
+  name: DottedName
+    tokens
+      $name
   semicolon: ;
 ''');
   }
@@ -2035,10 +2030,9 @@ library $name;
     assertParsedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
-  name: LibraryIdentifier
-    components
-      SimpleIdentifier
-        token: $name
+  name: DottedName
+    tokens
+      $name
   semicolon: ;
 ''');
   }
@@ -2052,10 +2046,9 @@ library $name;
     assertParsedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
-  name: LibraryIdentifier
-    components
-      SimpleIdentifier
-        token: $name
+  name: DottedName
+    tokens
+      $name
   semicolon: ;
 ''');
   }
@@ -2069,10 +2062,9 @@ library $name;
     assertParsedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
-  name: LibraryIdentifier
-    components
-      SimpleIdentifier
-        token: $name
+  name: DottedName
+    tokens
+      $name
   semicolon: ;
 ''');
   }

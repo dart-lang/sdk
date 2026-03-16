@@ -1076,10 +1076,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
     PartDirective
       partKeyword: part
@@ -1100,10 +1099,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }
@@ -2457,10 +2455,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }
@@ -2476,10 +2473,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: a
+      name: DottedName
+        tokens
+          a
       semicolon: ;
 ''');
   }
@@ -2495,12 +2491,11 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: a
-          SimpleIdentifier
-            token: b
+      name: DottedName
+        tokens
+          a
+          .
+          b
       semicolon: ;
 ''');
   }
@@ -2516,14 +2511,13 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: a
-          SimpleIdentifier
-            token: b
-          SimpleIdentifier
-            token: c
+      name: DottedName
+        tokens
+          a
+          .
+          b
+          .
+          c
       semicolon: ;
 ''');
   }
@@ -2545,10 +2539,9 @@ CompilationUnit
           name: SimpleIdentifier
             token: A
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }
@@ -2570,10 +2563,9 @@ CompilationUnit
           name: SimpleIdentifier
             token: A
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }
@@ -2608,10 +2600,9 @@ CompilationUnit
         tokens
           /// Doc
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }
@@ -2645,10 +2636,9 @@ CompilationUnit
     PartOfDirective
       partKeyword: part
       ofKeyword: of
-      libraryName: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: a
+      libraryName: DottedName
+        tokens
+          a
       semicolon: ;
 ''');
   }
@@ -2665,12 +2655,11 @@ CompilationUnit
     PartOfDirective
       partKeyword: part
       ofKeyword: of
-      libraryName: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: a
-          SimpleIdentifier
-            token: b
+      libraryName: DottedName
+        tokens
+          a
+          .
+          b
       semicolon: ;
 ''');
   }
@@ -2687,14 +2676,13 @@ CompilationUnit
     PartOfDirective
       partKeyword: part
       ofKeyword: of
-      libraryName: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: a
-          SimpleIdentifier
-            token: b
-          SimpleIdentifier
-            token: c
+      libraryName: DottedName
+        tokens
+          a
+          .
+          b
+          .
+          c
       semicolon: ;
 ''');
   }
@@ -2715,10 +2703,9 @@ CompilationUnit
           /// Doc
       partKeyword: part
       ofKeyword: of
-      libraryName: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: a
+      libraryName: DottedName
+        tokens
+          a
       semicolon: ;
 ''');
   }
@@ -2756,10 +2743,9 @@ CompilationUnit
     PartOfDirective
       partKeyword: part
       ofKeyword: of
-      libraryName: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      libraryName: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }
@@ -2784,10 +2770,9 @@ CompilationUnit
           name: SimpleIdentifier
             token: A
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
     ImportDirective
       metadata
@@ -2819,10 +2804,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
   declarations
     ClassDeclaration
@@ -2857,10 +2841,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
     PartDirective
       partKeyword: part
@@ -2891,10 +2874,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
     PartDirective
       partKeyword: part
@@ -2928,10 +2910,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }
@@ -2968,7 +2949,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -2990,7 +2971,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -3012,7 +2993,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -3040,7 +3021,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -3065,7 +3046,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -3094,7 +3075,7 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: EnumBody
+      body: BlockEnumBody
         leftBracket: {
         constants
           EnumConstantDeclaration
@@ -3129,9 +3110,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: a
+            tokens
+              a
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'b.dart'
@@ -3140,9 +3120,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: c
+            tokens
+              c
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'd.dart'
@@ -3169,11 +3148,10 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: a
-              SimpleIdentifier
-                token: b
+            tokens
+              a
+              .
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: 'c.dart'
@@ -4041,9 +4019,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: a
+            tokens
+              a
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'b.dart'
@@ -4052,9 +4029,8 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: c
+            tokens
+              c
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'd.dart'
@@ -4081,11 +4057,10 @@ CompilationUnit
           ifKeyword: if
           leftParenthesis: (
           name: DottedName
-            components
-              SimpleIdentifier
-                token: a
-              SimpleIdentifier
-                token: b
+            tokens
+              a
+              .
+              b
           equalToken: ==
           value: SimpleStringLiteral
             literal: 'c.dart'
@@ -4278,10 +4253,9 @@ CompilationUnit
   directives
     LibraryDirective
       libraryKeyword: library
-      name: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      name: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }
@@ -4607,10 +4581,9 @@ CompilationUnit
     PartOfDirective
       partKeyword: part
       ofKeyword: of
-      libraryName: LibraryIdentifier
-        components
-          SimpleIdentifier
-            token: l
+      libraryName: DottedName
+        tokens
+          l
       semicolon: ;
 ''');
   }

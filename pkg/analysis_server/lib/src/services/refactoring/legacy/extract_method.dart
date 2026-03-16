@@ -635,11 +635,11 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       var libraryElement = parent.declaredFragment!.element;
       return validateCreateFunction(_searchEngine, libraryElement, name);
     }
-    // Stop up through BlockClassBody or EnumBody.
+    // Stop up through BlockClassBody or BlockEnumBody.
     switch (parent) {
       case BlockClassBody():
         parent = parent.parent!;
-      case EnumBody():
+      case BlockEnumBody():
         parent = parent.parent!;
     }
     // method of class

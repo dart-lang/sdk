@@ -120,9 +120,8 @@ class LibraryBundleCompiler implements old.Compiler {
     this._importToSummary,
     this._summaryToModule, {
     CoreTypes? coreTypes,
-    Ticker? ticker,
-  }) : _coreTypes = coreTypes ?? CoreTypes(component),
-       _ticker = ticker;
+    this._ticker,
+  }) : _coreTypes = coreTypes ?? CoreTypes(component);
 
   @override
   Map<Class, js_ast.Identifier> get classIdentifiers =>

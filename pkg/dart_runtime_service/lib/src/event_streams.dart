@@ -135,7 +135,7 @@ class EventStreamManager implements EventStreamMethods {
 
   static const kStreamNotify = 'streamNotify';
 
-  final UnmodifiableNamedLookup<Client> Function() _clientsGetter;
+  final UnmodifiableClientNamedLookup Function() _clientsGetter;
   final DartRuntimeServiceBackend _backend;
   late final clients = _clientsGetter();
 

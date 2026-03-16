@@ -1039,6 +1039,23 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDottedName(DottedName node) {
+    if (node.parent is Configuration) {
+      for (var token in node.tokens) {
+        if (token.type != TokenType.PERIOD) {
+          computer._addRegion_token(
+            token,
+            HighlightRegionType.IDENTIFIER_DEFAULT,
+          );
+        }
+      }
+    } else {
+      computer._addRegion_node(node, HighlightRegionType.LIBRARY_NAME);
+    }
+    super.visitDottedName(node);
+  }
+
+  @override
   void visitDoubleLiteral(DoubleLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_DOUBLE);
     super.visitDoubleLiteral(node);
@@ -1421,12 +1438,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.libraryKeyword, HighlightRegionType.KEYWORD);
     super.visitLibraryDirective(node);
-  }
-
-  @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    computer._addRegion_node(node, HighlightRegionType.LIBRARY_NAME);
-    null;
   }
 
   @override

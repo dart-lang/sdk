@@ -42,7 +42,7 @@ class MakeFieldPublic extends ResolvedCorrectionProducer {
       if (container is ClassDeclaration) {
         members = container.members2;
       } else if (container is MixinDeclaration) {
-        members = container.body.members;
+        members = container.members2;
       } else {
         return;
       }

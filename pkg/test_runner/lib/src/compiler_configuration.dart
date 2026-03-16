@@ -1116,7 +1116,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     }
 
     var args = [
-      if (target != null) ...target,
+      ...?target,
       ...ldFlags,
       shared,
       '-o',

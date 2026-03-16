@@ -1,6 +1,19 @@
-## 11.1.0-dev
+## 12.0.0-dev
 
 * Added `InstantiatedTypeAliasElement.nullabilitySuffix`.
+* Support empty bodies (`;`) in enums, extensions, and mixins, representing
+  them in the AST with `EmptyEnumBody` and `EmptyClassBody`.
+* **Breaking Change:** `ClassBody` is now a `sealed class` with subclasses
+  `BlockClassBody` and `EmptyClassBody`. Getters like `.members`, `.leftBracket`,
+  and `.rightBracket` are available on `BlockClassBody`. This affects
+  `ClassDeclaration`, `ExtensionDeclaration`, and `MixinDeclaration` bodies.
+* **Breaking Change:** `EnumBody` is now a `sealed class` with subclasses
+  `BlockEnumBody` and `EmptyEnumBody`. Getters like `.members`, `.leftBracket`,
+  and `.rightBracket` are available on `BlockEnumBody`.
+* **Breaking Change:** Remove `LibraryIdentifier`. `LibraryDirective.name` and
+  `PartOfDirective.libraryName` now return `DottedName?`.
+* **Breaking Change:** `DottedName.components` (NodeList<SimpleIdentifier>) is
+  replaced with `DottedName.tokens` (List<Token>).
 
 ## 11.0.0
 

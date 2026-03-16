@@ -429,9 +429,8 @@ class DeclarationHelper {
     }
     switch (parent) {
       case BlockClassBody():
-        parent = parent.parent;
-      case EnumBody():
-        parent = parent.parent;
+      case BlockEnumBody():
+        parent = parent?.parent;
     }
     if (parent is EnumConstantDeclaration) {
       assert(node is CommentReference);
@@ -446,9 +445,8 @@ class DeclarationHelper {
     }
     switch (parent) {
       case BlockClassBody():
-        parent = parent.parent;
-      case EnumBody():
-        parent = parent.parent;
+      case BlockEnumBody():
+        parent = parent?.parent;
     }
     CompilationUnitMember? topLevelMember;
     if (parent is CompilationUnitMember) {

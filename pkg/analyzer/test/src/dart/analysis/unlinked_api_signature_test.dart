@@ -280,6 +280,17 @@ class C {}
     );
   }
 
+  test_class_emptyBody() {
+    _assertSameSignature(
+      r'''
+class C;
+''',
+      r'''
+class C;
+''',
+    );
+  }
+
   test_class_extends() {
     _assertNotSameSignature(
       r'''
@@ -969,6 +980,17 @@ class A {}
     );
   }
 
+  test_enum_emptyBody() {
+    _assertSameSignature(
+      r'''
+enum E;
+''',
+      r'''
+enum E;
+''',
+    );
+  }
+
   test_enum_enumConstants_add() {
     _assertNotSameSignature(
       r'''
@@ -1569,6 +1591,17 @@ void foo<U>() {}
     );
   }
 
+  test_extension_emptyBody() {
+    _assertSameSignature(
+      r'''
+extension E on int;
+''',
+      r'''
+extension E on int;
+''',
+    );
+  }
+
   test_extension_on() {
     _assertNotSameSignature(
       r'''
@@ -1659,6 +1692,17 @@ Future<List<int>> bar() {}
       r'''
 foo
 Future<List<int>> bar(int x) {}
+''',
+    );
+  }
+
+  test_mixin_emptyBody() {
+    _assertSameSignature(
+      r'''
+mixin M;
+''',
+      r'''
+mixin M;
 ''',
     );
   }
@@ -2043,8 +2087,8 @@ typedef F = void Function(double);
     _assertSignature(oldCode, newCode, same: true);
   }
 
-  void _assertSameSignature_classLike(String oldCode, String newCode) {
-    _assertSignature_classLike(oldCode, newCode, same: true);
+  void _assertSameSignature_classLike(String code1, String code2) {
+    _assertSignature_classLike(code1, code2, same: true);
   }
 
   void _assertSameSignature_executable(String oldCode, String newCode) {

@@ -22,7 +22,7 @@ final tests = <IsolateTest>[
       fail('Successfully registered service with duplicate name');
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kServiceAlreadyRegistered.code);
-      expect(e.message, 'Service already registered');
+      expect(e.message, contains('Service already registered'));
     }
   },
 ];

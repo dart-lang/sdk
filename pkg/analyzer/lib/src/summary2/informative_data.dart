@@ -582,13 +582,13 @@ class _InfoBuilder {
         classDeclarations.add(_buildClass(declaration));
       } else if (declaration is ClassTypeAlias) {
         classTypeAliases.add(_buildClassTypeAlias(declaration));
-      } else if (declaration is EnumDeclaration) {
+      } else if (declaration is EnumDeclarationImpl) {
         enums.add(_buildEnum(declaration));
       } else if (declaration is ExtensionDeclaration) {
         extensions.add(_buildExtension(declaration));
       } else if (declaration is ExtensionTypeDeclaration) {
         extensionTypes.add(_buildExtensionType(declaration));
-      } else if (declaration is MixinDeclaration) {
+      } else if (declaration is MixinDeclarationImpl) {
         mixinDeclarations.add(_buildMixin(declaration));
       } else if (declaration is FunctionDeclaration) {
         if (declaration.isGetter) {
@@ -789,7 +789,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoEnumDeclaration _buildEnum(EnumDeclaration node) {
+  _InfoEnumDeclaration _buildEnum(EnumDeclarationImpl node) {
     return _InfoEnumDeclaration(
       data: _buildInterfaceData(
         node,
@@ -836,7 +836,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: node.body.members,
+        members: node.body.tryCast<BlockClassBody>()?.members ?? [],
       ),
     );
   }
@@ -1066,7 +1066,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoMixinDeclaration _buildMixin(MixinDeclaration node) {
+  _InfoMixinDeclaration _buildMixin(MixinDeclarationImpl node) {
     return _InfoMixinDeclaration(
       data: _buildInterfaceData(
         node,

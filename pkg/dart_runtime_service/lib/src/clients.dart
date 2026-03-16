@@ -22,7 +22,7 @@ typedef ServiceNameAliasPair = ({ServiceName service, ServiceAlias alias});
 base class Client {
   Client({
     required StreamChannel<String> connection,
-    required UnmodifiableNamedLookup<Client> clients,
+    required UnmodifiableClientNamedLookup clients,
     required EventStreamMethods eventStreamMethods,
     required this.backend,
     String? name,
@@ -33,6 +33,7 @@ base class Client {
       clients: clients,
       eventStreamMethods: eventStreamMethods,
       client: this,
+      expressionEvaluator: backend.expressionEvaluator,
     );
   }
 
@@ -43,7 +44,7 @@ base class Client {
   final DartRuntimeServiceBackend backend;
 
   /// The logger to be used when handling requests from this client.
-  Logger get logger => Logger('Client ($name)');
+  Logger get logger => Logger(toString());
 
   /// A [Future] that completes when [close] is invoked.
   late final Future<void> done;
@@ -75,10 +76,11 @@ base class Client {
 
   @mustCallSuper
   void registerRpcHandlers() {
-    _internalRpcs.registerRpcsWithPeer(_clientPeer);
-    backend.registerRpcs(_clientPeer);
-    _internalRpcs.registerServiceExtensionForwarder(_clientPeer);
-    backend.registerFallbacks(_clientPeer);
+    _internalRpcs
+      ..addBackendRpcs(backend: backend)
+      ..registerRpcsWithPeer(_clientPeer)
+      ..registerServiceExtensionForwarder(_clientPeer)
+      ..registerBackendFallbacks(_clientPeer);
   }
 
   /// Attempts to register a [service] to be provided by this client.
@@ -170,6 +172,9 @@ base class Client {
   }
 
   late String _name;
+
+  @override
+  String toString() => 'Client ($name)';
 }
 
 /// Used for keeping track and managing clients that are connected to a given
@@ -189,7 +194,7 @@ base class ClientManager {
   /// [_kServicePrologue] (e.g., 's1'). This identifier is used when invoking
   /// service extensions registered by the client to indicate which client
   /// is responsible for handling the service extension invocation.
-  final clients = NamedLookup<Client>(prefix: _kServicePrologue);
+  final clients = ClientNamedLookup(prefix: _kServicePrologue);
 
   /// Creates a [Client] from [connection] and adds it to the list of connected
   /// clients.
@@ -199,7 +204,7 @@ base class ClientManager {
   Client addClient({required StreamChannel<String> connection, String? name}) {
     final client = Client(
       connection: connection,
-      clients: UnmodifiableNamedLookup(clients),
+      clients: UnmodifiableClientNamedLookup(clients),
       eventStreamMethods: eventStreamMethods,
       backend: backend,
       name: name,

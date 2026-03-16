@@ -2370,16 +2370,6 @@ a;
     parseResult.assertErrors([error(diag.missingConstFinalVarOrType, 0, 1)]);
   }
 
-  void test_missingEnumBody() {
-    var parseResult = parseStringWithErrors(r'''
-enum E;
-''');
-    parseResult.assertErrors([
-      error(diag.missingEnumBody, 6, 1),
-      error(diag.unexpectedToken, 6, 1),
-    ]);
-  }
-
   void test_missingEnumComma() {
     var parseResult = parseStringWithErrors(r'''
 enum E {one two}

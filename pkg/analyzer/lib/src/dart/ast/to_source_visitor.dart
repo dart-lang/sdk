@@ -137,6 +137,15 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    sink.write(' {');
+    _visitNodeList(node.constants, separator: ', ');
+    _visitToken(node.semicolon);
+    _visitNodeList(node.members, prefix: ' ', separator: ' ');
+    sink.write('}');
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     var keyword = node.keyword;
     if (keyword != null) {
@@ -400,7 +409,9 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitDottedName(DottedName node) {
-    _visitNodeList(node.components, separator: '.');
+    for (var token in node.tokens) {
+      sink.write(token.lexeme);
+    }
   }
 
   @override
@@ -414,6 +425,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {
+    sink.write(';');
+  }
+
+  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     sink.write(';');
   }
@@ -421,15 +437,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitEmptyStatement(EmptyStatement node) {
     sink.write(';');
-  }
-
-  @override
-  void visitEnumBody(EnumBody node) {
-    sink.write(' {');
-    _visitNodeList(node.constants, separator: ', ');
-    _visitToken(node.semicolon);
-    _visitNodeList(node.members, prefix: ' ', separator: ' ');
-    sink.write('}');
   }
 
   @override
@@ -872,11 +879,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write('library ');
     _visitNode(node.name);
     sink.write(';');
-  }
-
-  @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    sink.write(node.name);
   }
 
   @override

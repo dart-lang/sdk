@@ -180,10 +180,7 @@ extension AstNodeExtension on AstNode {
   /// Returns `null` if `this` is `null` or doesn't have an element.
   Element? getElement({bool useMockForImport = false}) {
     AstNode? node = this;
-    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is LibraryIdentifier) {
+    if (node is DottedName) {
       node = node.parent;
     }
     if (node is StringLiteral && node.parent is UriBasedDirective) {
@@ -331,6 +328,13 @@ extension DirectiveExtension on Directive {
   }
 }
 
+extension EnumDeclarationExtension on EnumDeclaration {
+  List<ClassMember> get members2 {
+    var body = this.body;
+    return body is BlockEnumBody ? body.members : const [];
+  }
+}
+
 extension ExpressionExtension on Expression {
   /// Whether this [Expression] should be wrapped with parentheses when we want
   /// to use it as operand of a logical and-expression.
@@ -341,6 +345,13 @@ extension ExpressionExtension on Expression {
     }
     var precedence = self.operator.type.precedence;
     return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
+  }
+}
+
+extension ExtensionDeclarationExtension on ExtensionDeclaration {
+  List<ClassMember> get members2 {
+    var body = this.body;
+    return body is BlockClassBody ? body.members : const [];
   }
 }
 
@@ -390,6 +401,13 @@ extension MethodInvocationExtension on MethodInvocation {
   bool get isToSetMethodInvocation {
     var element = methodName.element;
     return element is MethodElement && element.isToSetMethod;
+  }
+}
+
+extension MixinDeclarationExtension on MixinDeclaration {
+  List<ClassMember> get members2 {
+    var body = this.body;
+    return body is BlockClassBody ? body.members : const [];
   }
 }
 

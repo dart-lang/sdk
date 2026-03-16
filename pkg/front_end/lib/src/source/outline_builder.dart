@@ -4799,9 +4799,31 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoEnumBody(Token semicolon) {
+    debugEvent("handleNoEnumBody");
+    _builderFactory.beginEnumBody();
+    push(0); // number of enum constants
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoExtensionBody(Token semicolonToken) {
+    debugEvent("handleNoExtensionBody");
+    _builderFactory.beginExtensionBody();
+  }
+
+  @override
   void handleNoExtensionTypeBody(Token semicolonToken) {
     debugEvent("NoExtensionTypeBody");
     _builderFactory.beginExtensionTypeBody();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoMixinBody(Token semicolonToken) {
+    debugEvent("handleNoMixinBody");
+    _builderFactory.beginMixinBody();
   }
 
   @override

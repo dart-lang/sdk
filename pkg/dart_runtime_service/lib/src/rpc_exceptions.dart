@@ -16,16 +16,21 @@ enum RpcException {
   streamAlreadySubscribed(code: 103, message: 'Stream already subscribed.'),
   streamNotSubscribed(code: 104, message: 'Stream not subscribed.'),
   serviceAlreadyRegistered(code: 111, message: 'Service already registered.'),
-  serviceDisappeared(code: 112, message: 'Service has disappeared.');
+  serviceDisappeared(code: 112, message: 'Service has disappeared.'),
+  expressionCompilationError(
+    code: 113,
+    message: 'Expression compilation error.',
+  );
 
   const RpcException({required this.code, required this.message});
 
   /// Throws a [json_rpc.RpcException] with [code] and [message].
-  Never throwException() => throw toException();
+  Never throwException({Object? data}) => throw toException(data: data);
 
   /// Builds a [json_rpc.RpcException] with [code] and [message] without
   /// throwing.
-  json_rpc.RpcException toException() => json_rpc.RpcException(code, message);
+  json_rpc.RpcException toException({Object? data}) =>
+      json_rpc.RpcException(code, message, data: data);
 
   /// The JSON-RPC error code.
   final int code;

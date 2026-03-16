@@ -683,8 +683,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitConfiguration(Configuration node) {
     // The list of valid names is short, so we don't use the relevance tables to
     // try to sort them by frequency.
-    for (var id in node.name.components) {
-      _identifiersAndKeywords.remove(id.token);
+    for (var token in node.name.tokens) {
+      _identifiersAndKeywords.remove(token);
     }
     super.visitConfiguration(node);
   }
@@ -829,12 +829,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitDottedName(DottedName node) {
-    // The components are always identifiers.
-    super.visitDottedName(node);
-  }
-
-  @override
   void visitDoubleLiteral(DoubleLiteral node) {
     // There are no completions.
     super.visitDoubleLiteral(node);
@@ -856,19 +850,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitEmptyStatement(EmptyStatement node) {
     // There are no completions.
     super.visitEmptyStatement(node);
-  }
-
-  @override
-  void visitEnumBody(EnumBody node) {
-    // TODO(brianwilkerson): Record data for the enum constants.
-    for (var member in node.members) {
-      _recordDataForNode(
-        'EnumDeclaration_member',
-        member,
-        allowedKeywords: memberKeywords,
-      );
-    }
-    super.visitEnumBody(node);
   }
 
   @override
@@ -976,12 +957,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       _recordDeclaration(name);
     }
     _recordDataForNode('ExtensionDeclaration_onClause', node.onClause);
-    for (var member in node.body.members) {
-      _recordDataForNode(
-        'ExtensionDeclaration_member',
-        member,
-        allowedKeywords: memberKeywords,
-      );
+    if (node.body case BlockClassBody body) {
+      for (var member in body.members) {
+        _recordDataForNode(
+          'ExtensionDeclaration_member',
+          member,
+          allowedKeywords: memberKeywords,
+        );
+      }
     }
     super.visitExtensionDeclaration(node);
   }
@@ -1422,15 +1405,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    // There are no completions.
-    for (var id in node.components) {
-      _recordDeclaration(id.token);
-    }
-    super.visitLibraryIdentifier(node);
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     for (var element in node.elements) {
       _recordDataForNode(
@@ -1550,12 +1524,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       allowedKeywords: [Keyword.IMPLEMENTS],
     );
 
-    for (var member in node.body.members) {
-      _recordDataForNode(
-        'MixinDeclaration_member',
-        member,
-        allowedKeywords: memberKeywords,
-      );
+    if (node.body case BlockClassBody body) {
+      for (var member in body.members) {
+        _recordDataForNode(
+          'MixinDeclaration_member',
+          member,
+          allowedKeywords: memberKeywords,
+        );
+      }
     }
     super.visitMixinDeclaration(node);
   }

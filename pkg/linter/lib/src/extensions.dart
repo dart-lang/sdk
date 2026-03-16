@@ -651,6 +651,15 @@ extension MethodDeclarationExtension on MethodDeclaration {
   }
 }
 
+extension NullableObjectExtension on Object? {
+  /// If the target is [T], return it, otherwise `null`.
+  // TODO(scheglov): consider using the same method from the analyzer.
+  T? tryCast<T>() => switch (this) {
+    T value => value,
+    _ => null,
+  };
+}
+
 extension SetterElementExtension on SetterElement {
   /// Return name in a format suitable for string comparison.
   String? get canonicalName {

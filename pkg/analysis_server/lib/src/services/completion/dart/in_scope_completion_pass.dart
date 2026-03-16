@@ -567,6 +567,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    node.parent?.accept(this);
+  }
+
+  @override
   void visitBooleanLiteral(BooleanLiteral node) {
     _forExpression(node);
   }
@@ -1088,27 +1093,30 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeyword(Keyword.ENUM);
       return;
     }
-    if (offset <= node.namePart.typeName.end) {
-      var hasSyntheticBody =
-          node.body.leftBracket.isSynthetic &&
-          node.body.rightBracket.isSynthetic;
-      identifierHelper(
-        includePrivateIdentifiers: false,
-      ).addTopLevelName(includeBody: hasSyntheticBody);
-      return;
-    }
-    if (offset <= node.body.leftBracket.offset) {
-      keywordHelper.addEnumDeclarationKeywords(node);
-      return;
-    }
-    var rightBracket = node.body.rightBracket;
-    if (!rightBracket.isSynthetic && offset >= rightBracket.end) {
-      return;
-    }
-    var semicolon = node.body.semicolon;
-    if (semicolon != null && offset >= semicolon.end) {
-      collector.completionLocation = 'EnumDeclaration_member';
-      _forEnumMember(node);
+
+    if (node.body case BlockEnumBody body) {
+      if (offset <= node.namePart.typeName.end) {
+        identifierHelper(includePrivateIdentifiers: false).addTopLevelName(
+          includeBody:
+              body.leftBracket.isSynthetic && body.rightBracket.isSynthetic,
+        );
+        return;
+      }
+
+      if (offset <= body.leftBracket.offset) {
+        keywordHelper.addEnumDeclarationKeywords(node);
+        return;
+      }
+
+      if (!body.rightBracket.isSynthetic && offset >= body.rightBracket.end) {
+        return;
+      }
+
+      var semicolon = body.semicolon;
+      if (semicolon != null && offset >= semicolon.end) {
+        collector.completionLocation = 'EnumDeclaration_member';
+        _forEnumMember(node);
+      }
     }
   }
 
@@ -1283,19 +1291,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         includePrivateIdentifiers: false,
       ).addTopLevelName(includeBody: false);
     }
-    if (offset <= node.body.leftBracket.offset) {
-      collector.completionLocation = 'ExtensionDeclaration_onClause';
-      if (node.onClause case var onClause?) {
-        if (onClause.onKeyword.isSynthetic) {
-          keywordHelper.addExtensionDeclarationKeywords(node);
+
+    if (node.body case BlockClassBody body) {
+      if (offset <= body.leftBracket.offset) {
+        collector.completionLocation = 'ExtensionDeclaration_onClause';
+        if (node.onClause case var onClause?) {
+          if (onClause.onKeyword.isSynthetic) {
+            keywordHelper.addExtensionDeclarationKeywords(node);
+          }
         }
+        return;
       }
-      return;
-    }
-    if (offset >= node.body.leftBracket.end &&
-        offset <= node.body.rightBracket.offset) {
-      collector.completionLocation = 'ExtensionDeclaration_member';
-      _forExtensionMember(node);
+      if (offset >= body.leftBracket.end &&
+          offset <= body.rightBracket.offset) {
+        collector.completionLocation = 'ExtensionDeclaration_member';
+        _forExtensionMember(node);
+      }
     }
   }
 
@@ -2122,35 +2133,39 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeyword(Keyword.MIXIN);
       return;
     }
-    if (offset <= node.name.end) {
-      var hasSyntheticBody =
-          node.body.leftBracket.isSynthetic &&
-          node.body.rightBracket.isSynthetic;
-      identifierHelper(
-        includePrivateIdentifiers: false,
-      ).addTopLevelName(includeBody: hasSyntheticBody);
-      return;
-    }
-    if (offset <= node.body.leftBracket.offset) {
-      keywordHelper.addMixinDeclarationKeywords(node);
-      return;
-    }
-    if (offset >= node.body.leftBracket.end &&
-        offset <= node.body.rightBracket.offset) {
-      collector.completionLocation = 'MixinDeclaration_member';
-      if (_tryAnnotationAtEndOfClassBody(node)) {
+
+    if (node.body case BlockClassBody body) {
+      if (offset <= node.name.end) {
+        var hasSyntheticBody =
+            body.leftBracket.isSynthetic && body.rightBracket.isSynthetic;
+        identifierHelper(
+          includePrivateIdentifiers: false,
+        ).addTopLevelName(includeBody: hasSyntheticBody);
         return;
       }
-      _forMixinMember(node);
-      var element = node.body.members.elementBefore(offset);
-      if (element is MethodDeclaration) {
-        var body = element.body;
-        if (body.isEmpty) {
-          keywordHelper.addFunctionBodyModifiers(body);
-        }
+
+      if (offset <= body.leftBracket.offset) {
+        keywordHelper.addMixinDeclarationKeywords(node);
+        return;
       }
-      // TODO(brianwilkerson): Consider enabling the generation of overrides in
-      //  this location.
+
+      if (offset >= body.leftBracket.end &&
+          offset <= body.rightBracket.offset) {
+        collector.completionLocation = 'MixinDeclaration_member';
+        if (_tryAnnotationAtEndOfClassBody(node)) {
+          return;
+        }
+        _forMixinMember(node);
+        var element = body.members.elementBefore(offset);
+        if (element is MethodDeclaration) {
+          var body = element.body;
+          if (body.isEmpty) {
+            keywordHelper.addFunctionBodyModifiers(body);
+          }
+        }
+        // TODO(brianwilkerson): Consider enabling the generation of overrides in
+        //  this location.
+      }
     }
   }
 
@@ -4550,6 +4565,8 @@ extension on AstNode {
       ArgumentList(:var arguments) => arguments.contains(child),
       Block(:var statements) => statements.contains(child),
       BlockClassBody(:var members) => members.contains(child),
+      BlockEnumBody(:var constants, :var members) =>
+        constants.contains(child) || members.contains(child),
       CascadeExpression(:var cascadeSections) => cascadeSections.contains(
         child,
       ),
@@ -4561,10 +4578,7 @@ extension on AstNode {
       ConstructorDeclaration(:var initializers, :var metadata) =>
         initializers.contains(child) || metadata.contains(child),
       DeclaredIdentifier(:var metadata) => metadata.contains(child),
-      DottedName(:var components) => components.contains(child),
       EnumConstantDeclaration(:var metadata) => metadata.contains(child),
-      EnumBody(:var constants, :var members) =>
-        constants.contains(child) || members.contains(child),
       EnumDeclaration(:var metadata) => metadata.contains(child),
       ExportDirective(:var combinators, :var configurations, :var metadata) =>
         combinators.contains(child) ||
@@ -4588,7 +4602,6 @@ extension on AstNode {
             metadata.contains(child),
       LabeledStatement(:var labels) => labels.contains(child),
       LibraryDirective(:var metadata) => metadata.contains(child),
-      LibraryIdentifier(:var components) => components.contains(child),
       ListLiteral(:var elements) => elements.contains(child),
       ListPattern(:var elements) => elements.contains(child),
       MapPattern(:var elements) => elements.contains(child),
@@ -4646,10 +4659,10 @@ extension on ClassMember {
     var parent = this.parent?.parent;
     var members = switch (parent) {
       ClassDeclaration(:BlockClassBody body) => body.members,
-      EnumDeclaration() => parent.body.members,
-      ExtensionDeclaration() => parent.body.members,
+      EnumDeclaration(:BlockEnumBody body) => body.members,
+      ExtensionDeclaration(:BlockClassBody body) => body.members,
       ExtensionTypeDeclaration(:BlockClassBody body) => body.members,
-      MixinDeclaration() => parent.body.members,
+      MixinDeclaration(:BlockClassBody body) => body.members,
       _ => null,
     };
     if (members == null) {

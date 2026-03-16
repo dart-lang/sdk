@@ -18,10 +18,7 @@ Element? getElementOfNode2(AstNode? node) {
   if (node is NameWithTypeParameters) {
     node = node.parent;
   }
-  if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-    node = node.parent;
-  }
-  if (node is LibraryIdentifier) {
+  if (node is DottedName) {
     node = node.parent;
   }
   if (node is StringLiteral && node.parent is UriBasedDirective) {

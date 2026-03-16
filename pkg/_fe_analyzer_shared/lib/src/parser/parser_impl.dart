@@ -2613,7 +2613,18 @@ class Parser {
     Token leftBrace = token.next!;
     int elementCount = 0;
     int memberCount = 0;
-    if (leftBrace.isA(TokenType.OPEN_CURLY_BRACKET)) {
+    if (leftBrace.isA(TokenType.SEMICOLON)) {
+      if (!isPrimaryConstructorsFeatureEnabled) {
+        reportExperimentNotEnabled(
+          ExperimentalFlag.primaryConstructors,
+          leftBrace,
+          leftBrace,
+        );
+      }
+      listener.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
+      listener.handleNoEnumBody(leftBrace);
+      token = leftBrace;
+    } else if (leftBrace.isA(TokenType.OPEN_CURLY_BRACKET)) {
       listener.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
       listener.beginEnumBody(leftBrace);
       token = leftBrace;
@@ -2682,7 +2693,10 @@ class Parser {
       token = leftBrace.endGroup!;
       listener.endEnumBody(leftBrace, token);
     }
-    assert(token.isA(TokenType.CLOSE_CURLY_BRACKET));
+    assert(
+      token.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+          token.isA(TokenType.SEMICOLON),
+    );
     listener.endEnumDeclaration(
       beginToken,
       enumKeyword,
@@ -3369,16 +3383,28 @@ class Parser {
       name,
     );
     Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
-    if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
-      // Recovery
-      token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
-      ensureBlock(token, BlockKind.mixinDeclaration);
+    if (token.next!.isA(TokenType.SEMICOLON)) {
+      Token semicolonToken = token = token.next!;
+      if (!isPrimaryConstructorsFeatureEnabled) {
+        reportExperimentNotEnabled(
+          ExperimentalFlag.primaryConstructors,
+          semicolonToken,
+          semicolonToken,
+        );
+      }
+      listener.handleNoMixinBody(semicolonToken);
+    } else {
+      if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
+        // Recovery
+        token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
+        ensureBlock(token, BlockKind.mixinDeclaration);
+      }
+      token = parseClassOrMixinOrExtensionBody(
+        token,
+        DeclarationKind.Mixin,
+        name.lexeme,
+      );
     }
-    token = parseClassOrMixinOrExtensionBody(
-      token,
-      DeclarationKind.Mixin,
-      name.lexeme,
-    );
     listener.endMixinDeclaration(beginToken, token);
     return token;
   }
@@ -3620,35 +3646,47 @@ class Parser {
       token = typeInfo.ensureTypeOrVoid(onKeyword, this);
     }
 
-    if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
-      // Recovery
-      Token next = token.next!;
-      while (!next.isEof) {
-        if (next.isA(TokenType.COMMA) ||
-            next.isA(Keyword.EXTENDS) ||
-            next.isA(Keyword.IMPLEMENTS) ||
-            next.isA(Keyword.ON) ||
-            next.isA(Keyword.WITH)) {
-          // Report an error and skip `,` or specific keyword
-          // optionally followed by an identifier
-          reportRecoverableErrorWithToken(next, diag.unexpectedToken);
-          token = next;
-          next = token.next!;
-          if (next.isIdentifier) {
+    if (token.next!.isA(TokenType.SEMICOLON)) {
+      Token semicolonToken = token = token.next!;
+      if (!isPrimaryConstructorsFeatureEnabled) {
+        reportExperimentNotEnabled(
+          ExperimentalFlag.primaryConstructors,
+          semicolonToken,
+          semicolonToken,
+        );
+      }
+      listener.handleNoExtensionBody(semicolonToken);
+    } else {
+      if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
+        // Recovery
+        Token next = token.next!;
+        while (!next.isEof) {
+          if (next.isA(TokenType.COMMA) ||
+              next.isA(Keyword.EXTENDS) ||
+              next.isA(Keyword.IMPLEMENTS) ||
+              next.isA(Keyword.ON) ||
+              next.isA(Keyword.WITH)) {
+            // Report an error and skip `,` or specific keyword
+            // optionally followed by an identifier
+            reportRecoverableErrorWithToken(next, diag.unexpectedToken);
             token = next;
             next = token.next!;
+            if (next.isIdentifier) {
+              token = next;
+              next = token.next!;
+            }
+          } else {
+            break;
           }
-        } else {
-          break;
         }
+        ensureBlock(token, BlockKind.extensionDeclaration);
       }
-      ensureBlock(token, BlockKind.extensionDeclaration);
+      token = parseClassOrMixinOrExtensionBody(
+        token,
+        DeclarationKind.Extension,
+        name?.lexeme,
+      );
     }
-    token = parseClassOrMixinOrExtensionBody(
-      token,
-      DeclarationKind.Extension,
-      name?.lexeme,
-    );
     listener.endExtensionDeclaration(
       beginToken,
       extensionKeyword,

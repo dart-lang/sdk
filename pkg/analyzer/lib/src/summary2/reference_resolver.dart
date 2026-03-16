@@ -76,6 +76,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    node.constants.accept(this);
+    node.members.accept(this);
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
@@ -119,13 +125,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
-  void visitEmptyFunctionBody(EmptyFunctionBody node) {}
+  void visitEmptyEnumBody(EmptyEnumBody node) {}
 
   @override
-  void visitEnumBody(EnumBody node) {
-    node.constants.accept(this);
-    node.members.accept(this);
-  }
+  void visitEmptyFunctionBody(EmptyFunctionBody node) {}
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {}

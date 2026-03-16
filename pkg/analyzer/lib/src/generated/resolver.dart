@@ -2185,6 +2185,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    node.visitChildren(this);
+  }
+
+  @override
   TypeImpl visitBlockFunctionBody(
     covariant BlockFunctionBodyImpl node, {
     TypeImpl? imposedType,
@@ -2675,6 +2680,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitDottedName(DottedName node) {}
+
+  @override
   void visitDoubleLiteral(
     DoubleLiteral node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -2690,6 +2698,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {}
+
+  @override
   TypeImpl visitEmptyFunctionBody(
     EmptyFunctionBody node, {
     TypeImpl? imposedType,
@@ -2702,11 +2713,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitEmptyStatement(EmptyStatement node) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnumBody(EnumBody node) {
     node.visitChildren(this);
   }
 
@@ -3438,12 +3444,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.visitChildren(this);
     elementResolver.visitLibraryDirective(node);
   }
-
-  @override
-  void visitLibraryIdentifier(
-    LibraryIdentifier node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {}
 
   @override
   void visitListLiteral(

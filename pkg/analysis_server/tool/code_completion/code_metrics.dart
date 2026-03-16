@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:args/args.dart';
 
 /// Compute and print lexical and semantic information about a package.
@@ -431,7 +432,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitDottedName(DottedName node) {
-    _visitChildren(node, {'components': node.components});
+    _visitChildren(node, {});
     super.visitDottedName(node);
   }
 
@@ -469,7 +470,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
       'name': node.namePart.typeName,
-      'constants': node.body.constants,
+      'constants': node.body.tryCast<BlockEnumBody>()?.constants,
     });
     super.visitEnumDeclaration(node);
   }
@@ -514,7 +515,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'name': node.name,
       'typeParameters': node.typeParameters,
       'onClause': node.onClause,
-      'member': node.body.members,
+      'member': node.body.tryCast<BlockClassBody>()?.members,
     });
     super.visitExtensionDeclaration(node);
   }
@@ -828,12 +829,6 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    _visitChildren(node, {'components': node.components});
-    super.visitLibraryIdentifier(node);
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     _visitChildren(node, {
       'typeArguments': node.typeArguments,
@@ -885,7 +880,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'typeParameters': node.typeParameters,
       'onClause': node.onClause,
       'implementsClause': node.implementsClause,
-      'members': node.body.members,
+      'members': node.body.tryCast<BlockClassBody>()?.members,
     });
     super.visitMixinDeclaration(node);
   }

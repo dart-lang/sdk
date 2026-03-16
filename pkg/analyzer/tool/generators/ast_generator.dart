@@ -252,7 +252,9 @@ if (Token.lexicallyFirst($names) case var result?) {
             break propertiesLoop;
           }
         case _PropertyTypeKindTokenList():
-          throw UnimplementedError();
+          buffer.write('return ${property.name}.first;');
+          foundNonNullProperty = true;
+          break propertiesLoop;
         case _PropertyTypeKindNode():
           if (property.isNullable) {
             buffer.writeln(

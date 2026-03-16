@@ -109,10 +109,13 @@ class DartRuntimeService {
     eventStreamMethods: eventStreamManager,
   );
 
+  UnmodifiableClientNamedLookup get clients =>
+      UnmodifiableClientNamedLookup(clientManager.clients);
+
   @visibleForTesting
   late final eventStreamManager = EventStreamManager(
     backend: backend,
-    clientsGetter: () => UnmodifiableNamedLookup(clientManager.clients),
+    clientsGetter: () => clients,
   );
 
   // TODO(bkonyi): this should be protected by a mutex.
