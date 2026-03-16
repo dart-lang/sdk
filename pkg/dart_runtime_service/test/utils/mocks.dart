@@ -44,6 +44,9 @@ base class FakeDartRuntimeServiceBackend extends Fake
   IsolateManager get isolateManager => throw UnimplementedError();
 
   @override
+  ExpressionEvaluator? get expressionEvaluator => null;
+
+  @override
   void onStreamCancel({required String streamId}) {}
 
   @override

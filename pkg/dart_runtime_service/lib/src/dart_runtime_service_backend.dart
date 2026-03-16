@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 
 import 'dart_runtime_service.dart';
 import 'event_streams.dart';
+import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
 
 /// A backend implementation of a service used to inject non-common
@@ -19,6 +20,9 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
 
   /// Manages and tracks the lifecycle of isolates for the backend.
   IM get isolateManager;
+
+  /// Adds support for expression evaluation if non-null.
+  ExpressionEvaluator? get expressionEvaluator => null;
 
   /// Invoked by the [DartRuntimeService] when the service is initializing,
   /// before the service's HTTP server is started.

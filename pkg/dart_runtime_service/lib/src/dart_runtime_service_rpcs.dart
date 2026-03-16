@@ -12,6 +12,7 @@ import 'package:vm_service/vm_service.dart';
 import 'clients.dart';
 import 'dart_runtime_service.dart';
 import 'event_streams.dart';
+import 'expression_evaluator.dart';
 import 'rpc_exceptions.dart';
 import 'utils.dart';
 
@@ -26,13 +27,17 @@ final class DartRuntimeServiceRpcs {
     required this.clients,
     required this.eventStreamMethods,
     required this.client,
+    this.expressionEvaluator,
   });
 
   /// The current set of clients connected to the service.
-  final UnmodifiableNamedLookup<Client> clients;
+  final UnmodifiableClientNamedLookup clients;
 
   /// Wrapper for methods used to interact with event stream state.
   final EventStreamMethods eventStreamMethods;
+
+  /// Wrapper for methods used to perform expression evaluation, if supported.
+  final ExpressionEvaluator? expressionEvaluator;
 
   /// The client sending and receiving RPCs.
   final Client client;
@@ -44,22 +49,24 @@ final class DartRuntimeServiceRpcs {
   // Parameters for streamListen
   static const _kStreamId = 'streamId';
 
-  late final _commonRpcs = <(String, Function)>[
+  late final _commonRpcs = <(String, Function?)>[
     ('getClientName', getClientName),
     ('registerService', registerService),
     ('setClientName', setClientName),
     ('streamCancel', streamCancel),
     ('streamListen', streamListen),
+    ('evaluate', expressionEvaluator?.evaluate),
+    ('evaluateInFrame', expressionEvaluator?.evaluateInFrame),
   ];
 
   /// Registers the set of platform-agnostic RPCs for use by [client].
   void registerRpcsWithPeer(json_rpc.Peer clientPeer) {
     for (final (method, callback) in _commonRpcs) {
+      if (callback == null) continue;
       if (callback is! RpcHandlerWithNoParameters &&
           callback is! RpcHandlerWithParameters) {
         throw StateError("Callback for '$method' is not valid. ($callback).");
       }
-
       clientPeer.registerMethod(method, (json_rpc.Parameters parameters) async {
         try {
           late RpcResponse response;
@@ -73,8 +80,8 @@ final class DartRuntimeServiceRpcs {
             client.logger.info('Response: $response');
           }
           return response;
-        } catch (e) {
-          client.logger.info('Exception thrown when invoking $method: $e');
+        } catch (e, st) {
+          client.logger.info('Exception thrown when invoking $method: $e\n$st');
           rethrow;
         }
       });

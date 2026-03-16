@@ -68,7 +68,7 @@ final tests = <IsolateTest>[
       expect(result.valueAsString, '3');
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kExpressionCompilationError.code);
-      expect(e.message, 'Expression compilation error');
+      expect(e.message, contains('Expression compilation error'));
       expect(
         e.details,
         contains("Error: The variable 'data' "

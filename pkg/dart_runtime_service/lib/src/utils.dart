@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'clients.dart';
+
 /// Generates a random 8-byte secret using a cryptographically secure RNG.
 String generateSecret() {
   final kTokenByteSize = 8;
@@ -20,49 +22,61 @@ String generateSecret() {
   return base64Url.encode(bytes);
 }
 
-/// An unmodifiable view of a [NamedLookup].
-class UnmodifiableNamedLookup<E> with IterableMixin<E> {
-  UnmodifiableNamedLookup(this._namedLookup);
+mixin ClientLookup on IterableMixin<Client> {
+  Client? findFirstClientThatHandlesService(String service) {
+    for (final client in this) {
+      if (client.hasService(service)) {
+        return client;
+      }
+    }
+    return null;
+  }
+}
 
-  final NamedLookup<E> _namedLookup;
+/// An unmodifiable view of a [ClientNamedLookup].
+class UnmodifiableClientNamedLookup with IterableMixin<Client>, ClientLookup {
+  UnmodifiableClientNamedLookup(this._namedLookup);
 
-  E? operator [](String id) => _namedLookup[id];
+  final ClientNamedLookup _namedLookup;
 
-  String? keyOf(E e) => _namedLookup.keyOf(e);
+  Client? operator [](String id) => _namedLookup[id];
+
+  String? keyOf(Client e) => _namedLookup.keyOf(e);
 
   @override
-  Iterator<E> get iterator => _namedLookup.iterator;
+  Iterator<Client> get iterator => _namedLookup.iterator;
 }
 
 /// [Set]-like containers which automatically generate [String] IDs for its
 /// items.
 ///
 /// Originally pulled from dart:_vmservice.
-final class NamedLookup<E> extends IterableMixin<E> {
-  NamedLookup({String prefix = ''}) : _generator = IdGenerator(prefix: prefix);
+final class ClientNamedLookup extends IterableMixin<Client> with ClientLookup {
+  ClientNamedLookup({String prefix = ''})
+    : _generator = IdGenerator(prefix: prefix);
   final IdGenerator _generator;
-  final Map<E, String> _ids = {};
-  final Map<String, E> _elements = {};
+  final Map<Client, String> _ids = {};
+  final Map<String, Client> _elements = {};
 
-  String add(E e) {
+  String add(Client e) {
     final id = _generator.newId();
     _elements[id] = e;
     _ids[e] = id;
     return id;
   }
 
-  void remove(E e) {
+  void remove(Client e) {
     final id = _ids.remove(e)!;
     _elements.remove(id);
     _generator.release(id);
   }
 
-  E? operator [](String id) => _elements[id];
+  Client? operator [](String id) => _elements[id];
 
-  String? keyOf(E e) => _ids[e];
+  String? keyOf(Client e) => _ids[e];
 
   @override
-  Iterator<E> get iterator => _ids.keys.iterator;
+  Iterator<Client> get iterator => _ids.keys.iterator;
 }
 
 /// Generator for unique IDs which recycles expired ones.

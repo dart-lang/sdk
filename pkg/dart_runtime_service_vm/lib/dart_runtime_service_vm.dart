@@ -14,6 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import 'src/native_bindings.dart';
+import 'src/vm_expression_evaluator.dart';
 import 'src/vm_isolate_manager.dart';
 
 class DartRuntimeServiceVMBackend
@@ -70,8 +71,15 @@ class DartRuntimeServiceVMBackend
   final VmIsolateManager isolateManager;
 
   @override
+  late final VmExpressionEvaluator expressionEvaluator;
+
+  @override
   Future<void> initialize() async {
     _logger.info('Initializing...');
+    expressionEvaluator = VmExpressionEvaluator(
+      clients: frontend.clients,
+      backend: this,
+    );
     isolateControlPort.handler = _vmMessageHandler;
     frontend.addArtificialClient(
       name: 'native-rpc-client',

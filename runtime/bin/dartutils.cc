@@ -483,17 +483,14 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
 }
 
 Dart_Handle DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
-                                          Dart_Handle io_lib,
-                                          bool is_service_isolate) {
-  if (!is_service_isolate) {
-    // Setup the 'Uri.base' getter in dart:core.
-    Dart_Handle uri_base =
-        Dart_Invoke(io_lib, NewString("_getUriBaseClosure"), 0, nullptr);
-    RETURN_IF_ERROR(uri_base);
-    Dart_Handle result =
-        Dart_SetField(core_lib, NewString("_uriBaseClosure"), uri_base);
-    RETURN_IF_ERROR(result);
-  }
+                                          Dart_Handle io_lib) {
+  // Setup the 'Uri.base' getter in dart:core.
+  Dart_Handle uri_base =
+      Dart_Invoke(io_lib, NewString("_getUriBaseClosure"), 0, nullptr);
+  RETURN_IF_ERROR(uri_base);
+  Dart_Handle result =
+      Dart_SetField(core_lib, NewString("_uriBaseClosure"), uri_base);
+  RETURN_IF_ERROR(result);
   return Dart_True();
 }
 
@@ -596,7 +593,7 @@ Dart_Handle DartUtils::SetupCoreLibraries(
 
   RETURN_IF_ERROR(
       PrepareAsyncLibrary(async_lib, isolate_lib, flag_profile_microtasks));
-  RETURN_IF_ERROR(PrepareCoreLibrary(core_lib, io_lib, is_service_isolate));
+  RETURN_IF_ERROR(PrepareCoreLibrary(core_lib, io_lib));
   RETURN_IF_ERROR(PrepareIsolateLibrary(isolate_lib));
   RETURN_IF_ERROR(PrepareCLILibrary(cli_lib));
   return result;
