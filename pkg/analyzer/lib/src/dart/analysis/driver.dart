@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -2537,22 +2538,14 @@ enum AnalysisDriverPriority {
 /// Instances of this class schedule work in multiple [AnalysisDriver]s so that
 /// work with the highest priority is performed first.
 class AnalysisDriverScheduler {
-  /// Time interval in milliseconds before pumping the event queue.
-  ///
-  /// Relinquishing execution flow and running the event loop after every task
-  /// has too much overhead. Instead we use a fixed length of time, so we can
-  /// spend less time overall and still respond quickly enough.
-  static const int _MS_BEFORE_PUMPING_EVENT_QUEUE = 2;
+  /// The number of microseconds of work to do per call to
+  /// `await Future.delayed(Duration.zero)` that will allow other async work to
+  /// complete.
+  static const int _microsecondsWorkPerWait = 1000000 ~/ 500;
 
-  /// Event queue pumping is required to allow IO and other asynchronous data
-  /// processing while analysis is active. For example Analysis Server needs to
-  /// be able to process `updateContent` or `setPriorityFiles` requests while
-  /// background analysis is in progress.
-  ///
-  /// The number of pumpings is arbitrary, might be changed if we see that
-  /// analysis or other data processing tasks are starving. Ideally we would
-  /// need to run all asynchronous operations using a single global scheduler.
-  static const int _NUMBER_OF_EVENT_QUEUE_PUMPINGS = 128;
+  /// The maximum number of calls to `await Future.delayed(Duration.zero)` to
+  /// do in a single batch.
+  static const int _maxWaits = 128;
 
   final PerformanceLog _logger;
 
@@ -2696,13 +2689,20 @@ class AnalysisDriverScheduler {
   void _run() async {
     // Give other microtasks the time to run before doing the analysis cycle.
     await null;
-    Stopwatch timer = Stopwatch()..start();
+
+    // The amount of time spent working without corresponding calls to
+    // `_pumpEventQueue`.
+    var workDuration = Duration.zero;
+
     PerformanceLogSection? analysisSection;
     while (true) {
-      // Pump the event queue.
-      if (timer.elapsedMilliseconds > _MS_BEFORE_PUMPING_EVENT_QUEUE) {
-        await _pumpEventQueue(_NUMBER_OF_EVENT_QUEUE_PUMPINGS);
-        timer.reset();
+      // Wait for other async work if needed to satisfy `_microscondsWorkPerWait`.
+      if (workDuration.inMicroseconds > _microsecondsWorkPerWait) {
+        var waits = workDuration.inMicroseconds ~/ _microsecondsWorkPerWait;
+        await _pumpEventQueue(min(waits, _maxWaits));
+        workDuration -= Duration(
+          microseconds: waits * _microsecondsWorkPerWait,
+        );
       }
 
       await _hasWork.signal;
@@ -2751,9 +2751,11 @@ class AnalysisDriverScheduler {
         continue;
       }
 
+      var workTimer = Stopwatch()..start();
       // Ask the driver to perform a chunk of work.
       await bestDriver.performWork();
       bestDriver.afterPerformWork();
+      workDuration += workTimer.elapsed;
 
       // Schedule one more cycle.
       _hasWork.notify();
