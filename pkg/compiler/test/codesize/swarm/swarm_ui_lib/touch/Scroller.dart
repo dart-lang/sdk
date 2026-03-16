@@ -495,6 +495,7 @@ class Scroller implements Draggable, MomentumDelegate {
     scheduleMicrotask(() {
       if (_lookupContentSizeDelegate != null) {
         _contentSize = _lookupContentSizeDelegate();
+        // ignore: dead_code
       } else {
         _contentSize = Size(_element.scrollWidth, _element.scrollHeight);
       }
