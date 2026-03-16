@@ -185,9 +185,6 @@ class LibraryAnalyzer {
         inferenceDataForTesting!,
       );
 
-      // TODO(scheglov): We don't need to do this for the whole unit.
-      parsedUnit.accept(ScopeResolverVisitor(fileAnalysis.diagnosticReporter));
-
       var featureSet = _libraryElement.featureSet;
       var typeAnalyzerOptions = computeTypeAnalyzerOptions(featureSet);
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
@@ -840,8 +837,6 @@ class LibraryAnalyzer {
       fileAnalysis.file.uri,
       inferenceDataForTesting!,
     );
-
-    unit.accept(ScopeResolverVisitor(fileAnalysis.diagnosticReporter));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?

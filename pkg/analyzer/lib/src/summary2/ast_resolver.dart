@@ -38,9 +38,6 @@ class AstResolver {
     strictCasts: analysisOptions.strictCasts,
     dataForTesting: null,
   );
-  late final _scopeResolverVisitor = ScopeResolverVisitor(
-    DiagnosticReporter(_diagnosticListener, _libraryFragment.source),
-  );
   late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
   late final _flowAnalysis = FlowAnalysisHelper(
     false,
@@ -79,7 +76,6 @@ class AstResolver {
       null,
     ).bindSubtree(_libraryFragment, node);
     node.accept(_resolutionVisitor);
-    node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.bodyOrInitializer_enter(node, null);
     node.accept(_resolverVisitor);
@@ -100,7 +96,6 @@ class AstResolver {
 
     _prepareEnclosingDeclarations();
     accept(_resolutionVisitor);
-    accept(_scopeResolverVisitor);
 
     _flowAnalysis.bodyOrInitializer_enter(
       node,
@@ -127,7 +122,6 @@ class AstResolver {
     node.accept(_resolutionVisitor);
     // Node may have been rewritten so get it again.
     node = getNode();
-    node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.bodyOrInitializer_enter(
       node.parent as AstNodeImpl,
@@ -156,7 +150,6 @@ class AstResolver {
 
     _prepareEnclosingDeclarations();
     accept(_resolutionVisitor);
-    accept(_scopeResolverVisitor);
 
     _flowAnalysis.bodyOrInitializer_enter(
       node,
