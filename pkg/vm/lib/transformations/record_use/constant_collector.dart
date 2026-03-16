@@ -8,7 +8,7 @@ import 'package:front_end/src/kernel/record_use.dart' as record_use;
 /// Expose only the [collect] method of a [_ConstantCollector] to outside use.
 extension type ConstantCollector(_ConstantCollector _collector) {
   ConstantCollector.collectWith(
-    Function(ConstantExpression context, InstanceConstant constant) collector,
+    Function(ConstantExpression context, Constant constant) collector,
   ) : _collector = _ConstantCollector(collector);
 
   void collect(ConstantExpression expression) => _collector.collect(expression);
@@ -18,8 +18,7 @@ extension type ConstantCollector(_ConstantCollector _collector) {
 /// `@RecordUse` annotation using the [collector] callback.
 class _ConstantCollector implements ConstantVisitor {
   /// The collector callback which records the constant.
-  final void Function(ConstantExpression context, InstanceConstant constant)
-  collector;
+  final void Function(ConstantExpression context, Constant constant) collector;
 
   /// The expression in which the constant was found.
   ConstantExpression? _expression;
@@ -79,9 +78,9 @@ class _ConstantCollector implements ConstantVisitor {
   void visitInstanceConstant(InstanceConstant constant) {
     assert(_expression != null);
     final classNode = constant.classNode;
-    if (_hasRecordUseAnnotation[classNode] ??= record_use.isBeingRecorded(
+    if ((_hasRecordUseAnnotation[classNode] ??= record_use.isBeingRecorded(
       classNode,
-    )) {
+    ))) {
       collector(_expression!, constant);
     }
     for (final value in constant.fieldValues.values) {
@@ -98,13 +97,26 @@ class _ConstantCollector implements ConstantVisitor {
   visitBoolConstant(BoolConstant node) {}
 
   @override
-  visitConstructorTearOffConstant(ConstructorTearOffConstant node) {}
+  visitConstructorTearOffConstant(ConstructorTearOffConstant constant) {
+    assert(_expression != null);
+    if (record_use.isBeingRecorded(constant.target)) {
+      collector(_expression!, constant);
+    }
+  }
 
   @override
   visitDoubleConstant(DoubleConstant node) {}
 
   @override
-  visitInstantiationConstant(InstantiationConstant node) {}
+  visitInstantiationConstant(InstantiationConstant constant) {
+    assert(_expression != null);
+    final tearOffConstant = constant.tearOffConstant;
+    if (tearOffConstant is TearOffConstant &&
+        record_use.isBeingRecorded(tearOffConstant.target)) {
+      collector(_expression!, constant);
+    }
+    handleConstantReference(constant.tearOffConstant);
+  }
 
   @override
   visitIntConstant(IntConstant node) {}
@@ -114,11 +126,21 @@ class _ConstantCollector implements ConstantVisitor {
 
   @override
   visitRedirectingFactoryTearOffConstant(
-    RedirectingFactoryTearOffConstant node,
-  ) {}
+    RedirectingFactoryTearOffConstant constant,
+  ) {
+    assert(_expression != null);
+    if (record_use.isBeingRecorded(constant.target)) {
+      collector(_expression!, constant);
+    }
+  }
 
   @override
-  visitStaticTearOffConstant(StaticTearOffConstant node) {}
+  visitStaticTearOffConstant(StaticTearOffConstant constant) {
+    assert(_expression != null);
+    if (record_use.isBeingRecorded(constant.target)) {
+      collector(_expression!, constant);
+    }
+  }
 
   @override
   visitStringConstant(StringConstant node) {}
@@ -130,7 +152,14 @@ class _ConstantCollector implements ConstantVisitor {
   visitTypeLiteralConstant(TypeLiteralConstant node) {}
 
   @override
-  visitTypedefTearOffConstant(TypedefTearOffConstant node) {}
+  visitTypedefTearOffConstant(TypedefTearOffConstant constant) {
+    assert(_expression != null);
+    final tearOffConstant = constant.tearOffConstant;
+    if (record_use.isBeingRecorded(tearOffConstant.target)) {
+      collector(_expression!, constant);
+    }
+    handleConstantReference(constant.tearOffConstant);
+  }
 
   @override
   visitUnevaluatedConstant(UnevaluatedConstant node) {}

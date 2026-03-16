@@ -10,12 +10,17 @@ import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:expect/expect.dart' show Expect;
 import 'package:path/path.dart' as path;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 import 'package:test/test.dart';
 
 /// Options to pass to the compiler such as
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
-const List<String> compilerOptions = [Flags.writeRecordedUses, Flags.testMode];
+const List<String> compilerOptions = [
+  Flags.writeRecordedUses,
+  Flags.testMode,
+  Flags.disableInlining,
+  Flags.disableTypeInference,
+];
 
 /// Run `dart --define=updateExpectations=true pkg/compiler/test/record_use/record_use_test.dart`
 /// to update.
@@ -88,13 +93,21 @@ Future<void> main() async {
               errors,
             );
           }
+          if (testFile.basename.contains('record_use_final')) {
+            Expect.contains('RecordUse', errors);
+            Expect.contains('must be final', errors);
+          }
+          if (testFile.basename.contains('subtyping')) {
+            Expect.contains('RecordUse', errors);
+            Expect.contains('cannot be used as a supertype', errors);
+          }
           return;
         }
 
         final goldenFile = File(testFile.file.path + '.json.expect');
         const update = bool.fromEnvironment('updateExpectations');
         if (!goldenFile.existsSync() || update) {
-          await goldenFile.create();
+          await goldenFile.create(recursive: true);
           await goldenFile.writeAsString(recordedUsages!);
         } else {
           final actual = Recordings.fromJson(jsonDecode(recordedUsages!));
@@ -107,8 +120,22 @@ Future<void> main() async {
             // Ensure test coverage of tear offs, add pragmas to prevent
             // optimiations if necessary.
             allowTearoffToStaticPromotion: false,
-            loadingUnitMapping: (String unit) =>
-                const <String, String>{'out': '1', 'out_1': '2'}[unit] ?? unit,
+            loadingUnitMapping: (String unit) {
+              // dart2js and VM assign loading units differently. Work around
+              // this for now, we'll need a more robust testing solution later.
+              if (testFile.basename == 'loading_units_shared_constant.dart' ||
+                  testFile.basename ==
+                      'loading_units_nested_shared_constant.dart') {
+                if (unit == 'out_1') return '2';
+                if (unit == 'out_3') return '3';
+              }
+              return const <String, String>{
+                    'out': '1',
+                    'out_1': '2',
+                    'out_2': '3',
+                  }[unit] ??
+                  unit;
+            },
           );
           if (!semanticEquals) {
             // Print the error message based on string representation.
@@ -152,19 +179,21 @@ void main() {
 }
 
 Iterable<TestFile> _getTestFiles(String dirPath, String packageName) {
-  return Directory(dirPath)
-      .listSync()
+  final baseDir = Directory(dirPath);
+  return baseDir
+      .listSync(recursive: true)
       .whereType<File>()
       .where((file) => file.path.endsWith('.dart'))
-      .map(
-        (file) => TestFile(
+      .map((file) {
+        final relativePath = path.relative(file.path, from: baseDir.path);
+        return TestFile(
           file: file,
-          basename: path.basename(file.path),
+          basename: relativePath,
           contents: file.readAsStringSync(),
-          uri: Uri.parse('package:$packageName/${path.basename(file.path)}'),
+          uri: Uri.parse('package:$packageName/$relativePath'),
           packageName: packageName,
-        ),
-      );
+        );
+      });
 }
 
 class TestFile {
@@ -200,7 +229,7 @@ Future<String?> compileWithUsages({
     memorySourceFiles: memorySourceFiles,
     outputProvider: outputProvider,
     diagnosticHandler: diagnosticHandler,
-    options: [Flags.writeRecordedUses],
+    options: compilerOptions,
     packageConfig: Uri.parse('memory:/.dart_tool/package_config.json'),
   );
   if (expectSuccess) {
@@ -216,4 +245,17 @@ Future<String?> compileWithUsages({
       .toString();
 }
 
-const Set<String> dart2jsNotSupported = {};
+const Set<String> dart2jsNotSupported = {
+  'external_function.dart',
+
+  // JavaScript cannot exactly represent 64-bit integers. The front-end reports
+  // a compile-time error for these literals when targeting the web.
+  'large_integers.dart',
+
+  // There is an extra loading unit out_2 which contains the shared stuff
+  // between out_1 and out_3. Either of those loads out_2. We need a more robust
+  // semanticEquality solution than mapping loading unit names. We might only be
+  // able to make that solution if we include the actual graph of loading units
+  // in the format.
+  'loading_units_nested_shared_constant.dart',
+};

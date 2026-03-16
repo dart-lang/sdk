@@ -111,13 +111,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           TreeNode,
           Statement,
           Expression,
-          ExpressionVariable,
+          Variable,
           Pattern,
           InvalidExpression,
           TypeDeclarationType,
           TypeDeclaration
         >,
-        NullShortingMixin<NullAwareGuard, Expression, ExpressionVariable>,
+        NullShortingMixin<NullAwareGuard, Expression, Variable>,
         StackChecker,
         ExpressionVisitor1ExperimentExclusionMixin<
           ExpressionInferenceResult,
@@ -1399,7 +1399,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   PropertyTarget<Expression> computePropertyTarget(Expression target) {
     if (_enclosingCascade case Cascade(
       :var variable,
-    ) when target is VariableGet && target.variable == variable) {
+    ) when target is VariableGet && target.expressionVariable == variable) {
       // `target` is an implicit reference to the target of a cascade
       // expression; flow analysis uses `CascadePropertyTarget` to represent
       // this situation.
@@ -3194,15 +3194,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInResult handleForInDeclaringVariable(
     TreeNode node,
-    ExpressionVariable variable,
+    Variable variable,
     Expression iterable,
     Statement? expressionEffects, {
     bool isAsync = false,
   }) {
     DartType elementType;
     bool isVariableTypeNeeded = false;
-    ExpressionVariable astVariable;
-    if (variable case InternalExpressionVariable variable) {
+    Variable astVariable;
+    if (variable case InternalVariable variable) {
       if (variable.isImplicitlyTyped) {
         isVariableTypeNeeded = true;
         elementType = const UnknownType();
@@ -3363,7 +3363,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInResult _handleForInWithoutVariable(
     TreeNode node,
-    ExpressionVariable variable,
+    Variable variable,
     Expression iterable,
     Expression? syntheticAssignment,
     Statement? expressionEffects, {
@@ -3413,7 +3413,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInResult _handlePatternForIn(
     TreeNode node,
-    ExpressionVariable variable,
+    Variable variable,
     Expression iterable,
     Expression? syntheticAssignment,
     PatternVariableDeclaration patternVariableDeclaration, {
@@ -3498,7 +3498,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInResult handleForInWithoutVariable(
     TreeNode node,
-    ExpressionVariable variable,
+    Variable variable,
     Expression iterable,
     Expression? syntheticAssignment,
     Statement? expressionEffects, {
@@ -3544,9 +3544,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       null,
       isAsync: node.isAsync,
     );
-    ExpressionVariable astVariable =
-        result.variable is InternalExpressionVariable
-        ? (result.variable as InternalExpressionVariable).astVariable
+    Variable astVariable = result.variable is InternalVariable
+        ? (result.variable as InternalVariable).astVariable
         : result.variable;
     node.expressionVariable = astVariable..parent = node;
     if (isClosureContextLoweringEnabled) {
@@ -3815,8 +3814,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (VariableDeclaration parameter in parameters) {
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
-      ExpressionVariable parameterAstVariable =
-          (parameter as InternalExpressionVariable).astVariable;
+      Variable parameterAstVariable =
+          (parameter as InternalVariable).astVariable;
       _contextAllocationStrategy.handleDeclarationOfVariable(
         parameterAstVariable,
         captureKind: _captureKindForVariable(parameterAstVariable),
@@ -4686,9 +4685,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isAsync: element.isAsync,
       );
     }
-    ExpressionVariable astVariable =
-        result.variable is InternalExpressionVariable
-        ? (result.variable as InternalExpressionVariable).astVariable
+    Variable astVariable = result.variable is InternalVariable
+        ? (result.variable as InternalVariable).astVariable
         : result.variable;
     element.expressionVariable = astVariable..parent = element;
     if (isClosureContextLoweringEnabled) {
@@ -7070,7 +7068,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInStatement _createForInStatement(
     int fileOffset,
-    ExpressionVariable variable,
+    Variable variable,
     Expression iterable,
     Statement body, {
     bool isAsync = false,
@@ -7857,9 +7855,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isAsync: entry.isAsync,
       );
     }
-    ExpressionVariable astVariable =
-        result.variable is InternalExpressionVariable
-        ? (result.variable as InternalExpressionVariable).astVariable
+    Variable astVariable = result.variable is InternalVariable
+        ? (result.variable as InternalVariable).astVariable
         :
           // Coverage-ignore(suite): Not run.
           result.variable;
@@ -12671,6 +12668,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           compilerContext: compilerContext,
           message: message,
         ),
+        isRedirectingInitializer: true,
       );
     }
     return new InitializerInferenceResult.fromInvocationInferenceResult(
@@ -12739,6 +12737,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           compilerContext: compilerContext,
           message: message,
         ),
+        isRedirectingInitializer: true,
       );
     }
     return new InitializerInferenceResult.fromInvocationInferenceResult(
@@ -12791,7 +12790,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType = const NullType();
     }
     closureContext.handleReturn(node, inferredType, node.isArrow);
-    flowAnalysis.handleExit();
+    flowAnalysis.handleReturn();
     return const StatementInferenceResult();
   }
 
@@ -13148,6 +13147,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           compilerContext: compilerContext,
           message: message,
         ),
+        isSuperInitializer: true,
       );
     }
     return new InitializerInferenceResult.fromInvocationInferenceResult(
@@ -13648,10 +13648,33 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void visitCatch(Catch node) {
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
         scopeProviderInfoKind: ScopeProviderInfoKind.Catch,
       );
+      if (node.exceptionCatchVariable
+          case CatchVariable exceptionCatchVariable?) {
+        // TODO(62401): Remove the casts when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        exceptionCatchVariable =
+            (exceptionCatchVariable as InternalVariable).astVariable
+                as CatchVariable;
+        _contextAllocationStrategy.handleDeclarationOfVariable(
+          exceptionCatchVariable,
+          captureKind: _captureKindForVariable(exceptionCatchVariable),
+        );
+      }
+      if (node.stackTraceCatchVariable
+          case CatchVariable stackTraceCatchVariable?) {
+        // TODO(62401): Remove the casts when the flow analysis uses
+        // [InternalExpressionVariable]s.
+        stackTraceCatchVariable =
+            (stackTraceCatchVariable as InternalVariable).astVariable
+                as CatchVariable;
+        _contextAllocationStrategy.handleDeclarationOfVariable(
+          stackTraceCatchVariable,
+          captureKind: _captureKindForVariable(stackTraceCatchVariable),
+        );
+      }
     }
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
@@ -13659,7 +13682,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.body = bodyResult.statement..parent = node;
     }
     if (scopeProviderInfo != null) {
-      // Coverage-ignore-block(suite): Not run.
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       node.scope = scopeProviderInfo.scope;
     }
@@ -13681,9 +13703,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.catchBlocks.isNotEmpty) {
       flowAnalysis.tryCatchStatement_bodyEnd(tryBodyWithAssignedInfo);
       for (Catch catchBlock in node.catchBlocks) {
+        // TODO(62401): Remove the casts when the flow analysis uses
+        // [InternalExpressionVariable]s.
         flowAnalysis.tryCatchStatement_catchBegin(
-          catchBlock.exception,
-          catchBlock.stackTrace,
+          (catchBlock.exceptionCatchVariable as InternalVariable?)?.astVariable,
+          (catchBlock.stackTraceCatchVariable as InternalVariable?)
+              ?.astVariable,
         );
         visitCatch(catchBlock);
         flowAnalysis.tryCatchStatement_catchEnd();
@@ -13754,8 +13779,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return result;
       }
     }
-    InternalExpressionVariable variable =
-        node.expressionVariable as InternalExpressionVariable;
+    InternalVariable variable = node.expressionVariable as InternalVariable;
     var (DartType variableType, DartType writeContext) =
         computeVariableSetTypeAndWriteContext(variable);
     ExpressionInferenceResult rhsResult = inferExpression(
@@ -13840,7 +13864,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
     return inferVariableGet(
-      variable: node.expressionVariable as InternalExpressionVariable,
+      variable: node.expressionVariable as InternalVariable,
       typeContext: typeContext,
       nameOffset: node.fileOffset,
       node: node,
@@ -14674,7 +14698,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable> get flow =>
+  FlowAnalysis<TreeNode, Statement, Expression, Variable> get flow =>
       flowAnalysis;
 
   @override
@@ -14866,7 +14890,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void handleCase_afterCaseHeads(
     Statement node,
     int caseIndex,
-    Iterable<ExpressionVariable> variables,
+    Iterable<Variable> variables,
   ) {}
 
   @override
@@ -14942,7 +14966,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void setVariableType(ExpressionVariable variable, SharedTypeView type) {
+  void setVariableType(Variable variable, SharedTypeView type) {
     variable.type = type.unwrapTypeView();
   }
 
@@ -16228,7 +16252,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           declaredVariables: node.declaredVariables,
         )..fileOffset = node.fileOffset;
       }
-    } else if (variable.isFinal && variable.hasDeclaredInitializer) {
+    } else if (variable.isFinal &&
+        // Coverage-ignore(suite): Not run.
+        variable.hasDeclaredInitializer) {
+      // Coverage-ignore-block(suite): Not run.
       replacement = new InvalidPattern(
         problemReporting.buildProblem(
           compilerContext: compilerContext,
@@ -16478,7 +16505,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void finishJoinedPatternVariable(
-    ExpressionVariable variable, {
+    Variable variable, {
     required JoinedPatternVariableLocation location,
     required JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
@@ -17102,7 +17129,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return node is DotShorthand;
   }
 
-  CaptureKind _captureKindForVariable(ExpressionVariable variable) {
+  CaptureKind _captureKindForVariable(Variable variable) {
     int variableKey = assignedVariables.promotionKeyStore.keyForVariable(
       variable,
     );
@@ -17118,8 +17145,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
-  List<Variable> _capturedVariablesForNode(TreeNode node) {
-    List<Variable> capturedVariables = [];
+  List<VariableBase> _capturedVariablesForNode(TreeNode node) {
+    List<VariableBase> capturedVariables = [];
     AssignedVariablesNodeInfo nodeInfo = assignedVariables.getInfoForNode(node);
     for (int variableKey in nodeInfo.read) {
       capturedVariables.add(
@@ -17138,8 +17165,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitVariableInitialization(
     VariableInitialization node,
   ) {
-    InternalExpressionVariable nodeVariable =
-        node.variable as InternalExpressionVariable;
+    InternalVariable nodeVariable = node.variable as InternalVariable;
     StatementInferenceResult statementInferenceResult =
         _inferInternalExpressionVariableDeclaration(node, nodeVariable);
     node.variable = nodeVariable.astVariable;
@@ -17154,7 +17180,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   StatementInferenceResult _inferInternalExpressionVariableDeclaration(
     VariableInitialization node,
-    InternalExpressionVariable nodeVariable,
+    InternalVariable nodeVariable,
   ) {
     DartType declaredType = nodeVariable.isImplicitlyTyped
         ? const UnknownType()
@@ -17185,8 +17211,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (node.isLate && node.hasDeclaredInitializer) {
         // TODO(62401): Remove the cast when the flow analysis uses
         // [InternalExpressionVariable]s.
-        ExpressionVariable variable =
-            (node.variable as InternalExpressionVariable).astVariable;
+        Variable variable = (node.variable as InternalVariable).astVariable;
         if (isClosureContextLoweringEnabled) {
           _contextAllocationStrategy.handleVariablesCapturedByNode(
             node,

@@ -6,12 +6,14 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../ast.dart';
 import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/flutter_utils.dart';
@@ -33,6 +35,7 @@ class UseKeyInWidgetConstructors extends AnalysisRule {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -56,11 +59,34 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.isAugmentation) return;
+    _checkConstructor(
+      constructorElement: node.declaredFragment?.element,
+      parameters: node.parameters,
+      initializers: node.initializers,
+      errorNode: getNodeToAnnotate(node),
+    );
+    super.visitConstructorDeclaration(node);
+  }
 
-    var constructorElement = node.declaredFragment?.element;
-    if (constructorElement == null) {
-      return;
-    }
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (node.isAugmentation) return;
+    _checkConstructor(
+      constructorElement: node.declaredFragment?.element,
+      parameters: node.formalParameters,
+      initializers: node.body?.initializers ?? const [],
+      errorNode: getNodeToAnnotate(node),
+    );
+    super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  void _checkConstructor({
+    required ConstructorElement? constructorElement,
+    required FormalParameterList parameters,
+    required List<ConstructorInitializer> initializers,
+    required SyntacticEntity errorNode,
+  }) {
+    if (constructorElement == null) return;
     var classElement = constructorElement.enclosingElement;
     if (constructorElement.isPublic &&
         !constructorElement.isFactory &&
@@ -68,8 +94,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         classElement is ClassElement &&
         !classElement.isExactlyWidget &&
         classElement.extendsWidget &&
-        !_hasKeySuperParameterInitializerArg(node) &&
-        !node.initializers.any((initializer) {
+        !_hasKeySuperParameterInitializerArg(parameters) &&
+        !initializers.any((initializer) {
           if (initializer is SuperConstructorInvocation) {
             var staticElement = initializer.element;
             return staticElement != null &&
@@ -83,11 +109,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           }
           return false;
         })) {
-      // TODO(scheglov): support primary constructors
-      var errorNode = node.name ?? node.typeName!;
       rule.reportAtSourceRange(errorNode.sourceRange);
     }
-    super.visitConstructorDeclaration(node);
   }
 
   bool _defineKeyArgument(ArgumentList argumentList) => argumentList.arguments
@@ -97,14 +120,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       .formalParameters
       .any((e) => e.name == 'key' && _isKeyType(e.type));
 
-  bool _hasKeySuperParameterInitializerArg(ConstructorDeclaration node) {
-    for (var parameter in node.parameters.parameterFragments) {
+  bool _hasKeySuperParameterInitializerArg(FormalParameterList parameters) {
+    for (var parameter in parameters.parameterFragments) {
       var element = parameter?.element;
       if (element is SuperFormalParameterElement && element.name == 'key') {
         return true;
       }
     }
-
     return false;
   }
 

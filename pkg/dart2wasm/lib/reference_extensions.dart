@@ -24,14 +24,6 @@ extension GetterSetterReference on Reference {
     return false;
   }
 
-  bool get isFieldInitializer {
-    Member member = asMember;
-    if (member is Field) {
-      if (member.fieldReference == this) return true;
-    }
-    return false;
-  }
-
   bool get isGetter {
     Member member = asMember;
     return (member is Procedure && member.isGetter) || isImplicitGetter;
@@ -49,8 +41,8 @@ extension GetterSetterReference on Reference {
 // do in plain kernel.
 
 // Use Expandos to avoid keeping the procedure alive.
+final Expando<Reference> _staticFieldInitializerReference = Expando();
 final Expando<Reference> _tearOffReference = Expando();
-final Expando<Reference> _typeCheckerReference = Expando();
 final Expando<Reference> _checkedEntryReferences = Expando();
 final Expando<Reference> _uncheckedEntryReferences = Expando();
 final Expando<Reference> _bodyReferences = Expando();
@@ -58,11 +50,11 @@ final Expando<Reference> _initializerReference = Expando();
 final Expando<Reference> _constructorBodyReference = Expando();
 
 extension CustomReference on Member {
+  Reference get staticFieldInitializer =>
+      _staticFieldInitializerReference[this] ??= Reference()..node = this;
+
   Reference get tearOffReference =>
       _tearOffReference[this] ??= Reference()..node = this;
-
-  Reference get typeCheckerReference =>
-      _typeCheckerReference[this] ??= Reference()..node = this;
 
   Reference get checkedEntryReference {
     assert(_memberCanHaveMultipleEntryPoints(this));
@@ -87,9 +79,10 @@ extension CustomReference on Member {
 }
 
 extension IsCustomReference on Reference {
-  bool get isTearOffReference => _tearOffReference[asMember] == this;
+  bool get isStaticFieldInitializer =>
+      _staticFieldInitializerReference[asMember] == this;
 
-  bool get isTypeCheckerReference => _typeCheckerReference[asMember] == this;
+  bool get isTearOffReference => _tearOffReference[asMember] == this;
 
   bool get isCheckedEntryReference => _checkedEntryReferences[asMember] == this;
 

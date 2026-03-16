@@ -1,3 +1,5 @@
+// @dart = 3.10
+
 expect(expected, actual) {}
 
 extension type Bar<T>._(this.i) {

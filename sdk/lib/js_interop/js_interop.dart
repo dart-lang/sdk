@@ -1113,6 +1113,10 @@ extension NullableObjectUtilExtension on Object? {
   /// - `JSObject`: `isA<JSObject>` will call an intrinsic function to check
   ///   that the value is a JS object (`instanceof Object` is insufficient for
   ///   some objects).
+  /// - `JSExportedDartFunction`: `isA<JSExportedDartFunction>` will check if
+  ///   the value is a result of a previous
+  ///   [FunctionToJSExportedDartFunction.toJS] or
+  ///   [FunctionToJSExportedDartFunction.toJSCaptureThis] call.
   /// - User interop types whose representation types are JS primitive types:
   ///   This will result in an error to avoid confusion on whether the user
   ///   interop type is used in the type-check. Use the primitive JS type as the
@@ -2158,3 +2162,19 @@ external JSObject createJSInteropWrapper<T extends Object>(
 /// Returns a [JSPromise] that resolves to a [JSObject] that's the module
 /// namespace object.
 external JSPromise<JSObject> importModule(JSAny moduleName);
+
+/// Returns true if the underlying JavaScript values of [a] and [b] are
+/// identical.
+///
+/// The semantics are equivalent to the `===` operator in JavaScript. For
+/// backends that do not directly use JS values, the underlying JS value backing
+/// the native object will be compared using JS `===`. This should mean that the
+/// result of this should be consistent across backends unlike [identical] which
+/// only compares the native references.
+///
+/// `jsIdentical(a,b)` does not necessarily imply
+/// `a.runtimeType == b.runtimeType` or `a.hashCode == b.hashCode` as the JS
+/// values being compared may be wrapped by different native types. So a and b
+/// themselves cannot be used interchangeably.
+@Since('3.12')
+external bool jsIdentical(Object? a, Object? b);

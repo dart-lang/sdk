@@ -7,36 +7,59 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:stream_channel/stream_channel.dart';
 
+import 'dart_runtime_service.dart';
+import 'dart_runtime_service_backend.dart';
 import 'dart_runtime_service_rpcs.dart';
+import 'event_streams.dart';
 import 'rpc_exceptions.dart';
 import 'utils.dart';
 
 typedef ServiceName = String;
 typedef ServiceAlias = String;
+typedef ServiceNameAliasPair = ({ServiceName service, ServiceAlias alias});
 
 /// Represents a client that is connected to a service.
 base class Client {
   Client({
-    required this.clientManager,
     required StreamChannel<String> connection,
+    required UnmodifiableNamedLookup<Client> clients,
+    required EventStreamMethods eventStreamMethods,
+    required this.backend,
+    String? name,
   }) {
+    _name = name ?? defaultClientName;
     _clientPeer = json_rpc.Peer(connection, strictProtocolChecks: false);
-    registerRpcHandlers();
-    done = _listen();
+    _internalRpcs = DartRuntimeServiceRpcs(
+      clients: clients,
+      eventStreamMethods: eventStreamMethods,
+      client: this,
+    );
   }
 
-  final ClientManager clientManager;
+  late final String namespace;
+
   late json_rpc.Peer _clientPeer;
-  late final _internalRpcs = DartRuntimeServiceRpcs(
-    clientManager: clientManager,
-    client: this,
-  );
+  late final DartRuntimeServiceRpcs _internalRpcs;
+  final DartRuntimeServiceBackend backend;
 
   /// The logger to be used when handling requests from this client.
   Logger get logger => Logger('Client ($name)');
 
   /// A [Future] that completes when [close] is invoked.
   late final Future<void> done;
+
+  Future<void> initialize({required String namespace}) {
+    logger.info('Initializing...');
+    this.namespace = namespace;
+    registerRpcHandlers();
+    done = _listen().then((_) {
+      logger.info('Client connection closed.');
+      // Cleanup stream subscription state when the client disconnects.
+      _internalRpcs.eventStreamMethods.onClientDisconnect(this);
+    });
+    logger.info('Initialization complete.');
+    return done;
+  }
 
   /// Start receiving JSON RPC requests from the client.
   ///
@@ -46,12 +69,16 @@ base class Client {
   /// Called if the connection to the client should be closed.
   @mustCallSuper
   Future<void> close() async {
+    logger.info('Cleaning up.');
     await _clientPeer.close();
   }
 
   @mustCallSuper
   void registerRpcHandlers() {
     _internalRpcs.registerRpcsWithPeer(_clientPeer);
+    backend.registerRpcs(_clientPeer);
+    _internalRpcs.registerServiceExtensionForwarder(_clientPeer);
+    backend.registerFallbacks(_clientPeer);
   }
 
   /// Attempts to register a [service] to be provided by this client.
@@ -70,10 +97,14 @@ base class Client {
     }
     logger.info(
       "Successfully registered service '$service' as "
-      "'${clientManager.clients.keyOf(this)}.$service'.",
+      "'$namespace.$service'.",
     );
     _services[service] = alias;
-    // TODO(bkonyi): send notification of newly registered service.
+    _internalRpcs.eventStreamMethods.sendServiceRegisteredEvent(
+      this,
+      service,
+      alias,
+    );
     return true;
   }
 
@@ -97,6 +128,27 @@ base class Client {
     }
   }
 
+  /// Invokes a JSON-RPC [method] provided by this client, ignoring the
+  /// response.
+  void sendNotification({
+    required String method,
+    Map<String, Object?>? parameters,
+  }) {
+    if (_clientPeer.isClosed) {
+      RpcException.serviceDisappeared.throwException();
+    }
+
+    try {
+      _clientPeer.sendNotification(method, parameters);
+      // ignore: avoid_catching_errors
+    } on StateError {
+      RpcException.serviceDisappeared.throwException();
+    }
+  }
+
+  /// The set of services registered by this [Client].
+  Iterable<ServiceNameAliasPair> get services =>
+      _services.entries.map((e) => (service: e.key, alias: e.value));
   final _services = <ServiceName, ServiceAlias>{};
 
   static int _idCounter = 0;
@@ -111,33 +163,65 @@ base class Client {
   /// Sets the name associated with this client.
   ///
   /// If [n] is null, the client name is reset to [defaultClientName].
-  void setName(String? n) => _name = n ?? defaultClientName;
-  late String _name = defaultClientName;
+  void setName(String? n) {
+    final updated = n ?? defaultClientName;
+    logger.info('Changing client name to $updated.');
+    _name = updated;
+  }
+
+  late String _name;
 }
 
 /// Used for keeping track and managing clients that are connected to a given
 /// service.
 ///
-/// Call [addClient] when a client connects to your service, then call
-/// [removeClient] when it stops listening.
+/// Call [addClient] when a client connects to your service.
 base class ClientManager {
+  ClientManager({required this.backend, required this.eventStreamMethods});
+
+  static const _kServicePrologue = 's';
+  final DartRuntimeServiceBackend backend;
+  final EventStreamMethods eventStreamMethods;
+
+  /// The set of [Client]s currently connected to the service.
+  ///
+  /// Each client is assigned a unique identifier, prefixed with
+  /// [_kServicePrologue] (e.g., 's1'). This identifier is used when invoking
+  /// service extensions registered by the client to indicate which client
+  /// is responsible for handling the service extension invocation.
+  final clients = NamedLookup<Client>(prefix: _kServicePrologue);
+
   /// Creates a [Client] from [connection] and adds it to the list of connected
   /// clients.
   ///
   /// This should be called when a client connects to the service.
   @mustCallSuper
-  Client addClient(StreamChannel<String> connection) {
-    final client = Client(clientManager: this, connection: connection);
-    clients.add(client);
+  Client addClient({required StreamChannel<String> connection, String? name}) {
+    final client = Client(
+      connection: connection,
+      clients: UnmodifiableNamedLookup(clients),
+      eventStreamMethods: eventStreamMethods,
+      backend: backend,
+      name: name,
+    );
+    final namespace = clients.add(client);
+    client.initialize(namespace: namespace).then((_) {
+      // Remove the client from the clients list when it disconnects.
+      removeClient(client);
+    });
     return client;
   }
 
   /// Removes [client] from the list of connected clients.
   ///
-  /// This should be called when the client disconnects from the service.
+  /// This is called when the client disconnects from the service and should
+  /// not be invoked manually.
   @mustCallSuper
+  @visibleForOverriding
   void removeClient(Client client) {
-    clients.remove(client);
+    if (clients.contains(client)) {
+      clients.remove(client);
+    }
   }
 
   /// Cleans up clients that are still connected by calling [Client.close] on
@@ -152,15 +236,7 @@ base class ClientManager {
       );
     }
     await Future.wait(futures);
+    // Reset the ID counter so logs in tests are consistent.
+    Client._idCounter = 0;
   }
-
-  static const _kServicePrologue = 's';
-
-  /// The set of [Client]s currently connected to the service.
-  ///
-  /// Each client is assigned a unique identifier, prefixed with
-  /// [_kServicePrologue] (e.g., 's1'). This identifier is used when invoking
-  /// service extensions registered by the client to indicate which client
-  /// is responsible for handling the service extension invocation.
-  final clients = NamedLookup<Client>(prefix: _kServicePrologue);
 }

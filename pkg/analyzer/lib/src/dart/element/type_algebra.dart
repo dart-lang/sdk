@@ -414,11 +414,12 @@ abstract class _TypeSubstitutor
 
     // Invert the variance when translating parameters.
     inner.invertVariance();
-
-    var parameters = type.formalParameters.map((parameter) {
+    var formalParameters = type.formalParameters;
+    var parameters = List.generate(formalParameters.length, (index) {
+      var parameter = formalParameters[index];
       var type = parameter.type.accept(inner);
       return parameter.copyWith(type: type);
-    }).toFixedList();
+    }, growable: false);
 
     inner.invertVariance();
 
@@ -593,10 +594,15 @@ abstract class _TypeSubstitutor
     return InstantiatedTypeAliasElementImpl(
       element: alias.element,
       typeArguments: _mapList(alias.typeArguments),
+      nullabilitySuffix: alias.nullabilitySuffix,
     );
   }
 
   List<TypeImpl> _mapList(List<TypeImpl> types) {
-    return types.map((e) => e.accept(this)).toFixedList();
+    return List.generate(
+      types.length,
+      (index) => types[index].accept(this),
+      growable: false,
+    );
   }
 }

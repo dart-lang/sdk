@@ -173,30 +173,26 @@ final class JsonCodec extends Codec<Object?, String> {
 
   /// Creates a `JsonCodec` with the given reviver and encoding function.
   ///
-  /// The [reviver] function is called during decoding. It is invoked once for
+  /// The [_reviver] function is called during decoding. It is invoked once for
   /// each object or list property that has been parsed.
   /// The `key` argument is either the integer list index for a list property,
   /// the string map key for object properties, or `null` for the final result.
   ///
-  /// If [reviver] is omitted, it defaults to returning the value argument.
+  /// If [_reviver] is omitted, it defaults to returning the value argument.
   ///
-  /// The [toEncodable] function is used during encoding. It is invoked for
+  /// The [_toEncodable] function is used during encoding. It is invoked for
   /// values that are not directly encodable to a string (a value that is not a
   /// number, boolean, string, null, list or a map with string keys). The
   /// function must return an object that is directly encodable. The elements of
   /// a returned list and values of a returned map do not need to be directly
-  /// encodable, and if they aren't, `toEncodable` will be used on them as well.
+  /// encodable, and if they aren't, `_toEncodable` will be used on them as well.
   /// Please notice that it is possible to cause an infinite recursive regress
   /// in this way, by effectively creating an infinite data structure through
-  /// repeated call to `toEncodable`.
+  /// repeated call to `_toEncodable`.
   ///
-  /// If [toEncodable] is omitted, it defaults to a function that returns the
+  /// If [_toEncodable] is omitted, it defaults to a function that returns the
   /// result of calling `.toJson()` on the unencodable object.
-  const JsonCodec({
-    Object? Function(Object? key, Object? value)? reviver,
-    Object? Function(dynamic object)? toEncodable,
-  }) : _reviver = reviver,
-       _toEncodable = toEncodable;
+  const JsonCodec({this._reviver, this._toEncodable});
 
   /// Creates a `JsonCodec` with the given reviver.
   ///
@@ -288,7 +284,7 @@ final class JsonEncoder extends Converter<Object?, String> {
   final String? indent;
 
   /// Function called on non-encodable objects to return a replacement
-  /// encodable object that will be encoded in the orignal's place.
+  /// encodable object that will be encoded in the original's place.
   final Object? Function(dynamic)? _toEncodable;
 
   /// Creates a JSON encoder.
@@ -1014,7 +1010,7 @@ class _JsonStringStringifier extends _JsonStringifier {
 
   /// Convert object to a string, and write the result to the [output] sink.
   ///
-  /// The result is written piecemally to the sink.
+  /// The result is written piecemeally to the sink.
   static void printOn(
     Object? object,
     StringSink output,

@@ -187,6 +187,7 @@ void KernelFingerprintHelper::CalculateInitializerFingerprint() {
     case kInvalidInitializer:
       ReadPosition();                         // read position.
       CalculateStringReferenceFingerprint();  // read message
+      ReadByte();                             // read flags
       return;
     case kFieldInitializer:
       ReadPosition();  // read position.
@@ -625,6 +626,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     case kFunctionExpression:
       ReadPosition();                      // read position.
+      ReadUInt();                          // read id.
       CalculateFunctionNodeFingerprint();  // read function node.
       return;
     case kLet:
@@ -858,6 +860,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
     case kFunctionDeclaration:
       ReadPosition();                             // read position.
       CalculateVariableDeclarationFingerprint();  // read variable.
+      ReadUInt();                                 // read id.
       CalculateFunctionNodeFingerprint();         // read function node.
       return;
     case kForInStatement:

@@ -51,7 +51,7 @@ dart pkg/analysis_server/tool/log_player/normalize.dart \
 Scenarios require a project, a log file, and name.
 
 Projects are either set up by cloning a git repo (typical for external repo
-scenarios), or by creating a git worktree for an local project (recommended
+scenarios), or by creating a git worktree for a local project (recommended
 for SDK scenarios).
 
 Scenarios are set up in

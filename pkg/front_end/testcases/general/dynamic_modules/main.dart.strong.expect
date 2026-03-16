@@ -1,7 +1,7 @@
 //
 // Problems in component:
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:11:7: Error: Cannot extend, implement or mix-in class 'C3' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:12:7: Error: Cannot extend, implement or mix-in class 'C3' in a dynamic module.
 // Try removing the reference to class 'C3' or update the dynamic interface to list class 'C3' as extendable.
 // class D3 extends C3 {}
 //       ^
@@ -9,32 +9,32 @@
 // pkg/front_end/testcases/general/dynamic_modules/main.dart: Error: Cannot invoke constructor 'C3' from a dynamic module.
 // Try removing the call or update the dynamic interface to list constructor 'C3' as callable.
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:20:12: Error: Cannot override member 'C4.field1' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:21:12: Error: Cannot override member 'C4.field1' in a dynamic module.
 // Try removing the override or update the dynamic interface to list member 'C4.field1' as can-be-overridden.
 //   int? get field1 => null;
 //            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:16:8: Error: Cannot override member 'C4.method1' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:17:8: Error: Cannot override member 'C4.method1' in a dynamic module.
 // Try removing the override or update the dynamic interface to list member 'C4.method1' as can-be-overridden.
 //   void method1() {}
 //        ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:21:7: Error: Cannot override member 'C4.field1' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:22:7: Error: Cannot override member 'C4.field1' in a dynamic module.
 // Try removing the override or update the dynamic interface to list member 'C4.field1' as can-be-overridden.
 //   set field1(int? value) {}
 //       ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:28:7: Error: Cannot extend, implement or mix-in class 'C3' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:29:7: Error: Cannot extend, implement or mix-in class 'C3' in a dynamic module.
 // Try removing the reference to class 'C3' or update the dynamic interface to list class 'C3' as extendable.
 // class E3 implements C3 {}
 //       ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:37:8: Error: Cannot override member 'C4.field1' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:38:8: Error: Cannot override member 'C4.field1' in a dynamic module.
 // Try removing the override or update the dynamic interface to list member 'C4.field1' as can-be-overridden.
 //   int? field1;
 //        ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:33:8: Error: Cannot override member 'C4.method1' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:34:8: Error: Cannot override member 'C4.method1' in a dynamic module.
 // Try removing the override or update the dynamic interface to list member 'C4.method1' as can-be-overridden.
 //   void method1() {}
 //        ^
@@ -55,154 +55,224 @@
 // pkg/front_end/testcases/general/dynamic_modules/main.dart: Error: Cannot invoke member '_privateMethodForC6' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member '_privateMethodForC6' as callable.
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:43:7: Error: Cannot extend, implement or mix-in class 'M1' in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart: Error: Cannot use class '_ConstForC6' as a type in a dynamic module.
+// Try removing the reference to class '_ConstForC6' or update the dynamic interface to list class '_ConstForC6' as can-be-used-as-type.
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:44:7: Error: Cannot extend, implement or mix-in class 'M1' in a dynamic module.
 // Try removing the reference to class 'M1' or update the dynamic interface to list class 'M1' as extendable.
 // class F1 with M1 {}
 //       ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:68:15: Error: Dynamic calls are not allowed in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:69:15: Error: Dynamic calls are not allowed in a dynamic module.
 //   x.foo().bar.baz = 42;
 //               ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:68:11: Error: Dynamic calls are not allowed in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:69:11: Error: Dynamic calls are not allowed in a dynamic module.
 //   x.foo().bar.baz = 42;
 //           ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:68:5: Error: Dynamic calls are not allowed in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:69:5: Error: Dynamic calls are not allowed in a dynamic module.
 //   x.foo().bar.baz = 42;
 //     ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:69:14: Error: Dynamic calls are not allowed in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:70:14: Error: Dynamic calls are not allowed in a dynamic module.
 //   if (x case < 3) {
 //              ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:73:21: Error: Dynamic calls are not allowed in a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:74:21: Error: Dynamic calls are not allowed in a dynamic module.
 //     case dynamic(foo: 42):
 //                     ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:79:6: Error: Cannot use class 'C1' in a dynamic module.
-// Try removing the reference to class 'C1' or update the dynamic interface to list class 'C1' as callable.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:80:6: Error: Cannot use class 'C1' as a type in a dynamic module.
+// Try removing the reference to class 'C1' or update the dynamic interface to list class 'C1' as can-be-used-as-type.
 //   C1 o1 = C1();
 //      ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:79:11: Error: Cannot invoke constructor 'C1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:80:11: Error: Cannot invoke constructor 'C1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list constructor 'C1' as callable.
 //   C1 o1 = C1();
 //           ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:80:6: Error: Cannot invoke member 'C1.method1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:81:6: Error: Cannot invoke member 'C1.method1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C1.method1' as callable.
 //   o1.method1();
 //      ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:81:12: Error: Cannot invoke member 'C1.method1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:82:12: Error: Cannot invoke member 'C1.method1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C1.method1' as callable.
 //   print(o1.method1);
 //            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:82:12: Error: Cannot invoke member 'C1.getter1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:83:12: Error: Cannot invoke member 'C1.getter1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C1.getter1' as callable.
 //   print(o1.getter1);
 //            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:83:6: Error: Cannot invoke member 'C1.setter1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:84:6: Error: Cannot invoke member 'C1.setter1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C1.setter1' as callable.
 //   o1.setter1 = 42;
 //      ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:84:6: Error: Cannot invoke member 'C1.method2' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:85:6: Error: Cannot invoke member 'C1.method2' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C1.method2' as callable.
 //   C1.method2();
 //      ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:85:12: Error: Cannot invoke member 'C1.method2' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:86:12: Error: Cannot invoke member 'C1.method2' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C1.method2' as callable.
 //   print(C1.method2);
 //            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:86:12: Error: Cannot invoke member 'C1.getter2' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:87:12: Error: Cannot invoke member 'C1.getter2' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C1.getter2' as callable.
 //   print(C1.getter2);
 //            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:87:6: Error: Cannot invoke member 'C1.setter2' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:88:6: Error: Cannot invoke member 'C1.setter2' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C1.setter2' as callable.
 //   C1.setter2 = 42;
 //      ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:88:9: Error: Cannot invoke constructor 'C1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:89:9: Error: Cannot invoke constructor 'C1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list constructor 'C1' as callable.
 //   print(C1.new);
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:89:12: Error: Cannot invoke member 'C1.field1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:90:12: Error: Cannot invoke member 'C1.field1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C1.field1' as callable.
 //   print(o1.field1);
 //            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:90:12: Error: Cannot invoke member 'C1.field2' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:91:12: Error: Cannot invoke member 'C1.field2' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C1.field2' as callable.
 //   print(C1.field2);
 //            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:107:3: Error: Cannot invoke member 'method1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:108:3: Error: Cannot invoke member 'method1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'method1' as callable.
 //   method1();
 //   ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:108:9: Error: Cannot invoke member 'method1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:109:9: Error: Cannot invoke member 'method1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'method1' as callable.
 //   print(method1);
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:115:9: Error: Cannot invoke member 'field1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:116:9: Error: Cannot invoke member 'field1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'field1' as callable.
 //   print(field1);
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:116:3: Error: Cannot invoke member 'field1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:117:3: Error: Cannot invoke member 'field1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'field1' as callable.
 //   field1 = 42;
 //   ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:124:12: Error: Cannot invoke member 'C8.fact1' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:125:12: Error: Cannot invoke member 'C8.fact1' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C8.fact1' as callable.
 //   print(C8.fact1());
 //            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:125:12: Error: Cannot invoke member 'C8.fact2' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:126:12: Error: Cannot invoke member 'C8.fact2' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C8.fact2' as callable.
 //   print(C8.fact2());
 //            ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:126:15: Error: Cannot invoke member 'C8.fact4' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:127:15: Error: Cannot invoke member 'C8.fact4' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'C8.fact4' as callable.
 //   print(const C8.fact4());
 //               ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:134:9: Error: Cannot use extension type 'ExtType1' in a dynamic module.
-// Try removing the reference to extension type 'ExtType1' or update the dynamic interface to list extension type 'ExtType1' as callable.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:135:9: Error: Cannot use extension type 'ExtType1' as a type in a dynamic module.
+// Try removing the reference to extension type 'ExtType1' or update the dynamic interface to list extension type 'ExtType1' as can-be-used-as-type.
 //   print(ExtType1);
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:135:9: Error: Cannot invoke member 'ExtType1.new' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:136:9: Error: Cannot invoke member 'ExtType1.new' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'ExtType1.new' as callable.
 //   print(ExtType1(42));
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:136:12: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:137:12: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member 'Ext1.isPositive' as callable.
 //   print(42.isPositive);
 //            ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:157:17: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'Ext1.isPositive' as callable.
+//   print(Ext1(1).isPositive);
+//                 ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:166:9: Error: Cannot use extension type 'ExtType5' as a type in a dynamic module.
+// Try removing the reference to extension type 'ExtType5' or update the dynamic interface to list extension type 'ExtType5' as can-be-used-as-type.
+//   print(ExtType5);
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:172:27: Error: Cannot invoke member 'ExtType5.isPositive' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'ExtType5.isPositive' as callable.
+//   print(ExtType5.plus1(3).isPositive);
+//                           ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:235:9: Error: Cannot invoke constructor 'C10' from a dynamic module.
+// Try removing the call or update the dynamic interface to list constructor 'C10' as callable.
+//   print(C10());
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:236:9: Error: Cannot invoke member 'ExtType10.new' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'ExtType10.new' as callable.
+//   print(ExtType10(20));
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:239:5: Error: Cannot use class 'C13' as a type in a dynamic module.
+// Try removing the reference to class 'C13' or update the dynamic interface to list class 'C13' as can-be-used-as-type.
+//   o is C13;
+//     ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:240:5: Error: Cannot use class 'C13' as a type in a dynamic module.
+// Try removing the reference to class 'C13' or update the dynamic interface to list class 'C13' as can-be-used-as-type.
+//   o as C13;
+//     ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:241:13: Error: Cannot use class 'C13' as a type in a dynamic module.
+// Try removing the reference to class 'C13' or update the dynamic interface to list class 'C13' as can-be-used-as-type.
+//   List<C13> list9;
+//             ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:242:9: Error: Cannot use class 'C13' as a type in a dynamic module.
+// Try removing the reference to class 'C13' or update the dynamic interface to list class 'C13' as can-be-used-as-type.
+//   print(C13);
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:243:14: Error: Cannot use class 'C13' as a type in a dynamic module.
+// Try removing the reference to class 'C13' or update the dynamic interface to list class 'C13' as can-be-used-as-type.
+//   print(<C13>[]);
+//              ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:244:20: Error: Cannot use extension type 'ExtType13' as a type in a dynamic module.
+// Try removing the reference to extension type 'ExtType13' or update the dynamic interface to list extension type 'ExtType13' as can-be-used-as-type.
+//   print(<ExtType13>[]);
+//                    ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:247:9: Error: Cannot use class 'C14' as a type in a dynamic module.
+// Try removing the reference to class 'C14' or update the dynamic interface to list class 'C14' as can-be-used-as-type.
+//   final inferredList = [C15(), C16()];
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:247:24: Error: Cannot use class 'C14' as a type in a dynamic module.
+// Try removing the reference to class 'C14' or update the dynamic interface to list class 'C14' as can-be-used-as-type.
+//   final inferredList = [C15(), C16()];
+//                        ^
 //
 library;
 import self as self;
 import "main_lib1.dart" as mai;
 import "dart:core" as core;
 import "main_lib3.dart" as mai2;
+import "main_lib4.dart" as mai3;
 
 import "org-dartlang-testcase:///main_lib1.dart";
 import "org-dartlang-testcase:///main_lib2.dart";
+import "org-dartlang-testcase:///main_lib4.dart";
 
 class D3 extends mai::C3 {
   synthetic constructor •() → self::D3
@@ -351,12 +421,82 @@ static method test() → void {
   core::print(#C15);
   core::print(mai::ExtType1|constructor#(42));
   core::print(mai::Ext1|get#isPositive(42));
+  core::print(#C15);
+  core::print(mai::ExtType2|constructor#(42));
+  core::print(mai::ExtType2|get#isPositive(mai::ExtType2|constructor#(42)));
+  core::print(#C15);
+  core::print(mai::ExtType3|constructor#(42));
+  core::print(mai::ExtType3|get#isPositive(mai::ExtType3|constructor#(42)));
+  core::print(#C15);
+  core::print(mai::ExtType4|constructor#(42));
+  core::print(mai::ExtType4|get#isPositive(mai::ExtType4|constructor#(42)));
+  core::print(mai::Ext2|get#isNegative2(1));
+  core::print(mai::Ext3|get#isNegative3(1));
+  core::print(mai::Ext4|get#isNegative4(1));
+  core::print(mai::Ext4|get#isNegative4(1));
+  core::print(mai::Ext1|get#isPositive(1));
+  core::print(mai::Ext5|get#isNegative5(1));
+  core::print(mai::Ext5|get#isNegative5(1));
+  core::print(#C15);
+  core::print(mai::ExtType5|constructor#plus1(3));
+  core::print(mai::ExtType5|get#isPositive(mai::ExtType5|constructor#plus1(3)));
   core::print(new mai2::Lib3Class::•());
   mai2::lib3Method();
   mai2::lib3Field = 42;
   core::print(#C15);
   core::print(mai2::Lib3ExtType|constructor#(42));
   core::print(mai2::Lib3Ext|get#lib3IsPositive(42));
+}
+static method testCanBeUsedAsType(core::Object? o) → void {
+  o is mai::C10;
+  o as mai::C10;
+  core::List<mai::C10> list1;
+  core::print(#C16);
+  core::print(<mai::C10>[]);
+  o{mai::C10} is mai::ExtType10% /* erasure=core::int, declared=! */;
+  o{mai::C10} as mai::ExtType10% /* erasure=core::int, declared=! */;
+  core::List<mai::ExtType10% /* erasure=core::int, declared=! */> list2;
+  core::print(#C15);
+  core::print(<mai::ExtType10% /* erasure=core::int, declared=! */>[]);
+  o{mai::C10} is mai::C11;
+  o{mai::C10} as mai::C11;
+  core::List<mai::C11> list3;
+  core::print(#C17);
+  core::print(<mai::C11>[]);
+  o{mai::C10} is mai::ExtType11% /* erasure=core::int, declared=! */;
+  o{mai::C10} as mai::ExtType11% /* erasure=core::int, declared=! */;
+  core::List<mai::ExtType11% /* erasure=core::int, declared=! */> list4;
+  core::print(#C15);
+  core::print(<mai::ExtType11% /* erasure=core::int, declared=! */>[]);
+  o{mai::C10} is mai::C12;
+  o{mai::C10} as mai::C12;
+  core::List<mai::C12> list5;
+  core::print(#C18);
+  core::print(<mai::C12>[]);
+  o{mai::C10} is mai::ExtType12% /* erasure=core::int, declared=! */;
+  o{mai::C10} as mai::ExtType12% /* erasure=core::int, declared=! */;
+  core::List<mai::ExtType12% /* erasure=core::int, declared=! */> list6;
+  core::print(#C15);
+  core::print(<mai::ExtType12% /* erasure=core::int, declared=! */>[]);
+  o{mai::C10} is mai3::Lib4Class;
+  o{mai::C10} as mai3::Lib4Class;
+  core::List<mai3::Lib4Class> list7;
+  core::print(#C19);
+  core::print(<mai3::Lib4Class>[]);
+  o{mai::C10} is mai3::Lib4ExtType% /* erasure=core::int, declared=! */;
+  o{mai::C10} as mai3::Lib4ExtType% /* erasure=core::int, declared=! */;
+  core::List<mai3::Lib4ExtType% /* erasure=core::int, declared=! */> list8;
+  core::print(#C15);
+  core::print(<mai3::Lib4ExtType% /* erasure=core::int, declared=! */>[]);
+  core::print(new mai::C10::•());
+  core::print(mai::ExtType10|constructor#(20));
+  o{mai::C10} is mai::C13;
+  o{mai::C10} as mai::C13;
+  core::List<mai::C13> list9;
+  core::print(#C20);
+  core::print(<mai::C13>[]);
+  core::print(<mai::ExtType13% /* erasure=core::int, declared=! */>[]);
+  final core::List<mai::C14> inferredList = <mai::C14>[new mai::C15::•(), new mai::C16::•()];
 }
 static method main() → void {}
 
@@ -485,18 +625,111 @@ class C9 extends core::Object /*hasConstConstructor*/  {
   static const factory fact4() → mai::C9 /* redirection-target: mai::C9::constConstr */
     return new mai::C9::constConstr();
 }
+class C10 extends core::Object {
+  synthetic constructor •() → mai::C10
+    : super core::Object::•()
+    ;
+}
+class C11 extends core::Object {
+  synthetic constructor •() → mai::C11
+    : super core::Object::•()
+    ;
+}
+class C12 extends core::Object {
+  synthetic constructor •() → mai::C12
+    : super core::Object::•()
+    ;
+}
+class C13 extends core::Object {
+  synthetic constructor •() → mai::C13
+    : super core::Object::•()
+    ;
+}
+class C14 extends core::Object {
+  synthetic constructor •() → mai::C14
+    : super core::Object::•()
+    ;
+}
+class C15 extends core::Object implements mai::C14 {
+  synthetic constructor •() → mai::C15
+    : super core::Object::•()
+    ;
+}
+class C16 extends core::Object implements mai::C14 {
+  synthetic constructor •() → mai::C16
+    : super core::Object::•()
+    ;
+}
 extension Ext1 on core::int {
   get isPositive = mai::Ext1|get#isPositive;
+}
+extension Ext2 on core::int {
+  get isNegative2 = mai::Ext2|get#isNegative2;
+}
+extension Ext3 on core::int {
+  get isNegative3 = mai::Ext3|get#isNegative3;
+}
+extension Ext4 on core::int {
+  get isNegative4 = mai::Ext4|get#isNegative4;
+}
+extension Ext5 on core::int {
+  get isNegative5 = mai::Ext5|get#isNegative5;
 }
 extension type ExtType1(core::int raw) {
   abstract extension-type-member representation-field get raw() → core::int;
   constructor • = mai::ExtType1|constructor#;
   constructor tearoff • = mai::ExtType1|constructor#_#new#tearOff;
 }
+extension type ExtType2(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType2|get#isPositive;
+  constructor • = mai::ExtType2|constructor#;
+  constructor tearoff • = mai::ExtType2|constructor#_#new#tearOff;
+}
+extension type ExtType3(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType3|get#isPositive;
+  constructor • = mai::ExtType3|constructor#;
+  constructor tearoff • = mai::ExtType3|constructor#_#new#tearOff;
+}
+extension type ExtType4(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType4|get#isPositive;
+  constructor • = mai::ExtType4|constructor#;
+  constructor tearoff • = mai::ExtType4|constructor#_#new#tearOff;
+}
+extension type ExtType5(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  get isPositive = mai::ExtType5|get#isPositive;
+  constructor _ = mai::ExtType5|constructor#_;
+  constructor tearoff _ = mai::ExtType5|constructor#_#_#tearOff;
+  constructor plus1 = mai::ExtType5|constructor#plus1;
+  constructor tearoff plus1 = mai::ExtType5|constructor#_#plus1#tearOff;
+}
+extension type ExtType10(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  constructor • = mai::ExtType10|constructor#;
+  constructor tearoff • = mai::ExtType10|constructor#_#new#tearOff;
+}
+extension type ExtType11(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  constructor • = mai::ExtType11|constructor#;
+  constructor tearoff • = mai::ExtType11|constructor#_#new#tearOff;
+}
+extension type ExtType12(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  constructor • = mai::ExtType12|constructor#;
+  constructor tearoff • = mai::ExtType12|constructor#_#new#tearOff;
+}
+extension type ExtType13(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  constructor • = mai::ExtType13|constructor#;
+  constructor tearoff • = mai::ExtType13|constructor#_#new#tearOff;
+}
 static field core::int field1 = 4;
 static field core::int field2 = 4;
-static const field mai::_C5 const1 = #C17;
-static const field mai::_C5 const2 = #C19;
+static const field mai::_C5 const1 = #C22;
+static const field mai::_C5 const2 = #C24;
 static method method1() → void {}
 static method method2() → void {}
 static method _privateMethod1() → void {}
@@ -511,6 +744,77 @@ static extension-type-member synthetic method ExtType1|constructor#_#new#tearOff
   return mai::ExtType1|constructor#(raw);
 static extension-member method Ext1|get#isPositive(lowered final core::int #this) → core::bool
   return #this.{core::num::>}(0){(core::num) → core::bool};
+static extension-member method Ext2|get#isNegative2(lowered final core::int #this) → core::bool
+  return #this.{core::num::<}(0){(core::num) → core::bool};
+static extension-member method Ext3|get#isNegative3(lowered final core::int #this) → core::bool
+  return #this.{core::num::<}(0){(core::num) → core::bool};
+static extension-member method Ext4|get#isNegative4(lowered final core::int #this) → core::bool
+  return #this.{core::num::<}(0){(core::num) → core::bool};
+static extension-member method Ext5|get#isNegative5(lowered final core::int #this) → core::bool
+  return #this.{core::num::<}(0){(core::num) → core::bool};
+static extension-type-member method ExtType2|constructor#(core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType2% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType2|constructor#_#new#tearOff(core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */
+  return mai::ExtType2|constructor#(raw);
+static extension-type-member method ExtType2|get#isPositive(lowered final mai::ExtType2% /* erasure=core::int, declared=! */ #this) → core::bool
+  return (#this as{Unchecked} core::int).{core::num::>}(0){(core::num) → core::bool};
+static extension-type-member method ExtType3|constructor#(core::int raw) → mai::ExtType3% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType3% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType3|constructor#_#new#tearOff(core::int raw) → mai::ExtType3% /* erasure=core::int, declared=! */
+  return mai::ExtType3|constructor#(raw);
+static extension-type-member method ExtType3|get#isPositive(lowered final mai::ExtType3% /* erasure=core::int, declared=! */ #this) → core::bool
+  return (#this as{Unchecked} core::int).{core::num::>}(0){(core::num) → core::bool};
+static extension-type-member method ExtType4|constructor#(core::int raw) → mai::ExtType4% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType4% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType4|constructor#_#new#tearOff(core::int raw) → mai::ExtType4% /* erasure=core::int, declared=! */
+  return mai::ExtType4|constructor#(raw);
+static extension-type-member method ExtType4|get#isPositive(lowered final mai::ExtType4% /* erasure=core::int, declared=! */ #this) → core::bool
+  return (#this as{Unchecked} core::int).{core::num::>}(0){(core::num) → core::bool};
+static extension-type-member method ExtType5|constructor#_(core::int raw) → mai::ExtType5% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType5% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType5|constructor#_#_#tearOff(core::int raw) → mai::ExtType5% /* erasure=core::int, declared=! */
+  return mai::ExtType5|constructor#_(raw);
+static extension-type-member synthetic method ExtType5|constructor#_#plus1#tearOff(core::int n) → mai::ExtType5% /* erasure=core::int, declared=! */
+  return mai::ExtType5|constructor#plus1(n);
+static extension-type-member method ExtType5|constructor#plus1(core::int n) → mai::ExtType5% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType5% /* erasure=core::int, declared=! */ #this;
+  #this = mai::ExtType5|constructor#_(n.{core::num::+}(1){(core::num) → core::int});
+  return #this;
+}
+static extension-type-member method ExtType5|get#isPositive(lowered final mai::ExtType5% /* erasure=core::int, declared=! */ #this) → core::bool
+  return (#this as{Unchecked} core::int).{core::num::>}(0){(core::num) → core::bool};
+static extension-type-member method ExtType10|constructor#(core::int raw) → mai::ExtType10% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType10% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType10|constructor#_#new#tearOff(core::int raw) → mai::ExtType10% /* erasure=core::int, declared=! */
+  return mai::ExtType10|constructor#(raw);
+static extension-type-member method ExtType11|constructor#(core::int raw) → mai::ExtType11% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType11% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType11|constructor#_#new#tearOff(core::int raw) → mai::ExtType11% /* erasure=core::int, declared=! */
+  return mai::ExtType11|constructor#(raw);
+static extension-type-member method ExtType12|constructor#(core::int raw) → mai::ExtType12% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType12% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType12|constructor#_#new#tearOff(core::int raw) → mai::ExtType12% /* erasure=core::int, declared=! */
+  return mai::ExtType12|constructor#(raw);
+static extension-type-member method ExtType13|constructor#(core::int raw) → mai::ExtType13% /* erasure=core::int, declared=! */ {
+  lowered final mai::ExtType13% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method ExtType13|constructor#_#new#tearOff(core::int raw) → mai::ExtType13% /* erasure=core::int, declared=! */
+  return mai::ExtType13|constructor#(raw);
 
 library;
 import self as self2;
@@ -553,6 +857,27 @@ static extension-type-member synthetic method Lib3ExtType|constructor#_#new#tear
 static extension-member method Lib3Ext|get#lib3IsPositive(lowered final core::int #this) → core::bool
   return #this.{core::num::>}(0){(core::num) → core::bool};
 
+library;
+import self as mai3;
+import "dart:core" as core;
+
+class Lib4Class extends core::Object {
+  synthetic constructor •() → mai3::Lib4Class
+    : super core::Object::•()
+    ;
+}
+extension type Lib4ExtType(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  constructor • = mai3::Lib4ExtType|constructor#;
+  constructor tearoff • = mai3::Lib4ExtType|constructor#_#new#tearOff;
+}
+static extension-type-member method Lib4ExtType|constructor#(core::int raw) → mai3::Lib4ExtType% /* erasure=core::int, declared=! */ {
+  lowered final mai3::Lib4ExtType% /* erasure=core::int, declared=! */ #this = raw;
+  return #this;
+}
+static extension-type-member synthetic method Lib4ExtType|constructor#_#new#tearOff(core::int raw) → mai3::Lib4ExtType% /* erasure=core::int, declared=! */
+  return mai3::Lib4ExtType|constructor#(raw);
+
 constants  {
   #C1 = static-tearoff mai::_privateMethodForC6
   #C2 = mai::_ConstForC6 {_f:#C1}
@@ -569,10 +894,15 @@ constants  {
   #C13 = mai::C8 {}
   #C14 = mai::C9 {}
   #C15 = TypeLiteralConstant(core::int)
-  #C16 = static-tearoff mai::_privateMethod1
-  #C17 = mai::_C5 {func:#C16}
-  #C18 = static-tearoff mai::_privateMethod2
-  #C19 = mai::_C5 {func:#C18}
+  #C16 = TypeLiteralConstant(mai::C10)
+  #C17 = TypeLiteralConstant(mai::C11)
+  #C18 = TypeLiteralConstant(mai::C12)
+  #C19 = TypeLiteralConstant(mai3::Lib4Class)
+  #C20 = TypeLiteralConstant(mai::C13)
+  #C21 = static-tearoff mai::_privateMethod1
+  #C22 = mai::_C5 {func:#C21}
+  #C23 = static-tearoff mai::_privateMethod2
+  #C24 = mai::_C5 {func:#C23}
 }
 
 

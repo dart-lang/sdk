@@ -29,6 +29,7 @@ class ObjectPointerVisitor;
   V(StateError, "StateError")                                                  \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
+  V(_BigIntImpl, "_BigIntImpl")                                                \
   V(Bool, "bool")                                                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
@@ -448,9 +449,6 @@ class ObjectPointerVisitor;
   V(_ffi_resolver_function, "_ffi_resolver_function")                          \
   V(future, "future")                                                          \
   V(_future, "_future")                                                        \
-  V(_getRegisters, "_getRegisters")                                            \
-  V(_getBacktrackingStack, "_getBacktrackingStack")                            \
-  V(_growBacktrackingStack, "_growBacktrackingStack")                          \
   V(_handleException, "_handleException")                                      \
   V(_handleFinalizerMessage, "_handleFinalizerMessage")                        \
   V(_handleMessage, "_handleMessage")                                          \
@@ -507,7 +505,6 @@ class ObjectPointerVisitor;
   V(_toString, "_toString")                                                    \
   V(_typedDataBase, "_typedDataBase")                                          \
   V(_varData, "_varData")                                                      \
-  V(_wordCharacterMap, "_wordCharacterMap")                                    \
   V(_yieldAsyncStar, "_yieldAsyncStar")                                        \
   V(_yieldStarIterable, "_yieldStarIterable")                                  \
   V(_yieldSyncStar, "_yieldSyncStar")                                          \
@@ -533,6 +530,7 @@ class ObjectPointerVisitor;
   V(dyn_module_callable, "dyn-module:callable")                                \
   V(dyn_module_extendable, "dyn-module:extendable")                            \
   V(dyn_module_implicitly_callable, "dyn-module:implicitly-callable")          \
+  V(dyn_module_can_be_used_as_type, "dyn-module:can-be-used-as-type")          \
   V(end, "end")                                                                \
   V(executable, "executable")                                                  \
   V(from, "from")                                                              \

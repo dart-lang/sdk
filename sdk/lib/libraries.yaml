@@ -53,6 +53,7 @@ vm_common:
         - "_internal/vm/lib/array_patch.dart"
         - "_internal/vm/lib/core_patch.dart"
         - "_internal/vm_shared/lib/bigint_patch.dart"
+        - "_internal/vm/lib/bigint_patch_patch.dart"
         - "_internal/vm_shared/lib/bool_patch.dart"
         - "_internal/vm_shared/lib/date_patch.dart"
         - "_internal/vm_shared/lib/integers_patch.dart"
@@ -77,6 +78,8 @@ vm_common:
 
     _http:
       uri: "_http/http.dart"
+      patches:
+        - "_internal/vm/lib/http_patch.dart"
 
     io:
       uri: "io/io.dart"
@@ -133,6 +136,7 @@ wasm:
         - _internal/vm_shared/lib/map_patch.dart
         - _internal/vm_shared/lib/null_patch.dart
         - _internal/wasm/lib/array_patch.dart
+        - _internal/wasm/lib/bigint_patch_patch.dart
         - _internal/wasm/lib/core_patch.dart
         - _internal/wasm/lib/date_patch_patch.dart
         - _internal/wasm/lib/int_common_patch.dart
@@ -180,6 +184,7 @@ wasm_js_compatibility:
         - _internal/vm_shared/lib/map_patch.dart
         - _internal/vm_shared/lib/null_patch.dart
         - _internal/wasm/lib/array_patch.dart
+        - _internal/wasm/lib/bigint_patch_patch.dart
         - _internal/wasm/lib/core_patch.dart
         - _internal/wasm/lib/date_patch_patch.dart
         - _internal/wasm/lib/int_common_patch.dart
@@ -222,6 +227,8 @@ wasm_common:
       uri: _internal/wasm/lib/error_utils.dart
     _http:
       uri: _http/http.dart
+      patches:
+        - _internal/js_shared/lib/http_patch.dart
     _internal:
       uri: internal/internal.dart
       patches:
@@ -351,6 +358,8 @@ _dart2js_common:
 
     _http:
       uri: "_http/http.dart"
+      patches:
+        - _internal/js_shared/lib/http_patch.dart
 
     io:
       uri: "io/io.dart"
@@ -459,6 +468,8 @@ dartdevc:
 
     _http:
       uri: "_http/http.dart"
+      patches:
+        - _internal/js_shared/lib/http_patch.dart
 
     _interceptors:
       uri: "_internal/js_dev_runtime/private/interceptors.dart"

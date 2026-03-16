@@ -142,7 +142,10 @@ class LibraryContext {
     }
 
     performance.run('loadBundle', (performance) {
-      _loadBundle(cycle: libraryCycle, performance: performance);
+      var cyclesToLoad = _collectCyclesToLoad(libraryCycle);
+      for (var cycle in cyclesToLoad) {
+        _loadBundle(cycle: cycle, performance: performance);
+      }
     });
 
     // There might be a rare (and wrong) situation, when the external summaries
@@ -154,16 +157,17 @@ class LibraryContext {
   /// Remove libraries represented by the [removed] files.
   /// If we need these libraries later, we will relink and reattach them.
   void remove(Set<FileState> removed, Set<String> removedKeys) {
+    if (removed.isEmpty) return;
+
     elementFactory.removeLibraries(removed.map((e) => e.uri).toSet());
 
-    loadedBundles.removeWhere((cycle) {
-      var cycleFiles = cycle.libraries.map((e) => e.file);
-      if (cycleFiles.any(removed.contains)) {
-        removedKeys.add(cycle.linkedKey);
-        return true;
-      }
-      return false;
-    });
+    var removedCycles = removed
+        .map((file) => file.kind.library?.internal_libraryCycle)
+        .nonNulls
+        .where(loadedBundles.contains)
+        .toSet();
+    loadedBundles.removeAll(removedCycles);
+    removedKeys.addAll(removedCycles.map((cycle) => cycle.linkedKey));
   }
 
   /// Unloads all loaded bundles.
@@ -184,6 +188,48 @@ class LibraryContext {
     return keySet;
   }
 
+  /// Returns not yet loaded cycles starting from [root] in post-order, so
+  /// each cycle comes after all cycles it directly depends on.
+  List<LibraryCycle> _collectCyclesToLoad(LibraryCycle root) {
+    var cyclesToLoad = <LibraryCycle>[];
+    var scheduled = <LibraryCycle>{};
+    var stack = <(LibraryCycle, Iterator<LibraryCycle>)>[];
+
+    void push(LibraryCycle cycle) {
+      if (scheduled.add(cycle)) {
+        stack.add((cycle, cycle.directDependencies.iterator));
+      }
+    }
+
+    push(root);
+
+    while (stack.isNotEmpty) {
+      var (cycle, dependencyIterator) = stack.last;
+
+      if (loadedBundles.contains(cycle)) {
+        stack.removeLast();
+        continue;
+      }
+
+      if (dependencyIterator.moveNext()) {
+        push(dependencyIterator.current);
+      } else {
+        stack.removeLast();
+        cyclesToLoad.add(cycle);
+      }
+    }
+
+    // The same cycle must be loaded only once.
+    // We only return cycles that are not loaded.
+    assert(() {
+      var uniqueCycles = cyclesToLoad.toSet();
+      return uniqueCycles.length == cyclesToLoad.length &&
+          uniqueCycles.intersection(loadedBundles).isEmpty;
+    }());
+
+    return cyclesToLoad;
+  }
+
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
     if (!analysisContext.hasTypeProvider) {
@@ -194,10 +240,9 @@ class LibraryContext {
     }
   }
 
-  /// Recursively load the linked bundle for [cycle], link if not available.
+  /// Load the linked bundle for [cycle], or link it if not available.
   ///
-  /// Uses the same [performance] during recursion, so has single aggregate
-  /// set of operations.
+  /// Direct dependencies must already be loaded.
   void _loadBundle({
     required LibraryCycle cycle,
     required OperationPerformanceImpl performance,
@@ -207,10 +252,6 @@ class LibraryContext {
 
     performance.getDataInt('cycleCount').increment();
     performance.getDataInt('libraryCount').add(cycle.libraries.length);
-
-    for (var directDependency in cycle.directDependencies) {
-      _loadBundle(cycle: directDependency, performance: performance);
-    }
 
     var unitsInformativeBytes = <Uri, Uint8List>{};
     for (var library in cycle.libraries) {

@@ -116,7 +116,6 @@ final highlightRegionTokenModifiers =
 /// https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide#semantic-token-classification
 final highlightRegionTokenTypes = {
   HighlightRegionType.ANNOTATION: CustomSemanticTokenTypes.annotation,
-  HighlightRegionType.BUILT_IN: SemanticTokenTypes.keyword,
   HighlightRegionType.CLASS: SemanticTokenTypes.class_,
   HighlightRegionType.COMMENT_BLOCK: SemanticTokenTypes.comment,
   HighlightRegionType.COMMENT_DOCUMENTATION: SemanticTokenTypes.comment,

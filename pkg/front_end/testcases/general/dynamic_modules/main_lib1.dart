@@ -112,3 +112,58 @@ extension type ExtType1(int raw) {}
 extension Ext1 on int {
   bool get isPositive => this > 0;
 }
+
+extension Ext2 on int {
+  bool get isNegative2 => this < 0;
+}
+
+extension Ext3 on int {
+  bool get isNegative3 => this < 0;
+}
+
+extension Ext4 on int {
+  bool get isNegative4 => this < 0;
+}
+
+extension Ext5 on int {
+  bool get isNegative5 => this < 0;
+}
+
+extension type ExtType2(int raw) {
+  bool get isPositive => raw > 0;
+}
+
+extension type ExtType3(int raw) {
+  bool get isPositive => raw > 0;
+}
+
+extension type ExtType4(int raw) {
+  bool get isPositive => raw > 0;
+}
+
+extension type ExtType5._(int raw) {
+  ExtType5.plus1(int n) : this._(n + 1);
+  bool get isPositive => raw > 0;
+}
+
+class C10 {}
+
+extension type ExtType10(int raw) {}
+
+class C11 {}
+
+extension type ExtType11(int raw) {}
+
+class C12 {}
+
+extension type ExtType12(int raw) {}
+
+class C13 {}
+
+extension type ExtType13(int raw) {}
+
+class C14 {} // Not exposed
+
+class C15 implements C14 {}
+
+class C16 implements C14 {}

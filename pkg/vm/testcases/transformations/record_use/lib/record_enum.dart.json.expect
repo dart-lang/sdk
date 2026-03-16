@@ -1,26 +1,22 @@
 {
   "constants": [
     {
-      "type": "int",
-      "value": 0
-    },
-    {
-      "type": "string",
-      "value": "a"
+      "definition_index": 1,
+      "index": 0,
+      "name": "a",
+      "type": "enum"
     },
     {
       "definition_index": 1,
-      "type": "instance",
-      "value": {
-        "index": 0,
-        "_name": 1
-      }
+      "index": 1,
+      "name": "b",
+      "type": "enum"
     },
     {
       "definition_index": 0,
       "type": "instance",
       "value": {
-        "a": 2
+        "a": 0
       }
     }
   ],
@@ -37,7 +33,7 @@
     {
       "path": [
         {
-          "kind": "class",
+          "kind": "enum",
           "name": "A"
         }
       ],
@@ -50,7 +46,7 @@
     }
   ],
   "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
     "version": "0.4.0"
   },
   "uses": {
@@ -59,10 +55,23 @@
         "definition_index": 0,
         "uses": [
           {
-            "constant_index": 3,
-            "loading_unit_indices": [
-              0
-            ],
+            "constant_index": 2,
+            "loading_unit_index": 0,
+            "type": "constant"
+          }
+        ]
+      },
+      {
+        "definition_index": 1,
+        "uses": [
+          {
+            "constant_index": 0,
+            "loading_unit_index": 0,
+            "type": "constant"
+          },
+          {
+            "constant_index": 1,
+            "loading_unit_index": 0,
             "type": "constant"
           }
         ]

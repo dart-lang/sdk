@@ -2258,6 +2258,18 @@ Future<void> f() async {}
     );
   }
 
+  test_await_beforeReferenceToContext_inVariableDeclaration() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+Future<int> f(BuildContext context) async => 0;
+
+void foo(BuildContext context) async {
+  var x = 1 == 2 ? await f(context) : 7;
+}
+''');
+  }
+
   test_await_beforeReferenceToContext_nullAsserted() async {
     // Await, then use of null-asserted BuildContext, in statement block is
     // REPORTED.

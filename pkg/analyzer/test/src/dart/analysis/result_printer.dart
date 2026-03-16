@@ -1283,7 +1283,6 @@ class LibraryManifestPrinter extends ManifestPrinter {
       'isExternal': item.flags.isExternal,
       'isSimplyBounded': item.flags.isSimplyBounded,
       'isStatic': item.flags.isStatic,
-      'isSynthetic': item.flags.isSynthetic,
     };
   }
 
@@ -1295,7 +1294,6 @@ class LibraryManifestPrinter extends ManifestPrinter {
       'isFinal': item.flags.isFinal,
       'isLate': item.flags.isLate,
       'isStatic': item.flags.isStatic,
-      'isSynthetic': item.flags.isSynthetic,
       'shouldUseTypeForInitializerInference':
           item.flags.shouldUseTypeForInitializerInference,
     };

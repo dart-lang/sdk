@@ -47,8 +47,6 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/program_visitor.h"
-#include "vm/regexp/regexp_assembler.h"
-#include "vm/regexp/regexp_parser.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_trace.h"
@@ -1527,11 +1525,14 @@ void Precompiler::AddAnnotatedRoots() {
       // Check for @pragma on the class itself.
       if (cls.has_pragma()) {
         metadata ^= lib.GetMetadata(cls);
-        if (EntryPointPragmaUtils::AllowsAccess(
-                FindEntryPointPragma(IG, metadata, &reusable_field_handle,
-                                     &reusable_object_handle))) {
+        EntryPointPragma pragma = FindEntryPointPragma(
+            IG, metadata, &reusable_field_handle, &reusable_object_handle);
+        if (EntryPointPragmaUtils::AllowsAccess(pragma)) {
           AddInstantiatedClass(cls);
           AddApiUse(cls);
+        } else if (EntryPointPragmaUtils::AllowsTypeAccess(pragma)) {
+          AddApiUse(cls);
+          AddTypesOf(cls);
         }
       }
 
@@ -2251,7 +2252,8 @@ void Precompiler::DropFunctions() {
       implicit_closure = function.ImplicitClosureFunction();
       RELEASE_ASSERT(functions_to_retain_.ContainsKey(implicit_closure));
       ClosureFunctionsCache::AddClosureFunctionLocked(
-          implicit_closure, /*allow_implicit_closure_functions=*/true);
+          implicit_closure, ClosureFunctionsCache::kInvalidLocalFunctionId,
+          /*allow_implicit_closure_functions=*/true);
     }
     dropped_function_count_++;
     if (FLAG_trace_precompiler) {

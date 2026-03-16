@@ -73,10 +73,7 @@ library_for_all_configs("libdart_vm") {
   target_type = "source_set"
   extra_product_deps = []
   extra_nonproduct_deps = []
-  extra_deps = [
-    "//third_party/icu:icui18n",
-    "//third_party/icu:icuuc",
-  ]
+  extra_deps = [ "//third_party/icu:icuuc" ]
   if (dart_support_perfetto) {
     extra_deps += [ "//third_party/perfetto:libprotozero" ]
   }
@@ -95,6 +92,7 @@ library_for_all_configs("libdart_vm") {
       "$fuchsia_sdk/pkg/inspect_component_cpp",
       "$fuchsia_sdk/pkg/sys_cpp",
       "$fuchsia_sdk/pkg/trace-engine",
+      "//third_party/icu:icui18n",
     ]
   }
   public_configs = [ ":libdart_vm_config" ]
@@ -253,5 +251,28 @@ executable("offsets_extractor_aotruntime") {
     ":libdart_vm_config",
   ]
   sources = [ "compiler/offsets_extractor.cc" ]
+  include_dirs = [ ".." ]
+}
+
+executable("gen_regexp_special_case") {
+  # The timeline cannot be accessed from the generated executable, so we define
+  # DART_DISABLE_TIMELINE to strip out the timeline source code. The precise
+  # reason why we do this is to avoid missing header errors, as the Perfetto
+  # proto headers are not built as a dependency of this target, but are
+  # transitively included in this target when DART_DISABLE_TIMELINE is not
+  # defined.
+  defines = [ "DART_DISABLE_TIMELINE" ]
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_aotruntime_config",
+    "..:dart_maybe_product_config",
+    ":libdart_vm_config",
+  ]
+  deps = [
+    "../platform:libdart_platform_jit",
+    "//third_party/icu:icuuc",
+  ]
+  sources = [ "regexp/gen_regexp_special_case.cc" ]
   include_dirs = [ ".." ]
 }

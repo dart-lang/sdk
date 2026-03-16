@@ -1,0 +1,70 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 10
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "i": 0
+      }
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        }
+      ],
+      "uri": "package:record_use_test/optional_defaults_constructor_named.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "kind": "constructor",
+          "name": ""
+        }
+      ],
+      "uri": "package:record_use_test/optional_defaults_constructor_named.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "constant_index": 1,
+            "loading_unit_index": 0,
+            "type": "constant"
+          },
+          {
+            "definition_index": 1,
+            "loading_unit_index": 0,
+            "named": {
+              "i": 0
+            },
+            "type": "creation"
+          }
+        ]
+      }
+    ]
+  }
+}

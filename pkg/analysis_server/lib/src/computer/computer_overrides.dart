@@ -32,13 +32,17 @@ class DartUnitOverridesComputer {
           _classMembers(body.members);
         }
       } else if (unitMember is EnumDeclaration) {
-        _classMembers(unitMember.body.members);
+        if (unitMember.body case BlockEnumBody body) {
+          _classMembers(body.members);
+        }
       } else if (unitMember is ExtensionTypeDeclaration) {
         if (unitMember.body case BlockClassBody body) {
           _classMembers(body.members);
         }
       } else if (unitMember is MixinDeclaration) {
-        _classMembers(unitMember.body.members);
+        if (unitMember.body case BlockClassBody body) {
+          _classMembers(body.members);
+        }
       }
     }
     return _overrides;

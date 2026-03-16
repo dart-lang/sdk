@@ -4,8 +4,9 @@
   (type $BoxedDouble (sub final $#Top (struct
     (field $field0 i32)
     (field $value f64))))
-  (func $"dart2wasm._298 (import)" (import "dart2wasm" "_298") (param f64) (result externref))
-  (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param externref) (result externref))
+  (func $"dart2wasm._171 (import)" (import "dart2wasm" "_171") (param f64) (result externref))
+  (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param f64) (result externref))
+  (func $"dart2wasm._300 (import)" (import "dart2wasm" "_300") (param externref) (result externref))
   (global $"doubleValueNullable initialized" (mut i32) <...>)
   (global $doubleValueNullable (mut (ref null $BoxedDouble)) <...>)
   (func $doubleValue implicit getter (result f64) <...>)
@@ -14,19 +15,19 @@
   (func $sinkDoubleNullable <noInline> (param $var0 (ref null $BoxedDouble)) <...>)
   (func $"testDoubleConstant <noInline>"
     f64.const 1.1
-    call $"dart2wasm._298 (import)"
+    call $"dart2wasm._299 (import)"
     call $toDartDouble
     call $"sinkDouble <noInline>"
   )
   (func $"testDoubleConstantNullable <noInline>"
     ref.null noextern
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._300 (import)"
     call $toDartNullableDouble
     call $"sinkDoubleNullable <noInline>"
   )
   (func $"testDoubleValue <noInline>"
     call $"doubleValue implicit getter"
-    call $"dart2wasm._298 (import)"
+    call $"dart2wasm._299 (import)"
     call $toDartDouble
     call $"sinkDouble <noInline>"
   )
@@ -38,7 +39,7 @@
     else
       call $"ktrue implicit getter"
       if (result (ref null $BoxedDouble))
-        i32.const 100
+        i32.const 71
         call $"doubleValue implicit getter"
         struct.new $BoxedDouble
       else
@@ -56,13 +57,13 @@
       ref.null noextern
     else
       local.get $var0
-      call $jsifyRaw
+      struct.get $BoxedDouble $value
+      call $"dart2wasm._171 (import)"
     end
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._300 (import)"
     call $toDartNullableDouble
     call $"sinkDoubleNullable <noInline>"
   )
-  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
   (func $toDartDouble (param $var0 externref) (result f64) <...>)
   (func $toDartNullableDouble (param $var0 externref) (result (ref null $BoxedDouble)) <...>)
 )

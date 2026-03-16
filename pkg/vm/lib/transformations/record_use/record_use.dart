@@ -6,8 +6,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 import 'package:vm/metadata/loading_units.dart' as vm_metadata;
 import 'package:vm/transformations/record_use/record_call.dart';
 import 'package:vm/transformations/record_use/record_instance.dart';
@@ -73,12 +75,111 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   _RecordUseVisitor(this.staticCallRecorder, this.instanceUseRecorder);
 
   @override
+  void visitProcedure(ast.Procedure node) {
+    // Extension member tear-offs call the implementation. We skip them here
+    // to avoid recording the implementation call as a usage, as the usage is
+    // already recorded by the call to the extension member tear-off itself.
+    if (isExtensionMemberTearOff(node) ||
+        isTearOffLowering(node) ||
+        node.isRedirectingFactory) {
+      return;
+    }
+    super.visitProcedure(node);
+  }
+
+  @override
   void visitStaticInvocation(ast.StaticInvocation node) {
     if (_isAnnotation(node)) return;
 
-    staticCallRecorder.recordStaticInvocation(node);
+    final target = node.target;
+    if (target.isFactory) {
+      if (target.isRedirectingFactory) {
+        instanceUseRecorder.recordRedirectingFactoryInvocation(node);
+      }
+      // We skip recording non-redirecting factory calls here.
+      // The call inside the factory body to the generative constructor
+      // will be recorded when that body is visited.
+    } else {
+      staticCallRecorder.recordStaticInvocation(node);
+    }
 
     super.visitStaticInvocation(node);
+  }
+
+  @override
+  void visitStaticGet(ast.StaticGet node) {
+    if (_isAnnotation(node)) return;
+
+    staticCallRecorder.recordStaticGet(node);
+    instanceUseRecorder.recordStaticGet(node);
+
+    super.visitStaticGet(node);
+  }
+
+  @override
+  void visitStaticTearOff(ast.StaticTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    if (isTearOffLowering(node.target)) {
+      instanceUseRecorder.recordLoweredConstructorTearOff(node);
+    } else {
+      staticCallRecorder.recordStaticTearOff(node);
+    }
+
+    super.visitStaticTearOff(node);
+  }
+
+  @override
+  void visitStaticSet(ast.StaticSet node) {
+    if (_isAnnotation(node)) return;
+
+    staticCallRecorder.recordStaticSet(node);
+
+    super.visitStaticSet(node);
+  }
+
+  @override
+  void visitConstructorInvocation(ast.ConstructorInvocation node) {
+    if (_isAnnotation(node)) return;
+
+    instanceUseRecorder.recordConstructorInvocation(node);
+
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitConstructorTearOff(ast.ConstructorTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    instanceUseRecorder.recordConstructorTearOff(node);
+
+    super.visitConstructorTearOff(node);
+  }
+
+  @override
+  void visitTypedefTearOff(ast.TypedefTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    final expression = node.expression;
+    if (expression is ast.ConstructorTearOff) {
+      instanceUseRecorder.recordConstructorTearOff(expression);
+    } else if (expression is ast.RedirectingFactoryTearOff) {
+      instanceUseRecorder.recordRedirectingFactoryTearOff(expression);
+    } else if (expression is ast.StaticTearOff &&
+        isConstructorTearOffLowering(expression.target)) {
+      instanceUseRecorder.recordLoweredConstructorTearOff(expression);
+    }
+
+    super.visitTypedefTearOff(node);
+  }
+
+  @override
+  void visitRedirectingFactoryTearOff(ast.RedirectingFactoryTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    instanceUseRecorder.recordRedirectingFactoryTearOff(node);
+
+    super.visitRedirectingFactoryTearOff(node);
   }
 
   @override
@@ -115,15 +216,20 @@ Recordings _usages(
   Map<Definition, List<CallReference>> calls,
   Map<Definition, List<InstanceReference>> instances,
 ) {
-  return Recordings(
-    metadata: Metadata(
-      comment:
-          'Recorded usages of objects tagged with a `RecordUse` annotation',
-      version: version,
-    ),
-    calls: calls,
-    instances: instances,
-  );
+  return Recordings(calls: calls, instances: instances);
+}
+
+MaybeConstant evaluateExpression(ast.Expression expression) {
+  if (expression is ast.BasicLiteral) {
+    return evaluateLiteral(expression);
+  } else if (expression is ast.ConstantExpression) {
+    return evaluateConstant(expression.constant);
+  } else if (expression is ast.VariableGet &&
+      expression.variable.initializer != null) {
+    return evaluateExpression(expression.variable.initializer!);
+  } else {
+    return const NonConstant();
+  }
 }
 
 Constant evaluateConstant(ast.Constant constant) => switch (constant) {
@@ -134,7 +240,10 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
     'Double literals are not supported for recording.',
   ),
   ast.StringConstant() => StringConstant(constant.value),
-  ast.SymbolConstant() => StringConstant(constant.name),
+  ast.SymbolConstant() => SymbolConstant(
+    constant.name,
+    libraryUri: constant.libraryReference?.asLibrary.importUri.toString(),
+  ),
   ast.MapConstant() => MapConstant(
     constant.entries
         .map(
@@ -145,25 +254,28 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   ast.ListConstant() => ListConstant(
     constant.entries.map(evaluateConstant).toList(),
   ),
-  ast.InstanceConstant() => evaluateInstanceConstant(constant),
+  ast.InstanceConstant() =>
+    !isBeingRecorded(constant.classNode)
+        ? UnsupportedConstant(
+          "The definition of '${constant.classNode.name}' from "
+          "'${constant.classNode.enclosingLibrary.importUri}' must be "
+          "annotated with '@RecordUse()'.",
+        )
+        : (constant.classNode.isEnum
+            ? evaluateEnumConstant(constant)
+            : evaluateInstanceConstant(constant)),
+  ast.RecordConstant() => evaluateRecordConstant(constant),
   // The following are not supported, but theoretically could be, so they
   // are listed explicitly here.
   ast.AuxiliaryConstant() => _unsupported('AuxiliaryConstant'),
   ast.SetConstant() => UnsupportedConstant(
     'Set literals are not supported for recording.',
   ),
-  ast.RecordConstant() => UnsupportedConstant(
-    'Record literals are not supported for recording.',
-  ),
-  ast.InstantiationConstant() => UnsupportedConstant(
-    'Generic instantiations are not supported for recording.',
-  ),
+  ast.InstantiationConstant() => evaluateConstant(constant.tearOffConstant),
   ast.TearOffConstant() => UnsupportedConstant(
     'Function/Method tear-offs are not supported for recording.',
   ),
-  ast.TypedefTearOffConstant() => UnsupportedConstant(
-    'Typedef tear-offs are not supported for recording.',
-  ),
+  ast.TypedefTearOffConstant() => evaluateConstant(constant.tearOffConstant),
   ast.TypeLiteralConstant() => UnsupportedConstant(
     'Type literals are not supported for recording.',
   ),
@@ -183,25 +295,78 @@ Constant evaluateLiteral(ast.BasicLiteral expression) => switch (expression) {
   ast.BasicLiteral() => _unsupported(expression.runtimeType.toString()),
 };
 
-InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) =>
-    InstanceConstant(
-      definition: _definitionFromClass(constant.classNode),
-      fields: constant.fieldValues.map(
-        (key, value) =>
-            MapEntry(key.asField.name.text, evaluateConstant(value)),
-      ),
+EnumConstant evaluateEnumConstant(ast.InstanceConstant constant) {
+  if (!isBeingRecorded(constant.classNode)) {
+    throw UnsupportedConstant(
+      "The definition of '${constant.classNode.name}' from "
+      "'${constant.classNode.enclosingLibrary.importUri}' must be "
+      "annotated with '@RecordUse()'.",
     );
+  }
+  int? index;
+  String? name;
+  final fields = <String, Constant>{};
+  for (final entry in constant.fieldValues.entries) {
+    final fieldName = entry.key.asField.name.text;
+    if (fieldName == enumIndexFieldName) {
+      index = (entry.value as ast.IntConstant).value;
+    } else if (fieldName == enumNameFieldName) {
+      name = (entry.value as ast.StringConstant).value;
+    } else {
+      fields[fieldName] = evaluateConstant(entry.value);
+    }
+  }
+  return EnumConstant(
+    definition: _definitionFromClass(constant.classNode),
+    index: index!,
+    name: name!,
+    fields: fields,
+  );
+}
+
+InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) {
+  if (!isBeingRecorded(constant.classNode)) {
+    throw UnsupportedConstant(
+      "The definition of '${constant.classNode.name}' from "
+      "'${constant.classNode.enclosingLibrary.importUri}' must be "
+      "annotated with '@RecordUse()'.",
+    );
+  }
+  return InstanceConstant(
+    definition: _definitionFromClass(constant.classNode),
+    fields: constant.fieldValues.map(
+      (key, value) => MapEntry(key.asField.name.text, evaluateConstant(value)),
+    ),
+  );
+}
+
+RecordConstant evaluateRecordConstant(ast.RecordConstant constant) {
+  return RecordConstant(
+    positional: constant.positional.map(evaluateConstant).toList(),
+    named: constant.named.map(
+      (key, value) => MapEntry(key, evaluateConstant(value)),
+    ),
+  );
+}
 
 UnsupportedConstant _unsupported(String constantType) =>
     UnsupportedConstant('$constantType is not supported for recording.');
+
+Name className(ast.Class cls) => Name(
+  cls.name,
+  kind:
+      cls.isEnum
+          ? DefinitionKind.enumKind
+          : cls.isMixinDeclaration
+          ? DefinitionKind.mixinKind
+          : DefinitionKind.classKind,
+);
 
 Definition _definitionFromClass(ast.Class cls) {
   final enclosingLibrary = cls.enclosingLibrary;
   final importUri = enclosingLibrary.importUri.toString();
 
-  return Definition(importUri, [
-    Name(cls.name, kind: DefinitionKind.classKind),
-  ]);
+  return Definition(importUri, [className(cls)]);
 }
 
 ast.Library? enclosingLibrary(ast.TreeNode node) {

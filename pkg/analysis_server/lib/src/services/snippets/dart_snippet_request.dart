@@ -58,7 +58,12 @@ class DartSnippetRequest {
       filePath = unit.path {
     var target = CompletionTarget.forOffset(unit.unit, offset);
     context = _getContext(target);
-    replacementRange = target.computeReplacementRange(offset);
+    replacementRange = target.computeReplacementRange(
+      offset,
+      isDotShorthandEnabled: unit.libraryElement.featureSet.isEnabled(
+        .dot_shorthands,
+      ),
+    );
   }
 
   DartSnippetRequest.fromCompletionResult({
@@ -73,7 +78,12 @@ class DartSnippetRequest {
        filePath = unit.path {
     var target = CompletionTarget.forOffset(unit.parsedUnit, offset);
     context = _getContext(target);
-    replacementRange = target.computeReplacementRange(offset);
+    replacementRange = target.computeReplacementRange(
+      offset,
+      isDotShorthandEnabled: unit.libraryFragment.element.featureSet.isEnabled(
+        .dot_shorthands,
+      ),
+    );
   }
 
   /// The resource provider associated with this request.
@@ -182,7 +192,10 @@ class DartSnippetRequest {
       }
 
       if (node is EnumDeclaration) {
-        var semicolon = node.body.semicolon;
+        var semicolon = switch (node.body) {
+          BlockEnumBody body => body.semicolon,
+          EmptyEnumBody body => body.semicolon,
+        };
         return semicolon == null || target.offset <= semicolon.offset
             ? SnippetContext.inEnumConstants
             : SnippetContext.inEnumMembers;

@@ -125,6 +125,79 @@ PatternVariableDeclarationStatement
 ''');
   }
 
+  test_scope_shadows_beforeDeclaration() async {
+    await assertErrorsInCode(
+      r'''
+int a = 0;
+void f() {
+  a;
+  var (a) = 1;
+}
+''',
+      [
+        error(
+          diag.referencedBeforeDeclaration,
+          24,
+          1,
+          contextMessages: [message(testFile, 34, 1)],
+        ),
+      ],
+    );
+
+    var node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: a@34
+  staticType: InvalidType
+''');
+  }
+
+  test_scope_shadows_class() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+
+void f() {
+  var (A) = <A>[];
+}
+''',
+      [error(diag.nonTypeAsTypeArgument, 36, 1)],
+    );
+
+    var node = findNode.singlePatternVariableDeclarationStatement;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclarationStatement
+  declaration: PatternVariableDeclaration
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: A
+        declaredFragment: isPublic A@30
+          element: hasImplicitType isPublic
+            type: List<InvalidType>
+        matchedValueType: List<InvalidType>
+      rightParenthesis: )
+      matchedValueType: List<InvalidType>
+    equals: =
+    expression: ListLiteral
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: A
+            element: A@30
+            type: InvalidType
+        rightBracket: >
+      leftBracket: [
+      rightBracket: ]
+      staticType: List<InvalidType>
+    patternTypeSchema: _
+  semicolon: ;
+''');
+  }
+
   test_var_typed() async {
     await assertNoErrorsInCode(r'''
 void f() {

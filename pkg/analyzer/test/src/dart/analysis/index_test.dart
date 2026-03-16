@@ -59,6 +59,13 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
     expect(actual, expected);
   }
 
+  test_ClassElement_emptyBody() async {
+    await _indexTestUnit(r'''
+class C;
+''');
+    assertErrorsInResult([]);
+  }
+
   test_ClassElement_hierarchy_class_extends() async {
     await _indexTestUnit(r'''
 import 'test.dart' as p;
@@ -1438,6 +1445,13 @@ dynamic f() {}
     expect(index.usedElementOffsets, isEmpty);
   }
 
+  test_EnumElement_emptyBody() async {
+    await _indexTestUnit(r'''
+enum E;
+''');
+    assertErrorsInResult([error(diag.enumWithoutConstants, 5, 1)]);
+  }
+
   test_EnumElement_reference_annotation() async {
     await _indexTestUnit(r'''
 import 'test.dart' as p;
@@ -1566,6 +1580,13 @@ void f() {
 63 7:5 |E| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
 ''');
+  }
+
+  test_ExtensionElement_emptyBody() async {
+    await _indexTestUnit(r'''
+extension E on int;
+''');
+    assertErrorsInResult([]);
   }
 
   test_ExtensionElement_reference_memberAccess() async {
@@ -3793,6 +3814,13 @@ void useOperator(M m) {
 ''');
   }
 
+  test_MixinElement_emptyBody() async {
+    await _indexTestUnit(r'''
+mixin M;
+''');
+    assertErrorsInResult([]);
+  }
+
   test_MixinElement_hierarchy_class_implements() async {
     await _indexTestUnit(r'''
 mixin A {}
@@ -4924,7 +4952,7 @@ class _NameIndexAssert {
     test._assertUsedName(
       name,
       kind,
-      test._expectedLocation(search, false),
+      test._expectedLocation(search, false, length: name.length),
       true,
     );
   }
@@ -4933,7 +4961,7 @@ class _NameIndexAssert {
     test._assertUsedName(
       name,
       kind,
-      test._expectedLocation(search, true),
+      test._expectedLocation(search, true, length: name.length),
       true,
     );
   }
@@ -4942,7 +4970,7 @@ class _NameIndexAssert {
     test._assertUsedName(
       name,
       kind,
-      test._expectedLocation(search, false),
+      test._expectedLocation(search, false, length: name.length),
       false,
     );
   }
@@ -4951,7 +4979,7 @@ class _NameIndexAssert {
     test._assertUsedName(
       name,
       kind,
-      test._expectedLocation(search, true),
+      test._expectedLocation(search, true, length: name.length),
       false,
     );
   }

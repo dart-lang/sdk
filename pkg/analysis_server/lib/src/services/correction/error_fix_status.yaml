@@ -1656,6 +1656,8 @@ uri_with_interpolation:
 use_of_native_extension:
   status: noFix
   since: ~2.15
+use_of_private_parameter_name:
+  status: hasFix
 use_of_void_result:
   status: noFix
 values_declaration_in_enum:
@@ -2122,6 +2124,8 @@ implicit_reopen:
   status: hasFix
 invalid_case_patterns:
   status: hasFix
+invalid_runtime_check_with_js_interop_types_catch_clause_js_interop_type:
+  status: needsEvaluation
 invalid_runtime_check_with_js_interop_types_dart_as_js:
   status: needsEvaluation
   notes: |-
@@ -2468,7 +2472,7 @@ no_wildcard_variable_uses:
 unnecessary_null_aware_assignments:
   status: hasFix
 unnecessary_null_aware_operator_on_extension_on_nullable:
-  status: needsFix
+  status: hasFix
 unnecessary_null_checks:
   status: hasFix
 unnecessary_null_in_if_null_operators:
@@ -3229,8 +3233,7 @@ redirection_in_non_factory_constructor:
   notes: |-
     Remove the redirection.
 representation_field_modifier:
-  status: needsFix
-  notes: Remove it.
+  status: hasFix
 representation_field_trailing_comma:
   status: hasFix
 sealed_enum:
@@ -3355,7 +3358,7 @@ flutter_field_not_map:
 invalid_dependency:
   status: noFix
 invalid_covariant_modifier_in_primary_constructor:
-  status: needsEvaluation
+  status: hasFix
 invalid_platforms_field:
   status: needsEvaluation
 missing_dependency:
@@ -3874,8 +3877,6 @@ uri_does_not_exist_in_doc_import:
   notes: |-
     The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST
 var_with_no_type_annotation:
-  status: needsFix
-  notes: |-
-    The fix is to remove the `var` keyword.
+  status: hasFix
 deprecated_factory_method:
   status: hasFix

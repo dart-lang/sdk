@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/feature_sets.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class UnitApiSignatureTest {
+class UnitApiSignatureTest extends ParserDiagnosticsTest {
   test_class_annotation() async {
     _assertNotSameSignature(
       r'''
@@ -277,6 +276,17 @@ class C {}
 ''',
       r'''
 class C {}
+''',
+    );
+  }
+
+  test_class_emptyBody() {
+    _assertSameSignature(
+      r'''
+class C;
+''',
+      r'''
+class C;
 ''',
     );
   }
@@ -970,6 +980,17 @@ class A {}
     );
   }
 
+  test_enum_emptyBody() {
+    _assertSameSignature(
+      r'''
+enum E;
+''',
+      r'''
+enum E;
+''',
+    );
+  }
+
   test_enum_enumConstants_add() {
     _assertNotSameSignature(
       r'''
@@ -1570,6 +1591,17 @@ void foo<U>() {}
     );
   }
 
+  test_extension_emptyBody() {
+    _assertSameSignature(
+      r'''
+extension E on int;
+''',
+      r'''
+extension E on int;
+''',
+    );
+  }
+
   test_extension_on() {
     _assertNotSameSignature(
       r'''
@@ -1660,6 +1692,17 @@ Future<List<int>> bar() {}
       r'''
 foo
 Future<List<int>> bar(int x) {}
+''',
+    );
+  }
+
+  test_mixin_emptyBody() {
+    _assertSameSignature(
+      r'''
+mixin M;
+''',
+      r'''
+mixin M;
 ''',
     );
   }
@@ -2044,8 +2087,8 @@ typedef F = void Function(double);
     _assertSignature(oldCode, newCode, same: true);
   }
 
-  void _assertSameSignature_classLike(String oldCode, String newCode) {
-    _assertSignature_classLike(oldCode, newCode, same: true);
+  void _assertSameSignature_classLike(String code1, String code2) {
+    _assertSignature_classLike(code1, code2, same: true);
   }
 
   void _assertSameSignature_executable(String oldCode, String newCode) {
@@ -2053,19 +2096,11 @@ typedef F = void Function(double);
   }
 
   void _assertSignature(String oldCode, String newCode, {required bool same}) {
-    var oldResult = parseString(
-      content: oldCode,
-      featureSet: FeatureSets.latestWithExperiments,
-      throwIfDiagnostics: false,
-    );
+    var oldResult = parseStringWithErrors(oldCode);
     var oldUnit = oldResult.unit;
     var oldSignature = computeUnlinkedApiSignature(oldUnit);
 
-    var newResult = parseString(
-      content: newCode,
-      featureSet: FeatureSets.latestWithExperiments,
-      throwIfDiagnostics: false,
-    );
+    var newResult = parseStringWithErrors(newCode);
     var newUnit = newResult.unit;
     var newSignature = computeUnlinkedApiSignature(newUnit);
 

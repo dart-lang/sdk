@@ -247,7 +247,6 @@ class Translator with KernelNodes {
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
-  late final w.FunctionBuilder initFunction;
   late final w.ValueType voidMarker =
       w.RefType.def(w.StructType("void"), nullable: true);
   // Lazily import FFI memory if used.
@@ -325,6 +324,11 @@ class Translator with KernelNodes {
 
   // The wasm type used to hold values of `String?`
   late final w.RefType stringTypeNullable = stringType.withNullability(true);
+
+  // The wasm type used to hold values of `Invocation`
+  late final w.RefType invocationType = translateType(
+          InterfaceType(coreTypes.invocationClass, Nullability.nonNullable))
+      as w.RefType;
 
   final Map<w.ModuleBuilder, PartialInstantiator> _partialInstantiators = {};
   PartialInstantiator getPartialInstantiatorForModule(w.ModuleBuilder module) {
@@ -412,45 +416,6 @@ class Translator with KernelNodes {
 
     // Named arguments, represented as array of symbol and object pairs
     nullableObjectArrayTypeRef,
-  ], [
-    topType,
-  ]);
-
-  /// Type of a dynamic invocation forwarder function.
-  late final w.FunctionType dynamicInvocationForwarderFunctionType =
-      typesBuilder.defineFunction([
-    // Receiver
-    topTypeNonNullable,
-
-    // Type arguments
-    typeArrayTypeRef,
-
-    // Positional arguments
-    nullableObjectArrayTypeRef,
-
-    // Named arguments, represented as array of symbol and object pairs
-    nullableObjectArrayTypeRef,
-  ], [
-    topType,
-  ]);
-
-  /// Type of a dynamic get forwarder function.
-  late final w.FunctionType dynamicGetForwarderFunctionType =
-      typesBuilder.defineFunction([
-    // Receiver
-    topTypeNonNullable,
-  ], [
-    topType,
-  ]);
-
-  /// Type of a dynamic set forwarder function.
-  late final w.FunctionType dynamicSetForwarderFunctionType =
-      typesBuilder.defineFunction([
-    // Receiver
-    topTypeNonNullable,
-
-    // Positional argument
-    topType,
   ], [
     topType,
   ]);
@@ -595,8 +560,6 @@ class Translator with KernelNodes {
   Map<ModuleMetadata, w.Module> translate(
       Uri Function(String moduleName)? sourceMapUrlGenerator) {
     _initModules(sourceMapUrlGenerator);
-    initFunction = mainModule.startFunction;
-
     closureLayouter.collect();
     classInfoCollector.collect();
 
@@ -637,7 +600,7 @@ class Translator with KernelNodes {
         }
       });
     }
-    _printFunction(initFunction, "init");
+    _printFunction(mainModule.startFunction, "init");
 
     // Remove empty modules.
     _outputToBuilder.removeWhere((outputModule, moduleBuilder) {
@@ -1705,9 +1668,7 @@ class Translator with KernelNodes {
   }
 
   w.FunctionType _signatureForModule(Reference target, DispatchTable? table) {
-    if (table != null &&
-        !target.isBodyReference &&
-        !target.isTypeCheckerReference) {
+    if (table != null && !target.isBodyReference) {
       final selector = table.selectorForTarget(target);
       if (selector.containsTarget(target) ||
           selector.isDynamicSubmoduleOverridable) {
@@ -2330,16 +2291,13 @@ class AstCompilationTask extends CompilationTask {
       if (exportName != null) {
         header = "$header (exported as $exportName)";
       }
-      if (reference.isTypeCheckerReference) {
-        header = "$header (type checker)";
-      }
       print(header);
       print(function.type);
       print(member.function
           ?.computeFunctionType(Nullability.nonNullable)
           .toStringInternal());
     }
-    if (printKernel && !reference.isTypeCheckerReference) {
+    if (printKernel) {
       if (member is Constructor) {
         Class cls = member.enclosingClass;
         for (Field field in cls.fields) {
@@ -2358,9 +2316,7 @@ class AstCompilationTask extends CompilationTask {
       if (!printWasm) print("");
     }
 
-    final codeGen = getMemberCodeGenerator(translator, function, reference);
-    codeGen.generate(function.body, function.locals.toList(), null);
-
+    _codeGenerator.generate(function.body, function.locals.toList(), null);
     if (printWasm) {
       print(function.body.trace);
     }

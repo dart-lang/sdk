@@ -13,7 +13,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///main_lib.dart";
 
 class A extends core::Object {
-  constructor •(core::String foo) → self::A
+  constructor •(final core::String foo) → self::A
     : super core::Object::•()
     ;
   static factory redirectingFactoryToSubtype() → self::A

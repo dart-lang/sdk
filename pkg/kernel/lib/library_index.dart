@@ -96,6 +96,13 @@ class LibraryIndex {
     return _getLibraryIndex(library).getExtensionType(extensionTypeName);
   }
 
+  /// Returns the extension with the given name in the given library.
+  ///
+  /// An error is thrown if the extension is not found.
+  Extension getExtension(String library, String extensionName) {
+    return _getLibraryIndex(library).getExtension(extensionName);
+  }
+
   /// Returns the member with the given name, in the given container
   /// declaration, in the given library.
   ///
@@ -216,6 +223,10 @@ class _ContainerTable {
 
   ExtensionTypeDeclaration getExtensionType(String name) {
     return _getContainerIndex(name).extensionTypeDeclaration!;
+  }
+
+  Extension getExtension(String name) {
+    return _getContainerIndex(name).extension_!;
   }
 
   Member getMember(String className, String memberName) {

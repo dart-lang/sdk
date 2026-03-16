@@ -763,7 +763,10 @@ class ContextLocatorImpl {
       file_paths.pubspecYaml,
     );
     if (rootPubspecFile.exists) {
-      var rootPubspec = Pubspec.parse(rootPubspecFile.readAsStringSync());
+      var rootPubspec = Pubspec.parse(
+        rootPubspecFile.readAsStringSync(),
+        resourceProvider: resourceProvider,
+      );
       var workspace = rootPubspec.workspace;
       if (workspace != null) {
         for (var entry in workspace) {
@@ -837,7 +840,10 @@ class ContextLocatorImpl {
       } else {
         var pubspecFile = folder.getChildAssumingFile(file_paths.pubspecYaml);
         if (pubspecFile.exists) {
-          var pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
+          var pubspec = Pubspec.parse(
+            pubspecFile.readAsStringSync(),
+            resourceProvider: resourceProvider,
+          );
           var resolution = pubspec.resolution;
           if (resolution != null && resolution.value.text == 'workspace') {
             var known = rootWorkspaceSpecification[location.workspace.root] ??=

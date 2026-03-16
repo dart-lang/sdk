@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/feature_sets.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class DefinedNamesTest {
+class DefinedNamesTest extends ParserDiagnosticsTest {
   test_classMemberNames_class() {
     DefinedNames names = _computeDefinedNames('''
 class A {
@@ -39,6 +38,14 @@ class B {
     );
   }
 
+  test_classMemberNames_enum_empty() {
+    DefinedNames names = _computeDefinedNames('''
+enum E;
+''');
+    expect(names.topLevelNames, unorderedEquals(['E']));
+    expect(names.classMemberNames, isEmpty);
+  }
+
   test_classMemberNames_extension() {
     DefinedNames names = _computeDefinedNames('''
 extension E on int {
@@ -50,6 +57,14 @@ extension E on int {
 ''');
     expect(names.topLevelNames, unorderedEquals(['E']));
     expect(names.classMemberNames, unorderedEquals(['a', 'b', 'c', 'd']));
+  }
+
+  test_classMemberNames_extension_empty() {
+    DefinedNames names = _computeDefinedNames('''
+extension E on int;
+''');
+    expect(names.topLevelNames, unorderedEquals(['E']));
+    expect(names.classMemberNames, isEmpty);
   }
 
   test_classMemberNames_extensionType() {
@@ -92,6 +107,14 @@ mixin B {
     );
   }
 
+  test_classMemberNames_mixin_empty() {
+    DefinedNames names = _computeDefinedNames('''
+mixin M;
+''');
+    expect(names.topLevelNames, unorderedEquals(['M']));
+    expect(names.classMemberNames, isEmpty);
+  }
+
   test_topLevelNames() {
     DefinedNames names = _computeDefinedNames('''
 class A {}
@@ -111,10 +134,7 @@ mixin M {}
   }
 
   DefinedNames _computeDefinedNames(String code, {FeatureSet? featureSet}) {
-    var parseResult = parseString(
-      content: code,
-      featureSet: featureSet ?? FeatureSets.latestWithExperiments,
-    );
+    var parseResult = parseStringWithErrors(code, featureSet: featureSet);
     return computeDefinedNames(parseResult.unit);
   }
 }

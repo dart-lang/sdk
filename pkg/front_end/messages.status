@@ -11,6 +11,7 @@ front_end/CannotReadSdkSpecification/example: missingExample # Issued on what is
 front_end/CantInferPackagesFromManyInputs/example: missingExample # We don't control input uri in messages test.
 front_end/CantInferPackagesFromPackageUri/example: missingExample # We don't control input uri in messages test.
 front_end/ClassShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ClassShouldBeListedAsExtendableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ConstEvalError/example: missingExample # Uncovered, at least outside of constant stress testing.
 front_end/ConstEvalGetterNotFound/example: missingExample # Not covered.
@@ -46,6 +47,7 @@ front_end/ExpressionEvaluationKnownVariableUnavailable/example: missingExample #
 _fe_analyzer_shared/ExtensionAugmentationHasOnClause/part_wrapped_script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
 _fe_analyzer_shared/ExtensionAugmentationHasOnClause/script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
 front_end/ExtensionTypeShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/FastaCLIArgumentRequired/example: missingExample # Used in the compile tool
 front_end/FastaUsageLong/example: missingExample # Help for the compile tool
 front_end/FastaUsageShort/example: missingExample # Help for the compile tool
@@ -140,7 +142,9 @@ front_end/PatchInjectionFailed/example: missingExample # Patching.
 front_end/PatternMatchingError/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
 front_end/PositionalAfterNamedArgument/example: missingExample # Seemingly only issued in Analyzer
 front_end/RecordUseCannotBePlacedHere/example: missingExample # No coverage.
+front_end/RecordUseClassesMustBeFinal/example: missingExample # No coverage.
 front_end/RecordUseOutsideOfPackage/example: missingExample # No coverage.
+front_end/RecordUseSubtypingNotSupported/example: missingExample # No coverage.
 front_end/SdkRootNotFound/example: missingExample # Issued on what is essentially a wrong setup.
 front_end/SdkSpecificationNotFound/example: missingExample # Issued on what is essentially a wrong setup.
 front_end/SdkSummaryNotFound/example: missingExample # Issued on what is essentially a wrong setup.

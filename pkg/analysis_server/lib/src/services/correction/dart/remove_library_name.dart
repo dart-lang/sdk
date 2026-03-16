@@ -22,7 +22,7 @@ class RemoveLibraryName extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var libraryName = node;
-    if (libraryName is SimpleIdentifier || libraryName is LibraryIdentifier) {
+    if (libraryName is SimpleIdentifier || libraryName is DottedName) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(
           range.endStart(

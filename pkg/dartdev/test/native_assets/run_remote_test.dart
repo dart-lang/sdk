@@ -300,10 +300,10 @@ void main(List<String> args) async {
 
       expect(firstRunResult.stdout, contains('Hello World'));
       expect(firstRunResult.exitCode, 0);
-      expect(firstRunResult.stdout, contains('Generated: '));
+      expect(firstRunResult.stderr, contains('Generated: '));
       // No hooks.
-      expect(firstRunResult.stdout, isNot(contains('Running build hooks')));
-      expect(firstRunResult.stdout, isNot(contains('Running link hooks')));
+      expect(firstRunResult.stderr, isNot(contains('Running build hooks')));
+      expect(firstRunResult.stderr, isNot(contains('Running link hooks')));
 
       // 4. Second run - should be cached
       final secondRunResult = await _runDartdev(
@@ -361,15 +361,15 @@ void main(List<String> args) async {
           expect(runResult.stdout, contains('Hello World'));
           expect(runResult.exitCode, 0);
           if (verbosityError) {
-            expect(runResult.stdout, isNot(contains('Running build hooks')));
-            expect(runResult.stdout, isNot(contains('Running link hooks')));
-            expect(runResult.stdout, isNot(contains('Generated: ')));
+            expect(runResult.stderr, isNot(contains('Running build hooks')));
+            expect(runResult.stderr, isNot(contains('Running link hooks')));
+            expect(runResult.stderr, isNot(contains('Generated: ')));
             // Should have no other output than the program.
             expect(runResult.stdout.trim(), equals('Hello World'));
           } else {
-            expect(runResult.stdout, contains('Running build hooks'));
-            expect(runResult.stdout, contains('Running link hooks'));
-            expect(runResult.stdout, contains('Generated: '));
+            expect(runResult.stderr, contains('Running build hooks'));
+            expect(runResult.stderr, contains('Running link hooks'));
+            expect(runResult.stderr, contains('Generated: '));
           }
         });
       },

@@ -489,4 +489,27 @@ suggestions
     kind: methodInvocation
 ''');
   }
+
+  Future<void> test_method_invocation_noDotShorthands() async {
+    // We still added `named` so we can be sure we are replacing it correctly.
+    allowedIdentifiers = {'named', 'C'};
+    await computeSuggestions('''
+// @dart=3.9
+class C {
+  static C named() => C();
+}
+void f() {
+  C c = .^()
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  C
+    kind: constructorInvocation
+  C.named
+    kind: methodInvocation
+''');
+  }
 }

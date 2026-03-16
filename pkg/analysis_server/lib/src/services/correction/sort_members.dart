@@ -103,13 +103,13 @@ class MemberSorter {
       if (unitMember is ClassDeclaration) {
         _sortClassMembers(unitMember.members2);
       } else if (unitMember is EnumDeclaration) {
-        _sortClassMembers(unitMember.body.members);
+        _sortClassMembers(unitMember.members2);
       } else if (unitMember is ExtensionDeclaration) {
-        _sortClassMembers(unitMember.body.members);
+        _sortClassMembers(unitMember.members2);
       } else if (unitMember is ExtensionTypeDeclaration) {
         _sortClassMembers(unitMember.members2);
       } else if (unitMember is MixinDeclaration) {
-        _sortClassMembers(unitMember.body.members);
+        _sortClassMembers(unitMember.members2);
       }
     }
   }

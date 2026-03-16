@@ -40,8 +40,8 @@ class BackendImpact {
     this.instantiatedClasses = const [],
     this.globalClasses = const [],
     this.otherImpacts = const [],
-    EnumSet<BackendFeature> features = const EnumSet.empty(),
-  }) : _features = features;
+    this._features = const EnumSet.empty(),
+  });
 
   Iterable<BackendFeature> get features =>
       _features.iterable(BackendFeature.values);

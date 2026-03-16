@@ -4419,31 +4419,6 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #undef DEFINE_EMIT
 
-LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
-  summary->set_in(0, Location::RegisterLocation(EAX));
-  summary->set_in(1, Location::RegisterLocation(ECX));
-  summary->set_in(2, Location::RegisterLocation(EDX));
-  summary->set_in(3, Location::RegisterLocation(EBX));
-  summary->set_out(0, Location::RegisterLocation(EAX));
-  return summary;
-}
-
-void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler::LeafRuntimeScope rt(compiler->assembler(),
-                                /*frame_size=*/4 * compiler::target::kWordSize,
-                                /*preserve_registers=*/false);
-  __ movl(compiler::Address(ESP, +0 * kWordSize), locs()->in(0).reg());
-  __ movl(compiler::Address(ESP, +1 * kWordSize), locs()->in(1).reg());
-  __ movl(compiler::Address(ESP, +2 * kWordSize), locs()->in(2).reg());
-  __ movl(compiler::Address(ESP, +3 * kWordSize), locs()->in(3).reg());
-  rt.Call(TargetFunction(), 4);
-}
-
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   if (representation() == kUnboxedDouble) {

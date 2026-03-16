@@ -1458,7 +1458,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
       __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
       __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
       __ LslImmediate(temp_reg,
-                      target::UntaggedObject::kTagBitsSizeTagPos -
+                      target::UntaggedObject::kSizeTagPos -
                           target::ObjectAlignment::kObjectAlignmentLog2);
       __ Jump(&done, Assembler::kNearJump);
 
@@ -1988,7 +1988,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
     __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
     __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
     __ LslImmediate(temp_reg,
-                    target::UntaggedObject::kTagBitsSizeTagPos -
+                    target::UntaggedObject::kSizeTagPos -
                         target::ObjectAlignment::kObjectAlignmentLog2);
     __ Jump(&done, Assembler::kNearJump);
 
@@ -2542,11 +2542,12 @@ void StubCodeCompiler::GenerateResumeStub() {
   }
   SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER({});  // Undo SetReturnAddress().
 #endif
-  __ Comment("Resume interpreter with exception");
+  __ Comment("Resume interpreter");
   __ Bind(&resume_interpreter);
   __ PushObject(NullObject());  // Make room for result.
-  __ PushObject(NullObject());  // Return value.
-  __ PushRegistersInOrder({kException, kStackTrace});
+  // Load the value to pass to the resumed bytecode.
+  __ LoadFromOffset(kTemp, FPREG, param_offset + 3 * target::kWordSize);
+  __ PushRegistersInOrder({kTemp, kException, kStackTrace});
   __ CallRuntime(kResumeInterpreterRuntimeEntry, /*argument_count=*/3);
   __ Drop(3);                                      // Drop arguments.
   __ PopRegister(CallingConventions::kReturnReg);  // Get result.

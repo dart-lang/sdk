@@ -174,6 +174,7 @@ class LibraryAnalyzer {
           libraryFragment: libraryFragment,
           diagnosticListener: diagnosticListener,
           nameScope: libraryFragment.scope,
+          docImportLibraries: const [],
           strictInference: _analysisOptions.strictInference,
           strictCasts: _analysisOptions.strictCasts,
           dataForTesting: inferenceDataForTesting,
@@ -185,13 +186,7 @@ class LibraryAnalyzer {
       );
 
       // TODO(scheglov): We don't need to do this for the whole unit.
-      parsedUnit.accept(
-        ScopeResolverVisitor(
-          fileAnalysis.diagnosticReporter,
-          libraryFragment: libraryFragment,
-          nameScope: libraryFragment.scope,
-        ),
-      );
+      parsedUnit.accept(ScopeResolverVisitor(fileAnalysis.diagnosticReporter));
 
       var featureSet = _libraryElement.featureSet;
       var typeAnalyzerOptions = computeTypeAnalyzerOptions(featureSet);
@@ -821,11 +816,21 @@ class LibraryAnalyzer {
       unitFilePath: fileAnalysis.file.path,
     );
     unit.accept(ElementBindingVisitor(libraryFragment, elementWalker));
+
+    var docImportLibraries = [
+      for (var import in _library.docLibraryImports)
+        if (import is LibraryImportWithFile)
+          _libraryElement.session.elementFactory.libraryOfUri2(
+            import.importedFile.uri,
+          ),
+    ];
+
     unit.accept(
       ResolutionVisitor(
         libraryFragment: libraryFragment,
         diagnosticListener: diagnosticListener,
         nameScope: libraryFragment.scope,
+        docImportLibraries: docImportLibraries,
         strictInference: _analysisOptions.strictInference,
         strictCasts: _analysisOptions.strictCasts,
         dataForTesting: inferenceDataForTesting,
@@ -836,21 +841,7 @@ class LibraryAnalyzer {
       inferenceDataForTesting!,
     );
 
-    var docImportLibraries = [
-      for (var import in _library.docLibraryImports)
-        if (import is LibraryImportWithFile)
-          _libraryElement.session.elementFactory.libraryOfUri2(
-            import.importedFile.uri,
-          ),
-    ];
-    unit.accept(
-      ScopeResolverVisitor(
-        fileAnalysis.diagnosticReporter,
-        libraryFragment: libraryFragment,
-        nameScope: libraryFragment.scope,
-        docImportLibraries: docImportLibraries,
-      ),
-    );
+    unit.accept(ScopeResolverVisitor(fileAnalysis.diagnosticReporter));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?

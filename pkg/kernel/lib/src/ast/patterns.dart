@@ -879,7 +879,7 @@ class WildcardPattern extends Pattern {
 class AssignedVariablePattern extends Pattern {
   VariableDeclaration get variable => expressionVariable as VariableDeclaration;
 
-  final ExpressionVariable expressionVariable;
+  final Variable expressionVariable;
 
   /// The type of the expression against which this pattern is matched.
   ///

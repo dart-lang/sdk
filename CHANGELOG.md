@@ -52,6 +52,11 @@ main() {
 
 ### Libraries
 
+#### `dart:core`
+
+- The Dart VM's implementation of `RegExp` has been updated to include support
+  for modifier spans and duplicate named capture groups.
+
 #### `dart:js_interop`
 
 - **Breaking Change**: `isA` is moved from `JSAnyUtilityExtension` to
@@ -74,11 +79,22 @@ main() {
 
 ### Tools
 
+#### Analyzer
+
+- The analyzer now warns when a function which contains a parameter which is
+  annotated with `@mustBeConst` is torn off.
+- The `invalid_runtime_check_with_js_interop_types` rule now checks for JS
+  interop types in the type in a catch clause and instructs users to use `isA`
+  for type checks instead.
+
 #### Pub
 
 - `dart pub cache repair` now by default only repairs the packages referenced
   by the current projects pubspec.lock. For the old behavior of repairing all
   packages use the `--all` flag.
+- `dart pub add` and `dart pub unpack` now accept `@` as an alternative to `:`
+  for seperating a package name from its version constraint.
+- Git dependencies now support LFS.
 
 #### dart2wasm
 
@@ -88,6 +104,33 @@ main() {
   module names rather than individual module names. All the module loading
   functions must now also accept an `instantiator` callback to which they
   should pass the loaded results.
+
+#### dart2js
+
+- `JSExportedDartFunction.toDart` sometimes incorrectly returned the original
+  Dart function even if the wrapper JS function was cast from a call to the
+  deprecated `allowInterop`. Instead, to be consistent with DDC and dart2wasm,
+  it now throws if the wrapper JS function wasn't a result of `Function.toJS` or
+  `Function.toJSCaptureThis`.
+
+### Libraries
+
+#### `dart:js_interop`
+
+- **Breaking Change in extension name of `isA`**: `isA` is moved from
+  `JSAnyUtilityExtension` to `NullableObjectUtilExtension` to support
+  type-checking any `Object?`. `isA<JSObject>()` also now handles JS objects
+  with no prototypes correctly and `isA<JSAny>()` does a non-trivial check to
+  make sure the value is a JS value. See [#56905][] for more details. As
+  `JSAnyUtilityExtension` is on `JSAny?` and `NullableObjectUtilExtension` is on
+  the supertype `Object?`, this change is only breaking if users referred to the
+  extension name directly, either through applying the extension directly or
+  through using `show`/`hide` directives.
+- `isA<JSExportedDartFunction>()` now checks if the function is actually a JS
+  wrapper function that is returned from `Function.toJS` or
+  `Function.toJSCaptureThis`.
+
+[#56905]: https://github.com/dart-lang/sdk/issues/56905
 
 ## 3.11.0
 

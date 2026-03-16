@@ -3328,6 +3328,7 @@ const DiagnosticWithoutArguments deprecatedFactoryMethod =
       correctionMessage:
           "Try adding a return type or modifier before the method's name, or "
           "change the name of the method.",
+      hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
       uniqueName: 'deprecated_factory_method',
       expectedTypes: [],
@@ -7372,6 +7373,7 @@ inferenceFailureOnUntypedParameter = DiagnosticWithArguments(
   problemMessage:
       "The type of '{0}' can't be inferred; a type must be explicitly provided.",
   correctionMessage: "Try specifying the type of the parameter.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'inference_failure_on_untyped_parameter',
   withArguments: _withArgumentsInferenceFailureOnUntypedParameter,
@@ -14269,7 +14271,7 @@ replacedLintUse = DiagnosticWithArguments(
 const DiagnosticWithoutArguments representationFieldModifier =
     DiagnosticWithoutArgumentsImpl(
       name: 'representation_field_modifier',
-      problemMessage: "Representation fields can't have modifiers.",
+      problemMessage: "Representation fields can't have the modifier 'var'.",
       correctionMessage: "Try removing the modifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
       uniqueName: 'representation_field_modifier',
@@ -17047,6 +17049,7 @@ unusedFieldFromPrimaryConstructor = DiagnosticWithArguments(
   correctionMessage:
       "Try removing the '{1}' keyword to avoid declaring a field, or try "
       "using the field, or removing it.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unused_field_from_primary_constructor',
   withArguments: _withArgumentsUnusedFieldFromPrimaryConstructor,
@@ -17236,6 +17239,24 @@ useOfNativeExtension = DiagnosticWithoutArgumentsImpl(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'use_of_native_extension',
   expectedTypes: [],
+);
+
+/// Parameters:
+/// String name: the public name of the requested named parameter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+useOfPrivateParameterName = DiagnosticWithArguments(
+  name: 'undefined_named_parameter',
+  problemMessage:
+      "The named parameter '_{0}' should use the corresponding public name '{0}' "
+      "at the callsite.",
+  correctionMessage: "Try changing the name to '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'use_of_private_parameter_name',
+  withArguments: _withArgumentsUseOfPrivateParameterName,
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -17445,6 +17466,7 @@ workspaceValueNotSubdirectory = DiagnosticWithArguments(
   correctionMessage:
       "Try using a subdirectory of the directory containing the "
       "'pubspec.yaml' file.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'workspace_value_not_subdirectory',
   withArguments: _withArgumentsWorkspaceValueNotSubdirectory,
@@ -21523,6 +21545,12 @@ LocatableDiagnostic _withArgumentsUriHasNotBeenGenerated({
   required String uriStr,
 }) {
   return LocatableDiagnosticImpl(diag.uriHasNotBeenGenerated, [uriStr]);
+}
+
+LocatableDiagnostic _withArgumentsUseOfPrivateParameterName({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.useOfPrivateParameterName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsVariableTypeMismatch({

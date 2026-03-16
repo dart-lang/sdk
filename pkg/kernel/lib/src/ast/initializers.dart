@@ -14,6 +14,18 @@ sealed class Initializer extends TreeNode {
   @informative
   bool get isSynthetic => false;
 
+  /// True if this initializer is redirecting initializer.
+  ///
+  /// This is `true` for [RedirectingInitializer] and [InvalidInitializer]
+  /// created for redirecting initializers.
+  bool get isRedirectingInitializer => false;
+
+  /// True if this initializer is super initializer.
+  ///
+  /// This is `true` for [SuperInitializer] and [InvalidInitializer]
+  /// created for super initializers.
+  bool get isSuperInitializer => false;
+
   @override
   R accept<R>(InitializerVisitor<R> v);
 
@@ -34,9 +46,32 @@ abstract class AuxiliaryInitializer extends Initializer {
 ///
 /// Should throw an exception at runtime.
 class InvalidInitializer extends Initializer {
+  static const int FlagRedirectingInitializer =
+      1 << 0; // Must match serialized bit positions.
+  static const int FlagSuperInitializer = 1 << 1;
+
   final String message;
+  int flags = 0;
 
   InvalidInitializer(this.message);
+
+  @override
+  bool get isRedirectingInitializer => flags & FlagRedirectingInitializer != 0;
+
+  void set isRedirectingInitializer(bool value) {
+    flags = value
+        ? (flags | FlagRedirectingInitializer)
+        : (flags & ~FlagRedirectingInitializer);
+  }
+
+  @override
+  bool get isSuperInitializer => flags & FlagSuperInitializer != 0;
+
+  void set isSuperInitializer(bool value) {
+    flags = value
+        ? (flags | FlagSuperInitializer)
+        : (flags & ~FlagSuperInitializer);
+  }
 
   @override
   R accept<R>(InitializerVisitor<R> v) => v.visitInvalidInitializer(this);
@@ -159,6 +194,9 @@ class SuperInitializer extends Initializer {
     arguments.parent = this;
   }
 
+  @override
+  bool get isSuperInitializer => true;
+
   Constructor get target => targetReference.asConstructor;
 
   void set target(Constructor target) {
@@ -226,6 +264,9 @@ class RedirectingInitializer extends Initializer {
   RedirectingInitializer.byReference(this.targetReference, this.arguments) {
     arguments.parent = this;
   }
+
+  @override
+  bool get isRedirectingInitializer => true;
 
   Constructor get target => targetReference.asConstructor;
 

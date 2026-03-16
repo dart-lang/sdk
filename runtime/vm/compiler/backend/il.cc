@@ -37,7 +37,6 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
-#include "vm/regexp/regexp_assembler_ir.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
@@ -1097,11 +1096,6 @@ bool StrictCompareInstr::AttributesEqual(const Instruction& other) const {
   ASSERT(other_op != nullptr);
   return ConditionInstr::AttributesEqual(other) &&
          (needs_number_check() == other_op->needs_number_check());
-}
-
-const RuntimeEntry& CaseInsensitiveCompareInstr::TargetFunction() const {
-  return handle_surrogates_ ? kCaseInsensitiveCompareUTF16RuntimeEntry
-                            : kCaseInsensitiveCompareUCS2RuntimeEntry;
 }
 
 bool MathMinMaxInstr::AttributesEqual(const Instruction& other) const {
@@ -4522,7 +4516,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = does_throw_access_error_or_call_initializer() &&
                                      throw_exception_on_initialization() &&
                                      use_shared_stub
-                                 ? 1
+                                 ? 2
                                  : 0;
   LocationSummary* locs = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
@@ -4536,6 +4530,8 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
       throw_exception_on_initialization() && use_shared_stub) {
     locs->set_temp(
         0, Location::RegisterLocation(LateInitializationErrorABI::kFieldReg));
+    locs->set_temp(1, Location::RegisterLocation(
+                          InitLateStaticFieldInternalRegs::kScratchReg));
   }
   locs->set_out(0,
                 does_throw_access_error_or_call_initializer()

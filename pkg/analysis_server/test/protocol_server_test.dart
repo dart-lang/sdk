@@ -350,20 +350,14 @@ class MockDiagnostic implements engine.Diagnostic {
   List<DiagnosticMessage> contextMessages = <DiagnosticMessage>[];
 
   MockDiagnostic({
-    MockSource? source,
-    engine.DiagnosticCode? diagnosticCode,
-    int? offset,
-    int? length,
-    String? message,
-    DiagnosticMessage? problemMessage,
-    String? correctionMessage,
-  }) : _source = source,
-       _diagnosticCode = diagnosticCode,
-       _offset = offset,
-       _length = length,
-       _message = message,
-       _problemMessage = problemMessage,
-       _correctionMessage = correctionMessage;
+    this._source,
+    this._diagnosticCode,
+    this._offset,
+    this._length,
+    this._message,
+    this._problemMessage,
+    this._correctionMessage,
+  });
 
   @override
   String? get correction => null;

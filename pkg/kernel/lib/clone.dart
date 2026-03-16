@@ -419,7 +419,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitFunctionExpression(FunctionExpression node) {
-    return new FunctionExpression(clone(node.function));
+    return new FunctionExpression(clone(node.function))..id = node.id;
   }
 
   @override
@@ -542,7 +542,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
-    ExpressionVariable newVariable = clone(node.expressionVariable);
+    Variable newVariable = clone(node.expressionVariable);
     return new ForInStatement(
         newVariable, clone(node.iterable), clone(node.body),
         isAsync: node.isAsync)
@@ -631,7 +631,7 @@ class CloneVisitorNotMembers
     // Create the declaration before cloning the body to support recursive
     // [LocalFunctionInvocation] nodes.
     FunctionDeclaration declaration =
-        new FunctionDeclaration(newVariable, dummyFunctionNode);
+        new FunctionDeclaration(newVariable, dummyFunctionNode)..id = node.id;
     FunctionNode functionNode = clone(node.function);
     declaration.function = functionNode..parent = declaration;
     return declaration;
@@ -741,7 +741,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitInvalidInitializer(InvalidInitializer node) {
-    return new InvalidInitializer(node.message);
+    return new InvalidInitializer(node.message)..flags = node.flags;
   }
 
   @override

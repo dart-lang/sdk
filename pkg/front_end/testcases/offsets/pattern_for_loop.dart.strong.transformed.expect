@@ -20,7 +20,7 @@ import "dart:core" as core;
   }
 [-1]  {
 [324]    [324] synthesized core::Iterator<dynamic> :sync-for-iterator = [324] [324] [324] [324] list.{core::Iterable::iterator}{core::Iterator<dynamic>};
-[-1]    for (; [324] [324] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[305]    for (; [324] [324] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
 [305]      [305] final dynamic #t5 = [330] [330] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{dynamic};
 [330]      {
 [315]        [315] hoisted dynamic a;

@@ -347,7 +347,7 @@ class Forest {
 
   ForInElement createForInElement(
     int fileOffset,
-    ExpressionVariable variable,
+    Variable variable,
     Expression iterable,
     Expression? synthesizedAssignment,
     Statement? expressionEffects,
@@ -368,7 +368,7 @@ class Forest {
 
   ForInMapEntry createForInMapEntry(
     int fileOffset,
-    ExpressionVariable variable,
+    Variable variable,
     Expression iterable,
     Expression? synthesizedAssignment,
     Statement? expressionEffects,
@@ -450,8 +450,8 @@ class Forest {
   Catch createCatch(
     int fileOffset,
     DartType exceptionType,
-    VariableDeclaration? exceptionParameter,
-    VariableDeclaration? stackTraceParameter,
+    CatchVariable? exceptionParameter,
+    CatchVariable? stackTraceParameter,
     DartType stackTraceType,
     Statement body,
   ) {
@@ -952,7 +952,7 @@ class Forest {
 
   AssignedVariablePattern createAssignedVariablePattern(
     int fileOffset,
-    ExpressionVariable variable,
+    Variable variable,
   ) {
     return new AssignedVariablePattern(variable)..fileOffset = fileOffset;
   }

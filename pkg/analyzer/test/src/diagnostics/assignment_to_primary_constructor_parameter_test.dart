@@ -62,6 +62,89 @@ class A(int? x) {
     );
   }
 
+  test_fieldInitializer_notLate_pattern_list() async {
+    await assertErrorsInCode(
+      '''
+class A(int x) {
+  List<int> y = [x] = [2];
+}
+''',
+      [error(diag.assignmentToPrimaryConstructorParameter, 34, 1)],
+    );
+  }
+
+  test_fieldInitializer_notLate_pattern_logicalAnd() async {
+    await assertErrorsInCode(
+      '''
+class A(int x, int z) {
+  int y = (x && z) = 2;
+}
+''',
+      [
+        error(diag.assignmentToPrimaryConstructorParameter, 35, 1),
+        error(diag.assignmentToPrimaryConstructorParameter, 40, 1),
+      ],
+    );
+  }
+
+  test_fieldInitializer_notLate_pattern_map() async {
+    await assertErrorsInCode(
+      '''
+class A(int x) {
+  Map<int?, int> y = {null: x} = {null: 2};
+}
+''',
+      [error(diag.assignmentToPrimaryConstructorParameter, 45, 1)],
+    );
+  }
+
+  test_fieldInitializer_notLate_pattern_nullAssert() async {
+    await assertErrorsInCode(
+      '''
+class A(int? x) {
+  int y = (x!) = 2;
+}
+''',
+      [
+        error(diag.assignmentToPrimaryConstructorParameter, 29, 1),
+        error(diag.unnecessaryNullAssertPattern, 30, 1),
+      ],
+    );
+  }
+
+  test_fieldInitializer_notLate_pattern_object() async {
+    await assertErrorsInCode(
+      '''
+class A(int x) {
+  Object y = int(sign: x) = 2;
+}
+''',
+      [error(diag.assignmentToPrimaryConstructorParameter, 40, 1)],
+    );
+  }
+
+  test_fieldInitializer_notLate_pattern_parenthesized() async {
+    await assertErrorsInCode(
+      '''
+class A(int x) {
+  int y = (x) = 0;
+}
+''',
+      [error(diag.assignmentToPrimaryConstructorParameter, 28, 1)],
+    );
+  }
+
+  test_fieldInitializer_notLate_pattern_record() async {
+    await assertErrorsInCode(
+      '''
+class A(int x) {
+  (int, {bool name}) y = (x, name: _) = (2, name: true);
+}
+''',
+      [error(diag.assignmentToPrimaryConstructorParameter, 43, 1)],
+    );
+  }
+
   test_fieldInitializer_notLate_plusEq() async {
     await assertErrorsInCode(
       '''

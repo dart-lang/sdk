@@ -26,6 +26,7 @@ syntax = "proto2";
 
 import "protos/perfetto/trace/clock_snapshot.proto";
 import "protos/perfetto/trace/interned_data/interned_data.proto";
+import "protos/perfetto/trace/profiling/profile_common.proto";
 import "protos/perfetto/trace/profiling/profile_packet.proto";
 import "protos/perfetto/trace/track_event/track_descriptor.proto";
 import "protos/perfetto/trace/track_event/track_event.proto";
@@ -78,6 +79,9 @@ message TracePacket {
 
     // Only used by TrackEvent.
     TrackDescriptor track_descriptor = 60;
+
+    // Only used in profile packets.
+    ModuleSymbols module_symbols = 61;
 
     PerfSample perf_sample = 66;
   }

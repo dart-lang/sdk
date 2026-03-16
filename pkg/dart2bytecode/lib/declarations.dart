@@ -539,6 +539,7 @@ class FunctionDeclaration {
   static const hasPragmaFlag = 1 << 22;
   static const hasCustomScriptFlag = 1 << 23;
   static const isExtensionTypeMemberFlag = 1 << 24;
+  static const isInvisibleFlag = 1 << 25;
 
   final int flags;
   final ObjectHandle name;
@@ -723,6 +724,9 @@ class FunctionDeclaration {
     }
     if ((flags & isExternalFlag) != 0) {
       sb.write(', external');
+    }
+    if ((flags & isInvisibleFlag) != 0) {
+      sb.write(', invisible');
     }
     if ((flags & hasPragmaFlag) != 0) {
       sb.write(', has-pragma');
@@ -984,6 +988,7 @@ class ClosureDeclaration {
   static const hasParameterFlagsFlag = 1 << 8;
   static const hasAnnotationsFlag = 1 << 9;
   static const hasPragmaFlag = 1 << 10;
+  static const isInvisibleFlag = 1 << 11;
 
   int flags;
   final ObjectHandle parent;
@@ -1122,6 +1127,9 @@ class ClosureDeclaration {
   String toString() {
     final StringBuffer sb = new StringBuffer();
     sb.write('Closure $parent::$name');
+    if ((flags & isInvisibleFlag) != 0) {
+      sb.write(' invisible');
+    }
     if ((flags & isAsyncFlag) != 0) {
       sb.write(' async');
     }
@@ -1167,28 +1175,40 @@ class ClosureCode {
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasLocalVariablesFlag = 1 << 2;
   static const capturesOnlyFinalNotLateVarsFlag = 1 << 3;
+  static const hasLocalFunctionIdFlag = 1 << 4;
 
   final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions? sourcePositions;
   final LocalVariableTable? localVariables;
   final bool capturesOnlyFinalNotLateVars;
+  final int localFunctionId;
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions => sourcePositions?.isNotEmpty ?? false;
   bool get hasLocalVariables => localVariables?.isNotEmpty ?? false;
+  bool get hasLocalFunctionId => localFunctionId > 0;
 
   int get flags =>
       (hasExceptionsTable ? hasExceptionsTableFlag : 0) |
       (hasSourcePositions ? hasSourcePositionsFlag : 0) |
       (hasLocalVariables ? hasLocalVariablesFlag : 0) |
-      (capturesOnlyFinalNotLateVars ? capturesOnlyFinalNotLateVarsFlag : 0);
+      (capturesOnlyFinalNotLateVars ? capturesOnlyFinalNotLateVarsFlag : 0) |
+      (hasLocalFunctionId ? hasLocalFunctionIdFlag : 0);
 
-  ClosureCode(this.bytecodes, this.exceptionsTable, this.sourcePositions,
-      this.localVariables, this.capturesOnlyFinalNotLateVars);
+  ClosureCode(
+      this.bytecodes,
+      this.exceptionsTable,
+      this.sourcePositions,
+      this.localVariables,
+      this.capturesOnlyFinalNotLateVars,
+      this.localFunctionId);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
+    if (hasLocalFunctionId) {
+      writer.writePackedUInt30(localFunctionId);
+    }
     _writeBytecodeInstructions(writer, bytecodes);
     if (hasExceptionsTable) {
       exceptionsTable.write(writer);
@@ -1203,6 +1223,9 @@ class ClosureCode {
 
   factory ClosureCode.read(BufferedReader reader) {
     final int flags = reader.readPackedUInt30();
+    final localFunctionId = ((flags & hasLocalFunctionIdFlag) != 0)
+        ? reader.readPackedUInt30()
+        : -1;
     final Uint8List bytecodes = _readBytecodeInstructions(reader);
     final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
         ? new ExceptionsTable.read(reader)
@@ -1216,9 +1239,8 @@ class ClosureCode {
     final capturesOnlyFinalNotLateVars =
         (flags & capturesOnlyFinalNotLateVarsFlag) != 0;
 
-    return new ClosureCode(
-        bytecodes, exceptionsTable, sourcePositions, localVariables,
-        capturesOnlyFinalNotLateVars);
+    return new ClosureCode(bytecodes, exceptionsTable, sourcePositions,
+        localVariables, capturesOnlyFinalNotLateVars, localFunctionId);
   }
 
   @override

@@ -97,10 +97,11 @@ class ConvertToPrimaryConstructor extends ResolvedCorrectionProducer {
     int nonRedirectingGenerativeConstructorCount;
     bool isEnum = false;
     var parent = constructor.parent;
-    if (parent is BlockClassBody) {
-      parent = parent.parent;
-    } else if (parent is EnumBody) {
-      parent = parent.parent;
+    switch (parent) {
+      case BlockClassBody body:
+        parent = body.parent;
+      case BlockEnumBody body:
+        parent = body.parent;
     }
     switch (parent) {
       case ClassDeclaration(:var namePart):

@@ -142,15 +142,18 @@ class CallHierarchyItem {
       return SourceRange(nameOffset, nameEnd - nameOffset);
     }
 
-    // For default constructors, use the type name or new keyword.
+    // For default constructors, use the type name or new/factory keyword.
     if (fragment is ConstructorFragmentImpl) {
       var typeNameOffset = fragment.typeNameOffset;
       var typeName = fragment.typeName;
       var newKeywordOffset = fragment.newKeywordOffset;
+      var factoryKeywordOffset = fragment.factoryKeywordOffset;
       if (typeName != null && typeNameOffset != null) {
         return SourceRange(typeNameOffset, typeName.length);
       } else if (newKeywordOffset != null) {
         return SourceRange(newKeywordOffset, 'new'.length);
+      } else if (factoryKeywordOffset != null) {
+        return SourceRange(factoryKeywordOffset, 'factory'.length);
       }
     }
 
@@ -357,7 +360,7 @@ class DartCallHierarchyComputer {
       Identifier(parent: ConstructorDeclaration(:var name?))
           when offset < name.offset =>
         null,
-      // Type name in an default constructor declaration, or constructor name in
+      // Type name in a default constructor declaration, or constructor name in
       // a named constructor; use the constructor.
       Identifier(parent: ConstructorDeclaration(name: null)) => node.parent,
       // Type name in a named primary constructor declaration; not considered a
@@ -439,7 +442,7 @@ class DartCallHierarchyComputer {
   ///
   /// Usually this is the range returned from the search index, but sometimes it
   /// will be adjusted to reflect the source range that should be highlighted
-  /// for this call. For example, an default constructor may be given a range
+  /// for this call. For example, a default constructor may be given a range
   /// covering the type name (whereas the index has a zero-width range after the
   /// type name).
   SourceRange _rangeForSearchMatch(

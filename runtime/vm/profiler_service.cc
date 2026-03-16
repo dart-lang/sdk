@@ -1893,7 +1893,7 @@ void Profile::PrintSamplesPerfetto(
     }
 
     const auto callstack_iid = interned_data_builder.callstacks().Intern(
-        &callstack[0], callstack.length());
+        {&callstack[0], callstack.length()});
 
     perfetto_utils::SetTrustedPacketSequenceId(packet.get());
     perfetto_utils::SetTimestampAndMonotonicClockId(packet.get(),
@@ -1971,8 +1971,8 @@ void Profile::PrintProfilePerfettoImpl(
             interned_data_builder.mapping_paths().Intern(resolved_script_url);
       }
 
-      mapping_iid = interned_data_builder.mappings().Intern(&mapping_path_iid,
-                                                            /*length=*/1);
+      mapping_iid = interned_data_builder.mappings().Intern(
+          {.path_string = mapping_path_iid});
     }
 
     if (mapping_iid == 0) {
@@ -1983,9 +1983,9 @@ void Profile::PrintProfilePerfettoImpl(
     // name and source location (through the interned data table). A Perfetto
     // |Callstack| consists of a stack of |Frame|s, so the |Callstack|s
     // populated by |PrintSamplesPerfetto| will refer to these |Frame|s.
-    uint64_t frame_info[2] = {function_name_iid, mapping_iid};
     function_iids.Add(interned_data_builder.frames().Intern(
-        frame_info, ARRAY_SIZE(frame_info)));
+        {.mapping_iid = static_cast<uint32_t>(mapping_iid),
+         .function_name_iid = static_cast<uint32_t>(function_name_iid)}));
 
     thread->CheckForSafepoint();
   }

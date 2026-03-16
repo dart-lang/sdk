@@ -9,17 +9,23 @@ import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
+import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:test/test.dart';
 import 'disassembler.dart' show Disassembler;
 
 void main() {
   final vmOffsets = Arm64VMOffsets();
+  final objectLayout = ObjectLayout(
+    vmOffsets,
+    wordSize: wordSize,
+    compressedWordSize: wordSize,
+  );
   final objectPoolBase = vmOffsets.ObjectPool_elementOffset(0);
   late Arm64Assembler asm;
 
   setUp(() {
-    asm = Arm64Assembler(vmOffsets);
+    asm = Arm64Assembler(vmOffsets, objectLayout);
   });
 
   void expectDisassembly(String expected) {
@@ -56,40 +62,38 @@ void main() {
     test('address', () {
       asm.ldr(R0, asm.address(R0, -256));
       asm.str(R1, asm.address(R0, 0x7ff8));
-      // TODO: support large offsets
-      expectThrows(() {
-        asm.address(R0, -257);
-      });
-      expectThrows(() {
-        asm.address(R0, 257);
-      });
-      expectThrows(() {
-        asm.address(R0, 0x8000);
-      });
+      asm.ldr(R2, asm.address(R0, -257));
+      asm.str(R3, asm.address(R0, 257));
+      asm.ldr(R4, asm.address(R0, 0x8002, .u16), .u16);
       expectDisassembly(
         'ldr r0, [r0, #-256]\n'
-        'str r1, [r0, #32760]\n',
+        'str r1, [r0, #32760]\n'
+        'sub r17, r0, #0x200\n'
+        'ldr r2, [r17, #255]\n'
+        'add r17, r0, #0x100\n'
+        'str r3, [r17, #1]\n'
+        'add r17, r0, #0x8000\n'
+        'ldrh r4, [r17, #2]\n',
       );
     });
     test('pairAddress', () {
       asm.ldp(R1, R2, asm.pairAddress(R0, -0x200));
       asm.stp(R1, R2, asm.pairAddress(R0, 0x1f8));
-      // TODO: support large and unaligned offsets
-      expectThrows(() {
-        asm.pairAddress(R0, 3);
-      });
-      expectThrows(() {
-        asm.pairAddress(R0, -1);
-      });
-      expectThrows(() {
-        asm.pairAddress(R0, -0x208);
-      });
-      expectThrows(() {
-        asm.pairAddress(R0, 0x200);
-      });
+      asm.ldp(R1, R2, asm.pairAddress(R0, 3));
+      asm.stp(R1, R2, asm.pairAddress(R0, -1));
+      asm.ldp(R1, R2, asm.pairAddress(R0, -0x208));
+      asm.stp(R1, R2, asm.pairAddress(R0, 0x204, .s32), .s32);
       expectDisassembly(
         'ldp r1, r2, [r0, #-512]\n'
-        'stp r1, r2, [r0, #504]\n',
+        'stp r1, r2, [r0, #504]\n'
+        'add r17, r0, #0x3\n'
+        'ldp r1, r2, [r17, #0]\n'
+        'sub r17, r0, #0x1\n'
+        'stp r1, r2, [r17, #0]\n'
+        'sub r17, r0, #0x400\n'
+        'ldp r1, r2, [r17, #504]\n'
+        'add r17, r0, #0x200\n'
+        'stpw r1, r2, [r17, #4]\n',
       );
     });
     test('enterDartFrame', () {
@@ -184,18 +188,28 @@ void main() {
         asm.loadFromPool(R0, ConstantValue.fromString('$offs') as Object);
         expected.write('ldr r0, [pp, #$offs]\n');
       }
-      // TODO: support large offsets
-      expectThrows(() {
-        asm.loadFromPool(R0, ConstantValue.fromString('oops') as Object);
-      });
+      asm.loadFromPool(R0, ConstantValue.fromString('oops1') as Object);
+      expected.write(
+        'add r17, pp, #0x8000\n'
+        'ldr r0, [r17]\n',
+      );
+      asm.loadFromPool(R0, ConstantValue.fromString('oops2') as Object);
+      expected.write(
+        'add r17, pp, #0x8000\n'
+        'ldr r0, [r17, #8]\n',
+      );
       expectDisassembly(expected.toString());
     });
     test('loadConstant', () {
       asm.loadConstant(R0, ConstantValue.fromString('abc'));
-      asm.loadConstant(R1, ConstantValue.fromInt(42));
+      asm.loadConstant(R1, ConstantValue(UnboxedIntConstant(42)));
+      asm.loadConstant(R2, ConstantValue.fromInt(42));
+      asm.loadConstant(R3, ConstantValue.fromInt(0x7fffffff_ffffffff));
       expectDisassembly(
         'ldr r0, [pp, #${objectPoolBase}]\n'
-        'movz r1, #0x2a\n',
+        'movz r1, #0x2a\n'
+        'movz r2, #0x54\n'
+        'ldr r3, [pp, #${objectPoolBase + 8}]\n',
       );
     });
     test('loadImmediate', () {
@@ -256,16 +270,16 @@ void main() {
         'sub r1, r2, #0xabc\n'
         'add r1, r2, #0xabc000\n'
         'sub r1, r2, #0xabc000\n'
-        'movz tmp, #0x7788\n'
-        'movk tmp, #0x5566 lsl 16\n'
-        'movk tmp, #0x3344 lsl 32\n'
-        'movk tmp, #0x1122 lsl 48\n'
-        'add r1, r2, tmp\n'
-        'movz tmp, #0x7788\n'
-        'movk tmp, #0x5566 lsl 16\n'
-        'movk tmp, #0x3344 lsl 32\n'
-        'movk tmp, #0x1122 lsl 48\n'
-        'add csp, fp, tmp uxtx 0\n',
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'add r1, r2, r17\n'
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'add csp, fp, r17 uxtx 0\n',
       );
     });
     test('subImmediate', () {
@@ -285,16 +299,16 @@ void main() {
         'add r1, r2, #0xabc\n'
         'sub r1, r2, #0xabc000\n'
         'add r1, r2, #0xabc000\n'
-        'movz tmp, #0x7788\n'
-        'movk tmp, #0x5566 lsl 16\n'
-        'movk tmp, #0x3344 lsl 32\n'
-        'movk tmp, #0x1122 lsl 48\n'
-        'sub r1, r2, tmp\n'
-        'movz tmp, #0x7788\n'
-        'movk tmp, #0x5566 lsl 16\n'
-        'movk tmp, #0x3344 lsl 32\n'
-        'movk tmp, #0x1122 lsl 48\n'
-        'sub csp, fp, tmp uxtx 0\n',
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'sub r1, r2, r17\n'
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'sub csp, fp, r17 uxtx 0\n',
       );
     });
     test('andImmediate', () {
@@ -310,11 +324,11 @@ void main() {
         'mov r1, r2\n'
         'movw r1, r2\n'
         'and r1, r2, 0xff\n'
-        'movz tmp, #0x7788\n'
-        'movk tmp, #0x5566 lsl 16\n'
-        'movk tmp, #0x3344 lsl 32\n'
-        'movk tmp, #0x1122 lsl 48\n'
-        'and r1, r2, tmp\n',
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'and r1, r2, r17\n',
       );
     });
     test('callRuntime', () {
@@ -333,6 +347,101 @@ void main() {
         'ldr code, [pp, #${objectPoolBase}]\n'
         'ldr lr, [code, #${vmOffsets.Code_entry_point_offset.first - heapObjectTag}]\n'
         'blr lr\n',
+      );
+    });
+    test('inlineAllocation - object size 16', () {
+      final slowPath = Label();
+      asm.inlineAllocation(
+        R0,
+        R1,
+        R2,
+        R3,
+        16,
+        slowPath,
+        initializeFields: true,
+      );
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'add r3, r0, #0x10\n'
+        'cmp r2, r3\n'
+        'bls +20\n'
+        'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'str null, [r0, #8]\n'
+        'add r0, r0, #0x1\n',
+      );
+    });
+    test('inlineAllocation - object size 16, no field initialization', () {
+      final slowPath = Label();
+      asm.inlineAllocation(
+        R0,
+        R1,
+        R2,
+        R3,
+        16,
+        slowPath,
+        initializeFields: false,
+      );
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'add r3, r0, #0x10\n'
+        'cmp r2, r3\n'
+        'bls +16\n'
+        'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'add r0, r0, #0x1\n',
+      );
+    });
+    test('inlineAllocation - object size 32', () {
+      final slowPath = Label();
+      asm.inlineAllocation(
+        R0,
+        R1,
+        R2,
+        R3,
+        32,
+        slowPath,
+        initializeFields: true,
+      );
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'add r3, r0, #0x20\n'
+        'cmp r2, r3\n'
+        'bls +24\n'
+        'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'stp null, null, [r0, #8]\n'
+        'str null, [r0, #24]\n'
+        'add r0, r0, #0x1\n',
+      );
+    });
+    test('inlineAllocation - object size 160', () {
+      final slowPath = Label();
+      asm.inlineAllocation(
+        R0,
+        R1,
+        R2,
+        R3,
+        160,
+        slowPath,
+        initializeFields: true,
+      );
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'add r3, r0, #0xa0\n'
+        'cmp r2, r3\n'
+        'bls +32\n'
+        'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'add r2, r0, #0x8\n'
+        'stp null, null, [r2], #16 !\n'
+        'cmp r2, r3\n'
+        'bcc -8\n'
+        'add r0, r0, #0x1\n',
       );
     });
   });
@@ -494,6 +603,45 @@ void main() {
       );
     });
 
+    test('madd', () {
+      asm.madd(R0, R1, R2, R3);
+      asm.madd(R0, R0, R0, R0, .s32);
+      expectDisassembly(
+        'madd r0, r1, r2, r3\n'
+        'maddw r0, r0, r0, r0\n',
+      );
+      expectThrows(() {
+        asm.madd(SP, R1, R2, R3);
+      });
+      expectThrows(() {
+        asm.madd(R0, SP, R2, R3);
+      });
+      expectThrows(() {
+        asm.madd(R0, R1, SP, R3);
+      });
+      expectThrows(() {
+        asm.madd(R0, R1, R2, SP);
+      });
+    });
+
+    test('mul', () {
+      asm.mul(R1, R2, R3);
+      asm.mul(R0, R0, R1, .u32);
+      expectDisassembly(
+        'mul r1, r2, r3\n'
+        'mulw r0, r0, r1\n',
+      );
+      expectThrows(() {
+        asm.mul(SP, R2, R3);
+      });
+      expectThrows(() {
+        asm.mul(R1, SP, R3);
+      });
+      expectThrows(() {
+        asm.mul(R1, R2, SP);
+      });
+    });
+
     test('ubfx', () {
       asm.ubfx(R0, R1, 4, 8);
       expectDisassembly('ubfm r0, r1, #4, #11\n');
@@ -575,6 +723,38 @@ void main() {
     test('uxth', () {
       asm.uxth(R1, R2);
       expectDisassembly('uxth r1, r2\n');
+    });
+
+    test('asr', () {
+      asm.asr(R0, R1, 0);
+      asm.asr(R0, R1, 0, .s32);
+      asm.asr(R1, R2, 1);
+      asm.asr(R1, R2, 1, .s32);
+      asm.asr(R4, R2, 31, .s32);
+      asm.asr(R4, R2, 63);
+      expectDisassembly(
+        'mov r0, r1\n'
+        'movw r0, r1\n'
+        'asr r1, r2, #1\n'
+        'asrw r1, r2, #1\n'
+        'asrw r4, r2, #31\n'
+        'asr r4, r2, #63\n',
+      );
+      expectThrows(() {
+        asm.asr(R4, R2, -1);
+      });
+      expectThrows(() {
+        asm.asr(R4, R2, 64);
+      });
+      expectThrows(() {
+        asm.asr(R4, R2, 32, .s32);
+      });
+      expectThrows(() {
+        asm.asr(SP, R2, 1);
+      });
+      expectThrows(() {
+        asm.asr(R4, SP, 1);
+      });
     });
 
     test('and', () {
@@ -786,6 +966,9 @@ void main() {
       expectThrows(() {
         asm.ldr(R0, WritebackRegOffsetAddress(R0, 8, isPostIndexed: true));
       });
+      expectThrows(() {
+        asm.ldr(R0, RegOffsetAddress(R1, 0), .simd128);
+      });
     });
 
     test('str', () {
@@ -831,6 +1014,89 @@ void main() {
       });
       expectThrows(() {
         asm.str(R0, WritebackRegOffsetAddress(R0, 8, isPostIndexed: true));
+      });
+      expectThrows(() {
+        asm.str(R0, RegOffsetAddress(R1, 0), .simd128);
+      });
+    });
+
+    test('fldr', () {
+      asm.fldr(V0, RegOffsetAddress(R1, 7));
+      asm.fldr(V1, RegOffsetAddress(R1, 7), .s16);
+      asm.fldr(V2, RegOffsetAddress(R1, 32), .s32);
+      asm.fldr(V3, RegOffsetAddress(R1, -5), .s64);
+      asm.fldr(V4, RegOffsetAddress(SP, 32768), .simd128);
+      asm.fldr(V5, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
+      asm.fldr(
+        V6,
+        WritebackRegOffsetAddress(R1, -8, isPostIndexed: false),
+        .simd128,
+      );
+      asm.fldr(V0, WritebackRegOffsetAddress(R0, 8, isPostIndexed: true), .s32);
+      expectDisassembly(
+        'fldrd v0, [r1, #7]\n'
+        'fldrh v1, [r1, #7]\n'
+        'fldrs v2, [r1, #32]\n'
+        'fldrd v3, [r1, #-5]\n'
+        'fldrq v4, [csp, #32768]\n'
+        'fldrd v5, [r1], #16 !\n'
+        'fldrq v6, [r1, #-8]!\n'
+        'fldrs v0, [r0], #8 !\n',
+      );
+      expectThrows(() {
+        asm.fldr(V0, RegOffsetAddress(R1, 32768));
+      });
+      expectThrows(() {
+        asm.fldr(V0, RegOffsetAddress(R1, 4097));
+      });
+      expectThrows(() {
+        asm.fldr(V0, RegOffsetAddress(R1, -512));
+      });
+      expectThrows(() {
+        asm.fldr(V0, WritebackRegOffsetAddress(R1, 512, isPostIndexed: true));
+      });
+      expectThrows(() {
+        asm.fldr(V0, WritebackRegOffsetAddress(R1, -513, isPostIndexed: false));
+      });
+    });
+
+    test('fstr', () {
+      asm.fstr(V0, RegOffsetAddress(R1, 7));
+      asm.fstr(V1, RegOffsetAddress(R1, 7), .s16);
+      asm.fstr(V2, RegOffsetAddress(R1, 32), .s32);
+      asm.fstr(V3, RegOffsetAddress(R1, -5), .s64);
+      asm.fstr(V4, RegOffsetAddress(SP, 32768), .simd128);
+      asm.fstr(V5, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
+      asm.fstr(
+        V6,
+        WritebackRegOffsetAddress(R1, -8, isPostIndexed: false),
+        .simd128,
+      );
+      asm.fstr(V0, WritebackRegOffsetAddress(R0, 8, isPostIndexed: true), .s32);
+      expectDisassembly(
+        'fstrd v0, [r1, #7]\n'
+        'fstrh v1, [r1, #7]\n'
+        'fstrs v2, [r1, #32]\n'
+        'fstrd v3, [r1, #-5]\n'
+        'fstrq v4, [csp, #32768]\n'
+        'fstrd v5, [r1], #16 !\n'
+        'fstrq v6, [r1, #-8]!\n'
+        'fstrs v0, [r0], #8 !\n',
+      );
+      expectThrows(() {
+        asm.fstr(V0, RegOffsetAddress(R1, 32768));
+      });
+      expectThrows(() {
+        asm.fstr(V0, RegOffsetAddress(R1, 4097));
+      });
+      expectThrows(() {
+        asm.fstr(V0, RegOffsetAddress(R1, -512));
+      });
+      expectThrows(() {
+        asm.fstr(V0, WritebackRegOffsetAddress(R1, 512, isPostIndexed: true));
+      });
+      expectThrows(() {
+        asm.fstr(V0, WritebackRegOffsetAddress(R1, -513, isPostIndexed: false));
       });
     });
 

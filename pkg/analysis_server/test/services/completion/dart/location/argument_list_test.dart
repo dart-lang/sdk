@@ -478,8 +478,6 @@ void f0() {
 suggestions
   f0
     kind: function
-  switch
-    kind: keyword
 ''');
   }
 

@@ -29,7 +29,7 @@
     }
   ],
   "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
     "version": "0.4.0"
   },
   "uses": {
@@ -39,9 +39,7 @@
         "uses": [
           {
             "constant_index": 1,
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "type": "constant"
           }
         ]

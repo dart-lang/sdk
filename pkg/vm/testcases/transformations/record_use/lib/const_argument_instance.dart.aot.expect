@@ -1,31 +1,32 @@
 library #lib;
 import self as self;
-import "dart:core" as core;
 import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
 
 import "package:meta/meta.dart" show RecordUse;
 
-class SomeClass extends core::Object /*hasConstConstructor*/  {
+@#C1
+final class SomeClass extends core::Object /*hasConstConstructor*/  {
 
   [@vm.inferred-type.metadata=dart.core::_Smi (value: 14)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
-  [@vm.unboxing-info.metadata=()->i]
+  [@vm.unboxing-info.metadata=[!regcc]]
   final field core::int i;
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  core::print([@vm.inferred-type.metadata=int] self::someStaticMethod2(#C2));
+  core::print([@vm.inferred-type.metadata=int] self::someStaticMethod2(#C3));
 }
 
 [@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(b)->i]
-@#C3
+@#C1
 static method someStaticMethod2([@vm.inferred-arg-type.metadata=#lib::SomeClass (value: const #lib::SomeClass{#lib::SomeClass.i: 14})] self::SomeClass someClass) → core::int {
   return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=#lib::SomeClass.i] [@vm.inferred-type.metadata=dart.core::_Smi (value: 14)] someClass.{self::SomeClass::i}{core::int}.{core::num::+}(1){(core::num) → core::int};
 }
 constants  {
-  #C1 = 14
-  #C2 = self::SomeClass {i:#C1}
-  #C3 = meta::RecordUse {}
+  #C1 = meta::RecordUse {}
+  #C2 = 14
+  #C3 = self::SomeClass {i:#C2}
 }

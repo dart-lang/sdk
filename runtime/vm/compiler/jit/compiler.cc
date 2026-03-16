@@ -37,8 +37,6 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/parser.h"
-#include "vm/regexp/regexp_assembler.h"
-#include "vm/regexp/regexp_parser.h"
 #include "vm/runtime_entry.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
@@ -96,7 +94,6 @@ static void PrecompilationModeHandler(bool value) {
 
     FLAG_background_compilation = false;
     FLAG_enable_mirrors = false;
-    FLAG_interpret_irregexp = true;
     FLAG_link_natives_lazily = true;
     FLAG_optimization_counter_threshold = -1;
     FLAG_polymorphic_with_deopt = false;
@@ -121,74 +118,12 @@ DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
-static FlowGraph* BuildIrregexpFunctionFlowGraph(
-    Zone* zone,
-    ParsedFunction* parsed_function,
-    ZoneGrowableArray<const ICData*>* ic_data_array,
-    intptr_t osr_id,
-    bool optimized) {
-  if (parsed_function->regexp_compile_data() == nullptr) {
-    VMTagScope tagScope(parsed_function->thread(),
-                        VMTag::kCompileParseRegExpTagId);
-    RegExp& regexp = RegExp::Handle(parsed_function->function().regexp());
-
-    const String& pattern = String::Handle(regexp.pattern());
-
-    RegExpCompileData* compile_data = new (zone) RegExpCompileData();
-    // Parsing failures are handled in the RegExp factory constructor.
-    RegExpParser::ParseRegExp(pattern, regexp.flags(), compile_data);
-
-    regexp.set_num_bracket_expressions(compile_data->capture_count);
-    regexp.set_capture_name_map(compile_data->capture_name_map);
-    if (compile_data->simple) {
-      regexp.set_is_simple();
-    } else {
-      regexp.set_is_complex();
-    }
-
-    parsed_function->SetRegExpCompileData(compile_data);
-
-    // Variables are allocated after compilation.
-  }
-
-  // Compile to the dart IR.
-  RegExpEngine::CompilationResult result =
-      RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
-                              parsed_function, *ic_data_array, osr_id);
-  if (result.error_message != nullptr) {
-    Report::LongJump(LanguageError::Handle(
-        LanguageError::New(String::Handle(String::New(result.error_message)))));
-  }
-
-  // Allocate variables now that we know the number of locals.
-  parsed_function->AllocateIrregexpVariables(result.num_stack_locals);
-
-  // When compiling for OSR, use a depth first search to find the OSR
-  // entry and make graph entry jump to it instead of normal entry.
-  // Catch entries are always considered reachable, even if they
-  // become unreachable after OSR.
-  if (osr_id != Compiler::kNoOSRDeoptId) {
-    auto osr_result = result.graph_entry->FindOsrEntry(zone, result.num_blocks);
-    // No try-catch in irregexps, so we can pass nullptr as flow_graph_builder.
-    ASSERT(osr_result->try_entries_length() == 0);
-    kernel::FlowGraphBuilder::RelinkToOsrEntry(/*builder=*/nullptr, osr_result);
-  }
-  PrologueInfo prologue_info(-1, -1);
-  return new (zone)
-      FlowGraph(*parsed_function, result.graph_entry, result.num_blocks,
-                prologue_info, FlowGraph::CompilationModeFrom(optimized));
-}
-
 FlowGraph* Compiler::BuildFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
     ZoneGrowableArray<const ICData*>* ic_data_array,
     intptr_t osr_id,
     bool optimized) {
-  if (parsed_function->function().IsIrregexpFunction()) {
-    return BuildIrregexpFunctionFlowGraph(zone, parsed_function, ic_data_array,
-                                          osr_id, optimized);
-  }
   kernel::FlowGraphBuilder builder(parsed_function, ic_data_array,
                                    /* not building var desc */ nullptr,
                                    /* not inlining */ nullptr, optimized,
@@ -615,7 +550,6 @@ CodePtr CompileParsedFunctionHelper::Compile() {
     } else {
       // We bailed out or we encountered an error.
       const Error& error = Error::Handle(thread()->StealStickyError());
-
       if (error.ptr() == Object::branch_offset_error().ptr()) {
         // Compilation failed due to an out of range branch offset in the
         // assembler. We try again (done = false) with far branches enabled.

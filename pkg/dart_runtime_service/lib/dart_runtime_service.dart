@@ -5,4 +5,7 @@
 export 'src/dart_runtime_service.dart';
 export 'src/dart_runtime_service_backend.dart';
 export 'src/dart_runtime_service_options.dart';
+export 'src/event_streams.dart';
 export 'src/exceptions.dart';
+export 'src/isolate_manager.dart';
+export 'src/rpc_exceptions.dart';

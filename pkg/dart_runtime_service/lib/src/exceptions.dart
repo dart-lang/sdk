@@ -20,3 +20,19 @@ final class DartRuntimeServiceFailedToStartException
   const DartRuntimeServiceFailedToStartException({required String message})
     : super(message: 'Failed to start: $message');
 }
+
+/// Thrown when the [DartRuntimeService] attempts to start the server when it's
+/// already active.
+final class DartRuntimeServiceServerAlreadyRunning
+    extends DartRuntimeServiceException {
+  const DartRuntimeServiceServerAlreadyRunning()
+    : super(message: 'The HTTP server is already running.');
+}
+
+/// Thrown when the [DartRuntimeService] attempts to shutdown the server when
+/// it's not active.
+final class DartRuntimeServiceServerNotRunning
+    extends DartRuntimeServiceException {
+  const DartRuntimeServiceServerNotRunning()
+    : super(message: 'The HTTP server is not running.');
+}

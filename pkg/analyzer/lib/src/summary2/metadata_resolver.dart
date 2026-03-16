@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class MetadataResolver extends ThrowingAstVisitor<void> {
@@ -41,15 +40,20 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitBlockClassBody(BlockClassBody node) {
-    node.members.accept(this);
+    node.visitChildren(this);
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitBlockEnumBody(BlockEnumBody node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     node.metadata.accept(this);
     node.namePart.typeParameters?.accept(this);
 
-    _scope = LinkingNodeContext.get(node).scope;
+    _scope = node.bodyScope!;
     try {
       node.namePart
           .tryCast<PrimaryConstructorDeclaration>()
@@ -88,23 +92,25 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {}
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     node.metadata.accept(this);
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     node.metadata.accept(this);
     node.namePart.typeParameters?.accept(this);
 
-    _scope = LinkingNodeContext.get(node).scope;
+    _scope = node.bodyScope!;
     try {
       node.namePart
           .tryCast<PrimaryConstructorDeclaration>()
           ?.formalParameters
           .accept(this);
-      node.body.constants.accept(this);
-      node.body.members.accept(this);
+      node.body.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -121,24 +127,26 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
 
-    _scope = LinkingNodeContext.get(node).scope;
+    _scope = node.bodyScope!;
     try {
-      node.body.members.accept(this);
+      node.body.accept(this);
     } finally {
       _scope = _containerScope;
     }
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     node.metadata.accept(this);
     node.primaryConstructor.typeParameters?.accept(this);
 
-    _scope = LinkingNodeContext.get(node).scope;
+    _scope = node.bodyScope!;
     try {
       node.primaryConstructor.formalParameters.accept(this);
       node.body.accept(this);
@@ -223,13 +231,13 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
 
-    _scope = LinkingNodeContext.get(node).scope;
+    _scope = node.bodyScope!;
     try {
-      node.body.members.accept(this);
+      node.body.accept(this);
     } finally {
       _scope = _containerScope;
     }

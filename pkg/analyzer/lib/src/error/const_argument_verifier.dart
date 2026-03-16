@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 /// Checks if the arguments for a parameter annotated with `@mustBeConst` are
 /// actually constant.
@@ -208,6 +209,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
     if (node is ConstructorReference) return true;
     if (node is FunctionReference) return true;
     if (node is DotShorthandPropertyAccess) return true;
+    if (node.inCommentReference) return false;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is ConstructorName) {

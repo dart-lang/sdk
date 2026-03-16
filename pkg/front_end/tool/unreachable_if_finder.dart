@@ -54,7 +54,7 @@ class UnreachableIfFinder extends RecursiveVisitor {
 
   List<Warning> warnings = [];
 
-  Map<ExpressionVariable, bool> knownValues = {};
+  Map<Variable, bool> knownValues = {};
 
   @override
   void visitIfStatement(IfStatement node) {
@@ -75,7 +75,7 @@ class UnreachableIfFinder extends RecursiveVisitor {
     // TODO(jensj): We could make the visit return a bool? instead and use that
     // from the condition instead of doing special casing on `Not` and
     // `VariableGet`.
-    ExpressionVariable? newKnownValueHere;
+    Variable? newKnownValueHere;
     bool conditionNegated = false;
 
     if (condition is Not) {
@@ -84,7 +84,7 @@ class UnreachableIfFinder extends RecursiveVisitor {
     }
 
     if (condition is VariableGet) {
-      bool? knownValue = knownValues[condition.variable];
+      bool? knownValue = knownValues[condition.expressionVariable];
       if (knownValue != null) {
         if (conditionNegated) knownValue = !knownValue;
         String? hint;
@@ -102,9 +102,9 @@ class UnreachableIfFinder extends RecursiveVisitor {
           ),
         );
       } else {
-        if (condition.variable.isFinal ||
-            unwritten.contains(condition.variable)) {
-          newKnownValueHere = condition.variable;
+        if (condition.expressionVariable.isFinal ||
+            unwritten.contains(condition.expressionVariable)) {
+          newKnownValueHere = condition.expressionVariable;
         }
       }
     }
@@ -135,7 +135,7 @@ class EffectivelyFinal extends RecursiveVisitor {
 
   @override
   void visitVariableSet(VariableSet node) {
-    unwritten.remove(node.variable);
+    unwritten.remove(node.expressionVariable);
     super.visitVariableSet(node);
   }
 }

@@ -788,6 +788,29 @@ Message _withArgumentsClassShouldBeListedAsCallableInDynamicInterface({
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String name})>
+classShouldBeListedAsCanBeUsedAsTypeInDynamicInterface = const Template(
+  "ClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface",
+  withArguments:
+      _withArgumentsClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface({
+  required String name,
+}) {
+  var name_0 = conversions.validateAndDemangleName(name);
+  return new Message(
+    classShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
+    problemMessage:
+        """Cannot use class '${name_0}' as a type in a dynamic module.""",
+    correctionMessage:
+        """Try removing the reference to class '${name_0}' or update the dynamic interface to list class '${name_0}' as can-be-used-as-type.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
 classShouldBeListedAsExtendableInDynamicInterface = const Template(
   "ClassShouldBeListedAsExtendableInDynamicInterface",
   withArguments:
@@ -3336,23 +3359,24 @@ const MessageCode extensionTypeRepresentationTypeBottom = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String name})>
-extensionTypeShouldBeListedAsCallableInDynamicInterface = const Template(
-  "ExtensionTypeShouldBeListedAsCallableInDynamicInterface",
+extensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface = const Template(
+  "ExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface",
   withArguments:
-      _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface,
+      _withArgumentsExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface({
+Message
+_withArgumentsExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface({
   required String name,
 }) {
   var name_0 = conversions.validateAndDemangleName(name);
   return new Message(
-    extensionTypeShouldBeListedAsCallableInDynamicInterface,
+    extensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
     problemMessage:
-        """Cannot use extension type '${name_0}' in a dynamic module.""",
+        """Cannot use extension type '${name_0}' as a type in a dynamic module.""",
     correctionMessage:
-        """Try removing the reference to extension type '${name_0}' or update the dynamic interface to list extension type '${name_0}' as callable.""",
+        """Try removing the reference to extension type '${name_0}' or update the dynamic interface to list extension type '${name_0}' as can-be-used-as-type.""",
     arguments: {'name': name},
   );
 }
@@ -4214,6 +4238,14 @@ Message _withArgumentsFieldAlreadyInitializedAtDeclarationCause({
     arguments: {'fieldName': fieldName},
   );
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode fieldInitializedPrimaryConstructorDuplicateContext =
+    const MessageCode(
+      "FieldInitializedPrimaryConstructorDuplicateContext",
+      severity: CfeSeverity.context,
+      problemMessage: """This is the field declaration.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11099,11 +11131,39 @@ const MessageCode recordUseCannotBePlacedHere = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode recordUseClassesMustBeFinal = const MessageCode(
+  "RecordUseClassesMustBeFinal",
+  problemMessage: """Classes marked with '@RecordUse' must be final.""",
+  correctionMessage:
+      """Try marking the class as 'final' or removing the '@RecordUse' annotation.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode recordUseOutsideOfPackage = const MessageCode(
   "RecordUseOutsideOfPackage",
   problemMessage:
       """`RecordUse` annotations are only supported in libraries with a `package:` URI.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
+recordUseSubtypingNotSupported = const Template(
+  "RecordUseSubtypingNotSupported",
+  withArguments: _withArgumentsRecordUseSubtypingNotSupported,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRecordUseSubtypingNotSupported({required String name}) {
+  var name_0 = conversions.validateAndDemangleName(name);
+  return new Message(
+    recordUseSubtypingNotSupported,
+    problemMessage:
+        """Class '${name_0}' is marked with '@RecordUse' and cannot be used as a supertype.""",
+    correctionMessage:
+        """Try removing the supertype or removing the '@RecordUse' annotation from '${name_0}'.""",
+    arguments: {'name': name},
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode recordUsedAsCallable = const MessageCode(

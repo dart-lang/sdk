@@ -238,10 +238,54 @@ class FunctionTypeParameters {
   }
 }
 
-class FormalParameters {
+abstract class Parameters {
+  List<ParameterVariableBuilder>? get parameters;
+  int get charOffset;
+  int get length;
+  Uri get uri;
+
+  LocalScope computeFormalParameterScope(
+    LocalScope parent,
+    ExpressionGeneratorHelper helper, {
+    bool wildcardVariablesEnabled = false,
+  }) {
+    if (parameters == null) return parent;
+    assert(parameters!.isNotEmpty);
+    Map<String, VariableBuilder> local = {};
+
+    for (ParameterVariableBuilder parameter in parameters!) {
+      // Avoid having wildcard parameters in scope.
+      if (wildcardVariablesEnabled && parameter.isWildcard) continue;
+      String parameterName = parameter.name!;
+      Builder? existing = local[parameterName];
+      if (existing != null) {
+        helper.reportDuplicatedDeclaration(
+          existing,
+          parameterName,
+          parameter.fileOffset,
+        );
+      } else {
+        local[parameterName] = parameter;
+      }
+    }
+    return parent.createNestedFixedScope(
+      kind: LocalScopeKind.formals,
+      local: local,
+    );
+  }
+}
+
+class FormalParameters extends Parameters {
+  @override
   final List<FormalParameterBuilder>? parameters;
+
+  @override
   final int charOffset;
+
+  @override
   final int length;
+
+  @override
   final Uri uri;
 
   FormalParameters(this.parameters, this.charOffset, this.length, this.uri) {
@@ -301,38 +345,34 @@ class FormalParameters {
       ..fileEndOffset = fileEndOffset;
   }
 
-  LocalScope computeFormalParameterScope(
-    LocalScope parent,
-    ExpressionGeneratorHelper helper, {
-    bool wildcardVariablesEnabled = false,
-  }) {
-    if (parameters == null) return parent;
-    assert(parameters!.isNotEmpty);
-    Map<String, VariableBuilder> local = {};
+  @override
+  String toString() {
+    return "FormalParameters($parameters, $charOffset, $uri)";
+  }
+}
 
-    for (FormalParameterBuilder parameter in parameters!) {
-      // Avoid having wildcard parameters in scope.
-      if (wildcardVariablesEnabled && parameter.isWildcard) continue;
-      Builder? existing = local[parameter.name];
-      if (existing != null) {
-        helper.reportDuplicatedDeclaration(
-          existing,
-          parameter.name,
-          parameter.fileOffset,
-        );
-      } else {
-        local[parameter.name] = parameter;
-      }
+class CatchParameters extends Parameters {
+  @override
+  final List<CatchParameterBuilder>? parameters;
+
+  @override
+  final int charOffset;
+
+  @override
+  final int length;
+
+  @override
+  final Uri uri;
+
+  CatchParameters(this.parameters, this.charOffset, this.length, this.uri) {
+    if (parameters?.isEmpty ?? false) {
+      throw "Empty parameters should be null";
     }
-    return parent.createNestedFixedScope(
-      kind: LocalScopeKind.formals,
-      local: local,
-    );
   }
 
   @override
   String toString() {
-    return "FormalParameters($parameters, $charOffset, $uri)";
+    return "CatchParameters($parameters, $charOffset, $uri)";
   }
 }
 
@@ -391,13 +431,13 @@ class Label {
 }
 
 class ForInElements {
-  ExpressionVariable? explicitVariableDeclaration;
-  ExpressionVariable? syntheticVariableDeclaration;
+  Variable? explicitVariableDeclaration;
+  Variable? syntheticVariableDeclaration;
   Expression? syntheticAssignment;
   Expression? expressionProblem;
   Statement? expressionEffects;
 
-  ExpressionVariable get variable =>
+  Variable get variable =>
       (explicitVariableDeclaration ?? syntheticVariableDeclaration)!;
 }
 

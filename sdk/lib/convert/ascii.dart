@@ -19,21 +19,28 @@ const AsciiCodec ascii = AsciiCodec();
 
 const int _asciiMask = 0x7F;
 
-/// An [AsciiCodec] allows encoding strings as ASCII bytes
-/// and decoding ASCII bytes to strings.
+/// Encoding and decoding of ASCII characters.
+///
+/// An [Encoding] (conversion between strings and bytes) that converts
+/// ASCII characters (U+0000..U+007F) to and from their corresponding
+/// byte values.
+///
+/// Treats any non-ASCII character (U+0080..U+10FFFF) as an invalid input
+/// to endcoding, and any byte &ge; 128 as an invalid input to decoding.
 final class AsciiCodec extends Encoding {
   final bool _allowInvalid;
 
   /// Instantiates a new [AsciiCodec].
   ///
-  /// If [allowInvalid] is true, the [decode] method and the converter
-  /// returned by [decoder] will default to allowing invalid values.
-  /// If allowing invalid values, the values will be decoded into the Unicode
-  /// Replacement character (U+FFFD). If not, an exception will be thrown.
+  /// If [_allowInvalid] is `true`, the [decode] method and the converter
+  /// returned by [decoder] will default to allowing invalid values,
+  /// which are byte values greater than 127.
+  /// If allowing invalid values, invalid values will be decoded to the Unicode
+  /// Replacement character (U+FFFD). If not, a [FormatException] is be thrown.
   /// Calls to the [decode] method can choose to override this default.
   ///
-  /// Encoders will not accept invalid (non ASCII) characters.
-  const AsciiCodec({bool allowInvalid = false}) : _allowInvalid = allowInvalid;
+  /// Encoders will not accept invalid (non-ASCII) characters.
+  const AsciiCodec({this._allowInvalid = false});
 
   /// The name of this codec is "us-ascii".
   String get name => "us-ascii";

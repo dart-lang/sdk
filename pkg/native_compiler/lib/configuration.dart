@@ -23,6 +23,7 @@ import 'package:native_compiler/back_end/stack_frame.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/passes/lowering.dart';
 import 'package:native_compiler/passes/reorder_blocks.dart';
+import 'package:native_compiler/passes/unboxing.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:native_compiler/snapshot/image_writer.dart';
@@ -76,14 +77,20 @@ abstract base class Configuration {
     TargetCPU.arm64 => Arm64StackFrame(function),
   };
 
-  CodeGenerator createCodeGenerator(BackEndState backEndState) =>
-      switch (targetCPU) {
-        TargetCPU.arm64 => Arm64CodeGenerator(backEndState),
-      };
+  CodeGenerator createCodeGenerator(
+    BackEndState backEndState,
+    FunctionRegistry functionRegistry,
+  ) => switch (targetCPU) {
+    TargetCPU.arm64 => Arm64CodeGenerator(backEndState, functionRegistry),
+  };
 
   StubFactory createStubFactory(CodeConsumer consumeGeneratedCode) =>
       switch (targetCPU) {
-        TargetCPU.arm64 => Arm64StubFactory(vmOffsets, consumeGeneratedCode),
+        TargetCPU.arm64 => Arm64StubFactory(
+          vmOffsets,
+          objectLayout,
+          consumeGeneratedCode,
+        ),
       };
 
   ImageWriter createImageWriter() => switch (imageFormat) {
@@ -120,10 +127,12 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     StubFactory stubFactory,
     CodeConsumer consumeGeneratedCode,
   ) {
+    final unboxing = Unboxing();
     final backEndState = BackEndState();
     backEndState.vmOffsets = vmOffsets;
     backEndState.objectLayout = objectLayout;
     backEndState.stubFactory = stubFactory;
+    backEndState.unboxing = unboxing;
     backEndState.stackFrame = createStackFrame(function);
     backEndState.consumeGeneratedCode = consumeGeneratedCode;
     final constraints = createConstraints();
@@ -132,11 +141,13 @@ final class DevelopmentCompilerConfiguration extends Configuration {
       ValueNumbering(simplification: Simplification()),
       ConstantPropagation(),
       ControlFlowOptimizations(),
-      Lowering(functionRegistry),
+      Lowering(functionRegistry, objectLayout),
+      unboxing,
+      ValueNumbering(simplification: Simplification()),
       ReorderBlocks(backEndState),
       LinearScanRegisterAllocator(backEndState, constraints),
       RegisterAllocationChecker(backEndState, constraints),
-      createCodeGenerator(backEndState),
+      createCodeGenerator(backEndState, functionRegistry),
     ]);
   }
 }

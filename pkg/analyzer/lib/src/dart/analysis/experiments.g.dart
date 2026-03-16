@@ -603,7 +603,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.primary_constructors,
     isExpired: IsExpired.primary_constructors,
     documentation: 'Less verbose constructors.',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.12.0'),
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );

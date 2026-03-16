@@ -22,6 +22,11 @@ class FunctionCollector {
 
   // Wasm function for each Dart function
   final Map<Reference, w.BaseFunction> _functions = {};
+  // Wasm function for each Dart function + caller shape combination.
+  final Map<Reference, Map<CallShape, w.BaseFunction>>
+      _dynamicForwarderFunctions = {};
+  // Wasm function to create [Invocation] objects based on [CallShape].
+  final Map<CallShape, w.BaseFunction> _invocationCreatorStubs = {};
   // Wasm function for each function expression and local function.
   final Map<Lambda, w.BaseFunction> _lambdas = {};
   // Selector IDs that are invoked via GDT.
@@ -52,13 +57,16 @@ class FunctionCollector {
   void _importOrExport(Procedure member) {
     final importName = util.getWasmImportPragma(translator.coreTypes, member);
     if (importName != null) {
+      final isPure =
+          util.hasWasmPureFunctionPragma(translator.coreTypes, member);
       final ftype = _makeFunctionType(translator, member.reference, null,
           isImportOrExport: true);
       _functions[member.reference] = translator
           .moduleForReference(member.reference)
           .functions
           .import(importName.moduleName, importName.itemName, ftype,
-              "$importName (import)");
+              "$importName (import)")
+        ..isPure = isPure;
     }
 
     // Ensure any procedures marked as exported are enqueued.
@@ -98,6 +106,8 @@ class FunctionCollector {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       final member = target.asMember;
+      final hasPureAnnotation =
+          util.hasWasmPureFunctionPragma(translator.coreTypes, member);
 
       // If this function is a `@pragma('wasm:import', '<module>.<name>')` we
       // import the function and return it.
@@ -112,7 +122,8 @@ class FunctionCollector {
               .moduleForReference(member.reference)
               .functions
               .import(importName.moduleName, importName.itemName, ftype,
-                  "$importName (import)");
+                  "$importName (import)")
+            ..isPure = hasPureAnnotation;
         }
       }
 
@@ -136,7 +147,8 @@ class FunctionCollector {
           ? _makeFunctionType(translator, target, null, isImportOrExport: true)
           : translator.signatureForDirectCall(target);
 
-      final function = module.functions.define(ftype, getFunctionName(target));
+      final function = module.functions.define(ftype, getFunctionName(target))
+        ..isPure = hasPureAnnotation && !target.isCheckedEntryReference;
       if (exportName != null) module.exports.export(exportName, function);
 
       // Export the function from the main module if it is callable from
@@ -151,6 +163,34 @@ class FunctionCollector {
 
       translator.compilationQueue.add(AstCompilationTask(function,
           getMemberCodeGenerator(translator, function, target), target));
+      return function;
+    });
+  }
+
+  w.BaseFunction getDynamicForwarder(Reference target, CallShape shape) {
+    return (_dynamicForwarderFunctions[target] ??= {}).putIfAbsent(shape, () {
+      final module = translator.moduleForReference(target);
+      final ftype = makeDynamicForwarderSignature(translator, shape);
+      final name = getDynamicForwarderName(target, shape);
+      final function = module.functions.define(ftype, name);
+      final codegen =
+          DynamicForwarderCodeGenerator(translator, ftype, target, shape);
+      translator.compilationQueue
+          .add(AstCompilationTask(function, codegen, target));
+      return function;
+    });
+  }
+
+  w.BaseFunction getInvocationCreatorStub(CallShape shape) {
+    return _invocationCreatorStubs.putIfAbsent(shape, () {
+      final module = translator.isDynamicSubmodule
+          ? translator.dynamicSubmodule
+          : translator.mainModule;
+      final ftype = makeInvocationCreatorSignature(translator, shape);
+      final name = getInvocationCreatorStubName(shape);
+      final function = module.functions.define(ftype, name);
+      final codegen = InvocationCreationStubGenerator(translator, shape);
+      translator.compilationQueue.add(CompilationTask(function, codegen));
       return function;
     });
   }
@@ -208,14 +248,6 @@ class FunctionCollector {
       return makeFunctionTypeForBody(translator, member);
     }
 
-    if (target.isTypeCheckerReference) {
-      if (member is Field || (member is Procedure && member.isSetter)) {
-        return translator.dynamicSetForwarderFunctionType;
-      } else {
-        return translator.dynamicInvocationForwarderFunctionType;
-      }
-    }
-
     if (target.isTearOffReference) {
       assert(!translator.dispatchTable
               .selectorForTarget(target)
@@ -261,19 +293,11 @@ class FunctionCollector {
       memberName = memberName.substring(0, memberName.length - 1);
     }
 
-    if (target.isTypeCheckerReference) {
-      if (member is Field || (member is Procedure && member.isSetter)) {
-        return '$memberName setter type checker';
-      } else {
-        return '$memberName invocation type checker';
-      }
-    }
-
     if (member is Field) {
       if (target.isImplicitSetter) {
         return '$memberName= implicit setter';
       }
-      if (target.isFieldInitializer) {
+      if (target.isStaticFieldInitializer) {
         return '$memberName field initializer';
       }
       return '$memberName implicit getter';
@@ -288,6 +312,16 @@ class FunctionCollector {
     } else {
       return '$memberName$inlinePostfix';
     }
+  }
+
+  String getDynamicForwarderName(Reference target, CallShape shape) {
+    final member = target.asMember;
+    final memberName = member.toString();
+    return '$memberName ($shape)';
+  }
+
+  String getInvocationCreatorStubName(CallShape shape) {
+    return 'Invocation creator ($shape)';
   }
 
   void recordSelectorUse(SelectorInfo selector, bool useUncheckedEntry) {
@@ -590,13 +624,39 @@ w.FunctionType makeFunctionTypeForBody(Translator translator, Member member) {
       translator.translateType(translator.typeOfCheckedParameterVariable(p)),
   ];
 
-  final isSetter = member is Procedure && member.isSetter;
+  final hasNoReturnValue =
+      member is Procedure && (member.isSetter || member.name.text == '[]=');
   final outputs = [
-    if (!isSetter)
+    if (!hasNoReturnValue)
       translator.translateReturnType(translator.typeOfReturnValue(member)),
   ];
 
   return translator.typesBuilder.defineFunction(inputs, outputs);
+}
+
+w.FunctionType makeDynamicForwarderSignature(
+    Translator translator, CallShape shape) {
+  return translator.typesBuilder.defineFunction([
+    translator.topTypeNonNullable,
+    for (int i = 0; i < shape.typeCount; ++i)
+      translator.translateType(translator.types.typeType),
+    for (int i = 0; i < shape.positionalCount; ++i) translator.topType,
+    for (int i = 0; i < shape.named.length; ++i) translator.topType,
+  ], [
+    translator.topType
+  ]);
+}
+
+w.FunctionType makeInvocationCreatorSignature(
+    Translator translator, CallShape shape) {
+  return translator.typesBuilder.defineFunction([
+    for (int i = 0; i < shape.typeCount; ++i)
+      translator.translateType(translator.types.typeType),
+    for (int i = 0; i < shape.positionalCount; ++i) translator.topType,
+    for (int i = 0; i < shape.named.length; ++i) translator.topType,
+  ], [
+    translator.invocationType,
+  ]);
 }
 
 w.FunctionType _makeFunctionType(
@@ -605,15 +665,12 @@ w.FunctionType _makeFunctionType(
   Member member = target.asMember;
 
   if (member is Field && !member.isInstanceMember) {
-    final isGetter = target.isImplicitGetter;
-    final isSetter = target.isImplicitSetter;
-    if (isGetter || isSetter) {
-      final fieldType = translator.translateTypeOfField(member);
-      if (isGetter) {
-        return translator.typesBuilder.defineFunction(const [], [fieldType]);
-      }
-      return translator.typesBuilder.defineFunction([fieldType], const []);
+    final fieldType = translator.translateTypeOfField(member);
+    if (target.isImplicitGetter || target.isStaticFieldInitializer) {
+      return translator.typesBuilder.defineFunction(const [], [fieldType]);
     }
+    assert(target.isImplicitSetter);
+    return translator.typesBuilder.defineFunction([fieldType], const []);
   }
 
   // Translate types differently for imports and exports.
@@ -632,9 +689,10 @@ w.FunctionType _makeFunctionType(
       (t is InterfaceType && t.classNode == translator.wasmVoidClass);
 
   final List<w.ValueType> outputs;
-  if (target.isSetter) {
-    // Setters are the only functions without any returned values. All other
-    // functions can either return values (even `void` returning functions)
+  final hasNoReturnValue = target.isSetter || member.name.text == '[]=';
+  if (hasNoReturnValue) {
+    // Setters and []= are the only functions without any returned values. All
+    // other functions can return values (even `void` returning functions).
     outputs = const [];
   } else {
     final DartType returnType = translator.typeOfReturnValue(member);
@@ -643,4 +701,71 @@ w.FunctionType _makeFunctionType(
   }
 
   return translator.typesBuilder.defineFunction(inputs, outputs);
+}
+
+class CallShape {
+  final Name name;
+  final int typeCount;
+  final int positionalCount;
+  final List<String> named;
+
+  CallShape(this.name, this.typeCount, this.positionalCount, this.named);
+
+  int get totalArgumentCount => typeCount + positionalCount + named.length;
+
+  bool matchesTarget(FunctionNode target) {
+    if (typeCount != target.typeParameters.length && typeCount != 0) {
+      return false;
+    }
+    if (positionalCount < target.requiredParameterCount ||
+        positionalCount > target.positionalParameters.length) {
+      return false;
+    }
+    final namedParams = target.namedParameters;
+    for (final name in namedParams) {
+      if (name.isRequired && !named.contains(name.name)) {
+        return false;
+      }
+    }
+    for (final name in named) {
+      if (!namedParams.any((n) => n.name == name)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(name, typeCount, positionalCount, Object.hashAll(named));
+
+  @override
+  bool operator ==(other) {
+    if (other is! CallShape) return false;
+    if (name != other.name) return false;
+    if (typeCount != other.typeCount) return false;
+    if (named.length != other.named.length) return false;
+    for (int i = 0; i < named.length; ++i) {
+      if (named[i] != other.named[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  String toString() {
+    final sb = StringBuffer();
+    sb.write('$name');
+    if (typeCount != 0) {
+      sb.write(' types:$typeCount');
+    }
+    if (positionalCount != 0) {
+      sb.write(' pos:$positionalCount');
+    }
+    if (named.isNotEmpty) {
+      sb.write(' names:${named.join('-')}');
+    }
+    return 'CallShape($sb)';
+  }
 }

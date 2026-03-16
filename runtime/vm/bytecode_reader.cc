@@ -307,6 +307,12 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       const bool captures_only_final_not_late_vars =
           (flags & ClosureCode::kCapturesOnlyFinalNotLateVarsFlag) != 0;
 
+      intptr_t local_function_id = -1;
+      if ((flags & ClosureCode::kHasLocalFunctionIdFlag) != 0) {
+        local_function_id = reader_.ReadUInt();
+        ASSERT(local_function_id > 0);
+      }
+
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
 
@@ -326,7 +332,8 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
         }
       }
 
-      ClosureFunctionsCache::AddClosureFunctionLocked(closure);
+      ClosureFunctionsCache::AddClosureFunctionLocked(closure,
+                                                      local_function_id);
     }
   }
 }
@@ -365,6 +372,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   const int kHasParameterFlagsFlag = 1 << 8;
   const int kHasAnnotationsFlag = 1 << 9;
   const int kHasPragmaFlag = 1 << 10;
+  const int kIsInvisibleFlag = 1 << 11;
 
   const intptr_t flags = reader_.ReadUInt();
   const bool has_pragma = (flags & kHasPragmaFlag) != 0;
@@ -403,6 +411,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
     closure.set_is_inlinable(false);
   }
   closure.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
+  closure.set_is_visible((flags & kIsInvisibleFlag) == 0);
   closure.set_has_pragma(has_pragma);
 
   closures_->SetAt(closureIndex, closure);
@@ -2065,6 +2074,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   const int kHasPragmaFlag = 1 << 22;
   const int kHasCustomScriptFlag = 1 << 23;
   const int kIsExtensionTypeMemberFlag = 1 << 24;
+  const int kIsInvisibleFlag = 1 << 25;
 
   const intptr_t num_functions = reader_.ReadListLength();
   ASSERT(function_index_ + num_functions == functions_->Length());
@@ -2147,6 +2157,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     function.set_is_synthetic((flags & kIsNoSuchMethodForwarderFlag) != 0);
     function.set_is_reflectable((flags & kIsReflectableFlag) != 0);
     function.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
+    function.set_is_visible((flags & kIsInvisibleFlag) == 0);
     function.set_is_extension_member(is_extension_member);
     function.set_is_extension_type_member(is_extension_type_member);
 

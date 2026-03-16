@@ -5,7 +5,7 @@
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
 
 /// Record calls and their constant arguments. Currently tracks
@@ -36,14 +36,55 @@ class CallRecorder {
     }
   }
 
+  /// Will record a static get if it is annotated with `@RecordUse`.
+  void recordStaticGet(ast.StaticGet node) {
+    final target = node.target;
+    if (target is ast.Procedure && isBeingRecorded(target)) {
+      _addToUsage(
+        target,
+        CallWithArguments(
+          positionalArguments: [],
+          namedArguments: {},
+          loadingUnit: _loadingUnitLookup(node),
+        ),
+      );
+    }
+  }
+
+  /// Will record a static set if it is annotated with `@RecordUse`.
+  void recordStaticSet(ast.StaticSet node) {
+    final target = node.target;
+    if (target is ast.Procedure && isBeingRecorded(target)) {
+      _addToUsage(
+        target,
+        CallWithArguments(
+          positionalArguments: [_evaluateLiteral(node.value)],
+          namedArguments: {},
+          loadingUnit: _loadingUnitLookup(node),
+        ),
+      );
+    }
+  }
+
+  /// Will record a tear-off if the target is annotated with `@RecordUse`.
+  void recordStaticTearOff(ast.StaticTearOff node) {
+    if (isBeingRecorded(node.target)) {
+      _addToUsage(
+        node.target,
+        CallTearoff(loadingUnit: _loadingUnitLookup(node)),
+      );
+    }
+  }
+
   /// Will record a tear-off if the target is annotated with `@RecordUse`.
   void recordConstantExpression(ast.ConstantExpression node) {
     final constant = node.constant;
     if (constant is ast.StaticTearOffConstant) {
+      if (isTearOffLowering(constant.target)) return;
       if (isBeingRecorded(constant.target)) {
         _addToUsage(
           constant.target,
-          CallTearoff(loadingUnits: [_loadingUnitLookup(node)]),
+          CallTearoff(loadingUnit: _loadingUnitLookup(node)),
         );
       }
     }
@@ -53,6 +94,7 @@ class CallRecorder {
   /// shared across multiple calls to the same method.
   void _addToUsage(ast.Procedure target, CallReference call) {
     final identifier = _definitionFromMember(target);
+    // TODO: Merge loading units if an identical CallReference already exists.
     callsForMethod.update(
       identifier,
       (usage) => usage..add(call),
@@ -61,13 +103,31 @@ class CallRecorder {
   }
 
   CallReference _createCallReference(ast.StaticInvocation node) {
-    // Get rid of the artificial `this` argument for extension methods.
-    final int argumentStart;
-    if (node.target.isExtensionMember || node.target.isExtensionTypeMember) {
-      argumentStart = 1;
-    } else {
-      argumentStart = 0;
+    final target = node.target;
+
+    final isTearOffLowering = isExtensionMemberTearOff(target);
+    final bool hasReceiver =
+        (target.function.positionalParameters.isNotEmpty &&
+            isExtensionThisName(
+              target.function.positionalParameters[0].name,
+            )) ||
+        isTearOffLowering;
+
+    // Record the artificial `this` argument for extension methods as a
+    // receiver.
+    MaybeConstant? receiver =
+        (hasReceiver && node.arguments.positional.isNotEmpty)
+            ? _evaluateLiteral(node.arguments.positional[0])
+            : null;
+
+    if (isTearOffLowering) {
+      return CallTearoff(
+        loadingUnit: _loadingUnitLookup(node),
+        receiver: receiver,
+      );
     }
+
+    final int argumentStart = receiver != null ? 1 : 0;
 
     final positionalArguments =
         node.arguments.positional
@@ -105,7 +165,8 @@ class CallRecorder {
     return CallWithArguments(
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
-      loadingUnits: [_loadingUnitLookup(node)],
+      loadingUnit: _loadingUnitLookup(node),
+      receiver: receiver,
     );
   }
 
@@ -125,27 +186,38 @@ class CallRecorder {
   Definition _definitionFromMember(ast.Procedure target) {
     final enclosingLibrary = target.enclosingLibrary;
     final importUri = enclosingLibrary.importUri.toString();
-    final name = target.name.text;
+    final isExtensionMember =
+        target.isExtensionMember || target.isExtensionTypeMember;
+
+    final isTearOffLowering = isExtensionMemberTearOff(target);
 
     DefinitionKind memberKind = switch (target.kind) {
-      ast.ProcedureKind.Method => DefinitionKind.methodKind,
+      ast.ProcedureKind.Method =>
+        isExtensionMember
+            ? _extensionMemberKind(target, isTearOffLowering)
+            : DefinitionKind.methodKind,
       ast.ProcedureKind.Getter => DefinitionKind.getterKind,
       ast.ProcedureKind.Setter => DefinitionKind.setterKind,
       ast.ProcedureKind.Operator => DefinitionKind.operatorKind,
       ast.ProcedureKind.Factory => DefinitionKind.constructorKind,
     };
 
-    if (target.isExtensionMember || target.isExtensionTypeMember) {
+    if (isExtensionMember) {
       final String qualifiedExtensionName =
-          extractQualifiedNameFromExtensionMethodName(name)!;
+          extractQualifiedNameFromExtensionMethodName(target.name.text)!;
       final List<String> parts = qualifiedExtensionName.split('.');
-      final bool originallyInstance =
-          target.function.positionalParameters.isNotEmpty &&
-          isExtensionThisName(target.function.positionalParameters[0].name);
+      final bool hasReceiver =
+          (target.function.positionalParameters.isNotEmpty &&
+              isExtensionThisName(
+                target.function.positionalParameters[0].name,
+              )) ||
+          isTearOffLowering;
 
       return Definition(importUri, [
         Name(
-          hasUnnamedExtensionNamePrefix(name) ? '<unnamed>' : parts[0],
+          hasUnnamedExtensionNamePrefix(target.name.text)
+              ? '<unnamed>'
+              : parts[0],
           kind:
               target.isExtensionMember
                   ? DefinitionKind.extensionKind
@@ -155,7 +227,7 @@ class CallRecorder {
           parts[1],
           kind: memberKind,
           disambiguators: {
-            originallyInstance
+            hasReceiver
                 ? DefinitionDisambiguator.instanceDisambiguator
                 : DefinitionDisambiguator.staticDisambiguator,
           },
@@ -166,8 +238,7 @@ class CallRecorder {
     final parent = target.parent;
 
     return Definition(importUri, [
-      if (parent is ast.Class)
-        Name(parent.name, kind: DefinitionKind.classKind),
+      if (parent is ast.Class) className(parent),
       Name(
         target.name.text,
         kind: memberKind,
@@ -178,5 +249,17 @@ class CallRecorder {
         },
       ),
     ]);
+  }
+
+  DefinitionKind _extensionMemberKind(
+    ast.Procedure target,
+    bool isTearOffLowering,
+  ) {
+    if (isTearOffLowering) return DefinitionKind.methodKind;
+    if (isExtensionMemberGetter(target)) return DefinitionKind.getterKind;
+    if (isExtensionMemberSetter(target)) return DefinitionKind.setterKind;
+    if (isExtensionMemberOperator(target)) return DefinitionKind.operatorKind;
+
+    return DefinitionKind.methodKind;
   }
 }

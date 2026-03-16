@@ -57,17 +57,18 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
 
   @override
   bool visitFunctionType(FunctionType type) {
-    return visitChildren(_maybeTypeAliasArguments(type)) &&
-        type.returnType.accept(this) &&
-        visitChildren(
-          type.typeParameters
-              .map((typeParameter) => typeParameter.bound)
-              .where((type) => type != null)
-              .map((type) => type!),
-        ) &&
-        visitChildren(
-          type.formalParameters.map((formalParameter) => formalParameter.type),
-        );
+    if (!visitChildren(_maybeTypeAliasArguments(type))) return false;
+    if (!type.returnType.accept(this)) return false;
+    for (var typeParameter in type.typeParameters) {
+      var bound = typeParameter.bound;
+      if (bound != null) {
+        if (!bound.accept(this)) return false;
+      }
+    }
+    for (var formalParameter in type.formalParameters) {
+      if (!formalParameter.type.accept(this)) return false;
+    }
+    return true;
   }
 
   @override

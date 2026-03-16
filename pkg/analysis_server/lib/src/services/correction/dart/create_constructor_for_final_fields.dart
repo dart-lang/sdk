@@ -82,7 +82,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
           builder: builder,
           containerName: container.namePart.typeName.lexeme,
           superType: superType,
-          variableLists: container.body.members.interestingVariableLists,
+          variableLists: container.members2.interestingVariableLists,
         );
       case _:
         return;

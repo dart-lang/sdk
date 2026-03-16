@@ -13,7 +13,8 @@ int someStaticMethod2(SomeClass someClass) {
   return someClass.i + 1;
 }
 
-class SomeClass {
+@RecordUse()
+final class SomeClass {
   final int i;
 
   const SomeClass(this.i);

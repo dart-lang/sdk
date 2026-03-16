@@ -34,6 +34,7 @@ Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # External var
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
 Language/Statements/For/Asynchronous_For_in/execution_A02_t01: Skip # Issue 49622
 Language/Statements/For/Asynchronous_For_in/execution_A02_t02: Skip # Issue 49622
+Language/Variables/final_or_static_initialization_t04: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t01: SkipByDesign # External variables are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t02: SkipByDesign # External variables are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t03: SkipByDesign # External variables are not supported

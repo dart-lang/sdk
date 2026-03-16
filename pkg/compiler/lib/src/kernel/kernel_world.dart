@@ -103,7 +103,7 @@ class KClosedWorld implements BuiltWorld {
     required this.noSuchMethodData,
     required RuntimeTypesNeedBuilder rtiNeedBuilder,
     required this.fieldAnalysis,
-    required Set<ClassEntity> implementedClasses,
+    required this._implementedClasses,
     required this.liveNativeClasses,
     required this.liveInstanceMembers,
     required this.liveAbstractInstanceMembers,
@@ -123,7 +123,7 @@ class KClosedWorld implements BuiltWorld {
     required this.localFunctions,
     required this.instantiatedTypes,
     required this.instantiatedRecordTypes,
-  }) : _implementedClasses = implementedClasses {
+  }) {
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(this, options);
     assert(_checkIntegrity());
   }

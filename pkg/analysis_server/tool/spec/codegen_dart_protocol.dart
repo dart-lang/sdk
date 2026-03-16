@@ -243,7 +243,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     return true;
   }
 
-  /// Emit a class representing an data structure that doesn't exist in the
+  /// Emit a class representing a data structure that doesn't exist in the
   /// protocol because it is empty (e.g. the "params" object for a request that
   /// doesn't have any parameters).
   void emitEmptyObjectClass(String className, ImpliedType impliedType) {

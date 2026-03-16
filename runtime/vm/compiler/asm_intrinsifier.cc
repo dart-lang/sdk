@@ -14,18 +14,6 @@ void AsmIntrinsifier::String_identityHash(Assembler* assembler,
   String_getHashCode(assembler, normal_ir_body);
 }
 
-void AsmIntrinsifier::RegExp_ExecuteMatch(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(assembler, normal_ir_body,
-                                                /*sticky=*/false);
-}
-
-void AsmIntrinsifier::RegExp_ExecuteMatchSticky(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(assembler, normal_ir_body,
-                                                /*sticky=*/true);
-}
-
 #define __ assembler->
 
 // TODO(srdjan): Add combinations (one-byte/two-byte/external strings).

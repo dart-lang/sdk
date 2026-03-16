@@ -35,6 +35,12 @@ abstract class BaseFunction with Indexable, Exportable {
   @override
   final Module enclosingModule;
 
+  /// Whether this function is pure and has no effect.
+  ///
+  /// If marked as spure, we'll emit metadata in the
+  /// `binaryen.removable.if.unused` custom section.
+  bool isPure = false;
+
   BaseFunction(this.enclosingModule, this.finalizableIndex, this.type,
       [this.functionName]);
 
@@ -93,6 +99,9 @@ class DefinedFunction extends BaseFunction implements Serializable {
   }
 
   void printTo(IrPrinter p) {
+    if (isPure) {
+      p.writeln('(@binaryen.removable.if.unused)');
+    }
     p.write('(func ');
     p.writeFunctionReference(this);
     String? exportName;
@@ -158,6 +167,9 @@ class ImportedFunction extends BaseFunction implements Import {
   }
 
   void printTo(IrPrinter p) {
+    if (isPure) {
+      p.writeln('(@binaryen.removable.if.unused)');
+    }
     p.write('(func ');
     p.writeFunctionReference(this);
     p.write(' ');

@@ -8,6 +8,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -19,15 +20,20 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // The fix isn't able to remove the initializer list / block function body
-      // in the case where multiple initializers / statements are being removed.
-      CorrectionApplicability.singleLocation;
+      // The code to remove an initializer or assignment statement assumes that
+      // no other initializers or statements are being removed concurrently, so
+      // only works one at a time. But it is safe to run this fix multiple times
+      // sequentially.
+      CorrectionApplicability.automatically;
 
   @override
   AssistKind get assistKind => DartAssistKind.convertToInitializingFormal;
 
   @override
   FixKind get fixKind => DartFixKind.convertToInitializingFormal;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.convertToInitializingFormalMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -110,7 +116,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   /// Attempts to compute a change [parameter] to an initializing formal for
   /// [field].
   ///
-  /// This may not produce a change if it's not valid or safe to convert to an
+  /// This won't produce a change if it's not valid or safe to convert to an
   /// initializing formal.
   ///
   /// The parameter should currently be initialized by either [initializer] or
@@ -118,14 +124,17 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   Future<void> _computeChange(
     ChangeBuilder builder,
     ConstructorDeclaration constructor,
-    SimpleFormalParameter parameter,
+    NormalFormalParameter parameter,
     FormalParameterElement parameterElement,
     VariableElement field, {
     ConstructorFieldInitializer? initializer,
     Statement? assignment,
   }) async {
+    assert(initializer == null || assignment == null);
+    if (parameter is SuperFormalParameter) return;
     var parameterName = parameter.name!.lexeme;
     var fieldName = field.displayName;
+    var updateCommentReferences = false;
 
     if (parameter.isNamed) {
       if (fieldName == '_$parameterName') {
@@ -135,6 +144,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
             Identifier.isPrivateName(fieldName)) {
           return;
         }
+        updateCommentReferences = true;
       } else if (fieldName != parameterName) {
         // We can't rename the parameter to match the field name if the parameter
         // is named since that's an API change.
@@ -144,22 +154,36 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       // Convert the parameter to an initializing formal.
-      if (parameter.type?.type != field.type) {
-        builder.addSimpleInsertion(parameter.name!.offset, 'this.');
+      builder.addSimpleInsertion(parameter.name!.offset, 'this.');
 
-        // If we're initializing a private field from a public parameter (which
-        // will always be named), then convert it to a private named parameter.
-        if (field.name == '_$parameterName') {
-          builder.addSimpleInsertion(parameter.name!.offset, '_');
-        }
-      } else {
+      // Change the name if necessary.
+      if (fieldName != parameterName) {
+        builder.addSimpleReplacement(range.token(parameter.name!), fieldName);
+      }
+
+      if (parameter.declaredFragment!.element.type == field.type) {
         // The parameter type is the same as the field, so remove it and let it
         // be inferred from the field.
-        var prefix = parameter.requiredKeyword != null ? 'required ' : '';
-        builder.addSimpleReplacement(
-          range.node(parameter),
-          '${prefix}this.${field.name}',
-        );
+        switch (parameter) {
+          case FieldFormalParameter(:var type):
+          case SimpleFormalParameter(:var type):
+          case SuperFormalParameter(:var type):
+            if (type != null) builder.addDeletion(range.deletionRange(type));
+          case FunctionTypedFormalParameter(
+            :var returnType,
+            :var typeParameters,
+            :var parameters,
+          ):
+            if (returnType != null) {
+              builder.addDeletion(range.deletionRange(returnType));
+            }
+            builder.addDeletion(
+              range.deletionRange(
+                typeParameters ?? parameters,
+                overrideEnd: parameters.endToken,
+              ),
+            );
+        }
       }
 
       // Remove the constructor initializer.
@@ -181,11 +205,29 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         var functionBody = block.parent;
         if (statements.length == 1 && functionBody is BlockFunctionBody) {
           builder.addSimpleReplacement(
-            range.endEnd(constructor.parameters, functionBody),
+            range.endEnd(
+              constructor.initializers.isNotEmpty
+                  ? constructor.initializers.last
+                  : constructor.parameters,
+              functionBody,
+            ),
             ';',
           );
         } else {
           builder.addDeletion(range.nodeInList(statements, assignment));
+        }
+      }
+
+      if (updateCommentReferences) {
+        var references = constructor.documentationComment?.references;
+        if (references != null) {
+          for (var reference in references) {
+            if (reference.expression case SimpleIdentifier expression) {
+              if (expression.element == parameterElement) {
+                builder.addSimpleInsertion(expression.offset, '_');
+              }
+            }
+          }
         }
       }
     });
@@ -199,7 +241,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   Future<void> _computeChangeFromParameter(
     ChangeBuilder builder,
     ConstructorDeclaration constructor,
-    SimpleFormalParameter parameter,
+    NormalFormalParameter parameter,
     FormalParameterElement parameterElement,
   ) async {
     // If there happens to be both an initializer and an assignment, the
@@ -281,7 +323,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
   /// If [expression] is an identifier that refers to a formal parameter in
   /// [constructor], then returns the corresponding parameter AST node.
-  (SimpleFormalParameter, FormalParameterElement)? _findParameter(
+  (NormalFormalParameter, FormalParameterElement)? _findParameter(
     ConstructorDeclaration constructor,
     Expression expression,
   ) {
@@ -298,14 +340,14 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
   /// If [element] is an element for a formal parameter in [constructor], then
   /// returns the corresponding parameter AST node.
-  SimpleFormalParameter? _findParameterForElement(
+  NormalFormalParameter? _findParameterForElement(
     ConstructorDeclaration constructor,
     FormalParameterElement element,
   ) {
     for (var parameter in constructor.parameters.parameters) {
-      if (parameter.notDefault case SimpleFormalParameter simpleParameter
+      if (parameter.notDefault case var parameter
           when parameter.declaredFragment?.element == element) {
-        return simpleParameter;
+        return parameter;
       }
     }
 

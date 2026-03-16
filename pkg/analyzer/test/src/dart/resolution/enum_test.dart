@@ -323,6 +323,49 @@ EnumConstantDeclaration
 ''');
   }
 
+  test_emptyBody() async {
+    await assertErrorsInCode(
+      r'''
+enum E;
+''',
+      [error(diag.enumWithoutConstants, 5, 1)],
+    );
+
+    var node = findNode.singleEnumDeclaration;
+    assertResolvedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EmptyEnumBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> E@5
+''');
+  }
+
+  test_emptyBody_language310() async {
+    var code = r'''
+// @dart = 3.10
+enum E;
+''';
+
+    await assertErrorsInCode(code, [
+      error(diag.enumWithoutConstants, 21, 1),
+      error(diag.experimentNotEnabledOffByDefault, 22, 1),
+    ]);
+
+    var node = findNode.singleEnumDeclaration;
+    assertResolvedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EmptyEnumBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> E@21
+''');
+  }
+
   test_field() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -592,7 +635,7 @@ EnumDeclaration
           declaredFragment: <testLibraryFragment> T@7
             defaultType: int
       rightBracket: >
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -619,7 +662,7 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: A
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -670,7 +713,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function({int a})
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -734,7 +777,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function({required int a})
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -803,7 +846,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function(int Function(String))
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -853,7 +896,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function(int)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -906,7 +949,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function(int)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -939,6 +982,78 @@ EnumDeclaration
         declaredFragment: <null>
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@5
+''');
+  }
+
+  test_primaryConstructor_formalParameters_bodyScope_metadata() async {
+    await assertNoErrorsInCode(r'''
+const foo = 0;
+enum A(@foo int x) {
+  v(0);
+  static const foo = 1;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@enum::A::@getter::foo
+            staticType: null
+          element: <testLibrary>::@enum::A::@getter::foo
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      name: x
+      declaredFragment: <testLibraryFragment> x@31
+        element: isPublic
+          type: int
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::A::@constructor::new
+      type: A Function(int)
+''');
+  }
+
+  test_primaryConstructor_formalParameters_bodyScope_type() async {
+    await assertErrorsInCode(
+      r'''
+enum A(int x) {
+  v(0);
+  static const String int = '';
+}
+''',
+      [error(diag.notAType, 7, 3)],
+    );
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+        element: <testLibrary>::@enum::A::@getter::int
+        type: InvalidType
+      name: x
+      declaredFragment: <testLibraryFragment> x@11
+        element: isPublic
+          type: InvalidType
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::A::@constructor::new
+      type: A Function(InvalidType)
 ''');
   }
 
@@ -979,7 +1094,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> named@10
       element: <testLibrary>::@enum::A::@constructor::named
         type: A<T> Function(T)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1044,7 +1159,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A<T> Function(T)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1098,7 +1213,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> named@7
       element: <testLibrary>::@enum::A::@constructor::named
         type: A Function(int)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1151,7 +1266,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function(int)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1347,7 +1462,7 @@ EnumDeclaration
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A Function(bool, bool)
-  body: EnumBody
+  body: BlockEnumBody
     leftBracket: {
     constants
       EnumConstantDeclaration
@@ -1673,6 +1788,7 @@ enum A(int foo) {
 }
 ''',
       [
+        error(diag.constConstructorWithFieldInitializedByNonConst, 5, 1),
         error(diag.lateFinalFieldWithConstConstructor, 28, 4),
         error(diag.undefinedIdentifier, 45, 3),
       ],

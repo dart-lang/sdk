@@ -166,6 +166,7 @@ features:
 
   primary-constructors:
     help: "Less verbose constructors."
+    experimentalReleaseVersion: '3.12.0'
 
   anonymous-methods:
     help: "Anonymous methods."

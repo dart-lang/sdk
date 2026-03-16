@@ -487,6 +487,12 @@ class PluginServer {
 
       // Now to perform the actual analysis.
       for (var currentUnit in allUnits) {
+        if (!analysisContext.contextRoot.isAnalyzed(currentUnit.file.path)) {
+          // If the file isn't analyzed, then we shouldn't be running any rules
+          // on it. This can happen when the library has parts that aren't
+          // analyzed (e.g. because they are excluded via analysis options).
+          continue;
+        }
         for (var rule in rules) {
           rule.reporter = currentUnit.diagnosticReporter;
         }

@@ -228,7 +228,7 @@ class _ParameterInfo {
     /// Disable signature shaking for annotated methods, to prevent removal of
     /// parameters. The consumers of recorded_usages.json expect constant
     /// argument values to be present for all parameters.
-    if (member is Procedure && recordUse.hasRecordUseAnnotation(member)) {
+    if (member is Procedure && recordUse.isBeingRecorded(member)) {
       isChecked = true;
     }
   }
@@ -273,7 +273,7 @@ class _Collect extends RecursiveVisitor {
         shaker.typeFlowAnalysis.nativeCodeOracle.isRecognized(member) ||
         member.isExternal ||
         member.name.text == '==' ||
-        recordUse.hasRecordUseAnnotation(member)) {
+        recordUse.isBeingRecorded(member)) {
       info.eligible = false;
     }
   }

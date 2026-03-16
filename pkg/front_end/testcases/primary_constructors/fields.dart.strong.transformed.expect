@@ -26,28 +26,28 @@ import "dart:core" as core;
 class C1 extends core::Object {
   field core::int a;
   final field core::String b;
-  constructor •(core::int a, final core::String b, core::double c) → self::C1
+  constructor •(core::int a, final core::String b, final core::double c) → self::C1
     : self::C1::a = a, self::C1::b = b, super core::Object::•()
     ;
 }
 class C2 extends core::Object {
   field core::int a;
   final field core::String b;
-  constructor •([core::int a = #C1, final core::String b = #C2, core::double c = #C3]) → self::C2
+  constructor •([core::int a = #C1, final core::String b = #C2, final core::double c = #C3]) → self::C2
     : self::C2::a = a, self::C2::b = b, super core::Object::•()
     ;
 }
 class C3 extends core::Object {
   field core::int a;
   final field core::String b;
-  constructor •({required core::int a, required final core::String b, required core::double c}) → self::C3
+  constructor •({required core::int a, required final core::String b, required final core::double c}) → self::C3
     : self::C3::a = a, self::C3::b = b, super core::Object::•()
     ;
 }
 class C4 extends core::Object {
   field core::int a;
   final field core::String b;
-  constructor •({core::int a = #C1, final core::String b = #C2, core::double c = #C3}) → self::C4
+  constructor •({core::int a = #C1, final core::String b = #C2, final core::double c = #C3}) → self::C4
     : self::C4::a = a, self::C4::b = b, super core::Object::•()
     ;
 }

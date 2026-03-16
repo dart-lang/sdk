@@ -656,6 +656,7 @@ void ScopeBuilder::VisitInitializer() {
     case kInvalidInitializer:
       helper_.ReadPosition();         // read position.
       helper_.ReadStringReference();  // read message
+      helper_.ReadByte();             // read flags
       return;
     case kFieldInitializer:
       helper_.ReadPosition();                // read position.
@@ -980,6 +981,7 @@ void ScopeBuilder::VisitExpression() {
     case kFunctionExpression: {
       intptr_t offset = helper_.ReaderOffset() - 1;  // -1 to include tag byte.
       helper_.ReadPosition();                        // read position.
+      helper_.ReadUInt();                            // read id.
       HandleLocalFunction(offset);                   // read function node.
       return;
     }
@@ -1337,6 +1339,7 @@ void ScopeBuilder::VisitStatement() {
       intptr_t offset = helper_.ReaderOffset() - 1;  // -1 to include tag byte.
       helper_.ReadPosition();                        // read position.
       VisitVariableDeclaration();   // read variable declaration.
+      helper_.ReadUInt();           // read id.
       HandleLocalFunction(offset);  // read function node.
       return;
     }

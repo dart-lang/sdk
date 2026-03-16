@@ -121,15 +121,38 @@ A f() {
     expect(element.displayString(preferTypeAlias: true), 'A f()');
   }
 
-  test_maybeWriteTypeAlias_nullable() async {
+  test_maybeWriteTypeAlias_nullability_nonNullableAliasedType() async {
     await assertNoErrorsInCode(r'''
 typedef A = int;
-A? f() {
+A f1() {
+  throw 0;
+}
+A? f2() {
   throw 0;
 }
 ''');
-    var element = findElement2.function('f');
-    expect(element.displayString(preferTypeAlias: true), 'A? f()');
+    var f1 = findElement2.function('f1');
+    expect(f1.displayString(preferTypeAlias: true), 'A f1()');
+
+    var f2 = findElement2.function('f2');
+    expect(f2.displayString(preferTypeAlias: true), 'A? f2()');
+  }
+
+  test_maybeWriteTypeAlias_nullability_nullableAliasedType() async {
+    await assertNoErrorsInCode(r'''
+typedef A = int?;
+A f1() {
+  throw 0;
+}
+A? f2() {
+  throw 0;
+}
+''');
+    var f1 = findElement2.function('f1');
+    expect(f1.displayString(preferTypeAlias: true), 'A f1()');
+
+    var f2 = findElement2.function('f2');
+    expect(f2.displayString(preferTypeAlias: true), 'A? f2()');
   }
 
   test_maybeWriteTypeAlias_typeArguments() async {

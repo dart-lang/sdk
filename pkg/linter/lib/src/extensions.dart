@@ -10,10 +10,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_imports
-    show InvalidTypeImpl;
+    show InvalidTypeImpl, TypeParameterTypeImpl;
 import 'package:collection/collection.dart';
-
-import 'util/dart_type_utilities.dart';
 
 class EnumLikeClassDescription {
   final Map<DartObject, Set<FieldElement>> _enumConstants;
@@ -21,6 +19,28 @@ class EnumLikeClassDescription {
 
   /// Returns a fresh map of the class's enum-like constant values.
   Map<DartObject, Set<FieldElement>> get enumConstants => {..._enumConstants};
+}
+
+/// A simple container for an interface type, by its name and its containing
+/// library's "name" ('dart.core' for example).
+class InterfaceTypeDefinition {
+  final String name;
+  final String library;
+
+  InterfaceTypeDefinition(this.name, this.library);
+
+  @override
+  int get hashCode => Object.hash(name, library);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is InterfaceTypeDefinition &&
+        name == other.name &&
+        library == other.library;
+  }
 }
 
 extension AstNodeExtension on AstNode {
@@ -250,6 +270,23 @@ extension ConstructorElementExtension on ConstructorElement {
 }
 
 extension DartTypeExtension on DartType? {
+  /// Returns the type which should be used when conducting "interface checks"
+  /// on `this`.
+  ///
+  /// If `this` is a type variable, then the type-for-interface-check of its
+  /// promoted bound or bound is returned. Otherwise, `this` is returned.
+  DartType? get typeForInterfaceCheck {
+    var self = this;
+    if (self == null) return null;
+    if (self is! TypeParameterType) return self.extensionTypeErasure;
+
+    var promotedType = (self as TypeParameterTypeImpl).promotedBound;
+    if (promotedType != null) {
+      return promotedType.typeForInterfaceCheck;
+    }
+    return self.bound.typeForInterfaceCheck;
+  }
+
   /// Whether this [DartType] extends [className], declared in [library].
   bool extendsClass(String? className, String library) {
     var self = this;
@@ -259,10 +296,7 @@ extension DartTypeExtension on DartType? {
 
   /// Whether this [DartType] implements any of [definitions].
   bool implementsAnyInterface(Iterable<InterfaceTypeDefinition> definitions) {
-    var typeToCheck = this;
-    if (typeToCheck is TypeParameterType) {
-      typeToCheck = typeToCheck.typeForInterfaceCheck;
-    }
+    var typeToCheck = this?.typeForInterfaceCheck;
     if (typeToCheck is! InterfaceType) return false;
 
     bool isAnyInterface(InterfaceType i) =>
@@ -274,10 +308,10 @@ extension DartTypeExtension on DartType? {
 
   /// Whether this [DartType] implements [interface], declared in [library].
   bool implementsInterface(String interface, String library) {
-    var self = this;
-    if (self is! InterfaceType) return false;
-    if (self.isSameAs(interface, library)) return true;
-    return self.element.allSupertypes.any(
+    var typeToCheck = this?.typeForInterfaceCheck;
+    if (typeToCheck is! InterfaceType) return false;
+    if (typeToCheck.isSameAs(interface, library)) return true;
+    return typeToCheck.element.allSupertypes.any(
       (i) => i.isSameAs(interface, library),
     );
   }
@@ -615,6 +649,15 @@ extension MethodDeclarationExtension on MethodDeclaration {
     }
     return null;
   }
+}
+
+extension NullableObjectExtension on Object? {
+  /// If the target is [T], return it, otherwise `null`.
+  // TODO(scheglov): consider using the same method from the analyzer.
+  T? tryCast<T>() => switch (this) {
+    T value => value,
+    _ => null,
+  };
 }
 
 extension SetterElementExtension on SetterElement {

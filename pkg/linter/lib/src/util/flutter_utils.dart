@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _nameBuildContext = 'BuildContext';
 const _nameContainer = 'Container';

@@ -53,7 +53,7 @@ library from "org-dartlang-test:///a.dart" as a {
     static synthetic get blah#offsetOf() → dart.core::int
       return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C11
-    static get #sizeOf() → dart.core::int
+    static synthetic get #sizeOf() → dart.core::int
       return #C23.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
   @#C3
@@ -97,7 +97,7 @@ library from "org-dartlang-test:///a.dart" as a {
     static synthetic get n3#offsetOf() → dart.core::int
       return #C21.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C11
-    static get #sizeOf() → dart.core::int
+    static synthetic get #sizeOf() → dart.core::int
       return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
 }
@@ -131,7 +131,7 @@ library from "org-dartlang-test:///b.dart" as b {
     static synthetic get b1#offsetOf() → dart.core::int
       return #C16.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C11
-    static get #sizeOf() → dart.core::int
+    static synthetic get #sizeOf() → dart.core::int
       return #C23.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
   static method periodic() → void {

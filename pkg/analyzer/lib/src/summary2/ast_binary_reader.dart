@@ -324,8 +324,14 @@ class AstBinaryReader {
   }
 
   DottedName _readDottedName() {
-    var components = _readNodeList<SimpleIdentifierImpl>();
-    return DottedNameImpl(components: components);
+    var count = _readUint32();
+    var tokens = <Token>[];
+    for (var i = 0; i < count; i++) {
+      var lexeme = _readStringReference();
+      var type = lexeme == '.' ? TokenType.PERIOD : TokenType.IDENTIFIER;
+      tokens.add(TokenFactory.tokenFromTypeAndString(type, lexeme));
+    }
+    return DottedNameImpl(tokens: tokens);
   }
 
   DoubleLiteral _readDoubleLiteral() {
@@ -551,10 +557,12 @@ class AstBinaryReader {
     fragment.formalParameters = formalParameters.parameters
         .map((parameter) => parameter.declaredFragment!)
         .toList();
-    fragment.returnType = returnType?.type ?? DynamicTypeImpl.instance;
-    fragment.type = type;
     node.declaredFragment = fragment;
     _reader.currentLibraryFragment.encloseElement(fragment);
+
+    var element = fragment.element;
+    element.returnType = type.returnType;
+    element.type = type;
 
     return node;
   }

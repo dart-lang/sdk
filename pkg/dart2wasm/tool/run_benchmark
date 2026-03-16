@@ -5,6 +5,8 @@
 
 # Script to run a benchmark compiled using dart2wasm. Assumes the Dart repo's
 # directory structure.
+#
+# This is also used by the test runner.
 
 set -e
 

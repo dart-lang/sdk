@@ -1,3 +1,19 @@
+## 0.2.4-dev
+
+- Require version `^12.0.0-0` of the `analyzer` package.
+
+## 0.2.3-dev
+
+- Require version `11.1.0-dev` of the `analyzer` package.
+
+## 0.2.2
+
+- Require version `^11.0.0-0` of the `analyzer` package.
+
+## 0.2.1-dev
+
+- Require version `10.3.0-dev` of the `analyzer` package.
+
 ## 0.2.1
 
 - Require version `10.2.0` of the `analyzer` package.

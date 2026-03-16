@@ -22,7 +22,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
 import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart' as pool;
-import 'package:record_use/record_use_internal.dart' as record_use;
+import 'package:record_use/record_use.dart' as record_use;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformLibraries;
@@ -365,7 +365,8 @@ Future<CompilationResult> _runCfePhase(
     if (component == null) {
       return CompilationDryRunError();
     }
-    final summarizer = DryRunSummarizer(component);
+    final summarizer = DryRunSummarizer(component,
+        enableExperimentalFfi: options.translatorOptions.enableExperimentalFfi);
     final hasErrors = await summarizer.summarize();
     return hasErrors ? CompilationDryRunError() : CompilationDryRunSuccess();
   }
@@ -799,31 +800,46 @@ Future<ModuleStrategy> _createModuleStrategy(
 void _patchMainTearOffs(CoreTypes coreTypes, Component component) {
   final mainMethod = component.mainMethod!;
   final mainMethodType = mainMethod.computeSignatureOrFunctionType();
-  void patchToReturnMainTearOff(Procedure p) {
-    p.function.body =
-        ReturnStatement(ConstantExpression(StaticTearOffConstant(mainMethod)))
-          ..parent = p.function;
+
+  Procedure lookup(String name) {
+    return coreTypes.index.getTopLevelProcedure('dart:_internal', name);
+  }
+
+  (Procedure, DartType) lookupWithType(String name) {
+    final p = lookup(name);
+    return (p, p.function.positionalParameters[1].type);
+  }
+
+  void patchInvokeMainInternal(Procedure p) {
+    final invoke = lookup('_invokeMainInternal');
+    invoke.isExternal = false;
+    invoke.function.body = ReturnStatement(StaticInvocation(
+        p,
+        Arguments([
+          VariableGet(invoke.function.positionalParameters.single),
+          ConstantExpression(StaticTearOffConstant(mainMethod)),
+        ])))
+      ..parent = invoke.function;
   }
 
   final typeEnv =
       TypeEnvironment(coreTypes, ClassHierarchy(component, coreTypes));
   bool mainHasType(DartType type) => typeEnv.isSubtypeOf(mainMethodType, type);
 
-  final internalLib = coreTypes.index.getLibrary('dart:_internal');
-  (Procedure, DartType) lookupAndInitialize(String name) {
-    final p = internalLib.procedures
-        .singleWhere((procedure) => procedure.name.text == name);
-    p.isExternal = false;
-    p.function.body = ReturnStatement(NullLiteral())..parent = p.function;
-    return (p, p.function.returnType.toNonNull());
-  }
+  final (mainInvoke0, mainArg0Type) = lookupWithType('_invokeMainArg0');
+  final (mainInvoke1, mainArg1Type) = lookupWithType('_invokeMainArg1');
+  final (mainInvoke2, mainArg2Type) = lookupWithType('_invokeMainArg2');
 
-  final (mainTearOff0, mainArg0Type) = lookupAndInitialize('mainTearOffArg0');
-  final (mainTearOff1, mainArg1Type) = lookupAndInitialize('mainTearOffArg1');
-  final (mainTearOff2, mainArg2Type) = lookupAndInitialize('mainTearOffArg2');
-  if (mainHasType(mainArg2Type)) return patchToReturnMainTearOff(mainTearOff2);
-  if (mainHasType(mainArg1Type)) return patchToReturnMainTearOff(mainTearOff1);
-  if (mainHasType(mainArg0Type)) return patchToReturnMainTearOff(mainTearOff0);
+  if (mainHasType(mainArg2Type)) {
+    return patchInvokeMainInternal(mainInvoke2);
+  }
+  if (mainHasType(mainArg1Type)) {
+    return patchInvokeMainInternal(mainInvoke1);
+  }
+  if (mainHasType(mainArg0Type)) {
+    return patchInvokeMainInternal(mainInvoke0);
+  }
+  throw 'Main method has unexpected type: $mainMethodType';
 }
 
 class _RecordClassesRepository extends MetadataRepository<RecordShape> {

@@ -633,6 +633,9 @@ class CallingConventions {
   static constexpr Register kReturnReg = R0;
   static constexpr Register kSecondReturnReg = R1;
   static constexpr FpuRegister kReturnFpuReg = V0;
+  static constexpr FpuRegister kSecondReturnFpuReg = V1;
+  static constexpr FpuRegister kThirdReturnFpuReg = V2;
+  static constexpr FpuRegister kFourthReturnFpuReg = V3;
 
   static constexpr Register kFfiAnyNonAbiRegister = R19;
   static constexpr Register kFirstNonArgumentRegister = R9;

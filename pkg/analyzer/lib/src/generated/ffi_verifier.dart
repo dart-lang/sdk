@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 typedef SubtypeOfStructDiagnosticCode =
     DiagnosticWithArguments<
@@ -653,10 +654,73 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     var ffiParameterTypes = ffiSignature.normalParameterTypes.flattenVarArgs();
     var ffiParameters = ffiSignature.formalParameters;
-
-    if ((declarationElement is MethodElement ||
+    var dartType = declarationElement.type;
+    var enclosingElement = declarationElement.enclosingElement;
+    var isInstanceMember =
+        (declarationElement is MethodElement ||
             declarationElement is PropertyAccessorElement) &&
-        !declarationElement.isStatic) {
+        !declarationElement.isStatic;
+
+    var isExtensionLikeInstanceMember =
+        isInstanceMember &&
+        (enclosingElement is ExtensionElement ||
+            enclosingElement is ExtensionTypeElement);
+
+    if (isExtensionLikeInstanceMember) {
+      // Extension members require a receiver argument in the Native annotation.
+      if (formalParameters.length + 1 != ffiParameterTypes.length) {
+        _diagnosticReporter.report(
+          diag.ffiNativeUnexpectedNumberOfParameters
+              .withArguments(
+                expected: formalParameters.length + 1,
+                actual: ffiParameterTypes.length,
+              )
+              .at(errorToken),
+        );
+        return;
+      }
+
+      var receiverType = switch (enclosingElement) {
+        ExtensionElement() => enclosingElement.extendedType,
+        ExtensionTypeElement() => enclosingElement.thisType,
+        _ => null,
+      };
+
+      // Keep the receiver pointer restriction diagnostic for extensions.
+      if (ffiSignature.normalParameterTypes[0].isPointer &&
+          (receiverType is! InterfaceType ||
+              !_extendsNativeFieldWrapperClass1(receiverType))) {
+        _diagnosticReporter.report(
+          diag.ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer
+              .at(errorToken),
+        );
+        return;
+      }
+
+      if (receiverType is! TypeImpl) {
+        return;
+      }
+
+      // Include receiver when validating the full function type.
+      dartType = FunctionTypeImpl.v2(
+        typeParameters: dartType.typeParameters,
+        formalParameters: [
+          FormalParameterElementImpl.synthetic(
+            null,
+            receiverType,
+            ParameterKind.REQUIRED,
+          ),
+          ...dartType.formalParameters,
+        ],
+        returnType: dartType.returnType,
+        nullabilitySuffix: dartType.nullabilitySuffix,
+      );
+
+      // Explicit parameters in the declaration start after the receiver.
+      // Note that ffiParameters is intentionally not sliced for extensions,
+      // because dartType above is augmented with a synthetic receiver.
+      ffiParameterTypes = ffiParameterTypes.sublist(1);
+    } else if (isInstanceMember) {
       // Instance methods must have the receiver as an extra parameter in the
       // Native annotation.
       if (formalParameters.length + 1 != ffiParameterTypes.length) {
@@ -674,8 +738,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Receiver can only be Pointer if the class extends
       // NativeFieldWrapperClass1.
       if (ffiSignature.normalParameterTypes[0].isPointer) {
-        var cls = declarationElement.enclosingElement as InterfaceElement;
-        if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
+        var receiverType = switch (enclosingElement) {
+          InterfaceElement() => enclosingElement.thisType,
+          ExtensionElement(extendedType: InterfaceType type) => type,
+          _ => null,
+        };
+        if (!_extendsNativeFieldWrapperClass1(receiverType)) {
           _diagnosticReporter.report(
             diag.ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer
                 .at(errorToken),
@@ -718,7 +786,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    var dartType = declarationElement.type;
     var nativeType = FunctionTypeImpl.v2(
       typeParameters: ffiSignature.typeParameters,
       formalParameters: ffiParameters,

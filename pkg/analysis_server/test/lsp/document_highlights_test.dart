@@ -76,6 +76,81 @@ void f() {
 ''');
   }
 
+  /// The factory keyword is considered the constructor when there's no
+  /// constructor name.
+  Future<void> test_constructor_secondary_factory() async {
+    await _testMarkedContent('''
+class Aaa {
+  new _();
+  /*[0*/factory/*0]*/() => Aaa._();
+}
+
+void f() {
+  Aaa a = Aaa./*[1*/new/*1]*/();
+  var b = /*[2*/Aaa/*2]*/();
+}
+''');
+  }
+
+  /// No matches for factory keyword when there is a constructor name.
+  Future<void>
+  test_constructor_secondary_factory_withoutType_named_keyword() async {
+    await _testMarkedContent('''
+class Aaa {
+  new _();
+  fact^ory named() => Aaa._();
+}
+
+void f() {
+  Aaa a = Aaa.named();
+}
+''');
+  }
+
+  /// Names match names.
+  Future<void>
+  test_constructor_secondary_factory_withoutType_named_name() async {
+    await _testMarkedContent('''
+class Aaa {
+  new _();
+  factory /*[0*/named/*0]*/() => Aaa._();
+}
+
+void f() {
+  Aaa a = Aaa./*[1*/named/*1]*/();
+}
+''');
+  }
+
+  /// No matches for factory keyword when there is a type name because the type
+  /// name is considered the constructor.
+  Future<void> test_constructor_secondary_factory_withType_keyword() async {
+    await _testMarkedContent('''
+class Aaa {
+  new _();
+  fact^ory Aaa() => Aaa._();
+}
+
+void f() {
+  Aaa a = Aaa();
+}
+''');
+  }
+
+  /// Type names match type names for invocation/declaration.
+  Future<void> test_constructor_secondary_factory_withType_typeName() async {
+    await _testMarkedContent('''
+class Aaa {
+  new _();
+  factory /*[0*/Aaa/*0]*/() => Aaa._();
+}
+
+void f() {
+  Aaa a = /*[1*/Aaa/*1]*/();
+}
+''');
+  }
+
   Future<void> test_constructor_secondary_new() async {
     await _testMarkedContent('''
 class Aaa {
@@ -85,6 +160,50 @@ class Aaa {
 void f() {
   Aaa a = Aaa./*[1*/new/*1]*/();
   var b = /*[2*/Aaa/*2]*/();
+}
+''');
+  }
+
+  /// No matches for new keyword when there is a constructor name.
+  Future<void>
+  test_constructor_secondary_new_withoutType_named_keyword() async {
+    await _testMarkedContent('''
+class Aaa {
+  n^ew named();
+}
+
+void f() {
+  Aaa a = Aaa.named();
+}
+''');
+  }
+
+  /// When `new` is used as the constructor identifier, it's a match for
+  /// constructor invocations.
+  Future<void> test_constructor_secondary_new_withType_keyword() async {
+    await _testMarkedContent('''
+class Aaa {
+  Aaa./*[0*/new/*0]*/();
+}
+
+void f() {
+  Aaa a = /*[1*/Aaa/*1]*/();
+  Aaa b = Aaa./*[2*/new/*2]*/();
+}
+''');
+  }
+
+  /// When `new` is used as the constructor identifier, the type name is a
+  /// match for the type name.
+  Future<void> test_constructor_secondary_new_withType_typeName() async {
+    await _testMarkedContent('''
+class /*[0*/Aaa/*0]*/ {
+  /*[1*/Aaa/*1]*/.new();
+}
+
+void f() {
+  /*[2*/Aaa/*2]*/ a = Aaa();
+  /*[3*/Aaa/*3]*/ b = /*[4*/Aaa/*4]*/.new();
 }
 ''');
   }

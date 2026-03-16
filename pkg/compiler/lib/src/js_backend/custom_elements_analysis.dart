@@ -180,8 +180,8 @@ class CustomElementsAnalysisJoin {
     this._elementEnvironment,
     this._commonElements,
     this._nativeData, {
-    BackendUsageBuilder? backendUsageBuilder,
-  }) : _backendUsageBuilder = backendUsageBuilder;
+    this._backendUsageBuilder,
+  });
 
   WorldImpact flush() {
     if (!demanded) return const WorldImpact();

@@ -2612,7 +2612,10 @@ void Isolate::Shutdown() {
 #if !defined(PRODUCT)
     HandleScope handle_scope(thread);
     debugger()->Shutdown();
-    Profiler::IsolateShutdown(thread);
+#endif
+
+#if defined(DART_INCLUDE_PROFILER)
+    Profiler::IsolateShutdown(this);
 #endif
   }
 
@@ -2690,6 +2693,9 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   const bool shutdown_group = isolate_group->UnregisterIsolateDecrementCount();
   if (shutdown_group) {
     KernelIsolate::NotifyAboutIsolateGroupShutdown(isolate_group);
+#if defined(DART_INCLUDE_PROFILER)
+    Profiler::IsolateGroupShutdown(isolate_group);
+#endif
 
     if (!is_vm_isolate) {
       Thread::EnterIsolateGroupAsHelper(isolate_group, Thread::kUnknownTask,

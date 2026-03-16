@@ -2,16 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../util/ast_type_matchers.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 import '../util/feature_sets.dart';
-import 'parser_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,2757 +17,3383 @@ main() {
 /// This defines parser tests that test the parsing of code to ensure that
 /// errors are correctly reported, and in some cases, not reported.
 @reflectiveTest
-class ErrorParserTest extends FastaParserTestCase {
+class ErrorParserTest extends ParserDiagnosticsTest {
   void test_abstractClassMember_constructor() {
-    createParser('abstract C.c();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.abstractClassMember, 0, 8)]);
+    var parseResult = parseStringWithErrors(r'''
+abstract class C {
+  abstract C.c();
+}
+''');
+    parseResult.assertErrors([error(diag.abstractClassMember, 21, 8)]);
   }
 
   void test_abstractClassMember_field() {
-    createParser('abstract C f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+abstract class C {
+  abstract C f;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_abstractClassMember_getter() {
-    createParser('abstract get m;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.abstractClassMember, 0, 8)]);
+    var parseResult = parseStringWithErrors(r'''
+abstract class C {
+  abstract get m;
+}
+''');
+    parseResult.assertErrors([error(diag.abstractClassMember, 21, 8)]);
   }
 
   void test_abstractClassMember_method() {
-    createParser('abstract m();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.abstractClassMember, 0, 8)]);
+    var parseResult = parseStringWithErrors(r'''
+abstract class C {
+  abstract m();
+}
+''');
+    parseResult.assertErrors([error(diag.abstractClassMember, 21, 8)]);
   }
 
   void test_abstractClassMember_setter() {
-    createParser('abstract set m(v);');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.abstractClassMember, 0, 8)]);
+    var parseResult = parseStringWithErrors(r'''
+abstract class C {
+  abstract set m(v);
+}
+''');
+    parseResult.assertErrors([error(diag.abstractClassMember, 21, 8)]);
   }
 
   void test_abstractEnum() {
-    parseCompilationUnit(
-      "abstract enum E {ONE}",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+abstract enum E {ONE}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
   }
 
   void test_abstractTopLevelFunction_function() {
-    parseCompilationUnit(
-      "abstract f(v) {}",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+abstract f(v) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
   }
 
   void test_abstractTopLevelFunction_getter() {
-    parseCompilationUnit(
-      "abstract get m {}",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+abstract get m {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
   }
 
   void test_abstractTopLevelFunction_setter() {
-    parseCompilationUnit(
-      "abstract set m(v) {}",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+abstract set m(v) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
   }
 
   void test_abstractTopLevelVariable() {
-    parseCompilationUnit(
-      "abstract C f;",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+abstract C f;
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
   }
 
   void test_abstractTypeDef() {
-    parseCompilationUnit(
-      "abstract typedef F();",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+abstract typedef F();
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
   }
 
   void test_await_missing_async2_issue36048() {
-    parseCompilationUnit(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 main() { // missing async
   await foo.bar();
 }
-''',
-      diagnostics: [expectedError(diag.awaitInWrongContext, 28, 5)],
-    );
+''');
+    parseResult.assertErrors([error(diag.awaitInWrongContext, 28, 5)]);
   }
 
   void test_await_missing_async3_issue36048() {
-    parseCompilationUnit(
-      '''
-main() { // missing async
+    // missing async
+    var parseResult = parseStringWithErrors(r'''
+main() {
   (await foo);
 }
-''',
-      diagnostics: [expectedError(diag.awaitInWrongContext, 29, 5)],
-    );
+''');
+    parseResult.assertErrors([error(diag.awaitInWrongContext, 12, 5)]);
   }
 
   void test_await_missing_async4_issue36048() {
-    parseCompilationUnit(
-      '''
-main() { // missing async
+    // missing async
+    var parseResult = parseStringWithErrors(r'''
+main() {
   [await foo];
 }
-''',
-      diagnostics: [expectedError(diag.awaitInWrongContext, 29, 5)],
-    );
+''');
+    parseResult.assertErrors([error(diag.awaitInWrongContext, 12, 5)]);
   }
 
   void test_await_missing_async_issue36048() {
-    parseCompilationUnit(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 main() { // missing async
   await foo();
 }
-''',
-      diagnostics: [expectedError(diag.awaitInWrongContext, 28, 5)],
-    );
+''');
+    parseResult.assertErrors([error(diag.awaitInWrongContext, 28, 5)]);
   }
 
   void test_breakOutsideOfLoop_breakInDoStatement() {
-    var statement = parseStatement('do {break;} while (x);') as DoStatement;
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  do {break;} while (x);
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInForStatement() {
-    var statement = parseStatement('for (; x;) {break;}');
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for (; x;) {break;}
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInIfStatement() {
-    var statement = parseStatement('if (x) {break;}') as IfStatement;
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([expectedError(diag.breakOutsideOfLoop, 8, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  if (x) {break;}
+}
+''');
+    parseResult.assertErrors([error(diag.breakOutsideOfLoop, 21, 5)]);
   }
 
   void test_breakOutsideOfLoop_breakInSwitchStatement() {
-    var statement =
-        parseStatement('switch (x) {case 1: break;}') as SwitchStatement;
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (x) {case 1: break;}
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInWhileStatement() {
-    var statement = parseStatement('while (x) {break;}') as WhileStatement;
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  while (x) {break;}
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_functionExpression_inALoop() {
-    parseStatement("for(; x;) {() {break;};}");
-    listener.assertErrors([expectedError(diag.breakOutsideOfLoop, 15, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for(; x;) {() {break;};}
+}
+''');
+    parseResult.assertErrors([error(diag.breakOutsideOfLoop, 28, 5)]);
   }
 
   void test_breakOutsideOfLoop_functionExpression_withALoop() {
-    parseStatement("() {for (; x;) {break;}};");
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  () {for (; x;) {break;}};
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_classInClass_abstract() {
-    parseCompilationUnit(
-      "class C { abstract class B {} }",
-      diagnostics: [
-        expectedError(diag.abstractClassMember, 10, 8),
-        expectedError(diag.classInClass, 19, 5),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { abstract class B {} }
+''');
+    parseResult.assertErrors([
+      error(diag.abstractClassMember, 10, 8),
+      error(diag.classInClass, 19, 5),
+    ]);
   }
 
   void test_classInClass_nonAbstract() {
-    parseCompilationUnit(
-      "class C { class B {} }",
-      diagnostics: [expectedError(diag.classInClass, 10, 5)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { class B {} }
+''');
+    parseResult.assertErrors([error(diag.classInClass, 10, 5)]);
   }
 
   void test_classTypeAlias_abstractAfterEq() {
     // This syntax has been removed from the language in favor of
     // "abstract class A = B with C;" (issue 18098).
-    createParser('class A = abstract B with C;', expectedEndOffset: 21);
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.builtInIdentifierAsType, 10, 8),
-      expectedError(diag.expectedToken, 19, 1),
-      expectedError(diag.expectedToken, 19, 1),
+    var parseResult = parseStringWithErrors(r'''
+class A = abstract B with C;
+''');
+    parseResult.assertErrors([
+      error(diag.builtInIdentifierAsType, 10, 8),
+      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 19, 1),
+      error(diag.missingConstFinalVarOrType, 21, 4),
+      error(diag.expectedIdentifierButGotKeyword, 21, 4),
+      error(diag.expectedToken, 21, 4),
+      error(diag.missingConstFinalVarOrType, 26, 1),
     ]);
   }
 
   void test_colonInPlaceOfIn() {
-    parseStatement("for (var x : list) {}");
-    listener.assertErrors([expectedError(diag.colonInPlaceOfIn, 11, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for (var x : list) {}
+}
+''');
+    parseResult.assertErrors([error(diag.colonInPlaceOfIn, 24, 1)]);
   }
 
   void test_constAndCovariant() {
-    createParser('covariant const C f = null;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.conflictingModifiers, 10, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  covariant const C f = null;
+}
+''');
+    parseResult.assertErrors([error(diag.conflictingModifiers, 22, 5)]);
   }
 
   void test_constAndFinal() {
-    createParser('const final int x = null;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.constAndFinal, 6, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const final int x = null;
+}
+''');
+    parseResult.assertErrors([error(diag.constAndFinal, 18, 5)]);
   }
 
   void test_constAndVar() {
-    createParser('const var x = null;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.conflictingModifiers, 6, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const var x = null;
+}
+''');
+    parseResult.assertErrors([error(diag.conflictingModifiers, 18, 3)]);
   }
 
   void test_constClass() {
-    parseCompilationUnit(
-      "const class C {}",
-      diagnostics: [expectedError(diag.constClass, 0, 5)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+const class C {}
+''');
+    parseResult.assertErrors([error(diag.constClass, 0, 5)]);
   }
 
   void test_constEnum() {
-    parseCompilationUnit(
-      "const enum E {ONE}",
-      diagnostics: [
-        // Fasta interprets the `const` as a malformed top level const
-        // and `enum` as the start of an enum declaration.
-        expectedError(diag.expectedToken, 0, 5),
-        expectedError(diag.missingIdentifier, 6, 4),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+const enum E {ONE}
+''');
+    parseResult.assertErrors([
+      // Fasta interprets the `const` as a malformed top level const
+      // and `enum` as the start of an enum declaration.
+      error(diag.expectedToken, 0, 5),
+      error(diag.missingIdentifier, 6, 4),
+    ]);
   }
 
   void test_constFactory() {
-    createParser('const factory C() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const factory C() {}
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_constMethod() {
-    createParser('const int m() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.constMethod, 0, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const int m() {}
+}
+''');
+    parseResult.assertErrors([error(diag.constMethod, 12, 5)]);
   }
 
   void test_constMethod_noReturnType() {
-    createParser('const m() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.constMethod, 0, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const m() {}
+}
+''');
+    parseResult.assertErrors([error(diag.constMethod, 12, 5)]);
   }
 
   void test_constMethod_noReturnType2() {
-    createParser('const m();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.constMethod, 0, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const m();
+}
+''');
+    parseResult.assertErrors([error(diag.constMethod, 12, 5)]);
   }
 
   void test_constructor_super_cascade_synthetic() {
     // https://github.com/dart-lang/sdk/issues/37110
-    parseCompilationUnit(
-      'class B extends A { B(): super.. {} }',
-      diagnostics: [
-        expectedError(diag.invalidSuperInInitializer, 25, 5),
-        expectedError(diag.expectedToken, 30, 2),
-        expectedError(diag.missingIdentifier, 33, 1),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class B extends A { B(): super.. {} }
+''');
+    parseResult.assertErrors([
+      error(diag.invalidSuperInInitializer, 25, 5),
+      error(diag.expectedToken, 30, 2),
+      error(diag.missingIdentifier, 33, 1),
+    ]);
   }
 
   void test_constructor_super_field() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
-    parseCompilationUnit(
-      'class B extends A { B(): super().foo {} }',
-      diagnostics: [expectedError(diag.invalidSuperInInitializer, 25, 5)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class B extends A { B(): super().foo {} }
+''');
+    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructor_super_method() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
-    parseCompilationUnit(
-      'class B extends A { B(): super().foo() {} }',
-      diagnostics: [expectedError(diag.invalidSuperInInitializer, 25, 5)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class B extends A { B(): super().foo() {} }
+''');
+    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructor_super_named_method() {
     // https://github.com/dart-lang/sdk/issues/37600
-    parseCompilationUnit(
-      'class B extends A { B(): super.c().create() {} }',
-      diagnostics: [expectedError(diag.invalidSuperInInitializer, 25, 5)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class B extends A { B(): super.c().create() {} }
+''');
+    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructor_super_named_method_method() {
     // https://github.com/dart-lang/sdk/issues/37600
-    parseCompilationUnit(
-      'class B extends A { B(): super.c().create().x() {} }',
-      diagnostics: [expectedError(diag.invalidSuperInInitializer, 25, 5)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class B extends A { B(): super.c().create().x() {} }
+''');
+    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructor_this_cascade_synthetic() {
     // https://github.com/dart-lang/sdk/issues/37110
-    parseCompilationUnit(
-      'class B extends A { B(): this.. {} }',
-      diagnostics: [
-        expectedError(diag.missingAssignmentInInitializer, 25, 4),
-        expectedError(diag.expectedToken, 29, 2),
-        expectedError(diag.missingIdentifier, 32, 1),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class B extends A { B(): this.. {} }
+''');
+    parseResult.assertErrors([
+      error(diag.missingAssignmentInInitializer, 25, 4),
+      error(diag.expectedToken, 29, 2),
+      error(diag.missingIdentifier, 32, 1),
+    ]);
   }
 
   void test_constructor_this_field() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
-    parseCompilationUnit(
-      'class B extends A { B(): this().foo; }',
-      diagnostics: [expectedError(diag.invalidThisInInitializer, 25, 4)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class B extends A { B(): this().foo; }
+''');
+    parseResult.assertErrors([error(diag.invalidThisInInitializer, 25, 4)]);
   }
 
   void test_constructor_this_method() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
-    parseCompilationUnit(
-      'class B extends A { B(): this().foo(); }',
-      diagnostics: [expectedError(diag.invalidThisInInitializer, 25, 4)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class B extends A { B(): this().foo(); }
+''');
+    parseResult.assertErrors([error(diag.invalidThisInInitializer, 25, 4)]);
   }
 
   void test_constructor_this_named_method() {
     // https://github.com/dart-lang/sdk/issues/37600
-    parseCompilationUnit(
-      'class B extends A { B(): super.c().create() {} }',
-      diagnostics: [expectedError(diag.invalidSuperInInitializer, 25, 5)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class B extends A { B(): super.c().create() {} }
+''');
+    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructor_this_named_method_field() {
     // https://github.com/dart-lang/sdk/issues/37600
-    parseCompilationUnit(
-      'class B extends A { B(): super.c().create().x {} }',
-      diagnostics: [expectedError(diag.invalidSuperInInitializer, 25, 5)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class B extends A { B(): super.c().create().x {} }
+''');
+    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructorPartial() {
-    createParser('class C { C< }');
-    parser.parseCompilationUnit2();
-    listener.assertErrors([
-      expectedError(diag.expectedToken, 11, 1),
-      expectedError(diag.expectedTypeName, 13, 1),
-      expectedError(diag.missingIdentifier, 13, 1),
+    var parseResult = parseStringWithErrors(r'''
+class C { C< }
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 11, 1),
+      error(diag.expectedTypeName, 13, 1),
+      error(diag.missingIdentifier, 13, 1),
     ]);
   }
 
   void test_constructorPartial2() {
-    createParser('class C { C<@Foo }');
-    parser.parseCompilationUnit2();
-    listener.assertErrors([
-      expectedError(diag.annotationOnTypeArgument, 12, 4),
-      expectedError(diag.expectedToken, 13, 3),
-      expectedError(diag.expectedTypeName, 17, 1),
-      expectedError(diag.missingIdentifier, 17, 1),
+    var parseResult = parseStringWithErrors(r'''
+class C { C<@Foo }
+''');
+    parseResult.assertErrors([
+      error(diag.annotationOnTypeArgument, 12, 4),
+      error(diag.expectedToken, 13, 3),
+      error(diag.expectedTypeName, 17, 1),
+      error(diag.missingIdentifier, 17, 1),
     ]);
   }
 
   void test_constructorPartial3() {
-    createParser('class C { C<@Foo @Bar() }');
-    parser.parseCompilationUnit2();
-    listener.assertErrors([
-      expectedError(diag.annotationOnTypeArgument, 12, 4),
-      expectedError(diag.annotationOnTypeArgument, 17, 6),
-      expectedError(diag.expectedToken, 22, 1),
-      expectedError(diag.expectedTypeName, 24, 1),
-      expectedError(diag.missingIdentifier, 24, 1),
+    var parseResult = parseStringWithErrors(r'''
+class C { C<@Foo @Bar() }
+''');
+    parseResult.assertErrors([
+      error(diag.annotationOnTypeArgument, 12, 4),
+      error(diag.annotationOnTypeArgument, 17, 6),
+      error(diag.expectedToken, 22, 1),
+      error(diag.expectedTypeName, 24, 1),
+      error(diag.missingIdentifier, 24, 1),
     ]);
   }
 
   void test_constructorWithReturnType() {
-    createParser('C C() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.constructorWithReturnType, 0, 1),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C C() {}
+}
+''');
+    parseResult.assertErrors([error(diag.constructorWithReturnType, 12, 1)]);
   }
 
   void test_constructorWithReturnType_var() {
-    createParser('var C() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.varReturnType, 0, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var C() {}
+}
+''');
+    parseResult.assertErrors([error(diag.varReturnType, 12, 3)]);
   }
 
   void test_constTypedef() {
-    parseCompilationUnit(
-      "const typedef F();",
-      diagnostics: [
-        // Fasta interprets the `const` as a malformed top level const
-        // and `typedef` as the start of an typedef declaration.
-        expectedError(diag.expectedToken, 0, 5),
-        expectedError(diag.missingIdentifier, 6, 7),
-      ],
-    );
-  }
-
-  void test_continueOutsideOfLoop_continueInDoStatement() {
-    var statement = parseStatement('do {continue;} while (x);') as DoStatement;
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
-  }
-
-  void test_continueOutsideOfLoop_continueInForStatement() {
-    var statement = parseStatement('for (; x;) {continue;}');
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
-  }
-
-  void test_continueOutsideOfLoop_continueInIfStatement() {
-    var statement = parseStatement('if (x) {continue;}') as IfStatement;
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([expectedError(diag.continueOutsideOfLoop, 8, 8)]);
-  }
-
-  void test_continueOutsideOfLoop_continueInSwitchStatement() {
-    var statement =
-        parseStatement('switch (x) {case 1: continue a;}') as SwitchStatement;
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
-  }
-
-  void test_continueOutsideOfLoop_continueInWhileStatement() {
-    var statement = parseStatement('while (x) {continue;}') as WhileStatement;
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
-  }
-
-  void test_continueOutsideOfLoop_functionExpression_inALoop() {
-    parseStatement("for(; x;) {() {continue;};}");
-    listener.assertErrors([expectedError(diag.continueOutsideOfLoop, 15, 8)]);
-  }
-
-  void test_continueOutsideOfLoop_functionExpression_withALoop() {
-    parseStatement("() {for (; x;) {continue;}};");
-  }
-
-  void test_continueWithoutLabelInCase_error() {
-    var statement =
-        parseStatement('switch (x) {case 1: continue;}') as SwitchStatement;
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.continueWithoutLabelInCase, 20, 8),
+    var parseResult = parseStringWithErrors(r'''
+const typedef F();
+''');
+    parseResult.assertErrors([
+      // Fasta interprets the `const` as a malformed top level const
+      // and `typedef` as the start of an typedef declaration.
+      error(diag.expectedToken, 0, 5),
+      error(diag.missingIdentifier, 6, 7),
     ]);
   }
 
+  void test_continueOutsideOfLoop_continueInDoStatement() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  do {continue;} while (x);
+}
+''');
+    parseResult.assertNoErrors();
+  }
+
+  void test_continueOutsideOfLoop_continueInForStatement() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for (; x;) {continue;}
+}
+''');
+    parseResult.assertNoErrors();
+  }
+
+  void test_continueOutsideOfLoop_continueInIfStatement() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  if (x) {continue;}
+}
+''');
+    parseResult.assertErrors([error(diag.continueOutsideOfLoop, 21, 8)]);
+  }
+
+  void test_continueOutsideOfLoop_continueInSwitchStatement() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (x) {case 1: continue a;}
+}
+''');
+    parseResult.assertNoErrors();
+  }
+
+  void test_continueOutsideOfLoop_continueInWhileStatement() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  while (x) {continue;}
+}
+''');
+    parseResult.assertNoErrors();
+  }
+
+  void test_continueOutsideOfLoop_functionExpression_inALoop() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for(; x;) {() {continue;};}
+}
+''');
+    parseResult.assertErrors([error(diag.continueOutsideOfLoop, 28, 8)]);
+  }
+
+  void test_continueOutsideOfLoop_functionExpression_withALoop() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  () {for (; x;) {continue;}};
+}
+''');
+    parseResult.assertNoErrors();
+  }
+
+  void test_continueWithoutLabelInCase_error() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (x) {case 1: continue;}
+}
+''');
+    parseResult.assertErrors([error(diag.continueWithoutLabelInCase, 33, 8)]);
+  }
+
   void test_continueWithoutLabelInCase_noError() {
-    var statement =
-        parseStatement('switch (x) {case 1: continue a;}') as SwitchStatement;
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (x) {case 1: continue a;}
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_continueWithoutLabelInCase_noError_switchInLoop() {
-    var statement =
-        parseStatement('while (a) { switch (b) {default: continue;}}')
-            as WhileStatement;
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  while (a) { switch (b) {default: continue;}}
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_covariantAfterVar() {
-    createParser('var covariant f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.modifierOutOfOrder, 4, 9)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var covariant f;
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 16, 9)]);
   }
 
   void test_covariantAndFinal() {
-    createParser('covariant final f = null;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([diag.finalAndCovariant]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  covariant final f = null;
+}
+''');
+    parseResult.assertErrors([error(diag.finalAndCovariant, 12, 9)]);
   }
 
   void test_covariantAndStatic() {
-    createParser('covariant static A f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.covariantAndStatic, 10, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  covariant static A f;
+}
+''');
+    parseResult.assertErrors([error(diag.covariantAndStatic, 22, 6)]);
   }
 
   void test_covariantAndType_local() {
     // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
     // this would be a better error message.
-    parseStatement("covariant int x;");
-    listener.assertErrors([expectedError(diag.extraneousModifier, 0, 9)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  covariant int x;
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 13, 9)]);
   }
 
   void test_covariantConstructor() {
-    createParser('class C { covariant C(); }');
-    var member = parseFullCompilationUnitMember() as ClassDeclaration;
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.covariantMember, 10, 9)]);
+    var parseResult = parseStringWithErrors(r'''
+class C { covariant C(); }
+''');
+    parseResult.assertErrors([error(diag.covariantMember, 10, 9)]);
   }
 
   void test_covariantMember_getter_noReturnType() {
-    createParser('static covariant get x => 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.covariantAndStatic, 7, 9)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static covariant get x => 0;
+}
+''');
+    parseResult.assertErrors([error(diag.covariantAndStatic, 19, 9)]);
   }
 
   void test_covariantMember_getter_returnType() {
-    createParser('static covariant int get x => 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.covariantAndStatic, 7, 9)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static covariant int get x => 0;
+}
+''');
+    parseResult.assertErrors([error(diag.covariantAndStatic, 19, 9)]);
   }
 
   void test_covariantMember_method() {
-    createParser('covariant int m() => 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.covariantMember, 0, 9)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  covariant int m() => 0;
+}
+''');
+    parseResult.assertErrors([error(diag.covariantMember, 12, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_class() {
-    createParser('covariant class C {}');
-    var member = parseFullCompilationUnitMember() as ClassDeclaration;
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.extraneousModifier, 0, 9)]);
+    var parseResult = parseStringWithErrors(r'''
+covariant class C {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_enum() {
-    createParser('covariant enum E { v }');
-    var member = parseFullCompilationUnitMember() as EnumDeclaration;
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.extraneousModifier, 0, 9)]);
+    var parseResult = parseStringWithErrors(r'''
+covariant enum E { v }
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_typedef() {
-    parseCompilationUnit(
-      "covariant typedef F();",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 9)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+covariant typedef F();
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 9)]);
   }
 
   void test_defaultValueInFunctionType_named_colon() {
-    createParser('({int x : 0})');
-    FormalParameter parameter = parser
-        .parseFormalParameterList(inFunctionType: true)
-        .parameters[0];
-    expectNotNullIfNoErrors(parameter);
-    listener.assertErrors([
-      expectedError(diag.defaultValueInFunctionType, 8, 1),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+typedef F = void Function({int x : 0});
+''');
+    parseResult.assertErrors([error(diag.defaultValueInFunctionType, 33, 1)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: x
+    separator: :
+    defaultValue: IntegerLiteral
+      literal: 0
+  rightDelimiter: }
+  rightParenthesis: )
+''');
   }
 
   void test_defaultValueInFunctionType_named_equal() {
-    createParser('({int x = 0})');
-    FormalParameter parameter = parser
-        .parseFormalParameterList(inFunctionType: true)
-        .parameters[0];
-    expectNotNullIfNoErrors(parameter);
-    listener.assertErrors([
-      expectedError(diag.defaultValueInFunctionType, 8, 1),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+typedef F = void Function({int x = 0});
+''');
+    parseResult.assertErrors([error(diag.defaultValueInFunctionType, 33, 1)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: x
+    separator: =
+    defaultValue: IntegerLiteral
+      literal: 0
+  rightDelimiter: }
+  rightParenthesis: )
+''');
   }
 
   void test_defaultValueInFunctionType_positional() {
-    createParser('([int x = 0])');
-    FormalParameter parameter = parser
-        .parseFormalParameterList(inFunctionType: true)
-        .parameters[0];
-    expectNotNullIfNoErrors(parameter);
-    listener.assertErrors([
-      expectedError(diag.defaultValueInFunctionType, 8, 1),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+typedef F = void Function([int x = 0]);
+''');
+    parseResult.assertErrors([error(diag.defaultValueInFunctionType, 33, 1)]);
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: [
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: x
+    separator: =
+    defaultValue: IntegerLiteral
+      literal: 0
+  rightDelimiter: ]
+  rightParenthesis: )
+''');
   }
 
   void test_directiveAfterDeclaration_classBeforeDirective() {
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    CompilationUnit unit = parseCompilationUnit(
-      "class Foo{} library l;",
-      codes: [diag.libraryDirectiveNotFirst],
-      diagnostics: [expectedError(diag.libraryDirectiveNotFirst, 12, 10)],
-    );
-    expect(unit, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class Foo{}
+library l;
+''');
+    parseResult.assertErrors([error(diag.libraryDirectiveNotFirst, 12, 7)]);
   }
 
   void test_directiveAfterDeclaration_classBetweenDirectives() {
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    CompilationUnit unit = parseCompilationUnit(
-      "library l;\nclass Foo{}\npart 'a.dart';",
-      codes: [diag.directiveAfterDeclaration],
-      diagnostics: [expectedError(diag.directiveAfterDeclaration, 23, 14)],
-    );
-    expect(unit, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+library l;
+class Foo{}
+part 'a.dart';
+''');
+    parseResult.assertErrors([error(diag.directiveAfterDeclaration, 23, 4)]);
   }
 
   void test_duplicatedModifier_const() {
-    createParser('const const m = null;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.duplicatedModifier, 6, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const const m = null;
+}
+''');
+    parseResult.assertErrors([error(diag.duplicatedModifier, 18, 5)]);
   }
 
   void test_duplicatedModifier_external() {
-    createParser('external external f();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.duplicatedModifier, 9, 8)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external external f();
+}
+''');
+    parseResult.assertErrors([error(diag.duplicatedModifier, 21, 8)]);
   }
 
   void test_duplicatedModifier_factory() {
-    createParser('factory factory C() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.duplicatedModifier, 8, 7)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  factory factory C() {}
+}
+''');
+    parseResult.assertErrors([error(diag.duplicatedModifier, 20, 7)]);
   }
 
   void test_duplicatedModifier_final() {
-    createParser('final final m = null;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.duplicatedModifier, 6, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  final final m = null;
+}
+''');
+    parseResult.assertErrors([error(diag.duplicatedModifier, 18, 5)]);
   }
 
   void test_duplicatedModifier_static() {
-    createParser('static static var m;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.duplicatedModifier, 7, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static static var m;
+}
+''');
+    parseResult.assertErrors([error(diag.duplicatedModifier, 19, 6)]);
   }
 
   void test_duplicatedModifier_var() {
-    createParser('var var m;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.duplicatedModifier, 4, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var var m;
+}
+''');
+    parseResult.assertErrors([error(diag.duplicatedModifier, 16, 3)]);
   }
 
   void test_duplicateLabelInSwitchStatement() {
-    var statement =
-        parseStatement('switch (e) {l1: case 0: break; l1: case 1: break;}')
-            as SwitchStatement;
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.duplicateLabelInSwitchStatement, 31, 2),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (e) {l1: case 0: break; l1: case 1: break;}
+}
+''');
+    parseResult.assertErrors([
+      error(diag.duplicateLabelInSwitchStatement, 44, 2),
     ]);
   }
 
   void test_emptyEnumBody() {
-    createParser('enum E {}');
-    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
-    expectNotNullIfNoErrors(declaration);
-    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([]);
-    //    listener
-    //        .assertErrors([expectedError(ParserErrorCode.EMPTY_ENUM_BODY, 7, 2),]);
+    var parseResult = parseStringWithErrors(r'''
+enum E {}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_enumInClass() {
-    parseCompilationUnit(
-      r'''
+    var parseResult = parseStringWithErrors(r'''
 class Foo {
   enum Bar {
     Bar1, Bar2, Bar3
   }
 }
-''',
-      diagnostics: [expectedError(diag.enumInClass, 14, 4)],
-    );
+''');
+    parseResult.assertErrors([error(diag.enumInClass, 14, 4)]);
   }
 
   void test_equalityCannotBeEqualityOperand_eq_eq() {
-    parseExpression(
-      "1 == 2 == 3",
-      diagnostics: [expectedError(diag.equalityCannotBeEqualityOperand, 7, 2)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = 1 == 2 == 3;
+''');
+    parseResult.assertErrors([
+      error(diag.equalityCannotBeEqualityOperand, 15, 2),
+    ]);
   }
 
   void test_equalityCannotBeEqualityOperand_eq_neq() {
-    parseExpression(
-      "1 == 2 != 3",
-      diagnostics: [expectedError(diag.equalityCannotBeEqualityOperand, 7, 2)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = 1 == 2 != 3;
+''');
+    parseResult.assertErrors([
+      error(diag.equalityCannotBeEqualityOperand, 15, 2),
+    ]);
   }
 
   void test_equalityCannotBeEqualityOperand_neq_eq() {
-    parseExpression(
-      "1 != 2 == 3",
-      diagnostics: [expectedError(diag.equalityCannotBeEqualityOperand, 7, 2)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = 1 != 2 == 3;
+''');
+    parseResult.assertErrors([
+      error(diag.equalityCannotBeEqualityOperand, 15, 2),
+    ]);
   }
 
   void test_expectedBody_class() {
-    parseCompilationUnit(
-      "class A class B {}",
-      diagnostics: [expectedError(diag.expectedClassBody, 6, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class A class B {}
+''');
+    parseResult.assertErrors([error(diag.expectedClassBody, 6, 1)]);
   }
 
   void test_expectedCaseOrDefault() {
-    var statement = parseStatement('switch (e) {break;}') as SwitchStatement;
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([expectedError(diag.expectedToken, 12, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (e) {break;}
+}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 25, 5)]);
   }
 
   void test_expectedClassMember_inClass_afterType() {
-    parseCompilationUnit(
-      'class C{ heart 2 heart }',
-      diagnostics: [
-        expectedError(diag.missingConstFinalVarOrType, 9, 5),
-        expectedError(diag.expectedToken, 9, 5),
-        expectedError(diag.expectedClassMember, 15, 1),
-        expectedError(diag.missingConstFinalVarOrType, 17, 5),
-        expectedError(diag.expectedToken, 17, 5),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C{ heart 2 heart }
+''');
+    parseResult.assertErrors([
+      error(diag.missingConstFinalVarOrType, 9, 5),
+      error(diag.expectedToken, 9, 5),
+      error(diag.expectedClassMember, 15, 1),
+      error(diag.missingConstFinalVarOrType, 17, 5),
+      error(diag.expectedToken, 17, 5),
+    ]);
   }
 
   void test_expectedClassMember_inClass_beforeType() {
-    parseCompilationUnit(
-      'class C { 4 score }',
-      diagnostics: [
-        expectedError(diag.expectedClassMember, 10, 1),
-        expectedError(diag.missingConstFinalVarOrType, 12, 5),
-        expectedError(diag.expectedToken, 12, 5),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { 4 score }
+''');
+    parseResult.assertErrors([
+      error(diag.expectedClassMember, 10, 1),
+      error(diag.missingConstFinalVarOrType, 12, 5),
+      error(diag.expectedToken, 12, 5),
+    ]);
   }
 
   void test_expectedExecutable_afterAnnotation_atEOF() {
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    parseCompilationUnit(
-      '@A',
-      codes: [diag.expectedExecutable],
-      diagnostics: [expectedError(diag.expectedExecutable, 1, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+@A
+''');
+    parseResult.assertErrors([error(diag.expectedExecutable, 3, 0)]);
   }
 
   void test_expectedExecutable_inClass_afterVoid() {
-    parseCompilationUnit(
-      'class C { void 2 void }',
-      diagnostics: [
-        expectedError(diag.missingIdentifier, 15, 1),
-        expectedError(diag.expectedToken, 15, 1),
-        expectedError(diag.expectedToken, 17, 4),
-        expectedError(diag.missingIdentifier, 22, 1),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { void 2 void }
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 15, 1),
+      error(diag.expectedToken, 15, 1),
+      error(diag.expectedToken, 17, 4),
+      error(diag.missingIdentifier, 22, 1),
+    ]);
   }
 
   void test_expectedExecutable_topLevel_afterType() {
-    CompilationUnit unit = parseCompilationUnit(
-      'heart 2 heart',
-      diagnostics: [
-        expectedError(diag.missingConstFinalVarOrType, 0, 5),
-        expectedError(diag.expectedToken, 0, 5),
-        expectedError(diag.expectedExecutable, 6, 1),
-        expectedError(diag.missingConstFinalVarOrType, 8, 5),
-        expectedError(diag.expectedToken, 8, 5),
-      ],
-    );
-    expect(unit, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+heart 2 heart
+''');
+    parseResult.assertErrors([
+      error(diag.missingConstFinalVarOrType, 0, 5),
+      error(diag.expectedToken, 0, 5),
+      error(diag.expectedExecutable, 6, 1),
+      error(diag.missingConstFinalVarOrType, 8, 5),
+      error(diag.expectedToken, 8, 5),
+    ]);
   }
 
   void test_expectedExecutable_topLevel_afterVoid() {
-    CompilationUnit unit = parseCompilationUnit(
-      'void 2 void',
-      diagnostics: [
-        expectedError(diag.expectedToken, 0, 4),
-        expectedError(diag.missingIdentifier, 5, 1),
-        expectedError(diag.expectedExecutable, 5, 1),
-        expectedError(diag.expectedToken, 7, 4),
-        expectedError(diag.missingIdentifier, 11, 0),
-      ],
-    );
-    expect(unit, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void 2 void
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 0, 4),
+      error(diag.missingIdentifier, 5, 1),
+      error(diag.expectedExecutable, 5, 1),
+      error(diag.expectedToken, 7, 4),
+      error(diag.missingIdentifier, 12, 0),
+    ]);
   }
 
   void test_expectedExecutable_topLevel_beforeType() {
-    parseCompilationUnit(
-      '4 score',
-      diagnostics: [
-        expectedError(diag.expectedExecutable, 0, 1),
-        expectedError(diag.missingConstFinalVarOrType, 2, 5),
-        expectedError(diag.expectedToken, 2, 5),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+4 score
+''');
+    parseResult.assertErrors([
+      error(diag.expectedExecutable, 0, 1),
+      error(diag.missingConstFinalVarOrType, 2, 5),
+      error(diag.expectedToken, 2, 5),
+    ]);
   }
 
   void test_expectedExecutable_topLevel_eof() {
-    parseCompilationUnit(
-      'x',
-      diagnostics: [
-        expectedError(diag.missingConstFinalVarOrType, 0, 1),
-        expectedError(diag.expectedToken, 0, 1),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+x
+''');
+    parseResult.assertErrors([
+      error(diag.missingConstFinalVarOrType, 0, 1),
+      error(diag.expectedToken, 0, 1),
+    ]);
   }
 
   void test_expectedInterpolationIdentifier() {
-    var literal =
-        parseExpression(
-              "'\$x\$'",
-              diagnostics: [expectedError(diag.missingIdentifier, 4, 1)],
-            )
-            as StringLiteral;
-    expectNotNullIfNoErrors(literal);
+    var parseResult = parseStringWithErrors(r'''
+var s = '$x$';
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 12, 1)]);
+
+    var node = parseResult.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: s
+            equals: =
+            initializer: StringInterpolation
+              elements
+                InterpolationString
+                  contents: '
+                InterpolationExpression
+                  leftBracket: $
+                  expression: SimpleIdentifier
+                    token: x
+                InterpolationString
+                  contents: <empty> <synthetic>
+                InterpolationExpression
+                  leftBracket: $
+                  expression: SimpleIdentifier
+                    token: <empty> <synthetic>
+                InterpolationString
+                  contents: '
+              stringValue: null
+      semicolon: ;
+''');
   }
 
   void test_expectedInterpolationIdentifier_emptyString() {
     // The scanner inserts an empty string token between the two $'s; we need to
     // make sure that the MISSING_IDENTIFIER error that is generated has a
     // nonzero width so that it will show up in the editor UI.
-    var literal =
-        parseExpression(
-              "'\$\$foo'",
-              diagnostics: [expectedError(diag.missingIdentifier, 2, 1)],
-            )
-            as StringLiteral;
-    expectNotNullIfNoErrors(literal);
+    var parseResult = parseStringWithErrors(r'''
+var s = '$$foo';
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 10, 1)]);
   }
 
   void test_expectedToken_commaMissingInArgumentList() {
-    createParser('(x, y z)');
-    ArgumentList list = parser.parseArgumentList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 6, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  g(x, y z);
+}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
   }
 
   void test_expectedToken_parseStatement_afterVoid() {
-    parseStatement("void}", expectedEndOffset: 4);
-    listener.assertErrors([
-      expectedError(diag.expectedToken, 0, 4),
-      expectedError(diag.missingIdentifier, 4, 1),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  void}
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 13, 4),
+      error(diag.missingIdentifier, 17, 1),
+      error(diag.expectedExecutable, 19, 1),
     ]);
   }
 
   void test_expectedToken_semicolonMissingAfterExport() {
-    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    CompilationUnit unit = parseCompilationUnit(
-      "export '' class A {}",
-      codes: [diag.expectedToken],
-      diagnostics: [expectedError(diag.expectedToken, 7, 2)],
-    );
-    ExportDirective directive = unit.directives[0] as ExportDirective;
-    expect(directive.uri, isNotNull);
-    expect(directive.uri.stringValue, '');
-    expect(directive.uri.beginToken.isSynthetic, false);
-    expect(directive.uri.isSynthetic, false);
-    Token semicolon = directive.semicolon;
-    expect(semicolon, isNotNull);
-    expect(semicolon.isSynthetic, isTrue);
-    ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.namePart.typeName.lexeme, 'A');
+    var parseResult = parseStringWithErrors("export '' class A {}");
+    parseResult.assertErrors([error(diag.expectedToken, 7, 2)]);
+
+    var unit = parseResult.unit;
+    assertParsedNodeText(unit, r'''
+CompilationUnit
+  directives
+    ExportDirective
+      exportKeyword: export
+      uri: SimpleStringLiteral
+        literal: ''
+      semicolon: ; <synthetic>
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_expectedToken_semicolonMissingAfterExpression() {
-    parseStatement("x");
     // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([diag.expectedToken]);
-    //    listener
-    //        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x
+}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
   }
 
   void test_expectedToken_semicolonMissingAfterImport() {
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    CompilationUnit unit = parseCompilationUnit(
-      "import '' class A {}",
-      codes: [diag.expectedToken],
-      diagnostics: [expectedError(diag.expectedToken, 7, 2)],
-    );
-    ImportDirective directive = unit.directives[0] as ImportDirective;
-    Token semicolon = directive.semicolon;
-    expect(semicolon, isNotNull);
-    expect(semicolon.isSynthetic, isTrue);
+    var parseResult = parseStringWithErrors(r'''
+import '' class A {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 7, 2)]);
+
+    var node = parseResult.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: ''
+      semicolon: ; <synthetic>
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_expectedToken_uriAndSemicolonMissingAfterExport() {
-    CompilationUnit unit = parseCompilationUnit(
-      "export class A {}",
-      diagnostics: [
-        expectedError(diag.expectedToken, 0, 6),
-        expectedError(diag.expectedStringLiteral, 7, 5),
-      ],
-    );
-    ExportDirective directive = unit.directives[0] as ExportDirective;
-    expect(directive.uri, isNotNull);
-    expect(directive.uri.stringValue, '');
-    expect(directive.uri.beginToken.isSynthetic, true);
-    expect(directive.uri.isSynthetic, true);
-    Token semicolon = directive.semicolon;
-    expect(semicolon, isNotNull);
-    expect(semicolon.isSynthetic, isTrue);
-    ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.namePart.typeName.lexeme, 'A');
+    var parseResult = parseStringWithErrors(r'''
+export class A {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 0, 6),
+      error(diag.expectedStringLiteral, 7, 5),
+    ]);
+
+    var node = parseResult.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ExportDirective
+      exportKeyword: export
+      uri: SimpleStringLiteral
+        literal: "" <synthetic>
+      semicolon: ; <synthetic>
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
-    parseStatement("do {} (x);");
-    listener.assertErrors([expectedError(diag.expectedToken, 6, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  do {} (x);
+}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 19, 1)]);
   }
 
   void test_expectedTypeName_as() {
-    parseExpression(
-      "x as",
-      diagnostics: [expectedError(diag.expectedTypeName, 4, 0)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = x as;
+''');
+    parseResult.assertErrors([error(diag.expectedTypeName, 12, 1)]);
   }
 
   void test_expectedTypeName_as_void() {
-    parseExpression(
-      "x as void)",
-      expectedEndOffset: 9,
-      diagnostics: [expectedError(diag.expectedTypeName, 5, 4)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = x as void;
+''');
+    parseResult.assertErrors([error(diag.expectedTypeName, 13, 4)]);
   }
 
   void test_expectedTypeName_is() {
-    parseExpression(
-      "x is",
-      diagnostics: [expectedError(diag.expectedTypeName, 4, 0)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = x is;
+''');
+    parseResult.assertErrors([error(diag.expectedTypeName, 12, 1)]);
   }
 
   void test_expectedTypeName_is_void() {
-    parseExpression(
-      "x is void)",
-      expectedEndOffset: 9,
-      diagnostics: [expectedError(diag.expectedTypeName, 5, 4)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = x is void;
+''');
+    parseResult.assertErrors([error(diag.expectedTypeName, 13, 4)]);
   }
 
   void test_exportAsType() {
-    parseCompilationUnit(
-      'export<dynamic> foo;',
-      diagnostics: [expectedError(diag.builtInIdentifierAsType, 0, 6)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+export<dynamic> foo;
+''');
+    parseResult.assertErrors([error(diag.builtInIdentifierAsType, 0, 6)]);
   }
 
   void test_exportAsType_inClass() {
-    parseCompilationUnit(
-      'class C { export<dynamic> foo; }',
-      diagnostics: [expectedError(diag.builtInIdentifierAsType, 10, 6)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { export<dynamic> foo; }
+''');
+    parseResult.assertErrors([error(diag.builtInIdentifierAsType, 10, 6)]);
   }
 
   void test_externalAfterConst() {
-    createParser('const external C();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.modifierOutOfOrder, 6, 8)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const external C();
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 18, 8)]);
   }
 
   void test_externalAfterFactory() {
-    createParser('factory external C();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.modifierOutOfOrder, 8, 8)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  factory external C() {}
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 20, 8)]);
   }
 
   void test_externalAfterStatic() {
-    createParser('static external int m();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.modifierOutOfOrder, 7, 8)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static external int m();
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 19, 8)]);
   }
 
   void test_externalClass() {
-    parseCompilationUnit(
-      "external class C {}",
-      diagnostics: [expectedError(diag.externalClass, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+external class C {}
+''');
+    parseResult.assertErrors([error(diag.externalClass, 0, 8)]);
   }
 
   void test_externalEnum() {
-    parseCompilationUnit(
-      "external enum E {ONE}",
-      diagnostics: [expectedError(diag.externalEnum, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+external enum E {ONE}
+''');
+    parseResult.assertErrors([error(diag.externalEnum, 0, 8)]);
   }
 
   void test_externalField_const() {
-    createParser('external const A f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external const A f;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_externalField_final() {
-    createParser('external final A f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external final A f;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_externalField_static() {
-    createParser('external static A f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external static A f;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_externalField_typed() {
-    createParser('external A f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external A f;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_externalField_untyped() {
-    createParser('external var f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external var f;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_externalTypedef() {
-    parseCompilationUnit(
-      "external typedef F();",
-      diagnostics: [expectedError(diag.externalTypedef, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+external typedef F();
+''');
+    parseResult.assertErrors([error(diag.externalTypedef, 0, 8)]);
   }
 
   void test_extraCommaInParameterList() {
-    createParser('(int a, , int b)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 8, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(int a, , int b) {}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 14, 1)]);
   }
 
   void test_extraCommaTrailingNamedParameterGroup() {
-    createParser('({int b},)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 8, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f({int b},) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 14, 1)]);
   }
 
   void test_extraCommaTrailingPositionalParameterGroup() {
-    createParser('([int b],)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 8, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f([int b],) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 14, 1)]);
   }
 
   void test_extraTrailingCommaInParameterList() {
-    createParser('(a,,)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 3, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a,,) {}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 9, 1)]);
   }
 
   void test_factory_issue_36400() {
-    parseCompilationUnit(
-      'class T { T factory T() { return null; } }',
-      diagnostics: [expectedError(diag.typeBeforeFactory, 10, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class T { T factory T() { return null; } }
+''');
+    parseResult.assertErrors([error(diag.typeBeforeFactory, 10, 1)]);
   }
 
   void test_factoryTopLevelDeclaration_class() {
-    parseCompilationUnit(
-      "factory class C {}",
-      diagnostics: [expectedError(diag.factoryTopLevelDeclaration, 0, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+factory class C {}
+''');
+    parseResult.assertErrors([error(diag.factoryTopLevelDeclaration, 0, 7)]);
   }
 
   void test_factoryTopLevelDeclaration_enum() {
-    parseCompilationUnit(
-      "factory enum E { v }",
-      diagnostics: [expectedError(diag.factoryTopLevelDeclaration, 0, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+factory enum E { v }
+''');
+    parseResult.assertErrors([error(diag.factoryTopLevelDeclaration, 0, 7)]);
   }
 
   void test_factoryTopLevelDeclaration_typedef() {
-    parseCompilationUnit(
-      "factory typedef F();",
-      diagnostics: [expectedError(diag.factoryTopLevelDeclaration, 0, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+factory typedef F();
+''');
+    parseResult.assertErrors([error(diag.factoryTopLevelDeclaration, 0, 7)]);
   }
 
   void test_factoryWithInitializers() {
-    createParser('factory C() : x = 3 {}', expectedEndOffset: 12);
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.missingFunctionBody, 12, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  factory C() : x = 3 {}
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionBody, 24, 1),
+      error(diag.expectedClassMember, 24, 1),
+      error(diag.missingConstFinalVarOrType, 26, 1),
+      error(diag.expectedToken, 30, 1),
+      error(diag.missingIdentifier, 32, 1),
+      error(diag.missingMethodParameters, 32, 1),
+    ]);
   }
 
   void test_factoryWithoutBody() {
-    createParser('factory C();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.missingFunctionBody, 11, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  factory C();
+}
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 23, 1)]);
   }
 
   void test_fieldInitializerOutsideConstructor() {
-    createParser('void m(this.x);');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    // Error is not reported during parsing.
-    listener.assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void m(this.x);
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_finalAndCovariant() {
-    createParser('final covariant f = null;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.modifierOutOfOrder, 6, 9),
-      expectedError(diag.finalAndCovariant, 6, 9),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  final covariant f = null;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.modifierOutOfOrder, 18, 9),
+      error(diag.finalAndCovariant, 18, 9),
     ]);
   }
 
   void test_finalAndVar() {
-    createParser('final var x = null;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.finalAndVar, 6, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  final var x = null;
+}
+''');
+    parseResult.assertErrors([error(diag.finalAndVar, 18, 3)]);
   }
 
   void test_finalClassMember_modifierOnly() {
-    createParser('final');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.expectedToken, 0, 5),
-      expectedError(diag.missingIdentifier, 5, 0),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  final
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 12, 5),
+      error(diag.missingIdentifier, 18, 1),
     ]);
   }
 
   void test_finalConstructor() {
-    createParser('final C() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.extraneousModifier, 0, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  final C() {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 12, 5)]);
   }
 
   void test_finalEnum() {
-    parseCompilationUnit(
-      "final enum E {ONE}",
-      diagnostics: [error(diag.finalEnum, 0, 5)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+final enum E {ONE}
+''');
+    parseResult.assertErrors([error(diag.finalEnum, 0, 5)]);
   }
 
   void test_finalMethod() {
-    createParser('final int m() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.extraneousModifier, 0, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  final int m() {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 12, 5)]);
   }
 
   void test_finalTypedef() {
-    parseCompilationUnit(
-      "final typedef F();",
-      diagnostics: [
-        // Fasta interprets the `final` as a malformed top level final
-        // and `typedef` as the start of an typedef declaration.
-        expectedError(diag.expectedToken, 0, 5),
-        expectedError(diag.missingIdentifier, 6, 7),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+final typedef F();
+''');
+    parseResult.assertErrors([
+      // Fasta interprets the `final` as a malformed top level final
+      // and `typedef` as the start of an typedef declaration.
+      error(diag.expectedToken, 0, 5),
+      error(diag.missingIdentifier, 6, 7),
+    ]);
   }
 
   void test_functionTypedField_invalidType_abstract() {
-    parseCompilationUnit(
-      "Function(abstract) x = null;",
-      diagnostics: [expectedError(diag.builtInIdentifierAsType, 9, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+Function(abstract) x = null;
+''');
+    parseResult.assertErrors([error(diag.builtInIdentifierAsType, 9, 8)]);
   }
 
   void test_functionTypedField_invalidType_class() {
-    parseCompilationUnit(
-      "Function(class) x = null;",
-      diagnostics: [
-        expectedError(diag.expectedTypeName, 9, 5),
-        expectedError(diag.expectedIdentifierButGotKeyword, 9, 5),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+Function(class) x = null;
+''');
+    parseResult.assertErrors([
+      error(diag.expectedTypeName, 9, 5),
+      error(diag.expectedIdentifierButGotKeyword, 9, 5),
+    ]);
   }
 
   void test_functionTypedParameter_const() {
-    parseCompilationUnit(
-      "void f(const x()) {}",
-      diagnostics: [
-        expectedError(diag.extraneousModifier, 7, 5),
-        expectedError(diag.functionTypedParameterVar, 7, 5),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+void f(const x()) {}
+''');
+    parseResult.assertErrors([
+      error(diag.extraneousModifier, 7, 5),
+      error(diag.functionTypedParameterVar, 7, 5),
+    ]);
   }
 
   void test_functionTypedParameter_final() {
-    parseCompilationUnit(
-      "void f(final x()) {}",
-      diagnostics: [expectedError(diag.functionTypedParameterVar, 7, 5)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+void f(final x()) {}
+''');
+    parseResult.assertErrors([
+      error(diag.functionTypedParameterVar, 7, 5),
+      error(diag.extraneousModifier, 7, 5),
+    ]);
   }
 
   void test_functionTypedParameter_incomplete1() {
-    parseCompilationUnit(
-      "void f(int Function(",
-      diagnostics: [
-        expectedError(diag.expectedToken, 20, 1),
-        expectedError(diag.expectedToken, 20, 1),
-        expectedError(diag.missingFunctionBody, 20, 0),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+void f(int Function(
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 21, 1),
+      error(diag.missingFunctionBody, 21, 0),
+    ]);
   }
 
   void test_functionTypedParameter_var() {
-    parseCompilationUnit(
-      "void f(var x()) {}",
-      diagnostics: [expectedError(diag.functionTypedParameterVar, 7, 3)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+void f(var x()) {}
+''');
+    parseResult.assertErrors([
+      error(diag.functionTypedParameterVar, 7, 3),
+      error(diag.extraneousModifier, 7, 3),
+    ]);
   }
 
   void test_genericFunctionType_asIdentifier() {
-    createParser('final int Function = 0;');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertErrors([]);
+    var parseResult = parseStringWithErrors(r'''
+final int Function = 0;
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_genericFunctionType_asIdentifier2() {
-    createParser('int Function() {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertErrors([]);
+    var parseResult = parseStringWithErrors(r'''
+int Function() {}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_genericFunctionType_asIdentifier3() {
-    createParser('int Function() => 0;');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertErrors([]);
+    var parseResult = parseStringWithErrors(r'''
+int Function() => 0;
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_genericFunctionType_extraLessThan() {
-    createParser('''
+    var parseResult = parseStringWithErrors(r'''
 class Wrong<T> {
   T Function(<List<int> foo) bar;
-}''');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertErrors([
-      expectedError(diag.expectedTypeName, 30, 1),
-      expectedError(diag.expectedToken, 30, 1),
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedTypeName, 30, 1),
+      error(diag.expectedToken, 30, 1),
     ]);
   }
 
   void test_getterInFunction_block_noReturnType() {
-    Statement result = parseStatement(
-      "get x { return _x; }",
-      expectedEndOffset: 4,
-    );
-    // Fasta considers `get` to be an identifier in this situation.
-    // TODO(danrubel): Investigate better recovery.
-    var statement = result as ExpressionStatement;
-    listener.assertErrors([expectedError(diag.expectedToken, 0, 3)]);
-    expect(statement.expression.toSource(), 'get');
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  get x { return _x; }
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 13, 3),
+      error(diag.expectedToken, 17, 1),
+    ]);
+
+    var node = parseResult.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: get
+                semicolon: ; <synthetic>
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: x
+                semicolon: ; <synthetic>
+              Block
+                leftBracket: {
+                statements
+                  ReturnStatement
+                    returnKeyword: return
+                    expression: SimpleIdentifier
+                      token: _x
+                    semicolon: ;
+                rightBracket: }
+            rightBracket: }
+''');
   }
 
   void test_getterInFunction_block_returnType() {
-    // Fasta considers `get` to be an identifier in this situation.
-    parseStatement("int get x { return _x; }", expectedEndOffset: 8);
-    listener.assertErrors([expectedError(diag.expectedToken, 4, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  int get x { return _x; }
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 17, 3),
+      error(diag.expectedToken, 21, 1),
+    ]);
   }
 
   void test_getterInFunction_expression_noReturnType() {
-    // Fasta considers `get` to be an identifier in this situation.
-    parseStatement("get x => _x;", expectedEndOffset: 4);
-    listener.assertErrors([expectedError(diag.expectedToken, 0, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  get x => _x;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 13, 3),
+      error(diag.missingFunctionParameters, 19, 2),
+    ]);
   }
 
   void test_getterInFunction_expression_returnType() {
-    // Fasta considers `get` to be an identifier in this situation.
-    parseStatement("int get x => _x;", expectedEndOffset: 8);
-    listener.assertErrors([expectedError(diag.expectedToken, 4, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  int get x => _x;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 17, 3),
+      error(diag.missingFunctionParameters, 23, 2),
+    ]);
   }
 
   void test_getterNativeWithBody() {
-    createParser('String get m native "str" => 0;');
-    parser.parseClassMember('C') as MethodDeclaration;
-    if (!allowNativeClause) {
-      assertErrorsWithCodes([diag.nativeClauseShouldBeAnnotation]);
-    } else {
-      assertNoErrors();
-    }
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  String get m native "str" => 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: String
+  propertyKeyword: get
+  name: m
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 0
+    semicolon: ;
+''');
   }
 
   void test_getterWithParameters() {
-    createParser('int get x() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([diag.getterWithParameters]);
-    //    listener.assertErrors(
-    //        [expectedError(ParserErrorCode.GETTER_WITH_PARAMETERS, 9, 2)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int get x() {}
+}
+''');
+    parseResult.assertErrors([error(diag.getterWithParameters, 21, 1)]);
   }
 
   void test_illegalAssignmentToNonAssignable_assign_int() {
-    parseStatement("0 = 1;");
-    listener.assertErrors([
-      expectedError(diag.missingAssignableSelector, 0, 1),
-      expectedError(diag.illegalAssignmentToNonAssignable, 0, 1),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  0 = 1;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingAssignableSelector, 13, 1),
+      error(diag.illegalAssignmentToNonAssignable, 13, 1),
     ]);
   }
 
   void test_illegalAssignmentToNonAssignable_assign_this() {
-    parseStatement("this = 1;");
-    listener.assertErrors([
-      expectedError(diag.missingAssignableSelector, 0, 4),
-      expectedError(diag.illegalAssignmentToNonAssignable, 0, 4),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  this = 1;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingAssignableSelector, 13, 4),
+      error(diag.illegalAssignmentToNonAssignable, 13, 4),
     ]);
   }
 
   void test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal() {
-    parseExpression(
-      "0--",
-      diagnostics: [expectedError(diag.illegalAssignmentToNonAssignable, 1, 2)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = 0--;
+''');
+    parseResult.assertErrors([
+      error(diag.illegalAssignmentToNonAssignable, 9, 2),
+    ]);
   }
 
   void test_illegalAssignmentToNonAssignable_postfix_plusPlus_literal() {
-    parseExpression(
-      "0++",
-      diagnostics: [expectedError(diag.illegalAssignmentToNonAssignable, 1, 2)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = 0++;
+''');
+    parseResult.assertErrors([
+      error(diag.illegalAssignmentToNonAssignable, 9, 2),
+    ]);
   }
 
   void test_illegalAssignmentToNonAssignable_postfix_plusPlus_parenthesized() {
-    parseExpression(
-      "(x)++",
-      diagnostics: [expectedError(diag.illegalAssignmentToNonAssignable, 3, 2)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = (x)++;
+''');
+    parseResult.assertErrors([
+      error(diag.illegalAssignmentToNonAssignable, 11, 2),
+    ]);
   }
 
   void test_illegalAssignmentToNonAssignable_primarySelectorPostfix() {
-    parseExpression(
-      "x(y)(z)++",
-      diagnostics: [expectedError(diag.illegalAssignmentToNonAssignable, 7, 2)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = x(y)(z)++;
+''');
+    parseResult.assertErrors([
+      error(diag.illegalAssignmentToNonAssignable, 15, 2),
+    ]);
   }
 
   void test_illegalAssignmentToNonAssignable_superAssigned() {
-    parseStatement("super = x;");
-    listener.assertErrors([
-      expectedError(diag.missingAssignableSelector, 0, 5),
-      expectedError(diag.illegalAssignmentToNonAssignable, 0, 5),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  super = x;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingAssignableSelector, 13, 5),
+      error(diag.illegalAssignmentToNonAssignable, 13, 5),
     ]);
   }
 
   void test_implementsBeforeExtends() {
-    parseCompilationUnit(
-      "class A implements B extends C {}",
-      diagnostics: [expectedError(diag.implementsBeforeExtends, 21, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class A implements B extends C {}
+''');
+    parseResult.assertErrors([error(diag.implementsBeforeExtends, 21, 7)]);
   }
 
   void test_implementsBeforeWith() {
-    parseCompilationUnit(
-      "class A extends B implements C with D {}",
-      diagnostics: [expectedError(diag.implementsBeforeWith, 31, 4)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class A extends B implements C with D {}
+''');
+    parseResult.assertErrors([error(diag.implementsBeforeWith, 31, 4)]);
   }
 
   void test_initializedVariableInForEach() {
-    var statement = parseStatement('for (int a = 0 in foo) {}');
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.initializedVariableInForEach, 11, 1),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for (int a = 0 in foo) {}
+}
+''');
+    parseResult.assertErrors([error(diag.initializedVariableInForEach, 24, 1)]);
   }
 
   void test_initializedVariableInForEach_annotation() {
-    var statement = parseStatement('for (@Foo var a = 0 in foo) {}');
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.initializedVariableInForEach, 16, 1),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for (@Foo var a = 0 in foo) {}
+}
+''');
+    parseResult.assertErrors([error(diag.initializedVariableInForEach, 29, 1)]);
   }
 
   void test_initializedVariableInForEach_localFunction() {
-    var statement = parseStatement('for (f()) {}');
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.expectedToken, 7, 1),
-      expectedError(diag.expectedToken, 7, 1),
-      expectedError(diag.missingIdentifier, 8, 1),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for (f()) {}
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 20, 1),
+      error(diag.missingIdentifier, 21, 1),
     ]);
   }
 
   void test_initializedVariableInForEach_localFunction2() {
-    var statement = parseStatement('for (T f()) {}');
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.expectedToken, 7, 1),
-      expectedError(diag.expectedToken, 9, 1),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for (T f()) {}
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 20, 1),
+      error(diag.expectedToken, 22, 1),
     ]);
   }
 
   void test_initializedVariableInForEach_var() {
-    var statement = parseStatement('for (var a = 0 in foo) {}');
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.initializedVariableInForEach, 11, 1),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for (var a = 0 in foo) {}
+}
+''');
+    parseResult.assertErrors([error(diag.initializedVariableInForEach, 24, 1)]);
   }
 
   void test_invalidAwaitInFor() {
-    var statement = parseStatement('await for (; ;) {}');
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([expectedError(diag.invalidAwaitInFor, 0, 5)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  await for (; ;) {}
+}
+''');
+    parseResult.assertErrors([error(diag.invalidAwaitInFor, 13, 5)]);
   }
 
   void test_invalidCodePoint() {
-    var literal =
-        parseExpression(
-              "'begin \\u{110000}'",
-              diagnostics: [expectedError(diag.invalidCodePoint, 7, 9)],
-            )
-            as StringLiteral;
-    expectNotNullIfNoErrors(literal);
+    var parseResult = parseStringWithErrors(r'''
+var s = 'begin \u{110000}';
+''');
+    parseResult.assertErrors([error(diag.invalidCodePoint, 15, 9)]);
   }
 
   @failingTest
   void test_invalidCommentReference__new_nonIdentifier() {
-    // This test fails because the method parseCommentReference returns null.
-    createParser('');
-    var reference = parseCommentReference('new 42', 0) as CommentReference;
-    expectNotNullIfNoErrors(reference);
-    listener.assertErrors([expectedError(diag.invalidCommentReference, 0, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+/// [new 42]
+void f() {}
+''');
+    parseResult.assertErrors([error(diag.invalidCommentReference, 9, 3)]);
   }
 
   @failingTest
   void test_invalidCommentReference__new_tooMuch() {
-    createParser('');
-    var reference = parseCommentReference('new a.b.c.d', 0) as CommentReference;
-    expectNotNullIfNoErrors(reference);
-    listener.assertErrors([expectedError(diag.invalidCommentReference, 0, 11)]);
+    var parseResult = parseStringWithErrors(r'''
+/// [new a.b.c.d]
+void f() {}
+''');
+    parseResult.assertErrors([error(diag.invalidCommentReference, 9, 7)]);
   }
 
   @failingTest
   void test_invalidCommentReference__nonNew_nonIdentifier() {
-    // This test fails because the method parseCommentReference returns null.
-    createParser('');
-    var reference = parseCommentReference('42', 0) as CommentReference;
-    expectNotNullIfNoErrors(reference);
-    listener.assertErrors([expectedError(diag.invalidCommentReference, 0, 2)]);
+    var parseResult = parseStringWithErrors(r'''
+/// [42]
+void f() {}
+''');
+    parseResult.assertErrors([error(diag.invalidCommentReference, 5, 2)]);
   }
 
   @failingTest
   void test_invalidCommentReference__nonNew_tooMuch() {
-    createParser('');
-    var reference = parseCommentReference('a.b.c.d', 0) as CommentReference;
-    expectNotNullIfNoErrors(reference);
-    listener.assertErrors([expectedError(diag.invalidCommentReference, 0, 7)]);
+    var parseResult = parseStringWithErrors(r'''
+/// [a.b.c.d]
+void f() {}
+''');
+    parseResult.assertErrors([error(diag.invalidCommentReference, 5, 7)]);
   }
 
   void test_invalidConstructorName_star() {
-    createParser("C.*();");
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 2, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C.*();
+}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 14, 1)]);
   }
 
   void test_invalidConstructorName_with() {
-    createParser("C.with();");
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.expectedIdentifierButGotKeyword, 2, 4),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C.with();
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedIdentifierButGotKeyword, 14, 4),
     ]);
   }
 
   void test_invalidConstructorSuperAssignment() {
-    createParser("C() : super = 42;");
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      error(diag.missingAssignableSelector, 6, 5),
-      error(diag.invalidInitializer, 6, 10),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C() : super = 42;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingAssignableSelector, 18, 5),
+      error(diag.invalidInitializer, 18, 10),
     ]);
   }
 
   void test_invalidConstructorSuperFieldAssignment() {
-    createParser("C() : super.a = 42;");
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.fieldInitializedOutsideDeclaringClass, 12, 1),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C() : super.a = 42;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.fieldInitializedOutsideDeclaringClass, 24, 1),
     ]);
   }
 
   void test_invalidHexEscape_invalidDigit() {
-    var literal =
-        parseExpression(
-              "'not \\x0 a'",
-              diagnostics: [expectedError(diag.invalidHexEscape, 5, 3)],
-            )
-            as StringLiteral;
-    expectNotNullIfNoErrors(literal);
+    var parseResult = parseStringWithErrors(r'''
+var s = 'not \x0 a';
+''');
+    parseResult.assertErrors([error(diag.invalidHexEscape, 13, 3)]);
   }
 
   void test_invalidHexEscape_tooFewDigits() {
-    var literal =
-        parseExpression(
-              "'\\x0'",
-              diagnostics: [expectedError(diag.invalidHexEscape, 1, 3)],
-            )
-            as StringLiteral;
-    expectNotNullIfNoErrors(literal);
+    var parseResult = parseStringWithErrors(r'''
+var s = '\x0';
+''');
+    parseResult.assertErrors([error(diag.invalidHexEscape, 9, 3)]);
   }
 
   void test_invalidInlineFunctionType() {
-    parseCompilationUnit(
-      'typedef F = int Function(int a());',
-      diagnostics: [expectedError(diag.invalidInlineFunctionType, 30, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+typedef F = int Function(int a());
+''');
+    parseResult.assertErrors([error(diag.invalidInlineFunctionType, 30, 1)]);
   }
 
   void test_invalidInterpolation_missingClosingBrace_issue35900() {
-    parseCompilationUnit(
-      r"main () { print('${x' '); }",
-      diagnostics: [
-        expectedError(diag.expectedToken, 23, 1),
-        expectedError(diag.unterminatedStringLiteral, 26, 1),
-        expectedError(diag.expectedToken, 20, 3),
-        expectedError(diag.expectedStringLiteral, 23, 1),
-        expectedError(diag.expectedExecutable, 27, 0),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+main () { print('${x' '); }
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 20, 3),
+      error(diag.expectedToken, 23, 1),
+      error(diag.expectedStringLiteral, 23, 1),
+      error(diag.unterminatedStringLiteral, 27, 1),
+      error(diag.expectedExecutable, 28, 0),
+    ]);
   }
 
   void test_invalidInterpolationIdentifier_startWithDigit() {
-    var literal =
-        parseExpression(
-              "'\$1'",
-              diagnostics: [expectedError(diag.missingIdentifier, 2, 1)],
-            )
-            as StringLiteral;
-    expectNotNullIfNoErrors(literal);
+    var parseResult = parseStringWithErrors(r'''
+var s = '$1';
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 10, 1)]);
   }
 
   void test_invalidLiteralInConfiguration() {
-    createParser("if (a == 'x \$y z') 'a.dart'");
-    Configuration configuration = parser.parseConfiguration();
-    expectNotNullIfNoErrors(configuration);
-    listener.assertErrors([
-      expectedError(diag.invalidLiteralInConfiguration, 12, 2),
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' if (a == 'x $y z') 'a.dart';
+''');
+    parseResult.assertErrors([
+      error(diag.invalidLiteralInConfiguration, 28, 2),
     ]);
   }
 
   void test_invalidOperator() {
-    CompilationUnit unit = parseCompilationUnit(
-      'class C { void operator ===(x) { } }',
-      diagnostics: [expectedError(diag.unsupportedOperator, 24, 1)],
-    );
-    expect(unit, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C { void operator ===(x) { } }
+''');
+    parseResult.assertErrors([error(diag.unsupportedOperator, 24, 1)]);
   }
 
   void test_invalidOperator_unary() {
-    createParser('class C { int operator unary- => 0; }');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertErrors([
-      expectedError(diag.unexpectedToken, 23, 5),
-      expectedError(diag.missingMethodParameters, 28, 1),
+    var parseResult = parseStringWithErrors(r'''
+class C { int operator unary- => 0; }
+''');
+    parseResult.assertErrors([
+      error(diag.unexpectedToken, 23, 5),
+      error(diag.missingMethodParameters, 28, 1),
     ]);
   }
 
   void test_invalidOperatorAfterSuper_assignableExpression() {
-    Expression expression = parseAssignableExpression('super?.v', false);
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(diag.invalidOperatorQuestionmarkPeriodForSuper, 5, 2),
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  super?.v = 0;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.invalidOperatorQuestionmarkPeriodForSuper, 18, 2),
     ]);
   }
 
   void test_invalidOperatorAfterSuper_constructorInitializer2() {
-    parseCompilationUnit(
-      'class C { C() : super?.namedConstructor(); }',
-      diagnostics: [
-        expectedError(diag.invalidOperatorQuestionmarkPeriodForSuper, 21, 2),
-      ],
-    );
-  }
-
-  void test_invalidOperatorAfterSuper_primaryExpression() {
-    Expression expression = parseExpression(
-      'super?.v',
-      diagnostics: [
-        expectedError(diag.invalidOperatorQuestionmarkPeriodForSuper, 5, 2),
-      ],
-    );
-    expectNotNullIfNoErrors(expression);
-  }
-
-  void test_invalidOperatorForSuper() {
-    createParser('++super');
-    Expression expression = parser.parseUnaryExpression();
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(diag.missingAssignableSelector, 2, 5),
+    var parseResult = parseStringWithErrors(r'''
+class C { C() : super?.namedConstructor(); }
+''');
+    parseResult.assertErrors([
+      error(diag.invalidOperatorQuestionmarkPeriodForSuper, 21, 2),
     ]);
   }
 
+  void test_invalidOperatorAfterSuper_primaryExpression() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  super?.v;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.invalidOperatorQuestionmarkPeriodForSuper, 18, 2),
+    ]);
+  }
+
+  void test_invalidOperatorForSuper() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  ++super;
+}
+''');
+    parseResult.assertErrors([error(diag.missingAssignableSelector, 15, 5)]);
+  }
+
   void test_invalidPropertyAccess_this() {
-    parseExpression(
-      'x.this',
-      diagnostics: [expectedError(diag.missingIdentifier, 2, 4)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = x.this;
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 10, 4)]);
   }
 
   void test_invalidStarAfterAsync() {
-    createParser('foo() async* => 0;');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertErrors([expectedError(diag.returnInGenerator, 13, 2)]);
+    var parseResult = parseStringWithErrors(r'''
+foo() async* => 0;
+''');
+    parseResult.assertErrors([error(diag.returnInGenerator, 13, 2)]);
   }
 
   void test_invalidSync() {
-    createParser('foo() sync* => 0;');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertErrors([expectedError(diag.returnInGenerator, 12, 2)]);
+    var parseResult = parseStringWithErrors(r'''
+foo() sync* => 0;
+''');
+    parseResult.assertErrors([error(diag.returnInGenerator, 12, 2)]);
   }
 
   void test_invalidTopLevelSetter() {
-    parseCompilationUnit(
-      "var set foo; main(){}",
-      diagnostics: [
-        expectedError(diag.varReturnType, 0, 3),
-        expectedError(diag.missingFunctionParameters, 8, 3),
-        expectedError(diag.missingFunctionBody, 11, 1),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var set foo; main(){}
+''');
+    parseResult.assertErrors([
+      error(diag.varReturnType, 0, 3),
+      error(diag.missingFunctionParameters, 8, 3),
+      error(diag.missingFunctionBody, 11, 1),
+    ]);
   }
 
   void test_invalidTopLevelVar() {
-    parseCompilationUnit(
-      "var Function(var arg);",
-      diagnostics: [
-        expectedError(diag.varReturnType, 0, 3),
-        expectedError(diag.missingFunctionBody, 21, 1),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var Function(var arg);
+''');
+    parseResult.assertErrors([
+      error(diag.varReturnType, 0, 3),
+      error(diag.extraneousModifier, 13, 3),
+      error(diag.missingFunctionBody, 21, 1),
+    ]);
   }
 
   void test_invalidTypedef() {
-    parseCompilationUnit(
-      "typedef var Function(var arg);",
-      diagnostics: [
-        expectedError(diag.expectedToken, 0, 7),
-        expectedError(diag.missingIdentifier, 8, 3),
-        expectedError(diag.missingTypedefParameters, 8, 3),
-        expectedError(diag.varReturnType, 8, 3),
-        expectedError(diag.missingFunctionBody, 29, 1),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+typedef var Function(var arg);
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 0, 7),
+      error(diag.missingIdentifier, 8, 3),
+      error(diag.missingTypedefParameters, 8, 3),
+      error(diag.varReturnType, 8, 3),
+      error(diag.extraneousModifier, 21, 3),
+      error(diag.missingFunctionBody, 29, 1),
+    ]);
   }
 
   void test_invalidTypedef2() {
     // https://github.com/dart-lang/sdk/issues/31171
-    parseCompilationUnit(
-      "typedef T = typedef F = Map<String, dynamic> Function();",
-      diagnostics: [
-        expectedError(diag.expectedToken, 10, 1),
-        expectedError(diag.expectedTypeName, 12, 7),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+typedef T = typedef F = Map<String, dynamic> Function();
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 10, 1),
+      error(diag.expectedTypeName, 12, 7),
+    ]);
   }
 
   void test_invalidUnicodeEscape_incomplete_noDigits() {
-    Expression expression = parseStringLiteral("'\\u{'");
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(diag.invalidUnicodeEscapeUBracket, 1, 3),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+var s = '\u{';
+''');
+    parseResult.assertErrors([error(diag.invalidUnicodeEscapeUBracket, 9, 3)]);
   }
 
   void test_invalidUnicodeEscape_incomplete_noDigits_noBracket() {
-    Expression expression = parseStringLiteral("'\\u'");
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(diag.invalidUnicodeEscapeUStarted, 1, 2),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+var s = '\u';
+''');
+    parseResult.assertErrors([error(diag.invalidUnicodeEscapeUStarted, 9, 2)]);
   }
 
   void test_invalidUnicodeEscape_incomplete_someDigits() {
-    Expression expression = parseStringLiteral("'\\u{0A'");
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(diag.invalidUnicodeEscapeUBracket, 1, 5),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+var s = '\u{0A';
+''');
+    parseResult.assertErrors([error(diag.invalidUnicodeEscapeUBracket, 9, 5)]);
   }
 
   void test_invalidUnicodeEscape_invalidDigit() {
-    Expression expression = parseStringLiteral("'\\u0 and some more'");
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(diag.invalidUnicodeEscapeUNoBracket, 1, 3),
+    var parseResult = parseStringWithErrors(r'''
+var s = '\u0 and some more';
+''');
+    parseResult.assertErrors([
+      error(diag.invalidUnicodeEscapeUNoBracket, 9, 3),
     ]);
   }
 
   void test_invalidUnicodeEscape_too_high_number_variable() {
-    Expression expression = parseStringLiteral("'\\u{110000}'");
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([expectedError(diag.invalidCodePoint, 1, 9)]);
+    var parseResult = parseStringWithErrors(r'''
+var s = '\u{110000}';
+''');
+    parseResult.assertErrors([error(diag.invalidCodePoint, 9, 9)]);
   }
 
   void test_invalidUnicodeEscape_tooFewDigits_fixed() {
-    Expression expression = parseStringLiteral("'\\u04'");
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(diag.invalidUnicodeEscapeUNoBracket, 1, 4),
+    var parseResult = parseStringWithErrors(r'''
+var s = '\u04';
+''');
+    parseResult.assertErrors([
+      error(diag.invalidUnicodeEscapeUNoBracket, 9, 4),
     ]);
   }
 
   void test_invalidUnicodeEscape_tooFewDigits_variable() {
-    Expression expression = parseStringLiteral("'\\u{}'");
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(diag.invalidUnicodeEscapeUBracket, 1, 4),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+var s = '\u{}';
+''');
+    parseResult.assertErrors([error(diag.invalidUnicodeEscapeUBracket, 9, 4)]);
   }
 
   void test_invalidUnicodeEscape_tooManyDigits_variable() {
-    Expression expression = parseStringLiteral("'\\u{0000000001}'");
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(diag.invalidUnicodeEscapeUBracket, 1, 9),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+var s = '\u{0000000001}';
+''');
+    parseResult.assertErrors([error(diag.invalidUnicodeEscapeUBracket, 9, 9)]);
   }
 
   void test_libraryDirectiveNotFirst() {
-    parseCompilationUnit(
-      "import 'x.dart'; library l;",
-      diagnostics: [expectedError(diag.libraryDirectiveNotFirst, 17, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+import 'x.dart'; library l;
+''');
+    parseResult.assertErrors([error(diag.libraryDirectiveNotFirst, 17, 7)]);
   }
 
   void test_libraryDirectiveNotFirst_afterPart() {
-    CompilationUnit unit = parseCompilationUnit(
-      "part 'a.dart';\nlibrary l;",
-      diagnostics: [expectedError(diag.libraryDirectiveNotFirst, 15, 7)],
-    );
-    expect(unit, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+part 'a.dart';
+library l;
+''');
+    parseResult.assertErrors([error(diag.libraryDirectiveNotFirst, 15, 7)]);
   }
 
   void test_localFunction_annotation() {
-    CompilationUnit unit = parseCompilationUnit(
-      "class C { m() { @Foo f() {} } }",
-    );
-    expect(unit.declarations, hasLength(1));
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    var classBody = declaration.body as BlockClassBody;
-    expect(classBody.members, hasLength(1));
-    var member = classBody.members[0] as MethodDeclaration;
-    var body = member.body as BlockFunctionBody;
-    expect(body.block.statements, hasLength(1));
-    var statement = body.block.statements[0] as FunctionDeclarationStatement;
-    expect(statement.functionDeclaration.metadata, hasLength(1));
-    Annotation metadata = statement.functionDeclaration.metadata[0];
-    expect(metadata.name.name, 'Foo');
+    var result = parseStringWithErrors(r'''
+class C { m() { @Foo f() {} } }
+''');
+    result.assertNoErrors();
+
+    var node = result.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: Foo
+  name: f
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_localFunctionDeclarationModifier_abstract() {
-    parseCompilationUnit(
-      "class C { m() { abstract f() {} } }",
-      diagnostics: [expectedError(diag.extraneousModifier, 16, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { m() { abstract f() {} } }
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 16, 8)]);
   }
 
   void test_localFunctionDeclarationModifier_external() {
-    parseCompilationUnit(
-      "class C { m() { external f() {} } }",
-      diagnostics: [expectedError(diag.extraneousModifier, 16, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { m() { external f() {} } }
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 16, 8)]);
   }
 
   void test_localFunctionDeclarationModifier_factory() {
-    parseCompilationUnit(
-      "class C { m() { factory f() {} } }",
-      diagnostics: [expectedError(diag.expectedToken, 16, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { m() { factory f() {} } }
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 16, 7)]);
   }
 
   void test_localFunctionDeclarationModifier_static() {
-    parseCompilationUnit(
-      "class C { m() { static f() {} } }",
-      diagnostics: [expectedError(diag.extraneousModifier, 16, 6)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { m() { static f() {} } }
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 16, 6)]);
   }
 
   void test_method_invalidTypeParameterExtends() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25739.
 
     // TODO(jmesserly): ideally we'd be better at parser recovery here.
-    createParser('f<E>(E extends num p);');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.expectedToken, 7, 7)]);
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(
-      method.parameters.toString(),
-      '(E)',
-      reason: 'parser recovers what it can',
-    );
+    var result = parseStringWithErrors(r'''
+class C {
+  f<E>(E extends num p);
+}
+''');
+    result.assertErrors([error(diag.expectedToken, 19, 7)]);
+
+    var member = result.findNode.singleMethodDeclaration;
+    assertParsedNodeText(member, r'''
+MethodDeclaration
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: E
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: E
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_method_invalidTypeParameters() {
-    createParser('void m<E, hello!>() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.expectedToken, 10, 5)]);
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(
-      method.typeParameters.toString(),
-      '<E, hello>',
-      reason: 'parser recovers what it can',
-    );
-  }
+    var result = parseStringWithErrors(r'''
+class C {
+  void m<E, hello!>() {}
+}
+''');
+    result.assertErrors([error(diag.expectedToken, 22, 5)]);
 
-  void test_missing_closing_bracket_issue37528() {
-    var code = '\${foo';
-    createParser(code);
-    var result = fasta.scanString(code);
-    expect(result.hasErrors, isTrue);
-    var token = parserProxy.fastaParser.syntheticPreviousToken(result.tokens);
-    try {
-      parserProxy.fastaParser.parseExpression(token);
-      // TODO(danrubel): Replace this test once root cause is found
-      fail('exception expected');
-    } catch (e) {
-      var msg = e.toString();
-      expect(msg.contains('test_missing_closing_bracket_issue37528'), isTrue);
-    }
+    var method = result.findNode.singleMethodDeclaration;
+    assertParsedNodeText(method, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: E
+      TypeParameter
+        name: hello
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_missingAssignableSelector_identifiersAssigned() {
-    parseExpression("x.y = y;", expectedEndOffset: 7);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  x.y = y;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_missingAssignableSelector_prefix_minusMinus_literal() {
-    parseExpression(
-      "--0",
-      diagnostics: [expectedError(diag.missingAssignableSelector, 2, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = --0;
+''');
+    parseResult.assertErrors([error(diag.missingAssignableSelector, 10, 1)]);
   }
 
   void test_missingAssignableSelector_prefix_plusPlus_literal() {
-    parseExpression(
-      "++0",
-      diagnostics: [expectedError(diag.missingAssignableSelector, 2, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = ++0;
+''');
+    parseResult.assertErrors([error(diag.missingAssignableSelector, 10, 1)]);
   }
 
   void test_missingAssignableSelector_selector() {
-    parseExpression("x(y)(z).a++");
+    var parseResult = parseStringWithErrors(r'''
+var v = x(y)(z).a++;
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_missingAssignableSelector_superAsExpressionFunctionBody() {
-    CompilationUnit unit = parseCompilationUnit(
-      'main() => super;',
-      diagnostics: [error(diag.missingAssignableSelector, 10, 5)],
-    );
-    var declaration = unit.declarations.first as FunctionDeclaration;
-    var body = declaration.functionExpression.body as ExpressionFunctionBody;
-    var expression = body.expression;
-    expect(expression, isSuperExpression);
-    var superExpression = expression as SuperExpression;
-    expect(superExpression.superKeyword, isNotNull);
+    var result = parseStringWithErrors(r'''
+main() => super;
+''');
+    result.assertErrors([error(diag.missingAssignableSelector, 10, 5)]);
+
+    var node = result.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  name: main
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: SuperExpression
+        superKeyword: super
+      semicolon: ;
+''');
   }
 
   void test_missingAssignableSelector_superPrimaryExpression() {
-    CompilationUnit unit = parseCompilationUnit(
-      'main() {super;}',
-      diagnostics: [expectedError(diag.missingAssignableSelector, 8, 5)],
-    );
-    var declaration = unit.declarations.first as FunctionDeclaration;
-    var blockBody = declaration.functionExpression.body as BlockFunctionBody;
-    var statement = blockBody.block.statements.first as ExpressionStatement;
-    var expression = statement.expression;
-    expect(expression, isSuperExpression);
-    var superExpression = expression as SuperExpression;
-    expect(superExpression.superKeyword, isNotNull);
+    var result = parseStringWithErrors(r'''
+main() {super;}
+''');
+    result.assertErrors([error(diag.missingAssignableSelector, 8, 5)]);
+
+    var node = result.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  name: main
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        statements
+          ExpressionStatement
+            expression: SuperExpression
+              superKeyword: super
+            semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_missingAssignableSelector_superPropertyAccessAssigned() {
-    parseExpression("super.x = x;", expectedEndOffset: 11);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  super.x = x;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_missingCatchOrFinally() {
-    var statement = parseStatement('try {}') as TryStatement;
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([expectedError(diag.missingCatchOrFinally, 0, 3)]);
-    expect(statement, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  try {}
+}
+''');
+    parseResult.assertErrors([error(diag.missingCatchOrFinally, 13, 3)]);
   }
 
   void test_missingClosingParenthesis() {
-    createParser(
-      '(int a, int b ;',
-      expectedEndOffset: 14 /* parsing ends at synthetic ')' */,
-    );
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 14, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(int a, int b ;
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionBody, 20, 1),
+      error(diag.expectedToken, 22, 1),
+    ]);
   }
 
   void test_missingConstFinalVarOrType_static() {
-    parseCompilationUnit(
-      "class A { static f; }",
-      diagnostics: [expectedError(diag.missingConstFinalVarOrType, 17, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class A { static f; }
+''');
+    parseResult.assertErrors([error(diag.missingConstFinalVarOrType, 17, 1)]);
   }
 
   void test_missingConstFinalVarOrType_topLevel() {
-    parseCompilationUnit(
-      'a;',
-      diagnostics: [expectedError(diag.missingConstFinalVarOrType, 0, 1)],
-    );
-  }
-
-  void test_missingEnumBody() {
-    createParser('enum E;', expectedEndOffset: 6);
-    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
-    expectNotNullIfNoErrors(declaration);
-    listener.assertErrors([expectedError(diag.missingEnumBody, 6, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+a;
+''');
+    parseResult.assertErrors([error(diag.missingConstFinalVarOrType, 0, 1)]);
   }
 
   void test_missingEnumComma() {
-    createParser('enum E {one two}');
-    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
-    expectNotNullIfNoErrors(declaration);
-    listener.assertErrors([expectedError(diag.expectedToken, 12, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+enum E {one two}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 12, 3)]);
   }
 
   void test_missingExpressionInThrow() {
-    var expression =
-        (parseStatement('throw;') as ExpressionStatement).expression
-            as ThrowExpression;
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([expectedError(diag.missingExpressionInThrow, 5, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  throw;
+}
+''');
+    parseResult.assertErrors([error(diag.missingExpressionInThrow, 18, 1)]);
   }
 
   void test_missingFunctionBody_emptyNotAllowed() {
-    createParser(';');
-    FunctionBody functionBody = parser.parseFunctionBody(
-      false,
-      diag.missingFunctionBody,
-      false,
-    );
-    expectNotNullIfNoErrors(functionBody);
-    listener.assertErrors([expectedError(diag.missingFunctionBody, 0, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f();
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 8, 1)]);
   }
 
   void test_missingFunctionBody_invalid() {
-    createParser('return 0;');
-    FunctionBody functionBody = parser.parseFunctionBody(
-      false,
-      diag.missingFunctionBody,
-      false,
-    );
-    expectNotNullIfNoErrors(functionBody);
-    listener.assertErrors([expectedError(diag.missingFunctionBody, 0, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() return 0;
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 9, 6)]);
   }
 
   void test_missingFunctionParameters_local_nonVoid_block() {
     // The parser does not recognize this as a function declaration, so it tries
     // to parse it as an expression statement. It isn't clear what the best
     // error message is in this case.
-    parseStatement("int f { return x;}", expectedEndOffset: 6);
-    listener.assertErrors([expectedError(diag.expectedToken, 4, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  int f { return x;}
+}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 17, 1)]);
   }
 
   void test_missingFunctionParameters_local_nonVoid_expression() {
     // The parser does not recognize this as a function declaration, so it tries
     // to parse it as an expression statement. It isn't clear what the best
     // error message is in this case.
-    parseStatement("int f => x;");
-    listener.assertErrors([
-      expectedError(diag.missingFunctionParameters, 6, 2),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  int f => x;
+}
+''');
+    parseResult.assertErrors([error(diag.missingFunctionParameters, 19, 2)]);
   }
 
   void test_missingFunctionParameters_local_void_block() {
-    parseStatement("void f { return x;}", expectedEndOffset: 7);
-    listener.assertErrors([expectedError(diag.expectedToken, 5, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  void f { return x;}
+}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 18, 1)]);
   }
 
   void test_missingFunctionParameters_local_void_expression() {
-    parseStatement("void f => x;");
-    listener.assertErrors([
-      expectedError(diag.missingFunctionParameters, 7, 2),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  void f => x;
+}
+''');
+    parseResult.assertErrors([error(diag.missingFunctionParameters, 20, 2)]);
   }
 
   void test_missingFunctionParameters_topLevel_nonVoid_block() {
-    parseCompilationUnit(
-      "int f { return x;}",
-      diagnostics: [expectedError(diag.missingFunctionParameters, 4, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+int f { return x;}
+''');
+    parseResult.assertErrors([error(diag.missingFunctionParameters, 4, 1)]);
   }
 
   void test_missingFunctionParameters_topLevel_nonVoid_expression() {
-    parseCompilationUnit(
-      "int f => x;",
-      diagnostics: [expectedError(diag.missingFunctionParameters, 4, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+int f => x;
+''');
+    parseResult.assertErrors([error(diag.missingFunctionParameters, 4, 1)]);
   }
 
   void test_missingFunctionParameters_topLevel_void_block() {
-    CompilationUnit unit = parseCompilationUnit(
-      "void f { return x;}",
-      diagnostics: [expectedError(diag.missingFunctionParameters, 5, 1)],
-    );
-    var funct = unit.declarations[0] as FunctionDeclaration;
-    expect(funct.functionExpression.parameters, hasLength(0));
+    var result = parseStringWithErrors(r'''
+void f { return x;}
+''');
+    result.assertErrors([error(diag.missingFunctionParameters, 5, 1)]);
+
+    var node = result.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: f
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        statements
+          ReturnStatement
+            returnKeyword: return
+            expression: SimpleIdentifier
+              token: x
+            semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_missingFunctionParameters_topLevel_void_expression() {
-    CompilationUnit unit = parseCompilationUnit(
-      "void f => x;",
-      diagnostics: [expectedError(diag.missingFunctionParameters, 5, 1)],
-    );
-    var funct = unit.declarations[0] as FunctionDeclaration;
-    expect(funct.functionExpression.parameters, hasLength(0));
+    var result = parseStringWithErrors(r'''
+void f => x;
+''');
+    result.assertErrors([error(diag.missingFunctionParameters, 5, 1)]);
+
+    var node = result.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: f
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: SimpleIdentifier
+        token: x
+      semicolon: ;
+''');
   }
 
   void test_missingIdentifier_afterOperator() {
-    createParser('1 *');
-    var expression = parser.parseMultiplicativeExpression() as BinaryExpression;
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 3, 0)]);
+    var parseResult = parseStringWithErrors(r'''
+var a = 1 *;
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
   }
 
   void test_missingIdentifier_beforeClosingCurly() {
-    createParser('int}', expectedEndOffset: 3);
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.missingConstFinalVarOrType, 0, 3),
-      expectedError(diag.expectedToken, 0, 3),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int
+}
+''');
+    parseResult.assertErrors([
+      error(
+        diag.missingConstFinalVarOrType,
+        12,
+        3,
+      ), // offset adjusted for indentation/newlines
+      error(diag.expectedToken, 12, 3),
     ]);
   }
 
   void test_missingIdentifier_inEnum() {
-    createParser('enum E {, TWO}');
-    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
-    expectNotNullIfNoErrors(declaration);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 8, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+enum E {, TWO}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 8, 1)]);
   }
 
   void test_missingIdentifier_inParameterGroupNamed() {
-    createParser('(a, {})');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 5, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a, {}) {}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
   }
 
   void test_missingIdentifier_inParameterGroupOptional() {
-    createParser('(a, [])');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 5, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a, []) {}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
   }
 
   void test_missingIdentifier_inSymbol_afterPeriod() {
-    SymbolLiteral literal = parseSymbolLiteral('#a.');
-    expectNotNullIfNoErrors(literal);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 3, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+var s = #a.;
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
   }
 
   void test_missingIdentifier_inSymbol_first() {
-    SymbolLiteral literal = parseSymbolLiteral('#');
-    expectNotNullIfNoErrors(literal);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 1, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+var s = #;
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 9, 1)]);
   }
 
   void test_missingIdentifierForParameterGroup() {
-    createParser('(,)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 1, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(,) {}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 7, 1)]);
   }
 
   void test_missingKeywordOperator() {
-    createParser('+(x) {}');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expectNotNullIfNoErrors(method);
-    listener.assertErrors([expectedError(diag.missingKeywordOperator, 0, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  +(x) {}
+}
+''');
+    parseResult.assertErrors([error(diag.missingKeywordOperator, 12, 1)]);
   }
 
   void test_missingKeywordOperator_parseClassMember() {
-    createParser('+() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.missingKeywordOperator, 0, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  +() {}
+}
+''');
+    parseResult.assertErrors([error(diag.missingKeywordOperator, 12, 1)]);
   }
 
   void test_missingKeywordOperator_parseClassMember_afterTypeName() {
-    createParser('int +() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.missingKeywordOperator, 4, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int +() {}
+}
+''');
+    parseResult.assertErrors([error(diag.missingKeywordOperator, 16, 1)]);
   }
 
   void test_missingKeywordOperator_parseClassMember_afterVoid() {
-    createParser('void +() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.missingKeywordOperator, 5, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void +() {}
+}
+''');
+    parseResult.assertErrors([error(diag.missingKeywordOperator, 17, 1)]);
   }
 
   void test_missingMethodParameters_void_block() {
-    createParser('void m {} }', expectedEndOffset: 10);
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.missingMethodParameters, 5, 1)]);
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.parameters, hasLength(0));
+    var result = parseStringWithErrors(r'''
+class C {
+  void m {}
+}
+''');
+    result.assertErrors([error(diag.missingMethodParameters, 17, 1)]);
+
+    var member = result.findNode.singleMethodDeclaration;
+    assertParsedNodeText(member, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_missingMethodParameters_void_expression() {
-    createParser('void m => null; }', expectedEndOffset: 16);
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.missingMethodParameters, 5, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void m => null;
+}
+''');
+    parseResult.assertErrors([error(diag.missingMethodParameters, 17, 1)]);
   }
 
   void test_missingNameForNamedParameter_colon() {
-    createParser('({int : 0})');
-    FormalParameter parameter = parser
-        .parseFormalParameterList(inFunctionType: true)
-        .parameters[0];
-    expectNotNullIfNoErrors(parameter);
-    listener.assertErrors([
-      expectedError(diag.missingIdentifier, 6, 1),
-      expectedError(diag.defaultValueInFunctionType, 6, 1),
+    var result = parseStringWithErrors(r'''
+typedef F = void Function({int : 0});
+''');
+    result.assertErrors([
+      error(diag.missingIdentifier, 31, 1),
+      error(diag.defaultValueInFunctionType, 31, 1),
     ]);
-    expect(parameter.name, isNotNull);
+
+    var parameter = result.findNode.singleFormalParameterList;
+    assertParsedNodeText(parameter, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: <empty> <synthetic>
+    separator: :
+    defaultValue: IntegerLiteral
+      literal: 0
+  rightDelimiter: }
+  rightParenthesis: )
+''');
   }
 
   void test_missingNameForNamedParameter_equals() {
-    createParser('({int = 0})');
-    FormalParameter parameter = parser
-        .parseFormalParameterList(inFunctionType: true)
-        .parameters[0];
-    expectNotNullIfNoErrors(parameter);
-    listener.assertErrors([
-      expectedError(diag.missingIdentifier, 6, 1),
-      expectedError(diag.defaultValueInFunctionType, 6, 1),
+    var result = parseStringWithErrors(r'''
+typedef F = void Function({int = 0});
+''');
+    result.assertErrors([
+      error(diag.missingIdentifier, 31, 1),
+      error(diag.defaultValueInFunctionType, 31, 1),
     ]);
-    expect(parameter.name, isNotNull);
+
+    var parameter = result.findNode.singleFormalParameterList;
+    assertParsedNodeText(parameter, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: <empty> <synthetic>
+    separator: =
+    defaultValue: IntegerLiteral
+      literal: 0
+  rightDelimiter: }
+  rightParenthesis: )
+''');
   }
 
   void test_missingNameForNamedParameter_noDefault() {
-    createParser('({int})');
-    FormalParameter parameter = parser
-        .parseFormalParameterList(inFunctionType: true)
-        .parameters[0];
-    expectNotNullIfNoErrors(parameter);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 5, 1)]);
-    expect(parameter.name, isNotNull);
+    var result = parseStringWithErrors(r'''
+typedef F = void Function({int});
+''');
+    result.assertErrors([error(diag.missingIdentifier, 30, 1)]);
+
+    var parameter = result.findNode.singleFormalParameterList;
+    assertParsedNodeText(parameter, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: <empty> <synthetic>
+  rightDelimiter: }
+  rightParenthesis: )
+''');
   }
 
   void test_missingNameInPartOfDirective() {
-    CompilationUnit unit = parseCompilationUnit(
-      "part of;",
-      diagnostics: [expectedError(diag.expectedStringLiteral, 7, 1)],
-    );
-    expect(unit, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+part of;
+''');
+    parseResult.assertErrors([error(diag.expectedStringLiteral, 7, 1)]);
   }
 
   void test_missingPrefixInDeferredImport() {
-    parseCompilationUnit(
-      "import 'foo.dart' deferred;",
-      diagnostics: [expectedError(diag.missingPrefixInDeferredImport, 18, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+import 'foo.dart' deferred;
+''');
+    parseResult.assertErrors([
+      error(diag.missingPrefixInDeferredImport, 18, 8),
+    ]);
   }
 
   void test_missingStartAfterSync() {
-    createParser('sync {}');
-    FunctionBody functionBody = parser.parseFunctionBody(
-      false,
-      diag.missingFunctionBody,
-      false,
-    );
-    expectNotNullIfNoErrors(functionBody);
-    listener.assertErrors([expectedError(diag.missingStarAfterSync, 0, 4)]);
+    var parseResult = parseStringWithErrors(r'''
+main() sync {}
+''');
+    parseResult.assertErrors([error(diag.missingStarAfterSync, 7, 4)]);
   }
 
   void test_missingStatement() {
-    parseStatement("is");
-    listener.assertErrors([
-      expectedError(diag.expectedToken, 0, 2),
-      expectedError(diag.missingIdentifier, 0, 2),
-      expectedError(diag.expectedTypeName, 2, 0),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  is
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 13, 2),
+      error(diag.expectedToken, 13, 2),
+      error(diag.expectedTypeName, 16, 1),
     ]);
   }
 
   void test_missingStatement_afterVoid() {
-    parseStatement("void;");
-    listener.assertErrors([expectedError(diag.missingIdentifier, 4, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  void;
+}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 17, 1)]);
   }
 
   void test_missingTerminatorForParameterGroup_named() {
-    createParser('(a, {b: 0)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 9, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a, {b: 0) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 15, 1)]);
   }
 
   void test_missingTerminatorForParameterGroup_optional() {
-    createParser('(a, [b = 0)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 10, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a, [b = 0) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 16, 1)]);
   }
 
   void test_missingTypedefParameters_nonVoid() {
-    parseCompilationUnit(
-      "typedef int F;",
-      diagnostics: [expectedError(diag.missingTypedefParameters, 13, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+typedef int F;
+''');
+    parseResult.assertErrors([error(diag.missingTypedefParameters, 13, 1)]);
   }
 
   void test_missingTypedefParameters_typeParameters() {
-    parseCompilationUnit(
-      "typedef F<E>;",
-      diagnostics: [expectedError(diag.missingTypedefParameters, 12, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+typedef F<E>;
+''');
+    parseResult.assertErrors([error(diag.missingTypedefParameters, 12, 1)]);
   }
 
   void test_missingTypedefParameters_void() {
-    parseCompilationUnit(
-      "typedef void F;",
-      diagnostics: [expectedError(diag.missingTypedefParameters, 14, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+typedef void F;
+''');
+    parseResult.assertErrors([error(diag.missingTypedefParameters, 14, 1)]);
   }
 
   void test_missingVariableInForEach() {
-    var statement = parseStatement('for (a < b in foo) {}');
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([expectedError(diag.unexpectedToken, 7, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for (a < b in foo) {}
+}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 20, 1)]);
   }
 
   void test_mixedParameterGroups_namedPositional() {
-    createParser('(a, {b}, [c])');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 7, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a, {b}, [c]) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
   }
 
   void test_mixedParameterGroups_positionalNamed() {
-    createParser('(a, [b], {c})');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 7, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a, [b], {c}) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
   }
 
   void test_mixin_application_lacks_with_clause() {
-    parseCompilationUnit(
-      "class Foo = Bar;",
-      diagnostics: [expectedError(diag.expectedToken, 15, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class Foo = Bar;
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 15, 1)]);
   }
 
   void test_multipleExtendsClauses() {
-    parseCompilationUnit(
-      "class A extends B extends C {}",
-      diagnostics: [expectedError(diag.multipleExtendsClauses, 18, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class A extends B extends C {}
+''');
+    parseResult.assertErrors([error(diag.multipleExtendsClauses, 18, 7)]);
   }
 
   void test_multipleImplementsClauses() {
-    parseCompilationUnit(
-      "class A implements B implements C {}",
-      diagnostics: [expectedError(diag.multipleImplementsClauses, 21, 10)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class A implements B implements C {}
+''');
+    parseResult.assertErrors([error(diag.multipleImplementsClauses, 21, 10)]);
   }
 
   void test_multipleLibraryDirectives() {
-    parseCompilationUnit(
-      "library l; library m;",
-      diagnostics: [expectedError(diag.multipleLibraryDirectives, 11, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+library l; library m;
+''');
+    parseResult.assertErrors([error(diag.multipleLibraryDirectives, 11, 7)]);
   }
 
   void test_multipleNamedParameterGroups() {
-    createParser('(a, {b}, {c})');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 7, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a, {b}, {c}) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
   }
 
   void test_multiplePartOfDirectives() {
-    parseCompilationUnit(
-      "part of l; part of m;",
-      diagnostics: [expectedError(diag.multiplePartOfDirectives, 11, 4)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+part of l; part of m;
+''');
+    parseResult.assertErrors([
+      error(diag.partOfName, 8, 1),
+      error(diag.multiplePartOfDirectives, 11, 4),
+      error(diag.partOfName, 19, 1),
+    ]);
   }
 
   void test_multiplePositionalParameterGroups() {
-    createParser('(a, [b], [c])');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 7, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a, [b], [c]) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
   }
 
   void test_multipleVariablesInForEach() {
-    var statement = parseStatement('for (int a, b in foo) {}');
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([expectedError(diag.unexpectedToken, 10, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  for (int a, b in foo) {}
+}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 23, 1)]);
   }
 
   void test_multipleWithClauses() {
-    parseCompilationUnit(
-      "class A extends B with C with D {}",
-      diagnostics: [expectedError(diag.multipleWithClauses, 25, 4)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class A extends B with C with D {}
+''');
+    parseResult.assertErrors([error(diag.multipleWithClauses, 25, 4)]);
   }
 
   void test_namedFunctionExpression() {
-    Expression expression;
-    createParser('f() {}');
-    expression = parser.parsePrimaryExpression();
-    listener.assertErrors([expectedError(diag.namedFunctionExpression, 0, 1)]);
-    expect(expression, isFunctionExpression);
+    var parseResult = parseStringWithErrors(r'''
+var x = (f() {});
+''');
+    parseResult.assertErrors([error(diag.namedFunctionExpression, 9, 1)]);
+
+    var node = parseResult.findNode.singleParenthesizedExpression;
+    assertParsedNodeText(node, r'''
+ParenthesizedExpression
+  leftParenthesis: (
+  expression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+  rightParenthesis: )
+''');
   }
 
   void test_namedParameterOutsideGroup() {
-    createParser('(a, b : 0)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([
-      expectedError(diag.namedParameterOutsideGroup, 6, 1),
-    ]);
-    expect(list.parameters[0].isRequired, isTrue);
-    expect(list.parameters[1].isNamed, isTrue);
+    var result = parseStringWithErrors(r'''
+void f(a, b : 0) {}
+''');
+    result.assertErrors([error(diag.namedParameterOutsideGroup, 12, 1)]);
+
+    var list = result.findNode.singleFormalParameterList;
+    assertParsedNodeText(list, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    name: a
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      name: b
+    separator: :
+    defaultValue: IntegerLiteral
+      literal: 0
+  rightParenthesis: )
+''');
   }
 
   void test_nonConstructorFactory_field() {
-    createParser('factory int x;', expectedEndOffset: 12);
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.missingFunctionParameters, 12, 1),
-      expectedError(diag.missingFunctionBody, 12, 1),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  factory int x;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionParameters, 24, 1),
+      error(diag.missingFunctionBody, 24, 1),
+      error(diag.missingConstFinalVarOrType, 24, 1),
     ]);
   }
 
   void test_nonConstructorFactory_method() {
-    createParser('factory int m() {}', expectedEndOffset: 12);
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.missingFunctionParameters, 12, 1),
-      expectedError(diag.missingFunctionBody, 12, 1),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  factory int m() {}
+}
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionParameters, 24, 1),
+      error(diag.missingFunctionBody, 24, 1),
     ]);
   }
 
   void test_nonIdentifierLibraryName_library() {
-    CompilationUnit unit = parseCompilationUnit(
-      "library 'lib';",
-      diagnostics: [expectedError(diag.missingIdentifier, 8, 5)],
-    );
-    expect(unit, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+library 'lib';
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 8, 5)]);
   }
 
   void test_nonIdentifierLibraryName_partOf() {
-    CompilationUnit unit = parseCompilationUnit(
-      "part of 3;",
-      diagnostics: [
-        expectedError(diag.expectedToken, 5, 2),
-        expectedError(diag.expectedStringLiteral, 8, 1),
-        expectedError(diag.expectedExecutable, 8, 1),
-        expectedError(diag.unexpectedToken, 9, 1),
-      ],
-    );
-    expect(unit, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+part of 3;
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 5, 2),
+      error(diag.expectedStringLiteral, 8, 1),
+      error(diag.expectedExecutable, 8, 1),
+      error(diag.unexpectedToken, 9, 1),
+    ]);
   }
 
   void test_nonUserDefinableOperator() {
-    createParser('operator +=(int x) => x + 1;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.invalidOperator, 9, 2)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  operator +=(int x) => x + 1;
+}
+''');
+    parseResult.assertErrors([error(diag.invalidOperator, 21, 2)]);
   }
 
   void test_optionalAfterNormalParameters_named() {
-    parseCompilationUnit(
-      "f({a}, b) {}",
-      diagnostics: [expectedError(diag.expectedToken, 5, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+f({a}, b) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 5, 1)]);
   }
 
   void test_optionalAfterNormalParameters_positional() {
-    parseCompilationUnit(
-      "f([a], b) {}",
-      diagnostics: [expectedError(diag.expectedToken, 5, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+f([a], b) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 5, 1)]);
   }
 
   void test_parseCascadeSection_missingIdentifier() {
-    var methodInvocation = parseCascadeSection('..()') as MethodInvocation;
-    expectNotNullIfNoErrors(methodInvocation);
-    listener.assertErrors([
-      // Cascade section is preceded by `null` in this test
-      // and error is reported on '('.
-      expectedError(diag.missingIdentifier, 6, 1),
+    var result = parseStringWithErrors(r'''
+var x = a..();
+''');
+    result.assertErrors([
+      error(diag.missingIdentifier, 11, 1), // at '('
     ]);
-    expect(methodInvocation.target, isNull);
-    expect(methodInvocation.methodName.name, "");
-    expect(methodInvocation.typeArguments, isNull);
-    expect(methodInvocation.argumentList.arguments, hasLength(0));
+
+    var methodInvocation = result.findNode.singleMethodInvocation;
+    assertParsedNodeText(methodInvocation, r'''
+MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_parseCascadeSection_missingIdentifier_typeArguments() {
-    var methodInvocation = parseCascadeSection('..<E>()') as MethodInvocation;
-    expectNotNullIfNoErrors(methodInvocation);
-    listener.assertErrors([
-      // Cascade section is preceded by `null` in this test
-      // and error is reported on '<'.
-      expectedError(diag.missingIdentifier, 6, 1),
+    var result = parseStringWithErrors(r'''
+var x = a..<E>();
+''');
+    result.assertErrors([
+      error(diag.missingIdentifier, 11, 1), // at '<'
     ]);
-    expect(methodInvocation.target, isNull);
-    expect(methodInvocation.methodName.name, "");
-    expect(methodInvocation.typeArguments, isNotNull);
-    expect(methodInvocation.argumentList.arguments, hasLength(0));
+    var methodInvocation = result.findNode.singleMethodInvocation;
+    assertParsedNodeText(methodInvocation, r'''
+MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: E
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
   }
 
   void test_partialNamedConstructor() {
-    parseCompilationUnit(
-      'class C { C. }',
-      diagnostics: [
-        expectedError(diag.missingIdentifier, 13, 1),
-        expectedError(diag.missingMethodParameters, 10, 1),
-        expectedError(diag.missingFunctionBody, 13, 1),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { C. }
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 13, 1),
+      error(diag.missingMethodParameters, 10, 1),
+      error(diag.missingFunctionBody, 13, 1),
+    ]);
   }
 
   void test_positionalAfterNamedArgument() {
-    createParser('(x: 1, 2)', featureSet: FeatureSets.language_2_16);
-    ArgumentList list = parser.parseArgumentList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([
-      expectedError(diag.positionalAfterNamedArgument, 7, 1),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  g(x: 1, 2);
+}
+''', featureSet: FeatureSets.language_2_16);
+    parseResult.assertErrors([error(diag.positionalAfterNamedArgument, 21, 1)]);
   }
 
   void test_positionalParameterOutsideGroup() {
-    createParser('(a, b = 0)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([
-      expectedError(diag.namedParameterOutsideGroup, 6, 1),
-    ]);
-    expect(list.parameters[0].isRequired, isTrue);
-    expect(list.parameters[1].isNamed, isTrue);
+    var result = parseStringWithErrors(r'''
+void f(a, b = 0) {}
+''');
+    result.assertErrors([error(diag.namedParameterOutsideGroup, 12, 1)]);
+    var list = result.findNode.singleFormalParameterList;
+    assertParsedNodeText(list, r'''
+FormalParameterList
+  leftParenthesis: (
+  parameter: SimpleFormalParameter
+    name: a
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      name: b
+    separator: =
+    defaultValue: IntegerLiteral
+      literal: 0
+  rightParenthesis: )
+''');
   }
 
   void test_redirectionInNonFactoryConstructor() {
-    createParser('C() = D;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.redirectionInNonFactoryConstructor, 4, 1),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C() = D;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.redirectionInNonFactoryConstructor, 16, 1),
     ]);
   }
 
   void test_setterInFunction_block() {
-    parseStatement("set x(v) {_x = v;}");
-    listener.assertErrors([expectedError(diag.unexpectedToken, 0, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  set x(v) {_x = v;}
+}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 13, 3)]);
   }
 
   void test_setterInFunction_expression() {
-    parseStatement("set x(v) => _x = v;");
-    listener.assertErrors([expectedError(diag.unexpectedToken, 0, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  set x(v) => _x = v;
+}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 13, 3)]);
   }
 
   void test_staticAfterConst() {
-    createParser('final static int f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.modifierOutOfOrder, 6, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  final static int f = 0;
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 18, 6)]);
   }
 
   void test_staticAfterFinal() {
-    createParser('const static int f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.modifierOutOfOrder, 6, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const static int f = 0;
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 18, 6)]);
   }
 
   void test_staticAfterVar() {
-    createParser('var static f;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.modifierOutOfOrder, 4, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var static f = 0;
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 16, 6)]);
   }
 
   void test_staticConstructor() {
-    createParser('static C.m() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.staticConstructor, 0, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static C.m() {}
+}
+''');
+    parseResult.assertErrors([error(diag.staticConstructor, 12, 6)]);
   }
 
   void test_staticGetterWithoutBody() {
-    createParser('static get m;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.missingFunctionBody, 12, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static get m;
+}
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 24, 1)]);
   }
 
   void test_staticOperator_noReturnType() {
-    createParser('static operator +(int x) => x + 1;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.staticOperator, 0, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static operator +(int x) => x + 1;
+}
+''');
+    parseResult.assertErrors([error(diag.staticOperator, 12, 6)]);
   }
 
   void test_staticOperator_returnType() {
-    createParser('static int operator +(int x) => x + 1;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.staticOperator, 0, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static int operator +(int x) => x + 1;
+}
+''');
+    parseResult.assertErrors([error(diag.staticOperator, 12, 6)]);
   }
 
   void test_staticOperatorNamedMethod() {
     // operator can be used as a method name
-    parseCompilationUnit('class C { static operator(x) => x; }');
+    var parseResult = parseStringWithErrors(r'''
+class C { static operator(x) => x; }
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_staticSetterWithoutBody() {
-    createParser('static set m(x);');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.missingFunctionBody, 15, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static set m(x);
+}
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 27, 1)]);
   }
 
   void test_staticTopLevelDeclaration_class() {
-    parseCompilationUnit(
-      "static class C {}",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 6)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+static class C {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_enum() {
-    parseCompilationUnit(
-      "static enum E { v }",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 6)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+static enum E { v }
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_function() {
-    parseCompilationUnit(
-      "static f() {}",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 6)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+static f() {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_typedef() {
-    parseCompilationUnit(
-      "static typedef F();",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 6)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+static typedef F();
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_variable() {
-    parseCompilationUnit(
-      "static var x;",
-      diagnostics: [expectedError(diag.extraneousModifier, 0, 6)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+static var x;
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
   }
 
   void test_string_unterminated_interpolation_block() {
-    parseCompilationUnit(
-      r'''
+    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
+    var parseResult = parseStringWithErrors(r'''
 m() {
  {
  '${${
-''',
-      codes: [
-        diag.unterminatedStringLiteral,
-        diag.expectedToken,
-        diag.expectedToken,
-        diag.expectedToken,
-        diag.expectedToken,
-        diag.expectedToken,
-        diag.expectedToken,
-      ],
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 14, 1),
+      error(diag.unterminatedStringLiteral, 15, 1),
+      error(diag.expectedToken, 16, 1),
+      error(diag.expectedToken, 16, 0),
+    ]);
   }
 
   void test_switchCase_missingColon() {
-    var statement =
-        parseStatement('switch (a) {case 1 return 0;}') as SwitchStatement;
-    expect(statement, isNotNull);
-    listener.assertErrors([expectedError(diag.expectedToken, 19, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (a) {case 1 return 0;}
+}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 32, 6)]);
   }
 
   void test_switchDefault_missingColon() {
-    var statement =
-        parseStatement('switch (a) {default return 0;}') as SwitchStatement;
-    expect(statement, isNotNull);
-    listener.assertErrors([expectedError(diag.expectedToken, 20, 6)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (a) {default return 0;}
+}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 33, 6)]);
   }
 
   void test_switchHasCaseAfterDefaultCase() {
-    var statement =
-        parseStatement('switch (a) {default: return 0; case 1: return 1;}')
-            as SwitchStatement;
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.switchHasCaseAfterDefaultCase, 31, 4),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (a) {default: return 0; case 1: return 1;}
+}
+''');
+    parseResult.assertErrors([
+      error(diag.switchHasCaseAfterDefaultCase, 44, 4),
     ]);
   }
 
   void test_switchHasCaseAfterDefaultCase_repeated() {
-    var statement =
-        parseStatement(
-              'switch (a) {default: return 0; case 1: return 1; case 2: return 2;}',
-            )
-            as SwitchStatement;
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.switchHasCaseAfterDefaultCase, 31, 4),
-      expectedError(diag.switchHasCaseAfterDefaultCase, 49, 4),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (a) {default: return 0; case 1: return 1; case 2: return 2;}
+}
+''');
+    parseResult.assertErrors([
+      error(diag.switchHasCaseAfterDefaultCase, 44, 4),
+      error(diag.switchHasCaseAfterDefaultCase, 62, 4),
     ]);
   }
 
   void test_switchHasMultipleDefaultCases() {
-    var statement =
-        parseStatement('switch (a) {default: return 0; default: return 1;}')
-            as SwitchStatement;
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.switchHasMultipleDefaultCases, 31, 7),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (a) {default: return 0; default: return 1;}
+}
+''');
+    parseResult.assertErrors([
+      error(diag.switchHasMultipleDefaultCases, 44, 7),
     ]);
   }
 
   void test_switchHasMultipleDefaultCases_repeated() {
-    var statement =
-        parseStatement(
-              'switch (a) {default: return 0; default: return 1; default: return 2;}',
-            )
-            as SwitchStatement;
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrors([
-      expectedError(diag.switchHasMultipleDefaultCases, 31, 7),
-      expectedError(diag.switchHasMultipleDefaultCases, 50, 7),
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (a) {default: return 0; default: return 1; default: return 2;}
+}
+''');
+    parseResult.assertErrors([
+      error(diag.switchHasMultipleDefaultCases, 44, 7),
+      error(diag.switchHasMultipleDefaultCases, 63, 7),
     ]);
   }
 
   void test_switchMissingBlock() {
-    var statement =
-        parseStatement('switch (a) return;', expectedEndOffset: 11)
-            as SwitchStatement;
-    expect(statement, isNotNull);
-    listener.assertErrors([
-      expectedError(diag.expectedSwitchStatementBody, 9, 1),
-    ]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  switch (a) return;
+}
+''');
+    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 22, 1)]);
   }
 
   void test_topLevel_getter() {
-    createParser('get x => 7;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
-    expect(member, isFunctionDeclaration);
-    var function = member as FunctionDeclaration;
-    expect(function.functionExpression.parameters, isNull);
+    var result = parseStringWithErrors(r'''
+get x => 7;
+''');
+    result.assertNoErrors();
+    var node = result.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  propertyKeyword: get
+  name: x
+  functionExpression: FunctionExpression
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: IntegerLiteral
+        literal: 7
+      semicolon: ;
+''');
   }
 
   void test_topLevelFactory_withFunction() {
-    parseCompilationUnit(
-      'factory Function() x = null;',
-      diagnostics: [expectedError(diag.factoryTopLevelDeclaration, 0, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+factory Function() x = null;
+''');
+    parseResult.assertErrors([error(diag.factoryTopLevelDeclaration, 0, 7)]);
   }
 
   void test_topLevelOperator_withFunction() {
-    parseCompilationUnit(
-      'operator Function() x = null;',
-      diagnostics: [expectedError(diag.topLevelOperator, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+operator Function() x = null;
+''');
+    parseResult.assertErrors([error(diag.topLevelOperator, 0, 8)]);
   }
 
   void test_topLevelOperator_withoutOperator() {
-    createParser('+(bool x, bool y) => x | y;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.topLevelOperator, 0, 1)]);
+    var parseResult = parseStringWithErrors(r'''
++(bool x, bool y) => x | y;
+''');
+    parseResult.assertErrors([error(diag.topLevelOperator, 0, 1)]);
   }
 
   void test_topLevelOperator_withoutType() {
-    parseCompilationUnit(
-      'operator +(bool x, bool y) => x | y;',
-      diagnostics: [expectedError(diag.topLevelOperator, 0, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+operator +(bool x, bool y) => x | y;
+''');
+    parseResult.assertErrors([error(diag.topLevelOperator, 0, 8)]);
   }
 
   void test_topLevelOperator_withType() {
-    parseCompilationUnit(
-      'bool operator +(bool x, bool y) => x | y;',
-      diagnostics: [expectedError(diag.topLevelOperator, 5, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+bool operator +(bool x, bool y) => x | y;
+''');
+    parseResult.assertErrors([error(diag.topLevelOperator, 5, 8)]);
   }
 
   void test_topLevelOperator_withVoid() {
-    parseCompilationUnit(
-      'void operator +(bool x, bool y) => x | y;',
-      diagnostics: [expectedError(diag.topLevelOperator, 5, 8)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+void operator +(bool x, bool y) => x | y;
+''');
+    parseResult.assertErrors([error(diag.topLevelOperator, 5, 8)]);
   }
 
   void test_topLevelVariable_withMetadata() {
-    parseCompilationUnit(
-      "String @A string;",
-      codes: [
-        diag.missingConstFinalVarOrType,
-        diag.expectedToken,
-        diag.missingConstFinalVarOrType,
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+String @A string;
+''');
+    parseResult.assertErrors([
+      error(diag.missingConstFinalVarOrType, 0, 6),
+      error(diag.expectedToken, 0, 6),
+      error(diag.missingConstFinalVarOrType, 10, 6),
+    ]);
   }
 
   void test_typedef_incomplete() {
     // TODO(brianwilkerson): Improve recovery for this case.
-    parseCompilationUnit(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A {}
 class B extends A {}
 
@@ -2781,143 +3402,148 @@ typedef T
 main() {
   Function<
 }
-''',
-      diagnostics: [
-        expectedError(diag.expectedToken, 49, 1),
-        expectedError(diag.expectedExecutable, 51, 1),
-      ],
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 49, 1),
+      error(diag.expectedExecutable, 51, 1),
+    ]);
   }
 
   void test_typedef_namedFunction() {
-    parseCompilationUnit(
-      'typedef void Function();',
-      codes: [diag.expectedIdentifierButGotKeyword],
-    );
+    var parseResult = parseStringWithErrors(r'''
+typedef void Function();
+''');
+    parseResult.assertErrors([
+      error(diag.expectedIdentifierButGotKeyword, 13, 8),
+    ]);
   }
 
   void test_typedefInClass_withoutReturnType() {
-    parseCompilationUnit(
-      "class C { typedef F(x); }",
-      diagnostics: [expectedError(diag.typedefInClass, 10, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { typedef F(x); }
+''');
+    parseResult.assertErrors([error(diag.typedefInClass, 10, 7)]);
   }
 
   void test_typedefInClass_withReturnType() {
-    parseCompilationUnit(
-      "class C { typedef int F(int x); }",
-      diagnostics: [expectedError(diag.typedefInClass, 10, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { typedef int F(int x); }
+''');
+    parseResult.assertErrors([error(diag.typedefInClass, 10, 7)]);
   }
 
   void test_unexpectedCommaThenInterpolation() {
     // https://github.com/Dart-Code/Dart-Code/issues/1548
-    parseCompilationUnit(
-      r"main() { String s = 'a' 'b', 'c$foo'; return s; }",
-      diagnostics: [
-        expectedError(diag.expectedToken, 27, 1),
-        expectedError(diag.missingIdentifier, 29, 2),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+main() { String s = 'a' 'b', 'c$foo'; return s; }
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 27, 1),
+      error(diag.missingIdentifier, 29, 2),
+    ]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_named() {
-    createParser('(a, b})');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 5, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a, b}) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 11, 1)]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_optional() {
-    createParser('(a, b])');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.expectedToken, 5, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(a, b]) {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 11, 1)]);
   }
 
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
-    parseStatement("String s = (null));", expectedEndOffset: 17);
-    listener.assertErrors([expectedError(diag.expectedToken, 16, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  String s = (null));
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 29, 1),
+      error(diag.missingIdentifier, 30, 1),
+      error(diag.unexpectedToken, 30, 1),
+    ]);
   }
 
   void test_unexpectedToken_invalidPostfixExpression() {
-    parseExpression(
-      "f()++",
-      diagnostics: [expectedError(diag.illegalAssignmentToNonAssignable, 3, 2)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = f()++;
+''');
+    parseResult.assertErrors([
+      error(diag.illegalAssignmentToNonAssignable, 11, 2),
+    ]);
   }
 
   void test_unexpectedToken_invalidPrefixExpression() {
-    parseExpression(
-      "++f()",
-      diagnostics: [expectedError(diag.missingAssignableSelector, 4, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = ++f();
+''');
+    parseResult.assertErrors([error(diag.missingAssignableSelector, 12, 1)]);
   }
 
   void test_unexpectedToken_returnInExpressionFunctionBody() {
-    parseCompilationUnit(
-      "f() => return null;",
-      diagnostics: [expectedError(diag.unexpectedToken, 7, 6)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+f() => return null;
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 7, 6)]);
   }
 
   void test_unexpectedToken_semicolonBetweenClassMembers() {
-    createParser('class C { int x; ; int y;}');
-    var declaration = parseFullCompilationUnitMember() as ClassDeclaration;
-    expectNotNullIfNoErrors(declaration);
-    listener.assertErrors([expectedError(diag.expectedClassMember, 17, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C { int x; ; int y;}
+''');
+    parseResult.assertErrors([error(diag.expectedClassMember, 17, 1)]);
   }
 
   void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() {
-    parseCompilationUnit(
-      "int x; ; int y;",
-      diagnostics: [expectedError(diag.unexpectedToken, 7, 1)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+int x; ; int y;
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 7, 1)]);
   }
 
   void test_unnamedLibraryDirective() {
-    CompilationUnit unit = parseCompilationUnit(
-      "library;",
+    parseStringWithErrors(
+      'library;',
       featureSet: FeatureSets.language_2_18,
-      diagnostics: [expectedError(diag.experimentNotEnabled, 0, 7)],
-    );
-    expect(unit, isNotNull);
+    ).assertErrors([error(diag.experimentNotEnabled, 0, 7)]);
   }
 
   void test_unnamedLibraryDirective_enabled() {
-    CompilationUnit unit = parseCompilationUnit("library;");
-    expect(unit, isNotNull);
+    var parseResult = parseStringWithErrors('library;');
+    parseResult.assertNoErrors();
   }
 
   void test_unterminatedString_at_eof() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    parseCompilationUnit(
-      r'''
+    var parseResult = parseStringWithErrors(r'''
 void main() {
-  var x = "''',
-      diagnostics: [
-        expectedError(diag.unterminatedStringLiteral, 24, 1),
-        expectedError(diag.expectedToken, 25, 1),
-        expectedError(diag.expectedToken, 24, 1),
-      ],
-    );
+  var x = "''');
+    parseResult.assertErrors([
+      error(diag.unterminatedStringLiteral, 24, 1),
+      error(diag.expectedToken, 25, 1),
+      error(diag.expectedToken, 24, 1),
+    ]);
   }
 
   void test_unterminatedString_at_eol() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    parseCompilationUnit(
-      r'''
+    var parseResult = parseStringWithErrors(r'''
 void main() {
   var x = "
 ;
 }
-''',
-      diagnostics: [expectedError(diag.unterminatedStringLiteral, 24, 1)],
-    );
+''');
+    parseResult.assertErrors([error(diag.unterminatedStringLiteral, 24, 1)]);
   }
 
   void test_unterminatedString_multiline_at_eof_3_quotes() {
@@ -2925,21 +3551,14 @@ void main() {
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    parseCompilationUnit(
-      r'''
+    var parseResult = parseStringWithErrors(r'''
 void main() {
-  var x = """''',
-      codes: [
-        diag.unterminatedStringLiteral,
-        diag.expectedToken,
-        diag.expectedToken,
-      ],
-      diagnostics: [
-        expectedError(diag.unterminatedStringLiteral, 24, 1),
-        expectedError(diag.expectedToken, 30, 0),
-        expectedError(diag.expectedToken, 30, 0),
-      ],
-    );
+  var x = """''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 24, 3),
+      error(diag.unterminatedStringLiteral, 26, 1),
+      error(diag.expectedToken, 27, 1),
+    ]);
   }
 
   void test_unterminatedString_multiline_at_eof_4_quotes() {
@@ -2947,21 +3566,14 @@ void main() {
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    parseCompilationUnit(
-      r'''
+    var parseResult = parseStringWithErrors(r'''
 void main() {
-  var x = """"''',
-      codes: [
-        diag.unterminatedStringLiteral,
-        diag.expectedToken,
-        diag.expectedToken,
-      ],
-      diagnostics: [
-        expectedError(diag.unterminatedStringLiteral, 24, 1),
-        expectedError(diag.expectedToken, 31, 0),
-        expectedError(diag.expectedToken, 31, 0),
-      ],
-    );
+  var x = """"''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 24, 4),
+      error(diag.unterminatedStringLiteral, 27, 1),
+      error(diag.expectedToken, 28, 1),
+    ]);
   }
 
   void test_unterminatedString_multiline_at_eof_5_quotes() {
@@ -2969,217 +3581,247 @@ void main() {
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    parseCompilationUnit(
-      r'''
+    var parseResult = parseStringWithErrors(r'''
 void main() {
-  var x = """""''',
-      codes: [
-        diag.unterminatedStringLiteral,
-        diag.expectedToken,
-        diag.expectedToken,
-      ],
-      diagnostics: [
-        expectedError(diag.unterminatedStringLiteral, 28, 1),
-        expectedError(diag.expectedToken, 32, 0),
-        expectedError(diag.expectedToken, 32, 0),
-      ],
-    );
+  var x = """""''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 24, 5),
+      error(diag.unterminatedStringLiteral, 28, 1),
+      error(diag.expectedToken, 29, 1),
+    ]);
   }
 
   void test_useOfUnaryPlusOperator() {
-    createParser('+x');
-    Expression expression = parser.parseUnaryExpression();
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 0, 1)]);
-    var binaryExpression = expression as BinaryExpression;
-    expect(binaryExpression.leftOperand.isSynthetic, isTrue);
-    expect(binaryExpression.rightOperand.isSynthetic, isFalse);
-    var identifier = binaryExpression.rightOperand as SimpleIdentifier;
-    expect(identifier.name, 'x');
+    var result = parseStringWithErrors('var v = +x;');
+    result.assertErrors([error(diag.missingIdentifier, 8, 1)]);
+    var binaryExpression = result.findNode.singleBinaryExpression;
+    assertParsedNodeText(binaryExpression, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: x
+''');
   }
 
   void test_varAndType_field() {
-    parseCompilationUnit(
-      "class C { var int x; }",
-      diagnostics: [expectedError(diag.varAndType, 10, 3)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C { var int x; }
+''');
+    parseResult.assertErrors([error(diag.varAndType, 10, 3)]);
   }
 
   void test_varAndType_local() {
     // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
     // this would be a better error message.
-    parseStatement("var int x;");
-    listener.assertErrors([expectedError(diag.varAndType, 0, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  var int x;
+}
+''');
+    parseResult.assertErrors([error(diag.varAndType, 13, 3)]);
   }
 
   void test_varAndType_parameter() {
     // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
     // this would be a better error message.
-    createParser('(var int x)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(diag.varAndType, 1, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+void f(var int x) {}
+''');
+    parseResult.assertErrors([
+      error(diag.extraneousModifier, 7, 3),
+      error(diag.varAndType, 7, 3),
+    ]);
   }
 
   void test_varAndType_topLevelVariable() {
-    parseCompilationUnit(
-      "var int x;",
-      diagnostics: [expectedError(diag.varAndType, 0, 3)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var int x;
+''');
+    parseResult.assertErrors([error(diag.varAndType, 0, 3)]);
   }
 
   void test_varAsTypeName_as() {
-    parseExpression(
-      "x as var",
-      expectedEndOffset: 5,
-      diagnostics: [expectedError(diag.expectedTypeName, 5, 3)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var v = x as var;
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 10, 2),
+      error(diag.expectedTypeName, 13, 3),
+      error(diag.missingIdentifier, 16, 1),
+    ]);
   }
 
   void test_varClass() {
-    parseCompilationUnit(
-      "var class C {}",
-      diagnostics: [
-        // Fasta interprets the `var` as a malformed top level var
-        // and `class` as the start of a class declaration.
-        expectedError(diag.expectedToken, 0, 3),
-        expectedError(diag.missingIdentifier, 4, 5),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var class C {}
+''');
+    parseResult.assertErrors([
+      // Fasta interprets the `var` as a malformed top level var
+      // and `class` as the start of a class declaration.
+      error(diag.expectedToken, 0, 3),
+      error(diag.missingIdentifier, 4, 5),
+    ]);
   }
 
   void test_varEnum() {
-    parseCompilationUnit(
-      "var enum E {ONE}",
-      diagnostics: [
-        // Fasta interprets the `var` as a malformed top level var
-        // and `enum` as the start of an enum declaration.
-        expectedError(diag.expectedToken, 0, 3),
-        expectedError(diag.missingIdentifier, 4, 4),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var enum E {ONE}
+''');
+    parseResult.assertErrors([
+      // Fasta interprets the `var` as a malformed top level var
+      // and `enum` as the start of an enum declaration.
+      error(diag.expectedToken, 0, 3),
+      error(diag.missingIdentifier, 4, 4),
+    ]);
   }
 
   void test_varReturnType() {
-    createParser('var m() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.varReturnType, 0, 3)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var m() {}
+}
+''');
+    parseResult.assertErrors([error(diag.varReturnType, 12, 3)]);
   }
 
   void test_varTypedef() {
-    parseCompilationUnit(
-      "var typedef F();",
-      diagnostics: [
-        // Fasta interprets the `var` as a malformed top level var
-        // and `typedef` as the start of an typedef declaration.
-        expectedError(diag.expectedToken, 0, 3),
-        expectedError(diag.missingIdentifier, 4, 7),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+var typedef F();
+''');
+    parseResult.assertErrors([
+      // Fasta interprets the `var` as a malformed top level var
+      // and `typedef` as the start of an typedef declaration.
+      error(diag.expectedToken, 0, 3),
+      error(diag.missingIdentifier, 4, 7),
+    ]);
   }
 
   void test_voidParameter() {
-    var parameter =
-        parseFormalParameterList('(void a)').parameters[0]
-            as NormalFormalParameter;
-    expectNotNullIfNoErrors(parameter);
-    assertNoErrors();
+    var result = parseStringWithErrors(r'''
+void f(void a) {}
+''');
+    result.assertNoErrors();
+    var node = result.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: void
+  name: a
+''');
   }
 
   void test_voidVariable_parseClassMember_initializer() {
-    createParser('void x = 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void x = 0;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_parseClassMember_noInitializer() {
-    createParser('void x;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void x;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_parseCompilationUnit_initializer() {
-    parseCompilationUnit("void x = 0;");
+    var parseResult = parseStringWithErrors(r'''
+void x = 0;
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_parseCompilationUnit_noInitializer() {
-    parseCompilationUnit("void x;");
+    var parseResult = parseStringWithErrors(r'''
+void x;
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_parseCompilationUnitMember_initializer() {
-    createParser('void a = 0;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void a = 0;
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_parseCompilationUnitMember_noInitializer() {
-    createParser('void a;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void a;
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_statement_initializer() {
-    parseStatement("void x = 0;");
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  void x = 0;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_statement_noInitializer() {
-    parseStatement("void x;");
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  void x;
+}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_withBeforeExtends() {
-    parseCompilationUnit(
-      "class A with B extends C {}",
-      diagnostics: [expectedError(diag.withBeforeExtends, 15, 7)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class A with B extends C {}
+''');
+    parseResult.assertErrors([error(diag.withBeforeExtends, 15, 7)]);
   }
 
   void test_withWithoutExtends() {
-    createParser('class A with B, C {}');
-    var declaration = parseFullCompilationUnitMember() as ClassDeclaration;
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+class A with B, C {}
+''');
+    parseResult.assertNoErrors();
   }
 
   void test_wrongSeparatorForPositionalParameter() {
-    createParser('(a, [b : 0])');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrors([
-      expectedError(diag.wrongSeparatorForPositionalParameter, 7, 1),
+    var parseResult = parseStringWithErrors(r'''
+void f(a, [b : 0]) {}
+''');
+    parseResult.assertErrors([
+      error(diag.wrongSeparatorForPositionalParameter, 13, 1),
     ]);
   }
 
   void test_wrongTerminatorForParameterGroup_named() {
-    createParser('(a, {b, c])');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    // fasta scanner generates '(a, {b, c]})' where '}' is synthetic
-    listener.assertErrors([
-      expectedError(diag.expectedToken, 9, 1),
-      expectedError(diag.expectedToken, 10, 1),
+    var parseResult = parseStringWithErrors(r'''
+void f(a, {b, c]) {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 15, 1),
+      error(diag.expectedToken, 16, 1),
     ]);
   }
 
   void test_wrongTerminatorForParameterGroup_optional() {
-    createParser('(a, [b, c})');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    // fasta scanner generates '(a, [b, c}])' where ']' is synthetic
-    listener.assertErrors([
-      expectedError(diag.expectedToken, 9, 1),
-      expectedError(diag.expectedToken, 10, 1),
+    var parseResult = parseStringWithErrors(r'''
+void f(a, [b, c}) {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 15, 1),
+      error(diag.expectedToken, 16, 1),
     ]);
   }
 
   void test_yieldAsLabel() {
     // yield can be used as a label
-    parseCompilationUnit('main() { yield: break yield; }');
+    var parseResult = parseStringWithErrors('main() { yield: break yield; }');
+    parseResult.assertNoErrors();
   }
 }

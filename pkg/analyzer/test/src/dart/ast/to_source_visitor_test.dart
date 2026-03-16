@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
@@ -69,6 +68,12 @@ class ToSourceVisitorTest extends ParserDiagnosticsTest {
     _assertSource(code, findNode.classDeclaration(code));
   }
 
+  test_enum_emptyBody() {
+    var code = 'enum E;';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.enumDeclaration(code));
+  }
+
   test_enum_primaryConstructor_named() {
     var code = 'enum const E<T>.named(final int a) {}';
     var findNode = _parseStringToFindNode(code);
@@ -79,6 +84,12 @@ class ToSourceVisitorTest extends ParserDiagnosticsTest {
     var code = 'enum E<T>(final int a) {}';
     var findNode = _parseStringToFindNode(code);
     _assertSource(code, findNode.enumDeclaration(code));
+  }
+
+  test_extension_emptyBody() {
+    var code = 'extension E on C;';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.extensionDeclaration(code));
   }
 
   test_extensionType_emptyBody() {
@@ -97,6 +108,12 @@ class ToSourceVisitorTest extends ParserDiagnosticsTest {
     var code = 'extension type A<T>(int it) {}';
     var findNode = _parseStringToFindNode(code);
     _assertSource(code, findNode.extensionTypeDeclaration(code));
+  }
+
+  test_mixin_emptyBody() {
+    var code = 'mixin M;';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.mixinDeclaration(code));
   }
 
   void test_visitAdjacentStrings() {
@@ -1079,6 +1096,22 @@ void f () {
 }
 ''');
     _assertSource(code, findNode.doStatement(code));
+  }
+
+  void test_visitDottedName_multiple() {
+    var code = 'a.b.c';
+    var findNode = _parseStringToFindNode('''
+library $code;
+''');
+    _assertSource(code, findNode.singleDottedName);
+  }
+
+  void test_visitDottedName_single() {
+    var code = 'my';
+    var findNode = _parseStringToFindNode('''
+library $code;
+''');
+    _assertSource(code, findNode.singleDottedName);
   }
 
   void test_visitDoubleLiteral() {
@@ -2341,22 +2374,6 @@ $code
     var code = '@deprecated library my;';
     var findNode = _parseStringToFindNode(code);
     _assertSource(code, findNode.library(code));
-  }
-
-  void test_visitLibraryIdentifier_multiple() {
-    var code = 'a.b.c';
-    var findNode = _parseStringToFindNode('''
-library $code;
-''');
-    _assertSource(code, findNode.libraryIdentifier(code));
-  }
-
-  void test_visitLibraryIdentifier_single() {
-    var code = 'my';
-    var findNode = _parseStringToFindNode('''
-library $code;
-''');
-    _assertSource(code, findNode.libraryIdentifier(code));
   }
 
   void test_visitListLiteral_complex() {
@@ -3881,7 +3898,7 @@ final x = $code[];
     var code = 'in T';
     var findNode = _parseStringToFindNode('''
 class A<$code> {}
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.typeParameter(code));
   }
 
@@ -3889,7 +3906,7 @@ class A<$code> {}
     var code = 'out T';
     var findNode = _parseStringToFindNode('''
 class A<$code> {}
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.typeParameter(code));
   }
 
@@ -3897,7 +3914,7 @@ class A<$code> {}
     var code = 'inout T';
     var findNode = _parseStringToFindNode('''
 class A<$code> {}
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.typeParameter(code));
   }
 
@@ -3921,7 +3938,7 @@ class A<$code> {}
     var code = 'T';
     var findNode = _parseStringToFindNode('''
 class A<$code> {}
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.typeParameter(code));
   }
 
@@ -3949,7 +3966,7 @@ class A$code {}
     var code = 'foo = bar';
     var findNode = _parseStringToFindNode('''
 var $code;
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.variableDeclaration(code));
   }
 
@@ -3957,7 +3974,7 @@ var $code;
     var code = 'foo';
     var findNode = _parseStringToFindNode('''
 var $code;
-''', featureSet: FeatureSets.latestWithVariance);
+''');
     _assertSource(code, findNode.variableDeclaration(code));
   }
 
@@ -4067,12 +4084,8 @@ void f() sync* {
     expect(buffer.toString(), expectedSource);
   }
 
-  // TODO(scheglov): Use [parseStringWithErrors] everywhere? Or just there?
   FindNode _parseStringToFindNode(String content, {FeatureSet? featureSet}) {
-    var parseResult = parseString(
-      content: content,
-      featureSet: featureSet ?? FeatureSets.latestWithExperiments,
-    );
-    return FindNode(parseResult.content, parseResult.unit);
+    var parseResult = parseStringWithErrors(content, featureSet: featureSet);
+    return parseResult.findNode;
   }
 }

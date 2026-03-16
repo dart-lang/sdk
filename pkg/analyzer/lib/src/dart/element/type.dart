@@ -368,7 +368,7 @@ class FunctionTypeImpl extends TypeImpl
       positionalParameterTypes: positionalParameterTypes,
       requiredPositionalParameterCount: requiredPositionalParameterCount,
       sortedNamedParameters: sortedNamedParameters,
-      alias: alias,
+      alias: alias?.withNullability(nullabilitySuffix),
     );
   }
 
@@ -524,7 +524,7 @@ class FutureOrTypeImpl extends InterfaceTypeImpl {
       element: element,
       typeArgument: typeArgument,
       nullabilitySuffix: nullabilitySuffix,
-      alias: alias,
+      alias: alias?.withNullability(nullabilitySuffix),
     );
   }
 }
@@ -536,10 +536,27 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
   @override
   final List<TypeImpl> typeArguments;
 
+  @override
+  final NullabilitySuffix nullabilitySuffix;
+
   InstantiatedTypeAliasElementImpl({
     required this.element,
     required this.typeArguments,
+    required this.nullabilitySuffix,
   });
+
+  InstantiatedTypeAliasElementImpl withNullability(
+    NullabilitySuffix nullabilitySuffix,
+  ) {
+    if (this.nullabilitySuffix == nullabilitySuffix) {
+      return this;
+    }
+    return InstantiatedTypeAliasElementImpl(
+      element: element,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
 }
 
 /// A concrete implementation of an [InterfaceType].
@@ -1030,7 +1047,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       element: element,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
-      alias: alias,
+      alias: alias?.withNullability(nullabilitySuffix),
     );
   }
 
@@ -1325,7 +1342,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType, SharedRecordType {
       positionalFields: positionalFields,
       namedFields: namedFields,
       nullabilitySuffix: nullabilitySuffix,
-      alias: alias,
+      alias: alias?.withNullability(nullabilitySuffix),
     );
   }
 
@@ -1632,6 +1649,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       element: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
+      alias: alias?.withNullability(nullabilitySuffix),
     );
   }
 }

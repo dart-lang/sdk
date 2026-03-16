@@ -551,6 +551,26 @@ final class ConstantPropagation extends Pass
   void visitSetListElement(SetListElement instr) {}
 
   @override
+  void visitBoxInt(BoxInt instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitBoxDouble(BoxDouble instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitUnboxInt(UnboxInt instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitUnboxDouble(UnboxDouble instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitParallelMove(ParallelMove instr) {}
 
   void transform() {

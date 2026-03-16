@@ -16,6 +16,7 @@ import '../../source/source_property_builder.dart';
 import '../../type_inference/context_allocation_strategy.dart';
 import '../../type_inference/inference_results.dart';
 import '../../type_inference/type_inferrer.dart';
+import '../../util/helpers.dart';
 import 'declaration.dart';
 
 class ConstructorBodyBuilderContext extends BodyBuilderContext {
@@ -72,8 +73,11 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void registerInitializedField(SourcePropertyBuilder builder) {
-    _builder.registerInitializedField(builder);
+  void registerInitializedField(
+    SourcePropertyBuilder builder,
+    FieldInitialization fieldInitialization,
+  ) {
+    _builder.registerInitializedField(builder, fieldInitialization);
   }
 
   @override

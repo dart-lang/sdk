@@ -120,9 +120,8 @@ class LibraryBundleCompiler implements old.Compiler {
     this._importToSummary,
     this._summaryToModule, {
     CoreTypes? coreTypes,
-    Ticker? ticker,
-  }) : _coreTypes = coreTypes ?? CoreTypes(component),
-       _ticker = ticker;
+    this._ticker,
+  }) : _coreTypes = coreTypes ?? CoreTypes(component);
 
   @override
   Map<Class, js_ast.Identifier> get classIdentifiers =>
@@ -3051,12 +3050,25 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             )
             as FunctionType;
     var function = member.function;
-
     var body = <js_ast.Statement>[];
-    var typeParameters = superMethodType.typeParameters;
-    _emitCovarianceBoundsCheck(typeParameters, body);
-
+    var typeParameters = function.typeParameters;
+    var superTypeParameters = superMethodType.typeParameters;
     var typeFormals = _emitTypeFormals(typeParameters);
+    for (var i = 0; i < typeParameters.length; i++) {
+      var typeParameter = typeParameters[i];
+      var superBound = superTypeParameters[i].bound;
+      if (typeParameter.isCovariantByClass && !_types.isTop(superBound)) {
+        body.add(
+          js.statement('#.checkTypeBound(#, #, #, #)', [
+            _emitLibraryName(_rtiLibrary),
+            typeFormals[i],
+            _emitType(superBound),
+            _propertyName(typeParameter.name!),
+            js.string(member.name.text),
+          ]),
+        );
+      }
+    }
     var jsParams = List<js_ast.Parameter>.from(typeFormals);
     var positionalParameters = function.positionalParameters;
     for (var i = 0, n = positionalParameters.length; i < n; i++) {
@@ -3667,9 +3679,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return body;
   }
 
-  js_ast.PropertyAccess _emitTopLevelName(NamedNode n, {String suffix = ''}) {
+  js_ast.PropertyAccess _emitTopLevelName(NamedNode n) {
     return _emitJSInterop(n) ??
-        _emitTopLevelNameNoExternalInterop(n, suffix: suffix);
+        _emitTopLevelNameNoExternalInterop(n, suffix: '');
   }
 
   /// Like [_emitMemberName], but for declaration sites.
@@ -5000,41 +5012,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       : js.call('# in #', [propertyName, _namedArgumentTemp]);
 
   void _emitCovarianceBoundsCheck(
-    List</* TypeParameter | StructuralParameter */ Object> typeFormals,
+    List<TypeParameter> typeFormals,
     List<js_ast.Statement> body,
   ) {
-    assert(
-      typeFormals is List<TypeParameter> ||
-          typeFormals is List<StructuralParameter>,
-    );
     for (var t in typeFormals) {
-      bool? isCovariantByClass;
-      DartType bound;
-      String name;
-      DartType typeParameterType;
-      if (t is TypeParameter) {
-        isCovariantByClass = t.isCovariantByClass;
-        bound = t.bound.extensionTypeErasure;
-        name = t.name!;
-        typeParameterType = TypeParameterType(t, Nullability.undetermined);
-      } else {
-        t as StructuralParameter;
-        bound = t.bound.extensionTypeErasure;
-        name = t.name!;
-        typeParameterType = StructuralParameterType(
-          t,
-          Nullability.undetermined,
-        );
-      }
-
-      if (isCovariantByClass != null &&
-          isCovariantByClass &&
-          !_types.isTop(bound)) {
+      var bound = t.bound.extensionTypeErasure;
+      if (t.isCovariantByClass && !_types.isTop(bound)) {
+        // TODO(nshahan): Ensure we have a name for the method and then
+        // just call the `checkTypeBound()` in the rti library directly.
         body.add(
           _runtimeStatement('checkTypeBound(#, #, #)', [
-            _emitType(typeParameterType),
+            _emitType(TypeParameterType(t, Nullability.undetermined)),
             _emitType(bound),
-            _propertyName(name),
+            _propertyName(t.name!),
           ]),
         );
       }

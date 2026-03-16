@@ -10,6 +10,9 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:args/args.dart';
+import 'package:dart_data_home/dart_data_home.dart';
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
@@ -19,6 +22,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'constants.dart';
 import 'dtd_client.dart';
 import 'dtd_client_manager.dart';
+import 'dtd_connection_info.dart';
 import 'dtd_stream_manager.dart';
 import 'service/connected_app_service.dart';
 import 'service/file_system_service.dart';
@@ -42,6 +46,17 @@ import 'service/unified_analytics_service.dart';
 /// We should consider changing this back to 15s once IJ has been fixed and that
 /// fix is in all versions of the IJ plugins we support/care about.
 const _pingIntervalSecondsDefault = 0;
+
+/// The directory name within the user's Dart data home directory where the
+/// Dart Tooling Daemon stores its connection info (pid-files).
+const String dtdDirName = 'dtd';
+
+/// The message printed when no running Dart Tooling Daemon instances are found
+/// after a user queries the list of running DTD processes with the `--list` argument.
+const String noInstancesMessage =
+    'No running debug processes or DTD process were found, try '
+    'starting up your app from your IDE, `flutter run`, `dart run`, '
+    'or connecting to it with `flutter attach`.';
 
 /// Contains all the flags and options used by the DTD argument parser.
 enum DartToolingDaemonOptions {
@@ -78,6 +93,11 @@ enum DartToolingDaemonOptions {
     negatable: false,
     help: 'Uses fake analytics instances for the UnifiedAnalytics service.',
     hide: true,
+  ),
+  list.flag(
+    'list',
+    negatable: false,
+    help: 'Lists all running Dart Tooling Daemon instances on this machine.',
   ),
   pingInterval.option(
     'ping-interval',
@@ -152,17 +172,19 @@ enum _DartToolingDaemonOptionKind {
 
 /// A service that facilitates communication between dart tools.
 class DartToolingDaemon {
+  /// Used to override the environment variables for `dart_data_home` during tests.
+  @visibleForTesting
+  static Map<String, String>? environmentOverride;
+
   DartToolingDaemon._({
     required this.secret,
     required bool unrestrictedMode,
     bool disableServiceAuthCodes = false,
-    bool ipv6 = false,
-    bool shouldLogRequests = false,
+    this._ipv6 = false,
+    this._shouldLogRequests = false,
     bool useFakeAnalytics = false,
     this.pingInterval,
-  })  : _ipv6 = ipv6,
-        _uriAuthCode = disableServiceAuthCodes ? null : _generateSecret(),
-        _shouldLogRequests = shouldLogRequests {
+  })  : _uriAuthCode = disableServiceAuthCodes ? null : _generateSecret() {
     streamManager = DTDStreamManager(this);
     clientManager = DTDClientManager();
 
@@ -209,6 +231,9 @@ class DartToolingDaemon {
   /// The uri of the current [DartToolingDaemon] service.
   Uri? get uri => _uri;
   Uri? _uri;
+
+  /// The path to the file containing this daemon's connection info, if started.
+  String? _pidFilePath;
 
   Future<void> _startService({required int port}) async {
     final host =
@@ -276,6 +301,11 @@ class DartToolingDaemon {
       return null;
     }
     final machineMode = parsedArgs[DartToolingDaemonOptions.machine.name];
+    final listMode = parsedArgs[DartToolingDaemonOptions.list.name];
+    if (listMode) {
+      _listRunningDtdInstances(machineMode: machineMode);
+      return null;
+    }
     final unrestrictedMode =
         parsedArgs[DartToolingDaemonOptions.unrestricted.name];
     final disableServiceAuthCodes =
@@ -326,6 +356,7 @@ class DartToolingDaemon {
         print('Trusted Client Secret: $secret');
       }
     }
+    dtd._recordDtdConnectionInfo();
     return dtd;
   }
 
@@ -405,11 +436,106 @@ class DartToolingDaemon {
   }
 
   Future<void> close() async {
+    // Delete the connection info file on graceful shutdown.
+    if (_pidFilePath != null) {
+      try {
+        final file = File(_pidFilePath!);
+        if (file.existsSync()) {
+          file.deleteSync();
+        }
+      } catch (_) {
+        // Ignore errors during file deletion.
+      }
+    }
+
     await clientManager.shutdown();
     for (final service in internalServices.values) {
       service.shutdown();
     }
+
     await _server.close(force: true);
+  }
+
+  static String? _getDtdDataHome() {
+    try {
+      final String dir =
+          getDartDataHome(dtdDirName, environment: environmentOverride);
+      // createSync(recursive: true) is a no-op if the directory already exists.
+      Directory(dir).createSync(recursive: true);
+      return dir;
+    } catch (_) {
+      // Ignore errors when creating local data home directory.
+      return null;
+    }
+  }
+
+  /// Writes out DTD connection information to a file named with the DTD process
+  /// PID in the [dtdDirName] directory within the Dart data home directory.
+  void _recordDtdConnectionInfo() {
+    final String? dataHome = _getDtdDataHome();
+    if (dataHome == null) return;
+    try {
+      final info = DTDConnectionInfo(
+        wsUri: uri.toString(),
+        epoch: DateTime.now().millisecondsSinceEpoch,
+        pid: pid,
+        dartVersion: Platform.version,
+        workspaceRoot: Directory.current.path,
+      );
+      final file = File(p.join(dataHome, pid.toString()));
+      file.writeAsStringSync(jsonEncode(info.toJson()));
+      _pidFilePath = file.path;
+    } catch (_) {
+      // Ignore errors when writing the pid file.
+    }
+  }
+
+  /// Lists all running DTD instances on the local system.
+  static void _listRunningDtdInstances({bool machineMode = false}) {
+    final String? dataHome = _getDtdDataHome();
+    if (dataHome == null) return;
+
+    final instances = <DTDConnectionInfo>[];
+    final dir = Directory(dataHome);
+    if (dir.existsSync()) {
+      for (final entity in dir.listSync()) {
+        if (entity is File) {
+          try {
+            final int? processId = int.tryParse(p.basename(entity.path));
+            if (processId != null) {
+              final content = entity.readAsStringSync();
+              final json = jsonDecode(content) as Map<String, Object?>;
+              instances.add(DTDConnectionInfo.fromJson(json));
+            }
+          } catch (_) {
+            try {
+              // Delete corrupted payload files or partial writes
+              entity.deleteSync();
+            } catch (_) {
+              // Ignore permission errors to delete
+            }
+          }
+        }
+      }
+    }
+
+    // Sort instances by epoch time descending so the most recently
+    // launched processes are listed first.
+    instances.sort((a, b) => b.epoch.compareTo(a.epoch));
+
+    if (machineMode) {
+      print(jsonEncode(instances.map((e) => e.toJson()).toList()));
+      return;
+    }
+
+    if (instances.isEmpty) {
+      print(noInstancesMessage);
+    } else {
+      print('Found ${instances.length} Dart Tooling Daemon instance(s):');
+      for (final info in instances) {
+        print(info);
+      }
+    }
   }
 }
 

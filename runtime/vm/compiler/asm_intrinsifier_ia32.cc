@@ -1590,7 +1590,7 @@ static void TryAllocateString(Assembler* assembler,
     Label size_tag_overflow, done;
     __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+    __ shll(EDI, Immediate(target::UntaggedObject::kSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 
@@ -1741,38 +1741,6 @@ void AsmIntrinsifier::TwoByteString_equality(Assembler* assembler,
 
   StringEquality(assembler, EAX, EBX, EDI, ECX, EAX, normal_ir_body,
                  kTwoByteStringCid);
-}
-
-void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
-                                                   Label* normal_ir_body,
-                                                   bool sticky) {
-  if (FLAG_interpret_irregexp) return;
-
-  const intptr_t kRegExpParamOffset = 3 * target::kWordSize;
-  const intptr_t kStringParamOffset = 2 * target::kWordSize;
-  // start_index smi is located at offset 1.
-
-  // Incoming registers:
-  // EAX: Function. (Will be loaded with the specialized matcher function.)
-  // ECX: Unknown. (Must be GC safe on tail call.)
-  // EDX: Arguments descriptor. (Will be preserved.)
-
-  // Load the specialized function pointer into EAX. Leverage the fact the
-  // string CIDs as well as stored function pointers are in sequence.
-  __ movl(EBX, Address(ESP, kRegExpParamOffset));
-  __ movl(EDI, Address(ESP, kStringParamOffset));
-  __ LoadClassId(EDI, EDI);
-  __ SubImmediate(EDI, Immediate(kOneByteStringCid));
-  __ movl(FUNCTION_REG, FieldAddress(EBX, EDI, TIMES_4,
-                                     target::RegExp::function_offset(
-                                         kOneByteStringCid, sticky)));
-
-  // Registers are now set up for the lazy compile stub. It expects the function
-  // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
-  __ xorl(ECX, ECX);
-
-  // Tail-call the function.
-  __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
 }
 
 void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,

@@ -23,13 +23,13 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core
 import 'package:analyzer_plugin/src/utilities/charcodes.dart';
 import 'package:analyzer_plugin/src/utilities/directive_sort.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
+import 'package:analyzer_plugin/src/utilities/formatter.dart';
 import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
-import 'package:dart_style/dart_style.dart';
 
 /// An [EditBuilder] used to build edits in Dart files.
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
@@ -1642,7 +1642,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         if (i != 0) {
           write(', ');
         }
-        if (seenTypes.elements.contains(argument.element)) {
+        if (seenTypes.containsElementAndArguments(argument)) {
           write('dynamic');
           continue;
         }
@@ -1895,21 +1895,19 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    var languageVersion = resolvedUnit.libraryElement.languageVersion.effective;
-    var formattedResult = DartFormatter(languageVersion: languageVersion)
-        .formatSource(
-          SourceCode(
-            newContent,
-            isCompilationUnit: true,
-            selectionStart: newRangeOffset,
-            selectionLength: newRangeLength,
-          ),
-        );
-
-    replaceEdits(
-      range,
-      SourceEdit(range.offset, range.length, formattedResult.selectedText),
+    var formatter = createFormatter(resolvedUnit);
+    var formattedResult = formatter.formatSafely(
+      newContent,
+      selectionStart: newRangeOffset,
+      selectionLength: newRangeLength,
     );
+
+    if (formattedResult.text != newContent) {
+      replaceEdits(
+        range,
+        SourceEdit(range.offset, range.length, formattedResult.selectedText),
+      );
+    }
   }
 
   /// Arranges to have an import added that makes [element] available.
@@ -2163,6 +2161,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     void Function(DartEditBuilder builder) buildEdit, {
     bool Function(ClassMember existingMember)? lastMemberFilter,
   }) {
+    if (compilationUnitMember
+        case ClassDeclaration(:var body) ||
+            ExtensionTypeDeclaration(:var body)) {
+      if (body is EmptyClassBody) {
+        addReplacement(body.sourceRange, (builder) {
+          builder.writeln(' {');
+          builder.write('  ');
+          buildEdit(builder);
+          builder.writeln();
+          builder.write('}');
+        });
+        return;
+      }
+    }
     var preparer = _InsertionPreparer(
       compilationUnitMember,
       resolvedUnit.lineInfo,
@@ -3074,12 +3086,22 @@ class _InsertionPreparer {
     final declaration = _declaration;
     if (declaration is EnumDeclaration) {
       // After the last enum value.
-      var semicolon = declaration.body.semicolon;
+      Token? semicolon;
+      var hasConstants = false;
+      EnumConstantDeclaration? lastConstant;
+      var body = declaration.body;
+      if (body is BlockEnumBody) {
+        semicolon = body.semicolon;
+        hasConstants = body.constants.isNotEmpty;
+        lastConstant = body.constants.lastOrNull;
+      } else if (body is EmptyEnumBody) {
+        semicolon = body.semicolon;
+      }
+
       if (semicolon != null) {
         return semicolon.end;
-      } else if (declaration.body.constants.isNotEmpty) {
-        var lastConstant = declaration.body.constants.last;
-        return lastConstant.end;
+      } else if (hasConstants) {
+        return lastConstant!.end;
       }
     }
 
@@ -3108,8 +3130,21 @@ class _InsertionPreparer {
       builder.write(' {');
     }
     var declaration = _declaration;
-    if (declaration is EnumDeclaration && declaration.body.semicolon == null) {
+    var hasSemicolon = false;
+    if (declaration is EnumDeclaration) {
+      var body = declaration.body;
+      hasSemicolon =
+          body is BlockEnumBody && body.semicolon != null ||
+          body is EmptyEnumBody;
+    }
+    if (declaration is EnumDeclaration && !hasSemicolon) {
       builder.write(';');
+    }
+
+    var hasConstants = false;
+    if (declaration is EnumDeclaration) {
+      var body = declaration.body;
+      hasConstants = body is BlockEnumBody && body.constants.isNotEmpty;
     }
 
     if (_foundTargetMember) {
@@ -3117,8 +3152,7 @@ class _InsertionPreparer {
       builder.writeln();
       builder.writeln();
       builder.writeIndent();
-    } else if (declaration is EnumDeclaration &&
-        declaration.body.constants.isNotEmpty) {
+    } else if (declaration is EnumDeclaration && hasConstants) {
       // After the last constant (and the semicolon), write two newlines.
       builder.writeln();
       builder.writeln();
@@ -3141,8 +3175,12 @@ class _InsertionPreparer {
     }
 
     var declaration = _declaration;
-    if (declaration is EnumDeclaration &&
-        declaration.body.constants.isNotEmpty) {
+    var hasConstants = false;
+    if (declaration is EnumDeclaration) {
+      var body = declaration.body;
+      hasConstants = body is BlockEnumBody && body.constants.isNotEmpty;
+    }
+    if (declaration is EnumDeclaration && hasConstants) {
       return;
     }
 
@@ -3265,6 +3303,48 @@ class _LibraryImport implements Comparable<_LibraryImport> {
   }
 }
 
+extension on Set<DartType> {
+  bool containsElementAndArguments(DartType argument) {
+    for (var type in this) {
+      if (type == argument) {
+        return true;
+      }
+      if (type.element != argument.element) {
+        continue;
+      }
+      if (type is InterfaceType && argument is InterfaceType) {
+        if (type.sameTypeArguments(argument)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+}
+
+extension on InterfaceType {
+  bool sameTypeArguments(InterfaceType other) {
+    var typeArgs = typeArguments;
+    var otherTypeArgs = other.typeArguments;
+    if (typeArgs.length != otherTypeArgs.length) {
+      return false;
+    }
+    for (var i = 0; i < typeArgs.length; i++) {
+      var argument = typeArgs[i];
+      var otherArgument = otherTypeArgs[i];
+      if (argument.element != otherArgument.element) {
+        return false;
+      }
+      if (argument is InterfaceType &&
+          otherArgument is InterfaceType &&
+          !argument.sameTypeArguments(otherArgument)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 extension on CompilationUnitMember {
   /// The left bracket of a [CompilationUnitMember] with a known left bracket,
   /// and `null` otherwise.
@@ -3276,15 +3356,18 @@ extension on CompilationUnitMember {
           return body.leftBracket;
         }
       case EnumDeclaration():
-        return self.body.leftBracket;
+        var body = self.body;
+        return body is BlockEnumBody ? body.leftBracket : null;
       case ExtensionDeclaration():
-        return self.body.leftBracket;
+        var body = self.body;
+        return body is BlockClassBody ? body.leftBracket : null;
       case ExtensionTypeDeclaration():
         if (self.body case BlockClassBody body) {
           return body.leftBracket;
         }
       case MixinDeclaration():
-        return self.body.leftBracket;
+        var body = self.body;
+        return body is BlockClassBody ? body.leftBracket : null;
       default:
     }
     return null;
@@ -3298,18 +3381,23 @@ extension on CompilationUnitMember {
       case ClassDeclaration():
         if (self.body case BlockClassBody body) {
           return body.members;
+        } else if (self.body case EmptyClassBody()) {
+          return const [];
         }
       case EnumDeclaration():
         // Enum constants are handled separately; not considered members.
-        return self.body.members;
+        var body = self.body;
+        return body is BlockEnumBody ? body.members : const [];
       case ExtensionDeclaration():
-        return self.body.members;
+        var body = self.body;
+        return body is BlockClassBody ? body.members : const [];
       case ExtensionTypeDeclaration():
         if (self.body case BlockClassBody body) {
           return body.members;
         }
       case MixinDeclaration():
-        return self.body.members;
+        var body = self.body;
+        return body is BlockClassBody ? body.members : const [];
     }
     return null;
   }
@@ -3324,15 +3412,18 @@ extension on CompilationUnitMember {
           return body.rightBracket;
         }
       case EnumDeclaration():
-        return self.body.rightBracket;
+        var body = self.body;
+        return body is BlockEnumBody ? body.rightBracket : null;
       case ExtensionDeclaration():
-        return self.body.rightBracket;
+        var body = self.body;
+        return body is BlockClassBody ? body.rightBracket : null;
       case ExtensionTypeDeclaration():
         if (self.body case BlockClassBody body) {
           return body.rightBracket;
         }
       case MixinDeclaration():
-        return self.body.rightBracket;
+        var body = self.body;
+        return body is BlockClassBody ? body.rightBracket : null;
     }
     return null;
   }
@@ -3356,8 +3447,4 @@ extension on DartType {
     }
     return null;
   }
-}
-
-extension on Iterable<DartType?> {
-  Iterable<Element?> get elements => map((type) => type?.element);
 }

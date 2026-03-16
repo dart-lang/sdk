@@ -94,9 +94,8 @@ class ImportSetLattice {
   void buildRootSet(
     LibraryDependency rootImport,
     Part rootPart,
-    Iterable<LibraryDependency> allDeferredImports,
   ) {
-    _rootSet = setOfImportsToImportSet({rootImport, ...allDeferredImports});
+    _rootSet = setOfImportsToImportSet(rootPart.imports);
     _rootSet.part = rootPart;
     initialSets[rootImport] = _rootSet;
   }

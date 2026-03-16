@@ -25,6 +25,8 @@ import '../../../../abstract_context.dart';
 import '../../../../abstract_single_unit.dart';
 import '../../../../utils/test_instrumentation_service.dart';
 
+export 'package:linter/src/lint_names.dart';
+
 typedef DiagnosticFilter = bool Function(Diagnostic diagnostic);
 
 abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
@@ -94,7 +96,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
         return diagnostic;
       }
     }
-    fail('Expected to find an diagnostic with the code: $code');
+    fail('Expected to find a diagnostic with the code: $code');
   }
 }
 

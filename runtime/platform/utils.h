@@ -141,6 +141,10 @@ class Utils {
   static constexpr int CountOneBits64(uint64_t x) { return std::popcount(x); }
   static constexpr int CountOneBits32(uint32_t x) { return std::popcount(x); }
   static constexpr int CountOneBitsWord(uword x) { return std::popcount(x); }
+  template <typename T>
+  static constexpr int CountOneBits(T x) {
+    return std::popcount(x);
+  }
 
   // TODO(koda): Compare to flsll call/intrinsic.
   static constexpr size_t HighestBit(int64_t v) {
@@ -375,8 +379,7 @@ class Utils {
     ASSERT(0 <= rotate);
     ASSERT(rotate <= width);
     using Unsigned = typename std::make_unsigned<T>::type;
-    return (static_cast<Unsigned>(value) << rotate) |
-           (static_cast<T>(value) >> ((width - rotate) & (width - 1)));
+    return std::rotl(static_cast<Unsigned>(value), rotate);
   }
   template <typename T>
   static inline T RotateRight(T value, uint8_t rotate) {
@@ -384,8 +387,7 @@ class Utils {
     ASSERT(0 <= rotate);
     ASSERT(rotate <= width);
     using Unsigned = typename std::make_unsigned<T>::type;
-    return (static_cast<T>(value) >> rotate) |
-           (static_cast<Unsigned>(value) << ((width - rotate) & (width - 1)));
+    return std::rotr(static_cast<Unsigned>(value), rotate);
   }
 
   NO_SANITIZE_UNDEFINED("float-divide-by-zero")

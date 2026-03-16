@@ -240,7 +240,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitDottedName(DottedName node) {
     _writeByte(Tag.DottedName);
-    _writeNodeList(node.components);
+    _writeUint32(node.tokens.length);
+    for (var i = 0; i < node.tokens.length; i++) {
+      _writeStringReference(node.tokens[i].lexeme);
+    }
   }
 
   @override

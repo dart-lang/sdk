@@ -1082,10 +1082,7 @@ sealed class ManifestItem<E extends ElementImpl> {
 
   @mustCallSuper
   bool match(MatchContext context, E element) {
-    return
-    // ignore: deprecated_member_use_from_same_package
-    flags.isSynthetic == element.isSynthetic &&
-        metadata.match(context, element.effectiveMetadata);
+    return metadata.match(context, element.effectiveMetadata);
   }
 
   @mustCallSuper
@@ -1691,7 +1688,7 @@ enum _InstanceItemFlag { isSimplyBounded }
 
 enum _InterfaceItemFlag { reserved }
 
-enum _ManifestItemFlag { isSynthetic }
+enum _ManifestItemFlag { isPlaceholder }
 
 enum _MethodItemFlag {
   isOperatorEqualWithParameterTypeFromObject,
@@ -2162,12 +2159,9 @@ extension type _ManifestItemFlags._(int _bits) {
     return _ManifestItemFlags._(0);
   }
 
+  // ignore: avoid_unused_constructor_parameters
   factory _ManifestItemFlags.encode(ElementImpl element) {
     var bits = 0;
-    // ignore: deprecated_member_use_from_same_package
-    if (element.isSynthetic) {
-      bits |= _maskFor(_ManifestItemFlag.isSynthetic);
-    }
     return _ManifestItemFlags._(bits);
   }
 
@@ -2175,8 +2169,8 @@ extension type _ManifestItemFlags._(int _bits) {
     return _ManifestItemFlags._(reader.readUint30());
   }
 
-  bool get isSynthetic {
-    return _has(_ManifestItemFlag.isSynthetic);
+  bool get isPlaceholder {
+    return _has(_ManifestItemFlag.isPlaceholder);
   }
 
   void write(BinaryWriter writer) {

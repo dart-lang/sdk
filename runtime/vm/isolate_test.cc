@@ -126,9 +126,9 @@ class InterruptChecker : public ThreadPool::Task {
       // Busy wait for interrupts.
       uword limit = 0;
       do {
-        limit = reinterpret_cast<RelaxedAtomic<uword>*>(
-                    thread_->stack_limit_address())
-                    ->load();
+        limit = std::atomic_ref(
+                    *reinterpret_cast<uword*>(thread_->stack_limit_address()))
+                    .load(std::memory_order_relaxed);
       } while (
           (limit == thread_->saved_stack_limit_) ||
           (((limit & Thread::kInterruptsMask) & Thread::kVMInterrupt) == 0));

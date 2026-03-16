@@ -16,6 +16,7 @@ base class VMOffsets {
   int get Array_kMaxElements => throw 'Unknown';
   int get Array_kMaxNewSpaceElements => throw 'Unknown';
   int get Context_kMaxElements => throw 'Unknown';
+  int get Heap_kNewAllocatableSize => throw 'Unknown';
   int get Instructions_kMonomorphicEntryOffsetJIT => throw 'Unknown';
   int get Instructions_kPolymorphicEntryOffsetJIT => throw 'Unknown';
   int get Instructions_kMonomorphicEntryOffsetAOT => throw 'Unknown';
@@ -47,6 +48,23 @@ base class VMOffsets {
   int get SubtypeTestCache_kMaxInputs => throw 'Unknown';
   int get SubtypeTestCache_kTestResult => throw 'Unknown';
   int get TypeArguments_kMaxElements => throw 'Unknown';
+  int get UntaggedObject_kCardRememberedBit => throw 'Unknown';
+  int get UntaggedObject_kCanonicalBit => throw 'Unknown';
+  int get UntaggedObject_kNotMarkedBit => throw 'Unknown';
+  int get UntaggedObject_kNewOrEvacuationCandidateBit => throw 'Unknown';
+  int get UntaggedObject_kAlwaysSetBit => throw 'Unknown';
+  int get UntaggedObject_kOldAndNotRememberedBit => throw 'Unknown';
+  int get UntaggedObject_kIncrementalBarrierMask => throw 'Unknown';
+  int get UntaggedObject_kGenerationalBarrierMask => throw 'Unknown';
+  int get UntaggedObject_kBarrierOverlapShift => throw 'Unknown';
+  int get UntaggedObject_kShallowImmutableBit => throw 'Unknown';
+  int get UntaggedObject_kDeeplyImmutableBit => throw 'Unknown';
+  int get UntaggedObject_kSizeTagPos => throw 'Unknown';
+  int get UntaggedObject_kSizeTagSize => throw 'Unknown';
+  int get UntaggedObject_kClassIdTagPos => throw 'Unknown';
+  int get UntaggedObject_kClassIdTagSize => throw 'Unknown';
+  int get UntaggedObject_kHashTagPos => throw 'Unknown';
+  int get UntaggedObject_kHashTagSize => throw 'Unknown';
   int get AbstractType_flags_offset => throw 'Unknown';
   int get AbstractType_hash_offset => throw 'Unknown';
   int get AbstractType_type_test_stub_entry_point_offset => throw 'Unknown';
@@ -576,6 +594,8 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get Heap_kNewAllocatableSize => 0x40000;
+  @override
   int get Instructions_kMonomorphicEntryOffsetJIT => 0x8;
   @override
   int get Instructions_kPolymorphicEntryOffsetJIT => 0x34;
@@ -633,6 +653,40 @@ final class Arm64VMOffsets extends VMOffsets {
   int get SubtypeTestCache_kTestResult => 0x7;
   @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
+  @override
+  int get UntaggedObject_kCardRememberedBit => 0x0;
+  @override
+  int get UntaggedObject_kCanonicalBit => 0x1;
+  @override
+  int get UntaggedObject_kNotMarkedBit => 0x2;
+  @override
+  int get UntaggedObject_kNewOrEvacuationCandidateBit => 0x3;
+  @override
+  int get UntaggedObject_kAlwaysSetBit => 0x4;
+  @override
+  int get UntaggedObject_kOldAndNotRememberedBit => 0x5;
+  @override
+  int get UntaggedObject_kIncrementalBarrierMask => 0x4;
+  @override
+  int get UntaggedObject_kGenerationalBarrierMask => 0x8;
+  @override
+  int get UntaggedObject_kBarrierOverlapShift => 0x2;
+  @override
+  int get UntaggedObject_kShallowImmutableBit => 0x6;
+  @override
+  int get UntaggedObject_kDeeplyImmutableBit => 0x7;
+  @override
+  int get UntaggedObject_kSizeTagPos => 0x8;
+  @override
+  int get UntaggedObject_kSizeTagSize => 0x4;
+  @override
+  int get UntaggedObject_kClassIdTagPos => 0xc;
+  @override
+  int get UntaggedObject_kClassIdTagSize => 0x14;
+  @override
+  int get UntaggedObject_kHashTagPos => 0x20;
+  @override
+  int get UntaggedObject_kHashTagSize => 0x20;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override
@@ -804,39 +858,39 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Object_tags_offset => 0x0;
   @override
-  int get ObjectStore_double_type_offset => 0x1b0;
+  int get ObjectStore_double_type_offset => 0x1b8;
   @override
-  int get ObjectStore_int_type_offset => 0x160;
+  int get ObjectStore_int_type_offset => 0x168;
   @override
-  int get ObjectStore_record_field_names_offset => 0x428;
+  int get ObjectStore_record_field_names_offset => 0x430;
   @override
-  int get ObjectStore_string_type_offset => 0x1d8;
+  int get ObjectStore_string_type_offset => 0x1e0;
   @override
-  int get ObjectStore_type_type_offset => 0x138;
+  int get ObjectStore_type_type_offset => 0x140;
   @override
-  int get ObjectStore_ffi_callback_code_offset => 0x520;
+  int get ObjectStore_ffi_callback_code_offset => 0x528;
   @override
-  int get ObjectStore_suspend_state_await_offset => 0x478;
+  int get ObjectStore_suspend_state_await_offset => 0x480;
   @override
-  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x480;
+  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x488;
   @override
-  int get ObjectStore_suspend_state_handle_exception_offset => 0x4c0;
+  int get ObjectStore_suspend_state_handle_exception_offset => 0x4c8;
   @override
-  int get ObjectStore_suspend_state_init_async_offset => 0x470;
+  int get ObjectStore_suspend_state_init_async_offset => 0x478;
   @override
-  int get ObjectStore_suspend_state_init_async_star_offset => 0x498;
+  int get ObjectStore_suspend_state_init_async_star_offset => 0x4a0;
   @override
-  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4b0;
+  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4b8;
   @override
-  int get ObjectStore_suspend_state_return_async_offset => 0x488;
+  int get ObjectStore_suspend_state_return_async_offset => 0x490;
   @override
-  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x490;
+  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x498;
   @override
-  int get ObjectStore_suspend_state_return_async_star_offset => 0x4a8;
+  int get ObjectStore_suspend_state_return_async_star_offset => 0x4b0;
   @override
-  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4b8;
+  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4c0;
   @override
-  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4a0;
+  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4a8;
   @override
   int get OneByteString_data_offset => 0x10;
   @override
@@ -912,7 +966,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_allocate_object_slow_entry_point_offset => 0x230;
   @override
-  int get Thread_api_top_scope_offset => 0x898;
+  int get Thread_api_top_scope_offset => 0x888;
   @override
   int get Thread_async_exception_handler_stub_offset => 0x160;
   @override
@@ -928,15 +982,15 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_call_to_runtime_stub_offset => 0xd8;
   @override
-  int get Thread_dart_stream_offset => 0x8f0;
+  int get Thread_dart_stream_offset => 0x8e0;
   @override
   int get Thread_dispatch_table_array_offset => 0x68;
   @override
-  int get Thread_double_truncate_round_supported_offset => 0x8a0;
+  int get Thread_double_truncate_round_supported_offset => 0x890;
   @override
-  int get Thread_service_extension_stream_offset => 0x8f8;
+  int get Thread_service_extension_stream_offset => 0x8e8;
   @override
-  int get Thread_thread_locals_offset => 0x900;
+  int get Thread_thread_locals_offset => 0x8f0;
   @override
   int get Thread_optimize_entry_offset => 0x258;
   @override
@@ -1062,7 +1116,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_shared_field_table_values_offset => 0x78;
   @override
-  int get Thread_single_step_offset => 0x8d0;
+  int get Thread_single_step_offset => 0x8c0;
   @override
   int get Thread_slow_type_test_stub_offset => 0x1d0;
   @override
@@ -1117,7 +1171,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_top_resource_offset => 0x20;
   @override
-  int get Thread_unboxed_runtime_arg_offset => 0x8a8;
+  int get Thread_unboxed_runtime_arg_offset => 0x898;
   @override
   int get Thread_vm_tag_offset => 0x6c0;
   @override
@@ -1125,19 +1179,19 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_write_barrier_mask_offset => 0x50;
   @override
-  int get Thread_next_task_id_offset => 0x8b8;
+  int get Thread_next_task_id_offset => 0x8a8;
   @override
-  int get Thread_random_offset => 0x8c0;
+  int get Thread_random_offset => 0x8b0;
   @override
   int get Thread_jump_to_frame_entry_point_offset => 0x270;
   @override
-  int get Thread_tsan_utils_offset => 0x8c8;
+  int get Thread_tsan_utils_offset => 0x8b8;
   @override
-  int get Thread_current_tag_offset => 0x8e0;
+  int get Thread_current_tag_offset => 0x8d0;
   @override
-  int get Thread_default_tag_offset => 0x8e8;
+  int get Thread_default_tag_offset => 0x8d8;
   @override
-  int get Thread_user_tag_offset => 0x8d8;
+  int get Thread_user_tag_offset => 0x8c8;
   @override
   int get TsanUtils_setjmp_function_offset => 0x0;
   @override
@@ -1491,6 +1545,8 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get Heap_kNewAllocatableSize => 0x40000;
+  @override
   int get Instructions_kMonomorphicEntryOffsetJIT => 0x8;
   @override
   int get Instructions_kPolymorphicEntryOffsetJIT => 0x34;
@@ -1548,6 +1604,40 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get SubtypeTestCache_kTestResult => 0x7;
   @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
+  @override
+  int get UntaggedObject_kCardRememberedBit => 0x0;
+  @override
+  int get UntaggedObject_kCanonicalBit => 0x1;
+  @override
+  int get UntaggedObject_kNotMarkedBit => 0x2;
+  @override
+  int get UntaggedObject_kNewOrEvacuationCandidateBit => 0x3;
+  @override
+  int get UntaggedObject_kAlwaysSetBit => 0x4;
+  @override
+  int get UntaggedObject_kOldAndNotRememberedBit => 0x5;
+  @override
+  int get UntaggedObject_kIncrementalBarrierMask => 0x4;
+  @override
+  int get UntaggedObject_kGenerationalBarrierMask => 0x8;
+  @override
+  int get UntaggedObject_kBarrierOverlapShift => 0x2;
+  @override
+  int get UntaggedObject_kShallowImmutableBit => 0x6;
+  @override
+  int get UntaggedObject_kDeeplyImmutableBit => 0x7;
+  @override
+  int get UntaggedObject_kSizeTagPos => 0x8;
+  @override
+  int get UntaggedObject_kSizeTagSize => 0x4;
+  @override
+  int get UntaggedObject_kClassIdTagPos => 0xc;
+  @override
+  int get UntaggedObject_kClassIdTagSize => 0x14;
+  @override
+  int get UntaggedObject_kHashTagPos => 0x20;
+  @override
+  int get UntaggedObject_kHashTagSize => 0x20;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override
@@ -1715,39 +1805,39 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Object_tags_offset => 0x0;
   @override
-  int get ObjectStore_double_type_offset => 0x1b0;
+  int get ObjectStore_double_type_offset => 0x1b8;
   @override
-  int get ObjectStore_int_type_offset => 0x160;
+  int get ObjectStore_int_type_offset => 0x168;
   @override
-  int get ObjectStore_record_field_names_offset => 0x428;
+  int get ObjectStore_record_field_names_offset => 0x430;
   @override
-  int get ObjectStore_string_type_offset => 0x1d8;
+  int get ObjectStore_string_type_offset => 0x1e0;
   @override
-  int get ObjectStore_type_type_offset => 0x138;
+  int get ObjectStore_type_type_offset => 0x140;
   @override
-  int get ObjectStore_ffi_callback_code_offset => 0x520;
+  int get ObjectStore_ffi_callback_code_offset => 0x528;
   @override
-  int get ObjectStore_suspend_state_await_offset => 0x478;
+  int get ObjectStore_suspend_state_await_offset => 0x480;
   @override
-  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x480;
+  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x488;
   @override
-  int get ObjectStore_suspend_state_handle_exception_offset => 0x4c0;
+  int get ObjectStore_suspend_state_handle_exception_offset => 0x4c8;
   @override
-  int get ObjectStore_suspend_state_init_async_offset => 0x470;
+  int get ObjectStore_suspend_state_init_async_offset => 0x478;
   @override
-  int get ObjectStore_suspend_state_init_async_star_offset => 0x498;
+  int get ObjectStore_suspend_state_init_async_star_offset => 0x4a0;
   @override
-  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4b0;
+  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4b8;
   @override
-  int get ObjectStore_suspend_state_return_async_offset => 0x488;
+  int get ObjectStore_suspend_state_return_async_offset => 0x490;
   @override
-  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x490;
+  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x498;
   @override
-  int get ObjectStore_suspend_state_return_async_star_offset => 0x4a8;
+  int get ObjectStore_suspend_state_return_async_star_offset => 0x4b0;
   @override
-  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4b8;
+  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4c0;
   @override
-  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4a0;
+  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4a8;
   @override
   int get OneByteString_data_offset => 0x10;
   @override
@@ -1823,7 +1913,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_allocate_object_slow_entry_point_offset => 0x230;
   @override
-  int get Thread_api_top_scope_offset => 0x898;
+  int get Thread_api_top_scope_offset => 0x888;
   @override
   int get Thread_async_exception_handler_stub_offset => 0x160;
   @override
@@ -1839,15 +1929,15 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_call_to_runtime_stub_offset => 0xd8;
   @override
-  int get Thread_dart_stream_offset => 0x8f0;
+  int get Thread_dart_stream_offset => 0x8e0;
   @override
   int get Thread_dispatch_table_array_offset => 0x68;
   @override
-  int get Thread_double_truncate_round_supported_offset => 0x8a0;
+  int get Thread_double_truncate_round_supported_offset => 0x890;
   @override
-  int get Thread_service_extension_stream_offset => 0x8f8;
+  int get Thread_service_extension_stream_offset => 0x8e8;
   @override
-  int get Thread_thread_locals_offset => 0x900;
+  int get Thread_thread_locals_offset => 0x8f0;
   @override
   int get Thread_optimize_entry_offset => 0x258;
   @override
@@ -2026,7 +2116,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_top_resource_offset => 0x20;
   @override
-  int get Thread_unboxed_runtime_arg_offset => 0x8a8;
+  int get Thread_unboxed_runtime_arg_offset => 0x898;
   @override
   int get Thread_vm_tag_offset => 0x6c0;
   @override
@@ -2034,19 +2124,19 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_write_barrier_mask_offset => 0x50;
   @override
-  int get Thread_next_task_id_offset => 0x8b8;
+  int get Thread_next_task_id_offset => 0x8a8;
   @override
-  int get Thread_random_offset => 0x8c0;
+  int get Thread_random_offset => 0x8b0;
   @override
   int get Thread_jump_to_frame_entry_point_offset => 0x270;
   @override
-  int get Thread_tsan_utils_offset => 0x8c8;
+  int get Thread_tsan_utils_offset => 0x8b8;
   @override
-  int get Thread_current_tag_offset => 0x8e0;
+  int get Thread_current_tag_offset => 0x8d0;
   @override
-  int get Thread_default_tag_offset => 0x8e8;
+  int get Thread_default_tag_offset => 0x8d8;
   @override
-  int get Thread_user_tag_offset => 0x8d8;
+  int get Thread_user_tag_offset => 0x8c8;
   @override
   int get TsanUtils_setjmp_function_offset => 0x0;
   @override
@@ -2626,8 +2716,6 @@ enum LeafRuntimeEntry {
   LibcAtan2,
   LibcExp,
   LibcLog,
-  CaseInsensitiveCompareUCS2,
-  CaseInsensitiveCompareUTF16,
   EnterSafepoint,
   ExitSafepoint,
   EnterHandleScope,
@@ -2654,4 +2742,182 @@ enum LeafRuntimeEntry {
   TsanFuncExit,
   TryDoubleAsInteger,
   MemoryMove,
+}
+
+enum ClassId {
+  IllegalCid,
+  NativePointer,
+  FreeListElement,
+  ForwardingCorpse,
+  ObjectCid,
+  ClassCid,
+  PatchClassCid,
+  FunctionCid,
+  TypeParametersCid,
+  ClosureDataCid,
+  FfiTrampolineDataCid,
+  FieldCid,
+  ScriptCid,
+  LibraryCid,
+  NamespaceCid,
+  KernelProgramInfoCid,
+  WeakSerializationReferenceCid,
+  WeakArrayCid,
+  CodeCid,
+  BytecodeCid,
+  InstructionsCid,
+  InstructionsSectionCid,
+  InstructionsTableCid,
+  ObjectPoolCid,
+  PcDescriptorsCid,
+  CodeSourceMapCid,
+  CompressedStackMapsCid,
+  LocalVarDescriptorsCid,
+  ExceptionHandlersCid,
+  ContextCid,
+  ContextScopeCid,
+  SentinelCid,
+  SingleTargetCacheCid,
+  MonomorphicSmiableCallCid,
+  CallSiteDataCid,
+  UnlinkedCallCid,
+  ICDataCid,
+  MegamorphicCacheCid,
+  SubtypeTestCacheCid,
+  LoadingUnitCid,
+  ErrorCid,
+  ApiErrorCid,
+  LanguageErrorCid,
+  UnhandledExceptionCid,
+  UnwindErrorCid,
+  InstanceCid,
+  LibraryPrefixCid,
+  TypeArgumentsCid,
+  AbstractTypeCid,
+  TypeCid,
+  FunctionTypeCid,
+  RecordTypeCid,
+  TypeParameterCid,
+  FinalizerBaseCid,
+  FinalizerCid,
+  NativeFinalizerCid,
+  FinalizerEntryCid,
+  ClosureCid,
+  NumberCid,
+  IntegerCid,
+  SmiCid,
+  MintCid,
+  DoubleCid,
+  BoolCid,
+  Float32x4Cid,
+  Int32x4Cid,
+  Float64x2Cid,
+  RecordCid,
+  TypedDataBaseCid,
+  TypedDataCid,
+  ExternalTypedDataCid,
+  TypedDataViewCid,
+  PointerCid,
+  DynamicLibraryCid,
+  CapabilityCid,
+  ReceivePortCid,
+  SendPortCid,
+  StackTraceCid,
+  SuspendStateCid,
+  RegExpCid,
+  WeakPropertyCid,
+  WeakReferenceCid,
+  MirrorReferenceCid,
+  FutureOrCid,
+  UserTagCid,
+  TransferableTypedDataCid,
+  MapCid,
+  ConstMapCid,
+  SetCid,
+  ConstSetCid,
+  ArrayCid,
+  ImmutableArrayCid,
+  GrowableObjectArrayCid,
+  StringCid,
+  OneByteStringCid,
+  TwoByteStringCid,
+  FfiNativeFunctionCid,
+  FfiInt8Cid,
+  FfiInt16Cid,
+  FfiInt32Cid,
+  FfiInt64Cid,
+  FfiUint8Cid,
+  FfiUint16Cid,
+  FfiUint32Cid,
+  FfiUint64Cid,
+  FfiFloatCid,
+  FfiDoubleCid,
+  FfiVoidCid,
+  FfiHandleCid,
+  FfiBoolCid,
+  FfiNativeTypeCid,
+  FfiStructCid,
+  TypedDataInt8ArrayCid,
+  TypedDataInt8ArrayViewCid,
+  ExternalTypedDataInt8ArrayCid,
+  UnmodifiableTypedDataInt8ArrayViewCid,
+  TypedDataUint8ArrayCid,
+  TypedDataUint8ArrayViewCid,
+  ExternalTypedDataUint8ArrayCid,
+  UnmodifiableTypedDataUint8ArrayViewCid,
+  TypedDataUint8ClampedArrayCid,
+  TypedDataUint8ClampedArrayViewCid,
+  ExternalTypedDataUint8ClampedArrayCid,
+  UnmodifiableTypedDataUint8ClampedArrayViewCid,
+  TypedDataInt16ArrayCid,
+  TypedDataInt16ArrayViewCid,
+  ExternalTypedDataInt16ArrayCid,
+  UnmodifiableTypedDataInt16ArrayViewCid,
+  TypedDataUint16ArrayCid,
+  TypedDataUint16ArrayViewCid,
+  ExternalTypedDataUint16ArrayCid,
+  UnmodifiableTypedDataUint16ArrayViewCid,
+  TypedDataInt32ArrayCid,
+  TypedDataInt32ArrayViewCid,
+  ExternalTypedDataInt32ArrayCid,
+  UnmodifiableTypedDataInt32ArrayViewCid,
+  TypedDataUint32ArrayCid,
+  TypedDataUint32ArrayViewCid,
+  ExternalTypedDataUint32ArrayCid,
+  UnmodifiableTypedDataUint32ArrayViewCid,
+  TypedDataInt64ArrayCid,
+  TypedDataInt64ArrayViewCid,
+  ExternalTypedDataInt64ArrayCid,
+  UnmodifiableTypedDataInt64ArrayViewCid,
+  TypedDataUint64ArrayCid,
+  TypedDataUint64ArrayViewCid,
+  ExternalTypedDataUint64ArrayCid,
+  UnmodifiableTypedDataUint64ArrayViewCid,
+  TypedDataFloat32ArrayCid,
+  TypedDataFloat32ArrayViewCid,
+  ExternalTypedDataFloat32ArrayCid,
+  UnmodifiableTypedDataFloat32ArrayViewCid,
+  TypedDataFloat64ArrayCid,
+  TypedDataFloat64ArrayViewCid,
+  ExternalTypedDataFloat64ArrayCid,
+  UnmodifiableTypedDataFloat64ArrayViewCid,
+  TypedDataFloat32x4ArrayCid,
+  TypedDataFloat32x4ArrayViewCid,
+  ExternalTypedDataFloat32x4ArrayCid,
+  UnmodifiableTypedDataFloat32x4ArrayViewCid,
+  TypedDataInt32x4ArrayCid,
+  TypedDataInt32x4ArrayViewCid,
+  ExternalTypedDataInt32x4ArrayCid,
+  UnmodifiableTypedDataInt32x4ArrayViewCid,
+  TypedDataFloat64x2ArrayCid,
+  TypedDataFloat64x2ArrayViewCid,
+  ExternalTypedDataFloat64x2ArrayCid,
+  UnmodifiableTypedDataFloat64x2ArrayViewCid,
+  ByteDataViewCid,
+  UnmodifiableByteDataViewCid,
+  ByteBufferCid,
+  NullCid,
+  DynamicCid,
+  VoidCid,
+  NeverCid,
 }

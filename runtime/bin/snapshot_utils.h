@@ -5,6 +5,8 @@
 #ifndef RUNTIME_BIN_SNAPSHOT_UTILS_H_
 #define RUNTIME_BIN_SNAPSHOT_UTILS_H_
 
+#include <utility>
+
 #include "bin/dartutils.h"
 #include "platform/globals.h"
 
@@ -59,6 +61,8 @@ class Snapshot {
   static AppSnapshot* TryReadAppSnapshot(const char* script_uri,
                                          bool force_load_from_memory = false,
                                          bool decode_uri = true);
+  static std::pair<AppSnapshot*, CStringUniquePtr> TryReadSDKSnapshot(
+      const char* snapshot_name);
   static void WriteAppSnapshot(const char* filename,
                                uint8_t* isolate_data_buffer,
                                intptr_t isolate_data_size,

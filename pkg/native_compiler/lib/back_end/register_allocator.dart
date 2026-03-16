@@ -78,7 +78,9 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   LinearScanRegisterAllocator(super.backEndState, this.constraints);
 
   RegisterClass registerClass(Definition instr) =>
-      instr.type is DoubleType ? RegisterClass.fpu : RegisterClass.cpu;
+      instr.type is DoubleType && backEndState.unboxing.hasUnboxedResult(instr)
+      ? RegisterClass.fpu
+      : RegisterClass.cpu;
 
   int instructionPos(Instruction instr) => _instructionPos[instr.id];
   int blockStartPos(Block block) => instructionPos(block);
@@ -87,8 +89,10 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   Instruction instructionByPos(int pos) =>
       graph.instructions[_instructionByPos[pos ~/ step]];
 
+  bool hasLiveRange(Definition instr) => instr is! Constant;
+
   LiveRange liveRangeFor(Definition instr) {
-    assert(instr is! Constant);
+    assert(hasLiveRange(instr));
     return _liveRanges[instr.id] ??= LiveRange(registerClass(instr));
   }
 
@@ -144,8 +148,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       _instructionByPos[pos ~/ step] = block.id;
       pos += step;
       for (final instr in block) {
-        if (instr is Phi) {
-          // All Phis have the same position as their Block.
+        if (instr is Phi || instr is Parameter) {
+          // All Phis and Parameters have the same position as their Block.
           _instructionPos[instr.id] = blockStartPos(block);
         } else {
           _instructionPos[instr.id] = pos;
@@ -172,7 +176,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       // Add intervals for values which are live-out.
       for (final instrId in liveness.liveOut(block).elements) {
         final instr = graph.instructions[instrId] as Definition;
-        if (instr is! Constant) {
+        if (hasLiveRange(instr)) {
           final liveRange = liveRangeFor(instr);
           liveRange.addInterval(blockStart, blockEnd);
         }
@@ -241,7 +245,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           _processTemp(pos, constr.temps[i], operandId);
         }
         // Process output.
-        if (instr is Definition && instr is! Constant) {
+        if (instr is Definition && hasLiveRange(instr)) {
           final operandId = OperandId.result(instr.id);
           final liveRange = liveRangeFor(instr);
           final resultConstr = constr.result;
@@ -262,7 +266,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     errorContext.annotator = (Instruction instr) {
       if (instr is ParallelMove) return null;
       return '[${instructionPos(instr)}]' +
-          ((instr is Definition && instr is! Constant)
+          ((instr is Definition && hasLiveRange(instr))
               ? ' ${liveRangeFor(instr)}'
               : '');
     };
@@ -326,7 +330,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     } else {
       final liveRange = LiveRange(constr.registerClass);
       _liveRanges.add(liveRange);
-      liveRange.addInterval(pos, pos + 1);
+      liveRange.addInterval(pos - 1, pos + 1);
       final loc = liveRange.addUse(pos, constr);
       _operandLocations[operandId] = loc;
     }

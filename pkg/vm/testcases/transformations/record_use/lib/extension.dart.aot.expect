@@ -5,24 +5,19 @@ import "package:meta/meta.dart" as meta;
 
 import "package:meta/meta.dart" show RecordUse;
 
-class SomeClass extends core::Object {
-  synthetic constructor •() → self::SomeClass
-    : super core::Object::•()
-    ;
-}
-extension /* unnamed */ _extension#0 on self::SomeClass {
+extension /* unnamed */ _extension#0 on core::String {
   method callWithArgs = self::_extension#0|callWithArgs;
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  self::_extension#0|callWithArgs(new self::SomeClass::•(), "42");
+  self::_extension#0|callWithArgs("42", "suffix");
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 @#C1
-static extension-member method _extension#0|callWithArgs([@vm.inferred-arg-type.metadata=#lib::SomeClass] lowered final self::SomeClass #this, [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "42")] core::String s) → void {
-  s = [@vm.direct-call.metadata=dart.core::_StringBase.+] [@vm.inferred-type.metadata=? (skip check)] s.{core::String::+}("suffix"){(core::String) → core::String};
+static extension-member method _extension#0|callWithArgs([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "42")] lowered final core::String #this, [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "suffix")] core::String s) → void {
+  core::print([@vm.direct-call.metadata=dart.core::_StringBase.+] [@vm.inferred-type.metadata=! (skip check)] #this.{core::String::+}(s){(core::String) → core::String});
 }
 constants  {
   #C1 = meta::RecordUse {}

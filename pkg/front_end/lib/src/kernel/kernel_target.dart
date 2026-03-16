@@ -57,6 +57,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_property_builder.dart';
 import '../type_inference/type_schema.dart';
+import '../util/helpers.dart';
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'cfe_verifier.dart' show verifyComponent, verifyGetStaticType;
 import 'constant_evaluator.dart'
@@ -551,17 +552,6 @@ class KernelTarget {
 
         benchmarker
         // Coverage-ignore(suite): Not run.
-        ?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
-        loader.checkSupertypes(
-          sortedSourceClassBuilders,
-          sortedSourceExtensionTypeBuilders,
-          objectClass,
-          enumClass,
-          underscoreEnumClass,
-        );
-
-        benchmarker
-        // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
         installSyntheticConstructors(sortedSourceClassBuilders);
 
@@ -622,6 +612,17 @@ class KernelTarget {
         // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
         loader.performTopLevelInference(sortedSourceClassBuilders);
+
+        benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
+        loader.checkSupertypes(
+          sortedSourceClassBuilders,
+          sortedSourceExtensionTypeBuilders,
+          objectClass,
+          enumClass,
+          underscoreEnumClass,
+        );
 
         benchmarker
         // Coverage-ignore(suite): Not run.
@@ -1446,6 +1447,9 @@ class KernelTarget {
           }
           isRedirecting = true;
           break;
+        } else if (initializer.isRedirectingInitializer) {
+          isRedirecting = true;
+          break;
         }
       }
       if (!isRedirecting) {
@@ -1479,7 +1483,8 @@ class KernelTarget {
                   CfeSeverity.error,
                 )
                 .plain;
-            initializer = new InvalidInitializer(text);
+            initializer = new InvalidInitializer(text)
+              ..isSuperInitializer = true;
           } else {
             initializer = new SuperInitializer(
               superTarget,
@@ -1547,8 +1552,9 @@ class KernelTarget {
     }
 
     Map<SourceConstructorBuilder, Set<SourcePropertyBuilder>>
-    constructorInitializedFields = new Map.identity();
-    Set<SourcePropertyBuilder>? initializedFieldBuilders = null;
+    constructorInitializedFields = {};
+    Set<SourcePropertyBuilder>? initializedFieldBuilders;
+    Map<SourcePropertyBuilder, FieldInitialization>? fieldInitializations;
     Set<SourcePropertyBuilder>? uninitializedInstanceFields;
 
     Iterator<SourceConstructorBuilder> constructorIterator = classDeclaration
@@ -1601,23 +1607,48 @@ class KernelTarget {
             )
             .toSet();
         constructorInitializedFields[constructor] = uninitializedInstanceFields;
-        (initializedFieldBuilders ??= new Set<SourcePropertyBuilder>.identity())
-            .addAll(uninitializedInstanceFields);
+        (initializedFieldBuilders ??= {}).addAll(uninitializedInstanceFields);
       } else {
-        Set<SourcePropertyBuilder> fields =
-            constructor.takeInitializedFields() ?? const {};
-        constructorInitializedFields[constructor] = fields;
-        (initializedFieldBuilders ??= new Set<SourcePropertyBuilder>.identity())
-            .addAll(fields);
+        fieldInitializations = constructor.takeInitializedFields();
+        Set<SourcePropertyBuilder> set =
+            fieldInitializations?.keys.toSet() ?? const {};
+        (initializedFieldBuilders ??= {}).addAll(set);
+        constructorInitializedFields[constructor] = set;
       }
       if (constructor.isPrimaryConstructor) {
         // We prepend the initializers in reversed order to preserve normal
         // field initializer evaluation order.
         for (SourcePropertyBuilder field
             in nonLateClassInstanceFieldsWithInitializers.reversed) {
-          constructor.prependInitializer(
-            field.takePrimaryConstructorFieldInitializer(),
-          );
+          FieldInitialization? fieldInitialization =
+              fieldInitializations?[field];
+          if (fieldInitialization != null) {
+            if (fieldInitialization.fromInitializingFormal) {
+              classDeclaration.libraryBuilder.addProblem2(
+                // ignore: lines_longer_than_80_chars
+                diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
+                fieldInitialization.uriOffset,
+                context: [
+                  diag.fieldInitializedPrimaryConstructorDuplicateContext
+                      .withLocation2(field.fieldUriOffset!),
+                ],
+              );
+            } else {
+              classDeclaration.libraryBuilder.addProblem2(
+                // ignore: lines_longer_than_80_chars
+                diag.fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
+                fieldInitialization.uriOffset,
+                context: [
+                  diag.fieldInitializedPrimaryConstructorDuplicateContext
+                      .withLocation2(field.fieldUriOffset!),
+                ],
+              );
+            }
+          } else {
+            constructor.prependInitializer(
+              field.takePrimaryConstructorFieldInitializer(),
+            );
+          }
         }
         if (classDeclaration is SourceClassBuilder) {
           Iterator<SourceConstructorBuilder> otherConstructorIterator =

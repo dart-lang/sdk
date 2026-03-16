@@ -174,6 +174,38 @@ void f() {
     await _checkRanges(content);
   }
 
+  Future<void> test_constructor_secondary_factory_constructorName() async {
+    var content = '''
+class Aaa {
+  new _();
+  fa^ctory() => Aaa._();
+}
+
+void f() {
+  Aaa value = Aaa/*[0*/.new/*0]*/();
+  Aaa/*[1*/.new/*1]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_secondary_factoryNamed_constructorName() async {
+    var content = '''
+class Aaa {
+  new ();
+  factory na^med() => Aaa();
+}
+
+void f() {
+  Aaa value = Aaa/*[0*/.named/*0]*/();
+  Aaa/*[1*/.named/*1]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
   Future<void> test_constructor_secondary_named_constructorName() async {
     var content = '''
 class Aaa {

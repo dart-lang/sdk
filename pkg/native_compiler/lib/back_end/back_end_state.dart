@@ -7,6 +7,7 @@ import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/stack_frame.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
+import 'package:native_compiler/passes/unboxing.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
@@ -21,6 +22,9 @@ class BackEndState {
 
   /// Reusable stubs.
   late final StubFactory stubFactory;
+
+  /// Boxed/unboxed representation.
+  late final Unboxing unboxing;
 
   /// Block order for the code generation.
   late final List<Block> codeGenBlockOrder;

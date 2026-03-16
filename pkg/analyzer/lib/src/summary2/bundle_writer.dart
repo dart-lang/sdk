@@ -1087,6 +1087,7 @@ class ResolutionSink extends BinaryWriter {
     writeElement(alias?.element);
     if (alias != null) {
       _writeTypeList(alias.typeArguments);
+      _writeNullabilitySuffix(alias.nullabilitySuffix);
     }
   }
 

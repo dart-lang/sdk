@@ -63,6 +63,24 @@ abstract class TokenStreamRewriter {
     return leftParen;
   }
 
+  /// Insert a synthetic `{` and `}` after [previousToken] and return them.
+  (Token, Token) insertBlock(Token previousToken) {
+    Token followingToken = previousToken.next!;
+    int offset = followingToken.charOffset;
+    BeginToken leftBracket = new SyntheticBeginToken(
+      TokenType.OPEN_CURLY_BRACKET,
+      offset,
+    );
+    Token rightBracket = new SyntheticToken(
+      TokenType.CLOSE_CURLY_BRACKET,
+      offset,
+    );
+    insertToken(previousToken, leftBracket);
+    insertToken(leftBracket, rightBracket);
+    _setEndGroup(leftBracket, rightBracket);
+    return (leftBracket, rightBracket);
+  }
+
   /// Insert [newToken] after [token] and return [newToken].
   Token insertToken(Token token, Token newToken) {
     // Throw if the token is eof, though allow an eof-token if the offset

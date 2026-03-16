@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/feature_sets.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class ComputeReferencedNamesTest {
+class ComputeReferencedNamesTest extends ParserDiagnosticsTest {
   test_class_constructor() {
     Set<String> names = _computeReferencedNames('''
 class U {
@@ -456,17 +455,14 @@ main() {
   }
 
   Set<String> _computeReferencedNames(String code, {FeatureSet? featureSet}) {
-    var parseResult = parseString(
-      content: code,
-      featureSet: featureSet ?? FeatureSets.latestWithExperiments,
-    );
+    var parseResult = parseStringWithErrors(code, featureSet: featureSet);
     var unit = parseResult.unit;
     return computeReferencedNames(unit);
   }
 }
 
 @reflectiveTest
-class ComputeSubtypedNamesTest {
+class ComputeSubtypedNamesTest extends ParserDiagnosticsTest {
   void test_classDeclaration() {
     Set<String> names = _computeSubtypedNames('''
 import 'lib.dart';
@@ -518,10 +514,7 @@ class X extends A<B> {}
   }
 
   Set<String> _computeSubtypedNames(String code) {
-    var parseResult = parseString(
-      content: code,
-      featureSet: FeatureSets.latestWithExperiments,
-    );
+    var parseResult = parseStringWithErrors(code);
     var unit = parseResult.unit;
     return computeSubtypedNames(unit);
   }

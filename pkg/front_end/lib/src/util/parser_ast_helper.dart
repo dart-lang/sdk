@@ -412,6 +412,15 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleNoMixinBody(Token semicolonToken) {
+    NoMixinBodyHandle data = new NoMixinBodyHandle(
+      ParserAstType.HANDLE,
+      semicolonToken: semicolonToken,
+    );
+    seen(data);
+  }
+
+  @override
   void endMixinDeclaration(Token beginToken, Token endToken) {
     MixinDeclarationEnd data = new MixinDeclarationEnd(
       ParserAstType.END,
@@ -469,6 +478,15 @@ abstract class AbstractParserAstListener implements Listener {
       extensionKeyword: extensionKeyword,
       onKeyword: onKeyword,
       endToken: endToken,
+    );
+    seen(data);
+  }
+
+  @override
+  void handleNoExtensionBody(Token semicolonToken) {
+    NoExtensionBodyHandle data = new NoExtensionBodyHandle(
+      ParserAstType.HANDLE,
+      semicolonToken: semicolonToken,
     );
     seen(data);
   }
@@ -798,6 +816,15 @@ abstract class AbstractParserAstListener implements Listener {
       ParserAstType.END,
       beginToken: beginToken,
       endToken: endToken,
+    );
+    seen(data);
+  }
+
+  @override
+  void handleNoEnumBody(Token semicolonToken) {
+    NoEnumBodyHandle data = new NoEnumBodyHandle(
+      ParserAstType.HANDLE,
+      semicolonToken: semicolonToken,
     );
     seen(data);
   }
@@ -4646,6 +4673,21 @@ class RecoverMixinHeaderHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitRecoverMixinHeaderHandle(this);
 }
 
+class NoMixinBodyHandle extends ParserAstNode {
+  final Token semicolonToken;
+
+  NoMixinBodyHandle(ParserAstType type, {required this.semicolonToken})
+    : super("NoMixinBody", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "semicolonToken": semicolonToken,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoMixinBodyHandle(this);
+}
+
 class MixinDeclarationEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
   @override
@@ -4753,6 +4795,21 @@ class ExtensionDeclarationEnd extends ParserAstNode
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionDeclarationEnd(this);
+}
+
+class NoExtensionBodyHandle extends ParserAstNode {
+  final Token semicolonToken;
+
+  NoExtensionBodyHandle(ParserAstType type, {required this.semicolonToken})
+    : super("NoExtensionBody", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "semicolonToken": semicolonToken,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoExtensionBodyHandle(this);
 }
 
 class ExtensionTypeDeclarationBegin extends ParserAstNode {
@@ -5285,6 +5342,21 @@ class EnumBodyEnd extends ParserAstNode
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitEnumBodyEnd(this);
+}
+
+class NoEnumBodyHandle extends ParserAstNode {
+  final Token semicolonToken;
+
+  NoEnumBodyHandle(ParserAstType type, {required this.semicolonToken})
+    : super("NoEnumBody", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "semicolonToken": semicolonToken,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoEnumBodyHandle(this);
 }
 
 class EnumElementHandle extends ParserAstNode {
@@ -10799,6 +10871,7 @@ abstract class ParserAstVisitor<R> {
   R visitMixinOnHandle(MixinOnHandle node);
   R visitMixinHeaderHandle(MixinHeaderHandle node);
   R visitRecoverMixinHeaderHandle(RecoverMixinHeaderHandle node);
+  R visitNoMixinBodyHandle(NoMixinBodyHandle node);
   R visitMixinDeclarationEnd(MixinDeclarationEnd node);
   R visitUncategorizedTopLevelDeclarationBegin(
     UncategorizedTopLevelDeclarationBegin node,
@@ -10808,6 +10881,7 @@ abstract class ParserAstVisitor<R> {
   );
   R visitExtensionDeclarationBegin(ExtensionDeclarationBegin node);
   R visitExtensionDeclarationEnd(ExtensionDeclarationEnd node);
+  R visitNoExtensionBodyHandle(NoExtensionBodyHandle node);
   R visitExtensionTypeDeclarationBegin(ExtensionTypeDeclarationBegin node);
   R visitExtensionTypeDeclarationEnd(ExtensionTypeDeclarationEnd node);
   R visitPrimaryConstructorBegin(PrimaryConstructorBegin node);
@@ -10837,6 +10911,7 @@ abstract class ParserAstVisitor<R> {
   R visitEnumHeaderHandle(EnumHeaderHandle node);
   R visitEnumBodyBegin(EnumBodyBegin node);
   R visitEnumBodyEnd(EnumBodyEnd node);
+  R visitNoEnumBodyHandle(NoEnumBodyHandle node);
   R visitEnumElementHandle(EnumElementHandle node);
   R visitExportBegin(ExportBegin node);
   R visitExportEnd(ExportEnd node);
@@ -11302,6 +11377,10 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
       node.visitChildren(this);
 
   @override
+  void visitNoMixinBodyHandle(NoMixinBodyHandle node) =>
+      node.visitChildren(this);
+
+  @override
   void visitMixinDeclarationEnd(MixinDeclarationEnd node) =>
       node.visitChildren(this);
 
@@ -11321,6 +11400,10 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitExtensionDeclarationEnd(ExtensionDeclarationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoExtensionBodyHandle(NoExtensionBodyHandle node) =>
       node.visitChildren(this);
 
   @override
@@ -11432,6 +11515,9 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitEnumBodyEnd(EnumBodyEnd node) => node.visitChildren(this);
+
+  @override
+  void visitNoEnumBodyHandle(NoEnumBodyHandle node) => node.visitChildren(this);
 
   @override
   void visitEnumElementHandle(EnumElementHandle node) =>
@@ -12736,6 +12822,10 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
       defaultNode(node);
 
   @override
+  Future<void> visitNoMixinBodyHandle(NoMixinBodyHandle node) =>
+      defaultNode(node);
+
+  @override
   Future<void> visitMixinDeclarationEnd(MixinDeclarationEnd node) =>
       defaultNode(node);
 
@@ -12755,6 +12845,10 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
 
   @override
   Future<void> visitExtensionDeclarationEnd(ExtensionDeclarationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoExtensionBodyHandle(NoExtensionBodyHandle node) =>
       defaultNode(node);
 
   @override
@@ -12873,6 +12967,10 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
 
   @override
   Future<void> visitEnumBodyEnd(EnumBodyEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitNoEnumBodyHandle(NoEnumBodyHandle node) =>
+      defaultNode(node);
 
   @override
   Future<void> visitEnumElementHandle(EnumElementHandle node) =>

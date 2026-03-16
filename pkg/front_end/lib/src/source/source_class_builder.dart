@@ -642,16 +642,12 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
-  SourceConstructorBuilder? lookupConstructor(Name name) {
+  MemberLookupResult? lookupConstructor(Name name) {
     if (name.text == "new") {
       name = new Name("", name.library);
     }
 
-    Builder? builder = nameSpace.lookupConstructor(name.text)?.getable;
-    if (builder is SourceConstructorBuilder) {
-      return builder;
-    }
-    return null;
+    return nameSpace.lookupConstructor(name.text);
   }
 
   /// Looks up the super constructor by [name] on the superclass of the class
@@ -1272,7 +1268,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         if (!formal.isCovariantByDeclaration) {
           for (TypeParameter typeParameter in classTypeParameters) {
             Variance formalVariance = Variance.contravariant.combine(
-              computeVariance(typeParameter, formal.variable!.type),
+              computeVariance(typeParameter, formal.variable.type),
             );
             reportVariancePositionIfInvalid(
               formalVariance,

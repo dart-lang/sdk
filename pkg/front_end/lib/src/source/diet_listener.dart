@@ -1017,6 +1017,22 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoExtensionBody(Token semicolonToken) {
+    assert(
+      checkState(semicolonToken, [
+        ValueKinds.Token,
+        ValueKinds.IdentifierOrParserRecoveryOrNull,
+        ValueKinds.TokenOrNull,
+      ]),
+    );
+    debugEvent("NoExtensionBody");
+    pop(); // Begin token
+    pop(); // Name
+    pop(); // Annotation begin token.
+  }
+
+  @override
   void handleNoExtensionTypeBody(Token semicolonToken) {
     assert(
       checkState(semicolonToken, [
@@ -1026,6 +1042,22 @@ class DietListener extends StackListenerImpl {
       ]),
     );
     debugEvent("NoExtensionTypeBody");
+    pop(); // Begin token
+    pop(); // Name
+    pop(); // Annotation begin token.
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoMixinBody(Token semicolonToken) {
+    assert(
+      checkState(semicolonToken, [
+        ValueKinds.Token,
+        ValueKinds.IdentifierOrParserRecoveryOrNull,
+        ValueKinds.TokenOrNull,
+      ]),
+    );
+    debugEvent("NoMixinBody");
     pop(); // Begin token
     pop(); // Name
     pop(); // Annotation begin token.
@@ -1283,6 +1315,20 @@ class DietListener extends StackListenerImpl {
     Token leftBrace,
   ) {
     debugEvent("EnumHeader");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoEnumBody(Token semicolonToken) {
+    assert(
+      checkState(semicolonToken, [
+        ValueKinds.IdentifierOrParserRecovery,
+        ValueKinds.TokenOrNull,
+      ]),
+    );
+    debugEvent("NoEnumBody");
+    pop(); // Name
+    pop(); // Annotations begin token.
   }
 
   @override

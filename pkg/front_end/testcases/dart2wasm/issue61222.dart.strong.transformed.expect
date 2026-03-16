@@ -44,12 +44,12 @@ static method main() → void {
       #t4.{core::List::add}{Invariant}(new self::C::v1()){(self::C) → void};
   } =>#t4;
 }
-static extension-type-member const method E|constructor#_(final core::int? _) → self::E% /* erasure=core::int?, declared=! */ {
-  lowered final self::E% /* erasure=core::int?, declared=! */ #this = _;
+static extension-type-member const method E|constructor#_(final wildcard core::int? _#wc0#formal) → self::E% /* erasure=core::int?, declared=! */ {
+  lowered final self::E% /* erasure=core::int?, declared=! */ #this = _#wc0#formal;
   return #this;
 }
-static extension-type-member synthetic method E|constructor#_#_#tearOff(final core::int? _) → self::E% /* erasure=core::int?, declared=! */
-  return self::E|constructor#_(_);
+static extension-type-member synthetic method E|constructor#_#_#tearOff(final core::int? _#wc0#formal) → self::E% /* erasure=core::int?, declared=! */
+  return self::E|constructor#_(_#wc0#formal);
 static extension-type-member const method E|constructor#vn() → self::E% /* erasure=core::int?, declared=! */ {
   lowered final self::E% /* erasure=core::int?, declared=! */ #this;
   #this = self::E|constructor#_(null);

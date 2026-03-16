@@ -343,7 +343,12 @@ class DartCompletionRequest {
       opType: opType,
       fileState: fileState,
       path: filePath,
-      replacementRange: target.computeReplacementRange(offset),
+      replacementRange: target.computeReplacementRange(
+        offset,
+        isDotShorthandEnabled: libraryElement.featureSet.isEnabled(
+          .dot_shorthands,
+        ),
+      ),
       source: libraryFragment.source,
       target: target,
       unit: unit,
@@ -401,6 +406,21 @@ class DartCompletionRequest {
   /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers {
     return opType.includeIdentifiers;
+  }
+
+  /// Used by completion on dot-shorthand nodes when the feature is disabled so
+  /// we can determine if we should suggest unnamed constructors as `new`.
+  bool get isReplacingKeywordOrIdentifier {
+    var entity = target.entity;
+    if (entity is Token) {
+      return entity.isKeywordOrIdentifier &&
+              replacementRange.offset >= entity.offset ||
+          replacementRange.end >= entity.offset;
+    } else if (entity case SimpleIdentifier(isSynthetic: false)) {
+      return replacementRange.offset >= entity.offset ||
+          replacementRange.end >= entity.offset;
+    }
+    return false;
   }
 
   /// Answer the [DartType] for Object in dart:core

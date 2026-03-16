@@ -158,6 +158,7 @@ final class Simplification extends Pass
         closure.function,
         instr.type,
         inputCount: instr.inputCount,
+        argumentsShape: instr.argumentsShape,
       );
       for (int i = 0, n = instr.inputCount; i < n; ++i) {
         replacement.setInputAt(i, instr.inputDefAt(i));
@@ -277,6 +278,18 @@ final class Simplification extends Pass
 
   @override
   Instruction visitSetListElement(SetListElement instr) => instr;
+
+  @override
+  Instruction visitBoxInt(BoxInt instr) => instr;
+
+  @override
+  Instruction visitBoxDouble(BoxDouble instr) => instr;
+
+  @override
+  Instruction visitUnboxInt(UnboxInt instr) => instr;
+
+  @override
+  Instruction visitUnboxDouble(UnboxDouble instr) => instr;
 
   @override
   Instruction visitParallelMove(ParallelMove instr) => instr;

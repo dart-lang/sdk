@@ -2,257 +2,437 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'parser_test_base.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class ExtensionMethodsParserTest extends FastaParserTestCase {
+class ExtensionMethodsParserTest extends ParserDiagnosticsTest {
   void test_complex_extends() {
-    var unit = parseCompilationUnit(
-      'extension E extends A with B, C implements D { }',
-      diagnostics: [
-        expectedError(diag.expectedInstead, 12, 7),
-        expectedError(diag.unexpectedToken, 22, 4),
-        expectedError(diag.unexpectedToken, 28, 1),
-        expectedError(diag.unexpectedToken, 32, 10),
-      ],
-    );
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'extends');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'A');
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E extends A with B, C implements D { }
+''');
+    parseResult.assertErrors([
+      error(diag.expectedInstead, 12, 7),
+      error(diag.unexpectedToken, 22, 4),
+      error(diag.unexpectedToken, 28, 1),
+      error(diag.unexpectedToken, 32, 10),
+    ]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: extends
+    extendedType: NamedType
+      name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_complex_implements() {
-    var unit = parseCompilationUnit(
-      'extension E implements C, D { }',
-      diagnostics: [
-        expectedError(diag.expectedInstead, 12, 10),
-        expectedError(diag.unexpectedToken, 24, 1),
-      ],
-    );
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'implements');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E implements C, D { }
+''');
+    parseResult.assertErrors([
+      error(diag.expectedInstead, 12, 10),
+      error(diag.unexpectedToken, 24, 1),
+    ]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: implements
+    extendedType: NamedType
+      name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_complex_type() {
-    var unit = parseCompilationUnit('extension E on C<T> { }');
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'on');
-    var namedType = extension.onClause!.extendedType as NamedType;
-    expect(namedType.name.lexeme, 'C');
-    expect(namedType.typeArguments!.arguments, hasLength(1));
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E on C<T> {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: T
+        rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_complex_type2() {
-    var unit = parseCompilationUnit('extension E<T> on C<T> { }');
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'on');
-    var namedType = extension.onClause!.extendedType as NamedType;
-    expect(namedType.name.lexeme, 'C');
-    expect(namedType.typeArguments!.arguments, hasLength(1));
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E<T> on C<T> {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: T
+        rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_complex_type2_no_name() {
-    var unit = parseCompilationUnit('extension<T> on C<T> { }');
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name, isNull);
-    expect(extension.onClause!.onKeyword.lexeme, 'on');
-    var namedType = extension.onClause!.extendedType as NamedType;
-    expect(namedType.name.lexeme, 'C');
-    expect(namedType.typeArguments!.arguments, hasLength(1));
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension<T> on C<T> {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: T
+        rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_constructor_named() {
-    var unit = parseCompilationUnit(
-      '''
+    var parseResult = parseStringWithErrors('''
 extension E on C {
   E.named();
 }
 class C {}
-''',
-      diagnostics: [expectedError(diag.extensionDeclaresConstructor, 21, 1)],
-    );
-    expect(unit.declarations, hasLength(2));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.body.members, hasLength(0));
+''');
+    parseResult.assertErrors([error(diag.extensionDeclaresConstructor, 21, 1)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_constructor_unnamed() {
-    var unit = parseCompilationUnit(
-      '''
+    var parseResult = parseStringWithErrors('''
 extension E on C {
   E();
 }
 class C {}
-''',
-      diagnostics: [expectedError(diag.extensionDeclaresConstructor, 21, 1)],
-    );
-    expect(unit.declarations, hasLength(2));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.body.members, hasLength(0));
+''');
+    parseResult.assertErrors([error(diag.extensionDeclaresConstructor, 21, 1)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_missing_on() {
-    var unit = parseCompilationUnit(
-      'extension E',
-      diagnostics: [
-        expectedError(diag.expectedToken, 10, 1),
-        expectedError(diag.expectedTypeName, 11, 0),
-        expectedError(diag.expectedExtensionBody, 11, 0),
-      ],
-    );
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, '');
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 10, 1),
+      error(diag.expectedTypeName, 12, 0),
+      error(diag.expectedExtensionBody, 12, 0),
+    ]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on <synthetic>
+    extendedType: NamedType
+      name: <empty> <synthetic>
+  body: BlockClassBody
+    leftBracket: { <synthetic>
+    rightBracket: } <synthetic>
+''');
   }
 
   void test_missing_on_withBlock() {
-    var unit = parseCompilationUnit(
-      'extension E {}',
-      diagnostics: [
-        expectedError(diag.expectedToken, 10, 1),
-        expectedError(diag.expectedTypeName, 12, 1),
-      ],
-    );
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, '');
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 10, 1),
+      error(diag.expectedTypeName, 12, 1),
+    ]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on <synthetic>
+    extendedType: NamedType
+      name: <empty> <synthetic>
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_missing_on_withClassAndBlock() {
-    var unit = parseCompilationUnit(
-      'extension E C {}',
-      diagnostics: [expectedError(diag.expectedToken, 10, 1)],
-    );
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E C {}
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on <synthetic>
+    extendedType: NamedType
+      name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parse_toplevel_member_called_late_calling_self() {
-    var unit = parseCompilationUnit('void late() { late(); }');
-    var method = unit.declarations[0] as FunctionDeclaration;
+    var parseResult = parseStringWithErrors(r'''
+void late() {
+  late();
+}
+''');
+    parseResult.assertNoErrors();
 
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name.lexeme, 'late');
-    expect(method.functionExpression, isNotNull);
-
-    var body = method.functionExpression.body as BlockFunctionBody;
-    var statement = body.block.statements[0] as ExpressionStatement;
-    var invocation = statement.expression as MethodInvocation;
-    expect(invocation.operator, isNull);
-    expect(invocation.toSource(), 'late()');
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: late
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        statements
+          ExpressionStatement
+            expression: MethodInvocation
+              methodName: SimpleIdentifier
+                token: late
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_simple() {
-    var unit = parseCompilationUnit('extension E on C { }');
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
-    var namedType = extension.onClause!.extendedType as NamedType;
-    expect(namedType.name.lexeme, 'C');
-    expect(namedType.typeArguments, isNull);
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E on C {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_simple_extends() {
-    var unit = parseCompilationUnit(
-      'extension E extends C { }',
-      diagnostics: [expectedError(diag.expectedInstead, 12, 7)],
-    );
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'extends');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E extends C { }
+''');
+    parseResult.assertErrors([error(diag.expectedInstead, 12, 7)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: extends
+    extendedType: NamedType
+      name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_simple_implements() {
-    var unit = parseCompilationUnit(
-      'extension E implements C { }',
-      diagnostics: [expectedError(diag.expectedInstead, 12, 10)],
-    );
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'implements');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E implements C { }
+''');
+    parseResult.assertErrors([error(diag.expectedInstead, 12, 10)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: implements
+    extendedType: NamedType
+      name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_simple_no_name() {
-    var unit = parseCompilationUnit('extension on C { }');
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name, isNull);
-    expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
-    var namedType = extension.onClause!.extendedType as NamedType;
-    expect(namedType.name.lexeme, 'C');
-    expect(namedType.typeArguments, isNull);
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension on C {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_simple_with() {
-    var unit = parseCompilationUnit(
-      'extension E with C { }',
-      diagnostics: [expectedError(diag.expectedInstead, 12, 4)],
-    );
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'with');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E with C { }
+''');
+    parseResult.assertErrors([error(diag.expectedInstead, 12, 4)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: with
+    extendedType: NamedType
+      name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_void_type() {
-    var unit = parseCompilationUnit('extension E on void { }');
-    expect(unit.declarations, hasLength(1));
-    var extension = unit.declarations[0] as ExtensionDeclaration;
-    expect(extension.name!.lexeme, 'E');
-    expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'void');
-    expect(extension.body.members, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+extension E on void {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: void
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 }

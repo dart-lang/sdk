@@ -74,8 +74,8 @@ void main() {
         p.relativeFilePath,
       ]);
 
-      expect(runResult.stdout, matches(compilationServerStartRegExp));
-      expect(runResult.stderr, isEmpty);
+      expect(runResult.stderr, matches(compilationServerStartRegExp));
+      expect(runResult.stdout, isEmpty);
       expect(runResult.exitCode, 0);
       expect(File(serverInfoFile).existsSync(), true);
 

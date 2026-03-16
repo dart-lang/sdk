@@ -13,11 +13,9 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope_context.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Recursive visitor of LinkedNodes that resolves explicit type annotations
 /// in outlines.  This includes resolving element references in identifiers
@@ -78,48 +76,24 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    node.constants.accept(this);
+    node.members.accept(this);
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.metadata.accept(this);
-      node.namePart.typeParameters?.accept(this);
-      node.extendsClause?.accept(this);
-      node.withClause?.accept(this);
-      node.implementsClause?.accept(this);
-
-      _scopeContext.withInstanceScope(element, () {
-        LinkingNodeContext(node, nameScope);
-
-        node.namePart
-            .tryCast<PrimaryConstructorDeclaration>()
-            ?.formalParameters
-            .accept(this);
-        node.body.accept(this);
-        nodesToBuildType.addDeclaration(node);
-      });
-    });
+    _scopeContext.visitClassDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      LinkingNodeContext(node, nameScope);
-
-      node.metadata.accept(this);
-      node.typeParameters?.accept(this);
-      node.superclass.accept(this);
-      node.withClause.accept(this);
-      node.implementsClause?.accept(this);
-      nodesToBuildType.addDeclaration(node);
-    });
+    _scopeContext.visitClassTypeAlias(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -127,26 +101,23 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    LinkingNodeContext(node, nameScope);
     node.declarations.accept(this);
   }
 
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      LinkingNodeContext(node, nameScope);
-
-      node.metadata.accept(this);
-      node.parameters.accept(this);
-    });
+    _scopeContext.visitConstructorDeclaration(
+      node,
+      visitor: this,
+      visitTypeName: (_) {},
+      visitInitializers: (_) {},
+      visitRedirectedConstructor: (_) {},
+    );
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    LinkingNodeContext(node, nameScope);
+  void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
+    node.scope = nameScope;
     node.parameter.accept(this);
   }
 
@@ -154,38 +125,28 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {}
+
+  @override
+  void visitEmptyFunctionBody(EmptyFunctionBody node) {}
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {}
+
+  @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    var element = fragment.element;
 
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.metadata.accept(this);
-      node.namePart.typeParameters?.accept(this);
-      node.implementsClause?.accept(this);
-      node.withClause?.accept(this);
+    _scopeContext.visitEnumDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
 
-      _scopeContext.withInstanceScope(element, () {
-        LinkingNodeContext(node, nameScope);
-
-        node.namePart
-            .tryCast<PrimaryConstructorDeclaration>()
-            ?.formalParameters
-            .accept(this);
-        node.body.members.accept(this);
-        nodesToBuildType.addDeclaration(node);
-
-        for (var field in fragment.fields) {
-          var isExplicitField =
-              field.isOriginDeclaration && !field.isEnumConstant;
-          if (!isExplicitField) {
-            var node = linker.elementNodes[field];
-            if (node != null) {
-              LinkingNodeContext(node, nameScope);
-            }
-          }
-        }
-      });
-    });
+    for (var field in fragment.fields) {
+      if (field.isEnumConstant || field.isOriginEnumValues) {
+        var fieldNode = linker.elementNodes[field];
+        fieldNode as VariableDeclarationImpl;
+        fieldNode.initializerScope = node.bodyScope;
+      }
+    }
   }
 
   @override
@@ -198,21 +159,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.metadata.accept(this);
-      node.typeParameters?.accept(this);
-      node.onClause?.accept(this);
-
-      _scopeContext.withExtensionScope(element, () {
-        LinkingNodeContext(node, nameScope);
-
-        node.body.members.accept(this);
-        nodesToBuildType.addDeclaration(node);
-      });
-    });
+    _scopeContext.visitExtensionDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -224,70 +172,19 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.metadata.accept(this);
-      node.primaryConstructor.typeParameters?.accept(this);
-      node.implementsClause?.accept(this);
-
-      _scopeContext.withInstanceScope(element, () {
-        LinkingNodeContext(node, nameScope);
-
-        node.primaryConstructor.formalParameters.accept(this);
-        node.body.accept(this);
-        nodesToBuildType.addDeclaration(node);
-      });
-    });
+    _scopeContext.visitExtensionTypeDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    node.metadata.accept(this);
-
-    var fields = node.fields;
-    fields.type?.accept(this);
-    nodesToBuildType.addDeclaration(fields);
-
-    void bindVariables() {
-      for (var variable in fields.variables) {
-        var fragment = variable.declaredFragment!;
-        var variableNode = linker.elementNodes[fragment]!;
-        LinkingNodeContext(variableNode, nameScope);
-      }
-    }
-
-    if (!node.isStatic && fields.lateKeyword == null) {
-      var primaryConstructor = node.parent?.parent
-          .tryCast<Declaration>()
-          ?.declaredFragment!
-          .element
-          .tryCast<InterfaceElementImpl>()
-          ?.primaryConstructor;
-      if (primaryConstructor != null) {
-        _scopeContext.withConstructorInitializerScope(
-          primaryConstructor,
-          bindVariables,
-        );
-        return;
-      }
-    }
-
-    bindVariables();
+    node.visitChildren(this);
   }
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.type?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-      nodesToBuildType.addDeclaration(node);
-    });
+    _scopeContext.visitFieldFormalParameter(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -297,90 +194,39 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      LinkingNodeContext(node, nameScope);
-
-      node.metadata.accept(this);
-      node.returnType?.accept(this);
-      node.functionExpression.accept(this);
-      nodesToBuildType.addDeclaration(node);
-    });
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    node.typeParameters?.accept(this);
-    node.parameters?.accept(this);
+    _scopeContext.visitFunctionDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-
-      nodesToBuildType.addDeclaration(node);
-    });
+    _scopeContext.visitFunctionTypeAlias(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
   void visitFunctionTypedFormalParameter(
     covariant FunctionTypedFormalParameterImpl node,
   ) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-      nodesToBuildType.addDeclaration(node);
-    });
+    _scopeContext.visitFunctionTypedFormalParameter(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
+    _scopeContext.visitGenericFunctionType(node, visitor: this);
 
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters.accept(this);
-
-      var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
-      var builder = FunctionTypeBuilder.of(node, nullabilitySuffix);
-      node.type = builder;
-      nodesToBuildType.addDeclaration(node);
-      nodesToBuildType.addTypeBuilder(builder);
-    });
+    var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
+    var builder = FunctionTypeBuilder.of(node, nullabilitySuffix);
+    node.type = builder;
+    nodesToBuildType.addDeclaration(node);
+    nodesToBuildType.addTypeBuilder(builder);
   }
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.metadata.accept(this);
-      node.typeParameters?.accept(this);
-      node.type.accept(this);
-      nodesToBuildType.addDeclaration(node);
-
-      var aliasedType = node.type;
-      if (aliasedType is GenericFunctionTypeImpl) {
-        fragment.encloseElement(
-          aliasedType.declaredFragment as GenericFunctionTypeFragmentImpl,
-        );
-      }
-    });
+    _scopeContext.visitGenericTypeAlias(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -390,30 +236,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      LinkingNodeContext(node, nameScope);
-
-      node.metadata.accept(this);
-      node.returnType?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-      nodesToBuildType.addDeclaration(node);
-    });
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+    _scopeContext.visitMixinDeclaration(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
-    _scopeContext.visitMixinDeclaration(
-      node,
-      visitor: this,
-      enterBodyScope: () {
-        LinkingNodeContext(node, nameScope);
-      },
-    );
   }
 
   @override
@@ -476,17 +306,18 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
-    LinkingNodeContext(node, nameScope);
-  }
+  void visitNativeClause(NativeClause node) {}
 
   @override
-  void visitPrimaryConstructorDeclaration(
-    covariant PrimaryConstructorDeclarationImpl node,
-  ) {
-    LinkingNodeContext(node, nameScope);
-    node.typeParameters?.accept(this);
-    node.formalParameters.accept(this);
+  void visitNativeFunctionBody(NativeFunctionBody node) {}
+
+  @override
+  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+    _scopeContext.visitPrimaryConstructorBody(
+      node,
+      visitor: this,
+      visitInitializers: (_) {},
+    );
   }
 
   @override
@@ -528,21 +359,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    _scopeContext.withTypeParameterScope(element.typeParameters, () {
-      node.type?.accept(this);
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
-      nodesToBuildType.addDeclaration(node);
-    });
+    _scopeContext.visitSuperFormalParameter(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    node.metadata.accept(this);
-    node.variables.accept(this);
+    node.visitChildren(this);
   }
 
   @override
@@ -569,17 +392,16 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
+    node.initializerScope = nameScope;
+  }
+
+  @override
   void visitVariableDeclarationList(
     covariant VariableDeclarationListImpl node,
   ) {
-    node.type?.accept(this);
+    _scopeContext.visitVariableDeclarationList(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
-
-    for (var variable in node.variables) {
-      var fragment = variable.declaredFragment!;
-      var node = linker.elementNodes[fragment]!;
-      LinkingNodeContext(node, nameScope);
-    }
   }
 
   @override

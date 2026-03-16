@@ -169,7 +169,7 @@ VariableGet createVariableGet(
 
 /// Creates a [VariableSet] of [variable] with the [value].
 Expression createVariableSet(
-  ExpressionVariable variable,
+  Variable variable,
   Expression value, {
   bool allowFinalAssignment = false,
   required int fileOffset,
@@ -368,7 +368,13 @@ LabeledStatement createLabeledStatement(
   return new LabeledStatement(statement)..fileOffset = fileOffset;
 }
 
-Initializer createInvalidInitializer(InvalidExpression expression) {
+InvalidInitializer createInvalidInitializer(
+  InvalidExpression expression, {
+  bool isSuperInitializer = false,
+  bool isRedirectingInitializer = false,
+}) {
   return new InvalidInitializer(expression.message)
-    ..fileOffset = expression.fileOffset;
+    ..fileOffset = expression.fileOffset
+    ..isSuperInitializer = isSuperInitializer
+    ..isRedirectingInitializer = isRedirectingInitializer;
 }

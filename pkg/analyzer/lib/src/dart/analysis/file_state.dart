@@ -942,7 +942,7 @@ class FileState {
       } else if (directive is LibraryDirective) {
         libraryDirective = UnlinkedLibraryDirective(
           docImports: buildDocImports(directive),
-          name: directive.name?.name,
+          name: directive.name?.tokens.map((e) => e.lexeme).join(),
         );
       } else if (directive is PartDirective) {
         var unlinked = _serializePart(directive);
@@ -953,7 +953,7 @@ class FileState {
         if (libraryName != null) {
           partOfNameDirective ??= UnlinkedPartOfNameDirective(
             docImports: buildDocImports(directive),
-            name: libraryName.name,
+            name: libraryName.tokens.map((e) => e.lexeme).join(),
             nameRange: UnlinkedSourceRange(
               offset: libraryName.offset,
               length: libraryName.length,
@@ -1074,7 +1074,7 @@ class FileState {
     List<Configuration> configurations,
   ) {
     return configurations.map((configuration) {
-      var name = configuration.name.components.join('.');
+      var name = configuration.name.tokens.map((e) => e.lexeme).join();
       var value = configuration.value?.stringValue ?? '';
       return UnlinkedNamespaceDirectiveConfiguration(
         name: name,
@@ -1256,13 +1256,9 @@ class FileSystemState {
   /// Update the state to reflect the fact that the file with the given [path]
   /// was changed. Specifically this means that we evict this file and every
   /// file that referenced it.
-  void changeFile(String path, Set<FileState> removedFiles) {
+  void changeFile(String path) {
     var file = _pathToFile.remove(path);
     if (file == null) {
-      return;
-    }
-
-    if (!removedFiles.add(file)) {
       return;
     }
 
@@ -1277,7 +1273,7 @@ class FileSystemState {
 
     // Recursively remove files that reference the removed file.
     for (var reference in file.referencingFiles.toList()) {
-      changeFile(reference.path, removedFiles);
+      changeFile(reference.path);
     }
   }
 
@@ -1454,24 +1450,30 @@ class FileSystemState {
     _clearFiles();
   }
 
-  /// Computes the set of [FileState]'s used/not used to analyze the given
-  /// [paths]. Removes the [FileState]'s of the files not used for analysis from
-  /// the cache. Returns the set of unused [FileState]'s.
-  Set<FileState> removeUnusedFiles(List<String> paths) {
+  /// Removes [FileState]s not used to analyze the given [paths].
+  ///
+  /// Calls [beforeRemoving] with the set of files that will be removed before
+  /// disposal begins, so higher layers can clear state that depends on their
+  /// current library cycles.
+  Set<FileState> removeFilesNotNecessaryForAnalysisOf(
+    List<String> paths, {
+    required void Function(Set<FileState> files) beforeRemoving,
+  }) {
     var referenced = <FileState>{};
     for (var path in paths) {
       var library = _pathToFile[path]?.kind.library;
       library?.collectTransitive(referenced);
     }
 
-    var removed = <FileState>{};
-    for (var file in _pathToFile.values.toList()) {
-      if (!referenced.contains(file)) {
-        changeFile(file.path, removed);
-      }
+    var unused = _pathToFile.values.whereNot(referenced.contains).toSet();
+
+    beforeRemoving(unused);
+
+    for (var file in unused) {
+      changeFile(file.path);
     }
 
-    return removed;
+    return unused;
   }
 
   /// Clear all [FileState] data - all maps from path or URI, etc.

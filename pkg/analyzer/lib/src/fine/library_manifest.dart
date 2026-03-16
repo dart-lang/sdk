@@ -383,6 +383,11 @@ class LibraryManifestBuilder {
         return;
       }
 
+      // If the class has no name, it was not added to declaredItems.
+      if (element.lookupName?.asLookupName == null) {
+        return;
+      }
+
       // Skip external libraries, already done.
       if (!librarySet.contains(element.library)) {
         return;
@@ -1119,8 +1124,7 @@ class LibraryManifestBuilder {
       var newManifest = LibraryManifest(
         name: libraryElement.name.nullIfEmpty,
         isOriginNotExistingFile: libraryElement.isOriginNotExistingFile,
-        // ignore: deprecated_member_use_from_same_package
-        isSynthetic: libraryElement.isSynthetic,
+        isSynthetic: false,
         featureSet: (libraryElement.featureSet as ExperimentStatus).toStorage(),
         languageVersion: ManifestLibraryLanguageVersion.encode(
           libraryElement.languageVersion,
@@ -1603,6 +1607,18 @@ class LibraryManifestBuilder {
           }
           return enclosingItem.inheritedConstructors[lookupName]!;
       }
+    }
+
+    // A member of a conflicting top-level interface has no declared
+    // item in this bundle. Use the top-level conflict id.
+    if (conflictingTopLevelElements.contains(enclosingElement)) {
+      var enclosingName = enclosingElement.lookupName!.asLookupName;
+      var enclosingManifest = enclosingElement.library.manifest!.instance;
+      return enclosingManifest.declaredConflicts[enclosingName] ??
+          (throw StateError(
+            'Missing conflict id for $enclosingElement in '
+            '${enclosingElement.library.uri}',
+          ));
     }
 
     return elementFactory.getElementId(element)!;

@@ -5,15 +5,124 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToInitializingFormalBulkTest);
     defineReflectiveTests(ConvertToInitializingFormalTest);
   });
+}
+
+@reflectiveTest
+class ConvertToInitializingFormalBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_initializing_formals;
+
+  Future<void> test_inBody_contiguous() async {
+    await resolveTestCode(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  int? d;
+  C(int? a, int? b, int? c, int? d) {
+    this.a = a;
+    this.b = b;
+    this.c = c;
+    this.d = d;
+  }
+}
+''');
+    // Doesn't fix b because both a and b try to remove the whitespace between
+    // the first two statements.
+    await assertHasFix(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  int? d;
+  C(this.a, int? b, this.c, this.d) {
+    this.b = b;
+  }
+}
+''');
+  }
+
+  Future<void> test_inBody_noncontiguous() async {
+    await resolveTestCode(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  C(int? a, int? b, int? c) {
+    this.a = a;
+    print(1);
+    this.b = b;
+    print(2);
+    this.c = c;
+  }
+}
+''');
+    await assertHasFix(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  C(this.a, this.b, this.c) {
+    print(1);
+    print(2);
+  }
+}
+''');
+  }
+
+  Future<void> test_inInitializer_contiguous() async {
+    await resolveTestCode(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  int? d;
+  C(int? a, int? b, int? c, int? d) : a = a, b = b, c = c, d = d;
+}
+''');
+    // Doesn't fix b because both a and b try to remove the same comma.
+    await assertHasFix(r'''
+class C {
+  int? a;
+  int? b;
+  int? c;
+  int? d;
+  C(this.a, int? b, this.c, this.d) : b = b;
+}
+''');
+  }
+
+  Future<void> test_inInitializer_noncontiguous() async {
+    await resolveTestCode(r'''
+class C {
+  int? a;
+  int x;
+  int? b;
+  int y;
+  int? c;
+  C(int? a, int? b, int? c) : a = a, x = 1, b = b, y = 2, c = c;
+}
+''');
+    await assertHasFix(r'''
+class C {
+  int? a;
+  int x;
+  int? b;
+  int y;
+  int? c;
+  C(this.a, this.b, this.c) : x = 1, y = 2;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -23,6 +132,46 @@ class ConvertToInitializingFormalTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.prefer_initializing_formals;
+
+  Future<void> test_annotatedParameter() async {
+    await resolveTestCode('''
+const annotation = Object();
+
+class C {
+  int? a;
+  C({@annotation int? a}) : a = a;
+}''');
+    await assertHasFix('''
+const annotation = Object();
+
+class C {
+  int? a;
+  C({@annotation this.a});
+}''');
+  }
+
+  Future<void> test_annotatedParameter_private() async {
+    await resolveTestCode(r'''
+const annotation = Object();
+
+class C {
+  int? _a;
+  C({@annotation int? a}) : _a = a;
+
+  @override
+  String toString() => '$_a';
+}''');
+    await assertHasFix(r'''
+const annotation = Object();
+
+class C {
+  int? _a;
+  C({@annotation this._a});
+
+  @override
+  String toString() => '$_a';
+}''');
+  }
 
   Future<void> test_assignment_differentType() async {
     await resolveTestCode('''
@@ -107,6 +256,25 @@ class C {
     await assertNoFix();
   }
 
+  Future<void> test_assignment_named_private_withCommentReference() async {
+    await resolveTestCode('''
+class C {
+  int? _a;
+  /// [a]
+  C({int? a = 1}) {
+    this._a = a;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int? _a;
+  /// [_a]
+  C({this._a = 1});
+}
+''', filter: (d) => d.diagnosticCode != diag.unusedField);
+  }
+
   Future<void> test_assignment_named_private_withType() async {
     await resolveTestCode('''
 class C {
@@ -140,6 +308,27 @@ class C {
   C(this.a) {
     print(1);
   }
+}
+''');
+  }
+
+  Future<void> test_assignment_otherInitializer() async {
+    await resolveTestCode('''
+class C {
+  int? x;
+  int? y;
+
+  C({int? x}) : y = 1 {
+    this.x = x;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int? x;
+  int? y;
+
+  C({this.x}) : y = 1;
 }
 ''');
   }
@@ -290,6 +479,57 @@ class C {
 class C {
   int? a;
   C([this.a = 1]);
+}
+''');
+  }
+
+  Future<void> test_oldFunctionTypeSyntax_noReturnType() async {
+    await resolveTestCode('''
+class C {
+  Function(int) a;
+
+  C(a(int i)) : a = a;
+}
+''');
+    await assertHasFix('''
+class C {
+  Function(int) a;
+
+  C(this.a);
+}
+''');
+  }
+
+  Future<void> test_oldFunctionTypeSyntax_withReturnType() async {
+    await resolveTestCode('''
+class C {
+  void Function(int) a;
+
+  C(void a(int i)) : a = a;
+}
+''');
+    await assertHasFix('''
+class C {
+  void Function(int) a;
+
+  C(this.a);
+}
+''');
+  }
+
+  Future<void> test_oldFunctionTypeSyntax_withTypeParameters() async {
+    await resolveTestCode('''
+class C {
+  void Function<T>(T) a;
+
+  C(void a<T>(T i)) : a = a;
+}
+''');
+    await assertHasFix('''
+class C {
+  void Function<T>(T) a;
+
+  C(this.a);
 }
 ''');
   }

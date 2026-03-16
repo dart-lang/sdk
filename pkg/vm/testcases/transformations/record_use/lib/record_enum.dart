@@ -17,7 +17,7 @@ void main() {
 }
 
 @RecordUse()
-class MyClass {
+final class MyClass {
   final A a;
 
   const MyClass(this.a);
@@ -27,4 +27,5 @@ void keepIndexFieldAlive(Enum e) {
   print(e.index);
 }
 
+@RecordUse()
 enum A { a, b }

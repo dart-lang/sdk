@@ -5,11 +5,10 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import 'package:analyzer/src/dart/ast/constant_evaluator.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'parse_base.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class ConstantEvaluatorTest extends ParseBase {
+class ConstantEvaluatorTest extends ParserDiagnosticsTest {
   void test_binary_bitAnd() {
     var value = _getConstantValue("74 & 42") as int;
     expect(value, 74 & 42);
@@ -340,18 +339,15 @@ class ConstantEvaluatorTest extends ParseBase {
   }
 
   Object? _getConstantValue(String expressionCode) {
-    var path = convertPath('/test/lib/test.dart');
-
-    newFile(path, '''
+    var parseResult = parseStringWithErrors('''
 void f() {
   ($expressionCode); // ref
 }
 ''');
 
-    var parseResult = parseUnit(path);
-    expect(parseResult.diagnostics, isEmpty);
+    parseResult.assertNoErrors();
 
-    var findNode = FindNode(parseResult.content, parseResult.unit);
+    var findNode = parseResult.findNode;
     var expression = findNode.parenthesized('); // ref').expression;
 
     return expression.accept(ConstantEvaluator());

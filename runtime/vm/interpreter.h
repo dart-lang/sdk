@@ -257,7 +257,7 @@ class Interpreter {
                                             ObjectPtr* result) {
     ASSERT(instance_size > 0);
     ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
-    ASSERT(IsAllocatableInNewSpace(instance_size));
+    ASSERT(Heap::IsAllocatableInNewSpace(instance_size));
 
 #if !defined(PRODUCT)
     auto* const class_table = thread->isolate_group()->class_table();
@@ -288,6 +288,15 @@ class Interpreter {
   bool IsWritingTraceFile() const;
   void FlushTraceBuffer();
   void WriteInstructionToTrace(const KBCInstr* pc);
+
+  // Prints at most the requested number of interpreted stack frames
+  // up to the most recent entry frame.
+  //
+  // If [depth] is non-positive, prints all interpreted stack frames
+  // up to the most recent entry frame.
+  void PrintStackFrames(const ObjectPtr* FP,
+                        const ObjectPtr* SP,
+                        intptr_t depth = 0);
 
   void* trace_file_;
   uint64_t trace_file_bytes_written_;

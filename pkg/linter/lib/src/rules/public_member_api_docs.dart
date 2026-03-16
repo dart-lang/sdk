@@ -200,7 +200,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.namePart.typeName.isPrivate) return;
 
     check(node);
-    checkMethods(node.body.members);
+    if (node.body case BlockEnumBody body) {
+      checkMethods(body.members);
+    }
   }
 
   @override
@@ -209,7 +211,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isInternal) return;
 
     check(node);
-    checkMethods(node.body.members);
+    if (node.body case BlockClassBody body) {
+      checkMethods(body.members);
+    }
   }
 
   @override
@@ -250,7 +254,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _visitMembers(node, node.name, node.body.members);
+    if (node.body case BlockClassBody body) {
+      _visitMembers(node, node.name, body.members);
+    }
   }
 
   @override

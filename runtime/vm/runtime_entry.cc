@@ -209,6 +209,16 @@ void OnEveryRuntimeEntryCall(Thread* thread,
 #define DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(name, argument_count)               \
   DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, /*can_lazy_deopt=*/false)
 
+#define DEFINE_LEAF_RUNTIME_ENTRY(name, argument_count, func)                  \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
+      true, false, /*can_lazy_deopt=*/false)
+
+#define DEFINE_FLOAT_LEAF_RUNTIME_ENTRY(name, argument_count, func)            \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
+      true, true, /*can_lazy_deopt=*/false)
+
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& index = Instance::CheckedHandle(zone, arguments.ArgAt(1));
@@ -5165,7 +5175,19 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   return thread;
 }
 
-extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
+#if defined(USING_MEMORY_SANITIZER)
+// There is a __msan_unpoison_param but no __msan_unpoison_retval. Trick MSAN
+// into unpoisoning the largest value that an FFI callback might return. The
+// actual result registers will be overridden in the FFI callback stub.
+struct LargestReturn {
+  float x, y, w, z;
+};
+extern "C" LargestReturn dart_msan_unpoison_retval() {
+  return {0, 0, 0, 0};
+}
+#endif
+
+extern "C" void* DLRT_ExitIsolateGroupBoundIsolate() {
   TRACE_RUNTIME_CALL("ExitIsolateGroupBoundIsolate%s", "");
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
@@ -5178,14 +5200,32 @@ extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
     Thread::EnterIsolate(source_isolate);
     Thread::Current()->EnterSafepoint();
   }
+#if defined(USING_MEMORY_SANITIZER)
+  return reinterpret_cast<void*>(dart_msan_unpoison_retval);
+#else
+  return nullptr;
+#endif
 }
 
-extern "C" void DLRT_ExitSyncCallbackTargetIsolate() {
+extern "C" void* DLRT_ExitSyncCallbackTargetIsolate() {
   TRACE_RUNTIME_CALL("ExitSyncCallbackTargetIsolate%s", "");
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
   thread->set_execution_state(Thread::kThreadInVM);
   Thread::ExitIsolate(/*isolate_shutdown=*/false);
+#if defined(USING_MEMORY_SANITIZER)
+  return reinterpret_cast<void*>(dart_msan_unpoison_retval);
+#else
+  return nullptr;
+#endif
+}
+
+extern "C" void* DLRT_ExitSyncCallback() {
+#if defined(USING_MEMORY_SANITIZER)
+  return reinterpret_cast<void*>(dart_msan_unpoison_retval);
+#else
+  return nullptr;
+#endif
 }
 
 extern "C" void DLRT_ExitTemporaryIsolate() {

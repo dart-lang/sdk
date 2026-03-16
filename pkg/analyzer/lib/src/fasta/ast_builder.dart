@@ -1544,7 +1544,7 @@ class AstBuilder extends StackListener {
     Token endToken,
   ) {
     assert(optional('enum', enumKeyword));
-    assert(optional('{', leftBrace));
+    assert(optional('{', leftBrace) || optional(';', leftBrace));
     debugEvent("Enum");
 
     var builder = _classLikeBuilder as _EnumDeclarationBuilder;
@@ -2348,7 +2348,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("LibraryName");
 
-    var libraryName = hasName ? pop() as List<SimpleIdentifierImpl>? : null;
+    var libraryName = hasName ? pop() as List<Token>? : null;
 
     if (!hasName && !enableUnnamedLibraries) {
       _reportFeatureNotEnabled(
@@ -2356,9 +2356,10 @@ class AstBuilder extends StackListener {
         startToken: libraryKeyword,
       );
     }
-    var name = libraryName == null
-        ? null
-        : LibraryIdentifierImpl(components: libraryName);
+    DottedNameImpl? name;
+    if (libraryName != null) {
+      name = DottedNameImpl(tokens: libraryName);
+    }
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, libraryKeyword);
     directives.add(
@@ -2732,14 +2733,13 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("PartOf");
     var libraryNameOrUri = pop();
-    LibraryIdentifierImpl? name;
+    DottedNameImpl? name;
     StringLiteralImpl? uri;
     if (libraryNameOrUri is StringLiteralImpl) {
       uri = libraryNameOrUri;
     } else {
-      name = LibraryIdentifierImpl(
-        components: libraryNameOrUri as List<SimpleIdentifierImpl>,
-      );
+      var libraryName = libraryNameOrUri as List<Token>;
+      name = DottedNameImpl(tokens: libraryName);
       if (_featureSet.isEnabled(Feature.enhanced_parts)) {
         diagnosticReporter.diagnosticReporter?.report(diag.partOfName.at(name));
       }
@@ -4003,16 +4003,14 @@ class AstBuilder extends StackListener {
     var dotShorthand = pop() as ExpressionImpl;
     if (dotShorthand is DotShorthandMixin) {
       dotShorthand.isDotShorthand = true;
+    } else {
+      assert(
+        false,
+        "'$dotShorthand' must be a 'DotShorthandMixin' because we "
+        "should only call 'handleDotShorthandContext' after parsing "
+        "expressions that have a context type we can cache.",
+      );
     }
-    // TODO(kallentu): Add this assert once we've applied the DotShorthandMixin
-    // on all possible expressions that can be a dot shorthand.
-    // } else {
-    //   assert(
-    //       false,
-    //       "'$dotShorthand' must be a 'DotShorthandMixin' because we "
-    //       "should only call 'handleDotShorthandContext' after parsing "
-    //       "expressions that have a context type we can cache.");
-    // }
     push(dotShorthand);
   }
 
@@ -4053,8 +4051,21 @@ class AstBuilder extends StackListener {
     assert(firstIdentifier.isIdentifier);
     debugEvent("DottedName");
 
-    var components = popTypedList2<SimpleIdentifierImpl>(count);
-    push(DottedNameImpl(components: components));
+    var identifiers = popTypedList2<Token>(count);
+    var tokens = <Token>[];
+    if (identifiers.isNotEmpty) {
+      // TODO(scheglov): The parser does not use [handleQualified] for
+      // [handleDottedName], so no periods in [identifiers].
+      // We must walk the token stream.
+      var t = identifiers.first;
+      var end = identifiers.last;
+      while (t != end) {
+        tokens.add(t);
+        t = t.next!;
+      }
+      tokens.add(end);
+    }
+    push(DottedNameImpl(tokens: tokens));
   }
 
   @override
@@ -4163,7 +4174,7 @@ class AstBuilder extends StackListener {
     Token leftBrace,
   ) {
     assert(optional('enum', enumKeyword));
-    assert(optional('{', leftBrace));
+    assert(optional('{', leftBrace) || optional(';', leftBrace));
     debugEvent("EnumHeader");
 
     var implementsClause =
@@ -4204,7 +4215,7 @@ class AstBuilder extends StackListener {
       implementsClause: implementsClause,
       leftBracket: leftBrace,
       semicolon: null,
-      rightBracket: leftBrace.endGroup!,
+      rightBracket: leftBrace.endGroup ?? leftBrace,
     );
   }
 
@@ -4459,7 +4470,9 @@ class AstBuilder extends StackListener {
     assert(token.isKeywordOrIdentifier);
     debugEvent("handleIdentifier");
 
-    if (context.inSymbol) {
+    if (context.inSymbol ||
+        context == IdentifierContext.dottedName ||
+        context == IdentifierContext.dottedNameContinuation) {
       push(token);
       return;
     }
@@ -4467,9 +4480,9 @@ class AstBuilder extends StackListener {
     var identifier = SimpleIdentifierImpl(token: token);
     if (context.inLibraryOrPartOfDeclaration) {
       if (!context.isContinuation) {
-        push([identifier]);
+        push([token]);
       } else {
-        push(identifier);
+        push(token);
       }
     } else if (context == IdentifierContext.enumValueDeclaration) {
       var metadata = pop() as List<AnnotationImpl>?;
@@ -5044,6 +5057,24 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleNoEnumBody(Token semicolonToken) {
+    debugEvent("NoEnumBody");
+    var builder = _classLikeBuilder;
+    if (builder != null) {
+      builder.emptyClassBodySemicolon = semicolonToken;
+    }
+  }
+
+  @override
+  void handleNoExtensionBody(Token semicolonToken) {
+    debugEvent("NoExtensionBody");
+    var builder = _classLikeBuilder;
+    if (builder != null) {
+      builder.emptyClassBodySemicolon = semicolonToken;
+    }
+  }
+
+  @override
   void handleNoExtensionTypeBody(Token semicolonToken) {
     debugEvent("NoExtensionTypeBody");
     var builder = _classLikeBuilder;
@@ -5081,6 +5112,15 @@ class AstBuilder extends StackListener {
     if (!isFullAst) return;
     push(NullValues.ConstructorInitializerSeparator);
     push(NullValues.ConstructorInitializers);
+  }
+
+  @override
+  void handleNoMixinBody(Token semicolonToken) {
+    debugEvent("NoMixinBody");
+    var builder = _classLikeBuilder;
+    if (builder != null) {
+      builder.emptyClassBodySemicolon = semicolonToken;
+    }
   }
 
   @override
@@ -5311,10 +5351,11 @@ class AstBuilder extends StackListener {
   void handleQualified(Token period) {
     assert(optional('.', period));
 
-    var identifier = pop() as SimpleIdentifierImpl;
+    var identifier = pop();
     var prefix = pop();
     if (prefix is List) {
       // We're just accumulating components into a list.
+      prefix.add(period);
       prefix.add(identifier);
       push(prefix);
     } else if (prefix is SimpleIdentifierImpl) {
@@ -5324,7 +5365,7 @@ class AstBuilder extends StackListener {
         PrefixedIdentifierImpl(
           prefix: prefix,
           period: period,
-          identifier: identifier,
+          identifier: identifier as SimpleIdentifierImpl,
         ),
       );
     } else {
@@ -6022,8 +6063,6 @@ class AstBuilder extends StackListener {
         typeNameIdentifier = preliminaryName.prefix;
         period = preliminaryName.period;
         constructorNameToken = preliminaryName.identifier.token;
-      default:
-        throw UnimplementedError();
     }
 
     var constructor = ConstructorDeclarationImpl(
@@ -6557,13 +6596,18 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   });
 
   EnumDeclarationImpl build() {
-    var body = EnumBodyImpl(
-      leftBracket: leftBracket,
-      constants: constants,
-      semicolon: semicolon,
-      members: members,
-      rightBracket: rightBracket,
-    );
+    EnumBodyImpl body;
+    if (emptyClassBodySemicolon case var semicolon?) {
+      body = EmptyEnumBodyImpl(semicolon: semicolon);
+    } else {
+      body = BlockEnumBodyImpl(
+        leftBracket: leftBracket,
+        constants: constants,
+        semicolon: semicolon,
+        members: members,
+        rightBracket: rightBracket,
+      );
+    }
 
     return EnumDeclarationImpl(
       comment: comment,
@@ -6602,11 +6646,16 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required Token? typeKeyword,
     required ExtensionOnClauseImpl? onClause,
   }) {
-    var body = BlockClassBodyImpl(
-      leftBracket: leftBracket,
-      members: members,
-      rightBracket: rightBracket,
-    );
+    ClassBodyImpl body;
+    if (emptyClassBodySemicolon case var semicolon?) {
+      body = EmptyClassBodyImpl(semicolon: semicolon);
+    } else {
+      body = BlockClassBodyImpl(
+        leftBracket: leftBracket,
+        members: members,
+        rightBracket: rightBracket,
+      );
+    }
 
     return ExtensionDeclarationImpl(
       comment: comment,
@@ -6701,11 +6750,16 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   });
 
   MixinDeclarationImpl build() {
-    var body = BlockClassBodyImpl(
-      leftBracket: leftBracket,
-      members: members,
-      rightBracket: rightBracket,
-    );
+    ClassBodyImpl body;
+    if (emptyClassBodySemicolon case var semicolon?) {
+      body = EmptyClassBodyImpl(semicolon: semicolon);
+    } else {
+      body = BlockClassBodyImpl(
+        leftBracket: leftBracket,
+        members: members,
+        rightBracket: rightBracket,
+      );
+    }
 
     return MixinDeclarationImpl(
       comment: comment,

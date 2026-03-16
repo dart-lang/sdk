@@ -1,0 +1,139 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 123
+    },
+    {
+      "type": "int",
+      "value": 456
+    },
+    {
+      "type": "string",
+      "value": "abc"
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "extension",
+          "name": "Ext"
+        },
+        {
+          "disambiguators": [
+            "instance"
+          ],
+          "kind": "getter",
+          "name": "instanceGetter"
+        }
+      ],
+      "uri": "package:record_use_test/extension_getters_setters.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "extension",
+          "name": "Ext"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "getter",
+          "name": "staticGetter"
+        }
+      ],
+      "uri": "package:record_use_test/extension_getters_setters.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "extension",
+          "name": "Ext"
+        },
+        {
+          "disambiguators": [
+            "instance"
+          ],
+          "kind": "setter",
+          "name": "instanceSetter"
+        }
+      ],
+      "uri": "package:record_use_test/extension_getters_setters.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "extension",
+          "name": "Ext"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "setter",
+          "name": "staticSetter"
+        }
+      ],
+      "uri": "package:record_use_test/extension_getters_setters.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "receiver": 2,
+            "type": "with_arguments"
+          }
+        ]
+      },
+      {
+        "definition_index": 1,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "type": "with_arguments"
+          }
+        ]
+      },
+      {
+        "definition_index": 2,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              1
+            ],
+            "receiver": 2,
+            "type": "with_arguments"
+          }
+        ]
+      },
+      {
+        "definition_index": 3,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              0
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

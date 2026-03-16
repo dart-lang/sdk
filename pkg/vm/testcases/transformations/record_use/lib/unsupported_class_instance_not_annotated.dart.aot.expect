@@ -1,0 +1,22 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+class SomeClass extends core::Object /*hasConstConstructor*/  {
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::recorded(#C1);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+@#C2
+static method recorded([@vm.inferred-arg-type.metadata=#lib::SomeClass (value: const #lib::SomeClass{})] core::Object arg) → void {}
+constants  {
+  #C1 = self::SomeClass {}
+  #C2 = meta::RecordUse {}
+}

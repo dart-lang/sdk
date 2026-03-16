@@ -174,7 +174,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
         initializer is! AuxiliaryInitializer,
         "Unexpected auxiliary initializer $initializer.",
       );
-      if (initializer is RedirectingInitializer) {
+      if (initializer.isRedirectingInitializer) {
         return true;
       }
     }
@@ -334,7 +334,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       for (FormalParameterBuilder formal in formals) {
         if (formal.type is InferableTypeBuilder &&
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
-          formal.variable!.type = const UnknownType();
+          formal.variable.type = const UnknownType();
           needsInference = true;
         } else if (!formal.hasDeclaredInitializer &&
             formal.isSuperInitializingFormal) {
@@ -645,7 +645,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       for (FormalParameterBuilder formal in formals) {
         if (formal.type is InferableTypeBuilder &&
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
-          formal.variable!.type = const UnknownType();
+          formal.variable.type = const UnknownType();
           needsInference = true;
         } else if (!formal.hasDeclaredInitializer &&
             formal.isSuperInitializingFormal) {
@@ -973,7 +973,7 @@ class ExtensionTypeConstructorEncoding
   @override
   bool get isRedirecting {
     for (Initializer initializer in initializers) {
-      if (initializer is ExtensionTypeRedirectingInitializer) {
+      if (initializer.isRedirectingInitializer) {
         return true;
       }
     }

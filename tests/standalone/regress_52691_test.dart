@@ -5,7 +5,7 @@ void main() {
     var re = RegExp(r'[c-');
   } on FormatException catch (e, s) {
     Expect.equals(
-      "FormatException: Unterminated character class [c-",
+      "FormatException: Unterminated character class\n[c-",
       e.toString(),
     );
   }

@@ -32,7 +32,7 @@ intptr_t GCSweeper::SweepNewPage(Page* page) {
     if (UntaggedObject::IsMarked(tags)) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->untag()->ClearMarkBitUnsynchronized();
-      ASSERT(IsAllocatableInNewSpace(obj_size));
+      ASSERT(Heap::IsAllocatableInNewSpace(obj_size));
     } else {
       uword free_end = current + obj_size;
       while (free_end < end) {

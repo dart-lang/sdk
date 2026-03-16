@@ -1,0 +1,33 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+class A extends core::Object {
+}
+@#C1
+final class B extends core::Object implements self::A {
+
+  [@vm.unboxing-info.metadata=(i)->b]
+  @#C4
+  @#C6
+  constructor •([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → self::B
+    : super core::Object::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final self::A a = new self::B::•(42);
+  core::print(a);
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = "vm:never-inline"
+  #C3 = null
+  #C4 = core::pragma {name:#C2, options:#C3}
+  #C5 = "dart2js:noInline"
+  #C6 = core::pragma {name:#C5, options:#C3}
+}

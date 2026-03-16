@@ -65,6 +65,7 @@ kernel/test/dart_scope_calculator_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/kernel_front_end_test: Slow, Pass
 vm/test/transformations/ffi_test: Slow, Pass # https://github.com/dart-lang/sdk/issues/54950
+vm/test/transformations/record_use_test: Slow, Pass
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 vm_service/*: Slow, Pass

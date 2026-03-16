@@ -1,39 +1,42 @@
 (module $module0
   (type $#Top (struct
     (field $field0 i32)))
-  (type $JSStringImpl (sub final $Object (struct
+  (type $Array<Object?> (array (field (mut (ref null $#Top)))))
+  (type $JSExternWrapper (sub $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
-    (field $_ref externref))))
-  (type $MyConstClass (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
-    (field $b (ref $JSStringImpl)))))
+    (field $_externRef externref))))
   (type $Object (sub $#Top (struct
     (field $field0 i32)
     (field $field1 (mut i32)))))
-  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 3 funcref)
-  (global $"\"bad\"" (ref $JSStringImpl) <...>)
-  (func $"mainImpl <noInline>" (param $var0 i32)
-    (local $var1 (ref $MyConstClass))
-    i64.const 0
-    call $checkLibraryIsLoadedFromLoadId
-    local.get $var0
-    i32.const 0
-    call_indirect $cross-module-funcs-0 (param i32) (result (ref $MyConstClass))
-    i64.const 1
-    call $checkLibraryIsLoadedFromLoadId
-    local.get $var0
-    i32.const 1
-    call_indirect $cross-module-funcs-0 (param i32) (result (ref $MyConstClass))
-    ref.eq
-    i32.eqz
-    if
-      global.get $"\"bad\""
-      call $Error._throwWithCurrentStackTrace
-      unreachable
-    end
-  )
-  (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
-  (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) <...>)
+  (func $"wasm:js-string.charCodeAt (import)" (import "wasm:js-string" "charCodeAt") (param externref i32) (result i32))
+  (@binaryen.removable.if.unused)
+  (func $"wasm:js-string.equals (import)" (import "wasm:js-string" "equals") (param externref externref) (result i32))
+  (@binaryen.removable.if.unused)
+  (func $"wasm:js-string.length (import)" (import "wasm:js-string" "length") (param externref) (result i32))
+  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 17 funcref)
+  (elem $cross-module-funcs-0
+    (set 2 (ref.func $checkLibraryIsLoadedFromLoadId))
+    (set 4 (ref.func $"Error._throwWithCurrentStackTrace <noInline>"))
+    (set 5 (ref.func $"wasm:js-string.length (import)"))
+    (set 6 (ref.func $"wasm:js-string.charCodeAt (import)"))
+    (set 7 (ref.func $IntegerDivisionByZeroException))
+    (set 8 (ref.func $JSStringImpl._interpolate3))
+    (set 9 (ref.func $"wasm:js-string.equals (import)"))
+    (set 10 (ref.func $JSStringImpl.substring))
+    (set 11 (ref.func $JSStringImpl.+))
+    (set 12 (ref.func $"_throwIndexError <noInline>"))
+    (set 13 (ref.func $JSStringImpl._interpolate))
+    (set 14 (ref.func $JSStringImpl.fromRefUnchecked))
+    (set 15 (ref.func $JSStringImpl._interpolate2)))
+  (func $Error._throwWithCurrentStackTrace <noInline> (param $var0 (ref $#Top)) (result (ref none)) <...>)
+  (func $_throwIndexError <noInline> (param $var0 i64) (param $var1 i64) (param $var2 (ref null $JSExternWrapper)) (result (ref none)) <...>)
+  (func $IntegerDivisionByZeroException (result (ref $Object)) <...>)
+  (func $JSStringImpl.+ (param $var0 (ref $JSExternWrapper)) (param $var1 (ref $JSExternWrapper)) (result (ref $JSExternWrapper)) <...>)
+  (func $JSStringImpl._interpolate (param $var0 (ref $Array<Object?>)) (result (ref $JSExternWrapper)) <...>)
+  (func $JSStringImpl._interpolate2 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (result (ref $JSExternWrapper)) <...>)
+  (func $JSStringImpl._interpolate3 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (param $var2 (ref null $#Top)) (result (ref $JSExternWrapper)) <...>)
+  (func $JSStringImpl.fromRefUnchecked (param $var0 externref) (result (ref $JSExternWrapper)) <...>)
+  (func $JSStringImpl.substring (param $var0 (ref $JSExternWrapper)) (param $var1 i64) (param $var2 i64) (result (ref $JSExternWrapper)) <...>)
+  (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) (result i32) <...>)
 )

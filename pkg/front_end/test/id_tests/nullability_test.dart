@@ -55,7 +55,7 @@ class NullabilityDataExtractor extends CfeDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, TreeNode node) {
     if (node is VariableGet && node.promotedType != null) {
-      if (node.variable.type.nullability != Nullability.nonNullable &&
+      if (node.expressionVariable.type.nullability != Nullability.nonNullable &&
           node.promotedType!.nullability == Nullability.nonNullable) {
         return 'nonNullable';
       }

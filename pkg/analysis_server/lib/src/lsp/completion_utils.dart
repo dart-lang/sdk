@@ -102,7 +102,9 @@ Future<TypeImportData?> createTypedSuggestionData(
   DartCompletionRequest request,
 ) async {
   // No keyword or type annotation means that we don't need to do anything.
-  if (!suggestion.addTypeAnnotation && suggestion.keyword == null) {
+  if (!suggestion.addTypeAnnotation &&
+      suggestion.keyword == null &&
+      !suggestion.addTypeName) {
     return null;
   }
   var typeImports = <Uri>{};
@@ -118,6 +120,10 @@ Future<TypeImportData?> createTypedSuggestionData(
       if (suggestion.addTypeAnnotation) {
         builder.writeType(suggestion.type, shouldWriteDynamic: true);
         builder.write(' ');
+      }
+      if (suggestion.addTypeName && suggestion.containingType != null) {
+        builder.writeType(suggestion.containingType);
+        if (suggestion.completion.isNotEmpty) builder.write('.');
       }
       if (suggestion is SetStateMethodSuggestion &&
           (suggestion.addTypeAnnotation || suggestion.keyword != null)) {

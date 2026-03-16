@@ -373,15 +373,9 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       TypeParameterType type = new TypeParameterType(
           declaration,
           interpretParsedNullability(node.parsedNullability,
-              ifOmitted: nullability));
-      // If the nullability was omitted on the type and can't be computed from
-      // the bound because it's not yet available, it will be set to null.  In
-      // that case, put it to the list to be updated later, when the bound is
-      // available.
-      // ignore: unnecessary_null_comparison
-      if (type.declaredNullability == null) {
-        environment.pendingNullabilities.add(type);
-      }
+          ifOmitted: nullability,
+        ),
+      );
       return type;
     } else if (declaration is StructuralParameter) {
       if (arguments.isNotEmpty) {
@@ -394,15 +388,9 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       StructuralParameterType type = new StructuralParameterType(
           declaration,
           interpretParsedNullability(node.parsedNullability,
-              ifOmitted: nullability));
-      // If the nullability was omitted on the type and can't be computed from
-      // the bound because it's not yet available, it will be set to null.  In
-      // that case, put it to the list to be updated later, when the bound is
-      // available.
-      // ignore: unnecessary_null_comparison
-      if (type.declaredNullability == null) {
-        environment.pendingNullabilities.add(type);
-      }
+          ifOmitted: nullability,
+        ),
+      );
       return type;
     } else if (declaration is Typedef) {
       return new TypedefType(declaration,

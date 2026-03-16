@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/constructor_tearoff_lowering.dart'
+    show extractConstructorNameFromTearOff, extractTypedefNameFromTearOff;
 
 import '../kernel/late_lowering.dart';
 import '../source/name_scheme.dart';
@@ -699,7 +701,7 @@ String extractLocalNameFromLateLoweredSetter(String name) {
 ///     int Extension|method(int #this) => #this;
 ///
 /// where '#this' is the synthetic "extension this" parameter.
-bool isExtensionThis(ExpressionVariable node) {
+bool isExtensionThis(Variable node) {
   assert(
     node.isLowered ||
         node.cosmeticName == null ||
@@ -982,4 +984,275 @@ String? extractQualifiedNameFromExtensionMember(Member member) {
     return extractQualifiedNameFromExtensionMethodName(member.name.text);
   }
   return null;
+}
+
+// Coverage-ignore(suite): Not run.
+extension ExtensionMemberExtension on Member {
+  Extension? get extension {
+    if (!isExtensionMember) return null;
+    for (Extension extension in enclosingLibrary.extensions) {
+      for (ExtensionMemberDescriptor descriptor
+          in extension.memberDescriptors) {
+        if (descriptor.memberReference == reference ||
+            descriptor.tearOffReference == reference) {
+          return extension;
+        }
+      }
+    }
+    assert(false, "Extension descriptor not found for $this");
+    return null;
+  }
+
+  ExtensionMemberDescriptor? get extensionMemberDescriptor {
+    if (!isExtensionMember) return null;
+    for (Extension extension in enclosingLibrary.extensions) {
+      for (ExtensionMemberDescriptor descriptor
+          in extension.memberDescriptors) {
+        if (descriptor.memberReference == reference ||
+            descriptor.tearOffReference == reference) {
+          return descriptor;
+        }
+      }
+    }
+    assert(false, "Extension member descriptor not found for $this");
+    return null;
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+extension ExtensionTypeMemberExtension on Member {
+  ExtensionTypeDeclaration? get extensionTypeDeclaration {
+    if (!isExtensionTypeMember) return null;
+    for (ExtensionTypeDeclaration extensionTypeDeclaration
+        in enclosingLibrary.extensionTypeDeclarations) {
+      for (ExtensionTypeMemberDescriptor descriptor
+          in extensionTypeDeclaration.memberDescriptors) {
+        if (descriptor.memberReference == reference ||
+            descriptor.tearOffReference == reference) {
+          return extensionTypeDeclaration;
+        }
+      }
+    }
+    assert(false, "Extension type descriptor not found for $this");
+    return null;
+  }
+
+  ExtensionTypeMemberDescriptor? get extensionTypeMemberDescriptor {
+    if (!isExtensionTypeMember) return null;
+    for (ExtensionTypeDeclaration extensionTypeDeclaration
+        in enclosingLibrary.extensionTypeDeclarations) {
+      for (ExtensionTypeMemberDescriptor descriptor
+          in extensionTypeDeclaration.memberDescriptors) {
+        if (descriptor.memberReference == reference ||
+            descriptor.tearOffReference == reference) {
+          return descriptor;
+        }
+      }
+    }
+    assert(false, "Extension type member descriptor not found for $this");
+    return null;
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns `true` if [node] is a lowered extension or extension type getter.
+bool isExtensionMemberGetter(Procedure node) {
+  final ExtensionMemberDescriptor? descriptor = node.extensionMemberDescriptor;
+  if (descriptor != null) {
+    return descriptor.kind == ExtensionMemberKind.Getter &&
+        descriptor.memberReference == node.reference;
+  }
+  final ExtensionTypeMemberDescriptor? extensionTypeDescriptor =
+      node.extensionTypeMemberDescriptor;
+  if (extensionTypeDescriptor != null) {
+    return extensionTypeDescriptor.kind == ExtensionTypeMemberKind.Getter &&
+        extensionTypeDescriptor.memberReference == node.reference;
+  }
+  return false;
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns `true` if [node] is a lowered extension or extension type setter.
+bool isExtensionMemberSetter(Procedure node) {
+  final ExtensionMemberDescriptor? descriptor = node.extensionMemberDescriptor;
+  if (descriptor != null) {
+    return descriptor.kind == ExtensionMemberKind.Setter &&
+        descriptor.memberReference == node.reference;
+  }
+  final ExtensionTypeMemberDescriptor? extensionTypeDescriptor =
+      node.extensionTypeMemberDescriptor;
+  if (extensionTypeDescriptor != null) {
+    return extensionTypeDescriptor.kind == ExtensionTypeMemberKind.Setter &&
+        extensionTypeDescriptor.memberReference == node.reference;
+  }
+  return false;
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns `true` if [node] is a lowered extension or extension type operator.
+bool isExtensionMemberOperator(Procedure node) {
+  final ExtensionMemberDescriptor? descriptor = node.extensionMemberDescriptor;
+  if (descriptor != null) {
+    return descriptor.kind == ExtensionMemberKind.Operator &&
+        descriptor.memberReference == node.reference;
+  }
+  final ExtensionTypeMemberDescriptor? extensionTypeDescriptor =
+      node.extensionTypeMemberDescriptor;
+  if (extensionTypeDescriptor != null) {
+    return extensionTypeDescriptor.kind == ExtensionTypeMemberKind.Operator &&
+        extensionTypeDescriptor.memberReference == node.reference;
+  }
+  return false;
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns `true` if [node] is a lowered extension or extension type method
+/// tear-off.
+bool isExtensionMemberTearOff(Procedure node) {
+  final ExtensionMemberDescriptor? descriptor = node.extensionMemberDescriptor;
+  if (descriptor != null) {
+    return descriptor.tearOffReference == node.reference;
+  }
+  final ExtensionTypeMemberDescriptor? extensionTypeDescriptor =
+      node.extensionTypeMemberDescriptor;
+  if (extensionTypeDescriptor != null) {
+    return extensionTypeDescriptor.tearOffReference == node.reference;
+  }
+  return false;
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns the implementation [Procedure] for a lowered extension or extension
+/// type member [node], if it exists.
+///
+/// For instance, for the tear-off lowering `Extension|get#method`, this returns
+/// the implementation method `Extension|method`.
+Procedure? getExtensionMemberImplementation(Procedure node) {
+  final ExtensionMemberDescriptor? descriptor = node.extensionMemberDescriptor;
+  if (descriptor != null) {
+    if (descriptor.tearOffReference == node.reference) {
+      return descriptor.memberReference?.asProcedure;
+    }
+  }
+  final ExtensionTypeMemberDescriptor? extensionTypeDescriptor =
+      node.extensionTypeMemberDescriptor;
+  if (extensionTypeDescriptor != null) {
+    if (extensionTypeDescriptor.tearOffReference == node.reference) {
+      return extensionTypeDescriptor.memberReference?.asProcedure;
+    }
+  }
+  return null;
+}
+
+/// The name of the internal field in an enum that stores its index.
+const String enumIndexFieldName = 'index';
+
+/// The name of the internal field in an enum that stores its name.
+const String enumNameFieldName = '_name';
+
+// Coverage-ignore(suite): Not run.
+/// Returns the target member for a lowered constructor or factory tear-off.
+Member? getConstructorTearOffLoweringTarget(Procedure node) {
+  final String? constructorNameFromTearOff = extractConstructorNameFromTearOff(
+    node.name,
+  );
+  final ({String typedefName, Name constructorName})? typedefNameFromTearOff =
+      extractTypedefNameFromTearOff(node.name);
+  if (constructorNameFromTearOff != null || typedefNameFromTearOff != null) {
+    final String? constructorName =
+        constructorNameFromTearOff ??
+        typedefNameFromTearOff?.constructorName.text;
+    Member? target;
+    if (constructorName != null) {
+      Class? cls = node.enclosingClass;
+      ExtensionTypeDeclaration? extensionTypeDeclaration =
+          node.extensionTypeDeclaration;
+      if (cls == null &&
+          extensionTypeDeclaration == null &&
+          typedefNameFromTearOff != null) {
+        for (final Typedef typedef in node.enclosingLibrary.typedefs) {
+          if (typedef.name == typedefNameFromTearOff.typedefName) {
+            final DartType? type = typedef.type?.unalias;
+            if (type is InterfaceType) {
+              cls = type.classNode;
+            } else if (type is ExtensionType) {
+              extensionTypeDeclaration = type.extensionTypeDeclaration;
+            }
+            break;
+          }
+        }
+      }
+      if (cls != null) {
+        for (final Constructor constructor in cls.constructors) {
+          if (constructor.name.text == constructorName) {
+            target = constructor;
+            break;
+          }
+        }
+        if (target == null) {
+          for (final Procedure procedure in cls.procedures) {
+            if (procedure.isFactory && procedure.name.text == constructorName) {
+              target = procedure;
+              break;
+            }
+          }
+        }
+      } else if (extensionTypeDeclaration != null) {
+        for (final ExtensionTypeMemberDescriptor descriptor
+            in extensionTypeDeclaration.memberDescriptors) {
+          if (descriptor.name.text == constructorName &&
+              (descriptor.kind == ExtensionTypeMemberKind.Constructor ||
+                  descriptor.kind == ExtensionTypeMemberKind.Factory ||
+                  descriptor.kind ==
+                      ExtensionTypeMemberKind.RedirectingFactory)) {
+            target = descriptor.memberReference?.asMember;
+            break;
+          }
+        }
+      }
+    }
+    if (target == null) {
+      // Fallback: If we couldn't find the target by name, it might be because
+      // the original member (e.g. a redirecting factory) was removed during
+      // optimizations (like TFA). However, the lowering procedure itself
+      // remains. We can extract the target directly from its body, which
+      // is always a single return of a constructor or factory invocation.
+      Statement? body = node.function.body;
+      if (body is Block && body.statements.length == 1) {
+        body = body.statements.first;
+      }
+      if (body is ReturnStatement) {
+        final Expression? expression = body.expression;
+        if (expression is ConstructorInvocation) {
+          target = expression.target;
+        } else if (expression is StaticInvocation) {
+          target = expression.target;
+        }
+      }
+    }
+    while (target is Procedure && target.isRedirectingFactory) {
+      target = target.function.redirectingFactoryTarget?.target;
+    }
+    return target;
+  }
+  return null;
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns the effective target of [member], following constructor lowerings
+/// and redirecting factories.
+///
+/// This currently only works for constructors and factories.
+Member getConstructorEffectiveTarget(Member member) {
+  Member ultimateTarget = member;
+  if (member is Procedure) {
+    Member? loweringTarget = getConstructorTearOffLoweringTarget(member);
+    if (loweringTarget != null) {
+      ultimateTarget = loweringTarget;
+    }
+  }
+  while (ultimateTarget is Procedure && ultimateTarget.isRedirectingFactory) {
+    ultimateTarget = ultimateTarget.function.redirectingFactoryTarget!.target!;
+  }
+  return ultimateTarget;
 }

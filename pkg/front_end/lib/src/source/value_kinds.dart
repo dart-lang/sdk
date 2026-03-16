@@ -65,6 +65,8 @@ class ValueKinds {
     NullValues.BreakTarget,
   );
   static const ValueKind Bool = const SingleValueKind<bool>();
+  static const ValueKind CatchParameterBuilder =
+      const SingleValueKind<type.CatchParameterBuilder>();
   static const ValueKind CombinatorListOrNull =
       const SingleValueKind<List<type.CombinatorBuilder>>(
         NullValues.Combinators,
@@ -102,8 +104,6 @@ class ValueKinds {
       const SingleValueKind<type.Expression>(NullValues.FieldInitializer);
   static const ValueKind FormalParameters =
       const SingleValueKind<type.FormalParameters>();
-  static const ValueKind FormalList =
-      const SingleValueKind<List<type.FormalParameterBuilder>>();
   static const ValueKind FormalListOrNull =
       const SingleValueKind<List<type.FormalParameterBuilder>>(
         NullValues.FormalParameters,
@@ -136,6 +136,8 @@ class ValueKinds {
       const SingleValueKind<type.MapLiteralEntry>();
   static const ValueKind MapPatternEntry =
       const SingleValueKind<type.MapPatternEntry>();
+  static const ValueKind ParameterList =
+      const SingleValueKind<List<type.ParameterVariableBuilder>>();
   static const ValueKind Pattern = const SingleValueKind<type.Pattern>();
   static const ValueKind PatternGuard =
       const SingleValueKind<type.PatternGuard>();

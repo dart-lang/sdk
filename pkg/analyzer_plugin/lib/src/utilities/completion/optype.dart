@@ -378,6 +378,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    node.parent?.accept(this);
+  }
+
+  @override
   void visitBreakStatement(BreakStatement node) {
     if (node.label == null || identical(entity, node.label)) {
       optype.includeStatementLabelSuggestions = true;
@@ -635,6 +640,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {
+    node.parent?.accept(this);
+  }
+
+  @override
   void visitEmptyStatement(EmptyStatement node) {
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
@@ -642,17 +652,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitEnumBody(EnumBody node) {
-    node.parent?.accept(this);
-  }
-
-  @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    if (node.body.semicolon != null) {
-      if (node.body.members.contains(entity) ||
-          identical(entity, node.body.rightBracket)) {
-        optype.completionLocation = 'EnumDeclaration_member';
-        optype.includeTypeNameSuggestions = true;
+    if (node.body case BlockEnumBody body) {
+      if (body.semicolon != null) {
+        if (body.members.contains(entity) ||
+            identical(entity, body.rightBracket)) {
+          optype.completionLocation = 'EnumDeclaration_member';
+          optype.includeTypeNameSuggestions = true;
+        }
       }
     }
   }
@@ -734,11 +741,18 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (identical(entity, node.onClause)) {
       optype.completionLocation = 'ExtensionDeclaration_onClause';
       optype.includeTypeNameSuggestions = true;
-    } else if (node.body.members.contains(entity) ||
-        identical(entity, node.body.rightBracket)) {
-      // Make suggestions in the body of the extension declaration
-      optype.completionLocation = 'ExtensionDeclaration_member';
-      optype.includeTypeNameSuggestions = true;
+    } else {
+      var isMember = false;
+      if (node.body case BlockClassBody body) {
+        isMember =
+            body.members.contains(entity) ||
+            identical(entity, body.rightBracket);
+      }
+      if (isMember) {
+        // Make suggestions in the body of the extension declaration
+        optype.completionLocation = 'ExtensionDeclaration_member';
+        optype.includeTypeNameSuggestions = true;
+      }
     }
   }
 
@@ -1094,11 +1108,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    // No suggestions.
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     if (node.elements.contains(entity)) {
       optype.completionLocation = 'ListLiteral_element';
@@ -1204,9 +1213,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    // Make suggestions in the body of the mixin declaration
-    if (node.body.members.contains(entity) ||
-        identical(entity, node.body.rightBracket)) {
+    var isMember = false;
+    if (node.body case BlockClassBody body) {
+      isMember =
+          body.members.contains(entity) || identical(entity, body.rightBracket);
+    }
+    if (isMember) {
       optype.completionLocation = 'MixinDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }

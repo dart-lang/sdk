@@ -9,7 +9,6 @@
 #include "vm/bit_vector.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/object_store.h"
-#include "vm/regexp/regexp_assembler.h"
 #include "vm/resolver.h"
 #include "vm/timeline.h"
 
@@ -1210,23 +1209,6 @@ CompileType ParameterInstr::ComputeType() const {
 
   const ParsedFunction& pf = graph_entry->parsed_function();
   const Function& function = pf.function();
-  if (function.IsIrregexpFunction()) {
-    // In irregexp functions, types of input parameters are known and immutable.
-    // Set parameter types here in order to prevent unnecessary CheckClassInstr
-    // from being generated.
-    switch (env_index()) {
-      case RegExpMacroAssembler::kParamRegExpIndex:
-        return CompileType::FromCid(kRegExpCid);
-      case RegExpMacroAssembler::kParamStringIndex:
-        return CompileType::FromCid(function.string_specialization_cid());
-      case RegExpMacroAssembler::kParamStartOffsetIndex:
-        return CompileType::FromCid(kSmiCid);
-      default:
-        UNREACHABLE();
-    }
-    UNREACHABLE();
-    return CompileType::Dynamic();
-  }
 
   const intptr_t param_index = this->param_index();
   if (param_index >= 0) {
@@ -1773,10 +1755,6 @@ CompileType SimdOpInstr::ComputeType() const {
 
 CompileType MathMinMaxInstr::ComputeType() const {
   return CompileType::FromUnboxedRepresentation(representation());
-}
-
-CompileType CaseInsensitiveCompareInstr::ComputeType() const {
-  return CompileType::FromCid(kBoolCid);
 }
 
 CompileType BoxInstr::ComputeType() const {

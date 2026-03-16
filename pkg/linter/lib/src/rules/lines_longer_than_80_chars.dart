@@ -20,9 +20,16 @@ const _desc = r'Avoid lines longer than 80 characters.';
 
 const _lf = '\n';
 
-/// String looks like URI if it contains a slash or backslash.
-final _uriRegExp = RegExp(r'[/\\]');
-bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
+bool _looksLikeUriOrPath(String value) {
+  /// String looks like URI if it contains a slash or backslash.
+  const int $SLASH = 47;
+  const int $BACKSLASH = 92;
+  for (int i = 0; i < value.length; i++) {
+    int char = value.codeUnitAt(i);
+    if (char == $BACKSLASH || char == $SLASH) return true;
+  }
+  return false;
+}
 
 class LinesLongerThan80Chars extends AnalysisRule {
   LinesLongerThan80Chars()

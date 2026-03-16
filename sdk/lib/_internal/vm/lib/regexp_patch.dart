@@ -76,8 +76,7 @@ class RegExp {
   }
 
   int get _groupCount;
-  Iterable<String> get _groupNames;
-  int _groupNameIndex(String name);
+  List? get _groupNameList;
 }
 
 class _RegExpMatch implements RegExpMatch {
@@ -124,24 +123,45 @@ class _RegExpMatch implements RegExpMatch {
   RegExp get pattern => _regexp;
 
   String? namedGroup(String name) {
-    var idx = _regexp._groupNameIndex(name);
-    if (idx < 0) {
-      throw ArgumentError("Not a capture group name: ${name}");
+    var exists = false;
+    var nameList = _regexp._groupNameList;
+    if (nameList != null) {
+      for (var i = 0; i < nameList.length; i += 2) {
+        var groupName = nameList[i] as String;
+        var groupIndex = nameList[i + 1] as int;
+        if (name == groupName) {
+          if (_start(groupIndex) >= 0) {
+            return group(groupIndex);
+          }
+          // Keeping looking for a duplicated name.
+          exists = true;
+        }
+      }
     }
-    return group(idx);
+    if (exists) {
+      // A group with that name exists, but did not match.
+      return null;
+    }
+    throw ArgumentError("Not a capture group name: ${name}");
   }
 
   Iterable<String> get groupNames {
-    return _regexp._groupNames;
+    var nameList = _regexp._groupNameList;
+    if (nameList != null) {
+      var names = new Set<String>();
+      for (var i = 0; i < nameList.length; i += 2) {
+        names.add(nameList[i] as String);
+      }
+      return names;
+    }
+    return const <String>[];
   }
 
   final RegExp _regexp;
   final String input;
-  final List<int> _match;
+  final Int32List _match;
   static const int _MATCH_PAIR = 2;
 }
-
-const _initialBacktrackingStackSize = 128;
 
 @pragma("vm:entry-point")
 class _RegExp implements RegExp {
@@ -219,110 +239,11 @@ class _RegExp implements RegExp {
   @pragma("vm:external-name", "RegExp_getGroupNameMap")
   external List? get _groupNameList;
 
-  Iterable<String> get _groupNames sync* {
-    final nameList = _groupNameList;
-    if (nameList == null) return;
-    for (var i = 0; i < nameList.length; i += 2) {
-      yield nameList[i] as String;
-    }
-  }
-
-  int _groupNameIndex(String name) {
-    var nameList = _groupNameList;
-    if (nameList == null) return -1;
-    for (var i = 0; i < nameList.length; i += 2) {
-      if (name == nameList[i]) {
-        return nameList[i + 1] as int;
-      }
-    }
-    return -1;
-  }
-
-  // Byte map of one byte characters with a 0xff if the character is a word
-  // character (digit, letter or underscore) and 0x00 otherwise.
-  // Used by generated RegExp code.
-  static const List<int> _wordCharacterMap = <int>[
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // '0' - '7'
-    0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // '8' - '9'
-
-    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'A' - 'G'
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'H' - 'O'
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'P' - 'W'
-    0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff, // 'X' - 'Z', '_'
-
-    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'a' - 'g'
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'h' - 'o'
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'p' - 'w'
-    0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, // 'x' - 'z'
-    // Latin-1 range
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  ];
-
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:external-name", "RegExp_ExecuteMatch")
-  external List<int>? _ExecuteMatch(String str, int start_index);
+  external Int32List? _ExecuteMatch(String str, int start_index);
 
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:external-name", "RegExp_ExecuteMatchSticky")
-  external List<int>? _ExecuteMatchSticky(String str, int start_index);
-
-  static Int32List _getRegisters(int registers_count) {
-    var registers = _registers.hasValue ? _registers.value : null;
-    if (registers == null || registers.length < registers_count) {
-      _registers.value = registers = Int32List(registers_count);
-    }
-    return registers;
-  }
-
-  static Int32List _getBacktrackingStack() {
-    if (!_backtrackingStack.hasValue) {
-      _backtrackingStack.value = Int32List(_initialBacktrackingStackSize);
-    }
-    return _backtrackingStack.value;
-  }
-
-  // TODO: Should we bound this to the same limit used by the irregexp interpreter
-  // for consistency?
-  static Int32List _growBacktrackingStack() {
-    final stack = _backtrackingStack.value;
-    final newStack = Int32List(stack.length * 2);
-    for (int i = 0; i < stack.length; i++) {
-      newStack[i] = stack[i];
-    }
-    _backtrackingStack.value = newStack;
-    return newStack;
-  }
-
-  @pragma("vm:shared")
-  static ThreadLocal<Int32List?> _registers = ThreadLocal<Int32List?>();
-
-  @pragma("vm:shared")
-  static ThreadLocal<Int32List> _backtrackingStack = ThreadLocal<Int32List>();
+  external Int32List? _ExecuteMatchSticky(String str, int start_index);
 }
 
 class _AllMatchesIterable extends Iterable<RegExpMatch> {

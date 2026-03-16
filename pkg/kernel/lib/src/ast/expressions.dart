@@ -188,16 +188,16 @@ class InvalidExpression extends Expression {
 }
 
 class VariableGet extends Expression {
-  /// The target variable as [VariableDeclaration].
-  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
-
   /// The target variable.
-  ExpressionVariable expressionVariable;
+  Variable expressionVariable;
 
   /// Null if not promoted.
   DartType? promotedType;
 
   VariableGet(this.expressionVariable, [this.promotedType]);
+
+  /// The target variable as [VariableDeclaration].
+  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -263,7 +263,7 @@ class VariableSet extends Expression {
   VariableDeclaration get variable => expressionVariable as VariableDeclaration;
 
   /// The target variable.
-  ExpressionVariable expressionVariable;
+  Variable expressionVariable;
 
   Expression value;
 
@@ -4749,6 +4749,36 @@ class AwaitExpression extends Expression {
 abstract class LocalFunction implements GenericFunction {
   @override
   FunctionNode get function;
+
+  /// Unique identifier of this function within a [Member].
+  /// Has a value [LocalFunctionId.invalid] until set.
+  abstract LocalFunctionId id;
+}
+
+/// Unique identifier of the local function within a [Member].
+extension type const LocalFunctionId(int _value) {
+  static const LocalFunctionId invalid = LocalFunctionId(0);
+  static const LocalFunctionId first = LocalFunctionId(1);
+  LocalFunctionId operator +(int delta) => LocalFunctionId(_value + delta);
+  bool operator >(LocalFunctionId other) => this._value > other._value;
+  int toInt() => _value; // Only for serialization.
+}
+
+/// Counter of local functions within a [Member].
+class LocalFunctionIdGenerator {
+  LocalFunctionId _counter;
+
+  LocalFunctionIdGenerator() : _counter = LocalFunctionId.first;
+  LocalFunctionIdGenerator.after(LocalFunctionId lastUsedId)
+      : _counter = lastUsedId + 1;
+
+  /// Generate a new id for a local function within a [Member].
+  LocalFunctionId allocateId() => _counter++;
+
+  bool get isUsed => _counter != LocalFunctionId.first;
+
+  bool isValidId(LocalFunctionId id) =>
+      id._value > 0 && id._value < _counter._value;
 }
 
 /// Expression of form `(x,y) => ...` or `(x,y) { ... }`
@@ -4757,6 +4787,9 @@ abstract class LocalFunction implements GenericFunction {
 class FunctionExpression extends Expression implements LocalFunction {
   @override
   FunctionNode function;
+
+  @override
+  LocalFunctionId id = LocalFunctionId.invalid;
 
   FunctionExpression(this.function) {
     function.parent = this;
@@ -5274,9 +5307,9 @@ class TypedefTearOff extends Expression {
 /// [VariableRead] nodes are the replacement for the VariableGet nodes.
 ///
 /// Despite of the  name, [VariableRead] can't read [TypeVariable]s,
-/// which are also [Variable]s.
+/// which are also [VariableBase]s.
 class VariableRead extends Expression {
-  final ExpressionVariable variable;
+  final Variable variable;
 
   VariableRead({required this.variable});
 
@@ -5327,9 +5360,9 @@ class VariableRead extends Expression {
 /// [VariableWrite] nodes are the replacement for the VariableSet nodes.
 ///
 /// Despite of the  name, [VariableWrite] can't write into
-/// [TypeVariable]s, which are also [Variable]s.
+/// [TypeVariable]s, which are also [VariableBase]s.
 class VariableWrite extends Expression {
-  final ExpressionVariable variable;
+  final Variable variable;
   final Expression value;
 
   VariableWrite({required this.variable, required this.value});

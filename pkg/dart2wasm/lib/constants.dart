@@ -354,7 +354,7 @@ class Constants {
     final info = ConstantInfo(
         constant,
         children,
-        (_, __) {
+        (_, _) {
           throw StateError(
               'Should not try to generate code for imported constant');
         },
@@ -362,7 +362,7 @@ class Constants {
         needsRuntimeCanonicalization,
         exportByMainApp,
         type,
-        (_, __, ___) {
+        (_, _, _) {
           throw StateError(
               'Should not try to generate code for imported constant');
         });
@@ -727,7 +727,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     return ConstantInfo(
         constant,
         childConstants,
-        forceLazyConstant ?? (_, __) => false,
+        forceLazyConstant ?? (_, _) => false,
         canBeEager,
         needsRuntimeCanonicalization,
         exportByMainApp,
@@ -742,7 +742,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitBoolConstant(BoolConstant constant) {
     ClassInfo info = translator.classInfo[translator.boxedBoolClass]!;
     return createConstant(constant, const [], info.nonNullableType,
-        canBeEager: true, (_, b, __) {
+        canBeEager: true, (_, b, _) {
       b.i32_const((info.classId as AbsoluteClassId).value);
       b.i32_const(constant.value ? 1 : 0);
       b.struct_new(info.struct);
@@ -753,7 +753,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitIntConstant(IntConstant constant) {
     ClassInfo info = translator.classInfo[translator.boxedIntClass]!;
     return createConstant(constant, const [], info.nonNullableType,
-        canBeEager: true, (_, b, __) {
+        canBeEager: true, (_, b, _) {
       b.i32_const((info.classId as AbsoluteClassId).value);
       b.i64_const(constant.value);
       b.struct_new(info.struct);
@@ -764,7 +764,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitDoubleConstant(DoubleConstant constant) {
     ClassInfo info = translator.classInfo[translator.boxedDoubleClass]!;
     return createConstant(constant, const [], info.nonNullableType,
-        canBeEager: true, (_, b, __) {
+        canBeEager: true, (_, b, _) {
       b.i32_const((info.classId as AbsoluteClassId).value);
       b.f64_const(constant.value);
       b.struct_new(info.struct);
@@ -775,7 +775,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitStringConstant(StringConstant constant) {
     ClassInfo info = translator.classInfo[translator.jsStringClass]!;
     return createConstant(constant, const [], info.nonNullableType,
-        canBeEager: true, (_, b, __) {
+        canBeEager: true, (_, b, _) {
       b.pushObjectHeaderFields(translator, info);
       translator.globals.readGlobal(
           b,
@@ -856,7 +856,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     lazy |= info.classId is RelativeClassId;
 
     return createConstant(constant, childConstants, type, canBeEager: !lazy,
-        (_, b, __) {
+        (_, b, _) {
       b.pushObjectHeaderFields(translator, info);
       for (int i = FieldIndex.objectFieldBase; i < fieldCount; i++) {
         Constant subConstant = subConstants[i]!;
@@ -896,7 +896,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     return createConstant(
         constant, childConstants, w.RefType.def(arrayType, nullable: false),
-        canBeEager: !tooLargeForArrayNewFixed, (_, b, __) {
+        canBeEager: !tooLargeForArrayNewFixed, (_, b, _) {
       if (tooLargeForArrayNewFixed) {
         // We use WasmArray<WasmI32> for some RTT data structures. Those arrays
         // can get rather large and cross the 10k limit.
@@ -1141,7 +1141,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       final vtableModule = closure.vtable.enclosingModule;
       return constantModule != vtableModule &&
           vtableModule != translator.mainModule.module;
-    }, (cinfo, b, __) {
+    }, (cinfo, b, _) {
       b.pushObjectHeaderFields(translator, closureClassInfo);
       translator
           .getDummyValuesCollectorForModule(b.moduleBuilder)
@@ -1367,7 +1367,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     }
 
     return createConstant(constant, childConstants, info.nonNullableType,
-        canBeEager: true, (_, b, __) {
+        canBeEager: true, (_, b, _) {
       b.pushObjectHeaderFields(translator, info);
       constants.instantiateConstant(b, nameConstant, stringType);
       b.struct_new(info.struct);
@@ -1393,7 +1393,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     return createConstant(
         constant, childConstants, recordClassInfo.nonNullableType,
-        canBeEager: true, (_, b, __) {
+        canBeEager: true, (_, b, _) {
       b.pushObjectHeaderFields(translator, recordClassInfo);
       for (Constant argument in arguments) {
         constants.instantiateConstant(b, argument, translator.topType);
@@ -1422,7 +1422,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
       return createConstant(
           constant, childConstants, w.RefType(type, nullable: false),
-          canBeEager: true, (_, b, __) {
+          canBeEager: true, (_, b, _) {
         translator.instantiateDummyValueHeapType(b, type, constant.name,
             (ib, heapType) {
           constants.instantiateConstant(

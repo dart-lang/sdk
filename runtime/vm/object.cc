@@ -59,7 +59,6 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/profiler.h"
-#include "vm/regexp/regexp.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/reverse_pc_lookup_cache.h"
@@ -222,10 +221,14 @@ PRECOMPILER_WSR_FIELD_DEFINITION(Function, FunctionType, signature)
 
 #undef PRECOMPILER_WSR_FIELD_DEFINITION
 
+// Suppress lint for the following definition because the whitespace/parens
+// check doesn't like __VA_OPT__(, ), which is what the formatter produces here.
+// NOLINTBEGIN
 #define TRACE_TYPE_CHECKS_VERBOSE(format, ...)                                 \
   if (FLAG_trace_type_checks_verbose) {                                        \
-    OS::PrintErr(format, ##__VA_ARGS__);                                       \
+    OS::PrintErr(format __VA_OPT__(, ) __VA_ARGS__);                           \
   }
+// NOLINTEND
 
 // Takes a vm internal name and makes it suitable for external user.
 //
@@ -1829,17 +1832,23 @@ class WorkSet : public StackResource {
 };
 
 void Object::EnsureDeeplyImmutable(Zone* zone) const {
-  WorkSet workset(Thread::Current(), zone);
+  auto thread = Thread::Current();
+  WorkSet workset(thread, zone);
   workset.Add(*this);
 
   Object& current = Object::Handle(zone);
   Function& function = Function::Handle(zone);
   Object& obj = Object::Handle(zone);
 
+  ObjectStore* object_store = thread->isolate_group()->object_store();
+  const intptr_t bigint_cid =
+      Class::Handle(zone, object_store->bigint_impl_class()).id();
+
   while (workset.TakeAndPush(&current)) {
     if (current.IsSmi() || current.IsNull() || current.IsCanonical() ||
         current.IsDeeplyImmutable() ||
-        IsTypedDataBaseClassId(current.GetClassId())) {
+        IsTypedDataBaseClassId(current.GetClassId()) ||
+        current.GetClassId() == bigint_cid) {
       workset.PopAndProcessCompletedClosuresAndContexts(&obj);
       continue;
     }
@@ -1865,6 +1874,10 @@ void Object::EnsureDeeplyImmutable(Zone* zone) const {
         obj = context.At(i);
         workset.Add(obj);
       }
+      continue;
+    }
+
+    if (current.GetClassId() == ConstMap::kClassId) {
       continue;
     }
 
@@ -2890,7 +2903,7 @@ void Object::InitializeObject(uword address,
   ASSERT(ptr_field_end < end);
   bool needs_init = true;
   if (IsTypedDataBaseClassId(class_id) || class_id == kArrayCid) {
-    // If the size is greater than both kNewAllocatableSize and
+    // If the size is greater than both Heap::kNewAllocatableSize and
     // kAllocatablePageSize, the object must have been allocated to a new
     // large page, which must already have been zero initialized by the OS.
     // Note that zero is a GC-safe value.
@@ -2899,7 +2912,7 @@ void Object::InitializeObject(uword address,
     // safepoint checks to avoid blocking for the full duration of
     // initializing this array.
     needs_init =
-        IsAllocatableInNewSpace(size) || IsAllocatableViaFreeLists(size);
+        Heap::IsAllocatableInNewSpace(size) || IsAllocatableViaFreeLists(size);
   }
   if (needs_init) {
     // Initialize the memory prior to any pointer fields with 0. (This loop
@@ -2991,7 +3004,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
   Heap* heap = thread->heap();
 
   uword address = heap->Allocate(thread, size, space);
-  if (address == 0) [[unlikely]] {
+  if (UNLIKELY(address == 0)) {
     // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
     // available, it is the innermost error handler, so check for a longjmp base
     // before checking for an exit frame.
@@ -3013,7 +3026,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
                    ptr_field_end_offset);
   raw_obj = static_cast<ObjectPtr>(address + kHeapObjectTag);
   ASSERT(cls_id == UntaggedObject::ClassIdTag::decode(raw_obj->untag()->tags_));
-  if (raw_obj->IsOldObject() && thread->is_marking()) [[unlikely]] {
+  if (raw_obj->IsOldObject() && UNLIKELY(thread->is_marking())) {
     // Black allocation. Prevents a data race between the mutator and
     // concurrent marker on ARM and ARM64 (the marker may observe a
     // publishing store of this object before the stores that initialize its
@@ -14598,12 +14611,30 @@ void Library::CopyPragmas(const Library& old_lib) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 static bool ShouldBePrivate(const String& name) {
-  return (name.Length() >= 1 && name.CharAt(0) == '_') ||
-         (name.Length() >= 5 &&
-          (name.CharAt(4) == '_' &&
-           (name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
-           name.CharAt(1) == 'e' && name.CharAt(2) == 't' &&
-           name.CharAt(3) == ':'));
+  // _foo
+  if (name.Length() >= 1 && name.CharAt(0) == '_') {
+    return true;
+  }
+  // get:_foo, set:_foo or dyn:_foo
+  if (name.Length() >= 5 && name.CharAt(3) == ':' && name.CharAt(4) == '_') {
+    if ((name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
+        name.CharAt(1) == 'e' && name.CharAt(2) == 't') {
+      return true;
+    }
+    if (name.CharAt(0) == 'd' && name.CharAt(1) == 'y' &&
+        name.CharAt(2) == 'n') {
+      return true;
+    }
+  }
+  // dyn:get:_foo, dyn:set:_foo
+  if (name.Length() >= 9 && name.CharAt(0) == 'd' && name.CharAt(1) == 'y' &&
+      name.CharAt(2) == 'n' && name.CharAt(3) == ':' &&
+      (name.CharAt(4) == 'g' || name.CharAt(4) == 's') &&
+      name.CharAt(5) == 'e' && name.CharAt(6) == 't' && name.CharAt(7) == ':' &&
+      name.CharAt(8) == '_') {
+    return true;
+  }
+  return false;
 }
 
 void Library::RehashDictionary(const Array& old_dict,
@@ -27535,26 +27566,6 @@ void RegExp::set_pattern(const String& pattern) const {
   untag()->set_pattern(pattern.ptr());
 }
 
-void RegExp::set_function(intptr_t cid,
-                          bool sticky,
-                          const Function& value) const {
-  if (sticky) {
-    switch (cid) {
-      case kOneByteStringCid:
-        return untag()->set_one_byte_sticky(value.ptr());
-      case kTwoByteStringCid:
-        return untag()->set_two_byte_sticky(value.ptr());
-    }
-  } else {
-    switch (cid) {
-      case kOneByteStringCid:
-        return untag()->set_one_byte(value.ptr());
-      case kTwoByteStringCid:
-        return untag()->set_two_byte(value.ptr());
-    }
-  }
-}
-
 void RegExp::set_bytecode(bool is_one_byte,
                           bool sticky,
                           const TypedData& bytecode) const {
@@ -27573,69 +27584,53 @@ void RegExp::set_bytecode(bool is_one_byte,
   }
 }
 
-void RegExp::set_num_bracket_expressions(intptr_t value) const {
-  untag()->num_bracket_expressions_ = value;
-}
-
 void RegExp::set_capture_name_map(const Array& array) const {
   untag()->set_capture_name_map<std::memory_order_release>(array.ptr());
 }
 
-RegExpPtr RegExp::New(Zone* zone, Heap::Space space) {
-  const auto& result = RegExp::Handle(Object::Allocate<RegExp>(space));
-  ASSERT_EQUAL(result.type(), kUninitialized);
-  ASSERT(result.flags() == RegExpFlags());
+RegExpPtr RegExp::New(const String& pattern, RegExpFlags flags) {
+  const auto& result = RegExp::Handle(Object::Allocate<RegExp>(Heap::kNew));
+  result.set_pattern(pattern);
+  result.set_flags(flags);
   result.set_num_bracket_expressions(-1);
   result.set_num_registers(/*is_one_byte=*/false, -1);
   result.set_num_registers(/*is_one_byte=*/true, -1);
-
-  if (!FLAG_interpret_irregexp) {
-    auto thread = Thread::Current();
-    const Library& lib = Library::Handle(zone, Library::CoreLibrary());
-    const Class& owner =
-        Class::Handle(zone, lib.LookupClass(Symbols::RegExp()));
-
-    for (intptr_t cid = kOneByteStringCid; cid <= kTwoByteStringCid; cid++) {
-      CreateSpecializedFunction(thread, zone, result, cid, /*sticky=*/false,
-                                owner);
-      CreateSpecializedFunction(thread, zone, result, cid, /*sticky=*/true,
-                                owner);
-    }
-  }
   return result.ptr();
 }
 
-const char* RegExpFlags::ToCString() const {
-  switch (value_ & ~kGlobal) {
-    case kIgnoreCase | kMultiLine | kDotAll | kUnicode:
+const char* FlagsToCString(RegExpFlags flags) {
+  switch (flags & ~RegExpFlag::kGlobal) {
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kMultiline |
+        RegExpFlag::kDotAll | RegExpFlag::kUnicode:
       return "imsu";
-    case kIgnoreCase | kMultiLine | kDotAll:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kMultiline | RegExpFlag::kDotAll:
       return "ims";
-    case kIgnoreCase | kMultiLine | kUnicode:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kMultiline |
+        RegExpFlag::kUnicode:
       return "imu";
-    case kIgnoreCase | kUnicode | kDotAll:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kUnicode | RegExpFlag::kDotAll:
       return "ius";
-    case kMultiLine | kDotAll | kUnicode:
+    case RegExpFlag::kMultiline | RegExpFlag::kDotAll | RegExpFlag::kUnicode:
       return "msu";
-    case kIgnoreCase | kMultiLine:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kMultiline:
       return "im";
-    case kIgnoreCase | kDotAll:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kDotAll:
       return "is";
-    case kIgnoreCase | kUnicode:
+    case RegExpFlag::kIgnoreCase | RegExpFlag::kUnicode:
       return "iu";
-    case kMultiLine | kDotAll:
+    case RegExpFlag::kMultiline | RegExpFlag::kDotAll:
       return "ms";
-    case kMultiLine | kUnicode:
+    case RegExpFlag::kMultiline | RegExpFlag::kUnicode:
       return "mu";
-    case kDotAll | kUnicode:
+    case RegExpFlag::kDotAll | RegExpFlag::kUnicode:
       return "su";
-    case kIgnoreCase:
+    case RegExpFlags(RegExpFlag::kIgnoreCase):
       return "i";
-    case kMultiLine:
+    case RegExpFlags(RegExpFlag::kMultiline):
       return "m";
-    case kDotAll:
+    case RegExpFlags(RegExpFlag::kDotAll):
       return "s";
-    case kUnicode:
+    case RegExpFlags(RegExpFlag::kUnicode):
       return "u";
     default:
       break;
@@ -27666,13 +27661,13 @@ bool RegExp::CanonicalizeEquals(const Instance& other) const {
 
 uint32_t RegExp::CanonicalizeHash() const {
   // Must agree with RegExpKey::Hash.
-  return CombineHashes(String::Hash(pattern()), flags().value());
+  return CombineHashes(String::Hash(pattern()), flags());
 }
 
 const char* RegExp::ToCString() const {
   const String& str = String::Handle(pattern());
   return OS::SCreate(Thread::Current()->zone(), "RegExp: pattern=%s flags=%s",
-                     str.ToCString(), flags().ToCString());
+                     str.ToCString(), FlagsToCString(flags()));
 }
 
 WeakPropertyPtr WeakProperty::New(Heap::Space space) {
@@ -28052,6 +28047,11 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
     *reusable_field_handle = IG->object_store()->pragma_name();
     const auto pragma_name =
         Instance::Cast(*pragma).GetField(*reusable_field_handle);
+
+    if (pragma_name == Symbols::dyn_module_can_be_used_as_type().ptr()) {
+      return EntryPointPragma::kTypeOnly;
+    }
+
     if ((pragma_name != Symbols::vm_entry_point().ptr()) &&
         (pragma_name != Symbols::dyn_module_callable().ptr()) &&
         (pragma_name != Symbols::dyn_module_implicitly_callable().ptr()) &&
@@ -28775,7 +28775,8 @@ RecordShape RecordShape::Register(Thread* thread,
   object_store->set_record_field_names_map(map.Release());
 
   const RecordShape shape(num_fields, index);
-  ASSERT(shape.GetFieldNames(thread) == field_names.ptr());
+  ASSERT(Array::Handle(shape.GetFieldNames(thread))
+             .CanonicalizeEquals(field_names));
   ASSERT(shape.num_fields() == num_fields);
   return shape;
 }

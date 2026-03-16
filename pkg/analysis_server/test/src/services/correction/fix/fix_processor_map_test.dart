@@ -28,6 +28,10 @@ class FixProcessorMapTest {
     'omit_obvious_property_types',
   ];
 
+  static const List<String> warningsAllowedToHaveMultipleBulkFixes = [
+    'invalid_covariant_modifier_in_primary_constructor',
+  ];
+
   void setUp() {
     registerBuiltInFixGenerators();
   }
@@ -40,7 +44,10 @@ class FixProcessorMapTest {
   }
 
   void test_nonLintProducerMap() {
-    _assertMap(registeredFixGenerators.warningProducers);
+    _assertMap(
+      registeredFixGenerators.warningProducers,
+      warningsAllowedToHaveMultipleBulkFixes,
+    );
   }
 
   void test_registerFixForLint() {

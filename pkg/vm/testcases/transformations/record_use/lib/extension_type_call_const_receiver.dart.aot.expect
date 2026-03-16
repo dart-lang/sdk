@@ -1,0 +1,28 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+import "dart:_internal" as _in;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension type ET(core::int i) {
+  method foo = self::ET|foo;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=(i,b)->b]
+@#C1
+static extension-type-member method ET|foo([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::ET% /* erasure=core::int, declared=! */ #this, [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "arg")] core::String s) → void {
+  core::print("${_in::unsafeCast<core::int>(#this)} ${s}");
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  const self::ET% /* erasure=core::int, declared=! */ et = #C2;
+  self::ET|foo(#C2, "arg");
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = 42
+}

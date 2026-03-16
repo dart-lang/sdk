@@ -302,10 +302,10 @@ class ConstantEvaluationEngine {
         for (var field in constant.enclosingElement.fields) {
           // Note: non-static const isn't allowed but we handle it anyway so
           // that we won't be confused by incorrect code.
-          if ((field.isFinal || field.isConst) &&
-              !field.isStatic &&
-              field.hasInitializer) {
-            callback(field);
+          if ((field.isFinal || field.isConst) && !field.isStatic) {
+            if (field.constantInitializer case var initializer?) {
+              initializer.accept(referenceFinder);
+            }
           }
         }
         for (var parameterElement in constant.formalParameters) {
@@ -2952,17 +2952,21 @@ class _InstanceCreationEvaluator {
   Constant evaluateGenerativeConstructorCall() {
     InvalidConstant? error;
 
-    // Start with final fields that are initialized at their declaration site.
-    error = _checkFields();
-    if (error != null) {
-      return error;
-    }
-
     _checkTypeParameters();
 
     error = _checkParameters();
     if (error != null) {
       return error;
+    }
+
+    // Redirecting constructors delegate this to the target constructor.
+    if (!_constructor.baseElement.constantInitializers.any(
+      (e) => e is RedirectingConstructorInvocation,
+    )) {
+      error = _checkFields();
+      if (error != null) {
+        return error;
+      }
     }
 
     var evaluationResult = _checkInitializers();
@@ -2999,24 +3003,32 @@ class _InstanceCreationEvaluator {
   /// Returns an [InvalidConstant] if one is found, or `null` otherwise.
   InvalidConstant? _checkFields() {
     var substitution = Substitution.fromInterfaceType(_constructor.returnType);
-    var fields = _constructor.baseElement.enclosingElement.fields;
-    for (var field in fields) {
+    var interfaceElement = _constructor.baseElement.enclosingElement;
+    var canReuseFieldValue = interfaceElement.primaryConstructor == null;
+    for (var field in interfaceElement.fields) {
       if ((field.isFinal || field.isConst) && !field.isStatic) {
-        var fieldValue = field.evaluationResult;
-
-        // It is possible that the evaluation result is null.
-        // This happens for example when we have duplicate fields.
-        // `class Test {final x = 1; final x = 2; const Test();}`
-        if (fieldValue == null || fieldValue is! DartObjectImpl) {
+        var initializer = field.constantInitializer;
+        if (initializer == null) {
           continue;
         }
+
+        var fieldValue = canReuseFieldValue ? field.evaluationResult : null;
+        fieldValue ??= _initializerVisitor.evaluateConstant(initializer);
+
+        if (fieldValue is InvalidConstant) {
+          return fieldValue;
+        }
+
+        if (fieldValue is! DartObjectImpl) {
+          continue;
+        }
+
         // Match the value and the type.
         var fieldType = substitution.substituteType(field.type);
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
           var isRuntimeException = hasTypeParameterReference(field.type);
-          var errorNode = field.constantInitializer ?? _errorNode;
           return InvalidConstant.forEntity(
-            entity: errorNode,
+            entity: initializer,
             locatableDiagnostic: diag.constConstructorFieldTypeMismatch
                 .withArguments(
                   valueType: fieldValue.type.getDisplayString(),
@@ -3026,7 +3038,13 @@ class _InstanceCreationEvaluator {
             isRuntimeException: isRuntimeException,
           );
         }
-        _fieldMap[field.name ?? ''] = fieldValue;
+
+        // Skip, if the field was already initialized by an initializing formal.
+        if (field.name case var fieldName?) {
+          if (!_fieldMap.containsKey(fieldName)) {
+            _fieldMap[fieldName] = fieldValue;
+          }
+        }
       }
     }
     return null;

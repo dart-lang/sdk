@@ -2354,7 +2354,7 @@ class RecordType extends DartType implements SharedRecordType {
 /// [TypeVariable] represents type variables of functions, such as top-level
 /// methods, static and instance methods, local declarations, and function
 /// expressions.
-class TypeVariable extends Variable {
+class TypeVariable extends VariableBase {
   @override
   String? cosmeticName;
 

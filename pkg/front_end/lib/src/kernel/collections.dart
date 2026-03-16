@@ -386,7 +386,7 @@ class ForElement extends ControlFlowElement
 
 /// A 'for-in' element in a list or set literal.
 class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
-  ExpressionVariable expressionVariable;
+  Variable expressionVariable;
   // Coverage-ignore(suite): Not run.
   // Has no initializer.
   VariableDeclaration get variable => expressionVariable as VariableDeclaration;
@@ -1092,7 +1092,7 @@ class PatternForMapEntry extends TreeNode
 class ForInMapEntry extends TreeNode
     with ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
-  ExpressionVariable expressionVariable;
+  Variable expressionVariable;
   // Coverage-ignore(suite): Not run.
   // Has no initializer.
   VariableDeclaration get variable => expressionVariable as VariableDeclaration;

@@ -20,7 +20,7 @@ class C1 extends core::Object {
   field core::int e;
   field core::int f;
   field core::int g;
-  constructor •(core::int a, core::int b, final core::int c) → self::C1
+  constructor •(final core::int a, core::int b, final core::int c) → self::C1
     : self::C1::d = a, self::C1::e = b, self::C1::f = c, self::C1::g = 42, self::C1::b = b, self::C1::c = c, super core::Object::•()
     ;
 }

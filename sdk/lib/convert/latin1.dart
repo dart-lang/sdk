@@ -26,13 +26,13 @@ final class Latin1Codec extends Encoding {
 
   /// Instantiates a new [Latin1Codec].
   ///
-  /// If [allowInvalid] is true, the [decode] method and the converter
+  /// If [_allowInvalid] is true, the [decode] method and the converter
   /// returned by [decoder] will default to allowing invalid values. Invalid
   /// values are decoded into the Unicode Replacement character (U+FFFD).
   /// Calls to the [decode] method can override this default.
   ///
   /// Encoders will not accept invalid (non Latin-1) characters.
-  const Latin1Codec({bool allowInvalid = false}) : _allowInvalid = allowInvalid;
+  const Latin1Codec({this._allowInvalid = false});
 
   /// The name of this codec, "iso-8859-1".
   String get name => "iso-8859-1";

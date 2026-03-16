@@ -578,12 +578,18 @@ void ServiceIsolate::Shutdown() {
 
 void ServiceIsolate::BootVmServiceLibrary() {
   Thread* thread = Thread::Current();
-  const Library& vmservice_library =
-      Library::Handle(Library::LookupLibrary(thread, Symbols::DartVMService()));
-  ASSERT(!vmservice_library.IsNull());
+  Library& lib =
+      Library::Handle(thread->isolate_group()->object_store()->root_library());
   const String& boot_function_name = String::Handle(String::New("boot"));
-  const Function& boot_function = Function::Handle(
-      vmservice_library.LookupFunctionAllowPrivate(boot_function_name));
+  Function& boot_function =
+      Function::Handle(lib.LookupFunctionAllowPrivate(boot_function_name));
+
+  if (boot_function.IsNull()) {
+    lib ^= Library::LookupLibrary(thread, Symbols::DartVMService());
+    ASSERT(!lib.IsNull());
+    boot_function ^= lib.LookupFunctionAllowPrivate(boot_function_name);
+  }
+
   ASSERT(!boot_function.IsNull());
   const Object& result = Object::Handle(
       DartEntry::InvokeFunction(boot_function, Object::empty_array()));
@@ -608,16 +614,18 @@ void ServiceIsolate::RegisterRunningIsolates(
   ASSERT(thread->isolate()->is_service_isolate());
 
   // Obtain "_registerIsolate" function to call.
-  const String& library_url = Symbols::DartVMService();
-  ASSERT(!library_url.IsNull());
-  const Library& library =
-      Library::Handle(zone, Library::LookupLibrary(thread, library_url));
-  ASSERT(!library.IsNull());
-  const String& function_name =
-      String::Handle(zone, String::New("_registerIsolate"));
-  ASSERT(!function_name.IsNull());
-  const Function& register_function_ =
-      Function::Handle(zone, library.LookupFunctionAllowPrivate(function_name));
+  Library& lib =
+      Library::Handle(thread->isolate_group()->object_store()->root_library());
+  const String& function_name = String::Handle(String::New("_registerIsolate"));
+  Function& register_function_ =
+      Function::Handle(lib.LookupFunctionAllowPrivate(function_name));
+
+  if (register_function_.IsNull()) {
+    lib ^= Library::LookupLibrary(thread, Symbols::DartVMService());
+    ASSERT(!lib.IsNull());
+    register_function_ ^= lib.LookupFunctionAllowPrivate(function_name);
+  }
+
   ASSERT(!register_function_.IsNull());
 
   Integer& port_int = Integer::Handle(zone);

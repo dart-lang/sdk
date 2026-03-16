@@ -1984,7 +1984,7 @@ main() {
 ''',
       [
         error(diag.unusedField, 17, 2),
-        error(diag.undefinedNamedParameter, 53, 2),
+        error(diag.useOfPrivateParameterName, 53, 2),
       ],
     );
 

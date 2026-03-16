@@ -5,19 +5,16 @@
 /// @docImport 'complex_parser_test.dart';
 library;
 
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../util/ast_type_matchers.dart';
-import 'parser_test_base.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SimpleParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -27,428 +24,920 @@ main() {
 ///
 /// More complex tests should be defined in the class [ComplexParserTest].
 @reflectiveTest
-class SimpleParserTest extends FastaParserTestCase {
-  ConstructorName parseConstructorName(String name) {
-    createParser('new $name();');
-    Statement statement = parser.parseStatement2();
-    expect(statement, isExpressionStatement);
-    Expression expression = (statement as ExpressionStatement).expression;
-    expect(expression, isInstanceCreationExpression);
-    return (expression as InstanceCreationExpression).constructorName;
-  }
-
-  ExtendsClause parseExtendsClause(String clause) {
-    createParser('class TestClass $clause {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    expect(unit.declarations, hasLength(1));
-    var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl, isNotNull);
-    return classDecl.extendsClause!;
-  }
-
-  List<SimpleIdentifier> parseIdentifierList(String identifiers) {
-    createParser('show $identifiers');
-    List<Combinator> combinators = parser.parseCombinators();
-    expect(combinators, hasLength(1));
-    return (combinators[0] as ShowCombinator).shownNames;
-  }
-
-  ImplementsClause parseImplementsClause(String clause) {
-    createParser('class TestClass $clause {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    expect(unit.declarations, hasLength(1));
-    var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl, isNotNull);
-    return classDecl.implementsClause!;
-  }
-
-  LibraryIdentifier? parseLibraryIdentifier(String name) {
-    createParser('library $name;');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    expect(unit.directives, hasLength(1));
-    var directive = unit.directives[0] as LibraryDirective;
-    return directive.name;
-  }
-
-  /// Parses the given [content] as a sequence of statements by enclosing it in
-  /// a block.
-  ///
-  /// The [expectedCount] is the number of statements that are expected to be
-  /// parsed.
-  void parseStatementList(String content, int expectedCount) {
-    Statement statement = parseStatement('{$content}');
-    expect(statement, isBlock);
-    var block = statement as Block;
-    expect(block.statements, hasLength(expectedCount));
-  }
-
-  VariableDeclaration parseVariableDeclaration(String declaration) {
-    createParser(declaration);
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    expect(unit.declarations, hasLength(1));
-    var decl = unit.declarations[0] as TopLevelVariableDeclaration;
-    expect(decl, isNotNull);
-    return decl.variables.variables[0];
-  }
-
-  WithClause parseWithClause(String clause) {
-    createParser('class TestClass extends Object $clause {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    expect(unit.declarations, hasLength(1));
-    var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl, isNotNull);
-    return classDecl.withClause!;
-  }
-
+class SimpleParserTest extends ParserDiagnosticsTest {
   void test_classDeclaration_complexTypeParam() {
-    CompilationUnit unit = parseCompilationUnit('''
-class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
+    var parseResult = parseStringWithErrors(r'''
+class C<@Foo.bar(const [], const [1], const {"": r""}, 0xFF + 2, .3, 4.5) T> {}
 ''');
-    var clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.namePart.typeName.lexeme, 'C');
-    expect(clazz.namePart.typeParameters!.typeParameters, hasLength(1));
-    TypeParameter typeParameter =
-        clazz.namePart.typeParameters!.typeParameters[0];
-    expect(typeParameter.name.lexeme, 'T');
-    expect(typeParameter.metadata, hasLength(1));
-    Annotation metadata = typeParameter.metadata[0];
-    expect(metadata.name.name, 'Foo.bar');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              metadata
+                Annotation
+                  atSign: @
+                  name: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: Foo
+                    period: .
+                    identifier: SimpleIdentifier
+                      token: bar
+                  arguments: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      ListLiteral
+                        constKeyword: const
+                        leftBracket: [
+                        rightBracket: ]
+                      ListLiteral
+                        constKeyword: const
+                        leftBracket: [
+                        elements
+                          IntegerLiteral
+                            literal: 1
+                        rightBracket: ]
+                      SetOrMapLiteral
+                        constKeyword: const
+                        leftBracket: {
+                        elements
+                          MapLiteralEntry
+                            key: SimpleStringLiteral
+                              literal: ""
+                            separator: :
+                            value: SimpleStringLiteral
+                              literal: r""
+                        rightBracket: }
+                        isMap: false
+                      BinaryExpression
+                        leftOperand: IntegerLiteral
+                          literal: 0xFF
+                        operator: +
+                        rightOperand: IntegerLiteral
+                          literal: 2
+                      DoubleLiteral
+                        literal: .3
+                      DoubleLiteral
+                        literal: 4.5
+                    rightParenthesis: )
+              name: T
+          rightBracket: >
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_classDeclaration_invalid_super() {
-    parseCompilationUnit(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {
   C() : super.const();
 }
-''',
-      diagnostics: [
-        expectedError(diag.invalidSuperInInitializer, 18, 5),
-        expectedError(diag.expectedIdentifierButGotKeyword, 24, 5),
-        expectedError(diag.missingIdentifier, 24, 5),
-      ],
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.invalidSuperInInitializer, 18, 5),
+      error(diag.expectedIdentifierButGotKeyword, 24, 5),
+      error(diag.missingIdentifier, 24, 5),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_classDeclaration_invalid_this() {
-    parseCompilationUnit(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C {
   C() : this.const();
 }
-''',
-      diagnostics: [
-        expectedError(diag.missingAssignmentInInitializer, 18, 4),
-        expectedError(diag.missingIdentifier, 23, 5),
-        expectedError(diag.missingFunctionBody, 23, 5),
-        expectedError(diag.constMethod, 23, 5),
-        expectedError(diag.missingIdentifier, 28, 1),
-      ],
-    );
+''');
+    parseResult.assertErrors([
+      error(diag.missingAssignmentInInitializer, 18, 4),
+      error(diag.missingIdentifier, 23, 5),
+      error(diag.missingFunctionBody, 23, 5),
+      error(diag.constMethod, 23, 5),
+      error(diag.missingIdentifier, 28, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PropertyAccess
+                  target: ThisExpression
+                    thisKeyword: this
+                  operator: .
+                  propertyName: SimpleIdentifier
+                    token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            name: <empty> <synthetic>
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_method_name_notNull_37733() {
-    // https://github.com/dart-lang/sdk/issues/37733
-    var unit = parseCompilationUnit(
-      r'class C { f(<T>()); }',
-      diagnostics: [expectedError(diag.missingIdentifier, 12, 1)],
-    );
-    var classDeclaration = unit.declarations[0] as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
-    expect(method.parameters!.parameters, hasLength(1));
-    var parameter =
-        method.parameters!.parameters[0] as FunctionTypedFormalParameter;
-    expect(parameter.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  f(<T>());
+}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 14, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            name: f
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: FunctionTypedFormalParameter
+                name: <empty> <synthetic>
+                typeParameters: TypeParameterList
+                  leftBracket: <
+                  typeParameters
+                    TypeParameter
+                      name: T
+                  rightBracket: >
+                parameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_parseAnnotation_n1() {
-    createParser('@A');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNull);
-    expect(annotation.constructorName, isNull);
-    expect(annotation.arguments, isNull);
+    var parseResult = parseStringWithErrors(r'''
+@A
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleAnnotation;
+    assertParsedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+''');
   }
 
   void test_parseAnnotation_n1_a() {
-    createParser('@A(x,y)');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNull);
-    expect(annotation.constructorName, isNull);
-    expect(annotation.arguments, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+@A(x, y)
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleAnnotation;
+    assertParsedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: x
+      SimpleIdentifier
+        token: y
+    rightParenthesis: )
+''');
   }
 
   void test_parseAnnotation_n2() {
-    createParser('@A.B');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNull);
-    expect(annotation.constructorName, isNull);
-    expect(annotation.arguments, isNull);
+    var parseResult = parseStringWithErrors(r'''
+@A.B
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleAnnotation;
+    assertParsedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+    period: .
+    identifier: SimpleIdentifier
+      token: B
+''');
   }
 
   void test_parseAnnotation_n2_a() {
-    createParser('@A.B(x,y)');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNull);
-    expect(annotation.constructorName, isNull);
-    expect(annotation.arguments, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+@A.B(x, y)
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleAnnotation;
+    assertParsedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+    period: .
+    identifier: SimpleIdentifier
+      token: B
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: x
+      SimpleIdentifier
+        token: y
+    rightParenthesis: )
+''');
   }
 
   void test_parseAnnotation_n3() {
-    createParser('@A.B.C');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNotNull);
-    expect(annotation.constructorName, isNotNull);
-    expect(annotation.arguments, isNull);
+    var parseResult = parseStringWithErrors(r'''
+@A.B.C
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleAnnotation;
+    assertParsedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+    period: .
+    identifier: SimpleIdentifier
+      token: B
+  period: .
+  constructorName: SimpleIdentifier
+    token: C
+''');
   }
 
   void test_parseAnnotation_n3_a() {
-    createParser('@A.B.C(x,y)');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNotNull);
-    expect(annotation.constructorName, isNotNull);
-    expect(annotation.arguments, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+@A.B.C(x, y)
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleAnnotation;
+    assertParsedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+    period: .
+    identifier: SimpleIdentifier
+      token: B
+  period: .
+  constructorName: SimpleIdentifier
+    token: C
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: x
+      SimpleIdentifier
+        token: y
+    rightParenthesis: )
+''');
   }
 
   test_parseArgument() {
-    Expression result = parseArgument('3');
-    expect(result, const TypeMatcher<IntegerLiteral>());
-    var literal = result as IntegerLiteral;
-    expect(literal.value, 3);
+    var parseResult = parseStringWithErrors(r'''
+var v = m(3);
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleMethodInvocation.argumentList.arguments[0];
+    assertParsedNodeText(node, r'''
+IntegerLiteral
+  literal: 3
+''');
   }
 
   test_parseArgument_named() {
-    Expression result = parseArgument('foo: "a"');
-    expect(result, const TypeMatcher<NamedExpression>());
-    var expression = result as NamedExpression;
-    var literal = expression.expression as StringLiteral;
-    expect(literal.stringValue, 'a');
+    var parseResult = parseStringWithErrors(r'''
+var v = m(foo: "a");
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleMethodInvocation.argumentList.arguments[0];
+    assertParsedNodeText(node, r'''
+NamedExpression
+  name: Label
+    label: SimpleIdentifier
+      token: foo
+    colon: :
+  expression: SimpleStringLiteral
+    literal: "a"
+''');
   }
 
   void test_parseArgumentList_empty() {
-    createParser('()');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+var v = m();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    assertParsedNodeText(node, r'''
+ArgumentList
+  leftParenthesis: (
+  rightParenthesis: )
+''');
   }
 
   void test_parseArgumentList_mixed() {
-    createParser('(w, x, y: y, z: z)');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(4));
+    var parseResult = parseStringWithErrors(r'''
+var v = m(w, x, y: y, z: z);
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    assertParsedNodeText(node, r'''
+ArgumentList
+  leftParenthesis: (
+  arguments
+    SimpleIdentifier
+      token: w
+    SimpleIdentifier
+      token: x
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: y
+        colon: :
+      expression: SimpleIdentifier
+        token: y
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: z
+        colon: :
+      expression: SimpleIdentifier
+        token: z
+  rightParenthesis: )
+''');
   }
 
   void test_parseArgumentList_noNamed() {
-    createParser('(x, y, z)');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(3));
+    var parseResult = parseStringWithErrors(r'''
+var v = m(x, y, z);
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    assertParsedNodeText(node, r'''
+ArgumentList
+  leftParenthesis: (
+  arguments
+    SimpleIdentifier
+      token: x
+    SimpleIdentifier
+      token: y
+    SimpleIdentifier
+      token: z
+  rightParenthesis: )
+''');
   }
 
   void test_parseArgumentList_onlyNamed() {
-    createParser('(x: x, y: y)');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(2));
+    var parseResult = parseStringWithErrors(r'''
+var v = m(x: x, y: y);
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    assertParsedNodeText(node, r'''
+ArgumentList
+  leftParenthesis: (
+  arguments
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: x
+        colon: :
+      expression: SimpleIdentifier
+        token: x
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: y
+        colon: :
+      expression: SimpleIdentifier
+        token: y
+  rightParenthesis: )
+''');
   }
 
   void test_parseArgumentList_trailing_comma() {
-    createParser('(x, y, z,)');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(3));
+    var parseResult = parseStringWithErrors(r'''
+var v = m(x, y, z);
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    assertParsedNodeText(node, r'''
+ArgumentList
+  leftParenthesis: (
+  arguments
+    SimpleIdentifier
+      token: x
+    SimpleIdentifier
+      token: y
+    SimpleIdentifier
+      token: z
+  rightParenthesis: )
+''');
   }
 
   void test_parseArgumentList_typeArguments() {
-    createParser('(a<b,c>(d))');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+var v = m(a<b, c>(d));
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    assertParsedNodeText(node, r'''
+ArgumentList
+  leftParenthesis: (
+  arguments
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: a
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: b
+          NamedType
+            name: c
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: d
+        rightParenthesis: )
+  rightParenthesis: )
+''');
   }
 
   void test_parseArgumentList_typeArguments_none() {
-    createParser('(a<b,p.q.c>(d))');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(2));
+    var parseResult = parseStringWithErrors(r'''
+var v = m(a < b, p.q.c > (d));
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    assertParsedNodeText(node, r'''
+ArgumentList
+  leftParenthesis: (
+  arguments
+    BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: a
+      operator: <
+      rightOperand: SimpleIdentifier
+        token: b
+    BinaryExpression
+      leftOperand: PropertyAccess
+        target: PrefixedIdentifier
+          prefix: SimpleIdentifier
+            token: p
+          period: .
+          identifier: SimpleIdentifier
+            token: q
+        operator: .
+        propertyName: SimpleIdentifier
+          token: c
+      operator: >
+      rightOperand: ParenthesizedExpression
+        leftParenthesis: (
+        expression: SimpleIdentifier
+          token: d
+        rightParenthesis: )
+  rightParenthesis: )
+''');
   }
 
   void test_parseArgumentList_typeArguments_prefixed() {
-    createParser('(a<b,p.c>(d))');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+var v = m(a<b, p.c>(d));
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    assertParsedNodeText(node, r'''
+ArgumentList
+  leftParenthesis: (
+  arguments
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: a
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: b
+          NamedType
+            importPrefix: ImportPrefixReference
+              name: p
+              period: .
+            name: c
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: d
+        rightParenthesis: )
+  rightParenthesis: )
+''');
   }
 
   void test_parseCombinators_h() {
-    createParser('hide a');
-    List<Combinator> combinators = parser.parseCombinators();
-    expectNotNullIfNoErrors(combinators);
-    assertNoErrors();
-    expect(combinators, hasLength(1));
-    HideCombinator combinator = combinators[0] as HideCombinator;
-    expect(combinator, isNotNull);
-    expect(combinator.keyword, isNotNull);
-    expect(combinator.hiddenNames, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' hide a;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  combinators
+    HideCombinator
+      keyword: hide
+      hiddenNames
+        SimpleIdentifier
+          token: a
+  semicolon: ;
+''');
   }
 
   void test_parseCombinators_hs() {
-    createParser('hide a show b');
-    List<Combinator> combinators = parser.parseCombinators();
-    expectNotNullIfNoErrors(combinators);
-    assertNoErrors();
-    expect(combinators, hasLength(2));
-    HideCombinator hideCombinator = combinators[0] as HideCombinator;
-    expect(hideCombinator, isNotNull);
-    expect(hideCombinator.keyword, isNotNull);
-    expect(hideCombinator.hiddenNames, hasLength(1));
-    ShowCombinator showCombinator = combinators[1] as ShowCombinator;
-    expect(showCombinator, isNotNull);
-    expect(showCombinator.keyword, isNotNull);
-    expect(showCombinator.shownNames, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' hide a show b;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  combinators
+    HideCombinator
+      keyword: hide
+      hiddenNames
+        SimpleIdentifier
+          token: a
+    ShowCombinator
+      keyword: show
+      shownNames
+        SimpleIdentifier
+          token: b
+  semicolon: ;
+''');
   }
 
   void test_parseCombinators_hshs() {
-    createParser('hide a show b hide c show d');
-    List<Combinator> combinators = parser.parseCombinators();
-    expectNotNullIfNoErrors(combinators);
-    assertNoErrors();
-    expect(combinators, hasLength(4));
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' hide a show b hide c show d;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  combinators
+    HideCombinator
+      keyword: hide
+      hiddenNames
+        SimpleIdentifier
+          token: a
+    ShowCombinator
+      keyword: show
+      shownNames
+        SimpleIdentifier
+          token: b
+    HideCombinator
+      keyword: hide
+      hiddenNames
+        SimpleIdentifier
+          token: c
+    ShowCombinator
+      keyword: show
+      shownNames
+        SimpleIdentifier
+          token: d
+  semicolon: ;
+''');
   }
 
   void test_parseCombinators_s() {
-    createParser('show a');
-    List<Combinator> combinators = parser.parseCombinators();
-    expectNotNullIfNoErrors(combinators);
-    assertNoErrors();
-    expect(combinators, hasLength(1));
-    ShowCombinator combinator = combinators[0] as ShowCombinator;
-    expect(combinator, isNotNull);
-    expect(combinator.keyword, isNotNull);
-    expect(combinator.shownNames, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' show a;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  combinators
+    ShowCombinator
+      keyword: show
+      shownNames
+        SimpleIdentifier
+          token: a
+  semicolon: ;
+''');
   }
 
   void test_parseCommentAndMetadata_c() {
-    createParser('/** 1 */ class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.documentationComment, isNotNull);
-    expect(declaration.metadata, isEmpty);
+    var parseResult = parseStringWithErrors(r'''
+/** 1 */
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /** 1 */
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_cmc() {
-    createParser('/** 1 */ @A /** 2 */ class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    Comment comment = declaration.documentationComment!;
-    expect(comment.tokens, hasLength(1));
-    expect(comment.tokens[0].lexeme, '/** 2 */');
-    expect(declaration.metadata, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+/** 1 */
+@A
+/** 2 */
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /** 2 */
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: A
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_cmcm() {
-    createParser('/** 1 */ @A /** 2 */ @B class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.documentationComment, isNotNull);
-    expect(declaration.metadata, hasLength(2));
+    var parseResult = parseStringWithErrors(r'''
+/** 1 */
+@A
+/** 2 */
+@B
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /** 2 */
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: A
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: B
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_cmm() {
-    createParser('/** 1 */ @A @B class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.documentationComment, isNotNull);
-    expect(declaration.metadata, hasLength(2));
+    var parseResult = parseStringWithErrors(r'''
+/** 1 */
+@A
+@B
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /** 1 */
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: A
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: B
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_m() {
-    createParser('@A class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.metadata, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+@A
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: A
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_mcm() {
-    createParser('@A /** 1 */ @B class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.documentationComment, isNotNull);
-    expect(declaration.metadata, hasLength(2));
+    var parseResult = parseStringWithErrors(r'''
+@A
+/** 1 */
+@B
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /** 1 */
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: A
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: B
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_mcmc() {
-    createParser('@A /** 1 */ @B /** 2 */ class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.documentationComment, isNotNull);
-    expect(declaration.documentationComment!.tokens[0].lexeme, contains('2'));
-    expect(declaration.metadata, hasLength(2));
+    var parseResult = parseStringWithErrors(r'''
+@A
+/** 1 */
+@B
+/** 2 */
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /** 2 */
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: A
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: B
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_mix1() {
-    createParser(r'''
+    var parseResult = parseStringWithErrors(r'''
 /**
  * aaa
  */
@@ -457,18 +946,28 @@ class C {
  */
 class A {}
 ''');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.metadata, hasLength(0));
-    List<Token> tokens = declaration.documentationComment!.tokens;
-    expect(tokens, hasLength(1));
-    expect(tokens[0].lexeme, contains('bbb'));
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /**
+ * bbb
+ */
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_mix2() {
-    createParser(r'''
+    var parseResult = parseStringWithErrors(r'''
 /**
  * aaa
  */
@@ -476,19 +975,27 @@ class A {}
 /// ccc
 class B {}
 ''');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.metadata, hasLength(0));
-    List<Token> tokens = declaration.documentationComment!.tokens;
-    expect(tokens, hasLength(2));
-    expect(tokens[0].lexeme, contains('bbb'));
-    expect(tokens[1].lexeme, contains('ccc'));
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /// bbb
+          /// ccc
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: B
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_mix3() {
-    createParser(r'''
+    var parseResult = parseStringWithErrors(r'''
 /// aaa
 /// bbb
 /**
@@ -496,18 +1003,28 @@ class B {}
  */
 class C {}
 ''');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.metadata, hasLength(0));
-    List<Token> tokens = declaration.documentationComment!.tokens;
-    expect(tokens, hasLength(1));
-    expect(tokens[0].lexeme, contains('ccc'));
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /**
+ * ccc
+ */
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   test_parseCommentAndMetadata_mix4() {
-    createParser(r'''
+    var parseResult = parseStringWithErrors(r'''
 /// aaa
 /// bbb
 /**
@@ -516,520 +1033,1040 @@ class C {}
 /// ddd
 class D {}
 ''');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.metadata, hasLength(0));
-    List<Token> tokens = declaration.documentationComment!.tokens;
-    expect(tokens, hasLength(1));
-    expect(tokens[0].lexeme, contains('ddd'));
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /// ddd
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: D
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   test_parseCommentAndMetadata_mix5() {
-    createParser(r'''
+    var parseResult = parseStringWithErrors(r'''
 /**
  * aaa
  */
 // bbb
 class E {}
 ''');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.metadata, hasLength(0));
-    List<Token> tokens = declaration.documentationComment!.tokens;
-    expect(tokens, hasLength(1));
-    expect(tokens[0].lexeme, contains('aaa'));
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /**
+ * aaa
+ */
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_mm() {
-    createParser('@A @B(x) class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.metadata, hasLength(2));
+    var parseResult = parseStringWithErrors(r'''
+@A
+@B(x)
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: A
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: B
+          arguments: ArgumentList
+            leftParenthesis: (
+            arguments
+              SimpleIdentifier
+                token: x
+            rightParenthesis: )
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_none() {
-    createParser('class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.metadata, isEmpty);
+    var parseResult = parseStringWithErrors(r'''
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentAndMetadata_singleLine() {
-    createParser(r'''
+    var parseResult = parseStringWithErrors(r'''
 /// 1
 /// 2
 class C {}
 ''');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.documentationComment, isNotNull);
-    expect(declaration.metadata, isEmpty);
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /// 1
+          /// 2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseCommentReferences_notClosed_noIdentifier() {
-    DocumentationCommentToken docToken = DocumentationCommentToken(
-      TokenType.MULTI_LINE_COMMENT,
-      "/** [ some text",
-      5,
-    );
-    createParser('');
-    var comment = parser.parseComment([docToken]);
-    var references = comment.references;
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, hasLength(1));
-    CommentReference reference = references[0];
-    Token referenceToken = reference.expression.beginToken;
-    expect(reference, isNotNull);
-    expect(reference.expression, isNotNull);
-    var identifier = reference.expression as Identifier;
-    expect(identifier.isSynthetic, isTrue);
-    expect(identifier.name, "");
-    // Should end with EOF token.
-    Token nextToken = referenceToken.next!;
-    expect(nextToken, isNotNull);
-    expect(nextToken.type, TokenType.EOF);
+    var parseResult = parseStringWithErrors(r'''
+/** [ some text */
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: <empty> <synthetic>
+    tokens
+      /** [ some text */
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseConfiguration_noOperator_dottedIdentifier() {
-    createParser("if (a.b) 'c.dart'");
-    Configuration configuration = parser.parseConfiguration();
-    expectNotNullIfNoErrors(configuration);
-    assertNoErrors();
-    expect(configuration.ifKeyword, isNotNull);
-    expect(configuration.leftParenthesis, isNotNull);
-    expectDottedName(configuration.name, ["a", "b"]);
-    expect(configuration.equalToken, isNull);
-    expect(configuration.value, isNull);
-    expect(configuration.rightParenthesis, isNotNull);
-    expect(configuration.uri, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' if (a.b) 'c.dart';
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleConfiguration;
+    assertParsedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    tokens
+      a
+      .
+      b
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  resolvedUri: <null>
+''');
   }
 
   void test_parseConfiguration_noOperator_simpleIdentifier() {
-    createParser("if (a) 'b.dart'");
-    Configuration configuration = parser.parseConfiguration();
-    expectNotNullIfNoErrors(configuration);
-    assertNoErrors();
-    expect(configuration.ifKeyword, isNotNull);
-    expect(configuration.leftParenthesis, isNotNull);
-    expectDottedName(configuration.name, ["a"]);
-    expect(configuration.equalToken, isNull);
-    expect(configuration.value, isNull);
-    expect(configuration.rightParenthesis, isNotNull);
-    expect(configuration.uri, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' if (a) 'b.dart';
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleConfiguration;
+    assertParsedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    tokens
+      a
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: 'b.dart'
+  resolvedUri: <null>
+''');
   }
 
   void test_parseConfiguration_operator_dottedIdentifier() {
-    createParser("if (a.b == 'c') 'd.dart'");
-    Configuration configuration = parser.parseConfiguration();
-    expectNotNullIfNoErrors(configuration);
-    assertNoErrors();
-    expect(configuration.ifKeyword, isNotNull);
-    expect(configuration.leftParenthesis, isNotNull);
-    expectDottedName(configuration.name, ["a", "b"]);
-    expect(configuration.equalToken, isNotNull);
-    expect(configuration.value, isNotNull);
-    expect(configuration.rightParenthesis, isNotNull);
-    expect(configuration.uri, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' if (a.b == 'c') 'd.dart';
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleConfiguration;
+    assertParsedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    tokens
+      a
+      .
+      b
+  equalToken: ==
+  value: SimpleStringLiteral
+    literal: 'c'
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: 'd.dart'
+  resolvedUri: <null>
+''');
   }
 
   void test_parseConfiguration_operator_simpleIdentifier() {
-    createParser("if (a == 'b') 'c.dart'");
-    Configuration configuration = parser.parseConfiguration();
-    expectNotNullIfNoErrors(configuration);
-    assertNoErrors();
-    expect(configuration.ifKeyword, isNotNull);
-    expect(configuration.leftParenthesis, isNotNull);
-    expectDottedName(configuration.name, ["a"]);
-    expect(configuration.equalToken, isNotNull);
-    expect(configuration.value, isNotNull);
-    expect(configuration.rightParenthesis, isNotNull);
-    expect(configuration.uri, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' if (a == 'b') 'c.dart';
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleConfiguration;
+    assertParsedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    tokens
+      a
+  equalToken: ==
+  value: SimpleStringLiteral
+    literal: 'b'
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  resolvedUri: <null>
+''');
   }
 
   void test_parseConstructorName_named_noPrefix() {
-    ConstructorName name = parseConstructorName('A.n');
-    expectNotNullIfNoErrors(name);
-    assertNoErrors();
-    expect(name.type, isNotNull);
-    expect(name.period, isNull);
-    expect(name.name, isNull);
+    var parseResult = parseStringWithErrors(r'''
+var v = new A.n();
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleInstanceCreationExpression.constructorName;
+    assertParsedNodeText(node, r'''
+ConstructorName
+  type: NamedType
+    importPrefix: ImportPrefixReference
+      name: A
+      period: .
+    name: n
+''');
   }
 
   void test_parseConstructorName_named_prefixed() {
-    ConstructorName name = parseConstructorName('p.A.n');
-    expectNotNullIfNoErrors(name);
-    assertNoErrors();
-    expect(name.type, isNotNull);
-    expect(name.period, isNotNull);
-    expect(name.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var v = new p.A.n();
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleInstanceCreationExpression.constructorName;
+    assertParsedNodeText(node, r'''
+ConstructorName
+  type: NamedType
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+    name: A
+  period: .
+  name: SimpleIdentifier
+    token: n
+''');
   }
 
   void test_parseConstructorName_unnamed_noPrefix() {
-    ConstructorName name = parseConstructorName('A');
-    expectNotNullIfNoErrors(name);
-    assertNoErrors();
-    expect(name.type, isNotNull);
-    expect(name.period, isNull);
-    expect(name.name, isNull);
+    var parseResult = parseStringWithErrors(r'''
+var v = new A();
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleInstanceCreationExpression.constructorName;
+    assertParsedNodeText(node, r'''
+ConstructorName
+  type: NamedType
+    name: A
+''');
   }
 
   void test_parseConstructorName_unnamed_prefixed() {
-    ConstructorName name = parseConstructorName('p.A');
-    expectNotNullIfNoErrors(name);
-    assertNoErrors();
-    expect(name.type, isNotNull);
-    expect(name.period, isNull);
-    expect(name.name, isNull);
+    var parseResult = parseStringWithErrors(r'''
+var v = new p.A();
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleInstanceCreationExpression.constructorName;
+    assertParsedNodeText(node, r'''
+ConstructorName
+  type: NamedType
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+    name: A
+''');
   }
 
   void test_parseDocumentationComment_block() {
-    createParser('/** */ class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    Comment comment = unit.declarations[0].documentationComment!;
-    expectNotNullIfNoErrors(comment);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+/** */
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          /** */
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseDocumentationComment_block_withReference() {
-    createParser('/** [a] */ class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    Comment comment = unit.declarations[0].documentationComment!;
-    expectNotNullIfNoErrors(comment);
-    assertNoErrors();
-    NodeList<CommentReference> references = comment.references;
-    expect(references, hasLength(1));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.offset, 5);
+    var parseResult = parseStringWithErrors(r'''
+/** [a] */
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        references
+          CommentReference
+            expression: SimpleIdentifier
+              token: a
+        tokens
+          /** [a] */
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseDocumentationComment_endOfLine() {
-    createParser('/// \n/// \n class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    Comment comment = unit.declarations[0].documentationComment!;
-    expectNotNullIfNoErrors(comment);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+///
+///
+class C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      documentationComment: Comment
+        tokens
+          ///
+          ///
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseExtendsClause() {
-    ExtendsClause clause = parseExtendsClause('extends B');
-    expectNotNullIfNoErrors(clause);
-    assertNoErrors();
-    expect(clause.extendsKeyword, isNotNull);
-    expect(clause.superclass, isNotNull);
-    expect(clause.superclass, isNamedType);
+    var parseResult = parseStringWithErrors(r'''
+class TestClass extends B {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: TestClass
+  extendsClause: ExtendsClause
+    extendsKeyword: extends
+    superclass: NamedType
+      name: B
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseFunctionBody_block() {
-    createParser('{}');
-    FunctionBody functionBody = parser.parseFunctionBody(
-      false,
-      diag.missingFunctionBody,
-      false,
-    );
-    expectNotNullIfNoErrors(functionBody);
-    assertNoErrors();
-    expect(functionBody, isBlockFunctionBody);
-    var body = functionBody as BlockFunctionBody;
-    expect(body.keyword, isNull);
-    expect(body.star, isNull);
-    expect(body.block, isNotNull);
-    expect(body.isAsynchronous, isFalse);
-    expect(body.isGenerator, isFalse);
-    expect(body.isSynchronous, isTrue);
+    var parseResult = parseStringWithErrors(r'''
+void f() {}
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    assertParsedNodeText(node, r'''
+BlockFunctionBody
+  block: Block
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseFunctionBody_block_async() {
-    createParser('async {}');
-    FunctionBody functionBody = parser.parseFunctionBody(
-      false,
-      diag.missingFunctionBody,
-      false,
-    );
-    expectNotNullIfNoErrors(functionBody);
-    assertNoErrors();
-    expect(functionBody, isBlockFunctionBody);
-    var body = functionBody as BlockFunctionBody;
-    expect(body.keyword, isNotNull);
-    expect(body.keyword!.lexeme, Keyword.ASYNC.lexeme);
-    expect(body.star, isNull);
-    expect(body.block, isNotNull);
-    expect(body.isAsynchronous, isTrue);
-    expect(body.isGenerator, isFalse);
-    expect(body.isSynchronous, isFalse);
+    var parseResult = parseStringWithErrors(r'''
+void f() async {}
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    assertParsedNodeText(node, r'''
+BlockFunctionBody
+  keyword: async
+  block: Block
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseFunctionBody_block_asyncGenerator() {
-    createParser('async* {}');
-    FunctionBody functionBody = parser.parseFunctionBody(
-      false,
-      diag.missingFunctionBody,
-      false,
-    );
-    expectNotNullIfNoErrors(functionBody);
-    assertNoErrors();
-    expect(functionBody, isBlockFunctionBody);
-    var body = functionBody as BlockFunctionBody;
-    expect(body.keyword, isNotNull);
-    expect(body.keyword!.lexeme, Keyword.ASYNC.lexeme);
-    expect(body.star, isNotNull);
-    expect(body.block, isNotNull);
-    expect(body.isAsynchronous, isTrue);
-    expect(body.isGenerator, isTrue);
-    expect(body.isSynchronous, isFalse);
+    var parseResult = parseStringWithErrors(r'''
+void f() async* {}
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    assertParsedNodeText(node, r'''
+BlockFunctionBody
+  keyword: async
+  star: *
+  block: Block
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseFunctionBody_block_syncGenerator() {
-    createParser('sync* {}');
-    FunctionBody functionBody = parser.parseFunctionBody(
-      false,
-      diag.missingFunctionBody,
-      false,
-    );
-    expectNotNullIfNoErrors(functionBody);
-    assertNoErrors();
-    expect(functionBody, isBlockFunctionBody);
-    var body = functionBody as BlockFunctionBody;
-    expect(body.keyword, isNotNull);
-    expect(body.keyword!.lexeme, Keyword.SYNC.lexeme);
-    expect(body.star, isNotNull);
-    expect(body.block, isNotNull);
-    expect(body.isAsynchronous, isFalse);
-    expect(body.isGenerator, isTrue);
-    expect(body.isSynchronous, isTrue);
+    var parseResult = parseStringWithErrors(r'''
+void f() sync* {}
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    assertParsedNodeText(node, r'''
+BlockFunctionBody
+  keyword: sync
+  star: *
+  block: Block
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseFunctionBody_empty() {
-    createParser(';');
-    FunctionBody functionBody = parser.parseFunctionBody(
-      true,
-      diag.missingFunctionBody,
-      false,
-    );
-    expectNotNullIfNoErrors(functionBody);
-    assertNoErrors();
-    expect(functionBody, isEmptyFunctionBody);
-    var body = functionBody as EmptyFunctionBody;
-    expect(body.semicolon, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f() ;
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 9, 1)]);
+    var node =
+        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    assertParsedNodeText(node, r'''
+EmptyFunctionBody
+  semicolon: ;
+''');
   }
 
   void test_parseFunctionBody_expression() {
-    createParser('=> y;');
-    FunctionBody functionBody = parser.parseFunctionBody(
-      false,
-      diag.missingFunctionBody,
-      false,
-    );
-    expectNotNullIfNoErrors(functionBody);
-    assertNoErrors();
-    expect(functionBody, isExpressionFunctionBody);
-    var body = functionBody as ExpressionFunctionBody;
-    expect(body.keyword, isNull);
-    expect(body.functionDefinition, isNotNull);
-    expect(body.expression, isNotNull);
-    expect(body.semicolon, isNotNull);
-    expect(body.isAsynchronous, isFalse);
-    expect(body.isGenerator, isFalse);
-    expect(body.isSynchronous, isTrue);
+    var parseResult = parseStringWithErrors(r'''
+void f() => y;
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    assertParsedNodeText(node, r'''
+ExpressionFunctionBody
+  functionDefinition: =>
+  expression: SimpleIdentifier
+    token: y
+  semicolon: ;
+''');
   }
 
   void test_parseFunctionBody_expression_async() {
-    createParser('async => y;');
-    FunctionBody functionBody = parser.parseFunctionBody(
-      false,
-      diag.missingFunctionBody,
-      false,
-    );
-    expectNotNullIfNoErrors(functionBody);
-    assertNoErrors();
-    expect(functionBody, isExpressionFunctionBody);
-    var body = functionBody as ExpressionFunctionBody;
-    expect(body.keyword, isNotNull);
-    expect(body.keyword!.lexeme, Keyword.ASYNC.lexeme);
-    expect(body.functionDefinition, isNotNull);
-    expect(body.expression, isNotNull);
-    expect(body.semicolon, isNotNull);
-    expect(body.isAsynchronous, isTrue);
-    expect(body.isGenerator, isFalse);
-    expect(body.isSynchronous, isFalse);
+    var parseResult = parseStringWithErrors(r'''
+void f() async => y;
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    assertParsedNodeText(node, r'''
+ExpressionFunctionBody
+  keyword: async
+  functionDefinition: =>
+  expression: SimpleIdentifier
+    token: y
+  semicolon: ;
+''');
   }
 
   void test_parseIdentifierList_multiple() {
-    List<SimpleIdentifier> list = parseIdentifierList('a, b, c');
-    expectNotNullIfNoErrors(list);
-    assertNoErrors();
-    expect(list, hasLength(3));
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' show a, b, c;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  combinators
+    ShowCombinator
+      keyword: show
+      shownNames
+        SimpleIdentifier
+          token: a
+        SimpleIdentifier
+          token: b
+        SimpleIdentifier
+          token: c
+  semicolon: ;
+''');
   }
 
   void test_parseIdentifierList_single() {
-    List<SimpleIdentifier> list = parseIdentifierList('a');
-    expectNotNullIfNoErrors(list);
-    assertNoErrors();
-    expect(list, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+import 'a.dart' show a;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  combinators
+    ShowCombinator
+      keyword: show
+      shownNames
+        SimpleIdentifier
+          token: a
+  semicolon: ;
+''');
   }
 
   void test_parseImplementsClause_multiple() {
-    ImplementsClause clause = parseImplementsClause('implements A, B, C');
-    expectNotNullIfNoErrors(clause);
-    assertNoErrors();
-    expect(clause.interfaces, hasLength(3));
-    expect(clause.implementsKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class TestClass implements A, B, C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: TestClass
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: A
+      NamedType
+        name: B
+      NamedType
+        name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseImplementsClause_single() {
-    ImplementsClause clause = parseImplementsClause('implements A');
-    expectNotNullIfNoErrors(clause);
-    assertNoErrors();
-    expect(clause.interfaces, hasLength(1));
-    expect(clause.implementsKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class TestClass implements A {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: TestClass
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseInstanceCreation_keyword_33647() {
-    CompilationUnit unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors(r'''
 var c = new Future<int>.sync(() => 3).then<int>((e) => e);
 ''');
-    expect(unit, isNotNull);
-    var v = unit.declarations[0] as TopLevelVariableDeclaration;
-    var init = v.variables.variables[0].initializer as MethodInvocation;
-    expect(init.methodName.name, 'then');
-    NodeList<TypeAnnotation> typeArg = init.typeArguments!.arguments;
-    expect(typeArg, hasLength(1));
-    expect(typeArg[0].beginToken.lexeme, 'int');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: c
+            equals: =
+            initializer: MethodInvocation
+              target: InstanceCreationExpression
+                keyword: new
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: Future
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: int
+                      rightBracket: >
+                  period: .
+                  name: SimpleIdentifier
+                    token: sync
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                      body: ExpressionFunctionBody
+                        functionDefinition: =>
+                        expression: IntegerLiteral
+                          literal: 3
+                  rightParenthesis: )
+              operator: .
+              methodName: SimpleIdentifier
+                token: then
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                rightBracket: >
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments
+                  FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      parameter: SimpleFormalParameter
+                        name: e
+                      rightParenthesis: )
+                    body: ExpressionFunctionBody
+                      functionDefinition: =>
+                      expression: SimpleIdentifier
+                        token: e
+                rightParenthesis: )
+      semicolon: ;
+''');
   }
 
   void test_parseInstanceCreation_noKeyword_33647() {
-    CompilationUnit unit = parseCompilationUnit('''
+    var parseResult = parseStringWithErrors(r'''
 var c = Future<int>.sync(() => 3).then<int>((e) => e);
 ''');
-    expect(unit, isNotNull);
-    var v = unit.declarations[0] as TopLevelVariableDeclaration;
-    var init = v.variables.variables[0].initializer as MethodInvocation;
-    expect(init.methodName.name, 'then');
-    NodeList<TypeAnnotation> typeArg = init.typeArguments!.arguments;
-    expect(typeArg, hasLength(1));
-    expect(typeArg[0].beginToken.lexeme, 'int');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: c
+            equals: =
+            initializer: MethodInvocation
+              target: InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: Future
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: int
+                      rightBracket: >
+                  period: .
+                  name: SimpleIdentifier
+                    token: sync
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                      body: ExpressionFunctionBody
+                        functionDefinition: =>
+                        expression: IntegerLiteral
+                          literal: 3
+                  rightParenthesis: )
+              operator: .
+              methodName: SimpleIdentifier
+                token: then
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                rightBracket: >
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments
+                  FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      parameter: SimpleFormalParameter
+                        name: e
+                      rightParenthesis: )
+                    body: ExpressionFunctionBody
+                      functionDefinition: =>
+                      expression: SimpleIdentifier
+                        token: e
+                rightParenthesis: )
+      semicolon: ;
+''');
   }
 
   void test_parseInstanceCreation_noKeyword_noPrefix() {
-    createParser('f() => C<E>.n();');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    var f = unit.declarations[0] as FunctionDeclaration;
-    var body = f.functionExpression.body as ExpressionFunctionBody;
-    expect(body.expression, isInstanceCreationExpression);
-    var creation = body.expression as InstanceCreationExpressionImpl;
-    expect(creation.keyword, isNull);
-    ConstructorName constructorName = creation.constructorName;
-    expect(constructorName.type.toSource(), 'C<E>');
-    expect(constructorName.period, isNotNull);
-    expect(constructorName.name, isNotNull);
-    expect(creation.argumentList, isNotNull);
-    expect(creation.typeArguments, isNull);
+    var parseResult = parseStringWithErrors(r'''
+f() => C<E>.n();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: InstanceCreationExpression
+            constructorName: ConstructorName
+              type: NamedType
+                name: C
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: E
+                  rightBracket: >
+              period: .
+              name: SimpleIdentifier
+                token: n
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+          semicolon: ;
+''');
   }
 
   void test_parseInstanceCreation_noKeyword_noPrefix_34403() {
-    createParser('f() => C<E>.n<B>();');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    var f = unit.declarations[0] as FunctionDeclaration;
-    var body = f.functionExpression.body as ExpressionFunctionBody;
-    expect(body.expression, isMethodInvocation);
-    var methodInvocation = body.expression as MethodInvocationImpl;
-    var target = methodInvocation.target!;
-    expect(target, isFunctionReference);
-    expect(target.toSource(), 'C<E>');
-    expect(methodInvocation.methodName.name, 'n');
-    expect(methodInvocation.argumentList, isNotNull);
-    expect(methodInvocation.typeArguments!.arguments, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+f() => C<E>.n<B>();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: MethodInvocation
+            target: FunctionReference
+              function: SimpleIdentifier
+                token: C
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+            operator: .
+            methodName: SimpleIdentifier
+              token: n
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: B
+              rightBracket: >
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+          semicolon: ;
+''');
   }
 
   void test_parseInstanceCreation_noKeyword_prefix() {
-    createParser('f() => p.C<E>.n();');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    var f = unit.declarations[0] as FunctionDeclaration;
-    var body = f.functionExpression.body as ExpressionFunctionBody;
-    expect(body.expression, isInstanceCreationExpression);
-    var creation = body.expression as InstanceCreationExpression;
-    expect(creation.keyword, isNull);
-    ConstructorName constructorName = creation.constructorName;
-    expect(constructorName.type.toSource(), 'p.C<E>');
-    expect(constructorName.period, isNotNull);
-    expect(constructorName.name, isNotNull);
-    expect(creation.argumentList, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+f() => p.C<E>.n();
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: InstanceCreationExpression
+            constructorName: ConstructorName
+              type: NamedType
+                importPrefix: ImportPrefixReference
+                  name: p
+                  period: .
+                name: C
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: E
+                  rightBracket: >
+              period: .
+              name: SimpleIdentifier
+                token: n
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+          semicolon: ;
+''');
   }
 
   void test_parseInstanceCreation_noKeyword_varInit() {
-    createParser('''
+    var parseResult = parseStringWithErrors(r'''
 class C<T, S> {}
-void main() {final c = C<int, int Function(String)>();}
+
+void main() {
+  final c = C<int, int Function(String)>();
+}
 ''');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    var f = unit.declarations[1] as FunctionDeclaration;
-    var body = f.functionExpression.body as BlockFunctionBody;
-    var statement = body.block.statements[0] as VariableDeclarationStatement;
-    VariableDeclaration variable = statement.variables.variables[0];
-    var creation = variable.initializer as MethodInvocation;
-    expect(creation.methodName.name, 'C');
-    expect(creation.typeArguments!.toSource(), '<int, int Function(String)>');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: T
+            TypeParameter
+              name: S
+          rightBracket: >
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+    FunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: main
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: final
+                  variables
+                    VariableDeclaration
+                      name: c
+                      equals: =
+                      initializer: MethodInvocation
+                        methodName: SimpleIdentifier
+                          token: C
+                        typeArguments: TypeArgumentList
+                          leftBracket: <
+                          arguments
+                            NamedType
+                              name: int
+                            GenericFunctionType
+                              returnType: NamedType
+                                name: int
+                              functionKeyword: Function
+                              parameters: FormalParameterList
+                                leftParenthesis: (
+                                parameter: SimpleFormalParameter
+                                  type: NamedType
+                                    name: String
+                                rightParenthesis: )
+                          rightBracket: >
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                semicolon: ;
+            rightBracket: }
+''');
   }
 
   void test_parseLibraryIdentifier_builtin() {
-    String name = "deferred";
-    LibraryIdentifier identifier = parseLibraryIdentifier(name)!;
-    expectNotNullIfNoErrors(identifier);
-    assertNoErrors();
-    expect(identifier.name, name);
-    expect(identifier.beginToken.type.isBuiltIn, isTrue);
+    var parseResult = parseStringWithErrors(r'''
+library $name;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleLibraryDirective;
+    assertParsedNodeText(node, r'''
+LibraryDirective
+  libraryKeyword: library
+  name: DottedName
+    tokens
+      $name
+  semicolon: ;
+''');
   }
 
   void test_parseLibraryIdentifier_invalid() {
-    parseCompilationUnit(
-      'library <myLibId>;',
-      diagnostics: [
-        expectedError(diag.missingFunctionParameters, 0, 7),
-        expectedError(diag.missingFunctionBody, 17, 1),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+library <myLibId>;
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionParameters, 0, 7),
+      error(diag.missingFunctionBody, 17, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: library
+      functionExpression: FunctionExpression
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: myLibId
+          rightBracket: >
+        parameters: FormalParameterList
+          leftParenthesis: ( <synthetic>
+          rightParenthesis: ) <synthetic>
+        body: EmptyFunctionBody
+          semicolon: ;
+''');
   }
 
   void test_parseLibraryIdentifier_multiple() {
-    String name = "a.b.c";
-    LibraryIdentifier identifier = parseLibraryIdentifier(name)!;
-    expectNotNullIfNoErrors(identifier);
-    assertNoErrors();
-    expect(identifier.name, name);
+    var parseResult = parseStringWithErrors(r'''
+library $name;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleLibraryDirective;
+    assertParsedNodeText(node, r'''
+LibraryDirective
+  libraryKeyword: library
+  name: DottedName
+    tokens
+      $name
+  semicolon: ;
+''');
   }
 
   void test_parseLibraryIdentifier_pseudo() {
-    String name = "await";
-    LibraryIdentifier identifier = parseLibraryIdentifier(name)!;
-    expectNotNullIfNoErrors(identifier);
-    assertNoErrors();
-    expect(identifier.name, name);
-    expect(identifier.beginToken.type.isPseudo, isTrue);
+    var parseResult = parseStringWithErrors(r'''
+library $name;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleLibraryDirective;
+    assertParsedNodeText(node, r'''
+LibraryDirective
+  libraryKeyword: library
+  name: DottedName
+    tokens
+      $name
+  semicolon: ;
+''');
   }
 
   void test_parseLibraryIdentifier_single() {
-    String name = "a";
-    LibraryIdentifier identifier = parseLibraryIdentifier(name)!;
-    expectNotNullIfNoErrors(identifier);
-    assertNoErrors();
-    expect(identifier.name, name);
+    var parseResult = parseStringWithErrors(r'''
+library $name;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleLibraryDirective;
+    assertParsedNodeText(node, r'''
+LibraryDirective
+  libraryKeyword: library
+  name: DottedName
+    tokens
+      $name
+  semicolon: ;
+''');
   }
 
   void test_parseOptionalReturnType() {
@@ -1037,591 +2074,1300 @@ void main() {final c = C<int, int Function(String)>();}
   }
 
   void test_parseReturnStatement_noValue() {
-    var statement = parseStatement('return;') as ReturnStatement;
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
-    expect(statement.returnKeyword, isNotNull);
-    expect(statement.expression, isNull);
-    expect(statement.semicolon, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  return;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstBlock.statements[0];
+    assertParsedNodeText(node, r'''
+ReturnStatement
+  returnKeyword: return
+  semicolon: ;
+''');
   }
 
   void test_parseReturnStatement_value() {
-    var statement = parseStatement('return x;') as ReturnStatement;
-    expectNotNullIfNoErrors(statement);
-    assertNoErrors();
-    expect(statement.returnKeyword, isNotNull);
-    expect(statement.expression, isNotNull);
-    expect(statement.semicolon, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  return x;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstBlock.statements[0];
+    assertParsedNodeText(node, r'''
+ReturnStatement
+  returnKeyword: return
+  expression: SimpleIdentifier
+    token: x
+  semicolon: ;
+''');
   }
 
   void test_parseStatement_function_noReturnType() {
-    createParser('''
-Function<A>(core.List<core.int> x) m() => null;
+    var parseResult = parseStringWithErrors('''
+void f() {
+  Function<A>(core.List<core.int> x) m() => null;
+}
 ''');
-    Statement statement = parser.parseStatement2();
-    expect(statement, isFunctionDeclarationStatement);
-    expect(
-      (statement as FunctionDeclarationStatement)
-          .functionDeclaration
-          .functionExpression
-          .body,
-      isExpressionFunctionBody,
-    );
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstBlock.statements[0];
+    assertParsedNodeText(node, '''
+FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: GenericFunctionType
+      functionKeyword: Function
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          type: NamedType
+            importPrefix: ImportPrefixReference
+              name: core
+              period: .
+            name: List
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  importPrefix: ImportPrefixReference
+                    name: core
+                    period: .
+                  name: int
+              rightBracket: >
+          name: x
+        rightParenthesis: )
+    name: m
+    functionExpression: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression: NullLiteral
+          literal: null
+        semicolon: ;
+''');
   }
 
   void test_parseStatements_multiple() {
-    parseStatementList("return; return;", 2);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  return;
+  return;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstBlock;
+    assertParsedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ReturnStatement
+      returnKeyword: return
+      semicolon: ;
+    ReturnStatement
+      returnKeyword: return
+      semicolon: ;
+  rightBracket: }
+''');
   }
 
   void test_parseStatements_single() {
-    parseStatementList("return;", 1);
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  return;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstBlock;
+    assertParsedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ReturnStatement
+      returnKeyword: return
+      semicolon: ;
+  rightBracket: }
+''');
   }
 
   void test_parseTypeAnnotation_function_noReturnType_noParameters() {
-    createParser('Function()');
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
-    expect(functionType.returnType, isNull);
-    expect(functionType.functionKeyword, isNotNull);
-    expect(functionType.typeParameters, isNull);
-    FormalParameterList parameterList = functionType.parameters;
-    expect(parameterList, isNotNull);
-    expect(parameterList.parameters, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+void f(Function() x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void test_parseTypeAnnotation_function_noReturnType_parameters() {
-    createParser('Function(int, int)');
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
-    expect(functionType.returnType, isNull);
-    expect(functionType.functionKeyword, isNotNull);
-    expect(functionType.typeParameters, isNull);
-    FormalParameterList parameterList = functionType.parameters;
-    expect(parameterList, isNotNull);
-    NodeList<FormalParameter> parameters = parameterList.parameters;
-    expect(parameters, hasLength(2));
-
-    expect(parameters[0], isSimpleFormalParameter);
-    var parameter = parameters[0] as SimpleFormalParameter;
-    expect(parameter.name, isNull);
-    expect(parameter.type, isNamedType);
-    expect((parameter.type as NamedType).name.lexeme, 'int');
-
-    expect(parameters[1], isSimpleFormalParameter);
-    parameter = parameters[1] as SimpleFormalParameter;
-    expect(parameter.name, isNull);
-    expect(parameter.type, isNamedType);
-    expect((parameter.type as NamedType).name.lexeme, 'int');
+    var parseResult = parseStringWithErrors(r'''
+void f(Function(int, int) x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void test_parseTypeAnnotation_function_noReturnType_typeParameters() {
-    createParser('Function<S, T>()');
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
-    expect(functionType.returnType, isNull);
-    expect(functionType.functionKeyword, isNotNull);
-    var typeParameters = functionType.typeParameters!;
-    expect(typeParameters, isNotNull);
-    expect(typeParameters.typeParameters, hasLength(2));
-    FormalParameterList parameterList = functionType.parameters;
-    expect(parameterList, isNotNull);
-    expect(parameterList.parameters, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+void f(Function<S, T>() x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    functionKeyword: Function
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: S
+        TypeParameter
+          name: T
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void
   test_parseTypeAnnotation_function_noReturnType_typeParameters_parameters() {
-    createParser('Function<T>(String, {T t})');
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
-    expect(functionType.returnType, isNull);
-    expect(functionType.functionKeyword, isNotNull);
-    var typeParameters = functionType.typeParameters!;
-    expect(typeParameters, isNotNull);
-    expect(typeParameters.typeParameters, hasLength(1));
-    FormalParameterList parameterList = functionType.parameters;
-    expect(parameterList, isNotNull);
-    expect(parameterList.parameters, hasLength(2));
+    var parseResult = parseStringWithErrors(r'''
+void f(Function<T>(String, {T t}) x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    functionKeyword: Function
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: String
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: T
+          name: t
+      rightDelimiter: }
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void test_parseTypeAnnotation_function_returnType_classFunction() {
-    createParser('Function');
-    var functionType = parser.parseTypeAnnotation(false) as NamedType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f(Function x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: Function
+  name: x
+''');
   }
 
   void test_parseTypeAnnotation_function_returnType_function() {
-    createParser('A Function(B, C) Function(D)');
-    // TODO(scheglov): improve the test to verify also the node properties
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f(A Function(B, C) Function(D) x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    returnType: GenericFunctionType
+      returnType: NamedType
+        name: A
+      functionKeyword: Function
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: B
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: C
+        rightParenthesis: )
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: D
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void test_parseTypeAnnotation_function_returnType_noParameters() {
-    createParser('List<int> Function()');
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.functionKeyword, isNotNull);
-    expect(functionType.typeParameters, isNull);
-    FormalParameterList parameterList = functionType.parameters;
-    expect(parameterList, isNotNull);
-    expect(parameterList.parameters, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+void f(List<int> Function() x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    returnType: NamedType
+      name: List
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void test_parseTypeAnnotation_function_returnType_parameters() {
-    createParser('List<int> Function(String s, int i)');
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.functionKeyword, isNotNull);
-    expect(functionType.typeParameters, isNull);
-    FormalParameterList parameterList = functionType.parameters;
-    expect(parameterList, isNotNull);
-    NodeList<FormalParameter> parameters = parameterList.parameters;
-    expect(parameters, hasLength(2));
-
-    expect(parameters[0], isSimpleFormalParameter);
-    var parameter = parameters[0] as SimpleFormalParameter;
-    expect(parameter.name, isNotNull);
-    expect(parameter.name!.lexeme, 's');
-    expect(parameter.type, isNamedType);
-    expect((parameter.type as NamedType).name.lexeme, 'String');
-
-    expect(parameters[1], isSimpleFormalParameter);
-    parameter = parameters[1] as SimpleFormalParameter;
-    expect(parameter.name, isNotNull);
-    expect(parameter.name!.lexeme, 'i');
-    expect(parameter.type, isNamedType);
-    expect((parameter.type as NamedType).name.lexeme, 'int');
+    var parseResult = parseStringWithErrors(r'''
+void f(List<int> Function(String s, int i) x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    returnType: NamedType
+      name: List
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: String
+        name: s
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: i
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void test_parseTypeAnnotation_function_returnType_simple() {
-    createParser('A Function(B, C)');
-    // TODO(scheglov): improve the test to verify also the node properties
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f(A Function(B, C) x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    returnType: NamedType
+      name: A
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: B
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: C
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void test_parseTypeAnnotation_function_returnType_typeParameters() {
-    createParser('List<T> Function<T>()');
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.functionKeyword, isNotNull);
-    var typeParameters = functionType.typeParameters!;
-    expect(typeParameters, isNotNull);
-    expect(typeParameters.typeParameters, hasLength(1));
-    FormalParameterList parameterList = functionType.parameters;
-    expect(parameterList, isNotNull);
-    expect(parameterList.parameters, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+void f(List<T> Function<T>() x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    returnType: NamedType
+      name: List
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: T
+        rightBracket: >
+    functionKeyword: Function
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void
   test_parseTypeAnnotation_function_returnType_typeParameters_parameters() {
-    createParser('List<T> Function<T>(String s, [T])');
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.functionKeyword, isNotNull);
-    var typeParameters = functionType.typeParameters!;
-    expect(typeParameters, isNotNull);
-    expect(typeParameters.typeParameters, hasLength(1));
-    FormalParameterList parameterList = functionType.parameters;
-    expect(parameterList, isNotNull);
-    expect(parameterList.parameters, hasLength(2));
+    var parseResult = parseStringWithErrors(r'''
+void f(List<T> Function<T>(String s, [T]) x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    returnType: NamedType
+      name: List
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: T
+        rightBracket: >
+    functionKeyword: Function
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: String
+        name: s
+      leftDelimiter: [
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: T
+      rightDelimiter: ]
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void test_parseTypeAnnotation_function_returnType_withArguments() {
-    createParser('A<B> Function(C)');
-    // TODO(scheglov): improve this test to verify also the node properties
-    var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
-    expectNotNullIfNoErrors(functionType);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f(A<B> Function(C) x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: GenericFunctionType
+    returnType: NamedType
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: B
+        rightBracket: >
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: C
+      rightParenthesis: )
+  name: x
+''');
   }
 
   void test_parseTypeAnnotation_named() {
-    createParser('A<B>');
-    var namedType = parser.parseTypeAnnotation(false) as NamedType;
-    expectNotNullIfNoErrors(namedType);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+void f(A<B> x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: B
+      rightBracket: >
+  name: x
+''');
   }
 
   void test_parseTypeArgumentList_empty() {
-    createParser('<>');
-    TypeArgumentList argumentList = parser.parseTypeArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    listener.assertErrorsWithCodes([diag.expectedTypeName]);
-    expect(argumentList.leftBracket, isNotNull);
-    expect(argumentList.arguments, hasLength(1));
-    expect(argumentList.rightBracket, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f(
+  C<> x,
+) {}
+''');
+    parseResult.assertErrors([error(diag.expectedTypeName, 12, 1)]);
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: <empty> <synthetic>
+      rightBracket: >
+  name: x
+''');
   }
 
   void test_parseTypeArgumentList_multiple() {
-    createParser('<int, int, int>');
-    TypeArgumentList argumentList = parser.parseTypeArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    expect(argumentList.leftBracket, isNotNull);
-    expect(argumentList.arguments, hasLength(3));
-    expect(argumentList.rightBracket, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f(C<int, int, int> x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+        NamedType
+          name: int
+        NamedType
+          name: int
+      rightBracket: >
+  name: x
+''');
   }
 
   void test_parseTypeArgumentList_nested() {
-    createParser('<A<B>>');
-    TypeArgumentList argumentList = parser.parseTypeArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    expect(argumentList.leftBracket, isNotNull);
-    expect(argumentList.arguments, hasLength(1));
-    var argument = argumentList.arguments[0] as NamedType;
-    expect(argument, isNotNull);
-    var innerList = argument.typeArguments!;
-    expect(innerList, isNotNull);
-    expect(innerList.arguments, hasLength(1));
-    expect(argumentList.rightBracket, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f(C<A<B>> x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: A
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: B
+            rightBracket: >
+      rightBracket: >
+  name: x
+''');
   }
 
   void test_parseTypeArgumentList_nested_withComment_double() {
-    createParser('<A<B /* 0 */ >>');
-    TypeArgumentList argumentList = parser.parseTypeArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    expect(argumentList.leftBracket, isNotNull);
-    expect(argumentList.rightBracket, isNotNull);
-    expect(argumentList.arguments, hasLength(1));
-
-    var argument = argumentList.arguments[0] as NamedType;
-    expect(argument, isNotNull);
-
-    var innerList = argument.typeArguments!;
-    expect(innerList, isNotNull);
-    expect(innerList.leftBracket, isNotNull);
-    expect(innerList.arguments, hasLength(1));
-    expect(innerList.rightBracket, isNotNull);
-    expect(innerList.rightBracket.precedingComments, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f(C<A<B /* 0 */>> x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: A
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: B
+            rightBracket: >
+      rightBracket: >
+  name: x
+''');
   }
 
   void test_parseTypeArgumentList_nested_withComment_tripple() {
-    createParser('<A<B<C /* 0 */ >>>');
-    TypeArgumentList argumentList = parser.parseTypeArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    expect(argumentList.leftBracket, isNotNull);
-    expect(argumentList.rightBracket, isNotNull);
-    expect(argumentList.arguments, hasLength(1));
-
-    var argument = argumentList.arguments[0] as NamedType;
-    expect(argument, isNotNull);
-
-    var innerList = argument.typeArguments!;
-    expect(innerList, isNotNull);
-    expect(innerList.leftBracket, isNotNull);
-    expect(innerList.arguments, hasLength(1));
-    expect(innerList.rightBracket, isNotNull);
-
-    var innerArgument = innerList.arguments[0] as NamedType;
-    expect(innerArgument, isNotNull);
-
-    var innerInnerList = innerArgument.typeArguments!;
-    expect(innerInnerList, isNotNull);
-    expect(innerInnerList.leftBracket, isNotNull);
-    expect(innerInnerList.arguments, hasLength(1));
-    expect(innerInnerList.rightBracket, isNotNull);
-    expect(innerInnerList.rightBracket.precedingComments, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f(C<A<B<C /* 0 */>>> x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: A
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: B
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: C
+                  rightBracket: >
+            rightBracket: >
+      rightBracket: >
+  name: x
+''');
   }
 
   void test_parseTypeArgumentList_single() {
-    createParser('<int>');
-    TypeArgumentList argumentList = parser.parseTypeArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    expect(argumentList.leftBracket, isNotNull);
-    expect(argumentList.arguments, hasLength(1));
-    expect(argumentList.rightBracket, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f(C<int> x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  name: x
+''');
   }
 
   void test_parseTypeName_parameterized() {
-    createParser('List<int>');
-    NamedType namedType = parser.parseTypeName(false);
-    expectNotNullIfNoErrors(namedType);
-    assertNoErrors();
-    expect(namedType.name, isNotNull);
-    expect(namedType.typeArguments, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+void f(List<int> x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: List
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  name: x
+''');
   }
 
   void test_parseTypeName_simple() {
-    createParser('int');
-    NamedType namedType = parser.parseTypeName(false);
-    expectNotNullIfNoErrors(namedType);
-    assertNoErrors();
-    expect(namedType.name, isNotNull);
-    expect(namedType.typeArguments, isNull);
+    var parseResult = parseStringWithErrors(r'''
+void f(int x) {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstFormalParameter;
+    assertParsedNodeText(node, r'''
+SimpleFormalParameter
+  type: NamedType
+    name: int
+  name: x
+''');
   }
 
   void test_parseTypeParameter_bounded_functionType_noReturn() {
-    createParser('A extends Function(int)');
-    TypeParameter parameter = parser.parseTypeParameter();
-    expectNotNullIfNoErrors(parameter);
-    assertNoErrors();
-    expect(parameter.bound, isGenericFunctionType);
-    expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C<A extends Function(int)> {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: A
+          extendsKeyword: extends
+          bound: GenericFunctionType
+            functionKeyword: Function
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: SimpleFormalParameter
+                type: NamedType
+                  name: int
+              rightParenthesis: )
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseTypeParameter_bounded_functionType_return() {
-    createParser('A extends String Function(int)');
-    TypeParameter parameter = parser.parseTypeParameter();
-    expectNotNullIfNoErrors(parameter);
-    assertNoErrors();
-    expect(parameter.bound, isGenericFunctionType);
-    expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C<A extends String Function(int)> {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: A
+          extendsKeyword: extends
+          bound: GenericFunctionType
+            returnType: NamedType
+              name: String
+            functionKeyword: Function
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: SimpleFormalParameter
+                type: NamedType
+                  name: int
+              rightParenthesis: )
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseTypeParameter_bounded_generic() {
-    createParser('A extends B<C>');
-    TypeParameter parameter = parser.parseTypeParameter();
-    expectNotNullIfNoErrors(parameter);
-    assertNoErrors();
-    expect(parameter.bound, isNamedType);
-    expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C<A extends B<C>> {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: A
+          extendsKeyword: extends
+          bound: NamedType
+            name: B
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: C
+              rightBracket: >
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseTypeParameter_bounded_simple() {
-    createParser('A extends B');
-    TypeParameter parameter = parser.parseTypeParameter();
-    expectNotNullIfNoErrors(parameter);
-    assertNoErrors();
-    expect(parameter.bound, isNamedType);
-    expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C<A extends B> {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: A
+          extendsKeyword: extends
+          bound: NamedType
+            name: B
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseTypeParameter_simple() {
-    createParser('A');
-    TypeParameter parameter = parser.parseTypeParameter();
-    expectNotNullIfNoErrors(parameter);
-    assertNoErrors();
-    expect(parameter.bound, isNull);
-    expect(parameter.extendsKeyword, isNull);
-    expect(parameter.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C<A> {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: A
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseTypeParameterList_multiple() {
-    createParser('<A, B extends C, D>');
-    TypeParameterList parameterList = parser.parseTypeParameterList()!;
-    expectNotNullIfNoErrors(parameterList);
-    assertNoErrors();
-    expect(parameterList.leftBracket, isNotNull);
-    expect(parameterList.rightBracket, isNotNull);
-    expect(parameterList.typeParameters, hasLength(3));
+    var parseResult = parseStringWithErrors(r'''
+class C<A, B extends C, D> {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: A
+            TypeParameter
+              name: B
+              extendsKeyword: extends
+              bound: NamedType
+                name: C
+            TypeParameter
+              name: D
+          rightBracket: >
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
-    createParser('<A extends B<E>>=', expectedEndOffset: 16);
-    TypeParameterList parameterList = parser.parseTypeParameterList()!;
-    expectNotNullIfNoErrors(parameterList);
-    assertNoErrors();
-    expect(parameterList.leftBracket, isNotNull);
-    expect(parameterList.rightBracket, isNotNull);
-    expect(parameterList.typeParameters, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+class C<A extends B<E>>= {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 23, 1),
+      error(diag.expectedTypeName, 25, 1),
+      error(diag.expectedToken, 25, 1),
+      error(diag.expectedExecutable, 25, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassTypeAlias
+      typedefKeyword: class
+      name: C
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+            extendsKeyword: extends
+            bound: NamedType
+              name: B
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+        rightBracket: >
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+''');
   }
 
   void test_parseTypeParameterList_parameterizedWithTrailingEquals2() {
-    createParser('<A extends B<E /* foo */ >>=', expectedEndOffset: 27);
-    TypeParameterList parameterList = parser.parseTypeParameterList()!;
-    expectNotNullIfNoErrors(parameterList);
-    assertNoErrors();
-    expect(parameterList.leftBracket, isNotNull);
-    expect(parameterList.rightBracket, isNotNull);
-    expect(parameterList.typeParameters, hasLength(1));
-    TypeParameter typeParameter = parameterList.typeParameters[0];
-    expect(typeParameter.name.lexeme, 'A');
-    var bound = typeParameter.bound as NamedType;
-    expect(bound.name.lexeme, 'B');
-    var typeArguments = bound.typeArguments!;
-    expect(typeArguments.arguments, hasLength(1));
-    expect(typeArguments.rightBracket, isNotNull);
-    expect(typeArguments.rightBracket.precedingComments!.lexeme, '/* foo */');
-    var argument = typeArguments.arguments[0] as NamedType;
-    expect(argument.name.lexeme, 'E');
+    var parseResult = parseStringWithErrors(r'''
+class C<A extends B<E /* foo */ >>= {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 34, 1),
+      error(diag.expectedTypeName, 36, 1),
+      error(diag.expectedToken, 36, 1),
+      error(diag.expectedExecutable, 36, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassTypeAlias
+      typedefKeyword: class
+      name: C
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+            extendsKeyword: extends
+            bound: NamedType
+              name: B
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+        rightBracket: >
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+''');
   }
 
   void test_parseTypeParameterList_single() {
-    createParser('<<A>', expectedEndOffset: 0);
-    var parameterList = parser.parseTypeParameterList();
-    // TODO(danrubel): Consider splitting `<<` and marking the first `<`
-    // as an unexpected token.
-    expect(parameterList, isNull);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+class C<<A> {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedClassBody, 6, 1),
+      error(diag.expectedExecutable, 7, 2),
+      error(diag.missingConstFinalVarOrType, 9, 1),
+      error(diag.expectedToken, 9, 1),
+      error(diag.expectedExecutable, 10, 1),
+      error(diag.expectedExecutable, 12, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: A
+      semicolon: ; <synthetic>
+''');
   }
 
   void test_parseTypeParameterList_withTrailingEquals() {
-    createParser('<A>=', expectedEndOffset: 3);
-    TypeParameterList parameterList = parser.parseTypeParameterList()!;
-    expectNotNullIfNoErrors(parameterList);
-    assertNoErrors();
-    expect(parameterList.leftBracket, isNotNull);
-    expect(parameterList.rightBracket, isNotNull);
-    expect(parameterList.typeParameters, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+class C<A>= {}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedToken, 10, 1),
+      error(diag.expectedTypeName, 12, 1),
+      error(diag.expectedToken, 12, 1),
+      error(diag.expectedExecutable, 12, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassTypeAlias
+      typedefKeyword: class
+      name: C
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+        rightBracket: >
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+''');
   }
 
   void test_parseVariableDeclaration_equals() {
-    VariableDeclaration declaration = parseVariableDeclaration('var a = b;');
-    expectNotNullIfNoErrors(declaration);
-    assertNoErrors();
-    expect(declaration.name, isNotNull);
-    expect(declaration.equals, isNotNull);
-    expect(declaration.initializer, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+var a = b;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleVariableDeclaration;
+    assertParsedNodeText(node, r'''
+VariableDeclaration
+  name: a
+  equals: =
+  initializer: SimpleIdentifier
+    token: b
+''');
   }
 
   void test_parseVariableDeclaration_final_late() {
-    var statement =
-        parseStatement('final late a;') as VariableDeclarationStatement;
-    var declarationList = statement.variables;
-    assertErrors(diagnostics: [expectedError(diag.modifierOutOfOrder, 6, 4)]);
-    expect(declarationList.keyword!.lexeme, 'final');
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  final late a;
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 19, 4)]);
+    var node = parseResult.findNode.firstBlock.statements[0];
+    assertParsedNodeText(node, r'''
+VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
+''');
   }
 
   void test_parseVariableDeclaration_late() {
-    var statement = parseStatement('late a;') as VariableDeclarationStatement;
-    var declarationList = statement.variables;
-    assertErrors(
-      diagnostics: [expectedError(diag.missingConstFinalVarOrType, 5, 1)],
-    );
-    expect(declarationList.keyword, isNull);
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  late a;
+}
+''');
+    parseResult.assertErrors([error(diag.missingConstFinalVarOrType, 18, 1)]);
+    var node = parseResult.findNode.firstBlock.statements[0];
+    assertParsedNodeText(node, r'''
+VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
+''');
   }
 
   void test_parseVariableDeclaration_late_final() {
-    var statement =
-        parseStatement('late final a;') as VariableDeclarationStatement;
-    var declarationList = statement.variables;
-    assertNoErrors();
-    expect(declarationList.keyword!.lexeme, 'final');
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  late final a;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstBlock.statements[0];
+    assertParsedNodeText(node, r'''
+VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
+''');
   }
 
   void test_parseVariableDeclaration_late_init() {
-    var statement =
-        parseStatement('late a = 0;') as VariableDeclarationStatement;
-    var declarationList = statement.variables;
-    assertErrors(
-      diagnostics: [expectedError(diag.missingConstFinalVarOrType, 5, 1)],
-    );
-    expect(declarationList.keyword, isNull);
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  late a = 0;
+}
+''');
+    parseResult.assertErrors([error(diag.missingConstFinalVarOrType, 18, 1)]);
+    var node = parseResult.findNode.firstBlock.statements[0];
+    assertParsedNodeText(node, r'''
+VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    variables
+      VariableDeclaration
+        name: a
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
+''');
   }
 
   void test_parseVariableDeclaration_late_type() {
-    var statement = parseStatement('late A a;') as VariableDeclarationStatement;
-    var declarationList = statement.variables;
-    assertNoErrors();
-    expect(declarationList.lateKeyword, isNotNull);
-    expect(declarationList.keyword, isNull);
-    expect(declarationList.type, isNotNull);
-    expect(declarationList.variables, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  late A a;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstBlock.statements[0];
+    assertParsedNodeText(node, r'''
+VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
+''');
   }
 
   void test_parseVariableDeclaration_late_var() {
-    var statement =
-        parseStatement('late var a;') as VariableDeclarationStatement;
-    var declarationList = statement.variables;
-    assertNoErrors();
-    expect(declarationList.lateKeyword, isNotNull);
-    expect(declarationList.keyword?.lexeme, 'var');
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  late var a;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstBlock.statements[0];
+    assertParsedNodeText(node, r'''
+VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    keyword: var
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
+''');
   }
 
   void test_parseVariableDeclaration_late_var_init() {
-    var statement =
-        parseStatement('late var a = 0;') as VariableDeclarationStatement;
-    var declarationList = statement.variables;
-    assertNoErrors();
-    expect(declarationList.lateKeyword, isNotNull);
-    expect(declarationList.keyword?.lexeme, 'var');
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  late var a = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.firstBlock.statements[0];
+    assertParsedNodeText(node, r'''
+VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    keyword: var
+    variables
+      VariableDeclaration
+        name: a
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
+''');
   }
 
   void test_parseVariableDeclaration_noEquals() {
-    VariableDeclaration declaration = parseVariableDeclaration('var a;');
-    expectNotNullIfNoErrors(declaration);
-    assertNoErrors();
-    expect(declaration.name, isNotNull);
-    expect(declaration.equals, isNull);
-    expect(declaration.initializer, isNull);
+    var parseResult = parseStringWithErrors(r'''
+var a;
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleVariableDeclaration;
+    assertParsedNodeText(node, r'''
+VariableDeclaration
+  name: a
+''');
   }
 
   void test_parseWithClause_multiple() {
-    WithClause clause = parseWithClause('with A, B, C');
-    expectNotNullIfNoErrors(clause);
-    assertNoErrors();
-    expect(clause.withKeyword, isNotNull);
-    expect(clause.mixinTypes, hasLength(3));
+    var parseResult = parseStringWithErrors(r'''
+class TestClass extends Object with A, B, C {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: TestClass
+  extendsClause: ExtendsClause
+    extendsKeyword: extends
+    superclass: NamedType
+      name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: A
+      NamedType
+        name: B
+      NamedType
+        name: C
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_parseWithClause_single() {
-    WithClause clause = parseWithClause('with M');
-    expectNotNullIfNoErrors(clause);
-    assertNoErrors();
-    expect(clause.withKeyword, isNotNull);
-    expect(clause.mixinTypes, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+class TestClass extends Object with M {}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: TestClass
+  extendsClause: ExtendsClause
+    extendsKeyword: extends
+    superclass: NamedType
+      name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
   }
 
   void test_typeAlias_37733() {
-    // https://github.com/dart-lang/sdk/issues/37733
-    var unit = parseCompilationUnit(
-      r'typedef K=Function(<>($',
-      diagnostics: [
-        expectedError(diag.invalidInlineFunctionType, 19, 1),
-        expectedError(diag.missingIdentifier, 19, 1),
-        expectedError(diag.missingIdentifier, 20, 1),
-        expectedError(diag.expectedToken, 22, 1),
-        expectedError(diag.expectedToken, 23, 1),
-        expectedError(diag.expectedToken, 23, 1),
-      ],
-    );
-    var typeAlias = unit.declarations[0] as GenericTypeAlias;
-    expect(typeAlias.name.lexeme, 'K');
-    var functionType = typeAlias.functionType!;
-    expect(functionType.parameters.parameters, hasLength(1));
-    var parameter = functionType.parameters.parameters[0];
-    expect(parameter.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+typedef K=Function(<>($
+''');
+    parseResult.assertErrors([
+      error(diag.invalidInlineFunctionType, 19, 1),
+      error(diag.missingIdentifier, 19, 1),
+      error(diag.missingIdentifier, 20, 1),
+      error(diag.expectedToken, 22, 1),
+      error(diag.expectedToken, 24, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: K
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: FunctionTypedFormalParameter
+            name: <empty> <synthetic>
+            typeParameters: TypeParameterList
+              leftBracket: <
+              typeParameters
+                TypeParameter
+                  name: <empty> <synthetic>
+              rightBracket: >
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: SimpleFormalParameter
+                name: $
+              rightParenthesis: ) <synthetic>
+          rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
+''');
   }
 
   void test_typeAlias_parameter_missingIdentifier_37733() {
-    // https://github.com/dart-lang/sdk/issues/37733
-    var unit = parseCompilationUnit(
-      r'typedef T=Function(<S>());',
-      diagnostics: [
-        expectedError(diag.invalidInlineFunctionType, 19, 1),
-        expectedError(diag.missingIdentifier, 19, 1),
-      ],
-    );
-    var typeAlias = unit.declarations[0] as GenericTypeAlias;
-    expect(typeAlias.name.lexeme, 'T');
-    var functionType = typeAlias.functionType!;
-    expect(functionType.parameters.parameters, hasLength(1));
-    var parameter = functionType.parameters.parameters[0];
-    expect(parameter.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+typedef T=Function(<S>());
+''');
+    parseResult.assertErrors([
+      error(diag.invalidInlineFunctionType, 19, 1),
+      error(diag.missingIdentifier, 19, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: T
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: FunctionTypedFormalParameter
+            name: <empty> <synthetic>
+            typeParameters: TypeParameterList
+              leftBracket: <
+              typeParameters
+                TypeParameter
+                  name: S
+              rightBracket: >
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+          rightParenthesis: )
+      semicolon: ;
+''');
   }
 }

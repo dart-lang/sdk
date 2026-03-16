@@ -46,6 +46,41 @@ class C {
     );
   }
 
+  test_function_commentReference() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+/// Reference to [f].
+var a = 1;
+// ignore: experimental_member_use
+void f(@mustBeConst int x) {}
+''');
+  }
+
+  test_function_commentReference_threeNames() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+import '' as self;
+/// Reference to [self.C.f].
+var a = 1;
+class C {
+  // ignore: experimental_member_use
+  void f(@mustBeConst int x) {}
+}
+''');
+  }
+
+  test_function_commentReference_twoNames() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+/// Reference to [C.f].
+var a = 1;
+class C {
+  // ignore: experimental_member_use
+  void f(@mustBeConst int x) {}
+}
+''');
+  }
+
   test_function_invocation() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

@@ -101,7 +101,8 @@ class Writer {
     return sb.toString();
   }
 
-  void _incIndent({int amount = 1, required bool addNewLine}) {
+  void _incIndent({required bool addNewLine}) {
+    const int amount = 1;
     _indentLevel += amount;
     if (addNewLine) {
       _addNewLine();

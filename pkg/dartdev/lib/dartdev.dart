@@ -89,7 +89,7 @@ class DartdevRunner extends CommandRunner<int> {
   DartdevRunner(
     List<String> args, {
     Analytics? analyticsOverride,
-    bool isAnalyticsTest = false,
+    this._isAnalyticsTest = false,
     List<String> vmArgs = const [],
   }) : verbose = args.contains('-v') || args.contains('--verbose'),
        argParser = globalDartdevOptionsParser(
@@ -97,7 +97,6 @@ class DartdevRunner extends CommandRunner<int> {
        ),
        vmEnabledExperiments = parseVmEnabledExperiments(vmArgs),
        _unifiedAnalytics = analyticsOverride,
-       _isAnalyticsTest = isAnalyticsTest,
        super('dart', '$dartdevDescription.') {
     // The list of commands should be kept in sync with
     // `DartDevIsolate::ShouldParseCommand` in `runtime/bin/dartdev_isolate.cc`.

@@ -1627,6 +1627,118 @@ ForStatement
 ''');
   }
 
+  test_metadata() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  for (@foo var (a) in x) {
+    a;
+  }
+}
+
+const foo = 0;
+''');
+
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@getter::foo
+          staticType: null
+        element: <testLibrary>::@getter::foo
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredFragment: isPublic a@39
+          element: hasImplicitType isPublic
+            type: int
+        matchedValueType: int
+      rightParenthesis: )
+      matchedValueType: int
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          element: a@39
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_metadata_shadowing() async {
+    await assertErrorsInCode(
+      r'''
+const a = 42;
+void f(List<int> x) {
+  for (@a var (a) in x) {
+    a;
+  }
+}
+''',
+      [error(diag.invalidAnnotation, 43, 2)],
+    );
+
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: a
+          element: a@51
+          staticType: null
+        element: a@51
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredFragment: isPublic a@51
+          element: hasImplicitType isPublic
+            type: int
+        matchedValueType: int
+      rightParenthesis: )
+      matchedValueType: int
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          element: a@51
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
   test_sync_iterable_contextType_patternVariable_typed() async {
     await assertErrorsInCode(
       r'''
@@ -2808,6 +2920,182 @@ ForStatement
 @reflectiveTest
 class ForStatementResolutionTest_ForPartsWithPattern
     extends PubPackageResolutionTest {
+  test_metadata() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  for (@deprecated var (a) = (0); a <= 2; a++) {
+    a;
+  }
+}
+''');
+
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithPattern
+    variables: PatternVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: deprecated
+            element: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      keyword: var
+      pattern: ParenthesizedPattern
+        leftParenthesis: (
+        pattern: DeclaredVariablePattern
+          name: a
+          declaredFragment: isPublic a@35
+            element: hasImplicitType isPublic
+              type: int
+          matchedValueType: int
+        rightParenthesis: )
+        matchedValueType: int
+      equals: =
+      expression: ParenthesizedExpression
+        leftParenthesis: (
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        rightParenthesis: )
+        staticType: int
+      patternTypeSchema: _
+    leftSeparator: ;
+    condition: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: a
+        element: a@35
+        staticType: int
+      operator: <=
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::<=::@formalParameter::other
+        staticType: int
+      element: dart:core::@class::num::@method::<=
+      staticInvokeType: bool Function(num)
+      staticType: bool
+    rightSeparator: ;
+    updaters
+      PostfixExpression
+        operand: SimpleIdentifier
+          token: a
+          element: a@35
+          staticType: null
+        operator: ++
+        readElement: a@35
+        readType: int
+        writeElement: a@35
+        writeType: int
+        element: dart:core::@class::num::@method::+
+        staticType: int
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          element: a@35
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_metadata_shadowing() async {
+    await assertErrorsInCode(
+      r'''
+const a = 42;
+void f() {
+  for (@a var (a) = (0); a <= 2; a++) {
+    a;
+  }
+}
+''',
+      [error(diag.invalidAnnotation, 32, 2)],
+    );
+
+    var node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithPattern
+    variables: PatternVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: a
+            element: a@40
+            staticType: null
+          element: a@40
+      keyword: var
+      pattern: ParenthesizedPattern
+        leftParenthesis: (
+        pattern: DeclaredVariablePattern
+          name: a
+          declaredFragment: isPublic a@40
+            element: hasImplicitType isPublic
+              type: int
+          matchedValueType: int
+        rightParenthesis: )
+        matchedValueType: int
+      equals: =
+      expression: ParenthesizedExpression
+        leftParenthesis: (
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        rightParenthesis: )
+        staticType: int
+      patternTypeSchema: _
+    leftSeparator: ;
+    condition: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: a
+        element: a@40
+        staticType: int
+      operator: <=
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::<=::@formalParameter::other
+        staticType: int
+      element: dart:core::@class::num::@method::<=
+      staticInvokeType: bool Function(num)
+      staticType: bool
+    rightSeparator: ;
+    updaters
+      PostfixExpression
+        operand: SimpleIdentifier
+          token: a
+          element: a@40
+          staticType: null
+        operator: ++
+        readElement: a@40
+        readType: int
+        writeElement: a@40
+        writeType: int
+        element: dart:core::@class::num::@method::+
+        staticType: int
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          element: a@40
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
   test_scope_afterLoop_uses_outer_despite_patternVariable() async {
     await assertNoErrorsInCode(r'''
 void f((int, bool) x, int a) {
@@ -3141,6 +3429,7 @@ ForStatement
   }
 
   test_scope_patternVariables_shadows_outer_in_expression() async {
+    // TODO(scheglov): should report an error
     await assertNoErrorsInCode(r'''
 void f((int, bool) a) {
   for (var (a, b) = a; b; a--) {}
@@ -3208,13 +3497,14 @@ ForStatement
 ''');
   }
 
-  test_scope_variables_uses_outer() async {
+  test_scope_patternVariables_visibleIn_condition_updaters() async {
     await assertNoErrorsInCode(r'''
-void f((int, bool) a) {
-  for (var (a2, b) = a; b; a2--) {}
+void f() {
+  for (var (a) = (0); a <= 2; a++) {
+    a;
+  }
 }
 ''');
-
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
@@ -3223,55 +3513,63 @@ ForStatement
   forLoopParts: ForPartsWithPattern
     variables: PatternVariableDeclaration
       keyword: var
-      pattern: RecordPattern
+      pattern: ParenthesizedPattern
         leftParenthesis: (
-        fields
-          PatternField
-            pattern: DeclaredVariablePattern
-              name: a2
-              declaredFragment: isPublic a2@36
-                element: hasImplicitType isPublic
-                  type: int
-              matchedValueType: int
-            element: <null>
-          PatternField
-            pattern: DeclaredVariablePattern
-              name: b
-              declaredFragment: isPublic b@40
-                element: hasImplicitType isPublic
-                  type: bool
-              matchedValueType: bool
-            element: <null>
+        pattern: DeclaredVariablePattern
+          name: a
+          declaredFragment: isPublic a@23
+            element: hasImplicitType isPublic
+              type: int
+          matchedValueType: int
         rightParenthesis: )
-        matchedValueType: (int, bool)
+        matchedValueType: int
       equals: =
-      expression: SimpleIdentifier
-        token: a
-        element: <testLibrary>::@function::f::@formalParameter::a
-        staticType: (int, bool)
-      patternTypeSchema: (_, _)
+      expression: ParenthesizedExpression
+        leftParenthesis: (
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        rightParenthesis: )
+        staticType: int
+      patternTypeSchema: _
     leftSeparator: ;
-    condition: SimpleIdentifier
-      token: b
-      element: b@40
+    condition: BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: a
+        element: a@23
+        staticType: int
+      operator: <=
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::<=::@formalParameter::other
+        staticType: int
+      element: dart:core::@class::num::@method::<=
+      staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
     updaters
       PostfixExpression
         operand: SimpleIdentifier
-          token: a2
-          element: a2@36
+          token: a
+          element: a@23
           staticType: null
-        operator: --
-        readElement: a2@36
+        operator: ++
+        readElement: a@23
         readType: int
-        writeElement: a2@36
+        writeElement: a@23
         writeType: int
-        element: dart:core::@class::num::@method::-
+        element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
   body: Block
     leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          element: a@23
+          staticType: int
+        semicolon: ;
     rightBracket: }
 ''');
   }

@@ -5,14 +5,12 @@
 import 'package:meta/meta.dart' show RecordUse;
 
 void main() {
-  SomeClass().callWithArgs('42');
+  '42'.callWithArgs('suffix');
 }
 
-class SomeClass {}
-
-extension on SomeClass {
+extension on String {
   @RecordUse()
   void callWithArgs(String s) {
-    s += "suffix";
+    print(this + s);
   }
 }

@@ -69,7 +69,7 @@ class E6 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E6 a = #C14;
   final field core::int? b;
   static const field core::List<self::E6> values = #C15;
-  const constructor •(core::int #index, core::String #name, core::int? x) → self::E6
+  const constructor •(core::int #index, core::String #name, final core::int? x) → self::E6
     : self::E6::b = x, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String

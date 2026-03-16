@@ -74,27 +74,27 @@ void printMembers(LibraryElement libraryElement) {
   for (ClassElement classElement in libraryElement.classes) {
     print(classElement.name);
     for (ConstructorElement constructorElement in classElement.constructors) {
-      if (!constructorElement.isSynthetic) {
+      if (constructorElement.isOriginDeclaration) {
         print('  ${constructorElement.displayName}');
       }
     }
     for (FieldElement fieldElement in classElement.fields) {
-      if (!fieldElement.isSynthetic) {
+      if (fieldElement.isOriginDeclaration) {
         print('  ${fieldElement.name}');
       }
     }
     for (GetterElement getterElement in classElement.getters) {
-      if (!getterElement.isSynthetic) {
+      if (getterElement.isOriginDeclaration) {
         print('  ${getterElement.name}');
       }
     }
     for (SetterElement setterElement in classElement.setters) {
-      if (!setterElement.isSynthetic) {
+      if (setterElement.isOriginDeclaration) {
         print('  ${setterElement.name}');
       }
     }
     for (MethodElement methodElement in classElement.methods) {
-      if (!methodElement.isSynthetic) {
+      if (methodElement.isOriginDeclaration) {
         print('  ${methodElement.name}');
       }
     }

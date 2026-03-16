@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -149,7 +150,7 @@ final class ClosureSuggestion extends CandidateSuggestion with SuggestionData {
 }
 
 /// The information about a candidate suggestion based on a constructor.
-final class ConstructorSuggestion extends ExecutableSuggestion
+final class ConstructorSuggestion extends TypedExecutableSuggestion
     implements ElementBasedSuggestion {
   @override
   final ConstructorElement element;
@@ -181,6 +182,8 @@ final class ConstructorSuggestion extends ExecutableSuggestion
     required this.isRedirect,
     required this.suggestUnnamedAsNew,
     required super.matcherScore,
+    required super.replacementRange,
+    required super.addTypeName,
   }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2),
        super(
          kind: isTearOff || isRedirect
@@ -189,11 +192,7 @@ final class ConstructorSuggestion extends ExecutableSuggestion
        );
 
   @override
-  String get completion {
-    var enclosingClass = element.enclosingElement;
-
-    var className = enclosingClass.displayName;
-
+  String get baseCompletion {
     // TODO(scheglov): Wrong, if no name, should be no completion.
     var completion = element.name ?? '';
     if (suggestUnnamedAsNew) {
@@ -205,7 +204,9 @@ final class ConstructorSuggestion extends ExecutableSuggestion
         completion = '';
       }
     }
-    if (!hasClassName) {
+    if (!hasClassName && !addTypeName) {
+      var enclosingClass = element.enclosingElement;
+      var className = enclosingClass.displayName;
       if (completion.isEmpty) {
         completion = className;
       } else {
@@ -214,6 +215,12 @@ final class ConstructorSuggestion extends ExecutableSuggestion
     }
     return completion;
   }
+
+  @override
+  DartType? get containingType => element.enclosingElement.thisType;
+
+  @override
+  DartType? get type => null;
 }
 
 abstract interface class ElementBasedSuggestion {
@@ -344,6 +351,7 @@ final class FieldSuggestion extends TypedSuggestion with MemberSuggestion {
     required this.isInDeclaration,
     required super.matcherScore,
     required super.replacementRange,
+    required super.addTypeName,
     super.addTypeAnnotation,
     super.keyword,
   });
@@ -360,6 +368,10 @@ final class FieldSuggestion extends TypedSuggestion with MemberSuggestion {
     }
     return element.displayName;
   }
+
+  @override
+  DartType? get containingType =>
+      element.enclosingElement.ifTypeOrNull<InstanceElement>()?.thisType;
 
   @override
   DartType get type => element.type;
@@ -405,10 +417,13 @@ final class FunctionCall extends TypedExecutableSuggestion {
     required this.element,
     super.addTypeAnnotation,
     super.keyword,
-  });
+  }) : super(addTypeName: false);
 
   @override
   String get baseCompletion => 'call';
+
+  @override
+  DartType? get containingType => null;
 }
 
 /// The information about a candidate suggestion based on a getter.
@@ -425,6 +440,9 @@ final class GetterSuggestion extends TypedImportableSuggestion
   /// Whether the accessor is being invoked with a target.
   final bool withEnclosingName;
 
+  @override
+  final bool addTypeName;
+
   /// Initialize a newly created candidate suggestion to suggest the [element].
   GetterSuggestion({
     required this.element,
@@ -432,10 +450,18 @@ final class GetterSuggestion extends TypedImportableSuggestion
     required super.importData,
     required super.matcherScore,
     required super.replacementRange,
+    required this.addTypeName,
     this.withEnclosingName = false,
     super.addTypeAnnotation,
     super.keyword,
-  });
+  }) : assert(
+         !addTypeAnnotation || !addTypeName,
+         'Either addTypeAnnotation or addTypeName can be true, but not both.',
+       ),
+       assert(
+         addTypeName && keyword == null || !addTypeName,
+         'If addTypeName is true, keyword must be null.',
+       );
 
   @override
   String get baseCompletion {
@@ -445,6 +471,10 @@ final class GetterSuggestion extends TypedImportableSuggestion
     }
     return element.displayName;
   }
+
+  @override
+  DartType? get containingType =>
+      element.enclosingElement.ifTypeOrNull<InstanceElement>()?.thisType;
 
   @override
   DartType get type => element.type.returnType;
@@ -751,12 +781,17 @@ final class MethodSuggestion extends TypedExecutableSuggestion
     required super.importData,
     required super.matcherScore,
     required super.replacementRange,
+    required super.addTypeName,
     super.addTypeAnnotation,
     super.keyword,
   });
 
   @override
   String get baseCompletion => element.displayName;
+
+  @override
+  DartType? get containingType =>
+      element.enclosingElement.ifTypeOrNull<InstanceElement>()?.thisType;
 
   @override
   FunctionType get type => element.type;
@@ -920,10 +955,13 @@ final class RecordFieldSuggestion extends TypedSuggestion {
     required super.matcherScore,
     super.addTypeAnnotation,
     super.keyword,
-  });
+  }) : super(addTypeName: false);
 
   @override
   String get baseCompletion => name;
+
+  @override
+  DartType? get containingType => null;
 
   @override
   DartType get type => field.type;
@@ -1016,13 +1054,16 @@ final class SetStateMethodSuggestion extends TypedExecutableSuggestion
     super.kind = CompletionSuggestionKind.INVOCATION,
     super.addTypeAnnotation,
     super.keyword,
-  });
+  }) : super(addTypeName: false);
 
   @override
   String get baseCompletion {
     _init();
     return _data!.completion;
   }
+
+  @override
+  DartType? get containingType => null;
 
   @override
   FunctionType get type => element.type;
@@ -1264,14 +1305,25 @@ sealed class TypedExecutableSuggestion extends ExecutableSuggestion
   @override
   TypeImportData? data;
 
+  @override
+  final bool addTypeName;
+
   TypedExecutableSuggestion({
     required this.replacementRange,
     required super.importData,
     required super.kind,
     required super.matcherScore,
+    required this.addTypeName,
     this.addTypeAnnotation = false,
     this.keyword,
-  });
+  }) : assert(
+         !addTypeAnnotation || !addTypeName,
+         'Either addTypeAnnotation or addTypeName can be true, but not both.',
+       ),
+       assert(
+         addTypeName && keyword == null || !addTypeName,
+         'If addTypeName is true, keyword must be null.',
+       );
 }
 
 sealed class TypedImportableSuggestion extends ImportableSuggestion
@@ -1304,17 +1356,44 @@ sealed class TypedSuggestion extends ReplacementSuggestion {
 
   TypeImportData? data;
 
+  /// Whether the type name should be included in the completion.
+  ///
+  /// Fixes dot-shorthand completions when the feature is not enabled, by
+  /// replacing the leading dot with 'TypeName.'.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// enum E { a }
+  ///
+  /// E f() => .^
+  /// ```
+  ///
+  /// In the above code, with the cursor where the caret is, if the feature is
+  /// not enabled, the completion for `a` would replace `.` and insert `E.a`.
+  final bool addTypeName;
+
   TypedSuggestion({
     required super.matcherScore,
     required super.replacementRange,
+    required this.addTypeName,
     this.addTypeAnnotation = false,
     this.keyword,
-  });
+  }) : assert(
+         !addTypeAnnotation || !addTypeName,
+         'Either addTypeAnnotation or addTypeName can be true, but not both.',
+       ),
+       assert(
+         addTypeName && keyword == null || !addTypeName,
+         'If addTypeName is true, keyword must be null.',
+       );
 
   String get baseCompletion;
 
   @override
   String get completion => data?.completion ?? baseCompletion;
+
+  DartType? get containingType;
 
   DartType? get type;
 }
@@ -1426,6 +1505,15 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             : null;
         suggestion.data = data;
         (switch (suggestion) {
+          ConstructorSuggestion() => suggestConstructor(
+            suggestion.element,
+            hasClassName: suggestion.hasClassName,
+            completion: suggestion.completion,
+            kind: suggestion.kind,
+            prefix: suggestion.prefix,
+            suggestUnnamedAsNew: suggestion.suggestUnnamedAsNew,
+            relevance: relevance,
+          ),
           FieldSuggestion(:var element) =>
             element.isEnumConstant
                 ? suggestEnumConstant(
@@ -1488,20 +1576,6 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           completion: suggestion.completion,
           displayText: suggestion.displayText,
           selectionOffset: suggestion.selectionOffset,
-        );
-      case ConstructorSuggestion():
-        var completion = suggestion.completion;
-        if (completion.isEmpty) {
-          break;
-        }
-        suggestConstructor(
-          suggestion.element,
-          hasClassName: suggestion.hasClassName,
-          completion: completion,
-          kind: suggestion.kind,
-          prefix: suggestion.prefix,
-          suggestUnnamedAsNew: suggestion.suggestUnnamedAsNew,
-          relevance: relevance,
         );
       case EnumSuggestion():
         suggestInterface(

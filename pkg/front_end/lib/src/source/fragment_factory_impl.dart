@@ -2247,7 +2247,6 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool hasSuper,
     required int nameOffset,
     required Token? initializerToken,
-    bool lowerWildcard = false,
   }) {
     assert(
       !hasThis || !hasSuper,
@@ -2259,24 +2258,23 @@ class FragmentFactoryImpl implements FragmentFactory {
     if (hasSuper) {
       modifiers |= Modifiers.SuperInitializingFormal;
     }
-    String formalName = name;
     bool isWildcard =
-        libraryFeatures.wildcardVariables.isEnabled && formalName == '_';
-    if (isWildcard && lowerWildcard) {
-      formalName = createWildcardFormalParameterName(wildcardVariableIndex);
-      wildcardVariableIndex++;
+        libraryFeatures.wildcardVariables.isEnabled && name == '_';
+    int? wildcardIndex;
+    if (isWildcard) {
+      wildcardIndex = wildcardVariableIndex++;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
       kind: kind,
       modifiers: modifiers,
       type: type,
-      name: formalName,
+      name: name,
       nameOffset: nameOffset,
       fileOffset: nameOffset,
       fileUri: _compilationUnit.fileUri,
       defaultValueToken: initializerToken,
       hasImmediatelyDeclaredInitializer: initializerToken != null,
-      isWildcard: isWildcard,
+      wildcardIndex: wildcardIndex,
       publicName: publicName,
       isClosureContextLoweringEnabled: _compilationUnit
           .loader

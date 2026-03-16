@@ -15,7 +15,28 @@ main() {
 
 @reflectiveTest
 class MixinDeclarationParserTest extends ParserDiagnosticsTest {
-  test_body_field() {
+  test_blockBody_constructor_named() {
+    var parseResult = parseStringWithErrors(r'''
+mixin A {
+  A.named();
+}
+''');
+    parseResult.assertErrors([error(diag.mixinDeclaresConstructor, 12, 1)]);
+
+    // Mixins cannot have constructors.
+    // So, we don't put them into AST at all.
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_blockBody_field() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {
   static final int F = 0;
@@ -47,7 +68,7 @@ MixinDeclaration
 ''');
   }
 
-  test_body_getter() {
+  test_blockBody_getter() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {
   int get foo => 0;
@@ -76,7 +97,7 @@ MixinDeclaration
 ''');
   }
 
-  test_body_method() {
+  test_blockBody_method() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {
   void foo() {}
@@ -106,7 +127,31 @@ MixinDeclaration
 ''');
   }
 
-  test_body_setter() {
+  test_blockBody_primaryConstructorBody() {
+    var parseResult = parseStringWithErrors(r'''
+mixin A {
+  this;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody
+        thisKeyword: this
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_blockBody_setter() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {
   set foo(int _) {}
@@ -139,32 +184,9 @@ MixinDeclaration
 ''');
   }
 
-  test_constructor_named() {
+  test_emptyBody() {
     var parseResult = parseStringWithErrors(r'''
-mixin A {
-  A.named();
-}
-''');
-    parseResult.assertErrors([error(diag.mixinDeclaresConstructor, 12, 1)]);
-
-    // Mixins cannot have constructors.
-    // So, we don't put them into AST at all.
-    var node = parseResult.findNode.singleMixinDeclaration;
-    assertParsedNodeText(node, r'''
-MixinDeclaration
-  mixinKeyword: mixin
-  name: A
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_primaryConstructorBody() {
-    var parseResult = parseStringWithErrors(r'''
-mixin A {
-  this;
-}
+mixin M;
 ''');
     parseResult.assertNoErrors();
 
@@ -172,15 +194,28 @@ mixin A {
     assertParsedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
-  name: A
-  body: BlockClassBody
-    leftBracket: {
-    members
-      PrimaryConstructorBody
-        thisKeyword: this
-        body: EmptyFunctionBody
-          semicolon: ;
-    rightBracket: }
+  name: M
+  body: EmptyClassBody
+    semicolon: ;
+''');
+  }
+
+  test_emptyBody_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+mixin M;
+''');
+    parseResult.assertErrors([
+      error(diag.experimentNotEnabledOffByDefault, 23, 1),
+    ]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  body: EmptyClassBody
+    semicolon: ;
 ''');
   }
 }

@@ -8,8 +8,9 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 enum RpcException {
   // These error codes must be kept in sync with those in vm/json_stream.h and
   // vmservice.dart.
-  serverError(code: SERVER_ERROR, message: 'Server error'),
-  methodNotFound(code: METHOD_NOT_FOUND, message: 'Method not found'),
+  serverError(code: SERVER_ERROR, message: 'Server error.'),
+  methodNotFound(code: METHOD_NOT_FOUND, message: 'Method not found.'),
+  internalError(code: INTERNAL_ERROR, message: 'Internal error.'),
   connectionDisposed(code: -32010, message: 'Service connection disposed.'),
   featureDisabled(code: 100, message: 'Feature is disabled.'),
   streamAlreadySubscribed(code: 103, message: 'Stream already subscribed.'),
@@ -20,7 +21,11 @@ enum RpcException {
   const RpcException({required this.code, required this.message});
 
   /// Throws a [json_rpc.RpcException] with [code] and [message].
-  Never throwException() => throw json_rpc.RpcException(code, message);
+  Never throwException() => throw toException();
+
+  /// Builds a [json_rpc.RpcException] with [code] and [message] without
+  /// throwing.
+  json_rpc.RpcException toException() => json_rpc.RpcException(code, message);
 
   /// The JSON-RPC error code.
   final int code;

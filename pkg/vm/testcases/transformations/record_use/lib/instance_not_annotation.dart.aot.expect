@@ -6,7 +6,7 @@ import "dart:core" as core;
 import "package:meta/meta.dart" show RecordUse;
 
 @#C1
-class MyClass extends core::Object /*hasConstConstructor*/  {
+final class MyClass extends core::Object /*hasConstConstructor*/  {
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]

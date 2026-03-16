@@ -59,15 +59,18 @@ class DTDClient extends Client {
   Future<void> close() => _clientPeer.close();
 
   @override
-  Future<dynamic> sendRequest({
+  Future<Object?> sendRequest({
     required String method,
-    dynamic parameters,
+    Object? parameters,
   }) async {
     if (_clientPeer.isClosed) {
-      return;
+      return null;
     }
 
-    return await _clientPeer.sendRequest(method, parameters.value);
+    if (parameters == null) {
+      return await _clientPeer.sendRequest(method);
+    }
+    return await _clientPeer.sendRequest(method, parameters);
   }
 
   @override
@@ -349,9 +352,9 @@ class DTDClient extends Client {
     Map<String, Object?>? capabilities,
   }) {
     return {
-      if (service != null) DtdParameters.service: service,
+      DtdParameters.service: ?service,
       DtdParameters.method: method,
-      if (capabilities != null) DtdParameters.capabilities: capabilities,
+      DtdParameters.capabilities: ?capabilities,
     };
   }
 
@@ -399,7 +402,7 @@ class DTDClient extends Client {
 
     return await client.sendRequest(
       method: combinedName,
-      parameters: parameters,
+      parameters: parameters.value,
     );
   }
 

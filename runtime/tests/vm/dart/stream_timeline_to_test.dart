@@ -14,6 +14,7 @@ import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service_protos/vm_service_protos.dart';
 
+import '../../../../pkg/perf_witness/test/common/test_utils.dart';
 import 'use_flag_test_helper.dart';
 
 @pragma('vm:never-inline')
@@ -55,64 +56,28 @@ Future<void> testPerfettoRecorder({
     '$perfettoTimeline does not exist',
   );
 
-  final trace = Trace()..mergeFromBuffer(perfettoTimeline.readAsBytesSync());
-  Expect.isNotEmpty(trace.packet);
-
-  var state = IncrementalState();
-  final seenEvents = <String>{};
-  final seenStacks = <List<String>>{};
-  final seenTracks = <int>{};
-  final seenTrackDescriptors = <int>{};
-  for (var packet in trace.packet) {
-    if ((packet.sequenceFlags &
-            TracePacket_SequenceFlags.SEQ_INCREMENTAL_STATE_CLEARED.value) !=
-        0) {
-      state = IncrementalState();
-    }
-
-    if (packet.hasInternedData()) {
-      state.update(packet.internedData);
-    }
-
-    if (packet.hasTrackEvent()) {
-      final trackEvent = packet.trackEvent;
-      if (trackEvent.type == TrackEvent_Type.TYPE_SLICE_BEGIN) {
-        final name = state.eventNames[packet.trackEvent.nameIid.toInt()]!;
-        seenEvents.add(name);
-        seenTracks.add(trackEvent.trackUuid.toInt());
-      }
-    }
-
-    if (packet.hasTrackDescriptor()) {
-      final trackDescriptor = packet.trackDescriptor;
-      seenTrackDescriptors.add(trackDescriptor.uuid.toInt());
-    }
-
-    if (packet.hasPerfSample()) {
-      seenStacks.add(state.stacks[packet.perfSample.callstackIid.toInt()]!);
-    }
-  }
+  final traceData = TraceData.fromBytes(perfettoTimeline.readAsBytesSync());
 
   Expect.isTrue(
-    seenEvents.containsAll(['workload-loop', 'CollectNewGeneration']),
+    traceData.seenEvents.containsAll(['workload-loop', 'CollectNewGeneration']),
   );
 
-  Expect.isTrue(seenTrackDescriptors.containsAll(seenTracks), '''
+  Expect.isTrue(
+    traceData.seenTrackDescriptors.containsAll(traceData.seenTracks),
+    '''
 expected to see a track descriptor for every track:
-  seen descriptors    ${seenTrackDescriptors}
-  seen tracks         ${seenTracks}
-  missing descriptors ${seenTracks.difference(seenTrackDescriptors)}
-''');
+  seen descriptors    ${traceData.seenTrackDescriptors}
+  seen tracks         ${traceData.seenTracks}
+  missing descriptors ${traceData.seenTracks.difference(traceData.seenTrackDescriptors)}
+''',
+  );
 
   if (withProfiler) {
-    Expect.isNotNull(
-      seenStacks.firstWhereOrNull(
-        (stack) =>
-            stackMatches(stack, ['main', 'workload', 'Timeline.timeSync']),
-      ),
+    Expect.isTrue(
+      traceData.hasSeenStack(['main', 'workload', 'Timeline.timeSync']),
     );
   } else {
-    Expect.isEmpty(seenStacks);
+    Expect.isEmpty(traceData.seenStacks);
   }
 }
 
@@ -178,46 +143,4 @@ void main() async {
     );
     Expect.isFalse(File('whatever').existsSync());
   });
-}
-
-bool stackMatches(List<String> stack, List<String> expected) {
-  var i = 0;
-  var j = 0;
-  while (j < expected.length) {
-    while (i < stack.length && stack[i] != expected[j]) {
-      i++;
-    }
-    if (i == stack.length) {
-      return false;
-    }
-    j++;
-  }
-  return true;
-}
-
-class IncrementalState {
-  final eventNames = <int, String>{};
-  final functionNames = <int, String>{};
-  final frames = <int, String>{};
-  final stacks = <int, List<String>>{};
-
-  void update(InternedData internedData) {
-    for (var eventName in internedData.eventNames) {
-      eventNames[eventName.iid.toInt()] = eventName.name;
-    }
-
-    for (var functionName in internedData.functionNames) {
-      functionNames[functionName.iid.toInt()] = utf8.decode(functionName.str);
-    }
-
-    for (var frame in internedData.frames) {
-      frames[frame.iid.toInt()] = functionNames[frame.functionNameId.toInt()]!;
-    }
-
-    for (var stack in internedData.callstacks) {
-      stacks[stack.iid.toInt()] = stack.frameIds
-          .map((iid) => frames[iid.toInt()]!)
-          .toList(growable: false);
-    }
-  }
 }

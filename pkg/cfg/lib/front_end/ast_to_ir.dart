@@ -19,6 +19,14 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
+/// Strategy for adding [TypeParameters] instructions when building CFG IR.
+enum TypeParametersStyle {
+  /// Maintain separate [TypeParameters] for function type parameters and
+  /// class type parameters.
+  /// Represent incoming function type parameters as the first parameter.
+  separateFunctionAndClassTypeParameters,
+}
+
 /// Translates kernel AST to the flow graph.
 ///
 /// Not implemented yet:
@@ -41,6 +49,7 @@ class AstToIr extends ast.RecursiveVisitor {
   final RecognizedMethods recognizedMethods;
   final FlowGraphBuilder builder;
   final bool enableAsserts;
+  final TypeParametersStyle typeParametersStyle;
   late final AstToIrTypes _typeTranslator;
   late final LocalVariableIndexer localVarIndexer;
   late final StaticTypeContext _staticTypeContext = StaticTypeContext(
@@ -51,13 +60,17 @@ class AstToIr extends ast.RecursiveVisitor {
   Map<ast.LabeledStatement, JoinBlock>? labeledStatements;
   Map<ast.SwitchCase, JoinBlock>? switchCases;
   Map<ast.TryFinally, List<FinallyBlock>>? finallyBlocks;
-  TypeParameters? typeParameters;
+
+  bool _hasTypeParametersInScope = false;
+  TypeParameters? functionTypeParameters;
+  TypeParameters? classTypeParameters;
 
   AstToIr(
     this.function,
     this.functionRegistry,
     this.recognizedMethods, {
     required this.enableAsserts,
+    required this.typeParametersStyle,
   }) : coreTypes = GlobalContext.instance.coreTypes,
        hierarchy = GlobalContext.instance.classHierarchy,
        builder = FlowGraphBuilder(function) {
@@ -76,11 +89,23 @@ class AstToIr extends ast.RecursiveVisitor {
     for (final param in localVarIndexer.parameters) {
       builder.addParameter(param);
     }
-    if (function.hasClassTypeParameters) {
-      builder.addLoadLocal(localVarIndexer.receiver);
-      typeParameters = builder.addTypeParameters(receiver: builder.pop());
-    } else if (function.hasFunctionTypeParameters) {
-      typeParameters = builder.addTypeParameters();
+    if (function.hasFunctionTypeParameters || function.hasClassTypeParameters) {
+      _hasTypeParametersInScope = true;
+      switch (typeParametersStyle) {
+        case .separateFunctionAndClassTypeParameters:
+          if (function.hasFunctionTypeParameters) {
+            builder.addLoadLocal(localVarIndexer.functionTypeParameters);
+            functionTypeParameters = builder.addTypeParameters(
+              .functionTypeParameters,
+            );
+          }
+          if (function.hasClassTypeParameters) {
+            builder.addLoadLocal(localVarIndexer.receiver);
+            classTypeParameters = builder.addTypeParameters(
+              .classTypeParameters,
+            );
+          }
+      }
     }
     final member = function.member;
     switch (function) {
@@ -183,7 +208,7 @@ class AstToIr extends ast.RecursiveVisitor {
         if (!field.isStatic) {
           if (field.isLate) {
             if (!initializedFields.contains(field)) {
-              throw 'Unimplemented: _initLateInstanceField';
+              throw 'Unimplemented: initialization of late instance field';
             }
           } else {
             final fieldInitializer = field.initializer;
@@ -249,6 +274,15 @@ class AstToIr extends ast.RecursiveVisitor {
     inputCount += arguments.named.length;
     return inputCount;
   }
+
+  ArgumentsShape _translateArgumentsShape(
+    int implicitArgs,
+    ast.Arguments args,
+  ) => functionRegistry.getArgumentsShape(
+    implicitArgs + args.positional.length,
+    types: args.types.length,
+    named: args.named.map((ne) => ne.name).toList(),
+  );
 
   CType _staticType(ast.Expression node) =>
       _typeTranslator.translate(node.getStaticType(_staticTypeContext));
@@ -325,25 +359,41 @@ class AstToIr extends ast.RecursiveVisitor {
     }
   }
 
-  bool _hasTypeParameterReferences(ast.DartType type) =>
-      type.accept(const _FindTypeParameters());
-
-  TypeParameters? _typeParametersForType(ast.DartType type) {
-    if (typeParameters != null && _hasTypeParameterReferences(type)) {
-      return typeParameters;
+  List<Definition> _referencedTypeParameters(_FindTypeParameters visitor) {
+    if (!visitor.containsClassTypeParams &&
+        !visitor.containsFunctionTypeParams) {
+      return const [];
     }
-    return null;
+    return switch (typeParametersStyle) {
+      .separateFunctionAndClassTypeParameters => [
+        visitor.containsFunctionTypeParams
+            ? functionTypeParameters!
+            : builder.graph.getConstant(ConstantValue.fromNull()),
+        visitor.containsClassTypeParams
+            ? classTypeParameters!
+            : builder.graph.getConstant(ConstantValue.fromNull()),
+      ],
+    };
   }
 
-  TypeParameters? _typeParametersForTypes(List<ast.DartType> types) {
-    if (typeParameters != null) {
-      for (final type in types) {
-        if (_hasTypeParameterReferences(type)) {
-          return typeParameters;
-        }
-      }
+  List<Definition> _typeParametersForType(ast.DartType type) {
+    if (!_hasTypeParametersInScope) {
+      return const [];
     }
-    return null;
+    final visitor = _FindTypeParameters();
+    type.accept(visitor);
+    return _referencedTypeParameters(visitor);
+  }
+
+  List<Definition> _typeParametersForTypes(List<ast.DartType> types) {
+    if (!_hasTypeParametersInScope) {
+      return const [];
+    }
+    final visitor = _FindTypeParameters();
+    for (final type in types) {
+      type.accept(visitor);
+    }
+    return _referencedTypeParameters(visitor);
   }
 
   @override
@@ -377,12 +427,10 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitTypeLiteral(ast.TypeLiteral node) {
-    final typeParameters = _typeParametersForType(node.type);
-    if (typeParameters != null) {
-      builder.addTypeLiteral(node.type, typeParameters: typeParameters);
-    } else {
-      builder.addConstant(ConstantValue(ast.TypeLiteralConstant(node.type)));
-    }
+    builder.addTypeLiteral(
+      node.type,
+      typeParameters: _typeParametersForType(node.type),
+    );
   }
 
   @override
@@ -451,7 +499,7 @@ class AstToIr extends ast.RecursiveVisitor {
     if (!enableAsserts) {
       return;
     }
-    throw 'unimplemented';
+    throw 'Unsupported node ${node.runtimeType} with enabled asserts';
   }
 
   @override
@@ -478,7 +526,12 @@ class AstToIr extends ast.RecursiveVisitor {
     final target = functionRegistry.getFunction(node.target);
     final inputCount = _translateArguments(null, args);
     if (_handleUnreachableExpression(inputCount)) return;
-    builder.addDirectCall(target, inputCount, _staticType(node));
+    builder.addDirectCall(
+      target,
+      inputCount,
+      _translateArgumentsShape(0, args),
+      _staticType(node),
+    );
   }
 
   @override
@@ -492,7 +545,12 @@ class AstToIr extends ast.RecursiveVisitor {
       );
     } else {
       final target = functionRegistry.getFunction(node.target, isGetter: true);
-      builder.addDirectCall(target, 0, _staticType(node));
+      builder.addDirectCall(
+        target,
+        0,
+        functionRegistry.getArgumentsShape(0),
+        _staticType(node),
+      );
     }
   }
 
@@ -510,7 +568,12 @@ class AstToIr extends ast.RecursiveVisitor {
       );
     } else {
       final target = functionRegistry.getFunction(node.target, isSetter: true);
-      builder.addDirectCall(target, 1, const TopType(const ast.VoidType()));
+      builder.addDirectCall(
+        target,
+        1,
+        functionRegistry.getArgumentsShape(1),
+        const TopType(const ast.VoidType()),
+      );
       builder.pop();
     }
     builder.push(value);
@@ -530,7 +593,12 @@ class AstToIr extends ast.RecursiveVisitor {
         return;
       }
     }
-    builder.addInterfaceCall(interfaceTarget, inputCount, _staticType(node));
+    builder.addInterfaceCall(
+      interfaceTarget,
+      inputCount,
+      _translateArgumentsShape(1, args),
+      _staticType(node),
+    );
   }
 
   @override
@@ -549,7 +617,12 @@ class AstToIr extends ast.RecursiveVisitor {
         return;
       }
     }
-    builder.addInterfaceCall(interfaceTarget, 1, _staticType(node));
+    builder.addInterfaceCall(
+      interfaceTarget,
+      1,
+      functionRegistry.getArgumentsShape(1),
+      _staticType(node),
+    );
   }
 
   @override
@@ -565,6 +638,7 @@ class AstToIr extends ast.RecursiveVisitor {
     builder.addInterfaceCall(
       interfaceTarget,
       2,
+      functionRegistry.getArgumentsShape(2),
       const TopType(const ast.VoidType()),
     );
     builder.pop();
@@ -579,7 +653,12 @@ class AstToIr extends ast.RecursiveVisitor {
     );
     _translateNode(node.receiver);
     if (_handleUnreachableExpression(1)) return;
-    builder.addInterfaceCall(interfaceTarget, 1, _staticType(node));
+    builder.addInterfaceCall(
+      interfaceTarget,
+      1,
+      functionRegistry.getArgumentsShape(1),
+      _staticType(node),
+    );
   }
 
   @override
@@ -599,7 +678,12 @@ class AstToIr extends ast.RecursiveVisitor {
         return;
       }
     }
-    builder.addInterfaceCall(interfaceTarget, 2, const BoolType());
+    builder.addInterfaceCall(
+      interfaceTarget,
+      2,
+      functionRegistry.getArgumentsShape(2),
+      const BoolType(),
+    );
   }
 
   @override
@@ -612,16 +696,27 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitDynamicInvocation(ast.DynamicInvocation node) {
-    final inputCount = _translateArguments(node.receiver, node.arguments);
+    final args = node.arguments;
+    final inputCount = _translateArguments(node.receiver, args);
     if (_handleUnreachableExpression(inputCount)) return;
-    builder.addDynamicCall(node.name, DynamicCallKind.method, inputCount);
+    builder.addDynamicCall(
+      node.name,
+      DynamicCallKind.method,
+      inputCount,
+      _translateArgumentsShape(1, args),
+    );
   }
 
   @override
   void visitDynamicGet(ast.DynamicGet node) {
     _translateNode(node.receiver);
     if (_handleUnreachableExpression(1)) return;
-    builder.addDynamicCall(node.name, DynamicCallKind.getter, 1);
+    builder.addDynamicCall(
+      node.name,
+      DynamicCallKind.getter,
+      1,
+      functionRegistry.getArgumentsShape(1),
+    );
   }
 
   @override
@@ -630,7 +725,12 @@ class AstToIr extends ast.RecursiveVisitor {
     _translateNode(node.value);
     if (_handleUnreachableExpression(2)) return;
     final value = builder.stackTop;
-    builder.addDynamicCall(node.name, DynamicCallKind.setter, 2);
+    builder.addDynamicCall(
+      node.name,
+      DynamicCallKind.setter,
+      2,
+      functionRegistry.getArgumentsShape(2),
+    );
     builder.pop();
     builder.push(value);
   }
@@ -642,7 +742,9 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitVariableDeclaration(ast.VariableDeclaration node) {
-    if (node.isLate) throw 'unimplemented';
+    if (node.isLate) {
+      throw 'Unsupported node ${node.runtimeType} for late variable';
+    }
     if (node.isConst) return;
     final local = localVarIndexer.variableForDeclaration(node);
     final initializer = node.initializer;
@@ -662,7 +764,9 @@ class AstToIr extends ast.RecursiveVisitor {
   @override
   void visitVariableGet(ast.VariableGet node) {
     final variable = node.variable;
-    if (variable.isLate) throw 'unimplemented';
+    if (variable.isLate) {
+      throw 'Unsupported node ${node.runtimeType} for late variable';
+    }
     if (variable.isConst) {
       builder.addConstant(
         ConstantValue(
@@ -689,7 +793,9 @@ class AstToIr extends ast.RecursiveVisitor {
   @override
   void visitVariableSet(ast.VariableSet node) {
     final variable = node.variable;
-    if (variable.isLate) throw 'unimplemented';
+    if (variable.isLate) {
+      throw 'Unsupported node ${node.runtimeType} for late variable';
+    }
     _translateNode(node.value);
     if (_handleUnreachableExpression(1)) return;
     final local = localVarIndexer.variableForDeclaration(variable);
@@ -872,6 +978,7 @@ class AstToIr extends ast.RecursiveVisitor {
     builder.addInterfaceCall(
       functionRegistry.getFunction(interfaceTarget),
       2,
+      functionRegistry.getArgumentsShape(2),
       const BoolType(),
     );
   }
@@ -1309,6 +1416,7 @@ class AstToIr extends ast.RecursiveVisitor {
     builder.addDirectCall(
       target,
       inputCount,
+      _translateArgumentsShape(1, args),
       const TopType(const ast.VoidType()),
     );
     builder.pop();
@@ -1333,6 +1441,7 @@ class AstToIr extends ast.RecursiveVisitor {
     builder.addDirectCall(
       target,
       inputCount,
+      _translateArgumentsShape(1, args),
       const TopType(const ast.VoidType()),
     );
     builder.pop();
@@ -1358,7 +1467,12 @@ class AstToIr extends ast.RecursiveVisitor {
     final target = functionRegistry.getFunction(targetMember!);
     final inputCount = _translateArguments(ast.ThisExpression(), args);
     if (_handleUnreachableExpression(inputCount)) return;
-    builder.addDirectCall(target, inputCount, _staticType(node));
+    builder.addDirectCall(
+      target,
+      inputCount,
+      _translateArgumentsShape(1, args),
+      _staticType(node),
+    );
   }
 
   @override
@@ -1369,7 +1483,12 @@ class AstToIr extends ast.RecursiveVisitor {
     );
     final target = functionRegistry.getFunction(targetMember!, isGetter: true);
     builder.addLoadLocal(localVarIndexer.receiver);
-    builder.addDirectCall(target, 1, _staticType(node));
+    builder.addDirectCall(
+      target,
+      1,
+      functionRegistry.getArgumentsShape(1),
+      _staticType(node),
+    );
   }
 
   @override
@@ -1384,7 +1503,12 @@ class AstToIr extends ast.RecursiveVisitor {
     _translateNode(node.value);
     if (_handleUnreachableExpression(2)) return;
     final value = builder.stackTop;
-    builder.addDirectCall(target, 2, const TopType(const ast.VoidType()));
+    builder.addDirectCall(
+      target,
+      2,
+      functionRegistry.getArgumentsShape(2),
+      const TopType(const ast.VoidType()),
+    );
     builder.pop();
     builder.push(value);
   }
@@ -1407,14 +1531,13 @@ class AstToIr extends ast.RecursiveVisitor {
       _typeTranslator.translate(node.constructedType),
       typeArguments: typeArguments,
     );
-    final inputCount = _translateArguments(
-      null,
-      ast.Arguments(args.positional, named: args.named),
-    );
+    final argsWithoutTypes = ast.Arguments(args.positional, named: args.named);
+    final inputCount = _translateArguments(null, argsWithoutTypes);
     if (_handleUnreachableExpression(inputCount + 1)) return;
     builder.addDirectCall(
       target,
       inputCount + 1,
+      _translateArgumentsShape(1, argsWithoutTypes),
       const TopType(const ast.VoidType()),
     );
     builder.pop();
@@ -1451,26 +1574,38 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitFunctionInvocation(ast.FunctionInvocation node) {
-    final inputCount = _translateArguments(node.receiver, node.arguments);
+    final args = node.arguments;
+    final inputCount = _translateArguments(node.receiver, args);
     if (_handleUnreachableExpression(inputCount)) return;
     if (node.kind == ast.FunctionAccessKind.FunctionType) {
-      builder.addClosureCall(inputCount, _staticType(node));
+      builder.addClosureCall(
+        inputCount,
+        _translateArgumentsShape(1, args),
+        _staticType(node),
+      );
     } else {
       builder.addDynamicCall(
         ast.Name.callName,
         DynamicCallKind.method,
         inputCount,
+        _translateArgumentsShape(1, args),
       );
     }
   }
 
   @override
   void visitLocalFunctionInvocation(ast.LocalFunctionInvocation node) {
-    final local = localVarIndexer.variableForDeclaration(node.variable);
-    builder.addLoadLocal(local);
-    final inputCount = _translateArguments(null, node.arguments);
-    if (_handleUnreachableExpression(inputCount + 1)) return;
-    builder.addClosureCall(inputCount + 1, _staticType(node));
+    final args = node.arguments;
+    final inputCount = _translateArguments(
+      ast.VariableGet(node.variable),
+      args,
+    );
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addClosureCall(
+      inputCount,
+      _translateArgumentsShape(1, args),
+      _staticType(node),
+    );
   }
 
   /// Translate logical expression (!x, x || y, x && y) for value.
@@ -1577,7 +1712,8 @@ class LocalVariableIndexer {
   final Map<ast.TreeNode, LocalVariable> _stackTraceVariables = {};
 
   final List<LocalVariable> parameters = [];
-  LocalVariable get receiver => parameters[0];
+  late final LocalVariable functionTypeParameters;
+  late final LocalVariable receiver;
 
   LocalVariableIndexer(
     this.builder,
@@ -1585,17 +1721,24 @@ class LocalVariableIndexer {
     this.typeTranslator,
     CFunction function,
   ) {
+    if (function.hasFunctionTypeParameters) {
+      functionTypeParameters = builder.declareLocalVariable(
+        '#functionTypeParameters',
+        null,
+        const TypeParametersType(),
+      );
+      parameters.add(functionTypeParameters);
+    }
     if (function.hasReceiverParameter) {
       final cls = function.member.enclosingClass!;
-      parameters.add(
-        builder.declareLocalVariable(
-          'this',
-          null,
-          typeTranslator.translate(
-            cls.getThisType(coreTypes, ast.Nullability.nonNullable),
-          ),
+      receiver = builder.declareLocalVariable(
+        'this',
+        null,
+        typeTranslator.translate(
+          cls.getThisType(coreTypes, ast.Nullability.nonNullable),
         ),
       );
+      parameters.add(receiver);
     }
     if (function.hasClosureParameter) {
       parameters.add(
@@ -1670,94 +1813,25 @@ class FinallyBlock {
   FinallyBlock(FlowGraphBuilder builder, this.generateContinuation);
 }
 
-/// Look up references to free type parameters.
-class _FindTypeParameters
-    with ast.DartTypeVisitorExperimentExclusionMixin<bool>
-    implements ast.DartTypeVisitor<bool> {
-  const _FindTypeParameters();
+/// Look up references to type parameters.
+class _FindTypeParameters extends ast.RecursiveVisitor {
+  _FindTypeParameters();
+
+  bool containsClassTypeParams = false;
+  bool containsFunctionTypeParams = false;
 
   @override
-  bool visitFunctionType(ast.FunctionType node) {
-    if (node.returnType.accept(this)) return true;
-    for (final param in node.positionalParameters) {
-      if (param.accept(this)) return true;
+  void visitTypeParameterType(ast.TypeParameterType node) {
+    final declaration = node.parameter.declaration;
+    switch (declaration) {
+      case ast.Class():
+        containsClassTypeParams = true;
+        break;
+      case ast.GenericFunction():
+        containsFunctionTypeParams = true;
+        break;
+      default:
+        throw 'Unexpected type parameter $node declaration ${declaration.runtimeType} $declaration';
     }
-    for (final namedParam in node.namedParameters) {
-      if (namedParam.type.accept(this)) return true;
-    }
-    for (final typeParam in node.typeParameters) {
-      if (typeParam.bound.accept(this)) return true;
-      if (typeParam.defaultType.accept(this)) return true;
-    }
-    return false;
   }
-
-  @override
-  bool visitInterfaceType(ast.InterfaceType node) {
-    for (final type in node.typeArguments) {
-      if (type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitTypedefType(ast.TypedefType node) {
-    for (final type in node.typeArguments) {
-      if (type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitTypeParameterType(ast.TypeParameterType node) => true;
-
-  @override
-  bool visitStructuralParameterType(ast.StructuralParameterType node) => false;
-
-  @override
-  bool visitIntersectionType(ast.IntersectionType node) {
-    return node.left.accept(this) || node.right.accept(this);
-  }
-
-  @override
-  bool visitExtensionType(ast.ExtensionType node) {
-    for (final type in node.typeArguments) {
-      if (type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitRecordType(ast.RecordType node) {
-    for (final type in node.positional) {
-      if (type.accept(this)) return true;
-    }
-    for (final namedType in node.named) {
-      if (namedType.type.accept(this)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitFutureOrType(ast.FutureOrType node) =>
-      node.typeArgument.accept(this);
-
-  @override
-  bool visitInvalidType(ast.InvalidType node) => false;
-
-  @override
-  bool visitNeverType(ast.NeverType node) => false;
-
-  @override
-  bool visitNullType(ast.NullType node) => false;
-
-  @override
-  bool visitVoidType(ast.VoidType node) => false;
-
-  @override
-  bool visitDynamicType(ast.DynamicType node) => false;
-
-  @override
-  bool visitAuxiliaryType(ast.AuxiliaryType node) =>
-      throw 'Unsupported type ${node.runtimeType} $node';
 }

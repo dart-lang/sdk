@@ -4,7 +4,7 @@ description: CFG/SSA compiler IR and optimization passes.
 publish_to: none
 
 environment:
-  sdk: ^3.10.0
+  sdk: '^3.12.0-0'
 
 resolution: workspace
 

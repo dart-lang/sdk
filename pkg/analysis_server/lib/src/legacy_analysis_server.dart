@@ -460,9 +460,9 @@ class LegacyAnalysisServer extends AnalysisServer {
       pluginStatusAnalyzing,
     ) {
       if (!pluginManager.initializedCompleter.isCompleted) {
-        // Without `this.`, some portion of the analyzer believes we are accessing
-        // the super parameter, instead of the field in the super class.
-        // See https://github.com/dart-lang/sdk/issues/59996.
+        // Without `this.`, some portion of the analyzer believes we are
+        // accessing the super parameter, instead of the field in the super
+        // class.  See https://github.com/dart-lang/sdk/issues/59996.
         // ignore: unnecessary_this
         this.pluginManager.initializedCompleter.complete();
       } else {

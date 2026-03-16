@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -107,7 +108,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 611;
+  static const int DATA_VERSION = 612;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -176,7 +177,7 @@ class AnalysisDriver {
   final _priorityFiles = <String>{};
 
   /// The file changes that should be applied before processing requests.
-  final List<_FileChange> _pendingFileChanges = [];
+  final List<FileChange> _pendingFileChanges = [];
 
   /// The completers to complete after [_pendingFileChanges] are applied.
   final _pendingFileChangesCompleters = <Completer<List<String>>>[];
@@ -551,7 +552,7 @@ class AnalysisDriver {
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
-      _pendingFileChanges.add(_FileChange(path, _FileChangeKind.add));
+      _pendingFileChanges.add(FileChange(path, FileChangeKind.add));
       _scheduler.notify();
     }
   }
@@ -653,7 +654,7 @@ class AnalysisDriver {
       _lastProducedDiagnosticIds.remove(file);
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
-      _pendingFileChanges.add(_FileChange(path, _FileChangeKind.change));
+      _pendingFileChanges.add(FileChange(path, FileChangeKind.change));
       _scheduler._fileUpdatesStatistics.changedFiles.add(path);
       _scheduler.notify();
     }
@@ -1261,7 +1262,7 @@ class AnalysisDriver {
       _lastProducedDiagnosticIds.remove(file);
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
-      _pendingFileChanges.add(_FileChange(path, _FileChangeKind.remove));
+      _pendingFileChanges.add(FileChange(path, FileChangeKind.remove));
       _scheduler._fileUpdatesStatistics.removedFiles.add(path);
       _scheduler.notify();
     }
@@ -1551,11 +1552,11 @@ class AnalysisDriver {
       var path = fileChange.path;
       _removePotentiallyAffectedLibraries(accumulatedAffected, path);
       switch (fileChange.kind) {
-        case _FileChangeKind.add:
+        case FileChangeKind.add:
           _fileTracker.addFile(path);
-        case _FileChangeKind.change:
+        case FileChangeKind.change:
           _fileTracker.changeFile(path);
-        case _FileChangeKind.remove:
+        case FileChangeKind.remove:
           _fileTracker.removeFile(path);
           // TODO(scheglov): We have to do this because we discard files.
           // But this is not right, we need to handle removing better.
@@ -2537,22 +2538,14 @@ enum AnalysisDriverPriority {
 /// Instances of this class schedule work in multiple [AnalysisDriver]s so that
 /// work with the highest priority is performed first.
 class AnalysisDriverScheduler {
-  /// Time interval in milliseconds before pumping the event queue.
-  ///
-  /// Relinquishing execution flow and running the event loop after every task
-  /// has too much overhead. Instead we use a fixed length of time, so we can
-  /// spend less time overall and still respond quickly enough.
-  static const int _MS_BEFORE_PUMPING_EVENT_QUEUE = 2;
+  /// The number of microseconds of work to do per call to
+  /// `await Future.delayed(Duration.zero)` that will allow other async work to
+  /// complete.
+  static const int _microsecondsWorkPerWait = 1000000 ~/ 500;
 
-  /// Event queue pumping is required to allow IO and other asynchronous data
-  /// processing while analysis is active. For example Analysis Server needs to
-  /// be able to process `updateContent` or `setPriorityFiles` requests while
-  /// background analysis is in progress.
-  ///
-  /// The number of pumpings is arbitrary, might be changed if we see that
-  /// analysis or other data processing tasks are starving. Ideally we would
-  /// need to run all asynchronous operations using a single global scheduler.
-  static const int _NUMBER_OF_EVENT_QUEUE_PUMPINGS = 128;
+  /// The maximum number of calls to `await Future.delayed(Duration.zero)` to
+  /// do in a single batch.
+  static const int _maxWaits = 128;
 
   final PerformanceLog _logger;
 
@@ -2696,13 +2689,20 @@ class AnalysisDriverScheduler {
   void _run() async {
     // Give other microtasks the time to run before doing the analysis cycle.
     await null;
-    Stopwatch timer = Stopwatch()..start();
+
+    // The amount of time spent working without corresponding calls to
+    // `_pumpEventQueue`.
+    var workDuration = Duration.zero;
+
     PerformanceLogSection? analysisSection;
     while (true) {
-      // Pump the event queue.
-      if (timer.elapsedMilliseconds > _MS_BEFORE_PUMPING_EVENT_QUEUE) {
-        await _pumpEventQueue(_NUMBER_OF_EVENT_QUEUE_PUMPINGS);
-        timer.reset();
+      // Wait for other async work if needed to satisfy `_microscondsWorkPerWait`.
+      if (workDuration.inMicroseconds > _microsecondsWorkPerWait) {
+        var waits = workDuration.inMicroseconds ~/ _microsecondsWorkPerWait;
+        await _pumpEventQueue(min(waits, _maxWaits));
+        workDuration -= Duration(
+          microseconds: waits * _microsecondsWorkPerWait,
+        );
       }
 
       await _hasWork.signal;
@@ -2751,9 +2751,11 @@ class AnalysisDriverScheduler {
         continue;
       }
 
+      var workTimer = Stopwatch()..start();
       // Ask the driver to perform a chunk of work.
       await bestDriver.performWork();
       bestDriver.afterPerformWork();
+      workDuration += workTimer.elapsed;
 
       // Schedule one more cycle.
       _hasWork.notify();
@@ -2828,9 +2830,19 @@ class AnalysisDriverTestView {
     return libraryReferences.map((e) => e.name).toSet();
   }
 
+  int get numberOfFilesToAnalyze => driver.numberOfFilesToAnalyze;
+
+  List<FileChange> get pendingFileChanges {
+    return driver._pendingFileChanges.toList();
+  }
+
+  Set<String> get priorityFiles => driver._priorityFiles;
+
   Map<String, ResolvedUnitResult> get priorityResults {
     return driver._priorityResults;
   }
+
+  AnalysisDriverPriority get workPriority => driver.workPriority;
 }
 
 /// An object that watches for the creation and removal of analysis drivers.
@@ -2943,6 +2955,22 @@ class ExceptionResult {
   });
 }
 
+@visibleForTesting
+class FileChange {
+  final String path;
+  final FileChangeKind kind;
+
+  FileChange(this.path, this.kind);
+
+  @override
+  String toString() {
+    return '[path: $path][kind: $kind]';
+  }
+}
+
+@visibleForTesting
+enum FileChangeKind { add, change, remove }
+
 /// Container that keeps track of file owners.
 class OwnedFiles {
   /// Key: the absolute file URI.
@@ -2974,20 +3002,6 @@ abstract class SchedulerWorker {
   /// Perform a single chunk of work.
   Future<void> performWork();
 }
-
-class _FileChange {
-  final String path;
-  final _FileChangeKind kind;
-
-  _FileChange(this.path, this.kind);
-
-  @override
-  String toString() {
-    return '[path: $path][kind: $kind]';
-  }
-}
-
-enum _FileChangeKind { add, change, remove }
 
 class _GetFilesDefiningClassMemberNameRequest {
   final String name;

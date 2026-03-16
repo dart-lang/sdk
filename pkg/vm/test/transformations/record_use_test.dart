@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 import 'package:test/test.dart';
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector, KernelCompilationArguments;
@@ -128,8 +128,8 @@ void main(List<String> args) {
       if (file.path.endsWith('.dart') &&
           !file.path.contains('helper') &&
           (filter == null || file.path.contains(filter))) {
-        final name = path.basename(file.path);
-        final packageUri = Uri.parse('package:record_use_test/$name');
+        final relativePath = path.relative(file.path, from: testCasesDir.path);
+        final packageUri = Uri.parse('package:record_use_test/$relativePath');
         test(
           '${file.path} aot',
           () => runTestCaseAot(

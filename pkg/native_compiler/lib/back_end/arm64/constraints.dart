@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/types.dart';
 import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
 import 'package:native_compiler/back_end/constraints.dart';
 import 'package:native_compiler/back_end/locations.dart';
-import 'package:cfg/ir/instructions.dart';
-import 'package:cfg/ir/types.dart';
+import 'package:native_compiler/runtime/type_utils.dart';
 
 /// Defines arm64 register allocation contraints for
 /// inputs/outputs/temporaries of the IR instructions.
@@ -64,16 +65,35 @@ final class Arm64Constraints extends Constraints {
   // TODO: pass arguments on registers
   Constraint parameterConstraint(Parameter instr) {
     final paramIndex = instr.variable.index;
-    final numParams = instr.graph.function.numberOfParameters;
+    final function = instr.graph.function;
+    final numParams = function.numberOfParameters;
     assert(0 <= paramIndex && paramIndex < numParams);
+    Constraint? paramConstraint = _parameters?[paramIndex];
+    if (paramConstraint != null) {
+      return paramConstraint;
+    }
+    if (function.hasOptionalPositionalParameters ||
+        function.hasNamedParameters) {
+      if (paramIndex < argumentRegisters.length) {
+        paramConstraint = argumentRegisters[paramIndex];
+      } else {
+        paramConstraint = ParameterStackLocation(
+          paramIndex - argumentRegisters.length,
+          registerClass(instr),
+        );
+      }
+    } else {
+      paramConstraint = ParameterStackLocation(
+        paramIndex,
+        registerClass(instr),
+      );
+    }
     final parameters = (_parameters ??= List<Constraint?>.filled(
       numParams,
       null,
     ));
-    return parameters[paramIndex] ??= ParameterStackLocation(
-      paramIndex,
-      registerClass(instr),
-    );
+    parameters[paramIndex] = paramConstraint;
+    return paramConstraint;
   }
 
   @override
@@ -154,16 +174,24 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitLoadStaticField(LoadStaticField instr) =>
-      InstructionConstraints(
-        instr.field.type is DoubleType ? anyFpuRegister : anyCpuRegister,
-        const [],
-      );
+      (instr.checkInitialized && hasNonTrivialInitializer(instr.field.astField))
+      ? InstructionConstraints(
+          returnReg,
+          const [],
+          volatileRegistersExceptReturnReg,
+        )
+      : const InstructionConstraints(anyCpuRegister, [], [
+          anyCpuRegister,
+          anyCpuRegister,
+        ]);
 
   @override
   InstructionConstraints? visitStoreStaticField(StoreStaticField instr) =>
-      InstructionConstraints(null, [
-        instr.field.type is DoubleType ? anyFpuRegister : anyCpuRegister,
-      ]);
+      const InstructionConstraints(
+        null,
+        [anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister],
+      );
 
   @override
   InstructionConstraints? visitThrow(Throw instr) => InstructionConstraints(
@@ -176,32 +204,38 @@ final class Arm64Constraints extends Constraints {
       const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
 
   @override
-  InstructionConstraints? visitTypeParameters(TypeParameters instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        if (instr.inputCount == 1) anyCpuRegister,
-      ]);
-
-  @override
   InstructionConstraints? visitTypeCast(TypeCast instr) =>
       InstructionConstraints(anyCpuRegister, [
         anyCpuRegister,
-        if (instr.inputCount == 2) anyCpuRegister,
+        if (instr.inputCount > 1) ...[
+          anyRegisterOrImmediate(instr.inputDefAt(1)),
+          anyRegisterOrImmediate(instr.inputDefAt(2)),
+        ],
       ]);
 
   @override
   InstructionConstraints? visitTypeTest(TypeTest instr) =>
       InstructionConstraints(anyCpuRegister, [
         anyCpuRegister,
-        if (instr.inputCount == 2) anyCpuRegister,
+        if (instr.inputCount > 1) ...[
+          anyRegisterOrImmediate(instr.inputDefAt(1)),
+          anyRegisterOrImmediate(instr.inputDefAt(2)),
+        ],
       ]);
 
   @override
   InstructionConstraints? visitTypeArguments(TypeArguments instr) =>
-      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+      InstructionConstraints(anyCpuRegister, [
+        anyRegisterOrImmediate(instr.inputDefAt(0)),
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+      ]);
 
   @override
   InstructionConstraints? visitTypeLiteral(TypeLiteral instr) =>
-      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+      InstructionConstraints(anyCpuRegister, [
+        anyRegisterOrImmediate(instr.inputDefAt(0)),
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+      ]);
 
   @override
   InstructionConstraints? visitAllocateObject(AllocateObject instr) =>
@@ -218,25 +252,51 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitAllocateClosure(AllocateClosure instr) =>
-      InstructionConstraints(
-        anyCpuRegister,
-        List.generate(
-          instr.inputCount,
-          (int i) => anyLocationOrImmediate(instr.inputDefAt(i)),
-        ),
-      );
+      const InstructionConstraints(AllocationStub.resultReg, [], [
+        AllocationStub.tagsReg,
+        AllocationStub.scratch1Reg,
+        AllocationStub.scratch2Reg,
+      ]);
 
   @override
   InstructionConstraints? visitAllocateList(AllocateList instr) =>
-      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+      InstructionConstraints(
+        anyCpuRegister,
+        [anyRegisterOrImmediate(instr.length)],
+        const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
 
   @override
   InstructionConstraints? visitSetListElement(SetListElement instr) =>
-      const InstructionConstraints(null, [
+      InstructionConstraints(
+        null,
+        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
+        const [anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitBoxInt(BoxInt instr) =>
+      const InstructionConstraints(
         anyCpuRegister,
+        [anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitBoxDouble(BoxDouble instr) =>
+      const InstructionConstraints(
         anyCpuRegister,
-        anyCpuRegister,
-      ]);
+        [anyFpuRegister],
+        [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitUnboxInt(UnboxInt instr) =>
+      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitUnboxDouble(UnboxDouble instr) =>
+      const InstructionConstraints(anyFpuRegister, [anyCpuRegister]);
 
   @override
   InstructionConstraints? visitBinaryIntOp(BinaryIntOp instr) =>

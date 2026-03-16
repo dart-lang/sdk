@@ -439,6 +439,62 @@ final a = new MyNewClass();
     );
   }
 
+  Future<void> test_rename_constructor_named_new_declaration() {
+    const content = '''
+class MyClass {
+  new [!na^med!]();
+}
+final a = new MyClass.named();
+''';
+    const expectedContent = '''
+class MyClass {
+  new newName();
+}
+final a = new MyClass.newName();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_constructor_named_new_declaration_removeName() {
+    const content = '''
+class MyClass {
+  new [!na^med!]();
+}
+final a = new MyClass.named();
+''';
+    const expectedContent = '''
+class MyClass {
+  new();
+}
+final a = new MyClass();
+''';
+    return _test_rename_withDocumentChanges(content, '', expectedContent);
+  }
+
+  Future<void> test_rename_constructor_named_new_invocation() {
+    const content = '''
+class MyClass {
+  new named();
+}
+final a = new MyClass.[!na^med!]();
+''';
+    const expectedContent = '''
+class MyClass {
+  new newName();
+}
+final a = new MyClass.newName();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
   Future<void> test_rename_duplicateName_applyAfterDocumentChanges() async {
     // Perform a refactor that results in a prompt to the user, but then modify
     // the document before accepting/rejecting to make the rename invalid.
@@ -887,6 +943,198 @@ final MyNewMain = 'test';
     );
   }
 
+  Future<void> test_rename_primaryConstructor_className_declaration() {
+    const content = '''
+class [!My^Class!]();
+final a = new MyClass();
+''';
+    const expectedContent = '''
+class MyNewClass();
+final a = new MyNewClass();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_className_invocation() {
+    const content = '''
+class MyClass();
+final a = new [!My^Class!]();
+''';
+    const expectedContent = '''
+class MyNewClass();
+final a = new MyNewClass();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_named_className_declaration() {
+    const content = '''
+class [!My^Class!].named();
+final a = new MyClass.named();
+''';
+    const expectedContent = '''
+class MyNewClass.named();
+final a = new MyNewClass.named();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_named_className_invocation() {
+    const content = '''
+class MyClass.named();
+final a = new [!My^Class!].named();
+''';
+    const expectedContent = '''
+class MyNewClass.named();
+final a = new MyNewClass.named();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_named_name_declaration() {
+    const content = '''
+class MyClass.[!na^med!]();
+final a = new MyClass.named();
+''';
+    const expectedContent = '''
+class MyClass.newName();
+final a = new MyClass.newName();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_named_name_invocation() {
+    const content = '''
+class MyClass.named();
+final a = new MyClass.[!na^med!]();
+''';
+    const expectedContent = '''
+class MyClass.newName();
+final a = new MyClass.newName();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_param_declaring_declaration() {
+    const content = '''
+class MyClass({required final int [!myPa^ram!]}) {
+  this {
+    myParam;
+  }
+}
+final a = new MyClass(myParam: 1);
+''';
+    const expectedContent = '''
+class MyClass({required final int myNewParam}) {
+  this {
+    myNewParam;
+  }
+}
+final a = new MyClass(myNewParam: 1);
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myNewParam',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_param_declaring_reference() {
+    const content = '''
+class MyClass({required final int myParam}) {
+  this {
+    [!myPa^ram!];
+  }
+}
+final a = new MyClass(myParam: 1);
+''';
+    const expectedContent = '''
+class MyClass({required final int myNewParam}) {
+  this {
+    myNewParam;
+  }
+}
+final a = new MyClass(myNewParam: 1);
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myNewParam',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_param_nonDeclaring_declaration() {
+    const content = '''
+class MyClass({required int [!myPa^ram!]}) {
+  this {
+    myParam;
+  }
+}
+final a = new MyClass(myParam: 1);
+''';
+    const expectedContent = '''
+class MyClass({required int myNewParam}) {
+  this {
+    myNewParam;
+  }
+}
+final a = new MyClass(myNewParam: 1);
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myNewParam',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_param_nonDeclaring_reference() {
+    const content = '''
+class MyClass({required int myParam}) {
+  this {
+    [!myPa^ram!];
+  }
+}
+final a = new MyClass(myParam: 1);
+''';
+    const expectedContent = '''
+class MyClass({required int myNewParam}) {
+  this {
+    myNewParam;
+  }
+}
+final a = new MyClass(myNewParam: 1);
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myNewParam',
+      expectedContent,
+    );
+  }
+
   Future<void> test_rename_rejectedForBadName() async {
     const content = '''
 class MyClass {}
@@ -1278,7 +1526,7 @@ final a = new MyNewClass();
     if (expectedContent == null) {
       expect(result, isNull);
     } else {
-      // For convenience, if a test doesn't provide an full set of edits
+      // For convenience, if a test doesn't provide a full set of edits
       // we assume only a single edit of the file that was being modified.
       if (!expectedContent.startsWith(LspChangeVerifier.editMarkerStart)) {
         expectedContent =

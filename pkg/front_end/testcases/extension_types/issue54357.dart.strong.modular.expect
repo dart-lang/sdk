@@ -30,12 +30,12 @@ static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /*
 static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> m3s4 = #C13;
 static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> ms43 = #C14;
 static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> ms3s4 = #C13;
-static extension-type-member const method ExInt|constructor#(core::int _) → self::ExInt /* erasure=core::int */ {
-  lowered final self::ExInt /* erasure=core::int */ #this = _;
+static extension-type-member const method ExInt|constructor#(wildcard core::int _#wc0#formal) → self::ExInt /* erasure=core::int */ {
+  lowered final self::ExInt /* erasure=core::int */ #this = _#wc0#formal;
   return #this;
 }
-static extension-type-member synthetic method ExInt|constructor#_#new#tearOff(core::int _) → self::ExInt /* erasure=core::int */
-  return self::ExInt|constructor#(_);
+static extension-type-member synthetic method ExInt|constructor#_#new#tearOff(core::int _#wc0#formal) → self::ExInt /* erasure=core::int */
+  return self::ExInt|constructor#(_#wc0#formal);
 
 constants  {
   #C1 = 3

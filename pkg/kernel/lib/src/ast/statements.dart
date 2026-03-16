@@ -629,7 +629,7 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
 
-  ExpressionVariable expressionVariable;
+  Variable expressionVariable;
 
   // Has no initializer.
   VariableDeclaration get variable => expressionVariable as VariableDeclaration;
@@ -1195,18 +1195,33 @@ class TryCatch extends Statement {
 
 class Catch extends TreeNode implements ScopeProvider {
   DartType guard; // Not null, defaults to dynamic.
-  VariableDeclaration? exception;
-  VariableDeclaration? stackTrace;
+  CatchVariable? exceptionCatchVariable;
+  CatchVariable? stackTraceCatchVariable;
   Statement body;
 
   @override
   Scope? scope;
 
-  Catch(this.exception, this.body,
-      {this.guard = const DynamicType(), this.stackTrace}) {
-    exception?.parent = this;
-    stackTrace?.parent = this;
+  Catch(this.exceptionCatchVariable, this.body,
+      {this.guard = const DynamicType(), CatchVariable? stackTrace})
+      : stackTraceCatchVariable = stackTrace {
+    exceptionCatchVariable?.parent = this;
+    stackTraceCatchVariable?.parent = this;
     body.parent = this;
+  }
+
+  VariableDeclaration? get exception =>
+      exceptionCatchVariable as VariableDeclaration?;
+
+  void set exception(VariableDeclaration? value) {
+    exceptionCatchVariable = value;
+  }
+
+  VariableDeclaration? get stackTrace =>
+      stackTraceCatchVariable as VariableDeclaration?;
+
+  void set stackTrace(VariableDeclaration? value) {
+    stackTraceCatchVariable = value;
   }
 
   @override
@@ -1218,21 +1233,21 @@ class Catch extends TreeNode implements ScopeProvider {
   @override
   void visitChildren(Visitor v) {
     guard.accept(v);
-    exception?.accept(v);
-    stackTrace?.accept(v);
+    exceptionCatchVariable?.accept(v);
+    stackTraceCatchVariable?.accept(v);
     body.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     guard = v.visitDartType(guard);
-    if (exception != null) {
-      exception = v.transform(exception!);
-      exception?.parent = this;
+    if (exceptionCatchVariable != null) {
+      exceptionCatchVariable = v.transform(exceptionCatchVariable!);
+      exceptionCatchVariable?.parent = this;
     }
-    if (stackTrace != null) {
-      stackTrace = v.transform(stackTrace!);
-      stackTrace?.parent = this;
+    if (stackTraceCatchVariable != null) {
+      stackTraceCatchVariable = v.transform(stackTraceCatchVariable!);
+      stackTraceCatchVariable?.parent = this;
     }
     body = v.transform(body);
     body.parent = this;
@@ -1241,13 +1256,15 @@ class Catch extends TreeNode implements ScopeProvider {
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     guard = v.visitDartType(guard, cannotRemoveSentinel);
-    if (exception != null) {
-      exception = v.transformOrRemoveVariableDeclaration(exception!);
-      exception?.parent = this;
+    if (exceptionCatchVariable != null) {
+      exceptionCatchVariable =
+          v.transformOrRemoveCatchVariable(exceptionCatchVariable!);
+      exceptionCatchVariable?.parent = this;
     }
-    if (stackTrace != null) {
-      stackTrace = v.transformOrRemoveVariableDeclaration(stackTrace!);
-      stackTrace?.parent = this;
+    if (stackTraceCatchVariable != null) {
+      stackTraceCatchVariable =
+          v.transformOrRemoveCatchVariable(stackTraceCatchVariable!);
+      stackTraceCatchVariable?.parent = this;
     }
     body = v.transform(body);
     body.parent = this;
@@ -1424,8 +1441,9 @@ abstract interface class VariableDeclaration
     implements
         Annotatable,
         Statement,
-        ExpressionVariable,
-        VariableInitialization {
+        Variable,
+        VariableInitialization,
+        CatchVariable {
   /// The name of the variable as provided in the source code.
   ///
   /// The name of a variable can only be omitted if the variable is synthesized.
@@ -1634,10 +1652,6 @@ class VariableStatement extends Statement implements VariableDeclaration {
   @override
   Expression? initializer; // May be null.
 
-  @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  List<VariableContext>? contexts;
-
   VariableStatement(this._name,
       {this.initializer,
       this.type = const DynamicType(),
@@ -1705,6 +1719,24 @@ class VariableStatement extends Statement implements VariableDeclaration {
     assert(value != null || isSynthesized,
         "Only synthesized variables can have no name.");
     _name = value;
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  List<VariableContext>? get contexts {
+    throw new UnsupportedError("${this.runtimeType}.contexts");
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  void set contexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  }
+
+  @override
+  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  String get catchVariableName {
+    throw new UnsupportedError("${this.runtimeType}.catchVariableName");
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
@@ -1951,13 +1983,13 @@ class VariableStatement extends Statement implements VariableDeclaration {
   }
 
   @override
-  ExpressionVariable get asExpressionVariable => this;
+  Variable get asExpressionVariable => this;
 
   @override
-  ExpressionVariable get variable => this;
+  Variable get variable => this;
 
   @override
-  void set variable(ExpressionVariable value) {
+  void set variable(Variable value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -2012,6 +2044,9 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 
   @override
   FunctionNode function;
+
+  @override
+  LocalFunctionId id = LocalFunctionId.invalid;
 
   FunctionDeclaration(this.variable, this.function) {
     variable.parent = this;
@@ -2069,7 +2104,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 /// an initializer.
 class VariableInitialization extends Statement
     implements Annotatable, ContextConsumer {
-  ExpressionVariable variable;
+  Variable variable;
 
   Expression? initializer;
 
@@ -2276,5 +2311,5 @@ class VariableInitialization extends Statement
 
   VariableContext get context => variable.context;
 
-  ExpressionVariable get asExpressionVariable => variable;
+  Variable get asExpressionVariable => variable;
 }

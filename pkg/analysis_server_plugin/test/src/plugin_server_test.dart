@@ -64,10 +64,13 @@ bool b = false;
     expect(params.errors, isEmpty);
   }
 
-  void writeAnalysisOptionsWithPlugin([
+  void writeAnalysisOptionsWithPlugin({
     Map<String, String> diagnosticConfiguration = const {},
-  ]) {
-    var buffer = StringBuffer('''
+    StringBuffer? buffer,
+  }) {
+    buffer ??= StringBuffer();
+    buffer.writeln();
+    buffer.writeln('''
 plugins:
   other_plugin:
     path: some/other/path
@@ -79,6 +82,30 @@ plugins:
       buffer.writeln('      $diagnosticName: $enablement');
     }
     newAnalysisOptionsYamlFile(packagePath, buffer.toString());
+  }
+
+  Future<void> test_excludedPaths() async {
+    writeAnalysisOptionsWithPlugin(
+      buffer: StringBuffer('''
+analyzer:
+  exclude:
+    - lib/test.dart
+'''),
+    );
+    var fileContent = 'bool b = false;';
+    newFile(filePath, fileContent);
+    newFile(file2Path, fileContent);
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+
+    // It never sends the result for the excluded file. So we can skip it.
+
+    expect(params.file, file2Path);
+    expect(params.errors, hasLength(1));
   }
 
   Future<void> test_ignoreFixes() async {

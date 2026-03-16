@@ -187,6 +187,22 @@ class A {
 ''');
   }
 
+  test_ignorePrivateFields() async {
+    // Private fields are not part of the public API, so it doesn't make sense
+    // to try to match up their deprecation status with that of the parameters
+    // that initialize them.
+    await assertNoDiagnostics(r'''
+class C {
+  @deprecated
+  int? _a;
+
+  int? _b;
+
+  C({this._a, @deprecated this._b});
+}
+''');
+  }
+
   test_primaryConstructor_thisParameter_deprecated() async {
     await assertNoDiagnostics(r'''
 class A({@deprecated this.a = 1}) {
@@ -205,6 +221,43 @@ class A(this.a) {
 }
 ''',
       [lint(8, 6)],
+    );
+  }
+
+  test_repro_62759() async {
+    // Regression test for issue 62759: deprecated_consistency lint swaps
+    // parameter and field
+    await assertDiagnostics(
+      r'''
+class C {
+  @deprecated
+  int? deprecatedField;
+
+  int? deprecatedParameter;
+
+  C({this.deprecatedField, @deprecated this.deprecatedParameter});
+}
+''',
+      [
+        lint(
+          56,
+          19,
+          messageContainsAll: [
+            // ignore: no_adjacent_strings_in_list
+            'Fields that are initialized by a deprecated parameter should be '
+                'deprecated',
+          ],
+        ),
+        lint(
+          83,
+          20,
+          messageContainsAll: [
+            // ignore: no_adjacent_strings_in_list
+            'Parameters that initialize a deprecated field should be '
+                'deprecated',
+          ],
+        ),
+      ],
     );
   }
 }

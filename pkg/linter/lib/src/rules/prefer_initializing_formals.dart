@@ -10,6 +10,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -59,11 +61,11 @@ class _ConstructorChecker {
   _ConstructorChecker(
     this._rule,
     this._constructor, {
-    required bool privateNamedParametersEnabled,
+    required this._privateNamedParametersEnabled,
   }) : _parameters = _constructor.parameters.parameters
-           .map((e) => e.declaredFragment?.element)
-           .toList(),
-       _privateNamedParametersEnabled = privateNamedParametersEnabled;
+           .where((param) => param.notDefault is! SuperFormalParameter)
+           .map((param) => param.declaredFragment?.element)
+           .toList();
 
   void check() {
     // Don't lint initializers from parameters that are already initializing
@@ -120,8 +122,6 @@ class _ConstructorChecker {
     }
 
     _nodesToLintByField.forEach((field, nodes) {
-      if (nodes.length > 1) return;
-
       for (var lintNode in nodes) {
         _rule.reportAtNode(lintNode, arguments: [field.name!]);
       }
@@ -143,6 +143,15 @@ class _ConstructorChecker {
     // Must be assigning from a constructor parameter with a matching name.
     if (parameter is! FormalParameterElement) return;
     if (!_parameters.contains(parameter)) return;
+
+    // An initializing formal is required to have a type that's a subtype of the
+    // field type (assignability is not sufficient). If this requirement isn't
+    // met, don't lint, because the corresponding fix will lead to a
+    // compile-time error.
+    var library = parameter.library!;
+    if (!library.typeSystem.isSubtypeOf(parameter.type, field.type)) {
+      return;
+    }
 
     // Must be the same name (modulo privacy for private named parameters).
     if (field.isPrivate) {
@@ -168,7 +177,33 @@ class _ConstructorChecker {
       return;
     }
 
+    // There can't be any other references to the parameter. If there are, it's
+    // possible removing the initializer/assignment and moving it up to be an
+    // initializing formal could be a semantic change.
+    var visitor = _ReferenceCounter(parameter);
+    // Visit the initializers and body directly so that we ignore references in
+    // the doc comment.
+    _constructor.initializers.accept(visitor);
+    _constructor.body.accept(visitor);
+    if (visitor.count > 1) return;
+
     _nodesToLintByField.putIfAbsent(field, () => []).add(node);
+  }
+}
+
+/// Counts references in the visited AST to a given parameter.
+class _ReferenceCounter extends RecursiveAstVisitor<void> {
+  final FormalParameterElement parameterElement;
+
+  int count = 0;
+
+  _ReferenceCounter(this.parameterElement);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.element == parameterElement) {
+      count++;
+    }
   }
 }
 

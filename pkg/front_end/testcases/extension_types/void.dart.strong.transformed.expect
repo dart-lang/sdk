@@ -6,9 +6,9 @@ extension type ET(void _) {
   constructor • = self::ET|constructor#;
   constructor tearoff • = self::ET|constructor#_#new#tearOff;
 }
-static extension-type-member method ET|constructor#(void _) → self::ET% /* erasure=void, declared=! */ {
-  lowered final self::ET% /* erasure=void, declared=! */ #this = _;
+static extension-type-member method ET|constructor#(wildcard void _#wc0#formal) → self::ET% /* erasure=void, declared=! */ {
+  lowered final self::ET% /* erasure=void, declared=! */ #this = _#wc0#formal;
   return #this;
 }
-static extension-type-member synthetic method ET|constructor#_#new#tearOff(void _) → self::ET% /* erasure=void, declared=! */
-  return self::ET|constructor#(_);
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(void _#wc0#formal) → self::ET% /* erasure=void, declared=! */
+  return self::ET|constructor#(_#wc0#formal);

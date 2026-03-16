@@ -110,8 +110,14 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // vm/cc tests to randomly time out due to inability to shut service-isolate
   // down.
   // Issue(https://dartbug.com/37741):
-  if ((strcmp(run_filter, "DartAPI_InvokeVMServiceMethod") != 0) &&
-      (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Loop") != 0)) {
+  const bool is_service_test =
+      (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod") == 0) ||
+      (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Loop") == 0);
+  const bool is_exp_service_test =
+      (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Exp") == 0) ||
+      (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Loop_Exp") == 0);
+
+  if (!is_service_test && !is_exp_service_test) {
     return nullptr;
   }
 
@@ -122,21 +128,50 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                 packages_config, /*app_snapshot=*/nullptr,
                                 /*isolate_run_app_snapshot=*/false);
 
-  const uint8_t* kernel_buffer = nullptr;
-  intptr_t kernel_buffer_size = 0;
-
-  bin::dfe.Init();
-  bin::dfe.LoadPlatform(&kernel_buffer, &kernel_buffer_size);
-  RELEASE_ASSERT(kernel_buffer != nullptr);
-
   flags->load_vmservice_library = true;
   flags->is_service_isolate = true;
-  isolate_group_data->SetKernelBufferUnowned(
-      const_cast<uint8_t*>(kernel_buffer), kernel_buffer_size);
-  isolate = Dart_CreateIsolateGroupFromKernel(
-      script_uri, DART_VM_SERVICE_ISOLATE_NAME, kernel_buffer,
-      kernel_buffer_size, flags, isolate_group_data, /*isolate_data=*/nullptr,
-      error);
+
+#if defined(EXPERIMENTAL_VM_SERVICE)
+  if (is_exp_service_test) {
+    ASSERT(!is_service_test);
+    const uint8_t* isolate_snapshot_data = nullptr;
+    const uint8_t* isolate_snapshot_instructions = nullptr;
+
+    bin::VmService::enable_experimental_vm_service = true;
+    auto [app_snapshot, script_name] = bin::Snapshot::TryReadSDKSnapshot(
+        "dart_runtime_service_vm.dart.snapshot");
+    if (app_snapshot == nullptr) {
+      return nullptr;
+    }
+    const uint8_t* ignore_vm_snapshot_data;
+    const uint8_t* ignore_vm_snapshot_instructions;
+    app_snapshot->SetBuffers(
+        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    isolate = Dart_CreateIsolateGroup(
+        script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
+        isolate_snapshot_instructions, flags, isolate_group_data,
+        /*isolate_data=*/nullptr, error);
+  }
+#endif  // defined(EXPERIMENTAL_VM_SERVICE)
+
+  if (is_service_test) {
+    ASSERT(!is_exp_service_test);
+    const uint8_t* kernel_buffer = nullptr;
+    intptr_t kernel_buffer_size = 0;
+
+    bin::dfe.Init();
+    bin::dfe.LoadPlatform(&kernel_buffer, &kernel_buffer_size);
+    RELEASE_ASSERT(kernel_buffer != nullptr);
+
+    isolate_group_data->SetKernelBufferUnowned(
+        const_cast<uint8_t*>(kernel_buffer), kernel_buffer_size);
+    isolate = Dart_CreateIsolateGroupFromKernel(
+        script_uri, DART_VM_SERVICE_ISOLATE_NAME, kernel_buffer,
+        kernel_buffer_size, flags, isolate_group_data, /*isolate_data=*/nullptr,
+        error);
+  }
+
   if (isolate == nullptr) {
     delete isolate_group_data;
     return nullptr;

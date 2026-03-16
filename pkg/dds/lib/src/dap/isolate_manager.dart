@@ -748,6 +748,12 @@ class IsolateManager {
         _adapter.storeEvaluateName(exception, threadExceptionExpression);
         thread.exceptionReference = thread.storeData(exception);
         text = await _adapter.getFullString(thread, exception);
+
+        // Attempt to read a stack trace from whatever was thrown.
+        final stackTraceString = await _tryGetStackTrace(thread, exception);
+        if (stackTraceString != null) {
+          text = '$text\n\n$stackTraceString';
+        }
       }
 
       // Notify the client.
@@ -1219,6 +1225,33 @@ class IsolateManager {
     ));
 
     return results.any((result) => result);
+  }
+
+  /// Attempts to get a string stack trace from [instance].
+  ///
+  /// This is called when we pause on an exception to include the stack trace
+  /// from the error (which may be different from the actual current stack if
+  /// we were awaiting an errored Future).
+  ///
+  /// We don't know for sure that what was thrown has a stack trace
+  /// (`throw 'foo';`) so we just assume and handle errors.
+  Future<String?> _tryGetStackTrace(
+      ThreadInfo thread, vm.InstanceRef instance) async {
+    try {
+      final stackTrace = await _adapter.vmEvaluate(
+        thread,
+        instance.id!,
+        'stackTrace',
+      );
+      if (stackTrace is vm.InstanceRef) {
+        return await _adapter.getFullString(thread, stackTrace);
+      }
+      return null;
+    } catch (_) {
+      // Failures can occur trying to evaluate potentially unknown members, so
+      // just return nothing, so no stack trace is appended.
+      return null;
+    }
   }
 
   /// Clears all data stored for [thread].

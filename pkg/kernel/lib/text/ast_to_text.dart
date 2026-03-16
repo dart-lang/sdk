@@ -137,8 +137,8 @@ String componentToString(Component node) {
 }
 
 class NameSystem {
-  final Namer<ExpressionVariable> variables =
-      new NormalNamer<VariableDeclaration>('#t');
+  final Namer<Variable> variables =
+      new NormalNamer<Variable>('#t');
   final Namer<Reference> libraries = new NormalNamer<Reference>('#lib');
   final Namer<TypeParameter> typeParameters =
       new NormalNamer<TypeParameter>('#T');
@@ -151,7 +151,7 @@ class NameSystem {
   final Disambiguator<Reference, CanonicalName> prefixes =
       new Disambiguator<Reference, CanonicalName>();
 
-  String nameVariable(ExpressionVariable node) => variables.getName(node);
+  String nameVariable(Variable node) => variables.getName(node);
   String nameLibrary(Reference node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
   String nameStructuralParameter(StructuralParameter node) =>
@@ -347,11 +347,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  String getVariableName(ExpressionVariable node) {
+  String getVariableName(Variable node) {
     return node.cosmeticName ?? syntheticNames.nameVariable(node);
   }
 
-  String getVariableReference(ExpressionVariable node) {
+  String getVariableReference(Variable node) {
     return getVariableName(node);
   }
 
@@ -1049,7 +1049,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeWord(getTypedefReference(typedefNode));
   }
 
-  void writeVariableReference(ExpressionVariable variable) {
+  void writeVariableReference(Variable variable) {
     final bool highlight = shouldHighlight(variable);
     if (highlight) {
       startHighlight(variable);
@@ -1176,64 +1176,78 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     endLine(';');
   }
 
-  void writeExpressionVariable(ExpressionVariable node) {
-    if (showOffsets) writeWord("[${node.fileOffset}]");
-    if (showMetadata) writeMetadata(node);
+  @override
+  void visitCatchVariable(CatchVariable node) {
+    writeIndentation();
+    writeExpressionVariable(node);
+    endLine(';');
+  }
 
-    switch (node) {
-      case LocalVariable():
-        writeWord('local-variable');
-      case PositionalParameter():
-        writeWord('positional-parameter');
-      case NamedParameter():
-        writeWord('named-parameter');
-      case ThisVariable():
-        writeWord('this-variable');
-      case SyntheticVariable():
-        writeWord('synthetic-variable');
-      case VariableDeclaration():
-        writeWord('variable-declaration');
-    }
+  void writeExpressionVariable(Variable node) {
+    if (node is VariableDeclaration && node is! FunctionParameter) {
+      writeVariableDeclaration(node);
+    } else {
+      if (showOffsets) writeWord("[${node.fileOffset}]");
+      if (showMetadata) writeMetadata(node);
 
-    // TODO(cstefantsova): Should [Variable]s have annotations?
-    // writeAnnotationList(node.annotations, separateLines: false);
-    if (node.hasIsLowered) {
-      writeModifier(node.isLowered, 'lowered');
+      switch (node) {
+        case LocalVariable():
+          writeWord('local-variable');
+        case PositionalParameter():
+          writeWord('positional-parameter');
+        case NamedParameter():
+          writeWord('named-parameter');
+        case ThisVariable():
+          writeWord('this-variable');
+        case SyntheticVariable():
+          writeWord('synthetic-variable');
+        case VariableDeclaration():
+          writeWord('variable-declaration');
+        case CatchVariable():
+          writeWord('catch-variable');
+      }
+
+      // TODO(cstefantsova): Should [Variable]s have annotations?
+      // writeAnnotationList(node.annotations, separateLines: false);
+      if (node.hasIsLowered) {
+        writeModifier(node.isLowered, 'lowered');
+      }
+      if (node.hasIsLate) {
+        writeModifier(node.isLate, 'late');
+      }
+      if (node.hasIsRequired) {
+        writeModifier(node.isRequired, 'required');
+      }
+      if (node.hasIsCovariantByDeclaration) {
+        writeModifier(
+            node.isCovariantByDeclaration, 'covariant-by-declaration');
+      }
+      if (node.hasIsCovariantByClass) {
+        writeModifier(node.isCovariantByClass, 'covariant-by-class');
+      }
+      if (node.hasIsFinal) {
+        writeModifier(node.isFinal, 'final');
+      }
+      if (node.hasIsConst) {
+        writeModifier(node.isConst, 'const');
+      }
+      if (node.hasIsSynthesized) {
+        writeModifier(
+            node.isSynthesized && node.cosmeticName != null, 'synthesized');
+      }
+      if (node.hasIsHoisted) {
+        writeModifier(node.isHoisted, 'hoisted');
+      }
+      if (node.hasIsWildcard) {
+        writeModifier(node.isWildcard, 'wildcard');
+      }
+      if (node.hasIsErroneouslyInitialized) {
+        writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
+      }
+      // TODO(cstefantsova): Adapt [Annotator] for [Variable]s.
+      // writeAnnotatedType(node.type, annotator?.annotateVariable(this, node));
+      writeWord(getVariableName(node));
     }
-    if (node.hasIsLate) {
-      writeModifier(node.isLate, 'late');
-    }
-    if (node.hasIsRequired) {
-      writeModifier(node.isRequired, 'required');
-    }
-    if (node.hasIsCovariantByDeclaration) {
-      writeModifier(node.isCovariantByDeclaration, 'covariant-by-declaration');
-    }
-    if (node.hasIsCovariantByClass) {
-      writeModifier(node.isCovariantByClass, 'covariant-by-class');
-    }
-    if (node.hasIsFinal) {
-      writeModifier(node.isFinal, 'final');
-    }
-    if (node.hasIsConst) {
-      writeModifier(node.isConst, 'const');
-    }
-    if (node.hasIsSynthesized) {
-      writeModifier(
-          node.isSynthesized && node.cosmeticName != null, 'synthesized');
-    }
-    if (node.hasIsHoisted) {
-      writeModifier(node.isHoisted, 'hoisted');
-    }
-    if (node.hasIsWildcard) {
-      writeModifier(node.isWildcard, 'wildcard');
-    }
-    if (node.hasIsErroneouslyInitialized) {
-      writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
-    }
-    // TODO(cstefantsova): Adapt [Annotator] for [Variable]s.
-    // writeAnnotatedType(node.type, annotator?.annotateVariable(this, node));
-    writeWord(getVariableName(node));
   }
 
   @override
@@ -2612,16 +2626,16 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeSpace();
     writeWord('catch');
     writeSymbol('(');
-    VariableDeclaration? exception = node.exception;
+    CatchVariable? exception = node.exceptionCatchVariable;
     if (exception != null) {
-      writeVariableDeclaration(exception);
+      writeExpressionVariable(exception);
     } else {
       writeWord('no-exception-var');
     }
-    VariableDeclaration? stackTrace = node.stackTrace;
+    CatchVariable? stackTrace = node.stackTraceCatchVariable;
     if (stackTrace != null) {
       writeComma();
-      writeVariableDeclaration(stackTrace);
+      writeExpressionVariable(stackTrace);
     }
     writeSymbol(')');
     if (node.scope case Scope scope?) {

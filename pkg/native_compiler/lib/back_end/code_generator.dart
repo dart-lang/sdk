@@ -287,6 +287,10 @@ abstract base class CodeGenerator extends Pass
   void generatePop(Location loc);
 
   @override
+  void visitTypeParameters(TypeParameters instr) =>
+      throw 'Unexpected TypeParameters (should be lowered)';
+
+  @override
   void visitAllocateListLiteral(AllocateListLiteral instr) =>
       throw 'Unexpected AllocateListLiteral (should be lowered)';
 

@@ -551,6 +551,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Convert to an initializing formal parameter',
   );
+  static const convertToInitializingFormalMulti = FixKind(
+    'dart.fix.convert.toInitializingFormal.multi',
+    DartFixKindPriority.standard,
+    'Convert to initializing formal parameters everywhere in file',
+  );
   static const convertToIntLiteral = FixKind(
     'dart.fix.convert.toIntLiteral',
     DartFixKindPriority.standard,
@@ -1408,6 +1413,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.extends.clause.multi',
     DartFixKindPriority.inFile,
     "Remove invalid 'extends' clauses everywhere in file",
+  );
+  static const removeKeyword = FixKind(
+    'dart.fix.remove.keyword',
+    DartFixKindPriority.standard,
+    "Remove '{0}'",
+  );
+  static const removeKeywordMulti = FixKind(
+    'dart.fix.remove.keyword.multi',
+    DartFixKindPriority.inFile,
+    "Remove '{0}' everywhere in file",
   );
   static const removeLexeme = FixKind(
     'dart.fix.remove.lexeme',

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -68,21 +69,21 @@ class TodoFinder {
   /// Returns the next comment token to begin searching from (skipping over
   /// any continuations).
   Token? _scrapeTodoComment(Token commentToken, LineInfo lineInfo) {
-    Iterable<RegExpMatch> matches = Todo.TODO_REGEX.allMatches(
-      commentToken.lexeme,
-    );
     // Track the comment that will be returned for looking for the next `todo`.
     // This will be moved along if additional comments are consumed by multiline
     // TODOs.
     var nextComment = commentToken.next;
-    var commentLocation = lineInfo.getLocation(commentToken.offset);
+    CharacterLocation? commentLocation;
 
-    for (RegExpMatch match in matches) {
-      int offset = commentToken.offset + match.start + match.group(1)!.length;
-      int column =
-          commentLocation.columnNumber + match.start + match.group(1)!.length;
-      String todoText = match.group(2)!;
-      String todoKind = match.namedGroup('kind1') ?? match.namedGroup('kind2')!;
+    _TodoFinder todoFinder = _TodoFinder(commentToken.lexeme);
+    while (todoFinder.moveNext()) {
+      int matchOffset = todoFinder.offset;
+      String todoKind = todoFinder.todoKind;
+      String todoText = todoFinder.todoText;
+
+      commentLocation ??= lineInfo.getLocation(commentToken.offset);
+      int offset = commentToken.offset + matchOffset;
+      int column = commentLocation.columnNumber + matchOffset;
       int end = offset + todoText.length;
 
       if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
@@ -116,7 +117,7 @@ class TodoFinder {
               // And indented more than the original 'todo' text.
               columnOfFirstNoneMarkerOrWhitespace == column + 1 &&
               // And not their own todos.
-              !Todo.TODO_REGEX.hasMatch(nextComment.lexeme);
+              !_TodoFinder(nextComment.lexeme).moveNext();
           if (!isContinuation) {
             break;
           }
@@ -142,5 +143,161 @@ class TodoFinder {
     }
 
     return nextComment;
+  }
+}
+
+class _TodoFinder {
+  final String s;
+  // We start at 1 to allow for the char before the first find to be \s, / or *.
+  int _startAt = 1;
+  int? _offset;
+  String? _todoText;
+  String? _todoKind;
+
+  _TodoFinder(this.s);
+
+  int get offset => _offset!;
+  String get todoKind => _todoKind!;
+  String get todoText => _todoText!;
+
+  /// This matches the two common Dart task styles
+  ///
+  /// * `TODO`:
+  /// * `TODO`(username):
+  ///
+  /// As well as
+  /// * `TODO`
+  ///
+  /// But not
+  /// * `todo`
+  /// * `TODOS`
+  ///
+  /// It also supports wrapped TODOs where the next line is indented by a space:
+  ///
+  ///   /**
+  ///    * `TODO`(username): This line is
+  ///    *  wrapped onto the next line
+  ///    */
+  bool moveNext() {
+    // We stop 3 before so we can check the next 3 chars without checking
+    // lengths.
+    var end = s.length - 3;
+    for (int i = _startAt; i < end; i++) {
+      int char = s.codeUnitAt(i);
+      if (char >= $A && char <= $Z) {
+        if (char == $T &&
+            s.codeUnitAt(i + 1) == $O &&
+            s.codeUnitAt(i + 2) == $D &&
+            s.codeUnitAt(i + 3) == $O) {
+          /// Found `TODO`
+          if (_check(i, i + 4)) return true;
+        } else if (char == $H &&
+            s.codeUnitAt(i + 1) == $A &&
+            s.codeUnitAt(i + 2) == $C &&
+            s.codeUnitAt(i + 3) == $K) {
+          /// Found `HACK`
+          if (_check(i, i + 4)) return true;
+        } else if (char == $F &&
+            s.length > i + 4 &&
+            s.codeUnitAt(i + 1) == $I &&
+            s.codeUnitAt(i + 2) == $X &&
+            s.codeUnitAt(i + 3) == $M &&
+            s.codeUnitAt(i + 4) == $E) {
+          /// Found `FIXME`
+          if (_check(i, i + 5)) return true;
+        } else if (char == $U &&
+            s.length > i + 5 &&
+            s.codeUnitAt(i + 1) == $N &&
+            s.codeUnitAt(i + 2) == $D &&
+            s.codeUnitAt(i + 3) == $O &&
+            s.codeUnitAt(i + 4) == $N &&
+            s.codeUnitAt(i + 5) == $E) {
+          /// Found `UNDONE`
+          if (_check(i, i + 6)) return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  bool _check(int from, int to) {
+    int charBefore = s.codeUnitAt(from - 1);
+    if (charBefore != $SPACE &&
+        charBefore != $TAB &&
+        charBefore != $LF &&
+        charBefore != $CR &&
+        charBefore != $STAR &&
+        charBefore != $SLASH) {
+      // Doesn't start with \s, / or *.
+      return false;
+    }
+    if (s.length == to) {
+      // Line ends with this.
+      _match(from, to, to);
+      return true;
+    }
+
+    int charAfter = s.codeUnitAt(to);
+    // Not allowed to match [A-Za-z0-9_].
+    if (charAfter >= $0 && charAfter <= $9) return false;
+    if (charAfter >= $a && charAfter <= $z) return false;
+    if (charAfter >= $A && charAfter <= $Z) return false;
+    if (charAfter == $_) return false;
+
+    int scanFrom = to + 1;
+    while (true) {
+      int? foundLinebreakAt;
+      for (int i = scanFrom; i < s.length; i++) {
+        int char = s.codeUnitAt(i);
+        if (char == $CR || char == $LF) {
+          foundLinebreakAt = i;
+          break;
+        }
+      }
+
+      if (foundLinebreakAt == null) {
+        // No line breaks - we match until the end.
+        _match(from, to, s.length);
+        return true;
+      }
+
+      // Possibly match the next line too.
+      int includeUntil = foundLinebreakAt;
+      int nextLineAt = foundLinebreakAt;
+      if (s.codeUnitAt(nextLineAt) == $CR && s.length > nextLineAt + 1) {
+        // Allow \n after \r.
+        if (s.codeUnitAt(nextLineAt + 1) == $LF) {
+          nextLineAt++;
+        }
+      }
+
+      int i = nextLineAt + 1;
+      while (i < s.length) {
+        int char = s.codeUnitAt(i);
+        if (char != $SPACE && char != $TAB && char != $LF && char != $CR) {
+          break;
+        }
+        i++;
+      }
+      if (!(s.length > i + 2 &&
+          s.codeUnitAt(i) == $STAR &&
+          s.codeUnitAt(i + 1) == $SPACE &&
+          s.codeUnitAt(i + 2) == $SPACE)) {
+        // This line isn't some number of whitespace, then a * then 2 spaces.
+        // We don't include it.
+        _match(from, to, includeUntil);
+        return true;
+      }
+      // Include this line too.
+      scanFrom = i + 3;
+    }
+  }
+
+  void _match(int from, int kindTo, int finalTo) {
+    _offset = from;
+    _todoText = s.substring(from, finalTo);
+    _todoKind = s.substring(from, kindTo);
+    _startAt = finalTo;
   }
 }

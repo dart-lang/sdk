@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'code_generator.dart' show EagerStaticFieldInitializerCodeGenerator;
+import 'reference_extensions.dart';
 import 'table_based_globals.dart';
 import 'translator.dart';
 import 'util.dart' as util;
@@ -51,7 +52,8 @@ class Globals {
       final getter = _globalGetters.putIfAbsent(global, () {
         final getterType =
             owningModule.types.defineFunction(const [], [global.type.type]);
-        final getterFunction = owningModule.functions.define(getterType);
+        final getterFunction = owningModule.functions.define(getterType)
+          ..isPure = true;
         final getterBody = getterFunction.body;
         getterBody.global_get(global);
         getterBody.end();
@@ -159,21 +161,17 @@ class DartGlobals {
         final definition =
             _defineGlobalBasedField(field, fieldType, module, true, init, null);
 
-        if (module.module == translator.initFunction.enclosingModule) {
-          // We have to initialize the global field in the same module as where
-          // the field value is defined in.
-          // TODO: Once dynamic modules only compile code for the submodule and
-          // not the main module, we should turn this into an assert.
-          EagerStaticFieldInitializerCodeGenerator(
-                  translator, field, definition.global)
-              .generate(translator.initFunction.body, [], null);
-        }
+        // We have to initialize the global field in the same module as where
+        // the field value is defined in.
+        EagerStaticFieldInitializerCodeGenerator(
+                translator, field, definition.global)
+            .generate(module.startFunction.body, [], null);
 
         return definition;
       }
 
       // Add initializer function to the compilation queue.
-      translator.functions.getFunction(field.fieldReference);
+      translator.functions.getFunction(field.staticFieldInitializer);
 
       // We will have to initialize the global lazily, meaning each access will
       // check if it's initialized and if not, cause initialization.

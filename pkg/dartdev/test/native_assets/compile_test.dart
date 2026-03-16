@@ -130,7 +130,7 @@ void main() async {
       expect(recordedUsages.existsSync(), true);
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
-      final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
+      final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
       printOnFailure(actualRecordedUsages);
       final constArguments = u.constArgumentsFor(Definition(
         'package:drop_data_asset/src/drop_data_asset.dart',
@@ -149,8 +149,8 @@ void main() async {
         ],
       ));
       expect(constArguments.length, 1);
-      expect(constArguments.first.named.isEmpty, true);
-      expect(constArguments.first.positional,
+      expect(constArguments.first.namedArguments.isEmpty, true);
+      expect(constArguments.first.positionalArguments,
           const [IntConstant(3), IntConstant(4)]);
     });
   });
@@ -186,7 +186,7 @@ void main() async {
       expect(recordedUsages.existsSync(), true);
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
-      final u = RecordedUsages.fromJson(jsonDecode(actualRecordedUsages));
+      final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
       final constantsOf = u.constantsOf(Definition(
         'package:drop_data_asset/src/drop_data_asset.dart',
         [Name('RecordCallToC')],
@@ -194,4 +194,36 @@ void main() async {
       expect(constantsOf.length, 0);
     });
   });
+}
+
+extension on Recordings {
+  List<CallWithArguments> constArgumentsFor(Definition definition) {
+    final result = <CallWithArguments>[];
+    for (final entry in calls.entries) {
+      // ignore: invalid_use_of_visible_for_testing_member
+      if (entry.key.semanticEquals(definition)) {
+        for (final call in entry.value) {
+          if (call is CallWithArguments) {
+            result.add(call);
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  List<Constant> constantsOf(Definition definition) {
+    final result = <Constant>[];
+    for (final entry in instances.entries) {
+      // ignore: invalid_use_of_visible_for_testing_member
+      if (entry.key.semanticEquals(definition)) {
+        for (final instance in entry.value) {
+          if (instance is InstanceConstantReference) {
+            result.add(instance.instanceConstant);
+          }
+        }
+      }
+    }
+    return result;
+  }
 }

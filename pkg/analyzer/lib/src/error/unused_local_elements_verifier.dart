@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -289,7 +290,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    if (_inCommentReference(node)) {
+    if (node.inCommentReference) {
       return;
     }
     var element = node.writeOrReadElement;
@@ -419,12 +420,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     usedElements.addElement(element);
-  }
-
-  /// Returns whether [identifier] is found in a [CommentReference].
-  static bool _inCommentReference(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
-    return parent is CommentReference || parent?.parent is CommentReference;
   }
 
   /// Returns whether the value of [node] is _only_ being read at this position.

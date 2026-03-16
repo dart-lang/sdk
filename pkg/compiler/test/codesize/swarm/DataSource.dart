@@ -225,6 +225,7 @@ class Article {
   void _ensureLoaded() {
     if (_htmlBody != null) return;
 
+    // ignore: dead_code
     var name = '$dataUri.html';
     if (Sections.runningFromFile) {
       _htmlBody = CannedData.data[name]!;

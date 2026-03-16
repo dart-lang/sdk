@@ -76,6 +76,7 @@ class ForResolver {
     required ForEachPartsWithPatternImpl forLoopParts,
     required void Function() dispatchBody,
   }) {
+    forLoopParts.metadata.accept(_resolver);
     _resolver.analyzePatternForIn(
       node: node,
       hasAwait: awaitKeyword != null,

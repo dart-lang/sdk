@@ -75,6 +75,8 @@ Future testPartitionExpectation(String mainFile, ConstraintData? constraints,
     final result = await Process.run('/usr/bin/env', [
       'bash',
       'pkg/dart2wasm/tool/compile_benchmark',
+      '--enable-asserts',
+      '--compiler-asserts',
       '--phases=cfe,tfa',
       '--enable-deferred-loading',
       '-o',
@@ -94,8 +96,9 @@ Future testPartitionExpectation(String mainFile, ConstraintData? constraints,
     final loadingMap = DeferredModuleLoadingMap.fromComponent(component);
     component.accept(DeferredLoadingLowering(coreTypes, loadingMap));
 
-    final partition = partitionAppplication(
-        coreTypes, component, loadingMap, findWasmRoots(coreTypes, component),
+    final assertsEnabled = true;
+    final partition = partitionAppplication(coreTypes, component,
+        assertsEnabled, loadingMap, findWasmRoots(coreTypes, component),
         constraints: constraints);
 
     final actual = partition.toText(sdkRootUri, includeRoot: false);

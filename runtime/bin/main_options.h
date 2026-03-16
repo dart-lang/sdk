@@ -62,7 +62,8 @@ namespace bin {
   V(profile_microtasks, profile_microtasks)                                    \
   /* The purpose of this flag is documented in */                              \
   /* pkg/dartdev/lib/src/commands/run.dart. */                                 \
-  V(resident, resident)
+  V(resident, resident)                                                        \
+  V(experimental_vm_service, experimental_vm_service)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \

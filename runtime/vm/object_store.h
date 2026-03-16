@@ -47,6 +47,7 @@ class ObjectPointerVisitor;
   LAZY_CORE(Class, list_class)                                                 \
   LAZY_CORE(Class, map_class)                                                  \
   LAZY_CORE(Class, set_class)                                                  \
+  LAZY_CORE(Class, bigint_impl_class)                                          \
   LAZY_CORE(Type, non_nullable_list_rare_type)                                 \
   LAZY_CORE(Type, non_nullable_map_rare_type)                                  \
   LAZY_CORE(Field, enum_index_field)                                           \

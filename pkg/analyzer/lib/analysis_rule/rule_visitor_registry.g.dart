@@ -58,6 +58,8 @@ abstract class RuleVisitorRegistry {
 
   void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  void addBlockEnumBody(AbstractAnalysisRule rule, AstVisitor visitor);
+
   void addBlockFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addBooleanLiteral(AbstractAnalysisRule rule, AstVisitor visitor);
@@ -134,11 +136,11 @@ abstract class RuleVisitorRegistry {
 
   void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  void addEmptyEnumBody(AbstractAnalysisRule rule, AstVisitor visitor);
+
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addEmptyStatement(AbstractAnalysisRule rule, AstVisitor visitor);
-
-  void addEnumBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addEnumConstantArguments(AbstractAnalysisRule rule, AstVisitor visitor);
 
@@ -269,8 +271,6 @@ abstract class RuleVisitorRegistry {
 
   void addLibraryDirective(AbstractAnalysisRule rule, AstVisitor visitor);
 
-  void addLibraryIdentifier(AbstractAnalysisRule rule, AstVisitor visitor);
-
   void addListLiteral(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addListPattern(AbstractAnalysisRule rule, AstVisitor visitor);
@@ -384,18 +384,6 @@ abstract class RuleVisitorRegistry {
   );
 
   void addRelationalPattern(AbstractAnalysisRule rule, AstVisitor visitor);
-
-  @Deprecated('See RepresentationConstructorName for details')
-  void addRepresentationConstructorName(
-    AbstractAnalysisRule rule,
-    AstVisitor visitor,
-  );
-
-  @Deprecated('See RepresentationDeclaration for details')
-  void addRepresentationDeclaration(
-    AbstractAnalysisRule rule,
-    AstVisitor visitor,
-  );
 
   void addRestPatternElement(AbstractAnalysisRule rule, AstVisitor visitor);
 

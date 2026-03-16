@@ -93,13 +93,13 @@ struct MultiCharacterSpecialCase {
 // offset by the distance between the match and the start. Otherwise
 // the result is the same as for the start point on the entire range.
 template <bool ranges_are_linear, intptr_t kW>
-static intptr_t LookupMapping(const int32_t* table,
-                              uint16_t size,
-                              const MultiCharacterSpecialCase<kW>* multi_chars,
-                              int32_t chr,
-                              int32_t next,
-                              int32_t* result,
-                              bool* allow_caching_ptr) {
+static int LookupMapping(const int32_t* table,
+                         uint16_t size,
+                         const MultiCharacterSpecialCase<kW>* multi_chars,
+                         uchar chr,
+                         uchar next,
+                         uchar* result,
+                         bool* allow_caching_ptr) {
   const intptr_t kEntryDist = 2;
   uint16_t key = chr & (kChunkBits - 1);
   uint16_t chunk_start = chr - key;
@@ -354,7 +354,7 @@ static constexpr int32_t kLetterTable7[48] = {
   1073749328, 7567, 1073749394, 7623, 1073749488, 7675, 1073749616, 7796,  // NOLINT
   1073749622, 7932, 1073749793, 7994, 1073749825, 8026, 1073749862, 8126,  // NOLINT
   1073749954, 8135, 1073749962, 8143, 1073749970, 8151, 1073749978, 8156 };  // NOLINT
-bool Letter::Is(int32_t c) {
+bool Letter::Is(uchar c) {
   intptr_t chunk_index = c >> 13;
   switch (chunk_index) {
     case 0: return LookupPredicate(kLetterTable0,
@@ -624,10 +624,8 @@ static const MultiCharacterSpecialCase<1> kEcma262CanonicalizeMultiStrings7[1] =
 static constexpr uint16_t kEcma262CanonicalizeTable7Size = 2;  // NOLINT
 static constexpr int32_t kEcma262CanonicalizeTable7[4] = {
   1073749825, -128, 8026, -128 };  // NOLINT
-intptr_t Ecma262Canonicalize::Convert(int32_t c,
-                      int32_t n,
-                      int32_t* result,
-                      bool* allow_caching_ptr) {
+int Ecma262Canonicalize::Convert(uchar c, uchar n, uchar* result,
+                                 bool* allow_caching_ptr) {
   intptr_t chunk_index = c >> 13;
   switch (chunk_index) {
     case 0: return LookupMapping<true>(kEcma262CanonicalizeTable0,
@@ -1756,10 +1754,8 @@ static const MultiCharacterSpecialCase<2> kEcma262UnCanonicalizeMultiStrings7[3]
 static constexpr uint16_t kEcma262UnCanonicalizeTable7Size = 4;  // NOLINT
 static constexpr int32_t kEcma262UnCanonicalizeTable7[8] = {
   1073749793, 1, 7994, 5, 1073749825, 1, 8026, 5 };  // NOLINT
-intptr_t Ecma262UnCanonicalize::Convert(int32_t c,
-                      int32_t n,
-                      int32_t* result,
-                      bool* allow_caching_ptr) {
+int Ecma262UnCanonicalize::Convert(uchar c, uchar n, uchar* result,
+                                   bool* allow_caching_ptr) {
   intptr_t chunk_index = c >> 13;
   switch (chunk_index) {
     case 0: return LookupMapping<true>(kEcma262UnCanonicalizeTable0,
@@ -1821,10 +1817,10 @@ static constexpr int32_t kCanonicalizationRangeTable7[8] = {
 
 // clang-format on
 
-intptr_t CanonicalizationRange::Convert(int32_t c,
-                                        int32_t n,
-                                        int32_t* result,
-                                        bool* allow_caching_ptr) {
+int CanonicalizationRange::Convert(uchar c,
+                                   uchar n,
+                                   uchar* result,
+                                   bool* allow_caching_ptr) {
   intptr_t chunk_index = c >> 13;
   switch (chunk_index) {
     case 0:

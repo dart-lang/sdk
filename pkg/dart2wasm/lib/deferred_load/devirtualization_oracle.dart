@@ -11,25 +11,12 @@ import 'package:vm/metadata/table_selector.dart';
 /// (i.e. all call sites are devirtualized direct calls instead of instance
 /// calls).
 class DevirtualizionOracle {
-  final Component component;
+  final Map<TreeNode, DirectCallMetadata> _directCallMetadata;
+  final Map<TreeNode, ProcedureAttributesMetadata> _procedureAttributeMetadata;
+  final List<TableSelectorInfo> _selectorMetadata;
 
-  late final Map<TreeNode, DirectCallMetadata> _directCallMetadata =
-      (component.metadata[DirectCallMetadataRepository.repositoryTag]
-              as DirectCallMetadataRepository)
-          .mapping;
-
-  late final Map<TreeNode, ProcedureAttributesMetadata>
-      _procedureAttributeMetadata =
-      (component.metadata[ProcedureAttributesMetadataRepository.repositoryTag]
-              as ProcedureAttributesMetadataRepository)
-          .mapping;
-  late final List<TableSelectorInfo> _selectorMetadata =
-      (component.metadata[TableSelectorMetadataRepository.repositoryTag]
-              as TableSelectorMetadataRepository)
-          .mapping[component]!
-          .selectors;
-
-  DevirtualizionOracle(this.component);
+  DevirtualizionOracle(this._directCallMetadata,
+      this._procedureAttributeMetadata, this._selectorMetadata);
 
   /// Whether all call sites are guaranteed to be devirtualized.
   bool isAlwaysStaticallyDispatchedTo(Reference reference) {

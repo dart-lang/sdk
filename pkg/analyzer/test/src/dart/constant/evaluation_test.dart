@@ -6317,6 +6317,119 @@ A
 ''');
   }
 
+  test_class_field_declarationInitializer_nonConstant() async {
+    await assertErrorsInCode(
+      r'''
+int x = 0;
+class A {
+  final int f = x;
+  const A();
+}
+const a = A();
+''',
+      [
+        error(diag.constInitializedWithNonConstantValue, 37, 1),
+        error(diag.invalidConstant, 37, 1),
+        error(diag.constConstructorWithFieldInitializedByNonConst, 42, 5),
+      ],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+<null>
+''');
+  }
+
+  test_class_field_declarationInitializer_thisReference_field() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  final int x = 0;
+  final int f = x;
+  const A();
+}
+const a = A();
+''',
+      [
+        error(diag.constInitializedWithNonConstantValue, 45, 1),
+        error(diag.invalidConstant, 45, 1),
+        error(diag.implicitThisReferenceInInitializer, 45, 1),
+        error(diag.constConstructorWithFieldInitializedByNonConst, 50, 5),
+      ],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+<null>
+''');
+  }
+
+  test_class_field_declarationInitializer_thisReference_getter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int get x => 0;
+  final int f = x;
+  const A();
+}
+const a = A();
+''',
+      [
+        error(diag.constInitializedWithNonConstantValue, 44, 1),
+        error(diag.invalidConstant, 44, 1),
+        error(diag.implicitThisReferenceInInitializer, 44, 1),
+        error(diag.constConstructorWithFieldInitializedByNonConst, 49, 5),
+      ],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+<null>
+''');
+  }
+
+  test_class_primaryConstructor_assert_false() async {
+    await assertErrorsInCode(
+      r'''
+class const A(int x) {
+  this : assert(x > 0);
+}
+const a = A(0);
+''',
+      [error(diag.constEvalThrowsException, 59, 4)],
+    );
+  }
+
+  test_class_primaryConstructor_assert_true() async {
+    await assertNoErrorsInCode(r'''
+class const A(int x) {
+  this : assert(x > 0);
+}
+const a = A(1);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_constructorFieldInitializer() async {
+    await assertNoErrorsInCode(r'''
+class const A(int x) {
+  final int y;
+  this : y = x + 1;
+}
+const a = A(1);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  y: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_class_primaryConstructor_duplicateDefinition_field() async {
     await assertErrorsInCode(
       r'''
@@ -6431,7 +6544,10 @@ class const A(this.x) {
 
 const a = A(1);
 ''',
-      [error(diag.initializerForNonExistentField, 33, 5)],
+      [
+        error(diag.initializingFormalForNonExistentField, 14, 6),
+        error(diag.initializerForNonExistentField, 33, 5),
+      ],
     );
     assertDartObjectText(_topLevelVar('a'), r'''
 A
@@ -6441,6 +6557,630 @@ A
     positionalArguments
       0: int 1
   variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_fieldInitializer() async {
+    await assertNoErrorsInCode(r'''
+class const A(int x) {
+  final int y = x + 1;
+}
+const a = A(1);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  y: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_fieldInitializer_functionExpression() async {
+    await assertErrorsInCode(
+      r'''
+class const A(int x) {
+  final int Function() foo = () => x;
+}
+''',
+      [error(diag.constConstructorWithFieldInitializedByNonConst, 6, 5)],
+    );
+  }
+
+  test_class_primaryConstructor_fieldInitializer_multipleInvocations() async {
+    await assertNoErrorsInCode(r'''
+class const A(int x) {
+  final int y = x + 1;
+}
+const a = A(1);
+const b = A(2);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  y: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+    assertDartObjectText(_topLevelVar('b'), r'''
+A
+  y: int 3
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 2
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_class_primaryConstructor_fieldInitializer_topLevel_constant() async {
+    await assertNoErrorsInCode(r'''
+const x = 1;
+class const A() {
+  final int y = x + 2;
+}
+const a = A();
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  y: int 3
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_fieldInitializer_topLevel_final() async {
+    await assertErrorsInCode(
+      r'''
+final x = 1;
+class const A() {
+  final int y = x + 2;
+}
+const a = A();
+''',
+      [
+        error(diag.constConstructorWithFieldInitializedByNonConst, 19, 5),
+        error(diag.invalidConstant, 47, 1),
+        error(diag.constInitializedWithNonConstantValue, 47, 1),
+      ],
+    );
+  }
+
+  test_class_primaryConstructor_fieldInitializer_topLevel_final_noInvocation() async {
+    await assertErrorsInCode(
+      r'''
+final x = 1;
+class const A(int p) {
+  final int y = x + p;
+}
+''',
+      [error(diag.constConstructorWithFieldInitializedByNonConst, 19, 5)],
+    );
+  }
+
+  test_class_primaryConstructor_formalParameter_declaring_optionalNamed_noArgument() async {
+    await assertNoErrorsInCode(r'''
+class const A({final int x = 1});
+const a = A();
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_declaring_optionalNamed_withArgument() async {
+    await assertNoErrorsInCode(r'''
+class const A({final int x = 1});
+const a = A(x: 2);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    namedArguments
+      x: int 2
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_declaring_optionalPositional_noArgument() async {
+    await assertNoErrorsInCode(r'''
+class const A([final int x = 1]);
+const a = A();
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_declaring_optionalPositional_withArgument() async {
+    await assertNoErrorsInCode(r'''
+class const A([final int x = 1]);
+const a = A(2);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 2
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_declaring_requiredNamed() async {
+    await assertNoErrorsInCode(r'''
+class const A({required final int x});
+const a = A(x: 1);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    namedArguments
+      x: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_declaring_requiredPositional() async {
+    await assertNoErrorsInCode(r'''
+class const A(final int x);
+const a = A(1);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_initializing_optionalNamed_noArgument() async {
+    await assertNoErrorsInCode(r'''
+class const A({this.x = 1}) {
+  final int x;
+}
+const a = A();
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_initializing_optionalNamed_withArgument() async {
+    await assertNoErrorsInCode(r'''
+class const A({this.x = 1}) {
+  final int x;
+}
+const a = A(x: 2);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    namedArguments
+      x: int 2
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_initializing_optionalPositional_noArgument() async {
+    await assertNoErrorsInCode(r'''
+class const A([this.x = 1]) {
+  final int x;
+}
+const a = A();
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_initializing_optionalPositional_withArgument() async {
+    await assertNoErrorsInCode(r'''
+class const A([this.x = 1]) {
+  final int x;
+}
+const a = A(2);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 2
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_initializing_requiredNamed() async {
+    await assertNoErrorsInCode(r'''
+class const A({required this.x}) {
+  final int x;
+}
+const a = A(x: 1);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    namedArguments
+      x: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_initializing_requiredNamed_generic_inferred() async {
+    await assertNoErrorsInCode(r'''
+class const A<T>({required this.f}) {
+  final T f;
+}
+
+const x = A(f: 0);
+''');
+    assertDartObjectText(_topLevelVar('x'), r'''
+A<int>
+  f: int 0
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+    namedArguments
+      f: int 0
+  variable: <testLibrary>::@topLevelVariable::x
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_initializing_requiredPositional() async {
+    await assertNoErrorsInCode(r'''
+class const A(this.x) {
+  final int x;
+}
+const a = A(1);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_initializing_requiredPositional_generic_explicit() async {
+    await assertNoErrorsInCode(r'''
+class const A<T>(this.f) {
+  final T f;
+}
+
+const x = A<int>(0);
+''');
+    assertDartObjectText(_topLevelVar('x'), r'''
+A<int>
+  f: int 0
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 0
+  variable: <testLibrary>::@topLevelVariable::x
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_normal_usedInSuperInitializer() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int x;
+  const A(this.x);
+}
+class const B(int y) extends A {
+  this : super(y + 1);
+}
+const b = B(1);
+''');
+    assertDartObjectText(_topLevelVar('b'), r'''
+B
+  (super): A
+    x: int 2
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_super_optionalNamed_noArgument() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int x;
+  const A({this.x = 1});
+}
+class const B({super.x}) extends A;
+const b = B();
+''');
+    assertDartObjectText(_topLevelVar('b'), r'''
+B
+  (super): A
+    x: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      namedArguments
+        x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_super_optionalNamed_withArgument() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int x;
+  const A({this.x = 1});
+}
+class const B({super.x}) extends A;
+const b = B(x: 2);
+''');
+    assertDartObjectText(_topLevelVar('b'), r'''
+B
+  (super): A
+    x: int 2
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      namedArguments
+        x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    namedArguments
+      x: int 2
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_super_optionalPositional_noArgument() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int x;
+  const A([this.x = 1]);
+}
+class const B([super.x]) extends A;
+const b = B();
+''');
+    assertDartObjectText(_topLevelVar('b'), r'''
+B
+  (super): A
+    x: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_super_optionalPositional_withArgument() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int x;
+  const A([this.x = 1]);
+}
+class const B([super.x]) extends A;
+const b = B(2);
+''');
+    assertDartObjectText(_topLevelVar('b'), r'''
+B
+  (super): A
+    x: int 2
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 2
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_super_requiredNamed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int x;
+  const A({required this.x});
+}
+class const B({required super.x}) extends A;
+const b = B(x: 1);
+''');
+    assertDartObjectText(_topLevelVar('b'), r'''
+B
+  (super): A
+    x: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      namedArguments
+        x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    namedArguments
+      x: int 1
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_class_primaryConstructor_formalParameter_super_requiredPositional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int x;
+  const A(this.x);
+}
+class const B(super.x) extends A;
+const b = B(1);
+''');
+    assertDartObjectText(_topLevelVar('b'), r'''
+B
+  (super): A
+    x: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_class_primaryConstructor_initializer_assert_nonConstant() async {
+    await assertErrorsInCode(
+      r'''
+int x = 1;
+class const A() {
+  this : assert(x > 0);
+}
+''',
+      [error(diag.invalidConstant, 45, 1)],
+    );
+  }
+
+  test_class_primaryConstructor_initializer_field_nonConstant() async {
+    await assertErrorsInCode(
+      r'''
+int x = 1;
+class const A() {
+  final int f;
+  this : f = x;
+}
+''',
+      [error(diag.invalidConstant, 57, 1)],
+    );
+  }
+
+  test_class_primaryConstructor_initializer_super_nonConstantArgument() async {
+    await assertErrorsInCode(
+      r'''
+int x = 1;
+class A {
+  const A(int a);
+}
+class const B() extends A {
+  this : super(x);
+}
+''',
+      [error(diag.invalidConstant, 84, 1)],
+    );
+  }
+
+  test_class_primaryConstructor_redirect_fieldInitializer() async {
+    await assertNoErrorsInCode(r'''
+class const A(int x) {
+  final int y = x + 1;
+  const A.named(int z) : this(z * 2);
+}
+const a = A.named(10);
+''');
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  y: int 21
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::named
+    positionalArguments
+      0: int 10
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_redirect_fieldInitializer_nonRedirectingSecondary() async {
+    await assertErrorsInCode(
+      r'''
+class const A(int x) {
+  final int y = x + 1;
+  const A.named(int z) : this(z * 2);
+  const A.other() {}
+}
+const a = A.named(10);
+''',
+      [
+        error(diag.nonRedirectingGenerativeConstructorWithPrimary, 92, 7),
+        error(diag.constConstructorWithBody, 102, 1),
+      ],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  y: int 21
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::named
+    positionalArguments
+      0: int 10
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_superParameter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int x;
+  const A(this.x);
+}
+class const B(super.x) extends A;
+const b = B(1);
+''');
+    assertDartObjectText(_topLevelVar('b'), r'''
+B
+  (super): A
+    x: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
 
@@ -6860,6 +7600,32 @@ E
     constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@topLevelVariable::a
 ''');
+  }
+
+  test_enum_primaryConstructor_fieldInitializer_functionExpression_explicitConst() async {
+    await assertErrorsInCode(
+      r'''
+enum const E(int x) {
+  v(0);
+
+  final int Function() foo = () => x;
+}
+''',
+      [error(diag.constConstructorWithFieldInitializedByNonConst, 5, 5)],
+    );
+  }
+
+  test_enum_primaryConstructor_fieldInitializer_functionExpression_implicitConst() async {
+    await assertErrorsInCode(
+      r'''
+enum E(int x) {
+  v(0);
+
+  final int Function() foo = () => x;
+}
+''',
+      [error(diag.constConstructorWithFieldInitializedByNonConst, 5, 1)],
+    );
   }
 
   test_field_deferred_issue48991() async {

@@ -93,6 +93,8 @@ abstract base class Instruction {
     _inputs.truncateTo(graph, newInputCount);
   }
 
+  int getInputIndex(Use use) => _inputs.indexOf(graph, use);
+
   /// Link this instruction to the [next] instruction in basic block.
   void linkTo(Instruction next) {
     assert(!identical(this, next));
@@ -761,14 +763,23 @@ final class Constant extends Definition with NoThrow, Pure {
 /// Base class for various calls.
 abstract base class CallInstruction extends Definition
     with CanThrow, HasSideEffects {
+  final ArgumentsShape argumentsShape;
+
   CallInstruction(
     super.graph,
     super.sourcePosition, {
     required super.inputCount,
-  });
+    required this.argumentsShape,
+  }) {
+    assert(
+      inputCount ==
+          ((argumentsShape.types > 0) ? 1 : 0) +
+              argumentsShape.positional +
+              argumentsShape.named.length,
+    );
+  }
 
-  bool get hasTypeArguments =>
-      inputCount > 0 && inputDefAt(0).type is TypeArgumentsType;
+  bool get hasTypeArguments => argumentsShape.types > 0;
   Definition? get typeArguments => hasTypeArguments ? inputDefAt(0) : null;
 }
 
@@ -785,6 +796,7 @@ final class DirectCall extends CallInstruction {
     this.target,
     this.type, {
     required super.inputCount,
+    required super.argumentsShape,
   });
 
   @override
@@ -804,9 +816,10 @@ final class InterfaceCall extends CallInstruction {
     this.interfaceTarget,
     this.type, {
     required super.inputCount,
-  }) : assert(inputCount > 0);
+    required super.argumentsShape,
+  }) : assert(argumentsShape.positional > 0);
 
-  Definition get receiver => inputDefAt(0);
+  Definition get receiver => inputDefAt(hasTypeArguments ? 1 : 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitInterfaceCall(this);
@@ -822,9 +835,10 @@ final class ClosureCall extends CallInstruction {
     super.sourcePosition,
     this.type, {
     required super.inputCount,
-  }) : assert(inputCount > 0);
+    required super.argumentsShape,
+  }) : assert(argumentsShape.positional > 0);
 
-  Definition get closure => inputDefAt(0);
+  Definition get closure => inputDefAt(hasTypeArguments ? 1 : 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitClosureCall(this);
@@ -843,9 +857,10 @@ final class DynamicCall extends CallInstruction {
     this.selector,
     this.kind, {
     required super.inputCount,
-  }) : assert(inputCount > 0);
+    required super.argumentsShape,
+  }) : assert(argumentsShape.positional > 0);
 
-  Definition get receiver => inputDefAt(0);
+  Definition get receiver => inputDefAt(hasTypeArguments ? 1 : 0);
 
   @override
   CType get type => const TopType();
@@ -1086,14 +1101,29 @@ final class NullCheck extends Definition with CanThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitNullCheck(this);
 }
 
-/// Represents collection of class and function type parameters.
+enum TypeParametersKind {
+  functionTypeParameters,
+  classTypeParameters,
+  // Add kinds for a single function/class type parameter.
+}
+
+/// Represents collection of type parameters corresponding to the
+/// given parameter.
+/// Can be used as inputs in [TypeCast], [TypeTest], [TypeArguments] and
+/// [TypeLiteral] instructions.
 final class TypeParameters extends Definition with NoThrow, Pure {
-  TypeParameters(super.graph, super.sourcePosition, Definition? receiver)
-    : super(inputCount: receiver != null ? 1 : 0) {
-    if (receiver != null) {
-      setInputAt(0, receiver);
-    }
+  final TypeParametersKind kind;
+
+  TypeParameters(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    Definition parameter,
+  ) : super(inputCount: 1) {
+    setInputAt(0, parameter);
   }
+
+  Definition get parameter => inputDefAt(0);
 
   @override
   CType get type => const TypeParametersType();
@@ -1104,8 +1134,7 @@ final class TypeParameters extends Definition with NoThrow, Pure {
 
 /// Casts input object to the given type.
 ///
-/// Checked casts throw TypeError if
-/// object is not assignable to the given type.
+/// Checked casts throw TypeError if object is not assignable to the given type.
 final class TypeCast extends Definition with CanThrow, Pure, Idempotent {
   /// Target type for the type cast.
   final CType testedType;
@@ -1117,18 +1146,15 @@ final class TypeCast extends Definition with CanThrow, Pure, Idempotent {
     super.graph,
     super.sourcePosition,
     Definition object,
-    this.testedType,
-    Definition? typeParameters, {
+    this.testedType, {
+    required super.inputCount,
     this.isChecked = true,
-  }) : super(inputCount: typeParameters != null ? 2 : 1) {
+  }) {
+    assert(inputCount > 0);
     setInputAt(0, object);
-    if (typeParameters != null) {
-      setInputAt(1, typeParameters);
-    }
   }
 
   Definition get operand => inputDefAt(0);
-  Definition? get typeParameters => (inputCount > 1) ? inputDefAt(1) : null;
 
   @override
   CType get type => testedType;
@@ -1154,17 +1180,14 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
     super.graph,
     super.sourcePosition,
     Definition object,
-    this.testedType,
-    Definition? typeParameters,
-  ) : super(inputCount: typeParameters != null ? 2 : 1) {
+    this.testedType, {
+    required super.inputCount,
+  }) {
+    assert(inputCount > 0);
     setInputAt(0, object);
-    if (typeParameters != null) {
-      setInputAt(1, typeParameters);
-    }
   }
 
   Definition get operand => inputDefAt(0);
-  Definition? get typeParameters => (inputCount > 1) ? inputDefAt(1) : null;
 
   @override
   CType get type => const BoolType();
@@ -1187,13 +1210,9 @@ final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
   TypeArguments(
     super.graph,
     super.sourcePosition,
-    this.types,
-    Definition typeParameters,
-  ) : super(inputCount: 1) {
-    setInputAt(0, typeParameters);
-  }
-
-  Definition get typeParameters => inputDefAt(0);
+    this.types, {
+    required super.inputCount,
+  });
 
   @override
   CType get type => const TypeArgumentsType();
@@ -1212,13 +1231,9 @@ final class TypeLiteral extends Definition with NoThrow, Pure, Idempotent {
   TypeLiteral(
     super.graph,
     super.sourcePosition,
-    this.uninstantiatedType,
-    Definition typeParameters,
-  ) : super(inputCount: 1) {
-    setInputAt(0, typeParameters);
-  }
-
-  Definition get typeParameters => inputDefAt(0);
+    this.uninstantiatedType, {
+    required super.inputCount,
+  });
 
   @override
   CType get type =>
@@ -1630,6 +1645,72 @@ final class SetListElement extends Instruction
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitSetListElement(this);
+}
+
+/// Base class for boxing instructions.
+abstract base class Box extends Definition
+    with CanThrow, Pure, BackendInstruction {
+  Box(super.graph, super.sourcePosition, Definition operand)
+    : super(inputCount: 1) {
+    setInputAt(0, operand);
+  }
+
+  Definition get operand => inputDefAt(0);
+}
+
+/// Create a box out of raw int value.
+final class BoxInt extends Box {
+  BoxInt(super.graph, super.sourcePosition, super.operand);
+
+  @override
+  CType get type => const IntType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitBoxInt(this);
+}
+
+/// Create a box out of raw double value.
+final class BoxDouble extends Box {
+  BoxDouble(super.graph, super.sourcePosition, super.operand);
+
+  @override
+  CType get type => const DoubleType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitBoxDouble(this);
+}
+
+/// Base class for unboxing instructions.
+abstract base class Unbox extends Definition
+    with NoThrow, Pure, BackendInstruction {
+  Unbox(super.graph, super.sourcePosition, Definition operand)
+    : super(inputCount: 1) {
+    setInputAt(0, operand);
+  }
+
+  Definition get operand => inputDefAt(0);
+}
+
+/// Get raw int value out of the box.
+final class UnboxInt extends Unbox {
+  UnboxInt(super.graph, super.sourcePosition, super.operand);
+
+  @override
+  CType get type => const IntType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnboxInt(this);
+}
+
+/// Get raw double value out of the box.
+final class UnboxDouble extends Unbox {
+  UnboxDouble(super.graph, super.sourcePosition, super.operand);
+
+  @override
+  CType get type => const DoubleType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnboxDouble(this);
 }
 
 /// Base class for move operations, part of [ParallelMove].

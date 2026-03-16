@@ -946,6 +946,16 @@ mixin LspAnalysisServerTestMixin
 
   String get testPackageRootPath => projectFolderPath;
 
+  String get _expectedInsertReplaceErrorMessage =>
+      'Expected InsertReplaceEdit, got TextEdit. '
+      '${textDocumentCapabilities.completion?.completionItem // Formatting hack.
+              ?.insertReplaceSupport ?? false ? ''
+                'This may indicate both replace and insert ranges were '
+                'the same.' : ''
+                'insertReplaceSupport was not set in the client '
+                'capabilities (did you miss a call to '
+                'setCompletionItemInsertReplaceSupport?).'}';
+
   Future<void> changeFile(
     int newVersion,
     Uri uri,
@@ -1406,14 +1416,14 @@ mixin LspAnalysisServerTestMixin
   TextEdit textEditForInsert(Either2<InsertReplaceEdit, TextEdit> edit) =>
       edit.map(
         (e) => TextEdit(range: e.insert, newText: e.newText),
-        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
+        (_) => throw _expectedInsertReplaceErrorMessage,
       );
 
   /// Creates a [TextEdit] using the `replace` range of a [InsertReplaceEdit].
   TextEdit textEditForReplace(Either2<InsertReplaceEdit, TextEdit> edit) =>
       edit.map(
         (e) => TextEdit(range: e.replace, newText: e.newText),
-        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
+        (_) => throw _expectedInsertReplaceErrorMessage,
       );
 
   TextEdit toTextEdit(Either2<InsertReplaceEdit, TextEdit> edit) => edit.map(

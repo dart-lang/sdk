@@ -680,6 +680,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (annotations.hasPragma) {
         flags |= FunctionDeclaration.hasPragmaFlag;
         if (pragmaParser
+            .parsedPragmas<ParsedVmInvisiblePragma>(member.annotations)
+            .isNotEmpty) {
+          flags |= FunctionDeclaration.isInvisibleFlag;
+        }
+        if (pragmaParser
             .parsedPragmas<ParsedDynModuleEntryPointPragma>(member.annotations)
             .isNotEmpty) {
           if (dynModuleEntryPoint != null) {
@@ -1477,7 +1482,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genPushContextForVariable(VariableDeclaration variable,
+  void _genPushContextForVariable(Variable variable,
       {int? currentContextLevel}) {
     currentContextLevel ??= locals.currentContextLevel;
     int depth = currentContextLevel - locals.getContextLevelOfVar(variable);
@@ -1491,13 +1496,13 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genPushContextIfCaptured(VariableDeclaration variable) {
+  void _genPushContextIfCaptured(Variable variable) {
     if (locals.isCaptured(variable)) {
       _genPushContextForVariable(variable);
     }
   }
 
-  void _genLoadVar(VariableDeclaration v, {int? currentContextLevel}) {
+  void _genLoadVar(Variable v, {int? currentContextLevel}) {
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v, currentContextLevel: currentContextLevel);
       asm.emitLoadContextVar(
@@ -1515,7 +1520,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   // Stores value into variable.
   // If variable is captured, context should be pushed before value.
-  void _genStoreVar(VariableDeclaration variable) {
+  void _genStoreVar(Variable variable) {
     if (locals.isCaptured(variable)) {
       asm.emitStoreContextVar(locals.getVarContextId(variable),
           locals.getVarIndexInContext(variable));
@@ -2179,7 +2184,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   void _declareLocalVariable(
-      VariableDeclaration variable, int initializedPosition) {
+      Variable variable, int initializedPosition) {
     bool isCaptured = locals.isCaptured(variable);
     asm.localVariableTable.declareVariable(
         asm.offset,
@@ -2187,7 +2192,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         isCaptured
             ? locals.getVarIndexInContext(variable)
             : locals.getVarIndexInFrame(variable),
-        cp.addName(variable.name!),
+        cp.addName(variable.cosmeticName!),
         cp.addType(variable.type),
         variable.fileOffset,
         initializedPosition);
@@ -2546,12 +2551,14 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     locals.leaveScope();
 
+    assert(node.id != LocalFunctionId.invalid);
     closure.code = new ClosureCode(
         asm.bytecode,
         asm.exceptionsTable,
         finalizeSourcePositions(),
         finalizeLocalVariables(),
-        capturesOnlyFinalNotLateVars);
+        capturesOnlyFinalNotLateVars,
+        node.id.toInt());
 
     _popAssemblerState();
 
@@ -2619,15 +2626,20 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= ClosureDeclaration.hasParameterFlagsFlag;
     }
 
-    final Annotations annotations = getFunctionAnnotations(
-        node is ast.FunctionDeclaration
-            ? node.variable.annotations
-            : const <Expression>[],
-        function);
+    final List<Expression> astAnnotations = node is ast.FunctionDeclaration
+        ? node.variable.annotations
+        : const <Expression>[];
+    final Annotations annotations =
+        getFunctionAnnotations(astAnnotations, function);
     if (annotations.object != null) {
       flags |= ClosureDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= ClosureDeclaration.hasPragmaFlag;
+        if (pragmaParser
+            .parsedPragmas<ParsedVmInvisiblePragma>(astAnnotations)
+            .isNotEmpty) {
+          flags |= ClosureDeclaration.isInvisibleFlag;
+        }
       }
     }
 
@@ -3591,11 +3603,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     _genDirectCallWithArgs(target, args,
         isFactory: target.isFactory, node: node);
     if (target == debugger) {
-      // The debugger needs a pause right after stepping out from the debugger
-      // function. Just using asm.emitSourcePosition() won't work here, because
-      // the next emitted instruction may have its own source position
-      // and thus would overwrite that one.
-      asm.emitNop();
+      // The debugger needs a pause for the current source position right after
+      // stepping out from the debugger function.
+      assert(asm.currentSourcePosition != TreeNode.noOffset);
+      asm.emitSourcePosition();
     }
   }
 
@@ -3684,7 +3695,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitVariableGet(VariableGet node) {
-    final v = node.variable;
+    final v = node.expressionVariable;
     if (v.isConst) {
       _genPushConstExpr(v.initializer!);
     } else if (v.isLate) {
@@ -3714,7 +3725,7 @@ class BytecodeGenerator extends RecursiveVisitor {
           asm.emitJump(store);
 
           asm.bind(error);
-          asm.emitPushConstant(cp.addName(v.name!));
+          asm.emitPushConstant(cp.addName(v.cosmeticName!));
           _genDirectCall(throwLocalAssignedDuringInitialization,
               objectTable.getArgDescHandle(1), 1);
           asm.emitDrop1();
@@ -3723,7 +3734,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
         _genStoreVar(v);
       } else {
-        asm.emitPushConstant(cp.addName(v.name!));
+        asm.emitPushConstant(cp.addName(v.cosmeticName!));
         _genDirectCall(
             throwLocalNotInitialized, objectTable.getArgDescHandle(1), 1);
         asm.emitDrop1();
@@ -3738,7 +3749,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitVariableSet(VariableSet node) {
-    final v = node.variable;
+    final v = node.expressionVariable;
 
     _genPushContextIfCaptured(v);
     _generateNode(node.value);
@@ -3780,7 +3791,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitJump(done);
 
       asm.bind(error);
-      asm.emitPushConstant(cp.addName(v.name!));
+      asm.emitPushConstant(cp.addName(v.cosmeticName!));
       _genDirectCall(
           throwLocalAlreadyInitialized, objectTable.getArgDescHandle(1), 1);
       asm.emitDrop1();
@@ -3942,7 +3953,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitForStatement(ForStatement node) {
     _enterScope(node);
     try {
-      _generateNodeList(node.variables);
+      _generateNodeList(node.variableInitializations);
 
       if (asm.isUnreachable) {
         // Bail out before binding a label which allows backward jumps,
@@ -4281,14 +4292,14 @@ class BytecodeGenerator extends RecursiveVisitor {
 
       _enterScope(catchClause);
 
-      final exceptionVar = catchClause.exception;
+      final exceptionVar = catchClause.exceptionCatchVariable;
       if (exceptionVar != null) {
         _genPushContextIfCaptured(exceptionVar);
         asm.emitPush(exception);
         _genStoreVar(exceptionVar);
       }
 
-      final stackTraceVar = catchClause.stackTrace;
+      final stackTraceVar = catchClause.stackTraceCatchVariable;
       if (stackTraceVar != null) {
         tryBlock.needsStackTrace = true;
         _genPushContextIfCaptured(stackTraceVar);
@@ -4357,7 +4368,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     finallyBlocks.remove(node);
   }
 
-  bool _skipVariableInitialization(VariableDeclaration v, bool isCaptured) {
+  bool _skipVariableInitialization(VariableInitialization v, bool isCaptured) {
     // We can skip variable initialization if the variable is supposed to be
     // initialized to null and it's captured. This is because all the slots in
     // the capture context are implicitly initialized to null.
@@ -4376,8 +4387,17 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    _handleVariableInitialization(node);
+  }
+
+  @override
+  void visitVariableInitialization(VariableInitialization node) {
+    _handleVariableInitialization(node);
+  }
+
+  void _handleVariableInitialization(VariableInitialization node) {
     if (!node.isConst) {
-      final bool isCaptured = locals.isCaptured(node);
+      final bool isCaptured = locals.isCaptured(node.variable);
       final initializer = node.initializer;
       final bool emitStore = !_skipVariableInitialization(node, isCaptured);
       int maxInitializerPosition = node.fileOffset;
@@ -4393,7 +4413,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
         asm.emitSourcePosition();
         if (isCaptured) {
-          _genPushContextForVariable(node);
+          _genPushContextForVariable(node.variable);
         }
         if (node.isLate && !_isTrivialInitializer(initializer)) {
           asm.emitPushUninitializedSentinel();
@@ -4407,11 +4427,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
 
       if (options.emitLocalVarInfo && !asm.isUnreachable && node.name != null) {
-        _declareLocalVariable(node, maxInitializerPosition + 1);
+        _declareLocalVariable(node.variable, maxInitializerPosition + 1);
       }
 
       if (emitStore) {
-        _genStoreVar(node);
+        _genStoreVar(node.variable);
       }
     }
   }

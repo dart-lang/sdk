@@ -14,6 +14,14 @@ class FindNode {
 
   FindNode(this.content, this.unit);
 
+  BinaryExpression get firstBinaryExpression => _first();
+
+  Block get firstBlock => _first();
+
+  FormalParameter get firstFormalParameter => _first();
+
+  FormalParameterList get firstFormalParameterList => _first();
+
   List<MethodInvocation> get methodInvocations {
     var result = <MethodInvocation>[];
     unit.accept(FunctionAstVisitor(methodInvocation: result.add));
@@ -38,11 +46,15 @@ class FindNode {
 
   Block get singleBlock => _single();
 
+  BlockClassBody get singleBlockClassBody => _single();
+
   BlockFunctionBody get singleBlockFunctionBody => _single();
 
   CascadeExpression get singleCascadeExpression => _single();
 
   ClassDeclaration get singleClassDeclaration => _single();
+
+  ClassMember get singleClassMember => _single();
 
   ConditionalExpression get singleConditionalExpression => _single();
 
@@ -59,6 +71,8 @@ class FindNode {
   DotShorthandInvocation get singleDotShorthandInvocation => _single();
 
   DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
+
+  DottedName get singleDottedName => _single();
 
   EnumDeclaration get singleEnumDeclaration => _single();
 
@@ -77,6 +91,8 @@ class FindNode {
   FieldFormalParameter get singleFieldFormalParameter => _single();
 
   ForElement get singleForElement => _single();
+
+  FormalParameter get singleFormalParameter => _single();
 
   FormalParameterList get singleFormalParameterList => _single();
 
@@ -169,9 +185,6 @@ class FindNode {
 
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
-
-  @Deprecated('Use primaryConstructor instead')
-  RepresentationDeclaration get singleRepresentationDeclaration => _single();
 
   RethrowExpression get singleRethrowExpression => _single();
 
@@ -380,6 +393,10 @@ class FindNode {
     return _node(search, (n) => n is DotShorthandPropertyAccess);
   }
 
+  DottedName dottedName(String search) {
+    return _node(search, (n) => n is DottedName);
+  }
+
   DoubleLiteral doubleLiteral(String search) {
     return _node(search, (n) => n is DoubleLiteral);
   }
@@ -454,6 +471,10 @@ class FindNode {
 
   ForElement forElement(String search) {
     return _node(search, (n) => n is ForElement);
+  }
+
+  FormalParameter formalParameter(String search) {
+    return _node(search, (n) => n is FormalParameter);
   }
 
   FormalParameterList formalParameterList(String search) {
@@ -585,10 +606,6 @@ class FindNode {
 
   LibraryDirective library(String search) {
     return _node(search, (n) => n is LibraryDirective);
-  }
-
-  LibraryIdentifier libraryIdentifier(String search) {
-    return _node(search, (n) => n is LibraryIdentifier);
   }
 
   ListLiteral listLiteral(String search) {
@@ -931,6 +948,14 @@ class FindNode {
 
   YieldStatement yieldStatement(String search) {
     return _node(search, (n) => n is YieldStatement);
+  }
+
+  /// If [unit] has at least one node of type [T], returns the first one.
+  /// Otherwise, throws.
+  T _first<T extends AstNode>() {
+    var visitor = _TypedNodeVisitor<T>();
+    unit.accept(visitor);
+    return visitor.nodes.first;
   }
 
   /// Locates a node at the offset of [search] and returns the first ancestor

@@ -2,2157 +2,3627 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../util/ast_type_matchers.dart';
-import 'parser_test_base.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
+import '../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassMemberParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 /// Tests which exercise the parser using a class member.
 @reflectiveTest
-class ClassMemberParserTest extends FastaParserTestCase
-    implements AbstractParserViaProxyTestCase {
+class ClassMemberParserTest extends ParserDiagnosticsTest {
   void parseClassMember_constructor_initializers_49132_helper(
     String content, {
     bool xIsNullable = false,
     bool yIsNullable = false,
     bool isVariation = false,
   }) {
-    createParser(content);
-    ClassMember member = parser.parseClassMember('Foo');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isConstructorDeclaration);
-    var constructor = member as ConstructorDeclaration;
-    expect(constructor.body, isNotNull);
-    expect(constructor.separator, isNotNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword, isNull);
-    expect(constructor.name, isNull);
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.period, isNull);
-    expect(constructor.typeName, isNotNull);
-    expect(constructor.initializers, hasLength(2));
-
-    {
-      var x = constructor.initializers[0] as ConstructorFieldInitializer;
-      expect(x.fieldName.name, "x");
-      Expression expression;
-      NamedType namedType;
-      if (isVariation) {
-        var isExpression = x.expression as IsExpression;
-        expression = isExpression.expression;
-        namedType = isExpression.type as NamedType;
-      } else {
-        var asExpression = x.expression as AsExpression;
-        expression = asExpression.expression;
-        namedType = asExpression.type as NamedType;
-      }
-      expect(expression, isSimpleIdentifier);
-      expect(namedType.name.lexeme, "int");
-      expect(namedType.question, xIsNullable ? isNotNull : isNull);
-    }
-
-    {
-      var y = constructor.initializers[1] as ConstructorFieldInitializer;
-      expect(y.fieldName.name, "y");
-      Expression expression;
-      NamedType namedType;
-      if (isVariation) {
-        var isExpression = y.expression as IsExpression;
-        expression = isExpression.expression;
-        namedType = isExpression.type as NamedType;
-      } else {
-        var asExpression = y.expression as AsExpression;
-        expression = asExpression.expression;
-        namedType = asExpression.type as NamedType;
-      }
-      expect(expression, isSimpleIdentifier);
-      expect(namedType.name.lexeme, "int");
-      expect(namedType.question, yIsNullable ? isNotNull : isNull);
-    }
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  $content
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+''');
   }
 
   void test_parse_member_called_late() {
-    var unit = parseCompilationUnit(
-      'class C { void late() { new C().late(); } }',
-    );
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    var classBody = declaration.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
-
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name.lexeme, 'late');
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-
-    var body = method.body as BlockFunctionBody;
-    var statement = body.block.statements[0] as ExpressionStatement;
-    var invocation = statement.expression as MethodInvocation;
-    expect(invocation.operator!.lexeme, '.');
-    expect(invocation.toSource(), 'new C().late()');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void late() {
+    new C().late();
+  }
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: late
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                statements
+                  ExpressionStatement
+                    expression: MethodInvocation
+                      target: InstanceCreationExpression
+                        keyword: new
+                        constructorName: ConstructorName
+                          type: NamedType
+                            name: C
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                      operator: .
+                      methodName: SimpleIdentifier
+                        token: late
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                    semicolon: ;
+                rightBracket: }
+        rightBracket: }
+''');
   }
 
   void test_parseAwaitExpression_asStatement_inAsync() {
-    createParser('m() async { await x; }');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    FunctionBody body = method.body;
-    expect(body, isBlockFunctionBody);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    expect(statement, isExpressionStatement);
-    Expression expression = (statement as ExpressionStatement).expression;
-    expect(expression, isAwaitExpression);
-    expect((expression as AwaitExpression).awaitKeyword, isNotNull);
-    expect(expression.expression, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m() async {
+    await x;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    keyword: async
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: AwaitExpression
+            awaitKeyword: await
+            expression: SimpleIdentifier
+              token: x
+          semicolon: ;
+      rightBracket: }
+''');
   }
 
   void test_parseAwaitExpression_asStatement_inSync() {
-    createParser('m() { await x; }');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    FunctionBody body = method.body;
-    expect(body, isBlockFunctionBody);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    expect(statement, isVariableDeclarationStatement);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m() {
+    await x;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        VariableDeclarationStatement
+          variables: VariableDeclarationList
+            type: NamedType
+              name: await
+            variables
+              VariableDeclaration
+                name: x
+          semicolon: ;
+      rightBracket: }
+''');
   }
 
   void test_parseAwaitExpression_inSync() {
-    createParser('m() { return await x + await y; }');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    listener.assertErrors([
-      expectedError(diag.awaitInWrongContext, 13, 5),
-      expectedError(diag.awaitInWrongContext, 23, 5),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m() {
+    return await x + await y;
+  }
+}
+''');
+    parseResult.assertErrors([
+      error(diag.awaitInWrongContext, 29, 5),
+      error(diag.awaitInWrongContext, 39, 5),
     ]);
-    FunctionBody body = method.body;
-    expect(body, isBlockFunctionBody);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    expect(statement, isReturnStatement);
-    Expression expression = (statement as ReturnStatement).expression!;
-    expect(expression, isBinaryExpression);
-    expect((expression as BinaryExpression).leftOperand, isAwaitExpression);
-    expect(expression.rightOperand, isAwaitExpression);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ReturnStatement
+          returnKeyword: return
+          expression: BinaryExpression
+            leftOperand: AwaitExpression
+              awaitKeyword: await
+              expression: SimpleIdentifier
+                token: x
+            operator: +
+            rightOperand: AwaitExpression
+              awaitKeyword: await
+              expression: SimpleIdentifier
+                token: y
+          semicolon: ;
+      rightBracket: }
+''');
   }
 
   void test_parseAwaitExpression_inSync_v1_49116() {
-    createParser('m() { await returnsFuture(); }');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    listener.assertErrors([expectedError(diag.awaitInWrongContext, 6, 5)]);
-    FunctionBody body = method.body;
-    expect(body, isBlockFunctionBody);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    expect(statement, isExpressionStatement);
-    Expression expression = (statement as ExpressionStatement).expression;
-    expect(expression, isAwaitExpression);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m() {
+    await returnsFuture();
+  }
+}
+''');
+    parseResult.assertErrors([error(diag.awaitInWrongContext, 22, 5)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: AwaitExpression
+            awaitKeyword: await
+            expression: MethodInvocation
+              methodName: SimpleIdentifier
+                token: returnsFuture
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+          semicolon: ;
+      rightBracket: }
+''');
   }
 
   void test_parseAwaitExpression_inSync_v2_49116() {
-    createParser('''m() {
-      if (await returnsFuture()) {}
-      else if (!await returnsFuture()) {}
-    }''');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    listener.assertErrors([
-      expectedError(diag.awaitInWrongContext, 16, 5),
-      expectedError(diag.awaitInWrongContext, 58, 5),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m() {
+    if (await returnsFuture()) {
+    } else if (!await returnsFuture()) {}
+  }
+}
+''');
+    parseResult.assertErrors([
+      error(diag.awaitInWrongContext, 26, 5),
+      error(diag.awaitInWrongContext, 67, 5),
     ]);
-    FunctionBody body = method.body;
-    expect(body, isBlockFunctionBody);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    expect(statement, isIfStatement);
-    Expression expression = (statement as IfStatement).expression;
-    expect(expression, isAwaitExpression);
-    expect(statement.elseStatement, isNotNull);
-    Statement elseStatement = statement.elseStatement!;
-    expect(elseStatement, isIfStatement);
-    expression = (elseStatement as IfStatement).expression;
-    expect(expression, isPrefixExpression);
-    expect((expression as PrefixExpression).operator.lexeme, '!');
-    expression = expression.operand;
-    expect(expression, isAwaitExpression);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        IfStatement
+          ifKeyword: if
+          leftParenthesis: (
+          expression: AwaitExpression
+            awaitKeyword: await
+            expression: MethodInvocation
+              methodName: SimpleIdentifier
+                token: returnsFuture
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+          rightParenthesis: )
+          thenStatement: Block
+            leftBracket: {
+            rightBracket: }
+          elseKeyword: else
+          elseStatement: IfStatement
+            ifKeyword: if
+            leftParenthesis: (
+            expression: PrefixExpression
+              operator: !
+              operand: AwaitExpression
+                awaitKeyword: await
+                expression: MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: returnsFuture
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+            rightParenthesis: )
+            thenStatement: Block
+              leftBracket: {
+              rightBracket: }
+      rightBracket: }
+''');
   }
 
   void test_parseAwaitExpression_inSync_v3_49116() {
-    createParser('m() { print(await returnsFuture()); }');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    listener.assertErrors([expectedError(diag.awaitInWrongContext, 12, 5)]);
-    FunctionBody body = method.body;
-    expect(body, isBlockFunctionBody);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    expect(statement, isExpressionStatement);
-    Expression expression = (statement as ExpressionStatement).expression;
-    expect(expression, isMethodInvocation);
-    expression = (expression as MethodInvocation).argumentList.arguments.single;
-    expect(expression, isAwaitExpression);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m() {
+    print(await returnsFuture());
+  }
+}
+''');
+    parseResult.assertErrors([error(diag.awaitInWrongContext, 28, 5)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: MethodInvocation
+            methodName: SimpleIdentifier
+              token: print
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments
+                AwaitExpression
+                  awaitKeyword: await
+                  expression: MethodInvocation
+                    methodName: SimpleIdentifier
+                      token: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+              rightParenthesis: )
+          semicolon: ;
+      rightBracket: }
+''');
   }
 
   void test_parseAwaitExpression_inSync_v4_49116() {
-    createParser('''m() {
-      xor(await returnsFuture(), await returnsFuture(), await returnsFuture());
-    }''');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    listener.assertErrors([
-      expectedError(diag.awaitInWrongContext, 16, 5),
-      expectedError(diag.awaitInWrongContext, 39, 5),
-      expectedError(diag.awaitInWrongContext, 62, 5),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m() {
+    xor(await returnsFuture(), await returnsFuture(), await returnsFuture());
+  }
+}
+''');
+    parseResult.assertErrors([
+      error(diag.awaitInWrongContext, 26, 5),
+      error(diag.awaitInWrongContext, 49, 5),
+      error(diag.awaitInWrongContext, 72, 5),
     ]);
-    FunctionBody body = method.body;
-    expect(body, isBlockFunctionBody);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    expect(statement, isExpressionStatement);
-    Expression expression = (statement as ExpressionStatement).expression;
-    expect(expression, isMethodInvocation);
-    expect((expression as MethodInvocation).argumentList.arguments.length, 3);
-    expect(expression.argumentList.arguments[0], isAwaitExpression);
-    expect(expression.argumentList.arguments[1], isAwaitExpression);
-    expect(expression.argumentList.arguments[2], isAwaitExpression);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: MethodInvocation
+            methodName: SimpleIdentifier
+              token: xor
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments
+                AwaitExpression
+                  awaitKeyword: await
+                  expression: MethodInvocation
+                    methodName: SimpleIdentifier
+                      token: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                AwaitExpression
+                  awaitKeyword: await
+                  expression: MethodInvocation
+                    methodName: SimpleIdentifier
+                      token: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                AwaitExpression
+                  awaitKeyword: await
+                  expression: MethodInvocation
+                    methodName: SimpleIdentifier
+                      token: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+              rightParenthesis: )
+          semicolon: ;
+      rightBracket: }
+''');
   }
 
   void test_parseAwaitExpression_inSync_v5_49116() {
-    createParser('''m() {
-      await returnsFuture() ^ await returnsFuture();
-    }''');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    listener.assertErrors([
-      expectedError(diag.awaitInWrongContext, 12, 5),
-      expectedError(diag.awaitInWrongContext, 36, 5),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m() {
+    await returnsFuture() ^ await returnsFuture();
+  }
+}
+''');
+    parseResult.assertErrors([
+      error(diag.awaitInWrongContext, 22, 5),
+      error(diag.awaitInWrongContext, 46, 5),
     ]);
-    FunctionBody body = method.body;
-    expect(body, isBlockFunctionBody);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    expect(statement, isExpressionStatement);
-    Expression expression = (statement as ExpressionStatement).expression;
-    expect(expression, isBinaryExpression);
-    expect((expression as BinaryExpression).leftOperand, isAwaitExpression);
-    expect(expression.rightOperand, isAwaitExpression);
-    expect(expression.operator.lexeme, '^');
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: BinaryExpression
+            leftOperand: AwaitExpression
+              awaitKeyword: await
+              expression: MethodInvocation
+                methodName: SimpleIdentifier
+                  token: returnsFuture
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            operator: ^
+            rightOperand: AwaitExpression
+              awaitKeyword: await
+              expression: MethodInvocation
+                methodName: SimpleIdentifier
+                  token: returnsFuture
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+          semicolon: ;
+      rightBracket: }
+''');
   }
 
   void test_parseAwaitExpression_inSync_v6_49116() {
-    createParser('''m() {
-      print(await returnsFuture() ^ await returnsFuture());
-    }''');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    listener.assertErrors([
-      expectedError(diag.awaitInWrongContext, 18, 5),
-      expectedError(diag.awaitInWrongContext, 42, 5),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m() {
+    print(await returnsFuture() ^ await returnsFuture());
+  }
+}
+''');
+    parseResult.assertErrors([
+      error(diag.awaitInWrongContext, 28, 5),
+      error(diag.awaitInWrongContext, 52, 5),
     ]);
-    FunctionBody body = method.body;
-    expect(body, isBlockFunctionBody);
-    Statement statement = (body as BlockFunctionBody).block.statements[0];
-    expect(statement, isExpressionStatement);
-    Expression expression = (statement as ExpressionStatement).expression;
-    expect(expression, isMethodInvocation);
-    expression = (expression as MethodInvocation).argumentList.arguments.single;
-    expect(expression, isBinaryExpression);
-    expect((expression as BinaryExpression).leftOperand, isAwaitExpression);
-    expect(expression.rightOperand, isAwaitExpression);
-    expect(expression.operator.lexeme, '^');
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: MethodInvocation
+            methodName: SimpleIdentifier
+              token: print
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments
+                BinaryExpression
+                  leftOperand: AwaitExpression
+                    awaitKeyword: await
+                    expression: MethodInvocation
+                      methodName: SimpleIdentifier
+                        token: returnsFuture
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  operator: ^
+                  rightOperand: AwaitExpression
+                    awaitKeyword: await
+                    expression: MethodInvocation
+                      methodName: SimpleIdentifier
+                        token: returnsFuture
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+              rightParenthesis: )
+          semicolon: ;
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_constructor_initializers_conditional() {
-    createParser("Foo(dynamic a) : x = a is int ? {} : [] { /*body */ }");
-    ClassMember member = parser.parseClassMember('Foo');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isConstructorDeclaration);
-    var constructor = member as ConstructorDeclaration;
-    expect(constructor.body, isNotNull);
-    expect(constructor.separator, isNotNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword, isNull);
-    expect(constructor.name, isNull);
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.period, isNull);
-    expect(constructor.typeName, isNotNull);
-    expect(constructor.initializers, hasLength(1));
-
-    var x = constructor.initializers[0] as ConstructorFieldInitializer;
-    expect(x.fieldName.name, "x");
-    var conditionalExpression = x.expression as ConditionalExpression;
-    expect(conditionalExpression.condition, isIsExpression);
-    expect(conditionalExpression.thenExpression, isSetOrMapLiteral);
-    expect(conditionalExpression.elseExpression, isListLiteral);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  Foo(dynamic a) : x = a is int ? {} : [] { /*body */
+}
+}
+''');
+    parseResult.assertErrors([error(diag.invalidConstructorName, 12, 3)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: Foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: dynamic
+      name: a
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: x
+      equals: =
+      expression: ConditionalExpression
+        condition: IsExpression
+          expression: SimpleIdentifier
+            token: a
+          isOperator: is
+          type: NamedType
+            name: int
+        question: ?
+        thenExpression: SetOrMapLiteral
+          leftBracket: {
+          rightBracket: }
+          isMap: false
+        colon: :
+        elseExpression: ListLiteral
+          leftBracket: [
+          rightBracket: ]
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_constructor_initializers_is_nullable_v1_49132() {
-    parseClassMember_constructor_initializers_49132_helper(
-      'Foo(dynamic a, dynamic b) : x = a is int, y = b is int?;',
-      yIsNullable: true,
-      isVariation: true,
-    );
+    var parseResult = parseStringWithErrors(r'''
+Foo(dynamic a, dynamic b) : x = a is int, y = b is int?;
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionBody, 26, 1),
+      error(diag.expectedExecutable, 26, 1),
+      error(diag.missingConstFinalVarOrType, 28, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: a
+              isOperator: is
+              type: NamedType
+                name: int
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: b
+              isOperator: is
+              type: NamedType
+                name: int
+                question: ?
+      semicolon: ;
+''');
   }
 
   void test_parseClassMember_constructor_initializers_is_nullable_v2_49132() {
-    parseClassMember_constructor_initializers_49132_helper(
-      'Foo(dynamic a, dynamic b) : x = a is int?, y = b is int;',
-      xIsNullable: true,
-      isVariation: true,
-    );
+    var parseResult = parseStringWithErrors(r'''
+Foo(dynamic a, dynamic b) : x = a is int?, y = b is int;
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionBody, 26, 1),
+      error(diag.expectedExecutable, 26, 1),
+      error(diag.missingConstFinalVarOrType, 28, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: a
+              isOperator: is
+              type: NamedType
+                name: int
+                question: ?
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: b
+              isOperator: is
+              type: NamedType
+                name: int
+      semicolon: ;
+''');
   }
 
   void test_parseClassMember_constructor_initializers_is_nullable_v3_49132() {
-    parseClassMember_constructor_initializers_49132_helper(
-      'Foo(dynamic a, dynamic b) : x = a is int, y = b is int? {}',
-      yIsNullable: true,
-      isVariation: true,
-    );
+    var parseResult = parseStringWithErrors(r'''
+Foo(dynamic a, dynamic b) : x = a is int, y = b is int? {}
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionBody, 26, 1),
+      error(diag.expectedExecutable, 26, 1),
+      error(diag.missingConstFinalVarOrType, 28, 1),
+      error(diag.expectedToken, 54, 1),
+      error(diag.expectedExecutable, 56, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: a
+              isOperator: is
+              type: NamedType
+                name: int
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: b
+              isOperator: is
+              type: NamedType
+                name: int
+                question: ?
+      semicolon: ; <synthetic>
+''');
   }
 
   void test_parseClassMember_constructor_initializers_is_nullable_v4_49132() {
-    parseClassMember_constructor_initializers_49132_helper(
-      'Foo(dynamic a, dynamic b) : x = a is int?, y = b is int {}',
-      xIsNullable: true,
-      isVariation: true,
-    );
+    var parseResult = parseStringWithErrors(r'''
+Foo(dynamic a, dynamic b) : x = a is int?, y = b is int {}
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionBody, 26, 1),
+      error(diag.expectedExecutable, 26, 1),
+      error(diag.missingConstFinalVarOrType, 28, 1),
+      error(diag.expectedToken, 52, 3),
+      error(diag.expectedExecutable, 56, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: a
+              isOperator: is
+              type: NamedType
+                name: int
+                question: ?
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: b
+              isOperator: is
+              type: NamedType
+                name: int
+      semicolon: ; <synthetic>
+''');
   }
 
   void test_parseClassMember_constructor_initializers_nullable_cast_v1_49132() {
-    parseClassMember_constructor_initializers_49132_helper(
-      'Foo(dynamic a, dynamic b) : x = a as int, y = b as int?;',
-      yIsNullable: true,
-    );
+    var parseResult = parseStringWithErrors(r'''
+Foo(dynamic a, dynamic b) : x = a as int, y = b as int?;
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionBody, 26, 1),
+      error(diag.expectedExecutable, 26, 1),
+      error(diag.missingConstFinalVarOrType, 28, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: a
+              asOperator: as
+              type: NamedType
+                name: int
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: b
+              asOperator: as
+              type: NamedType
+                name: int
+                question: ?
+      semicolon: ;
+''');
   }
 
   void test_parseClassMember_constructor_initializers_nullable_cast_v2_49132() {
-    parseClassMember_constructor_initializers_49132_helper(
-      'Foo(dynamic a, dynamic b) : x = a as int?, y = b as int;',
-      xIsNullable: true,
-    );
+    var parseResult = parseStringWithErrors(r'''
+Foo(dynamic a, dynamic b) : x = a as int?, y = b as int;
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionBody, 26, 1),
+      error(diag.expectedExecutable, 26, 1),
+      error(diag.missingConstFinalVarOrType, 28, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: a
+              asOperator: as
+              type: NamedType
+                name: int
+                question: ?
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: b
+              asOperator: as
+              type: NamedType
+                name: int
+      semicolon: ;
+''');
   }
 
   void test_parseClassMember_constructor_initializers_nullable_cast_v3_49132() {
-    parseClassMember_constructor_initializers_49132_helper(
-      'Foo(dynamic a, dynamic b) : x = a as int, y = b as int? {}',
-      yIsNullable: true,
-    );
+    var parseResult = parseStringWithErrors(r'''
+Foo(dynamic a, dynamic b) : x = a as int, y = b as int? {}
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionBody, 26, 1),
+      error(diag.expectedExecutable, 26, 1),
+      error(diag.missingConstFinalVarOrType, 28, 1),
+      error(diag.expectedToken, 54, 1),
+      error(diag.expectedExecutable, 56, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: a
+              asOperator: as
+              type: NamedType
+                name: int
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: b
+              asOperator: as
+              type: NamedType
+                name: int
+                question: ?
+      semicolon: ; <synthetic>
+''');
   }
 
   void test_parseClassMember_constructor_initializers_nullable_cast_v4_49132() {
-    parseClassMember_constructor_initializers_49132_helper(
-      'Foo(dynamic a, dynamic b) : x = a as int?, y = b as int {}',
-      xIsNullable: true,
-    );
+    var parseResult = parseStringWithErrors(r'''
+Foo(dynamic a, dynamic b) : x = a as int?, y = b as int {}
+''');
+    parseResult.assertErrors([
+      error(diag.missingFunctionBody, 26, 1),
+      error(diag.expectedExecutable, 26, 1),
+      error(diag.missingConstFinalVarOrType, 28, 1),
+      error(diag.expectedToken, 52, 3),
+      error(diag.expectedExecutable, 56, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: a
+              asOperator: as
+              type: NamedType
+                name: int
+                question: ?
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: b
+              asOperator: as
+              type: NamedType
+                name: int
+      semicolon: ; <synthetic>
+''');
   }
 
   void test_parseClassMember_constructor_withDocComment() {
-    createParser('/// Doc\nC();');
-    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
-    expectCommentText(constructor.documentationComment, '/// Doc');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  /// Doc
+  C();
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_constructor_withInitializers() {
-    // TODO(brianwilkerson): Test other kinds of class members: fields, getters
-    // and setters.
-    createParser('C(_, _\$, this.__) : _a = _ + _\$ {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isConstructorDeclaration);
-    var constructor = member as ConstructorDeclaration;
-    expect(constructor.body, isNotNull);
-    expect(constructor.separator, isNotNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword, isNull);
-    expect(constructor.name, isNull);
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.period, isNull);
-    expect(constructor.typeName, isNotNull);
-    expect(constructor.initializers, hasLength(1));
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C(_, _$, this.__) : _a = _ + _$ {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: _
+    parameter: SimpleFormalParameter
+      name: _$
+    parameter: FieldFormalParameter
+      thisKeyword: this
+      period: .
+      name: __
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: _a
+      equals: =
+      expression: BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: _
+        operator: +
+        rightOperand: SimpleIdentifier
+          token: _$
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_field_covariant() {
-    createParser('covariant T f;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNotNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list.keyword, isNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isFalse);
-    expect(list.lateKeyword, isNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  covariant T f;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  covariantKeyword: covariant
+  fields: VariableDeclarationList
+    type: NamedType
+      name: T
+    variables
+      VariableDeclaration
+        name: f
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_generic() {
-    createParser('List<List<N>> _allComponents = new List<List<N>>.empty();');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list, isNotNull);
-    expect(list.keyword, isNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isFalse);
-    expect(list.lateKeyword, isNull);
-    var type = list.type as NamedType;
-    expect(type.name.lexeme, 'List');
-    List typeArguments = type.typeArguments!.arguments;
-    expect(typeArguments, hasLength(1));
-    var type2 = typeArguments[0] as NamedType;
-    expect(type2.name.lexeme, 'List');
-    NodeList typeArguments2 = type2.typeArguments!.arguments;
-    expect(typeArguments2, hasLength(1));
-    var type3 = typeArguments2[0] as NamedType;
-    expect(type3.name.lexeme, 'N');
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  List<List<N>> _allComponents = new List<List<N>>.empty();
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    type: NamedType
+      name: List
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: List
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: N
+              rightBracket: >
+        rightBracket: >
+    variables
+      VariableDeclaration
+        name: _allComponents
+        equals: =
+        initializer: InstanceCreationExpression
+          keyword: new
+          constructorName: ConstructorName
+            type: NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: List
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: N
+                      rightBracket: >
+                rightBracket: >
+            period: .
+            name: SimpleIdentifier
+              token: empty
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_gftType_gftReturnType() {
-    createParser('''
-Function(int) Function(String) v;
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  Function(int) Function(String) v;
+}
 ''');
-    ClassMember member = parser.parseClassMember('C');
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    VariableDeclarationList fields = (member as FieldDeclaration).fields;
-    expect(fields.type, isGenericFunctionType);
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    type: GenericFunctionType
+      returnType: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: int
+          rightParenthesis: )
+      functionKeyword: Function
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: String
+        rightParenthesis: )
+    variables
+      VariableDeclaration
+        name: v
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_gftType_noReturnType() {
-    createParser('''
-Function(int, String) v;
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  Function(int, String) v;
+}
 ''');
-    ClassMember member = parser.parseClassMember('C');
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    VariableDeclarationList fields = (member as FieldDeclaration).fields;
-    expect(fields.type, isGenericFunctionType);
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    type: GenericFunctionType
+      functionKeyword: Function
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: String
+        rightParenthesis: )
+    variables
+      VariableDeclaration
+        name: v
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_instance_prefixedType() {
-    createParser('p.A f;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list, isNotNull);
-    expect(list.keyword, isNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isFalse);
-    expect(list.lateKeyword, isNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  p.A f;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+      name: A
+    variables
+      VariableDeclaration
+        name: f
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_namedGet() {
-    createParser('var get;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list, isNotNull);
-    expect(list.keyword, isNotNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isFalse);
-    expect(list.lateKeyword, isNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var get;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: get
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_namedOperator() {
-    createParser('var operator;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list, isNotNull);
-    expect(list.keyword, isNotNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isFalse);
-    expect(list.lateKeyword, isNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var operator;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: operator
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_namedOperator_withAssignment() {
-    createParser('var operator = (5);');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list, isNotNull);
-    expect(list.keyword, isNotNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isFalse);
-    expect(list.lateKeyword, isNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
-    expect(variable.initializer, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var operator = (5);
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: operator
+        equals: =
+        initializer: ParenthesizedExpression
+          leftParenthesis: (
+          expression: IntegerLiteral
+            literal: 5
+          rightParenthesis: )
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_namedSet() {
-    createParser('var set;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list, isNotNull);
-    expect(list.keyword, isNotNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isFalse);
-    expect(list.lateKeyword, isNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var set;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: set
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_nameKeyword() {
-    createParser('var for;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    listener.assertErrors([
-      expectedError(diag.expectedIdentifierButGotKeyword, 4, 3),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var for;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.expectedIdentifierButGotKeyword, 16, 3),
     ]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: for
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_nameMissing() {
-    createParser('var ;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 4, 1)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var ;
+}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 1)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: <empty> <synthetic>
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_nameMissing2() {
-    createParser('var "";');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    listener.assertErrors([expectedError(diag.missingIdentifier, 4, 2)]);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var "";
+}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 16, 2)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: <empty> <synthetic>
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_field_static() {
-    createParser('static A f;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNotNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list, isNotNull);
-    expect(list.keyword, isNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isFalse);
-    expect(list.lateKeyword, isNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static A f;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
+        name: f
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_finalAndCovariantLateWithInitializer() {
-    createParser('covariant late final int f = 0;');
-    parser.parseClassMember('C');
-    assertErrors(
-      diagnostics: [
-        expectedError(diag.finalAndCovariantLateWithInitializer, 0, 9),
-      ],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  covariant late final int f = 0;
+}
+''');
+    parseResult.assertErrors([
+      error(diag.finalAndCovariantLateWithInitializer, 12, 9),
+    ]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: f
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
+''');
   }
 
   void test_parseClassMember_getter_functionType() {
-    createParser('int Function(int) get g {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.body, isNotNull);
-    expect(method.parameters, isNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int Function(int) get g {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: GenericFunctionType
+    returnType: NamedType
+      name: int
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+      rightParenthesis: )
+  propertyKeyword: get
+  name: g
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_getter_void() {
-    createParser('void get g {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.body, isNotNull);
-    expect(method.parameters, isNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void get g {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: void
+  propertyKeyword: get
+  name: g
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_external() {
-    createParser('external m();');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNotNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNull);
-
-    var body = method.body as EmptyFunctionBody;
-    expect(body.keyword, isNull);
-    expect(body.star, isNull);
-    expect(body.semicolon.type, TokenType.SEMICOLON);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external m();
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  externalKeyword: external
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_method_external_withTypeAndArgs() {
-    createParser('external int m(int a);');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.body, isNotNull);
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNotNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external int m(int a);
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  externalKeyword: external
+  returnType: NamedType
+    name: int
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: a
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_method_generic_noReturnType() {
-    createParser('m<T>() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m<T>() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_generic_parameterType() {
-    createParser('m<T>(T p) => null;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-
-    FormalParameterList parameters = method.parameters!;
-    expect(parameters, isNotNull);
-    expect(parameters.parameters, hasLength(1));
-    var parameter = parameters.parameters[0] as SimpleFormalParameter;
-    var parameterType = parameter.type as NamedType;
-    expect(parameterType.name.lexeme, 'T');
-
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  m<T>(T p) => null;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: T
+      name: p
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: NullLiteral
+      literal: null
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_method_generic_returnType() {
-    createParser('T m<T>() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  T m<T>() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: T
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_generic_returnType_bound() {
-    createParser('T m<T extends num>() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect((method.returnType as NamedType).name.lexeme, 'T');
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    TypeParameter tp = method.typeParameters!.typeParameters[0];
-    expect(tp.name.lexeme, 'T');
-    expect(tp.extendsKeyword, isNotNull);
-    expect((tp.bound as NamedType).name.lexeme, 'num');
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  T m<T extends num>() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: T
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_generic_returnType_complex() {
-    createParser('Map<int, T> m<T>() => null;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-
-    {
-      var returnType = method.returnType as NamedType;
-      expect(returnType, isNotNull);
-      expect(returnType.name.lexeme, 'Map');
-
-      List<TypeAnnotation> typeArguments = returnType.typeArguments!.arguments;
-      expect(typeArguments, hasLength(2));
-      expect((typeArguments[0] as NamedType).name.lexeme, 'int');
-      expect((typeArguments[1] as NamedType).name.lexeme, 'T');
-    }
-
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  Map<int, T> m<T>() => null;
+}
+''');
+    parseResult.assertNoErrors();
+    var node =
+        (parseResult.findNode.singleClassDeclaration.body as BlockClassBody)
+            .members
+            .first;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: Map
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+        NamedType
+          name: T
+      rightBracket: >
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: NullLiteral
+      literal: null
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_method_generic_returnType_static() {
-    createParser('static T m<T>() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect((method.returnType as NamedType).name.lexeme, 'T');
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static T m<T>() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: T
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_generic_void() {
-    createParser('void m<T>() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void m<T>() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_get_noType() {
-    createParser('get() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  get() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: get
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_get_static_namedAsClass() {
-    createParser('static int get C => 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    listener.assertErrors([expectedError(diag.memberWithClassName, 15, 1)]);
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static int get C => 0;
+}
+''');
+    parseResult.assertErrors([error(diag.memberWithClassName, 27, 1)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: int
+  propertyKeyword: get
+  name: C
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 0
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_method_get_type() {
-    createParser('int get() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int get() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: int
+  name: get
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_get_void() {
-    createParser('void get() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void get() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: get
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_gftReturnType_noReturnType() {
-    createParser('''
-Function<A>(core.List<core.int> x) m() => null;
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  Function<A>(core.List<core.int> x) m() => null;
+}
 ''');
-    ClassMember member = parser.parseClassMember('C');
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    expect((member as MethodDeclaration).body, isExpressionFunctionBody);
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: GenericFunctionType
+    functionKeyword: Function
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: A
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          importPrefix: ImportPrefixReference
+            name: core
+            period: .
+          name: List
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                importPrefix: ImportPrefixReference
+                  name: core
+                  period: .
+                name: int
+            rightBracket: >
+        name: x
+      rightParenthesis: )
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: NullLiteral
+      literal: null
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_method_gftReturnType_voidReturnType() {
-    createParser('''
-void Function<A>(core.List<core.int> x) m() => null;
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void Function<A>(core.List<core.int> x) m() => null;
+}
 ''');
-    ClassMember member = parser.parseClassMember('C');
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    expect((member as MethodDeclaration).body, isExpressionFunctionBody);
-  }
-
-  void test_parseClassMember_method_native_allowed() {
-    allowNativeClause = true;
-    _parseClassMember_method_native();
-    assertNoErrors();
-  }
-
-  void test_parseClassMember_method_native_missing_literal_allowed() {
-    allowNativeClause = true;
-    _parseClassMember_method_native_missing_literal();
-    assertNoErrors();
-  }
-
-  void test_parseClassMember_method_native_missing_literal_not_allowed() {
-    allowNativeClause = false;
-    _parseClassMember_method_native_missing_literal();
-    listener.assertErrors([
-      expectedError(diag.nativeClauseShouldBeAnnotation, 4, 6),
-    ]);
-  }
-
-  void test_parseClassMember_method_native_not_allowed() {
-    allowNativeClause = false;
-    _parseClassMember_method_native();
-    listener.assertErrors([
-      expectedError(diag.nativeClauseShouldBeAnnotation, 4, 6),
-    ]);
-  }
-
-  void test_parseClassMember_method_native_with_body_allowed() {
-    allowNativeClause = true;
-    _parseClassMember_method_native_with_body();
-    assertNoErrors();
-  }
-
-  void test_parseClassMember_method_native_with_body_not_allowed() {
-    allowNativeClause = false;
-    _parseClassMember_method_native_with_body();
-    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    assertErrorsWithCodes([diag.nativeClauseShouldBeAnnotation]);
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: GenericFunctionType
+    returnType: NamedType
+      name: void
+    functionKeyword: Function
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: A
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          importPrefix: ImportPrefixReference
+            name: core
+            period: .
+          name: List
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                importPrefix: ImportPrefixReference
+                  name: core
+                  period: .
+                name: int
+            rightBracket: >
+        name: x
+      rightParenthesis: )
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: NullLiteral
+      literal: null
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_method_operator_noType() {
-    createParser('operator() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  operator() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: operator
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_operator_type() {
-    createParser('int operator() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: int
+  name: operator
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_operator_void() {
-    createParser('void operator() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void operator() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: operator
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_returnType_functionType() {
-    createParser('int Function(String) m() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.name.lexeme, 'm');
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int Function(String) m() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: GenericFunctionType
+    returnType: NamedType
+      name: int
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: String
+      rightParenthesis: )
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_returnType_parameterized() {
-    createParser('p.A m() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  p.A m() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+    name: A
+  name: m
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_set_noType() {
-    createParser('set() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  set() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  name: set
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_set_static_namedAsClass() {
-    createParser('static void set C(_) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    listener.assertErrors([expectedError(diag.memberWithClassName, 16, 1)]);
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static void set C(_) {}
+}
+''');
+    parseResult.assertErrors([error(diag.memberWithClassName, 28, 1)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: void
+  propertyKeyword: set
+  name: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: _
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_set_type() {
-    createParser('int set() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int set() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: int
+  name: set
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_set_void() {
-    createParser('void set() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void set() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: set
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_static_class() {
-    var unit = parseCompilationUnit('class C { static void m() {} }');
-
-    var c = unit.declarations[0] as ClassDeclaration;
-    var classBody = c.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  static void m() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            modifierKeyword: static
+            returnType: NamedType
+              name: void
+            name: m
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_static_mixin() {
-    var unit = parseCompilationUnit('mixin C { static void m() {} }');
-    var c = unit.declarations[0] as MixinDeclaration;
-    var method = c.body.members[0] as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+mixin C {
+  static void m() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            modifierKeyword: static
+            returnType: NamedType
+              name: void
+            name: m
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
   }
 
   void test_parseClassMember_method_trailing_commas() {
-    createParser('void f(int x, int y,) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  void f(int x, int y) {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: f
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: x
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: y
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_operator_functionType() {
-    createParser('int Function() operator +(int Function() f) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isGenericFunctionType);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNotNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    NodeList<FormalParameter> parameters = method.parameters!.parameters;
-    expect(parameters, hasLength(1));
-    expect(
-      (parameters[0] as SimpleFormalParameter).type,
-      isGenericFunctionType,
-    );
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int Function() operator +(int Function() f) {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: GenericFunctionType
+    returnType: NamedType
+      name: int
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  operatorKeyword: operator
+  name: +
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: GenericFunctionType
+        returnType: NamedType
+          name: int
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      name: f
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_operator_gtgtgt() {
-    var unit = parseCompilationUnit(
-      'class C { bool operator >>>(other) => false; }',
-    );
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    var classBody = declaration.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
-
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name.lexeme, '>>>');
-    expect(method.operatorKeyword, isNotNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  bool operator >>>(other) => false;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            returnType: NamedType
+              name: bool
+            operatorKeyword: operator
+            name: >>>
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: SimpleFormalParameter
+                name: other
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BooleanLiteral
+                literal: false
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_parseClassMember_operator_gtgtgteq() {
-    var unit = parseCompilationUnit(
-      'class C { foo(int value) { x >>>= value; } }',
-    );
-    var declaration = unit.declarations[0] as ClassDeclaration;
-    var classBody = declaration.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
-    var blockFunctionBody = method.body as BlockFunctionBody;
-    NodeList<Statement> statements = blockFunctionBody.block.statements;
-    expect(statements, hasLength(1));
-    var statement = statements[0] as ExpressionStatement;
-    var assignment = statement.expression as AssignmentExpression;
-    var leftHandSide = assignment.leftHandSide as SimpleIdentifier;
-    expect(leftHandSide.name, 'x');
-    expect(assignment.operator.lexeme, '>>>=');
-    var rightHandSide = assignment.rightHandSide as SimpleIdentifier;
-    expect(rightHandSide.name, 'value');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  foo(int value) {
+    x >>>= value;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            name: foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: SimpleFormalParameter
+                type: NamedType
+                  name: int
+                name: value
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                statements
+                  ExpressionStatement
+                    expression: AssignmentExpression
+                      leftHandSide: SimpleIdentifier
+                        token: x
+                      operator: >>>=
+                      rightHandSide: SimpleIdentifier
+                        token: value
+                    semicolon: ;
+                rightBracket: }
+        rightBracket: }
+''');
   }
 
   void test_parseClassMember_operator_index() {
-    createParser('int operator [](int i) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNotNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator [](int i) {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: int
+  operatorKeyword: operator
+  name: []
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: i
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_operator_indexAssign() {
-    createParser('int operator []=(int i) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNotNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int operator []=(int i) {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: int
+  operatorKeyword: operator
+  name: []=
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+      name: i
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseClassMember_operator_lessThan() {
-    createParser('bool operator <(other) => false;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isMethodDeclaration);
-    var method = member as MethodDeclaration;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name.lexeme, '<');
-    expect(method.operatorKeyword, isNotNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  bool operator <(other) => false;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: bool
+  operatorKeyword: operator
+  name: <
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: other
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: BooleanLiteral
+      literal: false
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_redirectingFactory_const() {
-    createParser('const factory C() = prefix.B.foo;');
-    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
-    assertNoErrors();
-    expect(constructor, isNotNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword!.keyword, Keyword.CONST);
-    expect(constructor.factoryKeyword!.keyword, Keyword.FACTORY);
-    expect(constructor.typeName!.name, 'C');
-    expect(constructor.period, isNull);
-    expect(constructor.name, isNull);
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.parameters.parameters, isEmpty);
-    expect(constructor.separator!.type, TokenType.EQ);
-    expect(constructor.initializers, isEmpty);
-    expect(constructor.redirectedConstructor, isNotNull);
-    expect(
-      constructor.redirectedConstructor!.type.importPrefix!.name.lexeme,
-      'prefix',
-    );
-    expect(constructor.redirectedConstructor!.type.name.lexeme, 'B');
-    expect(constructor.redirectedConstructor!.period!.type, TokenType.PERIOD);
-    expect(constructor.redirectedConstructor!.name!.name, 'foo');
-    expect(constructor.body, isEmptyFunctionBody);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const factory C() = prefix.B.foo;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: B
+    period: .
+    name: SimpleIdentifier
+      token: foo
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_redirectingFactory_expressionBody() {
-    createParser('factory C() => throw 0;');
-    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
-    assertNoErrors();
-    expect(constructor, isNotNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword!.keyword, Keyword.FACTORY);
-    expect(constructor.typeName!.name, 'C');
-    expect(constructor.period, isNull);
-    expect(constructor.name, isNull);
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.parameters.parameters, isEmpty);
-    expect(constructor.separator, isNull);
-    expect(constructor.initializers, isEmpty);
-    expect(constructor.redirectedConstructor, isNull);
-
-    var body = constructor.body as ExpressionFunctionBody;
-    expect(body.keyword, isNull);
-    expect(body.star, isNull);
-    expect(body.functionDefinition.type, TokenType.FUNCTION);
-    expect(body.expression, isNotNull);
-    expect(body.semicolon, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  factory C() => throw 0;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: IntegerLiteral
+        literal: 0
+    semicolon: ;
+''');
   }
 
   void test_parseClassMember_redirectingFactory_nonConst() {
-    createParser('factory C() = B;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isConstructorDeclaration);
-    var constructor = member as ConstructorDeclaration;
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword!.keyword, Keyword.FACTORY);
-    expect(constructor.typeName!.name, 'C');
-    expect(constructor.period, isNull);
-    expect(constructor.name, isNull);
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.parameters.parameters, isEmpty);
-    expect(constructor.separator!.type, TokenType.EQ);
-    expect(constructor.initializers, isEmpty);
-    expect(constructor.redirectedConstructor, isNotNull);
-    expect(constructor.redirectedConstructor!.type.name.lexeme, 'B');
-    expect(constructor.redirectedConstructor!.period, isNull);
-    expect(constructor.redirectedConstructor!.name, isNull);
-    expect(constructor.body, isEmptyFunctionBody);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  factory C() = B;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseConstructor_assert() {
-    createParser('C(x, y) : _x = x, assert (x < y), _y = y;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isConstructorDeclaration);
-    ConstructorDeclaration constructor = member as ConstructorDeclaration;
-    NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    expect(initializers, hasLength(3));
-    ConstructorInitializer initializer = initializers[1];
-    expect(initializer, isAssertInitializer);
-    var assertInitializer = initializer as AssertInitializer;
-    expect(assertInitializer.condition, isNotNull);
-    expect(assertInitializer.message, isNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C(x, y) : _x = x, assert(x < y), _y = y;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: x
+    parameter: SimpleFormalParameter
+      name: y
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: _x
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: x
+        operator: <
+        rightOperand: SimpleIdentifier
+          token: y
+      rightParenthesis: )
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: _y
+      equals: =
+      expression: SimpleIdentifier
+        token: y
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseConstructor_factory_const_external() {
-    // Although the spec does not allow external const factory,
-    // there are several instances of this in the Dart SDK.
-    // For example `external const factory bool.fromEnvironment(...)`.
-    createParser('external const factory C();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    assertNoErrors();
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external const factory C();
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  externalKeyword: external
+  constKeyword: const
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseConstructor_factory_named() {
-    createParser('factory C.foo() => throw 0;');
-    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
-    assertNoErrors();
-    expect(constructor, isNotNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword, isNotNull);
-    expect(constructor.typeName!.name, 'C');
-    expect(constructor.period!.type, TokenType.PERIOD);
-    expect(constructor.name!.lexeme, 'foo');
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.parameters.parameters, isEmpty);
-    expect(constructor.separator, isNull);
-    expect(constructor.initializers, isEmpty);
-    expect(constructor.redirectedConstructor, isNull);
-    expect(constructor.body, isExpressionFunctionBody);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  factory C.foo() => throw 0;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  period: .
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: IntegerLiteral
+        literal: 0
+    semicolon: ;
+''');
   }
 
   void test_parseConstructor_initializers_field() {
-    createParser('C(x, y) : _x = x, this._y = y;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isConstructorDeclaration);
-    ConstructorDeclaration constructor = member as ConstructorDeclaration;
-    NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    expect(initializers, hasLength(2));
-
-    {
-      var initializer = initializers[0] as ConstructorFieldInitializer;
-      expect(initializer.thisKeyword, isNull);
-      expect(initializer.period, isNull);
-      expect(initializer.fieldName.name, '_x');
-      expect(initializer.expression, isNotNull);
-    }
-
-    {
-      var initializer = initializers[1] as ConstructorFieldInitializer;
-      expect(initializer.thisKeyword, isNotNull);
-      expect(initializer.period, isNotNull);
-      expect(initializer.fieldName.name, '_y');
-      expect(initializer.expression, isNotNull);
-    }
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C(x, y) : _x = x, this._y = y;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      name: x
+    parameter: SimpleFormalParameter
+      name: y
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: _x
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName: SimpleIdentifier
+        token: _y
+      equals: =
+      expression: SimpleIdentifier
+        token: y
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseConstructor_invalidInitializer() {
-    // https://github.com/dart-lang/sdk/issues/37693
-    parseCompilationUnit(
-      'class C{ C() : super() * (); }',
-      diagnostics: [expectedError(diag.invalidInitializer, 15, 12)],
-    );
+    var parseResult = parseStringWithErrors(r'''
+class C{ C() : super() * (); }
+''');
+    parseResult.assertErrors([error(diag.invalidInitializer, 15, 12)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_parseConstructor_named() {
-    createParser('C.foo();');
-    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
-    assertNoErrors();
-    expect(constructor, isNotNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword, isNull);
-    expect(constructor.typeName!.name, 'C');
-    expect(constructor.period!.type, TokenType.PERIOD);
-    expect(constructor.name!.lexeme, 'foo');
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.parameters.parameters, isEmpty);
-    expect(constructor.separator, isNull);
-    expect(constructor.initializers, isEmpty);
-    expect(constructor.redirectedConstructor, isNull);
-    expect(constructor.body, isEmptyFunctionBody);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C.foo();
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  period: .
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseConstructor_nullSuperArgList_openBrace_37735() {
-    // https://github.com/dart-lang/sdk/issues/37735
-    var unit = parseCompilationUnit(
-      'class{const():super.{n',
-      diagnostics: [
-        expectedError(diag.missingIdentifier, 5, 1),
-        expectedError(diag.missingIdentifier, 11, 1),
-        expectedError(diag.invalidConstructorName, 11, 1),
-        expectedError(diag.missingIdentifier, 20, 1),
-        expectedError(diag.expectedToken, 20, 1),
-        expectedError(diag.expectedToken, 21, 1),
-        expectedError(diag.expectedToken, 22, 1),
-        expectedError(diag.expectedToken, 22, 1),
-      ],
-    );
-    var classDeclaration = unit.declarations[0] as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructor = classBody.members[0] as ConstructorDeclaration;
-    var invocation = constructor.initializers[0] as SuperConstructorInvocation;
-    expect(invocation.argumentList.arguments, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+class{const():super.{n
+''');
+    parseResult.assertErrors([
+      error(diag.missingIdentifier, 5, 1),
+      error(diag.missingIdentifier, 11, 1),
+      error(diag.invalidConstructorName, 11, 1),
+      error(diag.missingIdentifier, 20, 1),
+      error(diag.expectedToken, 20, 1),
+      error(diag.expectedToken, 21, 1),
+      error(diag.expectedToken, 23, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            constKeyword: const
+            typeName: SimpleIdentifier
+              token: <empty> <synthetic>
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                statements
+                  ExpressionStatement
+                    expression: SimpleIdentifier
+                      token: n
+                    semicolon: ; <synthetic>
+                rightBracket: } <synthetic>
+        rightBracket: } <synthetic>
+''');
   }
 
   void test_parseConstructor_operator_name() {
-    var unit = parseCompilationUnit(
-      'class A { operator/() : super(); }',
-      diagnostics: [expectedError(diag.invalidConstructorName, 10, 8)],
-    );
-    var classDeclaration = unit.declarations[0] as ClassDeclaration;
-    var classBody = classDeclaration.body as BlockClassBody;
-    var constructor = classBody.members[0] as ConstructorDeclaration;
-    var invocation = constructor.initializers[0] as SuperConstructorInvocation;
-    expect(invocation.argumentList.arguments, hasLength(0));
+    var parseResult = parseStringWithErrors(r'''
+class A { operator/() : super(); }
+''');
+    parseResult.assertErrors([error(diag.invalidConstructorName, 10, 8)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: /
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
   }
 
   void test_parseConstructor_superIndexed() {
-    createParser('C() : super()[];');
-    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
-    listener.assertErrors([
-      expectedError(diag.invalidSuperInInitializer, 6, 5),
-      expectedError(diag.missingIdentifier, 14, 1),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C() : super()[];
+}
+''');
+    parseResult.assertErrors([
+      error(diag.invalidSuperInInitializer, 18, 5),
+      error(diag.missingIdentifier, 26, 1),
     ]);
-    expect(constructor, isNotNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword, isNull);
-    expect(constructor.typeName!.name, 'C');
-    expect(constructor.name, isNull);
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.parameters.parameters, isEmpty);
-    expect(constructor.separator!.lexeme, ':');
-    expect(constructor.initializers, hasLength(1));
-    var initializer = constructor.initializers[0] as SuperConstructorInvocation;
-    expect(initializer.argumentList.arguments, isEmpty);
-    expect(constructor.redirectedConstructor, isNull);
-    expect(constructor.body, isEmptyFunctionBody);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    SuperConstructorInvocation
+      superKeyword: super
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseConstructor_thisIndexed() {
-    createParser('C() : this()[];');
-    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
-    listener.assertErrors([
-      expectedError(diag.invalidThisInInitializer, 6, 4),
-      expectedError(diag.missingIdentifier, 13, 1),
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C() : this()[];
+}
+''');
+    parseResult.assertErrors([
+      error(diag.invalidThisInInitializer, 18, 4),
+      error(diag.missingIdentifier, 25, 1),
     ]);
-    expect(constructor, isNotNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword, isNull);
-    expect(constructor.typeName!.name, 'C');
-    expect(constructor.name, isNull);
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.parameters.parameters, isEmpty);
-    expect(constructor.separator!.lexeme, ':');
-    expect(constructor.initializers, hasLength(1));
-    var initializer =
-        constructor.initializers[0] as RedirectingConstructorInvocation;
-    expect(initializer.argumentList.arguments, isEmpty);
-    expect(constructor.redirectedConstructor, isNull);
-    expect(constructor.body, isEmptyFunctionBody);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    RedirectingConstructorInvocation
+      thisKeyword: this
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseConstructor_unnamed() {
-    createParser('C();');
-    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
-    assertNoErrors();
-    expect(constructor, isNotNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword, isNull);
-    expect(constructor.typeName!.name, 'C');
-    expect(constructor.period, isNull);
-    expect(constructor.name, isNull);
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.parameters.parameters, isEmpty);
-    expect(constructor.separator, isNull);
-    expect(constructor.initializers, isEmpty);
-    expect(constructor.redirectedConstructor, isNull);
-    expect(constructor.body, isEmptyFunctionBody);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C();
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseConstructor_with_pseudo_function_literal() {
-    // "(b) {}" should not be misinterpreted as a function literal even though
-    // it looks like one.
-    createParser('C() : a = (b) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isConstructorDeclaration);
-    ConstructorDeclaration constructor = member as ConstructorDeclaration;
-    NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    expect(initializers, hasLength(1));
-    ConstructorInitializer initializer = initializers[0];
-    expect(initializer, isConstructorFieldInitializer);
-    expect(
-      (initializer as ConstructorFieldInitializer).expression,
-      isParenthesizedExpression,
-    );
-    expect(constructor.body, isBlockFunctionBody);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C() : a = (b) {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: a
+      equals: =
+      expression: ParenthesizedExpression
+        leftParenthesis: (
+        expression: SimpleIdentifier
+          token: b
+        rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_parseConstructorFieldInitializer_qualified() {
-    var initializer =
-        parseConstructorInitializer('this.a = b')
-            as ConstructorFieldInitializer;
-    expect(initializer, isNotNull);
-    assertNoErrors();
-    expect(initializer.equals, isNotNull);
-    expect(initializer.expression, isNotNull);
-    expect(initializer.fieldName, isNotNull);
-    expect(initializer.thisKeyword, isNotNull);
-    expect(initializer.period, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C() : this.a = b;
+}
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleConstructorDeclaration.initializers.first;
+    assertParsedNodeText(node, r'''
+ConstructorFieldInitializer
+  thisKeyword: this
+  period: .
+  fieldName: SimpleIdentifier
+    token: a
+  equals: =
+  expression: SimpleIdentifier
+    token: b
+''');
   }
 
   void test_parseConstructorFieldInitializer_unqualified() {
-    var initializer =
-        parseConstructorInitializer('a = b') as ConstructorFieldInitializer;
-    expect(initializer, isNotNull);
-    assertNoErrors();
-    expect(initializer.equals, isNotNull);
-    expect(initializer.expression, isNotNull);
-    expect(initializer.fieldName, isNotNull);
-    expect(initializer.thisKeyword, isNull);
-    expect(initializer.period, isNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  C() : a = b;
+}
+''');
+    parseResult.assertNoErrors();
+    var node =
+        parseResult.findNode.singleConstructorDeclaration.initializers.first;
+    assertParsedNodeText(node, r'''
+ConstructorFieldInitializer
+  fieldName: SimpleIdentifier
+    token: a
+  equals: =
+  expression: SimpleIdentifier
+    token: b
+''');
   }
 
   void test_parseField_abstract() {
-    createParser('abstract int i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.abstractKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  abstract int i;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  abstractKeyword: abstract
+  fields: VariableDeclarationList
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_abstract_external() {
-    createParser('abstract external int i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertErrors(
-      diagnostics: [expectedError(diag.abstractExternalField, 0, 8)],
-    );
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.abstractKeyword, isNotNull);
-    expect(field.externalKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  abstract external int i;
+}
+''');
+    parseResult.assertErrors([error(diag.abstractExternalField, 12, 8)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  abstractKeyword: abstract
+  externalKeyword: external
+  fields: VariableDeclarationList
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_abstract_late() {
-    createParser('abstract late int? i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertErrors(diagnostics: [expectedError(diag.abstractLateField, 0, 8)]);
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.abstractKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  abstract late int? i;
+}
+''');
+    parseResult.assertErrors([error(diag.abstractLateField, 12, 8)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  abstractKeyword: abstract
+  fields: VariableDeclarationList
+    lateKeyword: late
+    type: NamedType
+      name: int
+      question: ?
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_abstract_late_final() {
-    createParser('abstract late final int? i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertErrors(diagnostics: [expectedError(diag.abstractLateField, 0, 8)]);
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.abstractKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  abstract late final int? i;
+}
+''');
+    parseResult.assertErrors([error(diag.abstractLateField, 12, 8)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  abstractKeyword: abstract
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    type: NamedType
+      name: int
+      question: ?
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_abstract_static() {
-    createParser('abstract static int? i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertErrors(diagnostics: [expectedError(diag.abstractStaticField, 0, 8)]);
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.abstractKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  abstract static int? i;
+}
+''');
+    parseResult.assertErrors([error(diag.abstractStaticField, 12, 8)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  abstractKeyword: abstract
+  staticKeyword: static
+  fields: VariableDeclarationList
+    type: NamedType
+      name: int
+      question: ?
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_const_late() {
-    createParser('const late T f = 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertErrors(diagnostics: [expectedError(diag.conflictingModifiers, 6, 4)]);
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list.keyword, isNotNull);
-    expect(list.isConst, isTrue);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isTrue);
-    expect(list.lateKeyword, isNotNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  const late T f = 0;
+}
+''');
+    parseResult.assertErrors([error(diag.conflictingModifiers, 18, 4)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: const
+    type: NamedType
+      name: T
+    variables
+      VariableDeclaration
+        name: f
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
+''');
   }
 
   void test_parseField_external() {
-    createParser('external int i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.externalKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external int i;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  externalKeyword: external
+  fields: VariableDeclarationList
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_external_abstract() {
-    createParser('external abstract int i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertErrors(
-      diagnostics: [expectedError(diag.abstractExternalField, 9, 8)],
-    );
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.abstractKeyword, isNotNull);
-    expect(field.externalKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external abstract int i;
+}
+''');
+    parseResult.assertErrors([error(diag.abstractExternalField, 21, 8)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  abstractKeyword: abstract
+  externalKeyword: external
+  fields: VariableDeclarationList
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_external_late() {
-    createParser('external late int? i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertErrors(diagnostics: [expectedError(diag.externalLateField, 0, 8)]);
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.externalKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external late int? i;
+}
+''');
+    parseResult.assertErrors([error(diag.externalLateField, 12, 8)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  externalKeyword: external
+  fields: VariableDeclarationList
+    lateKeyword: late
+    type: NamedType
+      name: int
+      question: ?
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_external_late_final() {
-    createParser('external late final int? i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertErrors(diagnostics: [expectedError(diag.externalLateField, 0, 8)]);
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.externalKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external late final int? i;
+}
+''');
+    parseResult.assertErrors([error(diag.externalLateField, 12, 8)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  externalKeyword: external
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    type: NamedType
+      name: int
+      question: ?
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_external_static() {
-    createParser('external static int? i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.externalKeyword, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  external static int? i;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  externalKeyword: external
+  staticKeyword: static
+  fields: VariableDeclarationList
+    type: NamedType
+      name: int
+      question: ?
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_final_late() {
-    createParser('final late T f;');
-    ClassMember member = parser.parseClassMember('C');
-    assertErrors(diagnostics: [expectedError(diag.modifierOutOfOrder, 6, 4)]);
-    expect(member, isNotNull);
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list.keyword, isNotNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isTrue);
-    expect(list.isLate, isTrue);
-    expect(list.lateKeyword, isNotNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  final late T f;
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 18, 4)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    type: NamedType
+      name: T
+    variables
+      VariableDeclaration
+        name: f
+  semicolon: ;
+''');
   }
 
   void test_parseField_late() {
-    createParser('late T f;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list.keyword, isNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isTrue);
-    expect(list.lateKeyword, isNotNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  late T f;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    type: NamedType
+      name: T
+    variables
+      VariableDeclaration
+        name: f
+  semicolon: ;
+''');
   }
 
   void test_parseField_late_const() {
-    createParser('late const T f = 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertErrors(diagnostics: [expectedError(diag.conflictingModifiers, 5, 5)]);
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list.keyword, isNotNull);
-    expect(list.isConst, isTrue);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isTrue);
-    expect(list.lateKeyword, isNotNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  late const T f = 0;
+}
+''');
+    parseResult.assertErrors([error(diag.conflictingModifiers, 17, 5)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: const
+    type: NamedType
+      name: T
+    variables
+      VariableDeclaration
+        name: f
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
+''');
   }
 
   void test_parseField_late_final() {
-    createParser('late final T f;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list.keyword, isNotNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isTrue);
-    expect(list.isLate, isTrue);
-    expect(list.lateKeyword, isNotNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  late final T f;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    type: NamedType
+      name: T
+    variables
+      VariableDeclaration
+        name: f
+  semicolon: ;
+''');
   }
 
   void test_parseField_late_var() {
-    createParser('late var f;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list.keyword, isNotNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isTrue);
-    expect(list.lateKeyword, isNotNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  late var f;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: var
+    variables
+      VariableDeclaration
+        name: f
+  semicolon: ;
+''');
   }
 
   void test_parseField_non_abstract() {
-    createParser('int i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.abstractKeyword, isNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int i;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_non_external() {
-    createParser('int i;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.externalKeyword, isNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int i;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: i
+  semicolon: ;
+''');
   }
 
   void test_parseField_var_late() {
-    createParser('var late f;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertErrors(diagnostics: [expectedError(diag.modifierOutOfOrder, 4, 4)]);
-    expect(member, isFieldDeclaration);
-    var field = member as FieldDeclaration;
-    expect(field.covariantKeyword, isNull);
-    expect(field.documentationComment, isNull);
-    expect(field.metadata, hasLength(0));
-    expect(field.staticKeyword, isNull);
-    VariableDeclarationList list = field.fields;
-    expect(list, isNotNull);
-    expect(list.keyword, isNotNull);
-    expect(list.isConst, isFalse);
-    expect(list.isFinal, isFalse);
-    expect(list.isLate, isTrue);
-    expect(list.lateKeyword, isNotNull);
-    NodeList<VariableDeclaration> variables = list.variables;
-    expect(variables, hasLength(1));
-    VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
-  }
-
-  void test_parseGetter_identifier_colon_issue_36961() {
-    createParser('get a:');
-    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
-    expect(constructor, isNotNull);
-    listener.assertErrors([
-      expectedError(diag.getterConstructor, 0, 3),
-      expectedError(diag.missingMethodParameters, 4, 1),
-      expectedError(diag.invalidConstructorName, 4, 1),
-      expectedError(diag.missingInitializer, 5, 1),
-      expectedError(diag.missingFunctionBody, 6, 0),
-    ]);
-    expect(constructor.body, isNotNull);
-    expect(constructor.documentationComment, isNull);
-    expect(constructor.externalKeyword, isNull);
-    expect(constructor.name, isNull);
-    expect(constructor.parameters, isNotNull);
-    expect(constructor.typeName, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  var late f;
+}
+''');
+    parseResult.assertErrors([error(diag.modifierOutOfOrder, 16, 4)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: var
+    variables
+      VariableDeclaration
+        name: f
+  semicolon: ;
+''');
   }
 
   void test_parseGetter_nonStatic() {
-    createParser('/// Doc\nT get a;');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    assertNoErrors();
-    expect(method.body, isNotNull);
-    expectCommentText(method.documentationComment, '/// Doc');
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.parameters, isNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name.lexeme, 'T');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  /// Doc
+  T get a;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  returnType: NamedType
+    name: T
+  propertyKeyword: get
+  name: a
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseGetter_static() {
-    createParser('/// Doc\nstatic T get a => 42;');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    assertNoErrors();
-    expect(method.body, isNotNull);
-    expectCommentText(method.documentationComment, '/// Doc');
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword!.lexeme, 'static');
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name.lexeme, 'T');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  /// Doc
+  static T get a => 42;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  modifierKeyword: static
+  returnType: NamedType
+    name: T
+  propertyKeyword: get
+  name: a
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 42
+    semicolon: ;
+''');
   }
 
   void test_parseInitializedIdentifierList_type() {
-    createParser("/// Doc\nstatic T a = 1, b, c = 3;");
-    var declaration = parser.parseClassMember('C') as FieldDeclaration;
-    expect(declaration, isNotNull);
-    assertNoErrors();
-    expectCommentText(declaration.documentationComment, '/// Doc');
-    VariableDeclarationList fields = declaration.fields;
-    expect(fields, isNotNull);
-    expect(fields.keyword, isNull);
-    expect((fields.type as NamedType).name.lexeme, 'T');
-    expect(fields.variables, hasLength(3));
-    expect(declaration.staticKeyword!.lexeme, 'static');
-    expect(declaration.semicolon, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  /// Doc
+  static T a = 1, b, c = 3;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  staticKeyword: static
+  fields: VariableDeclarationList
+    type: NamedType
+      name: T
+    variables
+      VariableDeclaration
+        name: a
+        equals: =
+        initializer: IntegerLiteral
+          literal: 1
+      VariableDeclaration
+        name: b
+      VariableDeclaration
+        name: c
+        equals: =
+        initializer: IntegerLiteral
+          literal: 3
+  semicolon: ;
+''');
   }
 
   void test_parseInitializedIdentifierList_var() {
-    createParser('/// Doc\nstatic var a = 1, b, c = 3;');
-    var declaration = parser.parseClassMember('C') as FieldDeclaration;
-    expect(declaration, isNotNull);
-    assertNoErrors();
-    expectCommentText(declaration.documentationComment, '/// Doc');
-    VariableDeclarationList fields = declaration.fields;
-    expect(fields, isNotNull);
-    expect(fields.keyword!.lexeme, 'var');
-    expect(fields.type, isNull);
-    expect(fields.variables, hasLength(3));
-    expect(declaration.staticKeyword!.lexeme, 'static');
-    expect(declaration.semicolon, isNotNull);
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  /// Doc
+  static var a = 1, b, c = 3;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  staticKeyword: static
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: a
+        equals: =
+        initializer: IntegerLiteral
+          literal: 1
+      VariableDeclaration
+        name: b
+      VariableDeclaration
+        name: c
+        equals: =
+        initializer: IntegerLiteral
+          literal: 3
+  semicolon: ;
+''');
   }
 
   void test_parseOperator() {
-    createParser('/// Doc\nT operator +(A a);');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    assertNoErrors();
-    expect(method.body, isNotNull);
-    expectCommentText(method.documentationComment, '/// Doc');
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNotNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.propertyKeyword, isNull);
-    expect((method.returnType as NamedType).name.lexeme, 'T');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  /// Doc
+  T operator +(A a);
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  returnType: NamedType
+    name: T
+  operatorKeyword: operator
+  name: +
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: A
+      name: a
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseSetter_nonStatic() {
-    createParser('/// Doc\nT set a(var x);');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    assertNoErrors();
-    expect(method.body, isNotNull);
-    expectCommentText(method.documentationComment, '/// Doc');
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name.lexeme, 'T');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  /// Doc
+  T set a(var x);
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 30, 3)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  returnType: NamedType
+    name: T
+  propertyKeyword: set
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      keyword: var
+      name: x
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
   }
 
   void test_parseSetter_static() {
-    createParser('/// Doc\nstatic T set a(var x) {}');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    expect(method, isNotNull);
-    assertNoErrors();
-    expect(method.body, isNotNull);
-    expectCommentText(method.documentationComment, '/// Doc');
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword!.lexeme, 'static');
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name.lexeme, 'T');
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  /// Doc
+  static T set a(var x) {}
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 37, 3)]);
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  modifierKeyword: static
+  returnType: NamedType
+    name: T
+  propertyKeyword: set
+  name: a
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      keyword: var
+      name: x
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   void test_simpleFormalParameter_withDocComment() {
-    createParser('''
-int f(
+    var parseResult = parseStringWithErrors(r'''
+class C {
+  int f(
     /// Doc
-    int x) {}
+    int x,
+  ) {}
+}
 ''');
-    var function = parseFullCompilationUnitMember() as FunctionDeclaration;
-    var parameter =
-        function.functionExpression.parameters!.parameters[0]
-            as NormalFormalParameter;
-    expectCommentText(parameter.documentationComment, '/// Doc');
-  }
-
-  void _parseClassMember_method_native() {
-    createParser('m() native "str";');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    var body = method.body as NativeFunctionBody;
-    expect(body.nativeKeyword, isNotNull);
-    expect(body.stringLiteral, isNotNull);
-    expect(body.stringLiteral?.stringValue, "str");
-    expect(body.semicolon, isNotNull);
-  }
-
-  void _parseClassMember_method_native_missing_literal() {
-    createParser('m() native;');
-    var method = parser.parseClassMember('C') as MethodDeclaration;
-    var body = method.body as NativeFunctionBody;
-    expect(body.nativeKeyword, isNotNull);
-    expect(body.stringLiteral, isNull);
-    expect(body.semicolon, isNotNull);
-  }
-
-  void _parseClassMember_method_native_with_body() {
-    createParser('m() native "str" {}');
-    parser.parseClassMember('C') as MethodDeclaration;
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: int
+  name: f
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      documentationComment: Comment
+        tokens
+          /// Doc
+      type: NamedType
+        name: int
+      name: x
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 }

@@ -37,7 +37,9 @@ import 'dart:_js_helper'
         JSSyntaxRegExp,
         quoteStringForRegExp,
         jsStringFromDartString,
-        stringify;
+        stringify,
+        JavaScriptStack,
+        JSExternWrapperExt;
 
 import 'dart:_list';
 

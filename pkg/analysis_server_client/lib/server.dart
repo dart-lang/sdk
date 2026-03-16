@@ -30,8 +30,7 @@ class Server extends ServerBase {
   /// [listenToOutput] has not been called or [stop] has been called.
   StreamSubscription<String>? _stdoutSubscription;
 
-  Server({super.listener, Process? process, super.stdioPassthrough})
-      : _process = process;
+  Server({super.listener, this._process, super.stdioPassthrough});
 
   /// Force kill the server. Returns exit code future.
   @override

@@ -8,6 +8,8 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/utilities/string_extensions.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:path/path.dart' as path;
 
 /// The page that displays information about _new_ (not legacy) analyzer
 /// plugins.
@@ -44,7 +46,14 @@ class PluginsPage extends DiagnosticPageWithNav {
         if (isolate.executionPath case var executionPath?)
           ['Execution path:', executionPath.wordBreakOnSlashes],
         if (isolate.packageConfigPath case var packageConfigPath?)
-          ['Package config path', packageConfigPath.wordBreakOnSlashes],
+          [
+            'Package config path:',
+            '${path.posix.dirname(packageConfigPath)}/'.wordBreakOnSlashes +
+                formatContentsLink(
+                  packageConfigPath,
+                  file_paths.packageConfigJson,
+                ),
+          ],
       ]);
 
       if (data.name == null) {

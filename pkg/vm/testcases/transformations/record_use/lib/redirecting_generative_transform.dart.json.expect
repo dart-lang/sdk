@@ -1,0 +1,58 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 5
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "C"
+        }
+      ],
+      "uri": "package:record_use_test/redirecting_generative_transform.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "C"
+        },
+        {
+          "kind": "constructor",
+          "name": "a"
+        }
+      ],
+      "uri": "package:record_use_test/redirecting_generative_transform.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "definition_index": 1,
+            "loading_unit_index": 0,
+            "positional": [
+              0
+            ],
+            "type": "creation"
+          }
+        ]
+      }
+    ]
+  }
+}

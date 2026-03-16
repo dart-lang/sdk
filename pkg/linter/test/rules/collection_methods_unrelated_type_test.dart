@@ -21,6 +21,14 @@ class CollectionMethodsUnrelatedTypeIterableTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.collection_methods_unrelated_type;
 
+  @override
+  void setUp() {
+    newPackage('protobuf').addFile('lib/src/protobuf/protobuf_enum.dart', r'''
+class ProtobufEnum {}
+''');
+    super.setUp();
+  }
+
   test_contains_related_dynamic() async {
     await assertNoDiagnostics('''var x = <num>[].contains('1' as dynamic);''');
   }
@@ -68,6 +76,21 @@ var x = <M>[].contains(C());
     await assertNoDiagnostics('var x = <(num, num)>[].contains((1, 2));');
   }
 
+  test_contains_related_sameEnum() async {
+    await assertNoDiagnostics('''
+var x = <E>[].contains(E.a);
+enum E { a, b }
+''');
+  }
+
+  test_contains_related_sameProtobufEnum() async {
+    await assertNoDiagnostics('''
+import 'package:protobuf/src/protobuf/protobuf_enum.dart';
+var x = <E>[].contains(E());
+class E extends ProtobufEnum {}
+''');
+  }
+
   test_contains_related_subclassOfList() async {
     await assertNoDiagnostics('''
 abstract class C implements List<num> {}
@@ -102,6 +125,29 @@ abstract class C implements List<num> {
     await assertDiagnostics(
       '''var x = <num>[]..contains('1');''',
       [lint(26, 3)],
+    );
+  }
+
+  test_contains_unrelated_differentEnums() async {
+    await assertDiagnostics(
+      '''
+var x = <E1>[].contains(E2.c);
+enum E1 { a, b }
+enum E2 { c, d }
+''',
+      [lint(24, 4)],
+    );
+  }
+
+  test_contains_unrelated_differentProtobufEnums() async {
+    await assertDiagnostics(
+      '''
+import 'package:protobuf/src/protobuf/protobuf_enum.dart';
+var x = <E1>[].contains(E2());
+class E1 extends ProtobufEnum {}
+class E2 extends ProtobufEnum {}
+''',
+      [lint(83, 4)],
     );
   }
 

@@ -124,12 +124,13 @@ extension AstNodeNullableExtension on AstNode? {
     var self = this;
     return switch (self) {
       BlockClassBody() => self.members,
+      BlockEnumBody() => self.members,
       ClassDeclarationImpl() => self.body.members,
-      EnumBody() => self.members,
-      EnumDeclaration() => self.body.members,
-      ExtensionDeclaration() => self.body.members,
+      EnumDeclaration() => self.body.tryCast<BlockEnumBody>()?.members ?? [],
+      ExtensionDeclaration() =>
+        self.body.tryCast<BlockClassBody>()?.members ?? [],
       ExtensionTypeDeclarationImpl() => self.body.members,
-      MixinDeclaration() => self.body.members,
+      MixinDeclaration() => self.body.tryCast<BlockClassBody>()?.members ?? [],
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };
   }
@@ -159,6 +160,14 @@ extension CompilationUnitExtension on CompilationUnit {
       _ => false,
     };
   }
+}
+
+extension ExpressionExtension on Expression {
+  /// Whether this expression is found in a [CommentReference].
+  bool get inCommentReference =>
+      parent is CommentReference ||
+      parent?.parent is CommentReference ||
+      parent?.parent?.parent is CommentReference;
 }
 
 extension ExtensionElementExtension on ExtensionElement {

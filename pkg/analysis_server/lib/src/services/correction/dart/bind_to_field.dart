@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -115,12 +116,16 @@ class BindToField extends ResolvedCorrectionProducer {
       // Parameter is already a method.
       return;
     }
-    if (container is EnumDeclaration &&
-        container.body.constants.any(
-          (constant) => constant.name.lexeme == parameter.name?.lexeme,
-        )) {
-      // Parameter is already a constant.
-      return;
+    if (container is EnumDeclaration) {
+      var constants =
+          container.body.tryCast<BlockEnumBody>()?.constants ??
+          <EnumConstantDeclaration>[];
+      if (constants.any(
+        (constant) => constant.name.lexeme == parameter.name?.lexeme,
+      )) {
+        // Parameter is already a constant.
+        return;
+      }
     }
 
     await builder.addDartFileEdit(file, (builder) {

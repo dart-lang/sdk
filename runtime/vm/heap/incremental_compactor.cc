@@ -780,7 +780,7 @@ class EpilogueTask : public SafepointTask {
       intptr_t obj_size = raw_obj->untag()->HeapSize(tags);
       if (UntaggedObject::IsMarked(tags)) {
         raw_obj->untag()->ClearMarkBitUnsynchronized();
-        ASSERT(IsAllocatableInNewSpace(obj_size));
+        ASSERT(Heap::IsAllocatableInNewSpace(obj_size));
         raw_obj->untag()->VisitPointers(visitor);
       } else {
         uword free_end = current + obj_size;

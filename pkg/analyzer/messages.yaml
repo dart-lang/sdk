@@ -1712,12 +1712,6 @@ CompileTimeErrorCode:
       #### Common fixes
 
       Rewrite the code so that there isn't an assignment to a method.
-  assignmentToPrimaryConstructorParameter:
-    type: compileTimeError
-    parameters: none
-    problemMessage: "A primary constructor parameter can't be assigned to in an initializer."
-    correctionMessage: "Try removing the assignment."
-    hasPublishedDocs: false
   assignmentToType:
     type: compileTimeError
     parameters: none
@@ -7036,18 +7030,6 @@ CompileTimeErrorCode:
         C() : f = 1;
       }
       ```
-  fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor:
-    type: compileTimeError
-    parameters: none
-    problemMessage: "Fields can't be initialized in both the primary constructor and at their declaration."
-    correctionMessage: Try removing one of the initializations.
-    hasPublishedDocs: false
-  fieldInitializedInDeclarationAndParameterOfPrimaryConstructor:
-    type: compileTimeError
-    parameters: none
-    problemMessage: "Fields can't be initialized in both the primary constructor parameter list and at their declaration."
-    correctionMessage: Try removing one of the initializations.
-    hasPublishedDocs: false
   fieldInitializedInParameterAndInitializer:
     type: compileTimeError
     parameters: none
@@ -14928,6 +14910,44 @@ CompileTimeErrorCode:
     problemMessage: "A primary constructor can't be a redirecting constructor."
     correctionMessage: "Try removing the redirect."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a primary constructor redirects
+      to another constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the primary
+      constructor has a redirect to the constructor `C.named`:
+
+      ```dart
+      class C(int x) {
+        C.named() : this(0);
+        this : assert(x > 0), [!this!].named();
+      }
+      ```
+
+      #### Common fixes
+
+      If the redirection isn't necessary, then remove it:
+
+      ```dart
+      class C(int x) {
+        C.named() : this(0);
+        this : assert(x > 0);
+      }
+      ```
+
+      If the redirection is necessary, then convert the primary constructor into
+      a secondary constructor, and rework other constructors as necessary:
+
+      ```dart
+      class C {
+        C.named();
+        C(int x) : this.named();
+      }
+      ```
   privateCollisionInMixinApplication:
     type: compileTimeError
     parameters:
@@ -15396,51 +15416,6 @@ CompileTimeErrorCode:
       ```dart
       class C {
         C.a();
-      }
-      ```
-  redirectGenerativeToNonGenerativeConstructor:
-    type: compileTimeError
-    parameters: none
-    problemMessage: "Generative constructors can't redirect to a factory constructor."
-    correctionMessage: Try redirecting to a different constructor.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a generative constructor
-      redirects to a factory constructor.
-
-      #### Example
-
-      The following code produces this diagnostic because the generative
-      constructor `C.a` redirects to the factory constructor `C.b`:
-
-      ```dart
-      class C {
-        C.a() : [!this.b()!];
-        factory C.b() => C.a();
-      }
-      ```
-
-      #### Common fixes
-
-      If the generative constructor doesn't need to redirect to another
-      constructor, then remove the redirect.
-
-      ```dart
-      class C {
-        C.a();
-        factory C.b() => C.a();
-      }
-      ```
-
-      If the generative constructor must redirect to another constructor, then
-      make the other constructor be a generative (non-factory) constructor:
-
-      ```dart
-      class C {
-        C.a() : this.b();
-        C.b();
       }
       ```
   redirectToAbstractClassConstructor:
@@ -19175,6 +19150,14 @@ CompileTimeErrorCode:
 
       Rewrite the code to use `dart:ffi` as a way of invoking the contents of the
       native library.
+  useOfPrivateParameterName:
+    type: compileTimeError
+    sharedName: undefinedNamedParameter
+    parameters:
+      String name: the public name of the requested named parameter
+    problemMessage: "The named parameter '_#name' should use the corresponding public name '#name' at the callsite."
+    correctionMessage: "Try changing the name to '#name'."
+    hasPublishedDocs: true
   useOfVoidResult:
     type: compileTimeError
     parameters: none
@@ -23249,7 +23232,7 @@ ParserErrorCode:
   representationFieldModifier:
     type: syntacticError
     parameters: none
-    problemMessage: "Representation fields can't have modifiers."
+    problemMessage: "Representation fields can't have the modifier 'var'."
     correctionMessage: Try removing the modifier.
     hasPublishedDocs: false
   representationFieldTrailingComma:
@@ -24254,8 +24237,7 @@ PubspecWarningCode:
       String path: the path of the directory that contains the pubspec.yaml file.
     problemMessage: Workspace values must be a relative path of a subdirectory of '#path'.
     correctionMessage: Try using a subdirectory of the directory containing the 'pubspec.yaml' file.
-    hasPublishedDocs: false
-
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -25368,7 +25350,7 @@ WarningCode:
     parameters: none
     problemMessage: Methods named 'factory' will become constructors when the primary_constructors feature is enabled.
     correctionMessage: Try adding a return type or modifier before the method's name, or change the name of the method.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -26449,7 +26431,7 @@ WarningCode:
       String parameter: the name of the parameter
     problemMessage: "The type of '#parameter' can't be inferred; a type must be explicitly provided."
     correctionMessage: Try specifying the type of the parameter.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       When "strict-inference" in enabled, function parameters must be
       declared with a specific type, or inherit a type.
@@ -30611,7 +30593,7 @@ WarningCode:
       String keyword: the keyword to remove
     problemMessage: "The value of the field '#fieldName' isn't used."
     correctionMessage: Try removing the '#keyword' keyword to avoid declaring a field, or try using the field, or removing it.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

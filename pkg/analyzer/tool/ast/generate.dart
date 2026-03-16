@@ -243,7 +243,7 @@ R? visitFunctionDeclaration(FunctionDeclaration node) {
   if (node.parent is FunctionDeclarationStatement) {
     return visitNode(node);
   }
-  return visitNamedCompilationUnitMember(node);
+  return visitCompilationUnitMember(node);
 }''');
         continue;
       }

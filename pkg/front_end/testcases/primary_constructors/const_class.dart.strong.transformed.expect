@@ -99,7 +99,7 @@ class C1 extends core::Object /*hasConstConstructor*/  {
 }
 class C2 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(core::int x) → self::C2
+  const constructor •(final core::int x) → self::C2
     : self::C2::x = x, super core::Object::•() {}
 }
 class C3 extends core::Object /*hasConstConstructor*/  {
@@ -109,7 +109,7 @@ class C3 extends core::Object /*hasConstConstructor*/  {
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(core::int x) → self::C4
+  const constructor •(final core::int x) → self::C4
     : self::C4::x = x, super core::Object::•() {}
 }
 class A extends core::Object /*hasConstConstructor*/  {
@@ -119,7 +119,7 @@ class A extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class C5 extends self::A /*hasConstConstructor*/  {
-  const constructor •(core::int x) → self::C5
+  const constructor •(final core::int x) → self::C5
     : super self::A::•(x) {}
 }
 class E0 extends core::_Enum /*isEnum*/  {
@@ -150,7 +150,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E2 e0 = invalid-expression "A const constructor can't have a body.";
   final field core::int v;
   static const field core::List<self::E2> values = invalid-expression "A const constructor can't have a body.";
-  const constructor someName(core::int #index, core::String #name, core::int v) → self::E2
+  const constructor someName(core::int #index, core::String #name, final core::int v) → self::E2
     : self::E2::v = v, super core::_Enum::•(#index, #name) {}
   method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
@@ -159,7 +159,7 @@ class E3 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E3 e0 = invalid-expression "A const constructor can't have a body.";
   final field core::int v;
   static const field core::List<self::E3> values = invalid-expression "A const constructor can't have a body.";
-  const constructor •(core::int #index, core::String #name, core::int v) → self::E3
+  const constructor •(core::int #index, core::String #name, final core::int v) → self::E3
     : self::E3::v = v, super core::_Enum::•(#index, #name) {}
   method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";

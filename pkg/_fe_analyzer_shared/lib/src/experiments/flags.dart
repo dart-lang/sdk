@@ -239,7 +239,7 @@ enum ExperimentalFlag {
     isEnabledByDefault: false,
     isExpired: false,
     experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentReleasedVersion: const Version(3, 12),
   ),
 
   privateNamedParameters(

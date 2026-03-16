@@ -117,7 +117,7 @@ enum PragmaAnnotation {
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
     typesTrust: {parameterTrust, downcastTrust},
     typesCheck: {parameterCheck, downcastCheck},
-    recordUse: {noInline},
+    recordUse: {noInline, noElision},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> excludes = {
     noInline: {tryInline},
@@ -500,8 +500,21 @@ class AnnotationsDataImpl implements AnnotationsData {
       _hasPragma(member, PragmaAnnotation.disableFinal);
 
   @override
-  bool hasNoElision(MemberEntity member) =>
-      _hasPragma(member, PragmaAnnotation.noElision);
+  bool hasNoElision(MemberEntity member) {
+    if (_hasPragma(member, PragmaAnnotation.noElision)) {
+      return true;
+    }
+    final cls = member.enclosingClass;
+    if (cls != null &&
+        member is ConstructorEntity &&
+        (classPragmaAnnotations[cls]?.contains(PragmaAnnotation.recordUse) ??
+            false)) {
+      // If record use is recording const instances and constructor invocations
+      // of this class, then do not remove any constructor parameters.
+      return true;
+    }
+    return false;
+  }
 
   @override
   bool hasNoThrows(MemberEntity member) =>

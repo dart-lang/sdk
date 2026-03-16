@@ -27,13 +27,13 @@ class MessageSchedulerPage extends DiagnosticPageWithNav {
 
     h3('Status');
     buf.writeln(
-      writeOption(
+      formatOption(
         'Allows overlapping message handlers:',
         MessageScheduler.allowOverlappingHandlers,
       ),
     );
     if (listener is! SchedulerTrackingListener) {
-      buf.writeln(writeOption('Tracking listener:', 'none'));
+      buf.writeln(formatOption('Tracking listener:', 'none'));
       return;
     }
 

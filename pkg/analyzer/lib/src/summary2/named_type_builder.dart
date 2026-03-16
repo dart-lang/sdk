@@ -64,7 +64,11 @@ class NamedTypeBuilder extends TypeBuilder {
     List<TypeImpl> arguments;
     var argumentList = node.typeArguments;
     if (argumentList != null) {
-      arguments = argumentList.arguments.map((n) => n.typeOrThrow).toList();
+      var argumentsList = argumentList.arguments;
+      arguments = List.generate(
+        argumentsList.length,
+        (index) => argumentsList[index].typeOrThrow,
+      );
     } else {
       arguments = <TypeImpl>[];
     }

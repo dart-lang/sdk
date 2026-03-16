@@ -77,10 +77,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var field = declaredElement.field;
     if (field == null) return;
+    if (field.isPrivate) {
+      // Private fields are not part of the public API, so it doesn't make sense
+      // to try to match up their deprecation status with that of the
+      // parameters that initialize them.
+      return;
+    }
 
     if (field.metadata.hasDeprecated &&
         !declaredElement.metadata.hasDeprecated) {
-      rule.reportAtNode(node, diagnosticCode: diag.deprecatedConsistencyField);
+      rule.reportAtNode(
+        node,
+        diagnosticCode: diag.deprecatedConsistencyParameter,
+      );
     }
     if (!field.metadata.hasDeprecated &&
         declaredElement.metadata.hasDeprecated) {
@@ -92,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         nameOffset,
         nameLength,
-        diagnosticCode: diag.deprecatedConsistencyParameter,
+        diagnosticCode: diag.deprecatedConsistencyField,
       );
     }
   }

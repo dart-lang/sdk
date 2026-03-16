@@ -128,7 +128,9 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    _visitClassOrMixinMembers(node.body.members);
+    if (node.body case BlockClassBody body) {
+      _visitClassOrMixinMembers(body.members);
+    }
     visitNode(node);
   }
 
@@ -243,7 +245,9 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _visitClassOrMixinMembers(node.body.members);
+    if (node.body case BlockClassBody body) {
+      _visitClassOrMixinMembers(body.members);
+    }
     visitNode(node);
   }
 

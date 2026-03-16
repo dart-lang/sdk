@@ -176,10 +176,6 @@ abstract class SubstitutedElementImpl implements Element {
   @override
   bool get isPublic => baseElement.isPublic;
 
-  @Deprecated('Use isOriginX instead')
-  @override
-  bool get isSynthetic => baseElement.isSynthetic;
-
   @override
   ElementKind get kind => baseElement.kind;
 

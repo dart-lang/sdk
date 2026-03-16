@@ -298,10 +298,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     Map<String, Map<Name, Procedure>> tearOffs = {};
     List<Procedure> nonTearOffs = [];
     for (Procedure procedure in library.procedures) {
-      List<Object>? names = extractTypedefNameFromTearOff(procedure.name);
+      ({String typedefName, Name constructorName})? names =
+          extractTypedefNameFromTearOff(procedure.name);
       if (names != null) {
-        Map<Name, Procedure> map = tearOffs[names[0] as String] ??= {};
-        map[names[1] as Name] = procedure;
+        Map<Name, Procedure> map = tearOffs[names.typedefName] ??= {};
+        map[names.constructorName] = procedure;
       } else {
         nonTearOffs.add(procedure);
       }

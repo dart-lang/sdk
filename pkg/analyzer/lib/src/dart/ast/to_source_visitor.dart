@@ -137,6 +137,15 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    sink.write(' {');
+    _visitNodeList(node.constants, separator: ', ');
+    _visitToken(node.semicolon);
+    _visitNodeList(node.members, prefix: ' ', separator: ' ');
+    sink.write('}');
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     var keyword = node.keyword;
     if (keyword != null) {
@@ -400,7 +409,9 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitDottedName(DottedName node) {
-    _visitNodeList(node.components, separator: '.');
+    for (var token in node.tokens) {
+      sink.write(token.lexeme);
+    }
   }
 
   @override
@@ -414,6 +425,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {
+    sink.write(';');
+  }
+
+  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     sink.write(';');
   }
@@ -421,15 +437,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitEmptyStatement(EmptyStatement node) {
     sink.write(';');
-  }
-
-  @override
-  void visitEnumBody(EnumBody node) {
-    sink.write(' {');
-    _visitNodeList(node.constants, separator: ', ');
-    _visitToken(node.semicolon);
-    _visitNodeList(node.members, prefix: ' ', separator: ' ');
-    sink.write('}');
   }
 
   @override
@@ -875,11 +882,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    sink.write(node.name);
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     _visitToken(node.constKeyword, suffix: ' ');
     _visitNode(node.typeArguments);
@@ -1251,24 +1253,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(node.operator.lexeme);
     sink.write(' ');
     _visitNode(node.operand);
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {
-    _visitToken(node.period);
-    _visitToken(node.name);
-  }
-
-  @override
-  // ignore: deprecated_member_use_from_same_package
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    _visitNode(node.constructorName);
-    _visitToken(node.leftParenthesis);
-    _visitNodeList(node.fieldMetadata, separator: ' ', suffix: ' ');
-    _visitNode(node.fieldType, suffix: ' ');
-    _visitToken(node.fieldName);
-    _visitToken(node.rightParenthesis);
   }
 
   @override

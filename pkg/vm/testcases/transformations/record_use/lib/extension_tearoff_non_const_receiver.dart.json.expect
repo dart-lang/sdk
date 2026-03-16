@@ -1,0 +1,49 @@
+{
+  "constants": [
+    {
+      "type": "string",
+      "value": "43"
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "extension",
+          "name": "Ext"
+        },
+        {
+          "disambiguators": [
+            "instance"
+          ],
+          "kind": "method",
+          "name": "foo"
+        }
+      ],
+      "uri": "package:record_use_test/extension_tearoff_non_const_receiver.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "receiver": 0,
+            "type": "tearoff"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -56,7 +56,7 @@ final class Coordinate extends ffi::Struct {
   static synthetic get next#offsetOf() → core::int
     return #C18.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C11
-  static get #sizeOf() → core::int
+  static synthetic get #sizeOf() → core::int
     return #C21.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → dynamic {}

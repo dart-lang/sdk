@@ -501,7 +501,6 @@ struct InstrAttrs {
   M(MathMinMax, kNoGC)                                                         \
   M(BoxInt64, _)                                                               \
   M(UnboxInt64, kNoGC)                                                         \
-  M(CaseInsensitiveCompare, kNoGC)                                             \
   M(BinaryInt64Op, kNoGC)                                                      \
   M(UnaryInt64Op, kNoGC)                                                       \
   M(CheckArrayBound, kNoGC)                                                    \
@@ -7554,7 +7553,8 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   static bool WillAllocateNewOrRemembered(const Class& cls) {
-    return IsAllocatableInNewSpace(cls.target_instance_size());
+    return compiler::target::Heap::IsAllocatableInNewSpace(
+        cls.target_instance_size());
   }
 
   virtual const Slot* SlotForInput(intptr_t pos) {
@@ -7666,7 +7666,8 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
   }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return IsAllocatableInNewSpace(compiler::target::Closure::InstanceSize());
+    return compiler::target::Heap::IsAllocatableInNewSpace(
+        compiler::target::Closure::InstanceSize());
   }
 
 #define FIELD_LIST(F)                                                          \
@@ -7733,7 +7734,7 @@ class AllocateRecordInstr : public TemplateAllocation<0> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return IsAllocatableInNewSpace(
+    return compiler::target::Heap::IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 
@@ -7785,7 +7786,7 @@ class AllocateSmallRecordInstr : public TemplateAllocation<3> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return IsAllocatableInNewSpace(
+    return compiler::target::Heap::IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 
@@ -8932,67 +8933,6 @@ bool Definition::IsInt64Definition() {
   return (Type()->ToCid() == kMintCid) || IsBinaryInt64Op() ||
          IsUnaryInt64Op() || IsBoxInt64() || IsUnboxInt64();
 }
-
-// Calls into the runtime and performs a case-insensitive comparison of the
-// UTF16 strings (i.e. TwoByteString) located at
-// str[lhs_index:lhs_index + length] and str[rhs_index:rhs_index + length].
-// Depending on [handle_surrogates], we will treat the strings as either
-// UCS2 (no surrogate handling) or UTF16 (surrogates handled appropriately).
-class CaseInsensitiveCompareInstr
-    : public TemplateDefinition<4, NoThrow, Pure> {
- public:
-  CaseInsensitiveCompareInstr(Value* str,
-                              Value* lhs_index,
-                              Value* rhs_index,
-                              Value* length,
-                              bool handle_surrogates,
-                              intptr_t cid)
-      : handle_surrogates_(handle_surrogates), cid_(cid) {
-    ASSERT(cid == kTwoByteStringCid);
-    ASSERT(index_scale() == 2);
-    SetInputAt(0, str);
-    SetInputAt(1, lhs_index);
-    SetInputAt(2, rhs_index);
-    SetInputAt(3, length);
-  }
-
-  Value* str() const { return inputs_[0]; }
-  Value* lhs_index() const { return inputs_[1]; }
-  Value* rhs_index() const { return inputs_[2]; }
-  Value* length() const { return inputs_[3]; }
-
-  const RuntimeEntry& TargetFunction() const;
-  intptr_t class_id() const { return cid_; }
-
-  intptr_t index_scale() const {
-    return compiler::target::Instance::ElementSizeFor(cid_);
-  }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual Representation representation() const { return kTagged; }
-
-  DECLARE_INSTRUCTION(CaseInsensitiveCompare)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(const Instruction& other) const {
-    const auto* other_compare = other.AsCaseInsensitiveCompare();
-    return (other_compare->handle_surrogates_ == handle_surrogates_) &&
-           (other_compare->cid_ == cid_);
-  }
-
-#define FIELD_LIST(F)                                                          \
-  F(const bool, handle_surrogates_)                                            \
-  F(const intptr_t, cid_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CaseInsensitiveCompareInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareInstr);
-};
 
 // Represents Math's static min and max functions.
 class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {

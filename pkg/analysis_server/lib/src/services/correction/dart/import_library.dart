@@ -784,9 +784,9 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
     this._fixKind,
     this._library,
     this._prefix, {
-    String? show,
+    this._show,
     required super.context,
-  }) : _show = show;
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -863,9 +863,9 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
     this._libraryName,
     this._combinators,
     this._updatedNames, {
-    bool removePrefix = false,
+    this._removePrefix = false,
     required super.context,
-  }) : _removePrefix = removePrefix;
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -1023,9 +1023,9 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
     this._fixKind,
     this._library,
     this._prefix, {
-    String? show,
+    this._show,
     required super.context,
-  }) : _show = show;
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -1074,9 +1074,9 @@ class _PrefixedName {
   _PrefixedName({
     required this.name,
     this.prefix,
-    required _ProducersGenerators producerGenerators,
+    required this._producerGenerators,
     this.ignorePrefix = false,
-  }) : _producerGenerators = producerGenerators;
+  });
 
   Future<List<ResolvedCorrectionProducer>>? get producers =>
       _producerGenerators(prefix, name);

@@ -195,7 +195,7 @@ mixin _ConstructorDeclarationMixin
       // variable in the initializer list.
       if (formal.isWildcard) continue;
 
-      list.add(formal.forFormalParameterInitializerScope());
+      list.add(formal);
     }
     return list;
   }
@@ -410,7 +410,7 @@ mixin _ConstructorDeclarationMixin
           }
           formal.type.registerInferredType(type ?? const DynamicType());
         }
-        formal.variable!.hasDeclaredInitializer = formal.hasDeclaredInitializer;
+        formal.variable.hasDeclaredInitializer = formal.hasDeclaredInitializer;
       }
     }
 
@@ -474,6 +474,10 @@ mixin _ConstructorDeclarationMixin
       superTarget = lastInitializer.target;
     } else if (lastInitializer is InternalSuperInitializer) {
       superTarget = lastInitializer.target;
+    } else if (lastInitializer is InvalidInitializer &&
+        lastInitializer.isSuperInitializer) {
+      // Erroneous super initializer.
+      return null;
     } else {
       MemberLookupResult? result = superclassBuilder.findConstructorOrFactory(
         "",
@@ -1504,7 +1508,6 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
       new FunctionNodeSignature(_constructor.function);
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasParameters =>
       _constructor.function.positionalParameters.isNotEmpty ||
       _constructor.function.namedParameters.isNotEmpty;
@@ -1519,7 +1522,7 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
         initializer is! AuxiliaryInitializer,
         "Unexpected auxiliary initializer $initializer.",
       );
-      if (initializer is RedirectingInitializer) {
+      if (initializer.isRedirectingInitializer) {
         return true;
       }
     }
