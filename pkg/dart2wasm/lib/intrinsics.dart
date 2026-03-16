@@ -2866,7 +2866,7 @@ class Intrinsifier {
 
         b.if_([], [translator.nullableObjectArrayTypeRef]);
         translator.makeArray(
-            b, translator.nullableObjectArrayType, 0, (_, __) {});
+            b, translator.nullableObjectArrayType, 0, (_, _) {});
 
         b.else_();
         // List argument may be a custom list type, convert it to `WasmListBase`

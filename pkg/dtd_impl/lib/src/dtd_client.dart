@@ -352,9 +352,9 @@ class DTDClient extends Client {
     Map<String, Object?>? capabilities,
   }) {
     return {
-      if (service != null) DtdParameters.service: service,
+      DtdParameters.service: ?service,
       DtdParameters.method: method,
-      if (capabilities != null) DtdParameters.capabilities: capabilities,
+      DtdParameters.capabilities: ?capabilities,
     };
   }
 

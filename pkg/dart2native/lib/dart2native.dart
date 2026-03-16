@@ -123,7 +123,7 @@ Future<ProcessResult> generateKernelHelper({
     if (depFile != null) '--depfile=$depFile',
     '--output=$kernelFile',
     ...extraGenKernelOptions,
-    if (sourceFile != null) sourceFile,
+    ?sourceFile,
   ];
   return Process.run(sdk.dartAotRuntime, args);
 }

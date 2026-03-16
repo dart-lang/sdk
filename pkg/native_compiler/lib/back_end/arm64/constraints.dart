@@ -260,15 +260,19 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitAllocateList(AllocateList instr) =>
-      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+      InstructionConstraints(
+        anyCpuRegister,
+        [anyRegisterOrImmediate(instr.length)],
+        const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
 
   @override
   InstructionConstraints? visitSetListElement(SetListElement instr) =>
-      const InstructionConstraints(null, [
-        anyCpuRegister,
-        anyCpuRegister,
-        anyCpuRegister,
-      ]);
+      InstructionConstraints(
+        null,
+        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
+        const [anyCpuRegister, anyCpuRegister],
+      );
 
   @override
   InstructionConstraints? visitBoxInt(BoxInt instr) =>

@@ -1870,7 +1870,7 @@ abstract class AstCodeGenerator
         }
       }
 
-      void right([_, __]) {
+      void right([_, _]) {
         b.local_get(rightLocal);
         if (rightNullable) {
           b.ref_as_non_null();
@@ -2127,7 +2127,7 @@ abstract class AstCodeGenerator
         w.Label nullLabel = b.block();
         translateExpression(node.receiver, translator.topType);
         b.br_on_null(nullLabel);
-      }, (_, __) {}, useUncheckedEntry: false);
+      }, (_, _) {}, useUncheckedEntry: false);
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -2160,7 +2160,7 @@ abstract class AstCodeGenerator
           _VirtualCallKind.Get,
           (signature) =>
               translateExpression(node.receiver, signature.inputs.first),
-          (_, __) {},
+          (_, _) {},
           useUncheckedEntry: false);
     }
   }
@@ -2231,7 +2231,7 @@ abstract class AstCodeGenerator
         translateExpression(node.receiver, translator.topType);
         b.br_on_null(nullLabel);
         translator.convertType(b, translator.topType, signature.inputs[0]);
-      }, (_, __) {}, useUncheckedEntry: false);
+      }, (_, _) {}, useUncheckedEntry: false);
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -2262,7 +2262,7 @@ abstract class AstCodeGenerator
         _VirtualCallKind.Get,
         (signature) =>
             translateExpression(node.receiver, signature.inputs.first),
-        (_, __) {},
+        (_, _) {},
         useUncheckedEntry: false);
   }
 
