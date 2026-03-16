@@ -201,19 +201,16 @@ class GitHelper {
   }
 
   String get defaultBranchName {
-    var branchNames = Directory(path.join(dir, '.git', 'refs', 'heads'))
-        .listSync()
-        .whereType<File>()
-        .map((f) => path.basename(f.path))
-        .toSet();
-
-    for (var name in ['main', 'master']) {
-      if (branchNames.contains(name)) {
-        return name;
-      }
+    if (Process.runSync(
+          'git',
+          ['show-ref', '--verify', '--quiet', 'refs/remotes/origin/main'],
+          workingDirectory: dir,
+        ).exitCode ==
+        0) {
+      return 'main';
+    } else {
+      return 'master';
     }
-
-    return 'main';
   }
 }
 
