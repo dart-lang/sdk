@@ -29,7 +29,7 @@ int? _getFragmentNameOffset(Fragment fragment) {
   var nameOffset = fragment.nameOffset;
   if (nameOffset == null) {
     if (fragment is ConstructorFragment) {
-      nameOffset = fragment.typeNameOffset;
+      nameOffset = fragment.typeNameOffset ?? fragment.offset;
     } else if (fragment is ExtensionFragment) {
       nameOffset = fragment.offset;
     }
@@ -92,9 +92,27 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           if (_hasOffset2(node.name)) {
             result = node;
           }
-        } else {
-          if (_hasOffset(node.typeName)) {
+        } else if (node.typeName case var typeName?) {
+          if (_hasOffset(typeName)) {
             result = node;
+          }
+        } else {
+          if (_hasOffset(node)) {
+            result = node;
+          }
+        }
+      } else if ((fragment.element as ConstructorElementImpl).isPrimary) {
+        if (node
+            case ClassDeclaration(:var namePart) ||
+                EnumDeclaration(:var namePart)) {
+          if (_hasOffset2(namePart.typeName)) {
+            result = node;
+          } else if (namePart case PrimaryConstructorDeclaration(
+            :var constructorName?,
+          )) {
+            if (_hasOffset2(constructorName.name)) {
+              result = node;
+            }
           }
         }
       }
