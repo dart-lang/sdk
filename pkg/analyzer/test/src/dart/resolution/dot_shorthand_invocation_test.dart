@@ -149,95 +149,6 @@ DotShorthandInvocation
 ''');
   }
 
-  test_call_getter() async {
-    await assertNoErrorsInCode(r'''
-class C {
-  const C();
-  static C get id1 => const C();
-  C call() => const C();
-}
-
-void main() {
-  C c1 = .id1();
-  print(c1);
-}
-''');
-
-    // The [DotShorthandInvocation] is rewritten to a
-    // [FunctionExpressionInvocation].
-    var node = findNode.singleFunctionExpressionInvocation;
-    assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function: DotShorthandPropertyAccess
-    period: .
-    propertyName: SimpleIdentifier
-      token: id1
-      element: <testLibrary>::@class::C::@getter::id1
-      staticType: C
-    isDotShorthand: false
-    staticType: C
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
-  element: <testLibrary>::@class::C::@method::call
-  staticInvokeType: C Function()
-  staticType: C
-''');
-  }
-
-  test_call_noCallMethod() async {
-    await assertErrorsInCode(
-      r'''
-class C {
-  const C();
-  static C id1 = const C();
-}
-
-void main() {
-  C c1 = .id1();
-  print(c1);
-}
-''',
-      [error(diag.invocationOfNonFunctionExpression, 77, 4)],
-    );
-  }
-
-  test_call_property() async {
-    await assertNoErrorsInCode(r'''
-class C {
-  const C();
-  static C id1 = const C();
-  C call() => const C();
-}
-
-void main() {
-  C c1 = .id1();
-  print(c1);
-}
-''');
-
-    // The [DotShorthandInvocation] is rewritten to a
-    // [FunctionExpressionInvocation].
-    var node = findNode.singleFunctionExpressionInvocation;
-    assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function: DotShorthandPropertyAccess
-    period: .
-    propertyName: SimpleIdentifier
-      token: id1
-      element: <testLibrary>::@class::C::@getter::id1
-      staticType: C
-    isDotShorthand: false
-    staticType: C
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
-  element: <testLibrary>::@class::C::@method::call
-  staticInvokeType: C Function()
-  staticType: C
-''');
-  }
-
   test_chain_method() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -469,6 +380,257 @@ DotShorthandInvocation
   staticInvokeType: C Function()
   staticType: C
 ''');
+  }
+
+  test_functionExpression() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C member() => C();
+}
+
+void main() {
+  final C _ = .member()();
+}
+''',
+      [error(diag.invocationOfNonFunctionExpression, 69, 9)],
+    );
+  }
+
+  test_functionExpression_call() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C member() => C();
+  C call() => this;
+}
+
+void main() {
+  final C _ = .member()();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandInvocation
+    period: .
+    memberName: SimpleIdentifier
+      token: member
+      element: <testLibrary>::@class::C::@method::member
+      staticType: C Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticInvokeType: C Function()
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_argument() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C member() => C();
+  C call(int a) => this;
+}
+
+void main() {
+  final C _ = .member()(1);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandInvocation
+    period: .
+    memberName: SimpleIdentifier
+      token: member
+      element: <testLibrary>::@class::C::@method::member
+      staticType: C Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticInvokeType: C Function()
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function(int)
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_extension() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C member() => C();
+}
+
+extension CallC on C {
+  C call() => this;
+}
+
+void main() {
+  final C _ = .member()();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandInvocation
+    period: .
+    memberName: SimpleIdentifier
+      token: member
+      element: <testLibrary>::@class::C::@method::member
+      staticType: C Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticInvokeType: C Function()
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@extension::CallC::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_generic() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C member() => C();
+  C call<T>(T t) => this;
+}
+
+void main() {
+  final C _ = .member()<int>(1);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandInvocation
+    period: .
+    memberName: SimpleIdentifier
+      token: member
+      element: <testLibrary>::@class::C::@method::member
+      staticType: C Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticInvokeType: C Function()
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: ParameterMember
+          baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function(int)
+  staticType: C
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionExpression_call_nested() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C member(C c) => C();
+  static C one() => C(); 
+  C call() => this;
+}
+
+void main() {
+  C _ = .member(.one())();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandInvocation
+    period: .
+    memberName: SimpleIdentifier
+      token: member
+      element: <testLibrary>::@class::C::@method::member
+      staticType: C Function(C)
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        DotShorthandInvocation
+          period: .
+          memberName: SimpleIdentifier
+            token: one
+            element: <testLibrary>::@class::C::@method::one
+            staticType: C Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          isDotShorthand: true
+          correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::c
+          staticInvokeType: C Function()
+          staticType: C
+      rightParenthesis: )
+    isDotShorthand: false
+    staticInvokeType: C Function(C)
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_nested() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C member(C c) => C();
+  static C one() => C(); 
+}
+
+void main() {
+  C _ = .member(.one())();
+}
+''',
+      [error(diag.invocationOfNonFunctionExpression, 92, 15)],
+    );
   }
 
   test_futureOr() async {

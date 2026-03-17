@@ -464,6 +464,256 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_functionExpression_call_argument() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static final C field = C();
+  C call(int a) => this;
+}
+
+void main() {
+  final C _ = .field(1);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: field
+      element: <testLibrary>::@class::C::@getter::field
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function(int)
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_extension_field() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static final C field = C();
+}
+
+extension CallC on C {
+  C call() => this;
+}
+
+void main() {
+  final C _ = .field();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: field
+      element: <testLibrary>::@class::C::@getter::field
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@extension::CallC::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_extension_getter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C get getter => C();
+}
+
+extension CallC on C {
+  C call() => this;
+}
+
+void main() {
+  final C _ = .getter();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: getter
+      element: <testLibrary>::@class::C::@getter::getter
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@extension::CallC::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_field() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static final C field = C();
+  C call() => this;
+}
+
+void main() {
+  final C _ = .field();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: field
+      element: <testLibrary>::@class::C::@getter::field
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_generic() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static final C field = C();
+  C call<T>(T t) => this;
+}
+
+void main() {
+  final C _ = .field<int>(1);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: field
+      element: <testLibrary>::@class::C::@getter::field
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: ParameterMember
+          baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function(int)
+  staticType: C
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionExpression_call_getter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C get getter => C();
+  C call() => this;
+}
+
+void main() {
+  final C _ = .getter();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: getter
+      element: <testLibrary>::@class::C::@getter::getter
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_field() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static final C field = C();
+}
+
+void main() {
+  final C _ = .field();
+}
+''',
+      [error(diag.invocationOfNonFunctionExpression, 71, 6)],
+    );
+  }
+
+  test_functionExpression_getter() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C get getter => C();
+}
+
+void main() {
+  final C _ = .getter();
+}
+''',
+      [error(diag.invocationOfNonFunctionExpression, 71, 7)],
+    );
+  }
+
   test_functionReference() async {
     await assertNoErrorsInCode(r'''
 class C<T> {

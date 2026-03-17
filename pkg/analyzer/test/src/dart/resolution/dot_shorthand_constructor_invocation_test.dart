@@ -869,6 +869,279 @@ Foo<T> bar<T>() => .a<T>();
     );
   }
 
+  test_functionExpression() async {
+    await assertErrorsInCode(
+      r'''
+class C {}
+
+void main() {
+  final C _ = .new()();
+}
+''',
+      [error(diag.invocationOfNonFunctionExpression, 40, 6)],
+    );
+  }
+
+  test_functionExpression_call() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C call() => this;
+}
+
+void main() {
+  final C _ = .new()();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_argument() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C call(int x) => this;
+}
+
+void main() {
+  C _ = .new()(0);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function(int)
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_extension() async {
+    await assertNoErrorsInCode(r'''
+class C {}
+
+extension CallC on C {
+  C call() => this;
+}
+
+void main() {
+  final C _ = .new()();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@extension::CallC::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_generic() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C call<T>(T t) => this;
+}
+
+void main() {
+  C _ = .new()<int>(0);
+}
+''');
+
+    var constructor = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(constructor, r'''
+FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: ParameterMember
+          baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function(int)
+  staticType: C
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionExpression_call_namedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C.named();
+  C call() => this;
+}
+
+void main() {
+  final C _ = .named()();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: named
+      element: <testLibrary>::@class::C::@constructor::named
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_call_nested() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C(C c);
+  C.a();
+  C call() => this;
+}
+
+void main() {
+  C _ = .new(.a())();
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        DotShorthandConstructorInvocation
+          period: .
+          constructorName: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::C::@constructor::a
+            staticType: null
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          isDotShorthand: true
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
+          staticType: C
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_functionExpression_nested() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C(C c);
+  C.a();
+}
+
+void main() {
+  C _ = .new(.a())();
+}
+''',
+      [error(diag.invocationOfNonFunctionExpression, 54, 10)],
+    );
+  }
+
   test_nested_invocation() async {
     await assertNoErrorsInCode(r'''
 class C<T> {

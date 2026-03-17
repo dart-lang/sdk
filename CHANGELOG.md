@@ -1,3 +1,12 @@
+## 3.11.4
+
+This is a patch release that:
+
+- Fixes a bug causing the analyzer and analysis server to crash when calling a
+  dot shorthand function expression invocation. (issue [dart-lang/sdk#62595])
+
+[dart-lang/sdk#62595]: https://github.com/dart-lang/sdk/issues/62595
+
 ## 3.11.3
 
 **Released on:** 2026-03-17
