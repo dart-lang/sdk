@@ -282,6 +282,32 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_createChange_implicitlyInvoked_noBody() async {
+    await indexTestUnit('''
+class A {
+  ^A();
+}
+
+class B extends A;
+''');
+    // configure refactoring
+    _createConstructorDeclarationRefactoring();
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+}
+
+class B extends A {
+  B() : super.newName();
+}
+''');
+  }
+
   Future<void> test_createChange_implicitlyInvoked_noConstructor() async {
     await indexTestUnit('''
 class A {

@@ -112,8 +112,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<SourceChange> createChange() async {
-    var changeBuilder = ChangeBuilder(session: _session);
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(session: _session);
     var referencesToUpdate = <_FileReference>{};
 
     // First, resolve any folders to their child files in the mapping so
@@ -153,7 +153,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       for (var MapEntry(key: sourceFile, value: references)
           in referencesByFile.entries) {
         if (references.isEmpty) continue;
-        await changeBuilder.addDartFileEdit(sourceFile, (builder) {
+        await builder.addDartFileEdit(sourceFile, (builder) {
           for (var reference in references) {
             var targetFile = reference.targetFile;
             var newSource = resolvedMapping[sourceFile] ?? sourceFile;
@@ -182,7 +182,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       return SourceChange('Refactor cancelled by file modifications');
     }
 
-    return changeBuilder.sourceChange;
+    return builder.sourceChange;
   }
 
   /// Collects all source references that may need changing because of a move
