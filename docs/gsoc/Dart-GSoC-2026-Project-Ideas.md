@@ -16,7 +16,10 @@ For GSoC related discussions please use the [dart-gsoc group](https://groups.goo
  * Liam Appelbe ([liamappelbe](https://github.com/liamappelbe)) `liama@google.com`
  * Brian Quinlan ([bquinlan](https://github.com/brianquinlan)) `bquinlan@google.com`
  * Ben Konyi ([bkonyi](https://github.com/bkonyi)) `bkonyi@google.com`
- * More to come!
+ * Elliott Brooks ([elliette](https://github.com/elliette)) `elliottbrooks@google.com`
+ * Samuel Rawlins ([srawlins](https://github.com/srawlins)) `srawlins@google.com`
+ * Helin Shiah ([helin24](https://github.com/helin24)) `helinx@google.com`
+ * Phil Quitslund ([pq](https://github.com/pq)) `pquitslund@google.com`
 
 ## Project Application Process
 All projects assume familiarity with Dart (and sometimes Flutter). Aspiring applicants are encouraged to [learn Dart](https://dart.dev/guides/language/language-tour) and try to write some code.
@@ -122,7 +125,7 @@ Tracking bug: [https://github.com/dart-lang/native/issues/2644](https://github.c
 
 ## **Idea:** Migrate Intellij Plugins off weberknecht web socket library
 
- - **Possible Mentor(s)**: Phil Quitslund, Helin Shiah
+ - **Possible Mentor(s)**: Phil Quitslund `pquitslund@google.com`, Helin Shiah `helinx@google.com`
  - **Difficulty**: Medium
  - **Project size**: Medium (175 hours)
  - **Skills**: Kotlin
@@ -135,7 +138,7 @@ Tracking bug: https://github.com/flutter/dart-intellij-third-party/issues/208
 
 ## **Idea:** Prototype New Dart IntelliJ plugin using LSP for Analysis Server Connection
 
- - **Possible Mentor(s)**: Phil Quitslund, Helin Shiah
+ - **Possible Mentor(s)**: Phil Quitslund `pquitslund@google.com`, Helin Shiah `helinx@google.com`
  - **Difficulty**: Medium
  - **Project size**: Large (350 hours)
  - **Skills**: Kotlin
@@ -149,7 +152,7 @@ Related to: https://github.com/flutter/dart-intellij-third-party/issues/207
 
 ## **Idea:** Add WebSocket/GRPC Support to Flutter DevTools Network panel
 
- - **Possible Mentor(s)**: [Elliott Brooks](https://github.com/elliette), [Samuel Rawlins](https://github.com/srawlins)
+ - **Possible Mentor(s)**: Elliott Brooks `elliottbrooks@google.com`, Samuel Rawlins `srawlins@google.com`
  - **Difficulty**: Hard
  - **Project size**: Medium (175 hours) or Large (350 hours)
  - **Skills**: Dart, Flutter
@@ -178,23 +181,3 @@ Part 2: Create a Dart CLI app that uses `ProfileableWebSocket`. It should connec
 * [DevTools Network Panel documentation](https://docs.flutter.dev/tools/devtools/network)
 * [Dart DevTools source code](https://github.com/flutter/devtools)
 
-
-
-## TODO: More ideas as they come!
-
-# Template:
-
-Copy this template.
-
-## **Idea:** ...
-
- - **Possible Mentor(s)**:
- - **Difficulty**: Easy / Hard
- - **Project size**: Small (90) / Medium (175 hours) / Large (350 hours)
- - **Skills**: ...
-
-**Description**: ...
-
-**Good Sample Project**: ...
-
-**Expected outcome**: ...
