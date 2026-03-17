@@ -47,8 +47,8 @@
     (i32.const 3)
     (i32.const 1)
     (struct.new $BoxedBool))
-  (func $Bar.toString (CallShape(toString names:a)) (param $this (ref $#Top)) (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
-  (func $"Dynamic method forwarder for \"CallShape(toString names:a)\"" (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
+  (func $Bar.toString (MethodCallShape(toString names:a)) (param $this (ref $#Top)) (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (func $"Dynamic dispatcher for MethodCallShape(toString names:a)" (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     (local $var2 (ref $#Top))
     (local $var3 i32)
     block $label0 (result (ref $#Top))
@@ -56,7 +56,7 @@
       br_on_non_null $label0
       local.get $var0
       local.get $var1
-      call $"Invocation creator (CallShape(toString names:a))"
+      call $"Invocation creator (MethodCallShape(toString names:a))"
       call $Object._invokeNoSuchMethod
       unreachable
     end $label0
@@ -75,7 +75,7 @@
         end $label3
         local.get $var2
         local.get $var1
-        call $"Bar.toString (CallShape(toString names:a))"
+        call $"Bar.toString (MethodCallShape(toString names:a))"
         return
       end $label2
       block $label4
@@ -88,17 +88,17 @@
         end $label5
         local.get $var2
         local.get $var1
-        call $"Foo.toString (CallShape(toString names:a))"
+        call $"Foo.toString (MethodCallShape(toString names:a))"
         return
       end $label4
     end
     local.get $var2
     local.get $var1
-    call $"Invocation creator (CallShape(toString names:a))"
+    call $"Invocation creator (MethodCallShape(toString names:a))"
     call $Object._invokeNoSuchMethod
   )
-  (func $Foo.toString (CallShape(toString names:a)) (param $this (ref $#Top)) (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
-  (func $Invocation creator (CallShape(toString names:a)) (param $var0 (ref null $#Top)) (result (ref $_Invocation)) <...>)
+  (func $Foo.toString (MethodCallShape(toString names:a)) (param $this (ref $#Top)) (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (func $Invocation creator (MethodCallShape(toString names:a)) (param $var0 (ref null $#Top)) (result (ref $_Invocation)) <...>)
   (func $Bar (result (ref $Object)) <...>)
   (func $Foo (result (ref $Object)) <...>)
   (func $Object._invokeNoSuchMethod (param $receiver (ref null $#Top)) (param $invocation (ref $_Invocation)) (result (ref null $#Top)) <...>)
@@ -111,7 +111,7 @@
     global.get $true
     local.set $var0
     local.get $var0
-    call $"Dynamic method forwarder for \"CallShape(toString names:a)\""
+    call $"Dynamic dispatcher for MethodCallShape(toString names:a)"
     call $print
     drop
     call $Bar
@@ -119,7 +119,7 @@
     global.get $1
     local.set $var1
     local.get $var1
-    call $"Dynamic method forwarder for \"CallShape(toString names:a)\""
+    call $"Dynamic dispatcher for MethodCallShape(toString names:a)"
     call $print
     drop
     ref.null none

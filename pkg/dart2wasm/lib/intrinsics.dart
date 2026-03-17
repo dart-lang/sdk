@@ -9,7 +9,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'abi.dart' show kWasmAbiEnumIndex;
 import 'class_info.dart';
 import 'code_generator.dart';
-import 'dynamic_forwarders.dart';
+import 'dynamic_dispatchers.dart';
 import 'dynamic_modules.dart';
 import 'translator.dart';
 import 'types.dart';
