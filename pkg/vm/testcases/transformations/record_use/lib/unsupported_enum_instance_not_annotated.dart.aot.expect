@@ -21,6 +21,7 @@ static method main() → void {
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C7
 static method recorded([@vm.inferred-arg-type.metadata=#lib::A (value: const #lib::A{dart.core::_Enum.index: 0, dart.core::_Enum._name: "a"})] self::A a) → void {
   core::print([@vm.inferred-type.metadata=dart.core::_OneByteString] core::EnumName|get#name(a));

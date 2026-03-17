@@ -8,6 +8,7 @@ import "package:meta/meta.dart" show RecordUse;
 
 extension type ET(core::int i) {
   method foo = self::ET|foo;
+  method tearoff foo = self::ET|get#foo;
   constructor • = self::ET|constructor#;
 }
 
@@ -19,11 +20,15 @@ static extension-type-member const method ET|constructor#() → self::ET% /* era
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
-[@vm.unboxing-info.metadata=(i,b)->b]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C2
 static extension-type-member method ET|foo([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::ET% /* erasure=core::int, declared=! */ #this, [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "arg")] core::String s) → void {
   core::print("${_in::unsafeCast<core::int>(#this)} ${s}");
 }
+
+[@vm.unreachable.metadata=]
+static extension-type-member method ET|get#foo(lowered final self::ET% /* erasure=core::int, declared=! */ #this) → (core::String) → void
+  throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {

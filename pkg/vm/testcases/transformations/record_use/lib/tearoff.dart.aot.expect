@@ -8,7 +8,7 @@ import "package:meta/meta.dart" show RecordUse;
 class SomeClass extends core::Object {
 
   [@vm.inferred-return-type.metadata=int]
-  [@vm.unboxing-info.metadata=(b)->i]
+  [@vm.unboxing-info.metadata=[!regcc]]
   @#C1
   static method someStaticMethod(core::int i) → core::int {
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int};

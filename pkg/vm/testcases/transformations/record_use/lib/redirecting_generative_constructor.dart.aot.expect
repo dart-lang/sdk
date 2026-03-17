@@ -13,12 +13,12 @@ final class C extends core::Object {
   [@vm.unboxing-info.metadata=()->i]
   final field core::int i;
 
-  [@vm.unboxing-info.metadata=(i)->b]
+  [@vm.unboxing-info.metadata=[!regcc]]
   constructor a([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → self::C
     : this self::C::b(i)
     ;
 
-  [@vm.unboxing-info.metadata=(i)->b]
+  [@vm.unboxing-info.metadata=[!regcc]]
   constructor b([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → self::C
     : self::C::i = i, super core::Object::•()
     ;

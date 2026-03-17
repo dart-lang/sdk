@@ -12,6 +12,10 @@ final class SomeClass extends core::Object /*hasConstConstructor*/  {
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   [@vm.unboxing-info.metadata=[!regcc]]
   final field core::int i;
+
+  [@vm.unreachable.metadata=]
+  const constructor •(core::int i) → self::SomeClass
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
@@ -20,7 +24,7 @@ static method main() → void {
 }
 
 [@vm.inferred-return-type.metadata=int]
-[@vm.unboxing-info.metadata=(b)->i]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static method someStaticMethod2([@vm.inferred-arg-type.metadata=#lib::SomeClass (value: const #lib::SomeClass{#lib::SomeClass.i: 14})] self::SomeClass someClass) → core::int {
   return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=#lib::SomeClass.i] [@vm.inferred-type.metadata=dart.core::_Smi (value: 14)] someClass.{self::SomeClass::i}{core::int}.{core::num::+}(1){(core::num) → core::int};

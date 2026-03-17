@@ -8,6 +8,7 @@ import "package:meta/meta.dart" show RecordUse;
 class Redirector1 extends core::Object {
 
   [@vm.inferred-return-type.metadata=#lib::HasInstances]
+  [@vm.unboxing-info.metadata=[!regcc]]
   @#C3
   @#C5
   @#C7
@@ -17,7 +18,7 @@ class Redirector1 extends core::Object {
 class Redirector2 extends core::Object implements self::Redirector1 {
 
   [@vm.inferred-return-type.metadata=#lib::HasInstances]
-  [@vm.unboxing-info.metadata=(i)->b]
+  [@vm.unboxing-info.metadata=[!regcc]]
   @#C3
   @#C5
   @#C7
@@ -27,7 +28,7 @@ class Redirector2 extends core::Object implements self::Redirector1 {
 @#C8
 final class HasInstances extends core::Object implements self::Redirector2 {
 
-  [@vm.unboxing-info.metadata=(i)->b]
+  [@vm.unboxing-info.metadata=[!regcc]]
   @#C3
   @#C5
   @#C7

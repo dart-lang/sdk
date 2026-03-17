@@ -17,7 +17,7 @@ final class C<T extends core::Object? = dynamic, U extends core::Object? = dynam
   [@vm.unboxing-info.metadata=()->i]
   final field self::C::U% u;
 
-  [@vm.unboxing-info.metadata=(b,i)->b]
+  [@vm.unboxing-info.metadata=[!regcc]]
   constructor •([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "hello")] self::C::T% t, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] self::C::U% u) → self::C<self::C::T%, self::C::U%>
     : self::C::t = t, self::C::u = u, super core::Object::•()
     ;

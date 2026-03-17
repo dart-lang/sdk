@@ -662,6 +662,8 @@ class Immutable {
 /// Usages appearing within metadata (annotations) are ignored.
 // TODO(srawlins): Enforce with `TargetKind.method` or `TargetKind.classType`.
 @experimental
+@pragma('vm:entry-point')
+@pragma('wasm:entry-point')
 class RecordUse {
   /// Creates a [RecordUse] instance.
   ///

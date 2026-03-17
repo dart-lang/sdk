@@ -7,6 +7,10 @@ import "package:meta/meta.dart" show RecordUse;
 
 @#C1
 final class MyClass extends core::Object /*hasConstConstructor*/  {
+
+  [@vm.unreachable.metadata=]
+  const constructor •() → self::MyClass
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]

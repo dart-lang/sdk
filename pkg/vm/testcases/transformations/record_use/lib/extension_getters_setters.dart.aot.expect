@@ -13,23 +13,23 @@ extension Ext on core::String {
 }
 
 [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
-[@vm.unboxing-info.metadata=()->i]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static extension-member get Ext|staticGetter() → core::int
   return 42;
 
-[@vm.unboxing-info.metadata=(i)->b]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static extension-member set Ext|staticSetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 123)] core::int value) → void {}
 
 [@vm.inferred-return-type.metadata=dart.core::_Smi]
-[@vm.unboxing-info.metadata=(b)->i]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static extension-member method Ext|get#instanceGetter([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "abc")] lowered final core::String #this) → core::int
   return [@vm.direct-call.metadata=dart.core::_StringBase.length] [@vm.inferred-type.metadata=dart.core::_Smi] #this.{core::String::length}{core::int};
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
-[@vm.unboxing-info.metadata=(b,i)->b]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static extension-member method Ext|set#instanceSetter([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "abc")] lowered final core::String #this, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 456)] core::int value) → void {}
 
