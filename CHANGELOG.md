@@ -1,5 +1,7 @@
 ## 3.11.3
 
+**Released on:** 2026-03-17
+
 This is a patch release that:
 
 - Fixes a bug causing Dart & Flutter DevTools to crash when using the skwasm renderer.
