@@ -54,33 +54,33 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
     PrimaryConstructorBody? body,
   ) {
     SourceRange editRange;
-    String prefix;
-    String suffix;
+    List<String> prefixParts = [];
+    List<String> suffixParts = [];
     if (body == null) {
       var classDeclaration = declaration.parent;
       if (classDeclaration case ClassDeclaration(:var body)) {
         if (body is BlockClassBody) {
           editRange = range.startOffsetLength(body.leftBracket.end, 0);
-          prefix = '\n  this : ';
+          prefixParts = ['', '  this : '];
           if (body.leftBracket.end == body.rightBracket.offset) {
-            suffix = ';\n';
+            suffixParts = [';', ''];
           } else {
-            suffix = ';';
+            suffixParts = [';'];
           }
         } else {
           editRange = (body as EmptyClassBody).semicolon.sourceRange;
-          prefix = ' {\n  this : ';
-          suffix = ';\n}';
+          prefixParts = [' {', '  this : '];
+          suffixParts = [';', '}'];
         }
       } else if (classDeclaration case EnumDeclaration(:var body)) {
         if (body is BlockEnumBody) {
           editRange = range.startOffsetLength(body.leftBracket.end, 0);
-          prefix = '\n  this : ';
-          suffix = ';';
+          prefixParts = ['', '  this : '];
+          suffixParts = [';'];
         } else {
           editRange = (body as EmptyEnumBody).semicolon.sourceRange;
-          prefix = ' {\n  this : ';
-          suffix = ';\n}';
+          prefixParts = [' {', '  this : '];
+          suffixParts = [';', '}'];
         }
       } else {
         return const [];
@@ -91,17 +91,17 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
         var colon = body.colon;
         if (colon == null) {
           editRange = range.startOffsetLength(body.thisKeyword.end, 0);
-          prefix = ' : ';
-          suffix = '';
+          prefixParts = [' : '];
+          suffixParts = [''];
         } else {
           editRange = range.startOffsetLength(colon.end, 0);
-          prefix = ' ';
-          suffix = '';
+          prefixParts = [' '];
+          suffixParts = [''];
         }
       } else {
         editRange = range.startOffsetLength(initializers.last.end, 0);
-        prefix = ', ';
-        suffix = '';
+        prefixParts = [', '];
+        suffixParts = [''];
       }
     }
     var producers = <ResolvedCorrectionProducer>[];
@@ -114,8 +114,8 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
             context: context,
             constructor: superConstructor,
             editRange: editRange,
-            prefix: prefix,
-            suffix: suffix,
+            prefixParts: prefixParts,
+            suffixParts: suffixParts,
           ),
         );
       }
@@ -148,8 +148,8 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
             context: context,
             constructor: superConstructor,
             editRange: range.startOffsetLength(insertOffset, 0),
-            prefix: prefix,
-            suffix: '',
+            prefixParts: [prefix],
+            suffixParts: [''],
           ),
         );
       }
@@ -176,17 +176,17 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   final SourceRange _editRange;
 
   /// The prefix to be added before the actual invocation.
-  final String _prefix;
+  final List<String> _prefixParts;
 
   /// The suffix to be added after the actual invocation.
-  final String _suffix;
+  final List<String> _suffixParts;
 
   _AddInvocation({
     required super.context,
     required this._constructor,
     required this._editRange,
-    required this._prefix,
-    required this._suffix,
+    required this._prefixParts,
+    required this._suffixParts,
   });
 
   @override
@@ -235,8 +235,9 @@ class _AddInvocation extends ResolvedCorrectionProducer {
       }
     }
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addReplacement(_editRange, (builder) {
-        builder.write(_prefix);
+        builder.write(_prefixParts.join(eol));
         // add super constructor name
         builder.write('super');
         if (constructorName != 'new') {
@@ -277,7 +278,7 @@ class _AddInvocation extends ResolvedCorrectionProducer {
           );
         }
         builder.write(')');
-        builder.write(_suffix);
+        builder.write(_suffixParts.join(eol));
       });
     });
   }
