@@ -21,7 +21,7 @@ main() async {
     entryPoint: entryPoint,
     memorySourceFiles: {
       main: 'main() {}',
-      'package.yaml': '{ "configVersion": 1, "packages": []}',
+      'package.yaml': '{ "configVersion": 2, "packages": []}',
       'binaries': '',
       'dart2js_platform.dill': platformDillBytes,
     },
