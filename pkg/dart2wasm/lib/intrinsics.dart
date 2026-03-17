@@ -2917,12 +2917,10 @@ class Intrinsifier {
 
         b.end(); // noSuchMethodBlock
 
-        generateNoSuchMethodCall(
-            translator,
-            b,
-            () => b.local_get(closureLocal),
-            () => createInvocationObject(translator, b, Name('call'),
-                typeArgsLocal, posArgsLocal, namedArgsListLocal));
+        b.local_get(closureLocal);
+        createInvocationObject(translator, b, Name('call'), typeArgsLocal,
+            posArgsLocal, namedArgsListLocal);
+        translator.callReference(translator.invokeNoSuchMethod.reference, b);
 
       // Error._throw
       case MemberIntrinsic.errorThrow:

@@ -4505,6 +4505,87 @@ class PluginErrorParams implements HasToJson {
   int get hashCode => Object.hash(isFatal, message, stackTrace);
 }
 
+/// plugin.print params
+///
+///     {
+///       "pluginPrint": PluginPrint
+///     }
+///
+/// Clients may not extend, implement or mix-in this class.
+class PluginPrintParams implements HasToJson {
+  /// Information about the message being printed.
+  PluginPrint pluginPrint;
+
+  PluginPrintParams(this.pluginPrint);
+
+  factory PluginPrintParams.fromJson(
+    JsonDecoder jsonDecoder,
+    String jsonPath,
+    Object? json, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    json ??= {};
+    if (json is Map) {
+      PluginPrint pluginPrint;
+      if (json.containsKey('pluginPrint')) {
+        pluginPrint = PluginPrint.fromJson(
+          jsonDecoder,
+          '$jsonPath.pluginPrint',
+          json['pluginPrint'],
+          clientUriConverter: clientUriConverter,
+        );
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "'pluginPrint'", json);
+      }
+      return PluginPrintParams(pluginPrint);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "'plugin.print params'", json);
+    }
+  }
+
+  factory PluginPrintParams.fromNotification(
+    Notification notification, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    return PluginPrintParams.fromJson(
+      ResponseDecoder(null),
+      'params',
+      notification.params,
+      clientUriConverter: clientUriConverter,
+    );
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    result['pluginPrint'] = pluginPrint.toJson(
+      clientUriConverter: clientUriConverter,
+    );
+    return result;
+  }
+
+  Notification toNotification({ClientUriConverter? clientUriConverter}) {
+    return Notification(
+      'plugin.print',
+      toJson(clientUriConverter: clientUriConverter),
+    );
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is PluginPrintParams) {
+      return pluginPrint == other.pluginPrint;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => pluginPrint.hashCode;
+}
+
 /// plugin.shutdown params
 ///
 /// Clients may not extend, implement or mix-in this class.

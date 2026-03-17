@@ -273,8 +273,10 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Object", "get:_typeArguments");
   late final Procedure nullToString =
       index.getProcedure("dart:core", "Object", "_nullToString");
-  late final Procedure nullNoSuchMethod =
-      index.getProcedure("dart:core", "Object", "_nullNoSuchMethod");
+  late final Procedure invokeNoSuchMethod =
+      index.getProcedure("dart:core", "Object", "_invokeNoSuchMethod");
+  late final Procedure invokeNullNoSuchMethod =
+      index.getProcedure("dart:core", "Object", "_invokeNullNoSuchMethod");
   late final Procedure truncDiv =
       index.getProcedure("dart:_boxed_int", "BoxedInt", "_truncDiv");
   late final Procedure runtimeTypeEquals =
@@ -293,8 +295,6 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Invocation", "method");
   late final Procedure invocationGenericMethodFactory =
       index.getProcedure("dart:core", "Invocation", "genericMethod");
-  late final Procedure noSuchMethodErrorThrowWithInvocation = index
-      .getProcedure("dart:core", "NoSuchMethodError", "_throwWithInvocation");
   late final Procedure noSuchMethodErrorThrowUnimplementedExternalMemberError =
       index.getProcedure("dart:core", "NoSuchMethodError",
           "_throwUnimplementedExternalMemberError");
