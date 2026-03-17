@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/util/comment.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Information about the directives found in Dartdoc comments.
 class DartdocDirectiveInfo {
@@ -217,18 +216,14 @@ class DartdocDirectiveInfo {
       result.extractTemplate(rawText);
 
       var members = switch (declaration) {
-        ClassDeclaration() =>
-          declaration.body.tryCast<BlockClassBody>()?.members,
+        ClassDeclaration() => declaration.body.members,
         EnumDeclaration() => [
-          ...?declaration.body.tryCast<BlockEnumBody>()?.constants,
-          ...?declaration.body.tryCast<BlockEnumBody>()?.members,
+          ...declaration.body.constants,
+          ...declaration.body.members,
         ],
-        MixinDeclaration() =>
-          declaration.body.tryCast<BlockClassBody>()?.members,
-        ExtensionDeclaration() =>
-          declaration.body.tryCast<BlockClassBody>()?.members,
-        ExtensionTypeDeclaration() =>
-          declaration.body.tryCast<BlockClassBody>()?.members,
+        MixinDeclaration() => declaration.body.members,
+        ExtensionDeclaration() => declaration.body.members,
+        ExtensionTypeDeclaration() => declaration.body.members,
         _ => null,
       };
 

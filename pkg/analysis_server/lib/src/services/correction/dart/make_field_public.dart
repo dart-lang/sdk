@@ -10,8 +10,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 class MakeFieldPublic extends ResolvedCorrectionProducer {
   late String _fieldName;
 
@@ -40,9 +38,9 @@ class MakeFieldPublic extends ResolvedCorrectionProducer {
       List<ClassMember> members;
       var container = declaration.parent?.parent;
       if (container is ClassDeclaration) {
-        members = container.members2;
+        members = container.body.members;
       } else if (container is MixinDeclaration) {
-        members = container.members2;
+        members = container.body.members;
       } else {
         return;
       }

@@ -12,8 +12,6 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 class ConvertClassToMixin extends ResolvedCorrectionProducer {
   ConvertClassToMixin({required super.context});
 
@@ -40,7 +38,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
         classDeclaration.sealedKeyword != null) {
       return;
     }
-    if (classDeclaration.members2.any((e) => e is ConstructorDeclaration)) {
+    if (classDeclaration.body.members.any((e) => e is ConstructorDeclaration)) {
       return;
     }
     if (classDeclaration.namePart is PrimaryConstructorDeclaration) return;

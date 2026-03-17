@@ -16,8 +16,6 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 class AddKeyToConstructors extends ResolvedCorrectionProducer {
   AddKeyToConstructors({required super.context});
 
@@ -60,7 +58,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       }
     }
 
-    for (var member in classDeclaration.members2) {
+    for (var member in classDeclaration.body.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         if (!member.fields.isFinal) {
           return false;

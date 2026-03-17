@@ -132,11 +132,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       var classDeclaration = variable.parent?.parent?.parent?.parent;
       var constructors = <ConstructorDeclaration>[];
       if (classDeclaration is ClassDeclaration) {
-        if (classDeclaration.body case BlockClassBody body) {
-          constructors = body.members
-              .whereType<ConstructorDeclaration>()
-              .toList();
-        }
+        constructors = classDeclaration.body.members
+            .whereType<ConstructorDeclaration>()
+            .toList();
       }
 
       var isSetInAnyConstructor = constructors.any(

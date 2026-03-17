@@ -8,8 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 class CreateNoSuchMethod extends ResolvedCorrectionProducer {
   CreateNoSuchMethod({required super.context});
 
@@ -34,7 +32,7 @@ class CreateNoSuchMethod extends ResolvedCorrectionProducer {
       builder.addInsertion(insertOffset, (builder) {
         builder.selectHere();
         // insert empty line before existing member
-        if (targetClass.members2.isNotEmpty) {
+        if (targetClass.body.members.isNotEmpty) {
           builder.writeln();
         }
         // append method

@@ -103,9 +103,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    if (node.body case BlockClassBody body) {
-      _visitClassOrMixinMembers(body.members);
-    }
+    _visitClassOrMixinMembers(node.body.members);
     visitNode(node);
   }
 
@@ -128,9 +126,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (node.body case BlockClassBody body) {
-      _visitClassOrMixinMembers(body.members);
-    }
+    _visitClassOrMixinMembers(node.body.members);
     visitNode(node);
   }
 
@@ -245,9 +241,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    if (node.body case BlockClassBody body) {
-      _visitClassOrMixinMembers(body.members);
-    }
+    _visitClassOrMixinMembers(node.body.members);
     visitNode(node);
   }
 
@@ -390,11 +384,10 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
         // is called: constructors are accessible if the class is accessible.
         for (var classDeclaration
             in node.declarations.whereType<ClassDeclaration>()) {
-          if (classDeclaration.body case BlockClassBody body) {
-            for (var constructor
-                in body.members.whereType<ConstructorDeclaration>()) {
-              declaredConstructor(constructor);
-            }
+          for (var constructor
+              in classDeclaration.body.members
+                  .whereType<ConstructorDeclaration>()) {
+            declaredConstructor(constructor);
           }
         }
       } else if (declaration is EnumDeclaration) {
