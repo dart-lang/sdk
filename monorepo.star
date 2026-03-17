@@ -120,13 +120,13 @@ dart.try_builder(
     cq_branches = ["main"],
 )
 
-def _monorepo_builder(name, short_name, console):
+def _monorepo_builder(name, short_name, console, execution_timeout = 60 * time.minute):
     dart.ci_sandbox_builder(
         name = name,
         channels = [],
         dimensions = {"pool": "dart.tests"},
         executable = dart.flutter_recipe("engine_v2/builder"),
-        execution_timeout = 60 * time.minute,
+        execution_timeout = execution_timeout,
         notifies = None,
         priority = priority.normal,
         triggered_by = [],
@@ -136,7 +136,7 @@ def _monorepo_builder(name, short_name, console):
         name,
         bucket = "try.monorepo",
         executable = dart.flutter_recipe("engine_v2/builder"),
-        execution_timeout = 60 * time.minute,
+        execution_timeout = execution_timeout,
         dimensions = {"pool": "dart.tests"},
         on_cq = False,
         cq_branches = [],
@@ -205,7 +205,7 @@ _monorepo_builder(
     "flutter-engine",
 )
 _monorepo_builder("flutter-linux-host_debug", "debug", "flutter-engine")
-_monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engine")
+_monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engine", execution_timeout = 120 * time.minute)
 _monorepo_builder("flutter-linux-host_profile", "profile", "flutter-engine")
 _monorepo_builder("flutter-linux-host_release", "release", "flutter-engine")
 _monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
