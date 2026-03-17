@@ -482,9 +482,9 @@ class DartToolingDaemon {
         dartVersion: Platform.version,
         workspaceRoot: Directory.current.path,
       );
-      final file = File(p.join(dataHome, pid.toString()));
-      file.writeAsStringSync(jsonEncode(info.toJson()));
-      _pidFilePath = file.path;
+      if (createPidFile(dataHome, jsonEncode(info.toJson()))) {
+        _pidFilePath = p.join(dataHome, pid.toString());
+      }
     } catch (_) {
       // Ignore errors when writing the pid file.
     }
@@ -496,26 +496,13 @@ class DartToolingDaemon {
     if (dataHome == null) return;
 
     final instances = <DTDConnectionInfo>[];
-    final dir = Directory(dataHome);
-    if (dir.existsSync()) {
-      for (final entity in dir.listSync()) {
-        if (entity is File) {
-          try {
-            final int? processId = int.tryParse(p.basename(entity.path));
-            if (processId != null) {
-              final content = entity.readAsStringSync();
-              final json = jsonDecode(content) as Map<String, Object?>;
-              instances.add(DTDConnectionInfo.fromJson(json));
-            }
-          } catch (_) {
-            try {
-              // Delete corrupted payload files or partial writes
-              entity.deleteSync();
-            } catch (_) {
-              // Ignore permission errors to delete
-            }
-          }
-        }
+    final pidFiles = listPidFiles(dataHome);
+    for (final value in pidFiles.values) {
+      try {
+        final json = jsonDecode(value) as Map<String, Object?>;
+        instances.add(DTDConnectionInfo.fromJson(json));
+      } catch (_) {
+        // ignore
       }
     }
 
