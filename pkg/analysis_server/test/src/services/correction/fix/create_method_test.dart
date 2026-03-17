@@ -1437,6 +1437,44 @@ class A {
     );
   }
 
+  Future<void> test_createUnqualified_parameters_named_only() async {
+    await resolveTestCode('''
+class C {}
+
+f(C c) {
+  c.m(arg1: true, arg3: 'string');
+}
+''');
+    await assertHasFix('''
+class C {
+  void m({required bool arg1, required String arg3}) {}
+}
+
+f(C c) {
+  c.m(arg1: true, arg3: 'string');
+}
+''');
+  }
+
+  Future<void> test_createUnqualified_parameters_named_mixedOrder() async {
+    await resolveTestCode('''
+class C {}
+
+f(C c) {
+  c.m(arg1: true, 0, arg3: 'string');
+}
+''');
+    await assertHasFix('''
+class C {
+  void m(int i, {required bool arg1, required String arg3}) {}
+}
+
+f(C c) {
+  c.m(arg1: true, 0, arg3: 'string');
+}
+''');
+  }
+
   Future<void> test_createUnqualified_returnType() async {
     await resolveTestCode('''
 class A {
