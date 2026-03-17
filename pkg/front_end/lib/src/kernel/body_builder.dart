@@ -9948,7 +9948,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else if (builder is SourcePropertyBuilder &&
         builder.hasField &&
         builder.isDeclarationInstanceMember) {
-      if (builder.isExtensionTypeDeclaredInstanceField) {
+      if (builder.isInvalidField) {
         // Operating on an invalid field. Don't report anything though
         // as we've already reported that the field isn't valid.
         return <Initializer>[

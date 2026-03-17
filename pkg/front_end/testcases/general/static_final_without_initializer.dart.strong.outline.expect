@@ -1,0 +1,89 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:5:7: Error: The final variable 'v1' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+// final v1; // Error
+//       ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:6:11: Error: The final variable 'v2' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+// final int v2; // Error
+//           ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:6:11: Error: Field 'v2' should be initialized because its type 'int' doesn't allow null.
+// final int v2; // Error
+//           ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:10:20: Error: Field 'v4' should be initialized because its type 'int' doesn't allow null.
+//   static final int v4; // Error
+//                    ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:15:20: Error: Field 'v6' should be initialized because its type 'int' doesn't allow null.
+//   static final int v6; // Error
+//                    ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:20:20: Error: Field 'v8' should be initialized because its type 'int' doesn't allow null.
+//   static final int v8; // Error
+//                    ^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:25:20: Error: Field 'v10' should be initialized because its type 'int' doesn't allow null.
+//   static final int v10; // Error
+//                    ^^^
+//
+// pkg/front_end/testcases/general/static_final_without_initializer.dart:32:20: Error: Field 'v12' should be initialized because its type 'int' doesn't allow null.
+//   static final int v12; // Error
+//                    ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static final field dynamic v3;
+  static final field core::int v4;
+  synthetic constructor •() → self::Class
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  static final field dynamic v9;
+  static final field core::int v10;
+}
+class Enum extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum a = const self::Enum::•(0, "a");
+  static final field dynamic v11;
+  static final field core::int v12;
+  static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+}
+extension Extension on self::Class {
+  static field v5 = self::Extension|v5;
+  static field v6 = self::Extension|v6;
+}
+extension type ExtensionType(self::Class c) {
+  abstract extension-type-member representation-field get c() → self::Class;
+  static field v7 = self::ExtensionType|v7;
+  static field v8 = self::ExtensionType|v8;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
+static final field dynamic v1;
+static final field core::int v2;
+static final field dynamic Extension|v5;
+static final field core::int Extension|v6;
+static final field dynamic ExtensionType|v7;
+static final field core::int ExtensionType|v8;
+static extension-type-member method ExtensionType|constructor#(self::Class c) → self::ExtensionType% /* erasure=self::Class, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(self::Class c) → self::ExtensionType% /* erasure=self::Class, declared=! */
+  return self::ExtensionType|constructor#(c);
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///static_final_without_initializer.dart:29:3 -> InstanceConstant(const Enum{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///static_final_without_initializer.dart:28:6 -> ListConstant(const <Enum>[const Enum{_Enum.index: 0, _Enum._name: "a"}])
+Extra constant evaluation: evaluated: 9, effectively constant: 2

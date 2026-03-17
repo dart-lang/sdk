@@ -66,7 +66,7 @@ class PrimaryConstructorFieldDeclaration
   bool get isEnumElement => false;
 
   @override
-  bool get isExtensionTypeDeclaredInstanceField => false;
+  bool get isInvalidField => false;
 
   @override
   bool get isFinal => _fragment.modifiers.isFinal;

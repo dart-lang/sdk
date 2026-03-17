@@ -292,7 +292,6 @@ class DynamicInterfaceSpecification {
     if (yamlMap.containsKey('class')) {
       final dynamic yamlClassNode = yamlMap['class'];
       if (yamlClassNode is YamlList) {
-        // Coverage-ignore-block(suite): Not run.
         yamlMap.verifyKeys(const {'library', 'class'});
         for (dynamic c in yamlClassNode) {
           result.add(libraryIndex.getClass(libraryUri, c as String));
@@ -414,7 +413,6 @@ class DynamicInterfaceLanguageImplPragmas {
   bool canBeUsedAsType(TreeNode node) => switch (node) {
     Class() =>
       isPlatformLibrary(node.enclosingLibrary) &&
-          // Coverage-ignore(suite): Not run.
           isAnnotatedWith(node, canBeUsedAsTypePragmaName),
     ExtensionTypeDeclaration() =>
       isPlatformLibrary(node.enclosingLibrary) &&
@@ -424,7 +422,6 @@ class DynamicInterfaceLanguageImplPragmas {
     throw 'Unexpected node ${node.runtimeType} $node',
   };
 
-  // Coverage-ignore(suite): Not run.
   bool isAnnotatedWith(Annotatable node, String pragmaName) {
     for (Expression annotation in node.annotations) {
       if (annotation case ConstantExpression(:var constant)) {
@@ -486,7 +483,6 @@ class _DynamicModuleValidator extends RecursiveVisitor {
           _expandNode(node, extraNodes);
         }
         for (ExtensionTypeDeclaration e in node.extensionTypeDeclarations) {
-          // Coverage-ignore-block(suite): Not run.
           if (e.name[0] != '_') {
             _expandNode(e, extraNodes);
           }

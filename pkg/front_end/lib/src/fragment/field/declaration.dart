@@ -99,9 +99,11 @@ abstract class FieldDeclaration {
   /// Return `true` if the declaration is late.
   bool get isLate;
 
-  /// Return `true` if the declaration is in instance field declared in an
-  /// extension type.
-  bool get isExtensionTypeDeclaredInstanceField;
+  /// Returns `true` if the field of this property is not a valid declaration.
+  ///
+  /// For instance declaring an instance field in an extension or extension type
+  /// is not allowed and cannot be encoded coherently in the AST.
+  bool get isInvalidField;
 
   /// Returns `true` if this field is declared by an enum element.
   bool get isEnumElement;
@@ -225,8 +227,9 @@ class RegularFieldDeclaration
   bool get isEnumElement => false;
 
   @override
-  bool get isExtensionTypeDeclaredInstanceField =>
-      builder.isExtensionTypeInstanceMember;
+  bool get isInvalidField =>
+      builder.isExtensionTypeInstanceMember ||
+      builder.isExtensionInstanceMember;
 
   @override
   bool get isFinal => _fragment.modifiers.isFinal;

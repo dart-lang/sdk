@@ -80,7 +80,7 @@ class EnumElementDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isExtensionTypeDeclaredInstanceField => false;
+  bool get isInvalidField => false;
 
   @override
   bool get isFinal => false;

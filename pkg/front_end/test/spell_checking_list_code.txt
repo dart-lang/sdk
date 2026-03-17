@@ -297,6 +297,7 @@ code's
 codebase
 codec
 codes
+coherently
 collides
 collision
 coloring
