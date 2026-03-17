@@ -162,10 +162,22 @@ void main() {
       expect(await process.exitCode, isNot(0));
     });
 
-    test('list cleans up malformed json pid files', () async {
+    test('list cleans up stale pid files', () async {
       final String dataHome = getDartDataHome(dtdDirName, environment: env);
       final garbageFile = File(p.join(dataHome, '999999'));
-      garbageFile.writeAsStringSync('{ "bad_json": ');
+
+      // Even valid JSON should be cleaned up if the process is no longer active.
+      garbageFile.writeAsStringSync(
+        jsonEncode(
+          <String, Object?>{
+            'wsUri': 'ws://127.0.0.1:0',
+            'epoch': 123456789,
+            'pid': 999999,
+            'dartVersion': '3.0.0',
+            'workspaceRoot': '/test',
+          },
+        ),
+      );
 
       // Trigger the list command
       final result = await Process.run(
@@ -178,7 +190,7 @@ void main() {
       expect(result.stdout.toString(), contains(noInstancesMessage));
       expect(result.stderr.toString(), isEmpty);
 
-      // And it should have deleted the bad file.
+      // And it should have deleted the stale file.
       expect(garbageFile.existsSync(), isFalse);
     });
 

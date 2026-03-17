@@ -4891,7 +4891,7 @@ static void AddVMMappings(JSONArray* rss_children) {
         continue;  // Malformed input.
       }
 
-      strncpy(path, path_start, sizeof(path) - 1);
+      strncpy(path, path_start, sizeof(path));
       path[sizeof(path) - 1] = '\0';
       int len = strlen(path);
       if ((len > 0) && path[len - 1] == '\n') {
@@ -4921,7 +4921,7 @@ static void AddVMMappings(JSONArray* rss_children) {
         }
         if (!updated) {
           VMMapping mapping;
-          strncpy(mapping.path, path, sizeof(mapping.path) - 1);
+          strncpy(mapping.path, path, sizeof(mapping.path));
           mapping.path[sizeof(mapping.path) - 1] = '\0';
           mapping.size = size;
           mappings.Add(mapping);
