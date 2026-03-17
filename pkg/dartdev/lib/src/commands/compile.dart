@@ -111,11 +111,28 @@ class CompileJSCommand extends CompileSubcommandCommand {
   String get invocation => '${super.invocation} <dart entry point>';
 
   @override
+  bool get isAot => true;
+
+  @override
   FutureOr<int> run() async {
     if (!checkArtifactExists(sdk.librariesJson, warnIfBuildRoot: true)) {
       return genericErrorExitCode;
     }
     final args = argResults!;
+    final recordUseRequested = args.rest.any(
+      (e) =>
+          e == '--${recordedUsesOption.flag}' ||
+          e.startsWith('--${recordedUsesOption.flag}='),
+    );
+
+    if (recordUseRequested) {
+      if (!recordUseEnabled(args.enabledExperiments)) {
+        usageException(
+          'The --${recordedUsesOption.flag} option requires the '
+          '--enable-experiment=record-use experiment.',
+        );
+      }
+    }
     var snapshot = sdk.dart2jsAotSnapshot;
     if (!checkArtifactExists(snapshot, logError: false)) {
       log.stderr('Error: JS compilation failed');
@@ -546,6 +563,12 @@ Remove debugging information from the output and save it separately to the speci
         valueHelp: 'path',
         help: 'Path to output Ninja depfile',
       )
+      ..addOption(
+        recordedUsesOption.flag,
+        help: recordedUsesOption.help,
+        valueHelp: recordedUsesOption.valueHelp,
+        hide: !verbose,
+      )
       ..addMultiOption(
         'extra-gen-snapshot-options',
         help: 'Pass additional options to gen_snapshot.',
@@ -611,10 +634,12 @@ Remove debugging information from the output and save it separately to the speci
     // Kernel is always generated using the host's dartaotruntime and
     // gen_kernel_aot.dart.snapshot, even during cross compilation.
     if (!checkArtifactExists(sdk.genKernelSnapshot) ||
-        !checkArtifactExists(sdk.dartAotRuntime)) {
+        !checkArtifactExists(sdk.dartAotRuntime) ||
+        !checkArtifactExists(sdk.genSnapshot)) {
       return 255;
     }
     final args = argResults!;
+    handleRecordedUses(args);
 
     // We expect a single rest argument; the dart entry point.
     if (args.rest.length != 1) {
@@ -756,6 +781,7 @@ Remove debugging information from the output and save it separately to the speci
         progressUpdatesOnStderr: false,
       );
       final snapshotGenerator = await kernelGenerator.generate(
+        recordedUsagesFile: args.option(recordedUsesOption.flag),
         extraOptions: args.multiOption('extra-gen-kernel-options'),
       );
       await snapshotGenerator.generate(
@@ -776,6 +802,9 @@ Remove debugging information from the output and save it separately to the speci
       await tempDir.delete(recursive: true);
     }
   }
+
+  @override
+  bool get isAot => true;
 
   /// Returns target platform for cross compilation.
   ///
@@ -810,6 +839,9 @@ Remove debugging information from the output and save it separately to the speci
 class CompileWasmCommand extends CompileSubcommandCommand {
   static const String commandName = 'wasm';
   static const String help = 'Compile Dart to a WebAssembly/WasmGC module.';
+
+  @override
+  bool get isAot => true;
 
   CompileWasmCommand({bool verbose = false})
     : super(commandName, help, verbose) {
@@ -923,6 +955,12 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         valueHelp: defineOption.valueHelp,
         splitCommas: false,
       )
+      ..addOption(
+        recordedUsesOption.flag,
+        help: recordedUsesOption.help,
+        valueHelp: recordedUsesOption.valueHelp,
+        hide: !verbose,
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -932,6 +970,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
   @override
   FutureOr<int> run() async {
     final args = argResults!;
+    handleRecordedUses(args);
     final verbose = this.verbose || args.flag('verbose');
 
     if (!checkArtifactExists(sdk.wasmPlatformDill, warnIfBuildRoot: true) ||
@@ -1018,6 +1057,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (args.flag('minify')) '--minify',
       if (!args.flag('strip-wasm')) '--no-strip-wasm',
       if (args.flag('enable-deferred-loading')) '--enable-deferred-loading',
+      if (args.option(recordedUsesOption.flag) != null)
+        '--recorded-uses=${args.option(recordedUsesOption.flag)}',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[
         '--import-shared-memory',
@@ -1102,6 +1143,31 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
     flag: 'enable-asserts',
     help: 'Enable assert statements.',
   );
+
+  final recordedUsesOption = Option(
+    flag: 'recorded-uses',
+    help: 'Write the recorded uses to <file name>.',
+    valueHelp: 'path',
+  );
+
+  bool get isAot => false;
+
+  void handleRecordedUses(ArgResults args) {
+    if (args.options.contains(recordedUsesOption.flag) &&
+        args.wasParsed(recordedUsesOption.flag)) {
+      if (!isAot) {
+        usageException(
+          'The --${recordedUsesOption.flag} option is only supported for AOT compilation.',
+        );
+      }
+      if (!recordUseEnabled(args.enabledExperiments)) {
+        usageException(
+          'The --${recordedUsesOption.flag} option requires the '
+          '--enable-experiment=record-use experiment.',
+        );
+      }
+    }
+  }
 
   CompileSubcommandCommand(
     super.name,

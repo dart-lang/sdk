@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.18
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -116,6 +114,7 @@ void main() async {
         arguments: [
           'compile',
           'js',
+          '--enable-experiment=record-use',
           '--write-resources',
           'bin/drop_data_asset_calls.dart',
         ],
@@ -125,75 +124,151 @@ void main() async {
       );
 
       // The build directory exists
-      final recordedUsages =
-          File.fromUri(dartAppUri.resolve('out.js.resources.json'));
+      final recordedUsages = File.fromUri(
+        dartAppUri.resolve('out.js.resources.json'),
+      );
       expect(recordedUsages.existsSync(), true);
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
       final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
       printOnFailure(actualRecordedUsages);
-      final constArguments = u.constArgumentsFor(Definition(
-        'package:drop_data_asset/src/drop_data_asset.dart',
-        [
-          Name(
-            kind: DefinitionKind.classKind,
-            'MyMath',
-          ),
-          Name(
-            kind: DefinitionKind.methodKind,
-            'add',
-            disambiguators: {
-              DefinitionDisambiguator.staticDisambiguator,
-            },
-          )
-        ],
-      ));
+      final constArguments = u.constArgumentsFor(
+        Definition(
+          'package:drop_data_asset/src/drop_data_asset.dart',
+          [
+            Name(
+              kind: DefinitionKind.classKind,
+              'MyMath',
+            ),
+            Name(
+              kind: DefinitionKind.methodKind,
+              'add',
+              disambiguators: {
+                DefinitionDisambiguator.staticDisambiguator,
+              },
+            ),
+          ],
+        ),
+      );
       expect(constArguments.length, 1);
       expect(constArguments.first.namedArguments.isEmpty, true);
-      expect(constArguments.first.positionalArguments,
-          const [IntConstant(3), IntConstant(4)]);
+      expect(constArguments.first.positionalArguments, const [
+        IntConstant(3),
+        IntConstant(4),
+      ]);
     });
   });
 
   // TODO(https://github.com/dart-lang/native/issues/2893): Implement instance
   // support.
-  test('Recorded usages in dart2js - no instance support yet',
-      timeout: longTimeout, () async {
-    await recordUseTest('drop_data_asset', (dartAppUri) async {
-      await runDart(
-        arguments: ['pub', 'get'],
-        workingDirectory: dartAppUri,
-        logger: logger,
-        expectExitCodeZero: true,
-      );
-      // Now try using the add symbol only, so the multiply library is
-      // tree-shaken.
-      await runDart(
-        arguments: [
-          'compile',
-          'js',
-          '--write-resources',
-          'bin/drop_data_asset_instances.dart',
-        ],
-        workingDirectory: dartAppUri,
-        logger: logger,
-        expectExitCodeZero: true,
-      );
+  test(
+    'Recorded usages in dart2js - no instance support yet',
+    timeout: longTimeout,
+    () async {
+      await recordUseTest('drop_data_asset', (dartAppUri) async {
+        await runDart(
+          arguments: ['pub', 'get'],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: true,
+        );
+        // Now try using the add symbol only, so the multiply library is
+        // tree-shaken.
+        await runDart(
+          arguments: [
+            'compile',
+            'js',
+            '--write-resources',
+            'bin/drop_data_asset_instances.dart',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: true,
+        );
 
-      // The build directory exists
-      final recordedUsages =
-          File.fromUri(dartAppUri.resolve('out.js.resources.json'));
-      expect(recordedUsages.existsSync(), true);
+        // The build directory exists
+        final recordedUsages = File.fromUri(
+          dartAppUri.resolve('out.js.resources.json'),
+        );
+        expect(recordedUsages.existsSync(), true);
 
-      final actualRecordedUsages = recordedUsages.readAsStringSync();
-      final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
-      final constantsOf = u.constantsOf(Definition(
-        'package:drop_data_asset/src/drop_data_asset.dart',
-        [Name('RecordCallToC')],
-      ));
-      expect(constantsOf.length, 0);
+        final actualRecordedUsages = recordedUsages.readAsStringSync();
+        final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
+        final constantsOf = u.constantsOf(
+          Definition(
+            'package:drop_data_asset/src/drop_data_asset.dart',
+            [Name('RecordCallToC')],
+          ),
+        );
+        expect(constantsOf.length, 0);
+      });
+    },
+  );
+
+  for (final testCase in [
+    (
+      command: 'js',
+      flag: '--write-resources',
+      recordedUsagesPath: 'out.js.resources.json',
+    ),
+    (
+      command: 'exe',
+      flag: '--recorded-uses=',
+      recordedUsagesPath: 'recorded_usages.json',
+    ),
+    (
+      command: 'aot-snapshot',
+      flag: '--recorded-uses=',
+      recordedUsagesPath: 'recorded_usages.json',
+    ),
+    (
+      command: 'wasm',
+      flag: '--recorded-uses=',
+      recordedUsagesPath: 'recorded_usages.json',
+    ),
+  ]) {
+    final command = testCase.command;
+    final flag = testCase.flag;
+    final recordedUsagesPath = testCase.recordedUsagesPath;
+
+    test('Recorded usages in $command', timeout: longTimeout, () async {
+      final testFunction = command == 'js'
+          ? recordUseTest
+          : recordUseNoHooksTest;
+      await testFunction('drop_data_asset', (dartAppUri) async {
+        await runDart(
+          arguments: ['pub', 'get'],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: true,
+        );
+
+        final recordedUsagesUri = dartAppUri.resolve(recordedUsagesPath);
+        final flagWithArg = flag.endsWith('=')
+            ? '$flag${recordedUsagesUri.toFilePath()}'
+            : flag;
+        await runDart(
+          arguments: [
+            'compile',
+            command,
+            '--enable-experiment=record-use',
+            flagWithArg,
+            'bin/drop_data_asset_calls.dart',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: true,
+        );
+
+        final recordedUsages = File.fromUri(recordedUsagesUri);
+        expect(recordedUsages.existsSync(), true);
+
+        final actualRecordedUsages = recordedUsages.readAsStringSync();
+        final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
+        expect(u.calls.isNotEmpty, true);
+      });
     });
-  });
+  }
 }
 
 extension on Recordings {

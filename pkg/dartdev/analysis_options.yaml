@@ -12,3 +12,6 @@ linter:
     - directives_ordering
     - prefer_single_quotes
     - sort_pub_dependencies
+
+formatter:
+  trailing_commas: preserve

@@ -274,6 +274,37 @@ Future<void> nativeAssetsTest(
   usePubWorkspace,
 );
 
+Future<void> recordUseNoHooksTest(
+  String packageUnderTest,
+  Future<void> Function(Uri) fun,
+) async => await runPackageTest(
+  packageUnderTest,
+  (packageUri) async {
+    final pubspecFile = File.fromUri(packageUri.resolve('pubspec.yaml'));
+    final pubspecString = await pubspecFile.readAsString();
+    final pubspec = YamlEditor(pubspecString);
+    final pubspecYaml = loadYaml(pubspecString) as YamlMap;
+    if (pubspecYaml.containsKey('hook')) {
+      pubspec.remove(['hook']);
+    }
+    if (pubspecYaml.containsKey('hooks')) {
+      pubspec.remove(['hooks']);
+    }
+    await pubspecFile.writeAsString(pubspec.toString());
+
+    final hookDir = Directory.fromUri(packageUri.resolve('hook/'));
+    if (await hookDir.exists()) {
+      await hookDir.delete(recursive: true);
+    }
+
+    return await fun(packageUri);
+  },
+  const ['drop_dylib_recording', 'drop_data_asset'],
+  sdkRootUri.resolve('third_party/pkg/native/pkgs/record_use/'),
+  sdkRootUri,
+  false,
+);
+
 Future<void> recordUseTest(
   String packageUnderTest,
   Future<void> Function(Uri) fun,
