@@ -457,9 +457,7 @@ class RecordUseValueConverter {
       ListConstantValue() => _findListValue(constant),
       ConstructedConstantValue() => findInstanceValue(constant),
       DoubleConstantValue() => record_use.DoubleConstant(constant.doubleValue),
-      SetConstantValue() => record_use.UnsupportedConstant(
-        'Set literals are not supported for recording.',
-      ),
+      SetConstantValue() => _findSetValue(constant),
       RecordConstantValue() => _findRecordValue(constant),
       InstantiationConstantValue() => _findValue(constant.function),
       FunctionConstantValue() => record_use.UnsupportedConstant(
@@ -492,6 +490,14 @@ class RecordUseValueConverter {
       result.add(_findValue(constantValue));
     }
     return record_use.ListConstant(result);
+  }
+
+  record_use.SetConstant _findSetValue(SetConstantValue constant) {
+    final result = <record_use.Constant>[];
+    for (final constantValue in constant.values) {
+      result.add(_findValue(constantValue));
+    }
+    return record_use.SetConstant(result);
   }
 
   record_use.RecordConstant _findRecordValue(RecordConstantValue constant) {

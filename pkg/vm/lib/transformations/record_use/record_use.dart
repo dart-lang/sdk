@@ -266,8 +266,8 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   // The following are not supported, but theoretically could be, so they
   // are listed explicitly here.
   ast.AuxiliaryConstant() => _unsupported('AuxiliaryConstant'),
-  ast.SetConstant() => UnsupportedConstant(
-    'Set literals are not supported for recording.',
+  ast.SetConstant() => SetConstant(
+    constant.entries.map(evaluateConstant).toList(),
   ),
   ast.InstantiationConstant() => evaluateConstant(constant.tearOffConstant),
   ast.TearOffConstant() => UnsupportedConstant(
