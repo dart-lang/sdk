@@ -9,13 +9,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-import '../../../utilities/extensions/ast.dart';
 import 'create_constructor.dart';
 
 /// Binds a constructor parameter to a newly created field.
@@ -104,7 +102,7 @@ class BindToField extends ResolvedCorrectionProducer {
       return;
     }
     if (container is ClassDeclaration &&
-        container.members2.any(
+        container.body.members.any(
           (member) => switch (member) {
             ConstructorDeclaration() => false,
             // Bind the parameter to the existing field
@@ -117,10 +115,7 @@ class BindToField extends ResolvedCorrectionProducer {
       return;
     }
     if (container is EnumDeclaration) {
-      var constants =
-          container.body.tryCast<BlockEnumBody>()?.constants ??
-          <EnumConstantDeclaration>[];
-      if (constants.any(
+      if (container.body.constants.any(
         (constant) => constant.name.lexeme == parameter.name?.lexeme,
       )) {
         // Parameter is already a constant.
@@ -167,7 +162,7 @@ class BindToField extends ResolvedCorrectionProducer {
     LibraryElement libraryElement2,
   ) {
     if (container is ClassDeclaration) {
-      var fieldWithSameName = container.members2
+      var fieldWithSameName = container.body.members
           .whereType<FieldDeclaration>()
           .map(
             (member) => member.fields.variables.firstWhereOrNull(

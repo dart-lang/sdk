@@ -2526,9 +2526,6 @@ sealed class BlockClassBody implements ClassBody {
   /// The left curly bracket.
   Token get leftBracket;
 
-  /// The members declared in the body.
-  NodeList<ClassMember> get members;
-
   /// The right curly bracket.
   Token get rightBracket;
 }
@@ -2629,14 +2626,8 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
 /// The enum declaration body, with constants and members.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BlockEnumBody implements EnumBody {
-  /// The enumeration constants being declared.
-  NodeList<EnumConstantDeclaration> get constants;
-
   /// The left curly bracket.
   Token get leftBracket;
-
-  /// The members declared in the body.
-  NodeList<ClassMember> get members;
 
   /// The right curly bracket.
   Token get rightBracket;
@@ -4067,10 +4058,14 @@ class ChildEntity {
 
 /// The body of a class declaration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class ClassBody implements AstNode {}
+sealed class ClassBody implements AstNode {
+  /// The members declared in the body.
+  NodeList<ClassMember> get members;
+}
 
 sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {
-  List<ClassMemberImpl> get members;
+  @override
+  NodeListImpl<ClassMemberImpl> get members;
 }
 
 /// The declaration of a class.
@@ -8580,6 +8575,10 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   @override
   final Token semicolon;
 
+  @override
+  late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
+    .._initialize(this, null);
+
   @generated
   EmptyClassBodyImpl({required this.semicolon});
 
@@ -8594,9 +8593,6 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   Token get endToken {
     return semicolon;
   }
-
-  @override
-  List<ClassMemberImpl> get members => const [];
 
   @generated
   @override
@@ -8642,6 +8638,14 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   @override
   final Token semicolon;
 
+  @override
+  late final NodeListImpl<EnumConstantDeclarationImpl> constants =
+      NodeListImpl._().._initialize(this, null);
+
+  @override
+  late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
+    .._initialize(this, null);
+
   @generated
   EmptyEnumBodyImpl({required this.semicolon});
 
@@ -8651,17 +8655,11 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
     return semicolon;
   }
 
-  @override
-  List<EnumConstantDeclarationImpl> get constants => const [];
-
   @generated
   @override
   Token get endToken {
     return semicolon;
   }
-
-  @override
-  List<ClassMemberImpl> get members => const [];
 
   @generated
   @override
@@ -8831,12 +8829,20 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 
 /// The body of an enum declaration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class EnumBody implements AstNode {}
+sealed class EnumBody implements AstNode {
+  /// The enumeration constants being declared.
+  NodeList<EnumConstantDeclaration> get constants;
+
+  /// The members declared in the body.
+  NodeList<ClassMember> get members;
+}
 
 sealed class EnumBodyImpl extends AstNodeImpl implements EnumBody {
-  List<EnumConstantDeclarationImpl> get constants;
+  @override
+  NodeListImpl<EnumConstantDeclarationImpl> get constants;
 
-  List<ClassMemberImpl> get members;
+  @override
+  NodeListImpl<ClassMemberImpl> get members;
 }
 
 /// The arguments part of an enum constant.

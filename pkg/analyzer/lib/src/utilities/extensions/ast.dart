@@ -126,11 +126,10 @@ extension AstNodeNullableExtension on AstNode? {
       BlockClassBody() => self.members,
       BlockEnumBody() => self.members,
       ClassDeclarationImpl() => self.body.members,
-      EnumDeclaration() => self.body.tryCast<BlockEnumBody>()?.members ?? [],
-      ExtensionDeclaration() =>
-        self.body.tryCast<BlockClassBody>()?.members ?? [],
+      EnumDeclaration() => self.body.members,
+      ExtensionDeclaration() => self.body.members,
       ExtensionTypeDeclarationImpl() => self.body.members,
-      MixinDeclaration() => self.body.tryCast<BlockClassBody>()?.members ?? [],
+      MixinDeclaration() => self.body.members,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };
   }

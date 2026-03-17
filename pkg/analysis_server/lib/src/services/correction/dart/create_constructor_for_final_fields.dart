@@ -16,8 +16,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 /// The boolean value indicates whether the field is required.
 /// The string value is the field/parameter name.
 typedef _FieldRecord = ({bool required, String parameter});
@@ -71,7 +69,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
           builder: builder,
           containerName: container.namePart.typeName.lexeme,
           superType: superType,
-          variableLists: container.members2.interestingVariableLists,
+          variableLists: container.body.members.interestingVariableLists,
         );
       case EnumDeclaration():
         superType = container.declaredFragment?.element.supertype;
@@ -82,7 +80,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
           builder: builder,
           containerName: container.namePart.typeName.lexeme,
           superType: superType,
-          variableLists: container.members2.interestingVariableLists,
+          variableLists: container.body.members.interestingVariableLists,
         );
       case _:
         return;

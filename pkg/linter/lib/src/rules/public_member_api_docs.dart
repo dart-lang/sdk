@@ -120,9 +120,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     if (node.declaredFragment?.element == null) return;
-    if (node.body case BlockClassBody body) {
-      _visitMembers(node, node.namePart.typeName, body.members);
-    }
+    _visitMembers(node, node.namePart.typeName, node.body.members);
   }
 
   @override
@@ -200,9 +198,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.namePart.typeName.isPrivate) return;
 
     check(node);
-    if (node.body case BlockEnumBody body) {
-      checkMethods(body.members);
-    }
+    checkMethods(node.body.members);
   }
 
   @override
@@ -211,17 +207,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isInternal) return;
 
     check(node);
-    if (node.body case BlockClassBody body) {
-      checkMethods(body.members);
-    }
+    checkMethods(node.body.members);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     if (node.declaredFragment?.element == null) return;
-    if (node.body case BlockClassBody body) {
-      _visitMembers(node, node.primaryConstructor.typeName, body.members);
-    }
+    _visitMembers(node, node.primaryConstructor.typeName, node.body.members);
   }
 
   @override
@@ -254,9 +246,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    if (node.body case BlockClassBody body) {
-      _visitMembers(node, node.name, body.members);
-    }
+    _visitMembers(node, node.name, node.body.members);
   }
 
   @override

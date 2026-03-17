@@ -12,8 +12,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 class RemoveAbstract extends CorrectionProducerWithDiagnostic {
   @override
   final CorrectionApplicability applicability;
@@ -58,7 +56,7 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
   ) async {
     if (classDeclaration == null) return;
 
-    for (var member in classDeclaration.members2) {
+    for (var member in classDeclaration.body.members) {
       if (member is FieldDeclaration) {
         var fields = member.fields;
         var variables = fields.variables;
