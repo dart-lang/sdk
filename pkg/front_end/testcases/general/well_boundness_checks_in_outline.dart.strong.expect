@@ -82,7 +82,7 @@ extension E<X extends self::A<core::num>> on self::A<core::int> {
   method bazOfE = self::E|bazOfE;
   method tearoff bazOfE = self::E|get#bazOfE;
 }
-static field self::A<core::num>? E|fieldOfE;
+static field self::A<core::num>? E|fieldOfE = null;
 static extension-member method E|fooOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this) → self::A<core::num>?
   return null;
 static extension-member method E|get#fooOfE<X extends self::A<core::num>>(lowered final self::A<core::int> #this) → () → self::A<core::num>?

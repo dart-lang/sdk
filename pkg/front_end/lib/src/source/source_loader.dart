@@ -83,6 +83,7 @@ import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_compilation_unit.dart' show SourceCompilationUnitImpl;
 import 'source_enum_builder.dart';
+import 'source_extension_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart'
@@ -1876,15 +1877,18 @@ severity: $severity
     }
   }
 
-  /// Add classes and extension types defined in libraries in this
-  /// [SourceLoader] to [sourceClasses] and [sourceExtensionTypes].
-  void collectSourceClasses(
+  /// Add classes, extensions and extension types defined in libraries in this
+  /// [SourceLoader] to [sourceClasses], [sourceExtensions], and
+  /// [sourceExtensionTypes].
+  void collectSourceDeclarations(
     List<SourceClassBuilder> sourceClasses,
-    List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes,
-  ) {
+    List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes, [
+    List<SourceExtensionBuilder>? sourceExtensions,
+  ]) {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      library.collectSourceClassesAndExtensionTypes(
+      library.collectSourceDeclarations(
         sourceClasses,
+        sourceExtensions,
         sourceExtensionTypes,
       );
     }
@@ -1919,7 +1923,7 @@ severity: $severity
     // Sort the classes topologically.
     List<SourceClassBuilder> sourceClasses = [];
     List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes = [];
-    collectSourceClasses(sourceClasses, sourceExtensionTypes);
+    collectSourceDeclarations(sourceClasses, sourceExtensionTypes);
 
     _SourceClassGraph classGraph = new _SourceClassGraph(
       sourceClasses,

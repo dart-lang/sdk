@@ -181,3 +181,39 @@ Part 2: Create a Dart CLI app that uses `ProfileableWebSocket`. It should connec
 * [DevTools Network Panel documentation](https://docs.flutter.dev/tools/devtools/network)
 * [Dart DevTools source code](https://github.com/flutter/devtools)
 
+
+## **Idea:**  Android JCA backend for package:webcrypto
+
+ - **Possible Mentor(s)**: Hamdaan Ali `hamdaan.quatil@gmail.com`, Jonas Jensen `jonasfj@google.com`
+ - **Difficulty**: Hard
+ - **Project size**: Large (350 hours)
+ - **Skills**: Dart, Flutter, Android, Java/Kotlin, JNI
+
+**Description**:
+
+`package:webcrypto` provides a cross-platform implementation of the
+_Web Cryptography APIs_. Outside the browser, it currently uses a native
+implementation that embeds BoringSSL. This project is to create an experimental
+branch of `package:webcrypto`, where Android uses `package:jnigen` to call
+platform Java cryptography APIs instead of bundling a BoringSSL binary with
+the package.
+
+**Good Sample Project**:
+
+Build a small Flutter app for Android that uses `package:jnigen` to call a
+simple Java cryptography API from Dart, such as computing a digest or HMAC.
+Expose the operation through a small Dart wrapper, compare the result with the
+existing `package:webcrypto` API on Android, and document the data flow
+between Dart, JNI, and the Java implementation.
+
+Bonus: include a simple benchmark against a version using the current
+native backend.
+
+**Expected outcome**:
+
+A branch of `package:webcrypto` with an Android-specific backend implemented
+through `package:jnigen` for an initial subset of primitives, together with
+tests and documentation evaluating correctness, performance,
+packaging constraints, and binary size tradeoffs.
+A successful project may demonstrate that this approach is viable for future
+integration into the main package.

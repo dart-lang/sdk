@@ -1077,7 +1077,6 @@ class ExtensionConstructorEncoding
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isRedirecting {
     // TODO(johnniwinther): Update this if redirecting extension constructors
     //  are supported.

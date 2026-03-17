@@ -795,8 +795,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void collectSourceClassesAndExtensionTypes(
+  void collectSourceDeclarations(
     List<SourceClassBuilder> sourceClasses,
+    List<SourceExtensionBuilder>? sourceExtensions,
     List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes,
   ) {
     Iterator<Builder> iterator = unfilteredMembersIterator;
@@ -804,6 +805,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Builder member = iterator.current;
       if (member is SourceClassBuilder) {
         sourceClasses.add(member);
+      } else if (member is SourceExtensionBuilder) {
+        sourceExtensions?.add(member);
       } else if (member is SourceExtensionTypeDeclarationBuilder) {
         sourceExtensionTypes.add(member);
       }

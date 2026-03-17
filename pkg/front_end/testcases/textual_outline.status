@@ -24,6 +24,7 @@ primary_constructors/const_class: FormatterCrash
 primary_constructors/duplicate_initialization: FormatterCrash
 primary_constructors/enum_primary_constructor: FormatterCrash
 primary_constructors/extension_type: FormatterCrash
+primary_constructors/extension_type_fields: FormatterCrash
 primary_constructors/extension_type_parameter_type_inference: FormatterCrash
 primary_constructors/field_initializers: FormatterCrash
 primary_constructors/field_initializers_order: FormatterCrash
