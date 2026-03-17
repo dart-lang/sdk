@@ -7,61 +7,61 @@ import "dart:core" as core;
 [229]  enum-element static const field self::E b = [229] [229] const self::E::• [-1]([-1] 1, [-1] "b");
 [232]  enum-element static const field self::E c = [232] [232] const self::E::• [-1]([-1] 2, [-1] "c");
 [222]  static const field core::List<self::E> values = [-1] [-1] const <self::E>[[-1] self::E::a, [-1] self::E::b, [-1] self::E::c];
-[222]  const synthetic constructor •([222] core::int #index, [222] core::String #name) → self::E
+[222]  const synthetic constructor [222] [222] •([222] core::int #index, [222] core::String #name) → self::E
     : [222] super core::_Enum::• [222]([-1] #index, [-1] #name)
 [-1]    ;
-[222]  method core::_enumToString() → core::String
+[222]  method [222] [222] core::_enumToString() → core::String
 [-1]    return [-1] [-1] "E.${[-1] [-1] [-1] [-1] this.{core::_Enum::_name}{core::String}}";
 }
 [243]class PrimitiveEquals extends core::Object /*hasConstConstructor*/  {
 [273]  final field core::int field;
-[289]  const constructor •([310] core::int field) → self::PrimitiveEquals
+[289]  const constructor [304] [316] •([310] core::int field) → self::PrimitiveEquals
     : [310] self::PrimitiveEquals::field = [310] [310] field, [289] super core::Object::• [289]()
 [-1]    ;
 }
 [327]class NonPrimitiveEquals extends core::Object /*hasConstConstructor*/  {
 [360]  final field core::int field;
-[376]  const constructor •([400] core::int field) → self::NonPrimitiveEquals
+[376]  const constructor [394] [406] •([400] core::int field) → self::NonPrimitiveEquals
     : [400] self::NonPrimitiveEquals::field = [400] [400] field, [376] super core::Object::• [376]()
 [-1]    ;
-[419]  get hashCode() → core::int
+[419]  get [428] [445] hashCode() → core::int
 [-1]    ;
-[464]  operator ==([474] core::Object other) → core::bool
+[464]  operator [466] [594] ==([474] core::Object other) → core::bool
 [-1]    ;
 }
-[599]static method switchStatement([615] dynamic o) → dynamic
+[599]static method [614] [753] switchStatement([615] dynamic o) → dynamic
 [-1]  ;
-[756]static method switchStatementWithLabel([781] dynamic o) → dynamic
+[756]static method [780] [958] switchStatementWithLabel([781] dynamic o) → dynamic
 [-1]  ;
-[961]static method switchStatementWithContinue([989] dynamic o) → dynamic
+[961]static method [988] [1281] switchStatementWithContinue([989] dynamic o) → dynamic
 [-1]  ;
-[1284]static method switchStatementWithContinueNested([1318] dynamic o1, [1322] dynamic o2) → dynamic
+[1284]static method [1317] [2388] switchStatementWithContinueNested([1318] dynamic o1, [1322] dynamic o2) → dynamic
 [-1]  ;
-[2391]static method switchStatementEnum([2413] self::E o) → dynamic
+[2391]static method [2410] [2533] switchStatementEnum([2413] self::E o) → dynamic
 [-1]  ;
-[2536]static method switchStatementEnumWithGuard([2567] self::E o) → dynamic
+[2536]static method [2564] [2677] switchStatementEnumWithGuard([2567] self::E o) → dynamic
 [-1]  ;
-[2680]static method switchStatementEnumWithLabel([2711] self::E o) → dynamic
+[2680]static method [2708] [2842] switchStatementEnumWithLabel([2711] self::E o) → dynamic
 [-1]  ;
-[2845]static method switchStatementEnumWithContinue([2879] self::E o) → dynamic
+[2845]static method [2876] [3069] switchStatementEnumWithContinue([2879] self::E o) → dynamic
 [-1]  ;
-[3072]static method switchStatementPrimitiveEquals([3103] dynamic o) → dynamic
+[3072]static method [3102] [3233] switchStatementPrimitiveEquals([3103] dynamic o) → dynamic
 [-1]  ;
-[3236]static method switchStatementNonPrimitiveEquals([3270] dynamic o) → dynamic
+[3236]static method [3269] [3406] switchStatementNonPrimitiveEquals([3270] dynamic o) → dynamic
 [-1]  ;
-[3409]static method switchExpression([3426] dynamic o) → dynamic
+[3409]static method [3425] [3512] switchExpression([3426] dynamic o) → dynamic
 [-1]  ;
-[3515]static method switchExpressionEnum([3538] self::E o) → dynamic
+[3515]static method [3535] [3612] switchExpressionEnum([3538] self::E o) → dynamic
 [-1]  ;
-[3615]static method switchExpressionEnumWithGuard([3647] self::E o) → dynamic
+[3615]static method [3644] [3729] switchExpressionEnumWithGuard([3647] self::E o) → dynamic
 [-1]  ;
-[3732]static method switchExpressionPrimitiveEquals([3764] dynamic o) → dynamic
+[3732]static method [3763] [3878] switchExpressionPrimitiveEquals([3764] dynamic o) → dynamic
 [-1]  ;
-[3881]static method switchExpressionNonPrimitiveEquals([3916] dynamic o) → dynamic
+[3881]static method [3915] [4036] switchExpressionNonPrimitiveEquals([3916] dynamic o) → dynamic
 [-1]  ;
-[4039]static method switchStatementSymbol([4068] core::Symbol s) → dynamic
+[4039]static method [4060] [4194] switchStatementSymbol([4068] core::Symbol s) → dynamic
 [-1]  ;
-[4197]static method switchExpressionSymbol([4227] core::Symbol s) → dynamic
+[4197]static method [4219] [4312] switchExpressionSymbol([4227] core::Symbol s) → dynamic
 [-1]  ;
 
 

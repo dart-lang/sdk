@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+[232]extension type Foo(core::Duration _) implements core::Duration {
+[247]  abstract extension-type-member representation-field get [-1] [-1] _() → core::Duration;
+  get bar = self::Foo|get#bar;
+  set bar = self::Foo|set#bar;
+  constructor _ = self::Foo|constructor#_;
+  constructor tearoff _ = self::Foo|constructor#_#_#tearOff;
+}
+[236]static extension-type-member method [237] [237] Foo|constructor#_([247] wildcard core::Duration _#wc0#formal) → self::Foo /* erasure=core::Duration */ {
+[247]  [247] lowered final self::Foo /* erasure=core::Duration */ #this = [247] [247] _#wc0#formal;
+[-1]  return [-1] [-1] #this;
+}
+[236]static extension-type-member synthetic method [236] [236] Foo|constructor#_#_#tearOff([247] core::Duration _#wc0#formal) → self::Foo /* erasure=core::Duration */
+[236]  return [236] [236] self::Foo|constructor#_ [236]([236] _#wc0#formal);
+[287]external static extension-type-member method [-1] [-1] Foo|get#bar([287] lowered core::Duration #this) → core::int;
+[287]external static extension-type-member method [287] [290] Foo|set#bar([287] lowered core::Duration #this, [287] synthesized core::int #externalFieldValue) → void;

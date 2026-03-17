@@ -2,5 +2,5 @@ library;
 import self as self;
 import "dart:core" as core;
 
-[222]static method main([240] core::List<core::String> args) → void
+[222]static method [226] [973] main([240] core::List<core::String> args) → void
 [-1]  ;
