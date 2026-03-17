@@ -1,4 +1,4 @@
-## 12.0.0-dev
+## 12.0.0
 
 * Added `InstantiatedTypeAliasElement.nullabilitySuffix`.
 * Support empty bodies (`;`) in enums, extensions, and mixins, representing
