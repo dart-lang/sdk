@@ -10,6 +10,7 @@ extension StringUtils on core::String {
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static extension-member method StringUtils|printHello() → void
   return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::print("hello");

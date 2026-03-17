@@ -1,0 +1,40 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "dart:math" as math;
+import "package:meta/meta.dart" show RecordUse;
+
+class SomeClass extends core::Object {
+
+  [@vm.inferred-return-type.metadata=!]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C1
+  static method someStaticMethod([@vm.inferred-arg-type.metadata=dart.core::_Double] core::double d) → core::String
+    return [@vm.direct-call.metadata=dart.core::_Double.toString] [@vm.inferred-type.metadata=! (skip check)] d.{core::double::toString}(){() → core::String};
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(1.234));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(#C2));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(#C3));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(#C4));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(#C5));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(#C6));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(#C7));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(#C8));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(#C9));
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = Infinity
+  #C3 = -Infinity
+  #C4 = NaN
+  #C5 = -0.0
+  #C6 = 5e-324
+  #C7 = -5e-324
+  #C8 = 0.12345678901234566
+  #C9 = 3.141592653589793
+}

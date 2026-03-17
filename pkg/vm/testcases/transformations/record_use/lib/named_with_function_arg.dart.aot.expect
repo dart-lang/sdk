@@ -12,6 +12,7 @@ class A extends core::Object {
 }
 extension Ext on self::A {
   method foo = self::Ext|foo;
+  method tearoff foo = self::Ext|get#foo;
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
@@ -22,8 +23,13 @@ static method main(core::List<core::String> arguments) → void {
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static extension-member method Ext|foo([@vm.inferred-arg-type.metadata=#lib::A] lowered final self::A #this, [@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::main)] core::Function f, {[@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "hello-world")] required core::String s}) → void {}
+
+[@vm.unreachable.metadata=]
+static extension-member method Ext|get#foo(lowered final self::A #this) → (core::Function, {required s: core::String}) → void
+  throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 constants  {
   #C1 = meta::RecordUse {}
 }

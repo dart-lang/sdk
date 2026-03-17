@@ -23,7 +23,7 @@ import 'closures.dart';
 import 'code_generator.dart';
 import 'constants.dart';
 import 'dispatch_table.dart';
-import 'dynamic_forwarders.dart';
+import 'dynamic_dispatchers.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'dynamic_modules.dart';
 import 'exports.dart';
@@ -343,9 +343,9 @@ class Translator with KernelNodes {
         PolymorphicDispatchers(this, module);
   }
 
-  final Map<w.ModuleBuilder, DynamicForwarders> _dynamicForwarders = {};
-  DynamicForwarders getDynamicForwardersForModule(w.ModuleBuilder module) {
-    return _dynamicForwarders[module] ??= DynamicForwarders(this, module);
+  final Map<w.ModuleBuilder, DynamicDispatchers> _dynamicDispatchers = {};
+  DynamicDispatchers getDynamicDispatchersForModule(w.ModuleBuilder module) {
+    return _dynamicDispatchers[module] ??= DynamicDispatchers(this, module);
   }
 
   final Map<w.ModuleBuilder, DummyValuesCollector> _dummyValueCollectors = {};

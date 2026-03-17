@@ -13,7 +13,7 @@ import 'async.dart';
 import 'class_info.dart';
 import 'closures.dart';
 import 'dispatch_table.dart';
-import 'functions.dart' show CallShape, makeDynamicForwarderSignature;
+import 'functions.dart';
 import 'globals.dart';
 import 'intrinsics.dart';
 import 'param_info.dart';
@@ -1778,14 +1778,14 @@ abstract class AstCodeGenerator
     final positionalArguments = node.arguments.positional;
     final namedArguments = node.arguments.named;
     final memberName = node.name;
-    final callShape = CallShape(
+    final callShape = MethodCallShape(
         memberName,
         typeArguments.length,
         positionalArguments.length,
         namedArguments.map((n) => n.name).toList()..sort());
     final forwarder = translator
-        .getDynamicForwardersForModule(b.moduleBuilder)
-        .getDynamicInvocationForwarder(callShape);
+        .getDynamicDispatchersForModule(b.moduleBuilder)
+        .getDispatcher(callShape);
 
     // Evaluate receiver
     translateExpression(receiver, translator.topType);
@@ -1944,7 +1944,7 @@ abstract class AstCodeGenerator
         targets.staticDispatchRanges;
 
     // NOTE: Keep this in sync with
-    // `dynamic_forwarders.dart:generateNoSuchMethodCall`.
+    // `dynamic_dispatchers.dart:generateNoSuchMethodCall`.
     final bool noTarget =
         targetRanges.isEmpty && !selector.isDynamicSubmoduleOverridable;
     final bool directCall =
@@ -2169,15 +2169,16 @@ abstract class AstCodeGenerator
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
     final receiver = node.receiver;
     final memberName = node.name;
-    final forwarder = translator
-        .getDynamicForwardersForModule(b.moduleBuilder)
-        .getDynamicGetForwarder(memberName);
+    final callShape = GetterCallShape(memberName);
+    final dispatcher = translator
+        .getDynamicDispatchersForModule(b.moduleBuilder)
+        .getDispatcher(callShape);
 
     // Evaluate receiver
     translateExpression(receiver, translator.topType);
 
-    // Call get forwarder
-    translator.callFunction(forwarder.function, b);
+    // Call get dispatcher
+    translator.callFunction(dispatcher.function, b);
 
     return translator.topType;
   }
@@ -2187,15 +2188,18 @@ abstract class AstCodeGenerator
     final receiver = node.receiver;
     final value = node.value;
     final memberName = node.name;
-    final forwarder = translator
-        .getDynamicForwardersForModule(b.moduleBuilder)
-        .getDynamicSetForwarder(memberName);
+    final callShape = SetterCallShape(memberName);
+    final dispatcher = translator
+        .getDynamicDispatchersForModule(b.moduleBuilder)
+        .getDispatcher(callShape);
 
+    final savedValue = b.addLocal(translator.topType);
     translateExpression(receiver, translator.topType);
     translateExpression(value, translator.topType);
-    translator.callFunction(forwarder.function, b);
-
-    return translator.topType;
+    b.local_tee(savedValue);
+    translator.callFunction(dispatcher.function, b);
+    b.local_get(savedValue);
+    return savedValue.type;
   }
 
   w.ValueType _directGet(Member target, Expression receiver) {
@@ -3458,26 +3462,38 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
     // [TearOffCodeGenerator], type parameters will be loaded from the `this`
     // struct.
     closures = translator.getClosures(member, findCaptures: false);
-    if (member is Field) {
-      if (reference.isImplicitGetter) {
-        _generateDynamicGetterForwarder();
-      } else {
-        assert(reference.isImplicitSetter);
-        _generateDynamicSetterForwarder();
-      }
+    if (reference.isGetter) {
+      _generateDynamicGetterForwarder();
+    } else if (reference.isSetter) {
+      _generateDynamicSetterForwarder();
+    } else if (reference.isTearOffReference) {
+      _generateDynamicTearOffForwarder();
     } else {
       member as Procedure;
-      if (member.isSetter) {
-        _generateDynamicSetterForwarder();
-      } else if (member.isGetter) {
-        _generateDynamicGetterForwarder();
-      } else {
-        _generateDynamicMethodForwarder();
-      }
+      _generateDynamicMethodForwarder();
     }
   }
 
+  void _generateDynamicTearOffForwarder() {
+    final targetSignature = translator.signatureForDirectCall(reference);
+    assert(targetSignature.inputs.length == 1 &&
+        targetSignature.outputs.length == 1);
+
+    // The only real thing the dynamic forwarder for a tear off does is
+    // converting the receiver type: The receiver type from the dynamic call
+    // site is a non-nullable top type. But the actual tear off getter from the
+    // target may require a more precise receiver type.
+    b.local_get(paramLocals[0]);
+    translator.convertType(
+        b, paramLocals[0].type, targetSignature.inputs.single);
+    translator.callReference(reference, b);
+    b.return_();
+    b.end();
+  }
+
   void _generateDynamicMethodForwarder() {
+    final callShape = this.callShape as MethodCallShape;
+
     // The offsets of arguments passed by the caller.
     const int argReceiverOffset = 0;
     const int argTypesOffset = argReceiverOffset + 1;
@@ -3623,18 +3639,20 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
     if (member is Field) {
       int fieldIndex = translator.fieldIndex[member]!;
       b.local_get(receiverLocal);
+      translator.convertType(b, receiverLocal.type, info.nonNullableType);
       b.struct_get(info.struct, fieldIndex);
       translator.convertType(
           b, info.struct.fields[fieldIndex].type.unpacked, translator.topType);
     } else {
       final target =
           translator.getFunctionEntry(reference, uncheckedEntry: false);
-      final getterProcedureWasmType = translator.signatureForDirectCall(target);
-      final getterWasmOutputs = getterProcedureWasmType.outputs;
-      assert(getterWasmOutputs.length == 1);
+      final getterWasmType = translator.signatureForDirectCall(target);
+      final getterInputs = getterWasmType.inputs;
+      final getterOutputs = getterWasmType.outputs;
       b.local_get(receiverLocal);
+      translator.convertType(b, receiverLocal.type, getterInputs.single);
       call(target);
-      translator.convertType(b, outputs.single, translator.topType);
+      translator.convertType(b, getterOutputs.single, translator.topType);
     }
 
     b.end(); // end function
@@ -3675,17 +3693,16 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
     } else {
       final target =
           translator.getFunctionEntry(reference, uncheckedEntry: false);
-      final setterProcedureWasmType = translator.signatureForDirectCall(target);
-      final setterWasmInputs = setterProcedureWasmType.inputs;
-      assert(setterWasmInputs.length == 2);
+      final setterWasmType = translator.signatureForDirectCall(target);
+      final setterInputs = setterWasmType.inputs;
+      assert(setterInputs.length == 2);
       b.local_get(receiverLocal);
-      translator.convertType(b, receiverLocal.type, setterWasmInputs[0]);
+      translator.convertType(b, receiverLocal.type, setterInputs[0]);
       b.local_get(positionalArgLocal);
-      translator.convertType(b, positionalArgLocal.type, setterWasmInputs[1]);
+      translator.convertType(b, positionalArgLocal.type, setterInputs[1]);
       call(target);
     }
 
-    b.local_get(positionalArgLocal);
     b.end(); // end function
   }
 }
@@ -3693,7 +3710,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
 /// Creates [Invocation] object based on a [CallShape].
 class InvocationCreationStubGenerator implements CodeGenerator {
   final Translator translator;
-  final CallShape callShape;
+  final MethodCallShape callShape;
 
   InvocationCreationStubGenerator(this.translator, this.callShape);
 

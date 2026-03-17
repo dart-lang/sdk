@@ -1023,6 +1023,9 @@ extension ExtensionMemberExtension on Member {
 extension ExtensionTypeMemberExtension on Member {
   ExtensionTypeDeclaration? get extensionTypeDeclaration {
     if (!isExtensionTypeMember) return null;
+    if (parent is ExtensionTypeDeclaration) {
+      return parent as ExtensionTypeDeclaration;
+    }
     for (ExtensionTypeDeclaration extensionTypeDeclaration
         in enclosingLibrary.extensionTypeDeclarations) {
       for (ExtensionTypeMemberDescriptor descriptor
@@ -1039,6 +1042,9 @@ extension ExtensionTypeMemberExtension on Member {
 
   ExtensionTypeMemberDescriptor? get extensionTypeMemberDescriptor {
     if (!isExtensionTypeMember) return null;
+    if (parent is ExtensionTypeDeclaration) {
+      return null;
+    }
     for (ExtensionTypeDeclaration extensionTypeDeclaration
         in enclosingLibrary.extensionTypeDeclarations) {
       for (ExtensionTypeMemberDescriptor descriptor

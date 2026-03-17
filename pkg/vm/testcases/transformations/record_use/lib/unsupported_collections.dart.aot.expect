@@ -16,6 +16,7 @@ static method main() → void {
 static method someStaticMethod() → void {}
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C5
 static method recorded([@vm.inferred-arg-type.metadata=!] core::Object arg) → void {}
 constants  {

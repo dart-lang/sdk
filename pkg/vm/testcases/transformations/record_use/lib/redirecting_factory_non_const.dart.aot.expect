@@ -6,13 +6,19 @@ import "package:meta/meta.dart" as meta;
 import "package:meta/meta.dart" show RecordUse;
 
 class A extends core::Object {
+
+  [@vm.unreachable.metadata=]
+  @#C3
+  @#C5
+  static factory •(core::int i) → self::A /* redirection-target: self::B::• */
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
-@#C1
+@#C6
 final class B extends core::Object implements self::A {
 
-  [@vm.unboxing-info.metadata=(i)->b]
-  @#C4
-  @#C6
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C3
+  @#C5
   constructor •([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → self::B
     : super core::Object::•()
     ;
@@ -24,10 +30,10 @@ static method main() → void {
   core::print(a);
 }
 constants  {
-  #C1 = meta::RecordUse {}
-  #C2 = "vm:never-inline"
-  #C3 = null
-  #C4 = core::pragma {name:#C2, options:#C3}
-  #C5 = "dart2js:noInline"
-  #C6 = core::pragma {name:#C5, options:#C3}
+  #C1 = "vm:never-inline"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "dart2js:noInline"
+  #C5 = core::pragma {name:#C4, options:#C2}
+  #C6 = meta::RecordUse {}
 }

@@ -7,11 +7,14 @@ import "package:meta/meta.dart" show RecordUse;
 
 @#C1
 final class C extends core::Object {
+
+  [@vm.unboxing-info.metadata=[!regcc]]
   constructor named(core::int i) → self::C
     : super core::Object::•()
     ;
 
   [@vm.inferred-return-type.metadata=#lib::C]
+  [@vm.unboxing-info.metadata=[!regcc]]
   static factory fact(core::int i) → self::C
     return new self::C::named(i);
 }
