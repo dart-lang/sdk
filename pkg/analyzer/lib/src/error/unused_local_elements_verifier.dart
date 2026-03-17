@@ -1233,6 +1233,11 @@ class UsedLocalElements {
       elements.add(element.baseElement);
     } else if (element != null) {
       elements.add(element);
+      if (element is ConstructorElementImpl &&
+          element.enclosingElement is ClassElementImpl &&
+          (element.enclosingElement as ClassElementImpl).isMixinApplication) {
+        addElement(element.superConstructor);
+      }
     }
   }
 
