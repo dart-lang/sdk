@@ -456,9 +456,7 @@ class RecordUseValueConverter {
       MapConstantValue() => _findMapValue(constant),
       ListConstantValue() => _findListValue(constant),
       ConstructedConstantValue() => findInstanceValue(constant),
-      DoubleConstantValue() => record_use.UnsupportedConstant(
-        'Double literals are not supported for recording.',
-      ),
+      DoubleConstantValue() => record_use.DoubleConstant(constant.doubleValue),
       SetConstantValue() => record_use.UnsupportedConstant(
         'Set literals are not supported for recording.',
       ),
