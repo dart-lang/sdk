@@ -60,7 +60,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     assert(numRequired < total);
 
     // TODO: compressed pointers
-    // Load total number of arguments as a Smi.
+    // Load number of arguments (without type arguments) as a Smi.
     _asm.ldr(
       argCountReg,
       _asm.fieldAddress(
@@ -68,13 +68,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
         vmOffsets.ArgumentsDescriptor_count_offset,
       ),
     );
-    // Arguments pointer points to the first pair of arguments.
-    assert(Arm64StackFrame.lastParameterOffsetFromFP == 2 * wordSize);
+    // Type arguments are passed as the first required positional parameter,
+    // but it is not counted in [ArgumentsDescriptor.count].
+    final typeArg = function.hasFunctionTypeParameters ? 1 : 0;
+    // Arguments pointer points to FP + [ArgumentsDescriptor.count]*wordSize.
     _asm.add(
       argPtrReg,
       FP,
       ShiftedRegOperand(argCountReg, .LSL, log2wordSize - smiShift),
     );
+    // Offset of the first argument, relative to argPtrReg.
+    final int baseOffset =
+        Arm64StackFrame.lastParameterOffsetFromFP + (typeArg - 1) * wordSize;
     // Label for each number of optional arguments passed.
     final labels = List.generate(total - numRequired, (_) => Label());
 
@@ -82,31 +87,31 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final int numArgsToLoadInPairs = math.min(total, argumentRegisters.length);
     for (; i + 1 < numArgsToLoadInPairs; i += 2) {
       if (i >= numRequired) {
-        _asm.cmp(argCountReg, Immediate((i + 1) << smiShift));
+        _asm.cmp(argCountReg, Immediate((i + 1 - typeArg) << smiShift));
         _asm.b(labels[i - numRequired], .less);
       }
       // TODO: pass arguments on registers and avoid these loads
       _asm.ldp(
         argumentRegisters[i + 1],
         argumentRegisters[i],
-        _asm.pairAddress(argPtrReg, -i * wordSize),
+        _asm.pairAddress(argPtrReg, baseOffset - (i + 1) * wordSize),
       );
       if (i >= numRequired) {
         _asm.b(labels[i + 1 - numRequired], .equal);
       } else if (i + 1 >= numRequired) {
-        _asm.cmp(argCountReg, Immediate((i + 1) << smiShift));
+        _asm.cmp(argCountReg, Immediate((i + 1 - typeArg) << smiShift));
         _asm.b(labels[i + 1 - numRequired], .equal);
       }
     }
     for (; i < total; ++i) {
       if (i >= numRequired) {
-        _asm.cmp(argCountReg, Immediate(i << smiShift));
+        _asm.cmp(argCountReg, Immediate((i - typeArg) << smiShift));
         _asm.b(labels[i - numRequired], .equal);
       }
       final reg = (i < argumentRegisters.length)
           ? argumentRegisters[i]
           : tempReg;
-      _asm.ldr(reg, _asm.address(argPtrReg, -(i - 1) * wordSize));
+      _asm.ldr(reg, _asm.address(argPtrReg, baseOffset - i * wordSize));
       if (i >= argumentRegisters.length) {
         _asm.str(
           reg,
@@ -144,7 +149,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     assert(numRequired < total);
 
     // TODO: compressed pointers
-    // Load total number of arguments as a Smi.
+    // Load number of arguments (without type arguments) as a Smi.
     _asm.ldr(
       tempReg,
       _asm.fieldAddress(
@@ -152,13 +157,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
         vmOffsets.ArgumentsDescriptor_count_offset,
       ),
     );
-    // Arguments pointer points to the first pair of arguments.
-    assert(Arm64StackFrame.lastParameterOffsetFromFP == 2 * wordSize);
+    // Type arguments are passed as the first required positional parameter,
+    // but it is not counted in [ArgumentsDescriptor.count].
+    final typeArg = function.hasFunctionTypeParameters ? 1 : 0;
+    // Arguments pointer points to FP + [ArgumentsDescriptor.count]*wordSize.
     _asm.add(
       argPtrReg,
       FP,
       ShiftedRegOperand(tempReg, .LSL, log2wordSize - smiShift),
     );
+    // Offset of the first argument, relative to argPtrReg.
+    final int baseOffset =
+        Arm64StackFrame.lastParameterOffsetFromFP + (typeArg - 1) * wordSize;
 
     var i = 0;
     final int numArgsToLoadInPairs = math.min(
@@ -170,14 +180,14 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.ldp(
         argumentRegisters[i + 1],
         argumentRegisters[i],
-        _asm.pairAddress(argPtrReg, -i * wordSize),
+        _asm.pairAddress(argPtrReg, baseOffset - (i + 1) * wordSize),
       );
     }
     for (; i < numRequired; ++i) {
       final reg = (i < argumentRegisters.length)
           ? argumentRegisters[i]
           : tempReg;
-      _asm.ldr(reg, _asm.address(argPtrReg, -(i - 1) * wordSize));
+      _asm.ldr(reg, _asm.address(argPtrReg, baseOffset - i * wordSize));
       if (i >= argumentRegisters.length) {
         _asm.str(
           reg,
@@ -257,7 +267,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         argPtrReg,
         ShiftedRegOperand(tempReg, .LSL, log2wordSize - smiShift),
       );
-      _asm.ldr(destReg, RegOffsetAddress(tempReg, wordSize));
+      _asm.ldr(destReg, RegOffsetAddress(tempReg, baseOffset));
       if (proceed != null) {
         _asm.bind(proceed);
       }
