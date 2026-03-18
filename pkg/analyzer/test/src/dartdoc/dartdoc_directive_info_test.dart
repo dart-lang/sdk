@@ -16,6 +16,64 @@ main() {
 class DartdocDirectiveInfoTest {
   DartdocDirectiveInfo info = DartdocDirectiveInfo();
 
+  test_extractTemplate_edgecases_1() {
+    info.extractTemplate(
+      '// bla bla bla {@template }bla bla{@template bar} {@endtemplate}bla{@endtemplate}',
+    );
+    expect(info.templateMap, {"}bla bla{@template bar": " ".trim()});
+  }
+
+  test_extractTemplate_edgecases_2() {
+    info.extractTemplate('// {@template }}{@template x}y{@endtemplate}');
+    expect(info.templateMap, {"}": "{@template x}y"});
+  }
+
+  test_extractTemplate_edgecases_3() {
+    info.extractTemplate(
+      '// {@template a}b{@endtemplate} {@template c}d{@endtemplate}',
+    );
+    expect(info.templateMap, {"a": "b", "c": "d"});
+
+    info.templateMap.clear();
+    // Delete the "a" name.
+    info.extractTemplate(
+      '// {@template }b{@endtemplate} {@template c}d{@endtemplate}',
+    );
+    expect(info.templateMap, {"}b{@endtemplate": "{@template c}d"});
+  }
+
+  test_extractTemplate_edgecases_4() {
+    info.extractTemplate(
+      '// {@template }\nb{@endtemplate} {@template c}d{@endtemplate}',
+    );
+    expect(info.templateMap, {"c": "d"});
+  }
+
+  test_extractTemplate_edgecases_5() {
+    info.extractTemplate('// {@template {@template\nc}d{@endtemplate}');
+    expect(info.templateMap, {"c": "d"});
+  }
+
+  test_extractTemplate_edgecases_6() {
+    info.extractTemplate('{@template x}y{@endtemplate}');
+    expect(info.templateMap, {"x": "y"});
+  }
+
+  test_extractTemplate_edgecases_7() {
+    info.extractTemplate('// {@template   ');
+    expect(info.templateMap, <String, String>{});
+  }
+
+  test_extractTemplate_edgecases_8() {
+    info.extractTemplate('// foo bar baz foo bar baz {@templat');
+    expect(info.templateMap, <String, String>{});
+  }
+
+  test_extractTemplate_edgecases_9() {
+    info.extractTemplate('// foo bar baz {@template x}y{@endtemplate');
+    expect(info.templateMap, <String, String>{});
+  }
+
   test_processDartdoc_animation_directive() {
     var result = info.processDartdoc('''
 /// {@animation 464 192 https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4}
