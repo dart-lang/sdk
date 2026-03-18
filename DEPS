@@ -139,7 +139,7 @@ vars = {
   "dartdoc_rev": "e3484b5adb4b0316667c7b07cd16ec4cfc877887",
   "ecosystem_rev": "b305b11424f712d174f767369739f9a11ded6a1e",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "9aa867e97717dc1b80ffb4abc670b7855e0a7554",
+  "http_rev": "c2a9c4b3312a6c3c255c78fbf7ea7a52f77ff389",
   "i18n_rev": "de7e11b7cc231d8daf6e49dc12690d7339241691",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
