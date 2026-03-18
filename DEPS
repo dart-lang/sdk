@@ -139,22 +139,22 @@ vars = {
   "dartdoc_rev": "e3484b5adb4b0316667c7b07cd16ec4cfc877887",
   "ecosystem_rev": "b305b11424f712d174f767369739f9a11ded6a1e",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "9aa867e97717dc1b80ffb4abc670b7855e0a7554",
+  "http_rev": "c2a9c4b3312a6c3c255c78fbf7ea7a52f77ff389",
   "i18n_rev": "de7e11b7cc231d8daf6e49dc12690d7339241691",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "7d803f16c4d5a34844b3572962c78715c4ddcecf", # rolled manually while record_use is experimental
   "protobuf_rev": "d5639f45b8468fba684b076b9403ccd5f2290056",
   "pub_rev": "74408212b5348003381bc63f3b59274aaa23cfa3", # rolled manually
-  "shelf_rev": "900731b313dabf48927a82f2124e5a996c4a3d05",
+  "shelf_rev": "4d99e49fa9275bfa348a88c0ce066bfcd335f763",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "7e6d5dac07e40241238e0951438d0c0a2750e4b9",
   "tools_rev": "8f62a7792e30b4b512caa05fb84ce45a57f8d401", # rolled manually to expedite analytics work
-  "vector_math_rev": "66d590b3cbb73397ed1b8aa87b55b2251c536008",
+  "vector_math_rev": "70fe91cd469c4829b4ec06571a474de79b38a064",
   "web_rev": "48b75126e511e2d3de65130f2e7aa21cca58f473",
   "webdev_rev": "5771ee58119af9835a3005a86fae4556c69d97f0",
-  "webdriver_rev": "9b6e829cfe4e6ca0cff7910e2ec58ed809dbc303",
+  "webdriver_rev": "bc92e4e9612a247c4388a7b437ad4e40a5fba1fd",
   "webkit_inspection_protocol_rev": "0f7685804d77ec02c6564d7ac1a6c8a2341c5bdf",
 
   # Windows deps
