@@ -21,8 +21,8 @@ import 'package:kernel/ast.dart'
 import '../builder/builder.dart';
 import '../builder/compilation_unit.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-import 'forest.dart' show Forest;
 import 'internal_ast.dart';
+import 'internal_ast_helper.dart';
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
 class LoadLibraryBuilder extends NamedBuilderImpl {

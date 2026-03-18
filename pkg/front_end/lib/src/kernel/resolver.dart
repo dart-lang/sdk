@@ -38,7 +38,6 @@ import '../source/check_helper.dart';
 import '../source/offset_map.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
-import '../type_inference/external_ast_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart'
     show ExpressionEvaluationHelper;
@@ -51,8 +50,9 @@ import 'assigned_variables_impl.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
 import 'body_builder.dart';
 import 'body_builder_context.dart';
-import 'forest.dart';
+import 'external_ast_helper.dart';
 import 'internal_ast.dart';
+import 'internal_ast_helper.dart';
 
 part 'resolver_helpers.dart';
 

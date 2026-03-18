@@ -39,11 +39,11 @@ import '../base/common.dart';
 import '../base/problems.dart';
 import '../codes/cfe_codes.dart';
 import '../type_inference/delayed_expressions.dart';
-import '../type_inference/external_ast_helper.dart';
 import '../type_inference/matching_cache.dart';
 import '../type_inference/matching_expressions.dart';
 import 'constant_int_folder.dart';
 import 'exhaustiveness.dart';
+import 'external_ast_helper.dart';
 import 'record_use.dart' as RecordUse;
 import 'static_weak_references.dart' show StaticWeakReferences;
 

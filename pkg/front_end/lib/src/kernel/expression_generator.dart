@@ -8,8 +8,6 @@ library;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show lengthForToken, lengthOfSpan;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
-import 'package:front_end/src/type_inference/external_ast_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart'
     show
@@ -48,13 +46,15 @@ import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../source/check_helper.dart';
 import '../source/source_member_builder.dart';
 import '../source/stack_listener_impl.dart' show offsetForToken;
 import 'constness.dart' show Constness;
 import 'expression_generator_helper.dart';
-import 'forest.dart';
+import 'external_ast_helper.dart';
 import 'internal_ast.dart';
+import 'internal_ast_helper.dart';
 import 'load_library_builder.dart';
 import 'utils.dart';
 

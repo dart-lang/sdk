@@ -5,8 +5,8 @@
 // TODO(jensj): Probably all `_createVariableGet(result)` needs their offset
 // "nulled out".
 
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -53,6 +53,7 @@ import '../kernel/collections.dart'
         PatternForMapEntry,
         SpreadElement,
         SpreadMapEntry;
+import '../kernel/external_ast_helper.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
@@ -63,7 +64,6 @@ import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'context_allocation_strategy.dart';
-import 'external_ast_helper.dart';
 import 'for_in.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
