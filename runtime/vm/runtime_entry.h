@@ -96,13 +96,21 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 #undef DECLARE_LEAF_RUNTIME_ENTRY
 
 // See StubCode::GenerateFfiCallbackTrampolineStub.
+struct CallbackMetadata {
+  uword entry_point;
+  uword type;  // FfiCallbackMetadata::CallType
+  uword epilogue;
+};
 extern "C" Thread* DLRT_GetFfiCallbackMetadata(uword trampoline,
-                                               uword* out_entry_point,
-                                               uword* out_callback_kind);
-extern "C" void DLRT_ExitTemporaryIsolate();
-extern "C" void* DLRT_ExitIsolateGroupBoundIsolate();
-extern "C" void* DLRT_ExitSyncCallbackTargetIsolate();
-extern "C" void* DLRT_ExitSyncCallback();
+                                               CallbackMetadata* out);
+#if defined(HOST_ARCH_IA32)
+extern "C" void* DLRT_ExitTemporaryIsolate();
+#else
+extern "C" void* DLRT_ExitTemporaryIsolate(Thread*);
+#endif
+extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread*);
+extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread*);
+extern "C" void* DLRT_ExitSyncCallback(Thread*);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 

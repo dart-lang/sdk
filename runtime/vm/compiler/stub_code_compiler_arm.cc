@@ -361,21 +361,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
-    __ mov(R0, Operand(R4));
-
-    // We also need to look up the entry point for the trampoline. This is
-    // returned using a pointer passed to the second arg of the C function
-    // below. We aim that pointer at a reserved stack slot.
-    __ sub(SP, SP, Operand(compiler::target::kWordSize));
-    __ mov(R1, Operand(SP));
-
-    // We also need to know if this is a sync or async callback. This is also
-    // returned by pointer.
-    __ sub(SP, SP, Operand(compiler::target::kWordSize));
-    __ mov(R2, Operand(SP));
-
     __ EnterFrame(1 << FP, 0);
-    __ ReserveAlignedFrameSpace(0);
+    __ ReserveAlignedFrameSpace(3 * target::kWordSize);
+    __ mov(R0, Operand(R4));
+    __ mov(R1, Operand(SP));
 
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
@@ -383,130 +372,53 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ blx(R4);
     __ mov(THR, Operand(R0));
 
+    __ ldr(TMP, Address(SP, 0 * target::kWordSize));  // entry_point
+    __ ldr(R4, Address(SP, 1 * target::kWordSize));   // is_tail
+    __ ldr(R5, Address(SP, 2 * target::kWordSize));   // epilogue
+
     __ LeaveFrame(1 << FP);
-
-    // The trampoline type is at the top of the stack. Pop it into R4.
-    __ Pop(R4);
-
-    // Entry point is now at the top of the stack. Pop it into R5.
-    __ Pop(R5);
   }
 
   __ PopRegisters(argument_registers);
 
-  Label async_callback;
-  Label sync_isolate_group_bound_callback;
-  Label sync_callback_isolate_ownership;
-  Label done;
+  Label tail;
+  __ cmp(R4, Operand(0));
+  __ b(&tail, NOT_ZERO);
 
-  // Check the trampoline type to see how the callback should be invoked.
-  __ cmp(
-      R4,
-      Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
-  __ b(&async_callback, EQ);
+  const RegisterSet return_registers(
+      (1 << CallingConventions::kReturnReg) |
+          (1 << CallingConventions::kSecondReturnReg),
+      1 << CallingConventions::kReturnFpuReg);
+  ASSERT(Utils::IsAligned(return_registers.SpillSize(), 8));
 
-  __ cmp(R4, Operand(static_cast<uword>(
-                 FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
-  __ b(&sync_isolate_group_bound_callback, EQ);
-
-  __ tst(R4, Operand(FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
-  __ b(&sync_callback_isolate_ownership, NE);
-
-  // Sync callback. The entry point contains the target function, so just call
-  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
-  // re-enter it afterwards.
-
-  // On entry to the function, there will be four extra slots on the stack:
-  // saved THR, R4, R5 and the return address. The target will know to skip
-  // them.
-  __ blx(R5);
-
-  // Clobbers R4, R5 and TMP, all saved or volatile.
-  __ EnterFullSafepoint(R4, R5);
-
-  __ b(&done);
-
-  __ Bind(&sync_callback_isolate_ownership);
-
-  __ blx(R5);
-
-  // Exit the target isolate.
   {
-    __ EnterFrame(1 << FP, 0);
-    __ ReserveAlignedFrameSpace(0);
-
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
+    __ blx(TMP);  // entry_point
     __ PushRegisters(return_registers);
-
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, R4);
-
-    __ blx(R4);
-
+    __ mov(R0, Operand(THR));
+    __ blx(R5);  // DLRT_ExitSyncCallback, etc
+    if (FLAG_target_memory_sanitizer) {
+      __ blx(R0);  // dart_msan_unpoison_retval
+    }
     __ PopRegisters(return_registers);
-    __ LeaveFrame(1 << FP);
+    // Returns.
+    RESTORES_LR_FROM_FRAME(
+        __ PopList((1 << PC) | (1 << THR) | (1 << R4) | (1 << R5)));
   }
 
-  __ b(&done);
-
-  __ Bind(&sync_isolate_group_bound_callback);
-
-  __ blx(R5);
-
-  // Exit isolate group bound isolate.
   {
-    __ EnterFrame(1 << FP, 0);
-    __ ReserveAlignedFrameSpace(0);
-
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
-    __ PushRegisters(return_registers);
-
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, R4);
-
-    __ blx(R4);
-
-    __ PopRegisters(return_registers);
-    __ LeaveFrame(1 << FP);
-  }
-
-  __ b(&done);
-
-  __ Bind(&async_callback);
-
-  // Async callback. The entrypoint marshals the arguments into a message and
-  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
-  // entered a temporary isolate, so exit it afterwards.
-
-  // On entry to the function, there will be four extra slots on the stack:
-  // saved THR, R4, R5 and the return address. The target will know to skip
-  // them.
-  __ blx(R5);
-
-  // Exit the temporary isolate.
-  {
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitTemporaryIsolate, R0);
-
-    CLOBBERS_LR(__ PopList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5)));
-
+    SPILLS_LR_TO_FRAME();  //...
+    __ Bind(&tail);
+    __ blx(TMP);  // entry_point
+    __ mov(R0, Operand(THR));
+    __ mov(R1, Operand(R5));
+    RESTORES_LR_FROM_FRAME(
+        __ PopList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5)));
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
-    __ bx(R0);
+    __ bx(R1);  // DLRT_ExitTemporaryIsolate.
     __ Breakpoint();
   }
-
-  __ Bind(&done);
-
-  // Returns.
-  __ PopList((1 << PC) | (1 << THR) | (1 << R4) | (1 << R5));
 
   ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
                        FfiCallbackMetadata::kNativeCallbackSharedStubSize);

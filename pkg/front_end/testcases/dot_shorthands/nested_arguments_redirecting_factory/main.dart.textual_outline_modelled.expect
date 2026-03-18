@@ -1,0 +1,8 @@
+import 'main_lib.dart';
+
+class A {
+  const A({required this.b});
+  final B b;
+}
+
+final a = A(b: .redirect(c: .f(0)));

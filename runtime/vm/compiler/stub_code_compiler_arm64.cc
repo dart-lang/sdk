@@ -497,9 +497,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Save THR (callee-saved) and LR on the real C stack (CSP). Keeps it
   // aligned.
-  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 2);
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
   SPILLS_LR_TO_FRAME(__ stp(
       THR, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex)));
+  __ stp(R20, R21, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
 
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
@@ -519,21 +520,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     // This saves too much: we only need the D half of Q registers.
     __ PushRegisters(all_registers);
 
-    __ mov(R0, R9);
-
-    // We also need to look up the entry point for the trampoline. This is
-    // returned using a pointer passed to the second arg of the C function
-    // below. We aim that pointer at a reserved stack slot.
-    __ AddImmediate(SP, SP, -compiler::target::kWordSize);
-    __ mov(R1, SP);
-
-    // We also need to know if this is a sync or async callback. This is also
-    // returned by pointer.
-    __ AddImmediate(SP, SP, -compiler::target::kWordSize);
-    __ mov(R2, SP);
-
     __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
+    __ ReserveAlignedFrameSpace(3 * target::kWordSize);
+    __ mov(R0, R9);
+    __ mov(R1, SP);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
@@ -542,7 +532,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
                            R9);
     } else {
       Label call;
-      __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
+      __ ldr(R4, Address::PC(2 * Instr::kInstrSize));
       __ b(&call);
       __ Emit64(reinterpret_cast<int64_t>(&DLRT_GetFfiCallbackMetadata));
       __ Bind(&call);
@@ -553,252 +543,61 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
     __ mov(CSP, SP);
-    __ blr(R4);
+    __ blr(R4);  // DLRT_GetFfiCallbackMetadata
     __ mov(SP, CSP);
+
     __ mov(THR, R0);
+    COMPILE_ASSERT(!IsCalleeSavedRegister(R10) && !IsArgumentRegister(R10));
+    __ ldr(R10, Address(CSP, 0 * target::kWordSize));  // entry_point
+    __ ldr(R20, Address(CSP, 1 * target::kWordSize));  // is_tail
+    __ ldr(R21, Address(CSP, 2 * target::kWordSize));  // epilogue
 
     __ LeaveFrame();
-
-    // The trampoline type is at the top of the stack. Pop it into R9.
-    __ Pop(R9);
-
-    // Entry point is now at the top of the stack. Pop it into R10.
-    COMPILE_ASSERT(!IsCalleeSavedRegister(R10) && !IsArgumentRegister(R10));
-    __ Pop(R10);
-
     __ PopRegisters(all_registers);
     __ LeaveFrame();
 
     __ RestoreCSP();
   }
 
-  Label async_callback;
-  Label sync_isolate_group_bound_callback;
-  Label sync_callback_isolate_ownership;
-  Label done;
+  Label tail;
+  __ cbnz(&tail, R20);
 
-  // Check the trampoline type to see how the callback should be invoked.
-  __ cmp(
-      R9,
-      Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
-  __ b(&async_callback, EQ);
-
-  __ cmp(R9, Operand(static_cast<uword>(
-                 FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
-  __ b(&sync_isolate_group_bound_callback, EQ);
-
-  __ tsti(R9,
-          Immediate(FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
-  __ b(&sync_callback_isolate_ownership, NOT_ZERO);
-
-  // Sync callback. The entry point contains the target function, so just call
-  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
-  // re-enter it afterwards.
-
-  // Clobbers all volatile registers, including the callback ID in R9.
-  // Resets CSP and SP, important for EnterSafepoint below.
-  __ blr(R10);
-
-  // Clobbers TMP, TMP2 and R9 -- all volatile and not holding return values.
-  __ EnterFullSafepoint(/*scratch=*/R9);
-
-  if (FLAG_target_memory_sanitizer) {
-    __ SetupDartSP();
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        (1 << CallingConventions::kReturnFpuReg) |
-            (1 << CallingConventions::kSecondReturnFpuReg) |
-            (1 << CallingConventions::kThirdReturnFpuReg) |
-            (1 << CallingConventions::kFourthReturnFpuReg));
-    // This saves too much: we only need the D half of Q registers.
-    __ PushRegisters(return_registers);
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitSyncCallback, R4, R9);
-    } else {
-      Label call;
-      __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
-      __ b(&call);
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitSyncCallback));
-      __ Bind(&call);
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitSyncCallback, R4);
-#endif
-
-    __ mov(CSP, SP);
-    __ blr(R4);
-    __ blr(R0);  // dart_msan_unpoison_retval
-    __ mov(SP, CSP);
-    __ mov(THR, R0);
-
-    __ PopRegisters(return_registers);
-
-    __ LeaveFrame();
-    __ RestoreCSP();
-  }
-
-  __ b(&done);
-
-  __ Bind(&sync_callback_isolate_ownership);
-
-  __ blr(R10);
-
-  // Exit the target isolate.
   {
-    __ SetupDartSP();
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        (1 << CallingConventions::kReturnFpuReg) |
-            (1 << CallingConventions::kSecondReturnFpuReg) |
-            (1 << CallingConventions::kThirdReturnFpuReg) |
-            (1 << CallingConventions::kFourthReturnFpuReg));
-    // This saves too much: we only need the D half of Q registers.
-    __ PushRegisters(return_registers);
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitSyncCallbackTargetIsolate,
-                           R4, R9);
-    } else {
-      Label call;
-      __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
-      __ b(&call);
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitSyncCallbackTargetIsolate));
-      __ Bind(&call);
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, R4);
-#endif
-
-    __ mov(CSP, SP);
-    __ blr(R4);
+    __ blr(R10);  // entry_point
+    __ stp(R0, R1, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+    __ fstp(V0, V1, Address(CSP, -2 * 8, Address::PairPreIndex), kDWord);
+    __ fstp(V2, V3, Address(CSP, -2 * 8, Address::PairPreIndex), kDWord);
+    __ mov(R0, THR);
+    __ blr(R21);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ blr(R0);  // dart_msan_unpoison_retval
     }
-    __ mov(SP, CSP);
-    __ mov(THR, R0);
-
-    __ PopRegisters(return_registers);
-
-    __ LeaveFrame();
-    __ RestoreCSP();
-  }
-
-  __ b(&done);
-
-  __ Bind(&sync_isolate_group_bound_callback);
-
-  __ blr(R10);
-
-  // Exit isolate group bound isolate.
-  {
-    __ SetupDartSP();
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        (1 << CallingConventions::kReturnFpuReg) |
-            (1 << CallingConventions::kSecondReturnFpuReg) |
-            (1 << CallingConventions::kThirdReturnFpuReg) |
-            (1 << CallingConventions::kFourthReturnFpuReg));
-    // This saves too much: we only need the D half of Q registers.
-    __ PushRegisters(return_registers);
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupBoundIsolate,
-                           R4, R9);
-    } else {
-      Label call;
-      __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
-      __ b(&call);
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupBoundIsolate));
-      __ Bind(&call);
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, R4);
-#endif
-
-    __ mov(CSP, SP);
-    __ blr(R4);
-    if (FLAG_target_memory_sanitizer) {
-      __ blr(R0);  // dart_msan_unpoison_retval
-    }
-    __ mov(SP, CSP);
-    __ mov(THR, R0);
-
-    __ PopRegisters(return_registers);
-
-    __ LeaveFrame();
-    __ RestoreCSP();
-  }
-
-  __ b(&done);
-
-  __ Bind(&async_callback);
-
-  // Async callback. The entrypoint marshals the arguments into a message and
-  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
-  // entered a temporary isolate, so exit it afterwards.
-
-  // Clobbers all volatile registers, including the callback ID in R9.
-  // Resets CSP and SP, important for EnterSafepoint below.
-  __ blr(R10);
-
-  // Exit the temporary isolate.
-  {
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitTemporaryIsolate, R4, R9);
-    } else {
-      Label call;
-      __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
-      __ b(&call);
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitTemporaryIsolate));
-      __ Bind(&call);
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitTemporaryIsolate, R4);
-#endif
-
-    // Pop LR and THR from the real stack (CSP).
-    CLOBBERS_LR(__ ldp(
+    __ fldp(V2, V3, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
+    __ fldp(V0, V1, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
+    __ ldp(R0, R1, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+    __ ldp(R20, R21,
+           Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+    RESTORES_LR_FROM_FRAME(__ ldp(
         THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
+    __ ret();
+  }
 
+  {
+    SPILLS_LR_TO_FRAME();  //...
+    __ Bind(&tail);
+    __ blr(R10);
+    __ mov(R0, THR);
+    __ mov(R1, R21);
+    __ ldp(R20, R21,
+           Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+    RESTORES_LR_FROM_FRAME(__ ldp(
+        THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
-    __ br(R4);
+    __ br(R1);  // DLRT_ExitTemporaryIsolate.
     __ brk(0);
   }
-
-  __ Bind(&done);
-
-  // Pop LR and THR from the real stack (CSP).
-  RESTORES_LR_FROM_FRAME(__ ldp(
-      THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
-
-  __ ret();
 
   ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
                        FfiCallbackMetadata::kNativeCallbackSharedStubSize);

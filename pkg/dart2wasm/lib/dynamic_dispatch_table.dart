@@ -5,7 +5,13 @@
 import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
-import 'dispatch_table.dart' show Row, buildRowDisplacementTable;
+import 'code_generator.dart' show MacroAssembler;
+import 'dispatch_table.dart'
+    show
+        Row,
+        buildRowDisplacementTable,
+        calculateStrideWith,
+        strideElementTableLimit;
 import 'functions.dart'
     show
         CallShape,
@@ -189,14 +195,27 @@ class DynamicDispatchTable {
   }
 
   void output() {
-    for (int i = 0; i < _table.length; i++) {
-      final entry = _table[i];
-      if (entry == null) continue;
+    int start = 0;
+    while (start < _table.length) {
+      final entry = _table[start];
+      if (entry == null) {
+        start++;
+        continue;
+      }
 
       if (!translator.functions.hasDynamicSelectorCall(entry.shape)) {
         // The dynamic call was never compiled (e.g. due to being unreachable).
+        start++;
         continue;
       }
+
+      final strideWidth = calculateStrideWith(
+        start,
+        entry,
+        _table,
+        (TableEntry a, TableEntry b) =>
+            a.target == b.target && a.shape == b.shape,
+      );
 
       final targetModuleBuilder = translator.isDynamicSubmodule
           ? translator.dynamicSubmodule
@@ -205,12 +224,17 @@ class DynamicDispatchTable {
       // The dynamic selector is invoked and the class has a target, we have to
       // write the class id - to make it match at runtime.
       final classIdsTable = getClassIdsTable(targetModuleBuilder);
-      targetModuleBuilder.elements
-          .activeExpressionSegmentBuilderFor(classIdsTable)
-          .setExpressionAt(
-            i,
-            buildIntegerExpression(targetModuleBuilder, entry.classId),
-          );
+      for (int i = 0; i < strideWidth; ++i) {
+        targetModuleBuilder.elements
+            .activeExpressionSegmentBuilderFor(classIdsTable)
+            .setExpressionAt(
+              start + i,
+              buildIntegerExpression(
+                targetModuleBuilder,
+                _table[start + i]!.classId,
+              ),
+            );
+      }
 
       // Only write out a dynamic forwarder function iff the target supports the
       // shape. See longer comment in [build] about this.
@@ -219,11 +243,21 @@ class DynamicDispatchTable {
         entry.shape,
       );
       if (fun != null) {
-        final targetsTable = getTargetsTable(targetModuleBuilder);
-        targetModuleBuilder.elements
-            .activeFunctionSegmentBuilderFor(targetsTable)
-            .setFunctionAt(i, fun);
+        final table = getTargetsTable(targetModuleBuilder);
+        if (strideWidth < strideElementTableLimit) {
+          for (int i = 0; i < strideWidth; ++i) {
+            targetModuleBuilder.elements
+                .activeFunctionSegmentBuilderFor(table)
+                .setFunctionAt(start + i, fun);
+          }
+        } else {
+          targetModuleBuilder.elements.declarativeSegmentBuilder.declare(fun);
+          final b = targetModuleBuilder.startFunction.body;
+          b.fillTableRange(table, start, strideWidth, fun);
+        }
       }
+
+      start += strideWidth;
     }
   }
 }

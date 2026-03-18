@@ -329,28 +329,28 @@ class FfiCallbackMetadata {
 
 #if defined(TARGET_ARCH_X64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 487;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 257;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 241;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 160;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 400;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 168;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 596;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 268;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_RISCV32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 368;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 154;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_RISCV64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 368;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 154;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #else
 #error What architecture?
 #endif
