@@ -11,6 +11,7 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -62,6 +63,112 @@ class AnalysisServerTest with ResourceProviderMixin {
       SessionLogger(),
     );
     errorNotifier.server = server;
+  }
+
+  Future<void> test_watchEvents_ignoresFilesOutsideAnalyzedContext() async {
+    var projectRoot = convertPath('/test');
+    var outsideFilePath = convertPath('/outside/log.txt');
+
+    server.serverServices = {ServerService.STATUS};
+
+    newFolder(projectRoot);
+    await server.setAnalysisRoots('0', [projectRoot], []);
+    await server.onAnalysisComplete;
+    channel.notificationsReceived.clear();
+
+    var outsideFile = newFile(outsideFilePath, 'initial');
+    outsideFile.writeAsStringSync('updated');
+
+    await pumpEventQueue(times: 2000);
+
+    var startedAnalysis = channel.notificationsReceived.any((notification) {
+      if (notification.event != serverNotificationStatus) {
+        return false;
+      }
+      var params = ServerStatusParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
+      return params.analysis?.isAnalyzing ?? false;
+    });
+    expect(startedAnalysis, isFalse);
+  }
+
+  Future<void> test_watchEvents_keepsDartFileChanges() async {
+    var projectRoot = convertPath('/test');
+    var dartFilePath = convertPath('/test/lib/a.dart');
+
+    server.serverServices = {ServerService.STATUS};
+
+    newFolder(convertPath('/test/lib'));
+    newFile(dartFilePath, 'void f() {}');
+
+    await server.setAnalysisRoots('0', [projectRoot], []);
+    await server.onAnalysisComplete;
+
+    channel.notificationsReceived.clear();
+
+    getFile(dartFilePath).writeAsStringSync('void f() {');
+    await pumpEventQueue(times: 2000);
+    await server.onAnalysisComplete;
+
+    var startedAnalysis = channel.notificationsReceived.any((notification) {
+      if (notification.event != serverNotificationStatus) {
+        return false;
+      }
+      var params = ServerStatusParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
+      return params.analysis?.isAnalyzing ?? false;
+    });
+    expect(startedAnalysis, isTrue);
+
+    var driver = server.getAnalysisDriver(dartFilePath)!;
+    var errorsResult = await driver.getErrors(dartFilePath);
+    expect(errorsResult, isA<ErrorsResult>());
+    var resolvedErrorsResult = errorsResult as ErrorsResult;
+    expect(resolvedErrorsResult.errors, isNotEmpty);
+  }
+
+  Future<void> test_watchEvents_outsideContextEventDoesNotBlockFollowingDartEvent() async {
+    var projectRoot = convertPath('/test');
+    var dartFilePath = convertPath('/test/lib/a.dart');
+    var outsideFilePath = convertPath('/outside/log.txt');
+
+    server.serverServices = {ServerService.STATUS};
+
+    newFolder(convertPath('/test/lib'));
+    newFile(dartFilePath, 'void f() {}');
+    newFile(outsideFilePath, 'initial');
+
+    await server.setAnalysisRoots('0', [projectRoot], []);
+    await server.onAnalysisComplete;
+    channel.notificationsReceived.clear();
+
+    getFile(outsideFilePath).writeAsStringSync('updated');
+    getFile(dartFilePath).writeAsStringSync('void f() {');
+
+    await pumpEventQueue(times: 2000);
+    await server.onAnalysisComplete;
+
+    var startedAnalysis = channel.notificationsReceived.any((notification) {
+      if (notification.event != serverNotificationStatus) {
+        return false;
+      }
+      var params = ServerStatusParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
+      return params.analysis?.isAnalyzing ?? false;
+    });
+    expect(startedAnalysis, isTrue);
+
+    var driver = server.getAnalysisDriver(dartFilePath)!;
+    var errorsResult = await driver.getErrors(dartFilePath);
+    expect(errorsResult, isA<ErrorsResult>());
+    var resolvedErrorsResult = errorsResult as ErrorsResult;
+    expect(resolvedErrorsResult.errors, isNotEmpty);
   }
 
   /// See https://github.com/dart-lang/sdk/issues/50496
