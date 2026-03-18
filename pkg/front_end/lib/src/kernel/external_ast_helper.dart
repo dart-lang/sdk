@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart';
 
-import '../kernel/internal_ast.dart';
+import 'internal_ast.dart';
 
 /// Creates an invocation of the [target] constructor with the given
 /// [arguments].

@@ -499,15 +499,6 @@ class DispatchTable {
   /// Maps selector IDs to selectors.
   final Map<int, SelectorInfo> _selectorInfo = {};
 
-  /// Maps member names to getter selectors with the same member name.
-  final Map<Name, Set<SelectorInfo>> _dynamicGetters = {};
-
-  /// Maps member names to setter selectors with the same member name.
-  final Map<Name, Set<SelectorInfo>> _dynamicSetters = {};
-
-  /// Maps member names to method selectors with the same member name.
-  final Map<Name, Set<SelectorInfo>> _dynamicMethods = {};
-
   /// Contents of [_definedWasmTable]. For a selector with ID S and a target
   /// class of the selector with ID C, `table[S + C]` gives the reference to the
   /// class member for the selector.
@@ -526,9 +517,6 @@ class DispatchTable {
   void serialize(DataSerializer sink) {
     sink.writeList(_selectorInfo.values, (s) => s.serialize(sink));
     sink.writeList(_table, (r) => sink.writeNullable(r, sink.writeReference));
-    // Preserve call selectors for closure calls which are handled dynamically.
-    final callSelectors = _dynamicGetters[Name('call')]!;
-    sink.writeList(callSelectors, (s) => sink.writeInt(s.id));
   }
 
   factory DispatchTable.deserialize(DataDeserializer source) {
@@ -538,19 +526,11 @@ class DispatchTable {
         source.readList(() => SelectorInfo.deserialize(source, dispatchTable));
     final table = source
         .readList(() => source.readNullable(() => source.readReference()));
-    final callSelectorIds = source.readList(source.readInt);
 
     for (final selector in selectors) {
       dispatchTable._selectorInfo[selector.id] = selector;
     }
     dispatchTable._table = table;
-
-    // Preserve call selectors for closure calls which are handled dynamically.
-    final callSelectors = <SelectorInfo>{};
-    for (final selectorId in callSelectorIds) {
-      callSelectors.add(dispatchTable._selectorInfo[selectorId]!);
-    }
-    dispatchTable._dynamicGetters[Name('call')] = callSelectors;
 
     return dispatchTable;
   }
@@ -576,13 +556,7 @@ class DispatchTable {
         : metadata.methodOrSetterSelectorId;
 
     // _WasmBase and its subclass methods cannot be called dynamically
-    final cls = member.enclosingClass;
-    final isWasmType = cls != null && translator.isWasmType(cls);
-
-    final calledDynamically = !isWasmType &&
-        (metadata.getterCalledDynamically ||
-            metadata.methodOrSetterCalledDynamically ||
-            member.name.text == "call");
+    assert(!translator.isWasmType(member.enclosingClass!));
 
     // The compiler will generate calls to `noSuchMethod` in the dynamic
     // invocation forwarders. So we ensure that the call count is positive.
@@ -597,30 +571,8 @@ class DispatchTable {
     assert(selector.isIndexSetter == isIndexSetter);
     selector._references.add(target);
 
-    if (calledDynamically) {
-      if (isGetter) {
-        (_dynamicGetters[member.name] ??= {}).add(selector);
-      } else if (isSetter) {
-        (_dynamicSetters[member.name] ??= {}).add(selector);
-      } else {
-        (_dynamicMethods[member.name] ??= {}).add(selector);
-      }
-    }
-
     return selector;
   }
-
-  /// Get selectors for getters and tear-offs with the given name.
-  Iterable<SelectorInfo> dynamicGetterSelectors(Name memberName) =>
-      _dynamicGetters[memberName] ?? Iterable.empty();
-
-  /// Get selectors for setters with the given name.
-  Iterable<SelectorInfo> dynamicSetterSelectors(Name memberName) =>
-      _dynamicSetters[memberName] ?? Iterable.empty();
-
-  /// Get selectors for methods with the given name.
-  Iterable<SelectorInfo> dynamicMethodSelectors(Name memberName) =>
-      _dynamicMethods[memberName] ?? Iterable.empty();
 
   void _initializeWasmTable() {
     final module = isDynamicSubmoduleTable
@@ -650,13 +602,21 @@ class DispatchTable {
     // Add classes to selector targets for their members
     for (ClassInfo info in translator.classesSupersFirst) {
       final Class cls = info.cls ?? translator.coreTypes.objectClass;
+
+      // Wasm objects are not Dart objects. They carry no class id information
+      // and we cannot dispatch methods on them.
+      if (translator.isWasmType(cls)) {
+        selectorsInClass[cls] = {};
+        continue;
+      }
+
       final Map<SelectorInfo, Reference> selectors;
 
       // Add the class to its inherited members' selectors. Skip `_WasmBase`:
       // it's defined as a Dart class (in `dart._wasm` library) but it's special
       // and does not inherit from `Object`.
       final ClassInfo? superInfo = info.superInfo;
-      if (superInfo == null || cls == translator.wasmTypesBaseClass) {
+      if (superInfo == null) {
         selectors = {};
       } else {
         final Class superCls =
@@ -984,7 +944,7 @@ class DispatchTable {
           // Functions imported into submodules may need to be wrapped to
           // match the updated dispatch table signature.
           fun = wrappedDynamicSubmoduleImports[fun] ??=
-              _wrapDynamicSubmoduleFunction(target, fun);
+              _wrapDynamicSubmoduleFunction(target, fun, targetModuleBuilder);
         }
 
         if (strideWidth < strideElementTableLimit) {
@@ -1025,8 +985,8 @@ class DispatchTable {
     }
   }
 
-  w.BaseFunction _wrapDynamicSubmoduleFunction(
-      Reference target, w.BaseFunction importedFunction) {
+  w.BaseFunction _wrapDynamicSubmoduleFunction(Reference target,
+      w.BaseFunction importedFunction, w.ModuleBuilder moduleBuilder) {
     final mainSelector =
         translator.dynamicMainModuleDispatchTable!.selectorForTarget(target);
     final mainSignature = translator.signatureForMainModule(target);
@@ -1043,7 +1003,7 @@ class DispatchTable {
     // The local signature should include all the parameters necessary to call
     // the target in main since the local signature must include the target
     // member itself and any other members in the main module's selector range.
-    final wrapper = translator.dynamicSubmodule.functions
+    final wrapper = moduleBuilder.functions
         .define(localSignature, '${target.asMember} wrapper');
 
     final ib = wrapper.body;
@@ -1122,9 +1082,13 @@ ParameterInfo _parameterInfoFromReferences(
 /// The returned list is the resulting row displacement table with `null`
 /// entries representing unused space.
 ///
+/// If [uniqueOffsets] is `true` then no two rows will be assigned the same
+/// offset.
+///
 /// The offset of all [Row]s will be initialized.
 List<V?> buildRowDisplacementTable<V extends Object>(List<Row<V>> rows,
-    {int firstAvailable = 0}) {
+    {int firstAvailable = 0, bool uniqueOffsets = false}) {
+  final offsetsTaken = <int>{};
   final table = <V?>[];
   for (final row in rows) {
     final values = row.values;
@@ -1132,6 +1096,11 @@ List<V?> buildRowDisplacementTable<V extends Object>(List<Row<V>> rows,
     bool fits;
     do {
       fits = true;
+      if (uniqueOffsets) {
+        while (offsetsTaken.contains(offset)) {
+          offset++;
+        }
+      }
       for (final value in values) {
         final int entry = offset + value.index;
         if (entry >= table.length) {
@@ -1146,6 +1115,7 @@ List<V?> buildRowDisplacementTable<V extends Object>(List<Row<V>> rows,
       if (!fits) offset++;
     } while (!fits);
     row.offset = offset;
+    if (uniqueOffsets) offsetsTaken.add(offset);
     for (final (:index, :value) in values) {
       final int tableIndex = offset + index;
       while (table.length <= tableIndex) {

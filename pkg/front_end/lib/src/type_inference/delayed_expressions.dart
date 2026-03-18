@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../type_inference/external_ast_helper.dart';
+import '../kernel/external_ast_helper.dart';
 import 'matching_cache.dart';
 
 /// Interface for delayed creating [Expression]s.

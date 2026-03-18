@@ -665,6 +665,7 @@ expr
 expression's
 ext
 extenders
+extern
 extracted
 extracts
 extras

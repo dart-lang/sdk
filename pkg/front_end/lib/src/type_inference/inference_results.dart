@@ -6,9 +6,9 @@ import 'package:kernel/ast.dart';
 
 import '../base/compiler_context.dart';
 import '../base/messages.dart';
+import '../kernel/external_ast_helper.dart';
 import '../kernel/internal_ast.dart';
 import '../source/check_helper.dart';
-import 'external_ast_helper.dart';
 import 'inference_visitor_base.dart';
 import 'type_schema.dart';
 
