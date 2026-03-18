@@ -6,11 +6,11 @@ import 'dart:async';
 
 import 'package:dart_service_protocol_shared/dart_service_protocol_shared.dart';
 import 'package:dtd/dtd.dart' show CoreDtdServiceConstants, DtdParameters;
-import 'package:sse/server/sse_handler.dart';
+import 'package:dtd/dtd.dart' show RegisteredServicesResponse, RpcErrorCodes;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:dtd/dtd.dart' show RpcErrorCodes, RegisteredServicesResponse;
 
 import 'constants.dart';
 import 'dart_tooling_daemon.dart';
@@ -224,7 +224,7 @@ class DTDClient extends Client {
         data: {
           'details':
               "'$serviceName' is not a valid service name. "
-              "Services may not include dots in their names.",
+              'Services may not include dots in their names.',
         },
       );
     }
@@ -234,7 +234,8 @@ class DTDClient extends Client {
         RpcErrorCodes.kServiceAlreadyRegistered,
         data: {
           'details':
-              "Service '$serviceName' is already registered as a DTD internal service.",
+              "Service '$serviceName' is already registered as a DTD internal "
+              'service.',
         },
       );
     }
@@ -248,7 +249,7 @@ class DTDClient extends Client {
         data: {
           'details':
               "Service '$serviceName' is already registered by another client. "
-              "Only 1 client at a time may register methods to a service.",
+              'Only 1 client at a time may register methods to a service.',
         },
       );
     }
@@ -258,7 +259,8 @@ class DTDClient extends Client {
         RpcErrorCodes.kServiceMethodAlreadyRegistered,
         data: {
           'details':
-              "$methodName has already been registered for the $serviceName service by this client.",
+              '$methodName has already been registered for the $serviceName '
+              'service by this client.',
         },
       );
     }

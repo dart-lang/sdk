@@ -131,7 +131,7 @@ class ConnectedAppService extends InternalService {
 
   /// Registers a VM service URI with the connected app service.
   ///
-  /// Only the client that started DTD (identified by [_clientSecret])
+  /// Only the client that started DTD (identified by [secret])
   /// should be able to call this method.
   Future<Map<String, Object?>> _registerVmService(Parameters parameters) async {
     final incomingSecret = parameters[DtdParameters.secret].asString;
@@ -143,7 +143,7 @@ class ConnectedAppService extends InternalService {
       final uri = parameters[DtdParameters.uri].asString;
       if (_vmServices.containsKey(uri)) {
         // We already know about this VM service instance. Exit early.
-        return Success().toJson();
+        return const Success().toJson();
       }
 
       final exposedUri = parameters[DtdParameters.exposedUri].asStringOrNull;
@@ -169,13 +169,13 @@ class ConnectedAppService extends InternalService {
           data: {'message': 'Error connecting to VM service at $uri.\n$e'},
         );
       }
-      return Success().toJson();
+      return const Success().toJson();
     });
   }
 
   /// Unregisters a VM service URI from the connected app service.
   ///
-  /// Only the client that started DTD (identified by [_clientSecret])
+  /// Only the client that started DTD (identified by [secret])
   /// should be able to call this method.
   Future<Map<String, Object?>> _unregisterVmService(
     Parameters parameters,
@@ -189,11 +189,11 @@ class ConnectedAppService extends InternalService {
       final uri = parameters[DtdParameters.uri].asString;
       if (!_vmServices.containsKey(uri)) {
         // This VM service is not in the registry. Exit early.
-        return Success().toJson();
+        return const Success().toJson();
       }
 
       _removeServiceAndNotify(uri);
-      return Success().toJson();
+      return const Success().toJson();
     });
   }
 

@@ -62,7 +62,8 @@ void main() {
     final pidFile = File(p.join(dataHome, process.pid.toString()));
 
     // On Windows bots, file creation can take more than 1 second.
-    // Increasing timeout iterations to 100 (5 seconds) to avoid flakiness (Issue #62872).
+    // Increasing timeout iterations to 100 (5 seconds) to avoid flakiness
+    // (Issue #62872).
     for (var i = 0; i < 100; i++) {
       if (pidFile.existsSync()) break;
       await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -106,7 +107,7 @@ void main() {
     dtd = null;
     DartToolingDaemon.environmentOverride = null;
 
-    final String dataHome = getDartDataHome(dtdDirName, environment: env);
+    final dataHome = getDartDataHome(dtdDirName, environment: env);
     try {
       final dir = Directory(dataHome);
       if (dir.existsSync()) {
@@ -127,7 +128,7 @@ void main() {
     test('broadcasts connection info via pid file', () async {
       final (process, uri) = await startDtdProcess();
 
-      final String dataHome = getDartDataHome(dtdDirName, environment: env);
+      final dataHome = getDartDataHome(dtdDirName, environment: env);
       expect(dataHome, isNotEmpty);
 
       final processPid = process.pid;
@@ -150,7 +151,7 @@ void main() {
     test('connection info contains correct workspaceRoot', () async {
       final (process, _) = await startDtdProcess();
 
-      final String dataHome = getDartDataHome(dtdDirName, environment: env);
+      final dataHome = getDartDataHome(dtdDirName, environment: env);
       final file = File(p.join(dataHome, process.pid.toString()));
       expect(file.existsSync(), isTrue);
 
@@ -158,7 +159,8 @@ void main() {
       final json = jsonDecode(content) as Map<String, Object?>;
       final info = DTDConnectionInfo.fromJson(json);
 
-      // Verify that workspaceRoot matches the current working directory of the process.
+      // Verify that workspaceRoot matches the current working directory of the
+      // process.
       expect(info.workspaceRoot, Directory.current.path);
 
       process.kill();
@@ -166,10 +168,11 @@ void main() {
     });
 
     test('list cleans up stale pid files', () async {
-      final String dataHome = getDartDataHome(dtdDirName, environment: env);
+      final dataHome = getDartDataHome(dtdDirName, environment: env);
       final garbageFile = File(p.join(dataHome, '999999'));
 
-      // Even valid JSON should be cleaned up if the process is no longer active.
+      // Even valid JSON should be cleaned up if the process is no longer
+      // active.
       garbageFile.writeAsStringSync(
         jsonEncode(<String, Object?>{
           'wsUri': 'ws://127.0.0.1:0',
