@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Helper for renaming one or more elements.
@@ -183,7 +184,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<SourceChange> createChange() async {
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
     var changeName = "$refactoringName '$oldName' to '$newName'";
     change = SourceChange(changeName);
     await fillChange();
