@@ -8,9 +8,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
-import 'dispatch_table.dart';
 import 'functions.dart';
-import 'reference_extensions.dart';
 import 'translator.dart';
 
 /// Unique dynamic call dispatchers per-module.dispachers
@@ -103,156 +101,80 @@ class _DynamicDispatcherCodeGenerator extends CodeGenerator {
   }
 
   void _generateGetterCode(Translator translator) {
-    final selectors = translator.dispatchTable.dynamicGetterSelectors(
-      callerShape.name,
-    );
-    final ranges = selectors
-        .expand(
-          (selector) => selector
-              .targets(unchecked: false)
-              .allTargetRanges
-              .map((r) => (range: r.range, value: r.target)),
-        )
-        .toList();
-    ranges.sort((a, b) => a.range.start.compareTo(b.range.start));
-
     final nullableReceiverLocal = function.locals[0];
-    final outputs = function.type.outputs;
     final b = function.body;
+
+    final noSuchMethodBlock = b.block();
 
     // Check for `null`.
     final receiverLocal = b.addLocal(translator.topTypeNonNullable);
-    {
-      final nullBlock = b.block([], [translator.topTypeNonNullable]);
-      b.local_get(nullableReceiverLocal);
-      b.br_on_non_null(nullBlock);
-      // Throw `NoSuchMethodError`. Normally this needs to happen via instance
-      // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
-      // have a `Null` class in dart2wasm so we throw directly.
-      b.local_get(nullableReceiverLocal);
-      createGetterInvocationObject(translator, b, callerShape.name);
-      translator.callReference(translator.invokeNoSuchMethod.reference, b);
-      b.unreachable();
-      b.end(); // nullBlock
-      b.local_set(receiverLocal);
-    }
+    b.local_get(nullableReceiverLocal);
+    b.br_on_null(noSuchMethodBlock);
+    b.local_set(receiverLocal);
 
+    final classIdLocal = b.addLocal(w.NumType.i32);
     b.local_get(receiverLocal);
     b.loadClassId(translator, receiverLocal.type);
-    b.classIdSearch(
-      ranges,
-      outputs,
-      (Reference target) {
-        final targetMember = target.asMember;
-        final Reference targetReference;
-        if (targetMember is Procedure) {
-          targetReference = targetMember.isGetter
-              ? targetMember.reference
-              : targetMember.tearOffReference;
-        } else if (targetMember is Field) {
-          targetReference = targetMember.getterReference;
-        } else {
-          throw '_generateGetterCode: member is not a procedure or field: $targetMember';
-        }
+    b.local_set(classIdLocal);
 
-        final w.BaseFunction targetFunction = translator.functions.getFunction(
-          targetReference,
-        );
-        b.local_get(receiverLocal);
-        translator.convertType(
-          b,
-          receiverLocal.type,
-          targetFunction.type.inputs.first,
-        );
-        translator.callFunction(targetFunction, b);
-        // Box return value if needed
-        translator.convertType(
-          b,
-          targetFunction.type.outputs.single,
-          outputs.single,
-        );
-      },
-      () {
-        b.local_get(nullableReceiverLocal);
-        createGetterInvocationObject(translator, b, callerShape.name);
-        translator.callReference(translator.invokeNoSuchMethod.reference, b);
-      },
+    _emitDynamicDispatchTableCall(
+      b,
+      callerShape,
+      classIdLocal,
+      receiverLocal,
+      (_) {},
+      noSuchMethodBlock,
     );
 
+    b.end(); // noSuchMethodBlock
+
+    b.local_get(nullableReceiverLocal);
+    createGetterInvocationObject(translator, b, callerShape.name);
+    translator.callReference(translator.invokeNoSuchMethod.reference, b);
     b.return_();
     b.end();
   }
 
   void _generateSetterCode(Translator translator) {
-    final selectors = translator.dispatchTable.dynamicSetterSelectors(
-      callerShape.name,
-    );
-    final ranges = selectors
-        .expand(
-          (selector) => selector
-              .targets(unchecked: false)
-              .allTargetRanges
-              .map((r) => (range: r.range, value: r.target)),
-        )
-        .toList();
-    ranges.sort((a, b) => a.range.start.compareTo(b.range.start));
-
     final nullableReceiverLocal = function.locals[0];
     final positionalArgLocal = function.locals[1];
 
     final b = function.body;
 
+    final noSuchMethodBlock = b.block();
+
     // Check for `null`.
     final receiverLocal = b.addLocal(translator.topTypeNonNullable);
-    {
-      final nullBlock = b.block([], [translator.topTypeNonNullable]);
-      b.local_get(nullableReceiverLocal);
-      b.br_on_non_null(nullBlock);
-      // Throw `NoSuchMethodError`. Normally this needs to happen via instance
-      // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
-      // have a `Null` class in dart2wasm so we throw directly.
-      b.local_get(nullableReceiverLocal);
-      createSetterInvocationObject(
-        translator,
-        b,
-        callerShape.name,
-        positionalArgLocal,
-      );
+    b.local_get(nullableReceiverLocal);
+    b.br_on_null(noSuchMethodBlock);
+    b.local_set(receiverLocal);
 
-      translator.callReference(translator.invokeNoSuchMethod.reference, b);
-      b.unreachable();
-      b.end(); // nullBlock
-      b.local_set(receiverLocal);
-    }
-
+    final classIdLocal = b.addLocal(w.NumType.i32);
     b.local_get(receiverLocal);
     b.loadClassId(translator, receiverLocal.type);
-    b.classIdSearch(
-      ranges,
-      [],
-      (Reference target) {
-        b.local_get(receiverLocal);
-        b.local_get(positionalArgLocal);
-        translator.callFunction(
-          translator.functions.getDynamicForwarder(target, callerShape),
-          b,
-        );
-      },
-      () {
-        b.local_get(receiverLocal);
-        createSetterInvocationObject(
-          translator,
-          b,
-          callerShape.name,
-          positionalArgLocal,
-        );
-        translator.callReference(translator.invokeNoSuchMethod.reference, b);
+    b.local_set(classIdLocal);
 
-        b.drop(); // drop noSuchMethod return value
-        b.local_get(positionalArgLocal);
-      },
+    _emitDynamicDispatchTableCall(
+      b,
+      callerShape,
+      classIdLocal,
+      receiverLocal,
+      (b) => b.local_get(positionalArgLocal),
+      noSuchMethodBlock,
     );
 
+    b.end(); // noSuchMethodBlock
+    b.local_get(nullableReceiverLocal);
+    createSetterInvocationObject(
+      translator,
+      b,
+      callerShape.name,
+      positionalArgLocal,
+    );
+    translator.callReference(translator.invokeNoSuchMethod.reference, b);
+
+    b.drop(); // drop noSuchMethod return value
+    b.local_get(positionalArgLocal);
     b.return_();
     b.end();
   }
@@ -260,412 +182,45 @@ class _DynamicDispatcherCodeGenerator extends CodeGenerator {
   void _generateMethodCode(Translator translator) {
     final callerShape = this.callerShape as MethodCallShape;
     final b = function.body;
+
     final nullableReceiverLocal = function.locals[0]; // ref #Top
+
+    final noSuchMethodBlock = b.block();
 
     // Check for `null`.
     final receiverLocal = b.addLocal(translator.topTypeNonNullable);
-    {
-      final nullBlock = b.block([], [translator.topTypeNonNullable]);
-      b.local_get(nullableReceiverLocal);
-      b.br_on_non_null(nullBlock);
-      b.local_get(nullableReceiverLocal);
-      for (int i = 0; i < callerShape.totalArgumentCount; ++i) {
-        b.local_get(function.locals[1 + i]);
-      }
-      translator.callFunction(
-        translator.functions.getInvocationCreatorStub(callerShape),
-        b,
-      );
-      translator.callReference(translator.invokeNoSuchMethod.reference, b);
-      b.unreachable();
-
-      b.end(); // nullBlock
-      b.local_set(receiverLocal);
-    }
+    b.local_get(nullableReceiverLocal);
+    b.br_on_null(noSuchMethodBlock);
+    b.local_set(receiverLocal);
 
     final classIdLocal = b.addLocal(w.NumType.i32);
-
     b.local_get(receiverLocal);
     b.loadClassId(translator, receiverLocal.type);
     b.local_set(classIdLocal);
 
-    // Continuation of this block calls `noSuchMethod` on the receiver.
-    final noSuchMethodBlock = b.block();
+    // Try calling the method.
+    _emitDynamicDispatchTableCall(b, callerShape, classIdLocal, receiverLocal, (
+      b,
+    ) {
+      for (int i = 0; i < callerShape.totalArgumentCount; ++i) {
+        b.local_get(function.locals[1 + i]);
+      }
+    }, noSuchMethodBlock);
 
-    // Step 1) Look through all possible targets that have the dynamic selector
-    // as a method.
-    final methodSelectors = translator.dispatchTable.dynamicMethodSelectors(
-      callerShape.name,
+    // Try calling via field.
+    _emitDynamicDispatchTableCallViaField(
+      b,
+      callerShape,
+      classIdLocal,
+      nullableReceiverLocal,
+      receiverLocal,
+      noSuchMethodBlock,
     );
-    for (final selector in methodSelectors) {
-      // Accumulates all class ID ranges that have the same target.
-      final Map<Reference, List<Range>> targets = {};
-      for (final (:range, :target)
-          in selector.targets(unchecked: false).allTargetRanges) {
-        targets.putIfAbsent(target, () => []).add(range);
-      }
-
-      for (final MapEntry(key: target, value: classIdRanges)
-          in targets.entries) {
-        final Procedure targetMember = target.asMember as Procedure;
-        final targetFunction = targetMember.function;
-
-        // Filter out targets that cannot match based on mismatched arguments.
-        if (!callerShape.matchesTarget(targetFunction)) {
-          continue;
-        }
-
-        final classIdNoMatch = b.block();
-        final classIdMatch = b.block();
-
-        for (Range classIdRange in classIdRanges) {
-          if (classIdRange.length == 1) {
-            b.local_get(classIdLocal);
-            b.i32_const(classIdRange.start);
-            b.i32_eq();
-            b.br_if(classIdMatch);
-          } else {
-            b.local_get(classIdLocal);
-            b.i32_const(classIdRange.start);
-            b.i32_sub();
-            b.i32_const(classIdRange.length);
-            b.i32_lt_u();
-            b.br_if(classIdMatch);
-          }
-        }
-
-        b.br(classIdNoMatch);
-        b.end(); // classIdMatch
-
-        b.local_get(receiverLocal);
-        for (int i = 0; i < callerShape.totalArgumentCount; ++i) {
-          b.local_get(function.locals[1 + i]);
-        }
-        translator.callFunction(
-          translator.functions.getDynamicForwarder(target, callerShape),
-          b,
-        );
-        b.return_();
-        b.end(); // classIdNoMatch
-      }
-    }
-
-    // Step 2) The receiver does not have the dynamic selector as a method. Now
-    // we look through all possible getters with the dynamic selector name,
-    // invoke the getter and then try to call it (via closure call or `.call()`).
-    final getterSelectors = translator.dispatchTable.dynamicGetterSelectors(
-      callerShape.name,
-    );
-    final dynamicMainModuleGetterSelectors = translator
-        .dynamicMainModuleDispatchTable
-        ?.dynamicGetterSelectors(callerShape.name);
-    if (getterSelectors.isNotEmpty ||
-        dynamicMainModuleGetterSelectors != null) {
-      // Load type parameter as WasmArray<_Type>
-      final typeArgsLocal = b.addLocal(translator.typeArrayTypeRef);
-      if (callerShape.typeCount == 0) {
-        final emptyArray = translator.constants.makeArrayOf(
-          translator.coreTypes.typeNonNullableRawType,
-          [],
-        );
-        translator.constants.instantiateConstant(
-          b,
-          emptyArray,
-          translator.typeArrayTypeRef,
-        );
-      } else {
-        for (int i = 0; i < callerShape.typeCount; ++i) {
-          b.local_get(function.locals[1 + i]);
-        }
-        b.array_new_fixed(translator.typeArrayType, callerShape.typeCount);
-      }
-      b.local_set(typeArgsLocal);
-
-      // Load positional parameters as WasmArray<Object?>
-      final positionalArgsLocal = b.addLocal(
-        translator.nullableObjectArrayTypeRef,
-      );
-      if (callerShape.positionalCount == 0) {
-        final emptyArray = translator.constants.makeArrayOf(
-          translator.coreTypes.objectNullableRawType,
-          [],
-        );
-        translator.constants.instantiateConstant(
-          b,
-          emptyArray,
-          translator.nullableObjectArrayTypeRef,
-        );
-      } else {
-        for (int i = 0; i < callerShape.positionalCount; ++i) {
-          b.local_get(function.locals[1 + callerShape.typeCount + i]);
-        }
-        b.array_new_fixed(
-          translator.nullableObjectArrayType,
-          callerShape.positionalCount,
-        );
-      }
-      b.local_set(positionalArgsLocal);
-
-      // Load named parameters as WasmArray<Object?>
-      final namedArgsLocal = b.addLocal(translator.nullableObjectArrayTypeRef);
-      if (callerShape.named.isEmpty) {
-        final emptyArray = translator.constants.makeArrayOf(
-          translator.coreTypes.objectNullableRawType,
-          [],
-        );
-        translator.constants.instantiateConstant(
-          b,
-          emptyArray,
-          translator.nullableObjectArrayTypeRef,
-        );
-      } else {
-        for (int i = 0; i < callerShape.named.length; ++i) {
-          translator.constants.instantiateConstant(
-            b,
-            translator.symbols.symbolForNamedParameter(callerShape.named[i]),
-            translator.topType,
-          );
-          b.local_get(
-            function.locals[1 +
-                callerShape.typeCount +
-                callerShape.positionalCount +
-                i],
-          );
-        }
-        b.array_new_fixed(
-          translator.nullableObjectArrayType,
-          callerShape.named.length * 2,
-        );
-      }
-      b.local_set(namedArgsLocal);
-
-      final getterValueLocal = b.addLocal(translator.topType);
-      void handleGetterSelector(SelectorInfo selector) {
-        for (final (:range, :target)
-            in selector.targets(unchecked: false).allTargetRanges) {
-          final targetMember = target.asMember;
-          // We only care about getters here as methods were already handled in
-          // the loop in `Step 1` above.
-          if (targetMember is Procedure && !targetMember.isGetter) {
-            continue;
-          }
-
-          for (int classId = range.start; classId <= range.end; ++classId) {
-            b.local_get(receiverLocal);
-            b.loadClassId(translator, receiverLocal.type);
-            b.i32_const(classId);
-            b.i32_eq();
-            b.if_();
-
-            final Reference targetReference;
-            if (targetMember is Procedure) {
-              assert(targetMember.isGetter); // methods are skipped above
-              targetReference = targetMember.reference;
-            } else if (targetMember is Field) {
-              targetReference = targetMember.getterReference;
-            } else {
-              throw StateError('Expected field getter or procedure getter.');
-            }
-
-            final w.BaseFunction targetFunction = translator.functions
-                .getFunction(targetReference);
-
-            // Get field value
-            b.local_get(receiverLocal);
-            translator.convertType(
-              b,
-              receiverLocal.type,
-              targetFunction.type.inputs.first,
-            );
-            translator.callFunction(targetFunction, b);
-            translator.convertType(
-              b,
-              targetFunction.type.outputs.single,
-              translator.topType,
-            );
-            b.local_tee(getterValueLocal);
-
-            // Throw `NoSuchMethodError` if the value is null
-            b.br_on_null(noSuchMethodBlock);
-            // Reuse `receiverLocal`. This also updates the `noSuchMethod`
-            // receiver below.
-            b.local_tee(receiverLocal);
-
-            // Invoke "call" if the value is not a closure
-            b.loadClassId(translator, receiverLocal.type);
-            b.i32_const(
-              (translator.closureInfo.classId as AbsoluteClassId).value,
-            );
-            b.i32_ne();
-            b.if_();
-            // Value is not a closure
-            final callDispatcher = translator
-                .getDynamicDispatchersForModule(b.moduleBuilder)
-                .getDispatcher(
-                  MethodCallShape(
-                    Name('call'),
-                    callerShape.typeCount,
-                    callerShape.positionalCount,
-                    callerShape.named,
-                  ),
-                )
-                .function;
-
-            b.local_get(receiverLocal);
-            for (int i = 0; i < callerShape.typeCount; ++i) {
-              b.local_get(function.locals[1 + i]);
-            }
-            for (int i = 0; i < callerShape.positionalCount; ++i) {
-              b.local_get(function.locals[1 + callerShape.typeCount + i]);
-            }
-            for (int i = 0; i < callerShape.named.length; ++i) {
-              b.local_get(
-                function.locals[1 +
-                    callerShape.typeCount +
-                    callerShape.positionalCount +
-                    i],
-              );
-            }
-            translator.callFunction(callDispatcher, b);
-            b.return_();
-            b.end();
-
-            // Cast the closure to `#ClosureBase`
-            final closureBaseType = w.RefType.def(
-              translator.closureLayouter.closureBaseStruct,
-              nullable: false,
-            );
-            final closureLocal = b.addLocal(closureBaseType);
-            b.local_get(receiverLocal);
-            b.ref_cast(closureBaseType);
-            b.local_set(closureLocal);
-
-            generateDynamicClosureCallShapeAndTypeCheck(
-              translator,
-              b,
-              closureLocal,
-              typeArgsLocal,
-              positionalArgsLocal,
-              namedArgsLocal,
-              noSuchMethodBlock,
-            );
-            if (translator.dynamicModuleSupportEnabled) {
-              generateDynamicClosureCallViaDynamicEntry(
-                translator,
-                b,
-                closureLocal,
-                typeArgsLocal,
-                positionalArgsLocal,
-                namedArgsLocal,
-              );
-            } else {
-              void emitCallForTypeCount(int typeCount) {
-                final representation = translator.closureLayouter
-                    .getClosureRepresentation(
-                      typeCount,
-                      callerShape.positionalCount,
-                      callerShape.named,
-                    );
-                if (representation == null) {
-                  // This is a call combination that the closure layouter
-                  // determined cannot occur in the program (it means the
-                  // shape&type checks we already performed earlier must
-                  // have thrown an NSM error and we cannot get here).
-                  b.unreachable();
-                  return;
-                }
-
-                b.local_get(closureLocal);
-                b.struct_get(
-                  translator.closureLayouter.closureBaseStruct,
-                  FieldIndex.closureContext,
-                );
-                for (int i = 0; i < typeCount; ++i) {
-                  b.local_get(typeArgsLocal);
-                  b.i32_const(i);
-                  b.array_get(translator.typeArrayType);
-                }
-                for (int i = 0; i < callerShape.positionalCount; ++i) {
-                  b.local_get(function.locals[1 + callerShape.typeCount + i]);
-                }
-                for (int i = 0; i < callerShape.named.length; ++i) {
-                  b.local_get(
-                    function.locals[1 +
-                        callerShape.typeCount +
-                        callerShape.positionalCount +
-                        i],
-                  );
-                }
-
-                final vtable = representation.vtableStruct;
-                final vtableIndex = representation.fieldIndexForSignature(
-                  callerShape.positionalCount,
-                  callerShape.named,
-                );
-
-                b.local_get(closureLocal);
-                b.struct_get(
-                  translator.closureLayouter.closureBaseStruct,
-                  FieldIndex.closureVtable,
-                );
-                b.ref_cast(w.RefType(vtable, nullable: false));
-                b.struct_get(vtable, vtableIndex);
-                b.call_ref(vtable.getVtableEntryAt(vtableIndex));
-              }
-
-              // The closure representation algorithm has considered dynamic
-              // callsites and will have therefore specialized vtable entries
-              // for valid call shape of dynamic closure calls.
-              if (callerShape.typeCount == 0) {
-                // The dynamic callsite has not provided type arguments but the
-                // target closure may be generic. The shape&type checking we
-                // already performed may have populated default type arguments
-                // (of unknown length) for the closure.
-                //
-                // So we branch on the number of type parameters to invoke the
-                // right closure entrypoint.
-                final maxTypeCount = translator.closureLayouter
-                    .maxTypeArgumentCount();
-                b.emitDenseTableBranch(
-                  [translator.topType],
-                  maxTypeCount,
-                  () {
-                    b.local_get(typeArgsLocal);
-                    b.array_len();
-                  },
-                  (int typeCount) {
-                    emitCallForTypeCount(typeCount);
-                  },
-                  () {
-                    b.unreachable();
-                  },
-                );
-              } else {
-                emitCallForTypeCount(callerShape.typeCount);
-              }
-            }
-            b.return_();
-
-            b.end(); // class ID
-          }
-        }
-      }
-
-      for (final selector in getterSelectors) {
-        handleGetterSelector(selector);
-      }
-
-      if (dynamicMainModuleGetterSelectors != null) {
-        for (final selector in dynamicMainModuleGetterSelectors) {
-          handleGetterSelector(selector);
-        }
-      }
-    }
 
     b.end(); // noSuchMethodBlock
 
     // Unable to find a matching member, call `noSuchMethod`
-    b.local_get(receiverLocal);
+    b.local_get(nullableReceiverLocal);
     for (int i = 0; i < callerShape.totalArgumentCount; ++i) {
       b.local_get(function.locals[1 + i]);
     }
@@ -674,8 +229,370 @@ class _DynamicDispatcherCodeGenerator extends CodeGenerator {
       b,
     );
     translator.callReference(translator.invokeNoSuchMethod.reference, b);
-
+    b.return_();
     b.end();
+  }
+
+  // Emits code that tries to invoke the target via the dynamic table.
+  //
+  // It may
+  //   * find the target, call it and return
+  //   * explicitly jump to NSM
+  //   * continue execution after this call
+  //     - caller may continue trying call-via-field
+  //     - caller may run NSM
+  //
+  void _emitDynamicDispatchTableCall(
+    w.InstructionsBuilder b,
+    CallShape callerShape,
+    w.Local classIdLocal,
+    w.Local receiverLocal,
+    void Function(w.InstructionsBuilder) pushArguments,
+    w.Label noSuchMethodBlock,
+  ) {
+    b.comment('_emitDynamicDispatchTableCall($callerShape)');
+    final selector =
+        translator.dynamicDispatchTable.dynamicSelectors[callerShape];
+    final offset = selector?.offset;
+    if (selector == null || offset == null) return;
+
+    final table = translator.dynamicDispatchTable;
+
+    final unsuccessful = b.block();
+    final classIdsTable = table.getClassIdsTable(b.moduleBuilder);
+    final indexLocal = b.addLocal(w.NumType.i32);
+    b.local_get(classIdLocal);
+    if (offset != 0) {
+      b.i32_const(offset);
+      b.i32_add();
+    }
+    b.local_tee(indexLocal);
+    b.table_size(classIdsTable);
+    b.i32_ge_u();
+    b.br_if(unsuccessful);
+
+    b.local_get(indexLocal);
+    b.table_get(classIdsTable);
+    b.br_on_null(unsuccessful);
+    b.i31_get_u();
+    b.local_get(classIdLocal);
+    b.i32_eq();
+
+    b.if_(); // classid match
+    b.local_get(receiverLocal);
+    pushArguments(b);
+    b.local_get(indexLocal);
+    translator.functions.recordDynamicSelectorUse(selector);
+    b.table_get(table.getTargetsTable(b.moduleBuilder));
+
+    // We know that the target class has a method with the correct name, but it
+    // may not support the call shape we're using here. In this case the table
+    // will have correct class id (so we pass above test) but there's no
+    // function to call, as the shape doesn't match.
+    // => We have to NSM here and not continue to call-via-field as that's
+    //    incorrect.
+    b.br_on_null(noSuchMethodBlock);
+
+    b.ref_cast(w.RefType(selector.signature, nullable: false));
+    b.call_ref(selector.signature);
+    b.return_();
+    b.end(); // if_ classid match
+
+    b.end(); // fall through to unsuccessful
+  }
+
+  /// Tries to perform a dynamic method invocation via calling through getter.
+  ///
+  /// The caller established that the receiver does not have the method, but it
+  /// may have a getter with same name that returns a callable (closure or
+  /// object with `.call` method).
+  void _emitDynamicDispatchTableCallViaField(
+    w.InstructionsBuilder b,
+    CallShape callerShape,
+    w.Local classIdLocal,
+    w.Local nullableReceiverLocal,
+    w.Local receiverLocal,
+    w.Label noSuchMethodBlock,
+  ) {
+    b.comment('_emitDynamicDispatchTableCallViaField');
+    final selector = translator
+        .dynamicDispatchTable
+        .dynamicSelectors[GetterCallShape(callerShape.name)];
+    final offset = selector?.offset;
+    if (selector == null || offset == null) return;
+
+    final table = translator.dynamicDispatchTable;
+
+    final classIdsTable = table.getClassIdsTable(b.moduleBuilder);
+    final indexLocal = b.addLocal(w.NumType.i32);
+    b.local_get(classIdLocal);
+    if (offset != 0) {
+      b.i32_const(offset);
+      b.i32_add();
+    }
+    b.local_tee(indexLocal);
+    b.table_size(classIdsTable);
+    b.i32_ge_u();
+    b.br_if(noSuchMethodBlock);
+
+    b.local_get(indexLocal);
+    b.table_get(classIdsTable);
+    b.br_on_null(noSuchMethodBlock);
+    b.i31_get_u();
+    b.local_get(classIdLocal);
+    b.i32_eq();
+    b.if_();
+    // Match! Load from targets table and call getter.
+    b.local_get(receiverLocal);
+    b.local_get(indexLocal);
+    translator.functions.recordDynamicSelectorUse(selector);
+    b.call_indirect(selector.signature, table.getTargetsTable(b.moduleBuilder));
+    // This also updates the `noSuchMethod` receiver.
+    b.local_tee(nullableReceiverLocal);
+
+    // Throw `NoSuchMethodError` if the value is null
+    b.br_on_null(noSuchMethodBlock);
+    b.local_tee(receiverLocal);
+
+    _emitCallWithReceiver(b, receiverLocal, noSuchMethodBlock);
+    b.return_();
+    b.end();
+  }
+
+  /// Try to call a callable object (closure or object with `.call()` method)
+  ///
+  /// The caller established that the dynamic call receiver doesn't have a
+  /// method, but it had a getter with same name. It called the getter which may
+  /// have returned a callable object.
+  ///
+  /// This method tries to call it.
+  void _emitCallWithReceiver(
+    w.InstructionsBuilder b,
+    w.Local receiverLocal,
+    w.Label noSuchMethodBlock,
+  ) {
+    final callerShape = this.callerShape as MethodCallShape;
+
+    // Invoke "call" if the value is not a closure
+    b.loadClassId(translator, receiverLocal.type);
+    b.i32_const((translator.closureInfo.classId as AbsoluteClassId).value);
+    b.i32_ne();
+    b.if_();
+    // Value is not a closure
+    final callForwarder = translator
+        .getDynamicDispatchersForModule(b.moduleBuilder)
+        .getDispatcher(
+          MethodCallShape(
+            Name('call'),
+            callerShape.typeCount,
+            callerShape.positionalCount,
+            callerShape.named,
+          ),
+        )
+        .function;
+
+    b.local_get(receiverLocal);
+    for (int i = 0; i < callerShape.totalArgumentCount; ++i) {
+      b.local_get(function.locals[1 + i]);
+    }
+    translator.callFunction(callForwarder, b);
+    b.return_();
+    b.end();
+
+    // Cast the closure to `#ClosureBase`
+    final closureBaseType = w.RefType.def(
+      translator.closureLayouter.closureBaseStruct,
+      nullable: false,
+    );
+    final closureLocal = b.addLocal(closureBaseType);
+    b.local_get(receiverLocal);
+    b.ref_cast(closureBaseType);
+    b.local_set(closureLocal);
+
+    _emitClosureCall(b, closureLocal, noSuchMethodBlock);
+  }
+
+  void _emitClosureCall(
+    w.InstructionsBuilder b,
+    w.Local closureLocal,
+    w.Label noSuchMethodBlock,
+  ) {
+    final (typeArgsLocal, positionalArgsLocal, namedArgsLocal) =
+        _createArgumentArrays(b);
+
+    final callerShape = this.callerShape as MethodCallShape;
+    generateDynamicClosureCallShapeAndTypeCheck(
+      translator,
+      b,
+      closureLocal,
+      typeArgsLocal,
+      positionalArgsLocal,
+      namedArgsLocal,
+      noSuchMethodBlock,
+    );
+    if (translator.dynamicModuleSupportEnabled) {
+      generateDynamicClosureCallViaDynamicEntry(
+        translator,
+        b,
+        closureLocal,
+        typeArgsLocal,
+        positionalArgsLocal,
+        namedArgsLocal,
+      );
+    } else {
+      void emitCallForTypeCount(int typeCount) {
+        final representation = translator.closureLayouter
+            .getClosureRepresentation(
+              typeCount,
+              callerShape.positionalCount,
+              callerShape.named,
+            );
+        if (representation == null) {
+          b.unreachable();
+          return;
+        }
+
+        b.local_get(closureLocal);
+        b.struct_get(
+          translator.closureLayouter.closureBaseStruct,
+          FieldIndex.closureContext,
+        );
+        for (int i = 0; i < typeCount; ++i) {
+          b.local_get(typeArgsLocal);
+          b.i32_const(i);
+          b.array_get(translator.typeArrayType);
+        }
+        for (int i = 0; i < callerShape.positionalCount; ++i) {
+          b.local_get(function.locals[1 + callerShape.typeCount + i]);
+        }
+        for (int i = 0; i < callerShape.named.length; ++i) {
+          b.local_get(
+            function.locals[1 +
+                callerShape.typeCount +
+                callerShape.positionalCount +
+                i],
+          );
+        }
+
+        final vtable = representation.vtableStruct;
+        final vtableIndex = representation.fieldIndexForSignature(
+          callerShape.positionalCount,
+          callerShape.named,
+        );
+
+        b.local_get(closureLocal);
+        b.struct_get(
+          translator.closureLayouter.closureBaseStruct,
+          FieldIndex.closureVtable,
+        );
+        b.ref_cast(w.RefType(vtable, nullable: false));
+        b.struct_get(vtable, vtableIndex);
+        b.call_ref(vtable.getVtableEntryAt(vtableIndex));
+      }
+
+      if (callerShape.typeCount == 0) {
+        final maxTypeCount = translator.closureLayouter.maxTypeArgumentCount();
+        b.emitDenseTableBranch(
+          [translator.topType],
+          maxTypeCount,
+          () {
+            b.local_get(typeArgsLocal);
+            b.array_len();
+          },
+          (int typeCount) {
+            emitCallForTypeCount(typeCount);
+          },
+          () {
+            b.unreachable();
+          },
+        );
+      } else {
+        emitCallForTypeCount(callerShape.typeCount);
+      }
+    }
+  }
+
+  (w.Local, w.Local, w.Local) _createArgumentArrays(w.InstructionsBuilder b) {
+    final callerShape = this.callerShape as MethodCallShape;
+    // Load type parameter as WasmArray<_Type>
+    final typeArgsLocal = b.addLocal(translator.typeArrayTypeRef);
+    if (callerShape.typeCount == 0) {
+      final emptyArray = translator.constants.makeArrayOf(
+        translator.coreTypes.typeNonNullableRawType,
+        [],
+      );
+      translator.constants.instantiateConstant(
+        b,
+        emptyArray,
+        translator.typeArrayTypeRef,
+      );
+    } else {
+      for (int i = 0; i < callerShape.typeCount; ++i) {
+        b.local_get(function.locals[1 + i]);
+      }
+      b.array_new_fixed(translator.typeArrayType, callerShape.typeCount);
+    }
+    b.local_set(typeArgsLocal);
+
+    // Load positional parameters as WasmArray<Object?>
+    final positionalArgsLocal = b.addLocal(
+      translator.nullableObjectArrayTypeRef,
+    );
+    if (callerShape.positionalCount == 0) {
+      final emptyArray = translator.constants.makeArrayOf(
+        translator.coreTypes.objectNullableRawType,
+        [],
+      );
+      translator.constants.instantiateConstant(
+        b,
+        emptyArray,
+        translator.nullableObjectArrayTypeRef,
+      );
+    } else {
+      for (int i = 0; i < callerShape.positionalCount; ++i) {
+        b.local_get(function.locals[1 + callerShape.typeCount + i]);
+      }
+      b.array_new_fixed(
+        translator.nullableObjectArrayType,
+        callerShape.positionalCount,
+      );
+    }
+    b.local_set(positionalArgsLocal);
+
+    // Load named parameters as WasmArray<Object?>
+    final namedArgsLocal = b.addLocal(translator.nullableObjectArrayTypeRef);
+    if (callerShape.named.isEmpty) {
+      final emptyArray = translator.constants.makeArrayOf(
+        translator.coreTypes.objectNullableRawType,
+        [],
+      );
+      translator.constants.instantiateConstant(
+        b,
+        emptyArray,
+        translator.nullableObjectArrayTypeRef,
+      );
+    } else {
+      for (int i = 0; i < callerShape.named.length; ++i) {
+        translator.constants.instantiateConstant(
+          b,
+          translator.symbols.symbolForNamedParameter(callerShape.named[i]),
+          translator.topType,
+        );
+        b.local_get(
+          function.locals[1 +
+              callerShape.typeCount +
+              callerShape.positionalCount +
+              i],
+        );
+      }
+      b.array_new_fixed(
+        translator.nullableObjectArrayType,
+        callerShape.named.length * 2,
+      );
+    }
+    b.local_set(namedArgsLocal);
+
+    return (typeArgsLocal, positionalArgsLocal, namedArgsLocal);
   }
 }
 

@@ -39,6 +39,12 @@
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $isDeclaredNullable i32))))
+  (type $type0 (func 
+    (param $var0 (ref $#Top))
+    (param $var1 (ref null $#Top))
+    (result (ref null $#Top))))
+  (table $dtable0 3 i31ref)
+  (table $dtable2 3 funcref)
   (global $1 (ref $BoxedInt)
     (i32.const 65)
     (i64.const 1)
@@ -47,55 +53,55 @@
     (i32.const 3)
     (i32.const 1)
     (struct.new $BoxedBool))
+  (elem $dtable0
+    (set 0 (i32.const 108) (i31.new) (end))
+    (set 1 (i32.const 109) (i31.new) (end)))
+  (elem $dtable2
+    (set 0 (ref.func $"Bar.toString (MethodCallShape(toString names:a))"))
+    (set 1 (ref.func $"Foo.toString (MethodCallShape(toString names:a))")))
   (func $Bar.toString (MethodCallShape(toString names:a)) (param $this (ref $#Top)) (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $"Dynamic dispatcher for MethodCallShape(toString names:a)" (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     (local $var2 (ref $#Top))
     (local $var3 i32)
-    block $label0 (result (ref $#Top))
+    (local $var4 i32)
+    block $label0
       local.get $var0
-      br_on_non_null $label0
-      local.get $var0
-      local.get $var1
-      call $"Invocation creator (MethodCallShape(toString names:a))"
-      call $Object._invokeNoSuchMethod
-      unreachable
+      br_on_null $label0
+      local.set $var2
+      local.get $var2
+      struct.get $#Top $field0
+      local.set $var3
+      block $label1
+        local.get $var3
+        i32.const -108
+        i32.add
+        local.tee $var4
+        table.size $dtable0
+        i32.ge_u
+        br_if $label1
+        local.get $var4
+        table.get $dtable0
+        br_on_null $label1
+        i31.get_u
+        local.get $var3
+        i32.eq
+        if
+          local.get $var2
+          local.get $var1
+          local.get $var4
+          table.get $dtable2
+          br_on_null $label0
+          ref.cast $type0
+          call_ref $type0
+          return
+        end
+      end $label1
     end $label0
-    local.set $var2
-    local.get $var2
-    struct.get $#Top $field0
-    local.set $var3
-    block $label1
-      block $label2
-        block $label3
-          local.get $var3
-          i32.const 108
-          i32.eq
-          br_if $label3
-          br $label2
-        end $label3
-        local.get $var2
-        local.get $var1
-        call $"Bar.toString (MethodCallShape(toString names:a))"
-        return
-      end $label2
-      block $label4
-        block $label5
-          local.get $var3
-          i32.const 109
-          i32.eq
-          br_if $label5
-          br $label4
-        end $label5
-        local.get $var2
-        local.get $var1
-        call $"Foo.toString (MethodCallShape(toString names:a))"
-        return
-      end $label4
-    end
-    local.get $var2
+    local.get $var0
     local.get $var1
     call $"Invocation creator (MethodCallShape(toString names:a))"
     call $Object._invokeNoSuchMethod
+    return
   )
   (func $Foo.toString (MethodCallShape(toString names:a)) (param $this (ref $#Top)) (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $Invocation creator (MethodCallShape(toString names:a)) (param $var0 (ref null $#Top)) (result (ref $_Invocation)) <...>)

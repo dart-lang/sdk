@@ -23,6 +23,7 @@ import 'closures.dart';
 import 'code_generator.dart';
 import 'constants.dart';
 import 'dispatch_table.dart';
+import 'dynamic_dispatch_table.dart';
 import 'dynamic_dispatchers.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'dynamic_modules.dart';
@@ -198,6 +199,7 @@ class Translator with KernelNodes {
   late final CrossModuleFunctionTable crossModuleFunctionTable;
   late final TableBasedGlobals tableBasedGlobals;
   late final DispatchTable dispatchTable;
+  late final DynamicDispatchTable dynamicDispatchTable;
   DispatchTable? dynamicMainModuleDispatchTable;
   late final Globals globals;
   late final DartGlobals dartGlobals;
@@ -494,6 +496,7 @@ class Translator with KernelNodes {
     tableBasedGlobals = TableBasedGlobals(this);
     dispatchTable = DispatchTable(isDynamicSubmoduleTable: isDynamicSubmodule)
       ..translator = this;
+    dynamicDispatchTable = DynamicDispatchTable(this);
     if (isDynamicSubmodule) {
       dynamicMainModuleDispatchTable = mainModuleMetadata.dispatchTable
         ..translator = this;
@@ -560,6 +563,8 @@ class Translator with KernelNodes {
   Map<ModuleMetadata, w.Module> translate(
       Uri Function(String moduleName)? sourceMapUrlGenerator) {
     _initModules(sourceMapUrlGenerator);
+    final dynamicCallShapes = DynamicCallSiteCollector.collect(component);
+
     closureLayouter.collect();
     classInfoCollector.collect();
 
@@ -568,6 +573,7 @@ class Translator with KernelNodes {
     constants = Constants(this);
 
     dispatchTable.build();
+    dynamicDispatchTable.build(dynamicCallShapes);
     dynamicMainModuleDispatchTable?.build();
     functions.initialize();
 
@@ -585,6 +591,7 @@ class Translator with KernelNodes {
 
     constructorClosures.clear();
     dispatchTable.output();
+    dynamicDispatchTable.output();
     crossModuleFunctionTable.output();
     tableBasedGlobals.outputTables();
 
