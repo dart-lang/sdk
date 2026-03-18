@@ -312,6 +312,7 @@ abstract class AnalysisServer {
     MessageSchedulerListener? messageSchedulerListener,
     this.performanceLogger,
     required bool usePlugins,
+    Map<String, String>? environment,
   }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
        pubApi = PubApi(
          instrumentationService,
@@ -333,7 +334,7 @@ abstract class AnalysisServer {
     // don't really exist. If processRunner was supplied, it's likely a mock
     // from a test in which case the pub command should still be created.
     if (baseResourceProvider is PhysicalResourceProvider) {
-      processRunner ??= ProcessRunner();
+      processRunner ??= ProcessRunner(environment: environment);
     }
     var disablePubCommandVariable =
         platform.environment[PubCommand.disablePubCommandEnvironmentKey];
@@ -360,6 +361,7 @@ abstract class AnalysisServer {
       notificationManager,
       instrumentationService,
       sessionLogger,
+      processRunner: processRunner ?? ProcessRunner(environment: environment),
     );
     var pluginWatcher = PluginWatcher(
       resourceProvider,

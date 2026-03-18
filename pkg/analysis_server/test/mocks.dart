@@ -92,6 +92,9 @@ class MockProcess implements Process {
 }
 
 class MockProcessRunner implements ProcessRunner {
+  @override
+  final Map<String, String>? environment = null;
+
   ProcessResult Function(
     String executable,
     List<String> arguments, {
