@@ -16745,6 +16745,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       // The shorthand expression is inferred in the empty context and then type
       // inference infers the type arguments.
+      ensureMemberType(member);
       FunctionType functionType = member.function.computeThisFunctionType(
         Nullability.nonNullable,
       );
@@ -16827,6 +16828,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         // The shorthand expression is inferred in the empty context and then
         // type inference infers the type arguments.
+        ensureMemberType(constructor);
         FunctionType functionType = constructor.function
             .computeThisFunctionType(Nullability.nonNullable);
         InvocationInferenceResult result = inferInvocation(
@@ -16872,6 +16874,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         // The shorthand expression is inferred in the empty context and then
         // type inference infers the type arguments.
+        ensureMemberType(constructor);
         FunctionType functionType = constructor.function
             .computeThisFunctionType(Nullability.nonNullable);
         InvocationInferenceResult result = inferInvocation(
