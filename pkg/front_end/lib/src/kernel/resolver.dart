@@ -50,9 +50,9 @@ import 'assigned_variables_impl.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
 import 'body_builder.dart';
 import 'body_builder_context.dart';
-import 'external_ast_helper.dart';
+import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
-import 'internal_ast_helper.dart' as forest;
+import 'internal_ast_helper.dart' as intern;
 
 part 'resolver_helpers.dart';
 
@@ -1341,7 +1341,7 @@ class Resolver {
         if (inferInitializer) {
           if (!parameter.initializerWasInferred) {
             // Coverage-ignore(suite): Not run.
-            initializer ??= forest.createNullLiteral(
+            initializer ??= intern.createNullLiteral(
               // TODO(ahe): Should store: originParameter.fileOffset
               // https://github.com/dart-lang/sdk/issues/32289
               noLocation,

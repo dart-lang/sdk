@@ -22,7 +22,7 @@ import '../builder/builder.dart';
 import '../builder/compilation_unit.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'internal_ast.dart';
-import 'internal_ast_helper.dart' as forest;
+import 'internal_ast_helper.dart' as intern;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
 class LoadLibraryBuilder extends NamedBuilderImpl {
@@ -69,7 +69,7 @@ class LoadLibraryBuilder extends NamedBuilderImpl {
   Uri get fileUri => parent.fileUri;
 
   LoadLibrary createLoadLibrary(int charOffset, ActualArguments? arguments) {
-    return forest.createLoadLibrary(charOffset, importDependency, arguments);
+    return intern.createLoadLibrary(charOffset, importDependency, arguments);
   }
 
   Procedure createTearoffMethod() {

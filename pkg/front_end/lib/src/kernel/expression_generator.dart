@@ -52,9 +52,9 @@ import '../source/source_member_builder.dart';
 import '../source/stack_listener_impl.dart' show offsetForToken;
 import 'constness.dart' show Constness;
 import 'expression_generator_helper.dart';
-import 'external_ast_helper.dart';
+import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
-import 'internal_ast_helper.dart' as _forest;
+import 'internal_ast_helper.dart' as intern;
 import 'load_library_builder.dart';
 import 'utils.dart';
 
@@ -152,7 +152,7 @@ abstract class Generator {
   }) {
     return buildCompoundAssignment(
       binaryOperator,
-      _forest.createIntLiteral(operatorOffset, 1),
+      intern.createIntLiteral(operatorOffset, 1),
       operatorOffset: operatorOffset,
       // TODO(johnniwinther): We are missing some void contexts here. For
       // instance `++a?.b;` is not providing a void context making it default
@@ -211,7 +211,7 @@ abstract class Generator {
 
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
     return <Initializer>[
-      createInvalidInitializer(
+      extern.createInvalidInitializer(
         _helper.buildProblem(
           message: diag.invalidInitializer,
           fileUri: _helper.uri,
@@ -286,7 +286,7 @@ abstract class Generator {
     Expression right, {
     required bool isNot,
   }) {
-    return _forest.createEquals(
+    return intern.createEquals(
       offsetForToken(token),
       buildSimpleRead(),
       right,
@@ -299,7 +299,7 @@ abstract class Generator {
     Name binaryName,
     Expression right,
   ) {
-    return _forest.createBinary(
+    return intern.createBinary(
       offsetForToken(token),
       buildSimpleRead(),
       binaryName,
@@ -308,7 +308,7 @@ abstract class Generator {
   }
 
   Expression_Generator buildUnaryOperation(Token token, Name unaryName) {
-    return _forest.createUnary(
+    return intern.createUnary(
       offsetForToken(token),
       unaryName,
       buildSimpleRead(),
@@ -396,7 +396,7 @@ abstract class Generator {
   /// If this generator is not for an assignable variable, an error is reported
   /// and an invalid pattern is returned.
   Pattern buildPatternAssignment(Token token) {
-    return _forest.createInvalidPattern(
+    return intern.createInvalidPattern(
       problemReporting.buildProblem(
         compilerContext: compilerContext,
         message: diag.patternAssignmentNotLocalVariable,
@@ -521,7 +521,7 @@ class VariableUseGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    Expression binary = _forest.createBinary(
+    Expression binary = intern.createBinary(
       operatorOffset,
       _createRead(),
       binaryOperator,
@@ -585,7 +585,7 @@ class VariableUseGenerator extends Generator {
     required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
-    return _forest.createExpressionInvocation(
+    return intern.createExpressionInvocation(
       adjustForImplicitCall(_plainNameForRead, offset),
       buildSimpleRead(),
       typeArguments,
@@ -610,7 +610,7 @@ class VariableUseGenerator extends Generator {
 
   @override
   Pattern buildPatternAssignment(Token token) {
-    Pattern pattern = _forest.createAssignedVariablePattern(
+    Pattern pattern = intern.createAssignedVariablePattern(
       token.charOffset,
       variable,
     );
@@ -747,7 +747,7 @@ class PropertyAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    return _forest.createPropertyGet(
+    return intern.createPropertyGet(
       fileOffset,
       receiver,
       name,
@@ -761,7 +761,7 @@ class PropertyAccessGenerator extends Generator {
     bool voidContext = false,
     bool forOutput = false,
   }) {
-    return _forest.createPropertySet(
+    return intern.createPropertySet(
       fileOffset,
       receiver,
       name,
@@ -880,7 +880,7 @@ class PropertyAccessGenerator extends Generator {
     Name name,
     bool isNullAware,
   ) {
-    if (_forest.isThisExpression(receiver)) {
+    if (intern.isThisExpression(receiver)) {
       // Coverage-ignore-block(suite): Not run.
       return new ThisPropertyAccessGenerator(
         helper,
@@ -960,8 +960,8 @@ class ThisPropertyAccessGenerator extends Generator {
   int get _nameOffset => fileOffset;
 
   Expression get _thisExpression => thisVariable != null
-      ? _forest.createVariableGet(thisOffset ?? fileOffset, thisVariable!)
-      : _forest.createThisExpression(thisOffset ?? fileOffset);
+      ? intern.createVariableGet(thisOffset ?? fileOffset, thisVariable!)
+      : intern.createThisExpression(thisOffset ?? fileOffset);
 
   @override
   Expression buildSimpleRead() {
@@ -970,7 +970,7 @@ class ThisPropertyAccessGenerator extends Generator {
 
   Expression _createRead() {
     _helper.readInternalThisVariable();
-    return _forest.createPropertyGet(
+    return intern.createPropertyGet(
       fileOffset,
       _thisExpression,
       name,
@@ -993,7 +993,7 @@ class ThisPropertyAccessGenerator extends Generator {
     required bool forEffect,
   }) {
     _helper.readInternalThisVariable();
-    return _forest.createPropertySet(
+    return intern.createPropertySet(
       fileOffset,
       _thisExpression,
       name,
@@ -1026,7 +1026,7 @@ class ThisPropertyAccessGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    Expression binary = _forest.createBinary(
+    Expression binary = intern.createBinary(
       operatorOffset,
       _createRead(),
       binaryOperator,
@@ -1148,7 +1148,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    return _forest.createPropertyGet(
+    return intern.createPropertyGet(
       fileOffset,
       receiver,
       name,
@@ -1162,7 +1162,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
     bool voidContext = false,
     bool forOutput = false,
   }) {
-    return _forest.createPropertySet(
+    return intern.createPropertySet(
       fileOffset,
       receiver,
       name,
@@ -1375,7 +1375,7 @@ class SuperPropertyAccessGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    Expression binary = _forest.createBinary(
+    Expression binary = intern.createBinary(
       operatorOffset,
       _createRead(),
       binaryOperator,
@@ -1488,7 +1488,7 @@ class SuperPropertyAccessGenerator extends Generator {
         kind: UnresolvedKind.Method,
       );
     } else if (isFieldOrGetter(getter)) {
-      return _forest.createExpressionInvocation(
+      return intern.createExpressionInvocation(
         offset,
         buildSimpleRead(),
         typeArguments,
@@ -1559,7 +1559,7 @@ class IndexedAccessGenerator extends Generator {
   @override
   Expression buildSimpleRead() {
     _helper.readInternalThisVariable();
-    return _forest.createIndexGet(
+    return intern.createIndexGet(
       fileOffset,
       receiver,
       index,
@@ -1573,7 +1573,7 @@ class IndexedAccessGenerator extends Generator {
     bool voidContext = false,
     bool forOutput = false,
   }) {
-    return _forest.createIndexSet(
+    return intern.createIndexSet(
       fileOffset,
       receiver,
       index,
@@ -1631,7 +1631,7 @@ class IndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = _forest.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(operatorOffset, 1);
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -1651,7 +1651,7 @@ class IndexedAccessGenerator extends Generator {
     bool isTypeArgumentsInForest = false,
   }) {
     _helper.readInternalThisVariable();
-    return _forest.createExpressionInvocation(
+    return intern.createExpressionInvocation(
       arguments.fileOffset,
       buildSimpleRead(),
       typeArguments,
@@ -1691,7 +1691,7 @@ class IndexedAccessGenerator extends Generator {
     Expression index, {
     required bool isNullAware,
   }) {
-    if (_forest.isThisExpression(receiver)) {
+    if (intern.isThisExpression(receiver)) {
       // Coverage-ignore-block(suite): Not run.
       return new ThisIndexedAccessGenerator(
         helper,
@@ -1739,8 +1739,8 @@ class ThisIndexedAccessGenerator extends Generator {
   @override
   Expression buildSimpleRead() {
     _helper.readInternalThisVariable();
-    Expression receiver = _forest.createThisExpression(fileOffset);
-    return _forest.createIndexGet(
+    Expression receiver = intern.createThisExpression(fileOffset);
+    return intern.createIndexGet(
       fileOffset,
       receiver,
       index,
@@ -1755,8 +1755,8 @@ class ThisIndexedAccessGenerator extends Generator {
     bool forOutput = false,
   }) {
     _helper.readInternalThisVariable();
-    Expression receiver = _forest.createThisExpression(fileOffset);
-    return _forest.createIndexSet(
+    Expression receiver = intern.createThisExpression(fileOffset);
+    return intern.createIndexSet(
       fileOffset,
       receiver,
       index,
@@ -1774,7 +1774,7 @@ class ThisIndexedAccessGenerator extends Generator {
     bool voidContext = false,
   }) {
     _helper.readInternalThisVariable();
-    Expression receiver = _forest.createThisExpression(fileOffset);
+    Expression receiver = intern.createThisExpression(fileOffset);
     return new IfNullIndexSet(
       receiver: receiver,
       index: index,
@@ -1797,7 +1797,7 @@ class ThisIndexedAccessGenerator extends Generator {
     bool isPostIncDec = false,
   }) {
     _helper.readInternalThisVariable();
-    Expression receiver = _forest.createThisExpression(fileOffset);
+    Expression receiver = intern.createThisExpression(fileOffset);
     return new CompoundIndexSet(
       receiver: receiver,
       index: index,
@@ -1818,7 +1818,7 @@ class ThisIndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = _forest.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(operatorOffset, 1);
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -1837,7 +1837,7 @@ class ThisIndexedAccessGenerator extends Generator {
     required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
-    return _forest.createExpressionInvocation(
+    return intern.createExpressionInvocation(
       offset,
       buildSimpleRead(),
       typeArguments,
@@ -1905,12 +1905,12 @@ class SuperIndexedAccessGenerator extends Generator {
       );
     } else {
       _helper.readInternalThisVariable();
-      return _forest.createSuperMethodInvocation(
+      return intern.createSuperMethodInvocation(
         fileOffset,
         indexGetName,
         getter,
         null,
-        _forest.createArguments(
+        intern.createArguments(
           fileOffset,
           arguments: [new PositionalArgument(index)],
           hasNamedBeforePositional: false,
@@ -1938,12 +1938,12 @@ class SuperIndexedAccessGenerator extends Generator {
     } else {
       if (voidContext) {
         _helper.readInternalThisVariable();
-        return _forest.createSuperMethodInvocation(
+        return intern.createSuperMethodInvocation(
           fileOffset,
           indexSetName,
           setter,
           null,
-          _forest.createArguments(
+          intern.createArguments(
             fileOffset,
             arguments: [
               new PositionalArgument(index),
@@ -2018,7 +2018,7 @@ class SuperIndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = _forest.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(operatorOffset, 1);
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -2037,7 +2037,7 @@ class SuperIndexedAccessGenerator extends Generator {
     bool isTypeArgumentsInForest = false,
   }) {
     _helper.readInternalThisVariable();
-    return _forest.createExpressionInvocation(
+    return intern.createExpressionInvocation(
       offset,
       buildSimpleRead(),
       typeArguments,
@@ -2201,9 +2201,9 @@ class StaticAccessGenerator extends Generator {
       read = _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
     } else {
       if (readTarget is Procedure && readTarget.kind == ProcedureKind.Method) {
-        read = _forest.createStaticTearOff(fileOffset, readTarget);
+        read = intern.createStaticTearOff(fileOffset, readTarget);
       } else {
-        read = _forest.createStaticGet(fileOffset, readTarget);
+        read = intern.createStaticGet(fileOffset, readTarget);
       }
     }
     return read;
@@ -2251,7 +2251,7 @@ class StaticAccessGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    Expression binary = _forest.createBinary(
+    Expression binary = intern.createBinary(
       operatorOffset,
       _createRead(),
       binaryOperator,
@@ -2336,7 +2336,7 @@ class StaticAccessGenerator extends Generator {
     }
     if (invokeTarget == null ||
         (readTarget != null && isFieldOrGetter(readTarget!))) {
-      return _forest.createExpressionInvocation(
+      return intern.createExpressionInvocation(
         offset + (readTarget?.name.text.length ?? 0),
         buildSimpleRead(),
         typeArguments,
@@ -2529,7 +2529,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
       extensionTypeArguments = [];
       for (TypeParameter typeParameter in extensionTypeParameters!) {
         extensionTypeArguments.add(
-          _forest.createTypeParameterTypeWithDefaultNullabilityForLibrary(
+          intern.createTypeParameterTypeWithDefaultNullabilityForLibrary(
             typeParameter,
             extension.enclosingLibrary,
           ),
@@ -3464,7 +3464,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = _forest.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(operatorOffset, 1);
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -3483,7 +3483,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
-    return _forest.createExpressionInvocation(
+    return intern.createExpressionInvocation(
       offset,
       buildSimpleRead(),
       typeArguments,
@@ -3711,7 +3711,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
       offset: fileOffset,
       typeArgumentBuilders: null,
       typeArguments: null,
-      arguments: _forest.createArguments(
+      arguments: intern.createArguments(
         fileOffset,
         arguments: [new PositionalArgument(right)],
         hasNamedBeforePositional: false,
@@ -3728,7 +3728,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
       offset: fileOffset,
       typeArgumentBuilders: null,
       typeArguments: null,
-      arguments: _forest.createArgumentsEmpty(fileOffset),
+      arguments: intern.createArgumentsEmpty(fileOffset),
     );
   }
 
@@ -3899,7 +3899,7 @@ class LoadLibraryGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = _forest.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(operatorOffset, 1);
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -4344,7 +4344,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           token.length,
         );
       } else {
-        _expression = _forest.createTypeLiteral(
+        _expression = intern.createTypeLiteral(
           offsetForToken(token),
           _helper.buildDartType(
             buildTypeWithResolvedArguments(
@@ -4547,23 +4547,23 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     length: name.text.length,
                   );
                 }
-                tearOffExpression = _forest.createConstructorTearOff(
+                tearOffExpression = intern.createConstructorTearOff(
                   token.charOffset,
                   tearOff,
                 );
               } else if (tearOff is Procedure) {
                 if (tearOff.isRedirectingFactory) {
-                  tearOffExpression = _forest.createRedirectingFactoryTearOff(
+                  tearOffExpression = intern.createRedirectingFactoryTearOff(
                     token.charOffset,
                     tearOff,
                   );
                 } else if (tearOff.isFactory) {
-                  tearOffExpression = _forest.createConstructorTearOff(
+                  tearOffExpression = intern.createConstructorTearOff(
                     token.charOffset,
                     tearOff,
                   );
                 } else {
-                  tearOffExpression = _forest.createStaticTearOff(
+                  tearOffExpression = intern.createStaticTearOff(
                     token.charOffset,
                     tearOff,
                   );
@@ -4644,12 +4644,12 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 if (tearOffLowering != null) {
                   if (tearOffLowering.isFactory) {
                     // Coverage-ignore-block(suite): Not run.
-                    return _forest.createConstructorTearOff(
+                    return intern.createConstructorTearOff(
                       token.charOffset,
                       tearOffLowering,
                     );
                   } else {
-                    return _forest.createStaticTearOff(
+                    return intern.createStaticTearOff(
                       token.charOffset,
                       tearOffLowering,
                     );
@@ -4673,7 +4673,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                   substitutedTypeArguments,
                 );
 
-                tearOffExpression = _forest.createTypedefTearOff(
+                tearOffExpression = intern.createTypedefTearOff(
                   token.charOffset,
                   freshTypeParameters.freshTypeParameters,
                   tearOffExpression,
@@ -4684,7 +4684,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     builtTypeArguments.isNotEmpty) {
                   builtTypeArguments = unaliasTypes(builtTypeArguments)!;
 
-                  tearOffExpression = _forest.createInstantiation(
+                  tearOffExpression = intern.createInstantiation(
                     token.charOffset,
                     tearOffExpression,
                     builtTypeArguments,
@@ -5097,7 +5097,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = _forest.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(operatorOffset, 1);
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -5115,7 +5115,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
     required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
-    return _forest.createExpressionInvocation(
+    return intern.createExpressionInvocation(
       adjustForImplicitCall(targetName, offset),
       _createRead(),
       typeArguments,
@@ -5142,7 +5142,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
 
   @override
   Pattern buildPatternAssignment(Token token) {
-    return _forest.createInvalidPattern(
+    return intern.createInvalidPattern(
       _makeInvalidWrite(),
       declaredVariables: [],
     );
@@ -5179,7 +5179,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
   @override
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
     return <Initializer>[
-      createInvalidInitializer(buildError(kind: UnresolvedKind.Setter)),
+      extern.createInvalidInitializer(buildError(kind: UnresolvedKind.Setter)),
     ];
   }
 
@@ -5381,7 +5381,9 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
   @override
   // Coverage-ignore(suite): Not run.
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[createInvalidInitializer(_createInvalidExpression())];
+    return <Initializer>[
+      extern.createInvalidInitializer(_createInvalidExpression()),
+    ];
   }
 
   @override
@@ -5999,7 +6001,7 @@ class PrefixUseGenerator extends Generator {
       compilerContext: compilerContext,
       expression: _helper.evaluateArgumentsBefore(
         arguments,
-        _forest.createNullLiteral(fileOffset),
+        intern.createNullLiteral(fileOffset),
       ),
       message: diag.cantUsePrefixAsExpression.withLocation(
         _helper.uri,
@@ -6375,7 +6377,7 @@ class ParserErrorGenerator extends Generator {
 
   @override
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[createInvalidInitializer(buildProblem())];
+    return <Initializer>[extern.createInvalidInitializer(buildProblem())];
   }
 
   @override
@@ -6551,7 +6553,7 @@ class ThisAccessGenerator extends Generator {
         return buildFieldInitializerError(null);
       } else {
         _helper.readInternalThisVariable();
-        return _forest.createThisExpression(fileOffset);
+        return intern.createThisExpression(fileOffset);
       }
     } else {
       return _helper.buildProblem(
@@ -6580,7 +6582,7 @@ class ThisAccessGenerator extends Generator {
   @override
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
     InvalidExpression error = buildFieldInitializerError(initializedFields);
-    return <Initializer>[createInvalidInitializer(error)];
+    return <Initializer>[extern.createInvalidInitializer(error)];
   }
 
   @override
@@ -6621,7 +6623,7 @@ class ThisAccessGenerator extends Generator {
       } else {
         _helper.readInternalThisVariable();
         return _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset),
+          intern.createThisExpression(fileOffset),
           name,
           selector.typeArguments,
           selector.arguments,
@@ -6675,9 +6677,9 @@ class ThisAccessGenerator extends Generator {
       );
     } else {
       _helper.readInternalThisVariable();
-      return _forest.createExpressionInvocation(
+      return intern.createExpressionInvocation(
         offset,
-        _forest.createThisExpression(fileOffset),
+        intern.createThisExpression(fileOffset),
         typeArguments,
         arguments,
       );
@@ -6696,7 +6698,7 @@ class ThisAccessGenerator extends Generator {
       Expression result = _helper.buildSuperInvocation(
         equalsName,
         null,
-        _forest.createArguments(
+        intern.createArguments(
           offset,
           arguments: [new PositionalArgument(right)],
           hasNamedBeforePositional: false,
@@ -6705,7 +6707,7 @@ class ThisAccessGenerator extends Generator {
         offset,
       );
       if (isNot) {
-        result = _forest.createNot(offset, result);
+        result = intern.createNot(offset, result);
       }
       return result;
     }
@@ -6725,7 +6727,7 @@ class ThisAccessGenerator extends Generator {
       return _helper.buildSuperInvocation(
         binaryName,
         null,
-        _forest.createArguments(
+        intern.createArguments(
           offset,
           arguments: [new PositionalArgument(right)],
           hasNamedBeforePositional: false,
@@ -6745,7 +6747,7 @@ class ThisAccessGenerator extends Generator {
       return _helper.buildSuperInvocation(
         unaryName,
         null,
-        _forest.createArgumentsEmpty(offset),
+        intern.createArgumentsEmpty(offset),
         offset,
       );
     }
@@ -6765,7 +6767,7 @@ class ThisAccessGenerator extends Generator {
       Constructor? constructor;
       if (result != null) {
         if (result.isInvalidLookup) {
-          return createInvalidInitializer(
+          return extern.createInvalidInitializer(
             LookupResult.createDuplicateExpression(
               result,
               context: _helper.compilerContext,
@@ -6792,7 +6794,7 @@ class ThisAccessGenerator extends Generator {
       }
       if (constructor == null) {
         String fullName = _helper.superConstructorNameForDiagnostics(name.text);
-        return createInvalidInitializer(
+        return extern.createInvalidInitializer(
           _helper.buildProblem(
             message: diag.superclassHasNoConstructor.withArguments(
               constructorName: fullName,
@@ -7019,7 +7021,7 @@ class ParenthesizedExpressionGenerator extends AbstractReadOnlyAccessGenerator {
 
   @override
   Expression _createRead() =>
-      _forest.createParenthesized(expression.fileOffset, expression);
+      intern.createParenthesized(expression.fileOffset, expression);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -7351,7 +7353,7 @@ class AugmentSuperAccessGenerator extends Generator {
     // augmented getters, and augmenting fields only have read access to the
     // augmented field initializer expression.
 
-    Expression binary = _forest.createBinary(
+    Expression binary = intern.createBinary(
       operatorOffset,
       _createRead(),
       binaryOperator,
