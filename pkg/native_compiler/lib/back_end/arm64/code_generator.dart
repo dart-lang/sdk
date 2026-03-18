@@ -814,14 +814,253 @@ final class Arm64CodeGenerator extends CodeGenerator {
     _asm.unimplemented('Unimplemented: code generation for NullCheck');
   }
 
+  int _getNumberOfInputsForSubtypeTestCache(
+    ast.DartType type, {
+    required bool hasInstantiatorTypeArgs,
+    required bool hasFunctionTypeArgs,
+  }) {
+    if (type is ast.ExtensionType) {
+      type = type.extensionTypeErasure;
+    }
+    switch (type) {
+      case ast.NullType():
+      case ast.NeverType():
+      case ast.InterfaceType() when type.classNode.typeParameters.isEmpty:
+        return 1;
+      case ast.InterfaceType():
+      case ast.FutureOrType():
+        if (hasFunctionTypeArgs) {
+          return 4;
+        }
+        if (hasInstantiatorTypeArgs) {
+          return 3;
+        }
+        return 2;
+      case ast.FunctionType():
+      case ast.RecordType():
+      case ast.TypeParameterType():
+        return 6;
+      case ast.ExtensionType():
+      case ast.DynamicType():
+      case ast.VoidType():
+      case ast.StructuralParameterType():
+      case ast.IntersectionType():
+      case ast.TypedefType():
+      case ast.InvalidType():
+      case ast.AuxiliaryType():
+      case ast.ExperimentalType():
+        throw 'Unexpected type ${type.runtimeType} $type';
+    }
+  }
+
   @override
   void visitTypeCast(TypeCast instr) {
-    _asm.unimplemented('Unimplemented: code generation for TypeCast');
+    final operandReg = inputReg(instr, 0);
+    final resultReg = outputReg(instr);
+    if (operandReg != resultReg) {
+      _asm.mov(resultReg, operandReg);
+    }
+
+    if (!instr.isChecked) {
+      return;
+    }
+
+    final done = Label();
+    late final Label slowPath = addSlowPath(() {
+      _asm.unimplemented(
+        'Unimplemented: code generation for TypeCast slow path',
+      );
+      _asm.b(done);
+    });
+
+    // Handle a few built-in types, use TTS for other types.
+    final type = instr.testedType;
+    switch (type) {
+      case ObjectType():
+        _asm.cmp(resultReg, nullReg);
+        _asm.b(slowPath, .equal);
+      case NullType():
+        _asm.cmp(resultReg, nullReg);
+        _asm.b(slowPath, .notEqual);
+      case IntType():
+        _asm.tbz(resultReg, smiBit, done);
+        _asm.loadClassId(tempReg, resultReg);
+        _asm.cmpImmediate(tempReg, ClassId.MintCid.index);
+        _asm.b(slowPath, .notEqual);
+      case DoubleType():
+        _asm.tbz(resultReg, smiBit, slowPath);
+        _asm.loadClassId(tempReg, resultReg);
+        _asm.cmpImmediate(tempReg, ClassId.DoubleCid.index);
+        _asm.b(slowPath, .notEqual);
+      case BoolType():
+        _asm.tbz(resultReg, smiBit, slowPath);
+        _asm.loadClassId(tempReg, resultReg);
+        _asm.cmpImmediate(tempReg, ClassId.BoolCid.index);
+        _asm.b(slowPath, .notEqual);
+      case StringType():
+        _asm.tbz(resultReg, smiBit, slowPath);
+        _asm.loadClassId(tempReg, resultReg);
+        _asm.cmpImmediate(tempReg, ClassId.OneByteStringCid.index);
+        _asm.b(done, .equal);
+        _asm.cmpImmediate(tempReg, ClassId.TwoByteStringCid.index);
+        _asm.b(slowPath, .notEqual);
+      default:
+        _asm.tbz(
+          resultReg,
+          smiBit,
+          const IntType().isSubtypeOf(type) ? done : slowPath,
+        );
+        if (type.isNullable) {
+          _asm.cmp(resultReg, nullReg);
+          _asm.b(done, .equal);
+        }
+        final dartType = type.dartType;
+        if (dartType is ast.TypeParameterType) {
+          final declaration = dartType.parameter.declaration;
+          assert(instr.inputCount == 3);
+          final instantiatorTypeArgsReg = inputReg(instr, 1);
+          final functionTypeArgsReg = inputReg(instr, 2);
+          final typeArgsReg = (declaration is ast.Class)
+              ? instantiatorTypeArgsReg
+              : functionTypeArgsReg;
+          final index = computeIndexOfTypeParameter(dartType.parameter);
+          _asm.cmp(typeArgsReg, nullReg);
+          _asm.b(done, .equal);
+          _asm.ldr(
+            TypeTestingStub.dstTypeReg,
+            _asm.address(
+              typeArgsReg,
+              vmOffsets.TypeArguments_types_offset +
+                  index * objectLayout.compressedWordSize,
+            ),
+          );
+        } else {
+          _asm.loadFromPool(TypeTestingStub.dstTypeReg, dartType);
+        }
+        _asm.ldr(
+          tempReg,
+          _asm.address(
+            TypeTestingStub.dstTypeReg,
+            vmOffsets.AbstractType_type_test_stub_entry_point_offset,
+          ),
+        );
+        bool isNullConstant(Definition def) =>
+            def is Constant && def.value.isNull;
+        final hasInstantiatorTypeArgs =
+            instr.inputCount > 1 && !isNullConstant(instr.inputDefAt(1));
+        final hasFunctionTypeArgs =
+            instr.inputCount > 1 && !isNullConstant(instr.inputDefAt(2));
+        final stc = SubtypeTestCache(
+          _getNumberOfInputsForSubtypeTestCache(
+            dartType,
+            hasInstantiatorTypeArgs: hasInstantiatorTypeArgs,
+            hasFunctionTypeArgs: hasFunctionTypeArgs,
+          ),
+        );
+        _asm.loadFromPool(TypeTestingStub.subtypeTestCacheReg, stc);
+        _asm.blr(tempReg);
+    }
+
+    _asm.bind(done);
   }
 
   @override
   void visitTypeTest(TypeTest instr) {
-    _asm.unimplemented('Unimplemented: code generation for TypeTest');
+    final operandReg = inputReg(instr, 0);
+    final resultReg = outputReg(instr);
+    final doneFalse = Label();
+    final doneTrue = Label();
+    final done = Label();
+
+    late final Label slowPath = addSlowPath(() {
+      _asm.unimplemented(
+        'Unimplemented: code generation for TypeTest slow path',
+      );
+      _asm.b(done);
+    });
+
+    // Handle a few built-in types, use STC for other types.
+    final type = instr.testedType;
+    switch (type) {
+      case ObjectType():
+        _asm.cmp(operandReg, nullReg);
+        _asm.b(doneTrue, .notEqual);
+      case NullType():
+        _asm.cmp(resultReg, nullReg);
+        _asm.b(doneTrue, .equal);
+      case IntType():
+        _asm.tbz(resultReg, smiBit, doneTrue);
+        _asm.loadClassId(tempReg, resultReg);
+        _asm.cmpImmediate(tempReg, ClassId.MintCid.index);
+        _asm.b(doneTrue, .equal);
+      case DoubleType():
+        _asm.tbz(resultReg, smiBit, doneFalse);
+        _asm.loadClassId(tempReg, resultReg);
+        _asm.cmpImmediate(tempReg, ClassId.DoubleCid.index);
+        _asm.b(doneTrue, .equal);
+      case BoolType():
+        _asm.tbz(resultReg, smiBit, doneFalse);
+        _asm.loadClassId(tempReg, resultReg);
+        _asm.cmpImmediate(tempReg, ClassId.BoolCid.index);
+        _asm.b(doneTrue, .equal);
+      case StringType():
+        _asm.tbz(resultReg, smiBit, doneFalse);
+        _asm.loadClassId(tempReg, resultReg);
+        _asm.cmpImmediate(tempReg, ClassId.OneByteStringCid.index);
+        _asm.b(doneTrue, .equal);
+        _asm.cmpImmediate(tempReg, ClassId.TwoByteStringCid.index);
+        _asm.b(doneTrue, .equal);
+      default:
+        _asm.tbz(
+          resultReg,
+          smiBit,
+          const IntType().isSubtypeOf(type) ? doneTrue : doneFalse,
+        );
+        if (type.isNullable) {
+          _asm.cmp(resultReg, nullReg);
+          _asm.b(doneTrue, .equal);
+        }
+        bool isNullConstant(Definition def) =>
+            def is Constant && def.value.isNull;
+        final hasInstantiatorTypeArgs =
+            instr.inputCount > 1 && !isNullConstant(instr.inputDefAt(1));
+        final hasFunctionTypeArgs =
+            instr.inputCount > 1 && !isNullConstant(instr.inputDefAt(2));
+        final stc = SubtypeTestCache(
+          _getNumberOfInputsForSubtypeTestCache(
+            type.dartType,
+            hasInstantiatorTypeArgs: hasInstantiatorTypeArgs,
+            hasFunctionTypeArgs: hasFunctionTypeArgs,
+          ),
+        );
+        final stub = switch (stc.numInputs) {
+          1 => StubCode.Subtype1TestCache,
+          2 => StubCode.Subtype2TestCache,
+          3 => StubCode.Subtype3TestCache,
+          4 => StubCode.Subtype4TestCache,
+          6 => StubCode.Subtype6TestCache,
+          _ =>
+            throw 'Unexpected number of SubtypeTestCache inputs ${stc.numInputs} (type $type)',
+        };
+        _asm.loadFromPool(TypeTestingStub.subtypeTestCacheReg, stc);
+        _asm.loadFromPool(codeReg, stub);
+        _asm.ldr(
+          tempReg,
+          _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
+        );
+        _asm.blr(tempReg);
+        _asm.cmp(TypeTestingStub.subtypeTestCacheResultReg, nullReg);
+        _asm.b(slowPath, .equal);
+        _asm.mov(resultReg, TypeTestingStub.subtypeTestCacheResultReg);
+        _asm.b(done);
+    }
+
+    _asm.bind(doneFalse);
+    _asm.loadConstant(resultReg, ConstantValue.fromBool(false));
+    _asm.b(done);
+    _asm.bind(doneTrue);
+    _asm.loadConstant(resultReg, ConstantValue.fromBool(true));
+    _asm.bind(done);
   }
 
   @override
@@ -1226,6 +1465,13 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  Location getMoveTempRegister(RegisterClass registerClass) =>
+      switch (registerClass) {
+        .cpu => tempReg,
+        .fpu => fpTempReg,
+      };
+
+  @override
   void generateMove(Location from, Location to) {
     switch (from) {
       case Register():
@@ -1264,15 +1510,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
     _asm.unimplemented(
       'Unimplemented: code generation for generateLoadConstant',
     );
-  }
-
-  @override
-  void generatePush(Location loc) {
-    _asm.unimplemented('Unimplemented: code generation for generatePush');
-  }
-
-  void generatePop(Location loc) {
-    _asm.unimplemented('Unimplemented: code generation for generatePop');
   }
 }
 

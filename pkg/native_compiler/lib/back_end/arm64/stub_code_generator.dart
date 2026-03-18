@@ -108,6 +108,16 @@ final class WriteBarrierStub extends Arm64StubCodeGenerator {
   }
 }
 
+final class TypeTestingStub {
+  static const Register instanceReg = R0;
+  static const Register dstTypeReg = R8;
+  static const Register instantiatorTypeArgumentsReg = R2;
+  static const Register functionTypeArgumentsReg = R1;
+  static const Register subtypeTestCacheReg = R3;
+  static const Register scratchReg = R4;
+  static const Register subtypeTestCacheResultReg = R7;
+}
+
 final class Arm64StubFactory extends StubFactory {
   final VMOffsets vmOffsets;
   final ObjectLayout objectLayout;

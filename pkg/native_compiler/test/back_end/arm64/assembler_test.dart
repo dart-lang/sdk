@@ -311,6 +311,34 @@ void main() {
         'sub csp, fp, r17 uxtx 0\n',
       );
     });
+    test('cmpImmediate', () {
+      asm.cmpImmediate(R1, 0);
+      asm.cmpImmediate(R3, 0xabc);
+      asm.cmpImmediate(R4, 0xabc000);
+      asm.cmpImmediate(R0, 0x1001);
+      asm.cmpImmediate(R6, 0x11223344_55667788);
+      asm.cmpImmediate(FP, -1);
+      asm.cmpImmediate(R4, -0xabc);
+      asm.cmpImmediate(R5, -0xabc000);
+      asm.cmpImmediate(R7, -0x1001);
+      expectDisassembly(
+        'cmp r1, #0x0\n'
+        'cmp r3, #0xabc\n'
+        'cmp r4, #0xabc000\n'
+        'movz r17, #0x1001\n'
+        'cmp r0, r17\n'
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'cmp r6, r17\n'
+        'cmn fp, #0x1\n'
+        'cmn r4, #0xabc\n'
+        'cmn r5, #0xabc000\n'
+        'movn r17, #0x1000\n'
+        'cmp r7, r17\n',
+      );
+    });
     test('andImmediate', () {
       asm.andImmediate(R1, R2, 0);
       asm.andImmediate(R1, R2, 0, .u32);
@@ -442,6 +470,21 @@ void main() {
         'cmp r2, r3\n'
         'bcc -8\n'
         'add r0, r0, #0x1\n',
+      );
+    });
+    test('loadClassId', () {
+      asm.loadClassId(R0, R0);
+      asm.loadClassId(R1, R5);
+      final lowBit = vmOffsets.UntaggedObject_kClassIdTagPos;
+      final highBit =
+          vmOffsets.UntaggedObject_kClassIdTagPos +
+          vmOffsets.UntaggedObject_kClassIdTagSize -
+          1;
+      expectDisassembly(
+        'ldr r0, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r0, r0, #$lowBit, #$highBit\n'
+        'ldr r1, [r5, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r1, r1, #$lowBit, #$highBit\n',
       );
     });
   });

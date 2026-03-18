@@ -686,6 +686,26 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   }
 
   @override
+  void cmpImmediate(
+    Register reg,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+    Register scratch = temp2Reg,
+  ]) {
+    assert(sz.is32or64);
+    assert(_isInt(sz.bitWidth, value) || _isUint(sz.bitWidth, value));
+    if (canEncodeImm12(value)) {
+      cmp(reg, Immediate(value), sz);
+    } else if (canEncodeImm12(-value)) {
+      cmn(reg, Immediate(-value), sz);
+    } else {
+      assert(reg != scratch);
+      loadImmediate(scratch, value);
+      cmp(reg, scratch, sz);
+    }
+  }
+
+  @override
   void andImmediate(
     Register dst,
     Register src,
@@ -808,6 +828,16 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     }
 
     addImmediate(resultReg, resultReg, heapObjectTag);
+  }
+
+  void loadClassId(Register result, Register object) {
+    ldr(result, fieldAddress(object, vmOffsets.Object_tags_offset));
+    ubfx(
+      result,
+      result,
+      vmOffsets.UntaggedObject_kClassIdTagPos,
+      vmOffsets.UntaggedObject_kClassIdTagSize,
+    );
   }
 
   // [rd] and [rn] can be SP if [o] is Immediate or ExtRegOperand.

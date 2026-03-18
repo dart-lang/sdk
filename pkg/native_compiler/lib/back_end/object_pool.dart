@@ -122,3 +122,13 @@ final class StaticFieldOffset extends SpecializedEntry {
   bool operator ==(Object other) =>
       other is StaticFieldOffset && this.field == other.field;
 }
+
+/// Object pool entry representing a subtype test cache.
+/// This is not a specialized entry, it is encoded as a regular object reference.
+final class SubtypeTestCache {
+  final int numInputs;
+  SubtypeTestCache(this.numInputs);
+
+  // Use identity hashCode and == as separate subtype test caches are
+  // used for each type check.
+}

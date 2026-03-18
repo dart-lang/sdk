@@ -174,6 +174,13 @@ abstract base class Assembler {
     OperandSize sz = OperandSize.s64,
   ]);
 
+  /// compare [reg] with arbitrary integer [value].
+  void cmpImmediate(
+    Register reg,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]);
+
   /// [dst] = bitwise and ([src], arbitrary integer [value]).
   void andImmediate(
     Register dst,

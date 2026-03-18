@@ -58,6 +58,7 @@ class ListDeserializationCluster;
 class MapDeserializationCluster;
 class ObjectPoolDeserializationCluster;
 class SetDeserializationCluster;
+class SubtypeTestCacheDeserializationCluster;
 class TypeArgumentsDeserializationCluster;
 }  // namespace module_snapshot
 
@@ -2789,6 +2790,7 @@ class UntaggedSubtypeTestCache : public UntaggedObject {
   uint32_t num_occupied_;
 
   friend class Interpreter;
+  friend class module_snapshot::SubtypeTestCacheDeserializationCluster;
 };
 
 class UntaggedLoadingUnit : public UntaggedObject {

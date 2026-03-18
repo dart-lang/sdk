@@ -220,19 +220,14 @@ abstract base class CodeGenerator extends Pass
         }
       }
     }
-    for (final move in instr.moves) {
-      if (move is Move) {
-        final from = move.from.physicalLocation;
-        final to = move.to.physicalLocation;
-
-        if (map.containsKey(from)) {
-          if (map.containsKey(to)) {
-            _generateDependentMoves(from, to, map);
-          } else {
-            generateMove(from, to);
-            map.remove(from);
-          }
-        }
+    while (map.isNotEmpty) {
+      final from = map.keys.first;
+      final to = map[from]!;
+      if (map.containsKey(to)) {
+        _generateDependentMoves(from, to, map);
+      } else {
+        generateMove(from, to);
+        map.remove(from);
       }
     }
     for (final move in instr.moves) {
@@ -248,23 +243,28 @@ abstract base class CodeGenerator extends Pass
     Map<Location, Location> moves,
   ) {
     assert(from != to);
+    assert(moves[from] == to);
     final pendingList = <Location>[from];
     final pendingSet = <Location>{from};
     // Visit the chain of dependent moves until it ends or cycle is found.
     while (moves.containsKey(to)) {
       if (pendingSet.contains(to)) {
-        // Moves form a cycle. Save value on the stack to generate moves.
+        // Moves form a cycle. Save value to the temporary register to generate moves.
         // TODO: regalloc should provide scratch register(s) for
         // ParallelMove instructions if there are available registers.
         // TODO: we can also allocate a scratch register from ParallelMove
         // itself, resusing source registers which are already moved out or
         // destination registers which are not moved in yet.
-        // TODO: as a last resort, allocate a scratch space on the stack and
-        // avoid any push/pop.
-        generatePush(to);
-        for (final from in pendingList.reversed) {
+        final temp = getMoveTempRegister(
+          (to is FPRegister || moves[to] is FPRegister)
+              ? RegisterClass.fpu
+              : RegisterClass.cpu,
+        );
+        generateMove(to, temp);
+        while (pendingList.isNotEmpty) {
+          from = pendingList.removeLast();
           if (from == to) {
-            generatePop(moves.remove(from)!);
+            generateMove(temp, moves.remove(from)!);
             break;
           }
           generateMove(from, moves.remove(from)!);
@@ -281,10 +281,9 @@ abstract base class CodeGenerator extends Pass
     }
   }
 
+  Location getMoveTempRegister(RegisterClass registerClass);
   void generateMove(Location from, Location to);
   void generateLoadConstant(ConstantValue value, Location to);
-  void generatePush(Location loc);
-  void generatePop(Location loc);
 
   @override
   void visitTypeParameters(TypeParameters instr) =>
