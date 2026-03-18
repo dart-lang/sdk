@@ -28,11 +28,6 @@ static const char* const names[] = {
 #define DEFINE_SYMBOL_LITERAL(symbol, literal) literal,
   PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 #undef DEFINE_SYMBOL_LITERAL
-  "",  // matches kTokenTableStart.
-#define DEFINE_TOKEN_SYMBOL_INDEX(t, s, p, a) s,
-  DART_TOKEN_LIST(DEFINE_TOKEN_SYMBOL_INDEX)
-  DART_KEYWORD_LIST(DEFINE_TOKEN_SYMBOL_INDEX)
-#undef DEFINE_TOKEN_SYMBOL_INDEX
     // clang-format on
 };
 #endif
@@ -63,15 +58,6 @@ StringPtr ConcatString::ToSymbol() const {
   result.SetCanonical();
   result.SetHash(hash_);
   return result.ptr();
-}
-
-const String& Symbols::Token(Token::Kind token) {
-  const int tok_index = token;
-  ASSERT((0 <= tok_index) && (tok_index < Token::kNumTokens));
-  // First keyword symbol is in symbol_handles_[kTokenTableStart + 1].
-  const intptr_t token_id = Symbols::kTokenTableStart + 1 + tok_index;
-  ASSERT(symbol_handles_[token_id] != nullptr);
-  return *symbol_handles_[token_id];
 }
 
 void Symbols::Init(IsolateGroup* vm_isolate_group) {

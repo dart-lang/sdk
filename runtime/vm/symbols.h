@@ -16,6 +16,12 @@ class ObjectPointerVisitor;
 
 // One-character symbols are added implicitly.
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
+  V(Empty, "")                                                                 \
+  V(False, "false")                                                            \
+  V(Library, "library")                                                        \
+  V(This, "this")                                                              \
+  V(True, "true")                                                              \
+  V(Void, "void")                                                              \
   V(AbiSpecificInteger, "AbiSpecificInteger")                                  \
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
   V(_AddStreamState, "_AddStreamState")                                        \
@@ -43,7 +49,6 @@ class ObjectPointerVisitor;
   V(ClosureParameter, ":closure")                                              \
   V(Code, "Code")                                                              \
   V(CodeSourceMap, "CodeSourceMap")                                            \
-  V(ColonMatcher, ":matcher")                                                  \
   V(_Completer, "_Completer")                                                  \
   V(ConditionVariable, "ConditionVariable")                                    \
   V(_AsyncCompleter, "_AsyncCompleter")                                        \
@@ -83,7 +88,6 @@ class ObjectPointerVisitor;
   V(DartVMService, "dart:_vmservice")                                          \
   V(DebugProcedureName, ":Eval")                                               \
   V(Default, "Default")                                                        \
-  V(DefaultLabel, ":L")                                                        \
   V(DotCreate, "._create")                                                     \
   V(DotFieldADI, ".fieldADI")                                                  \
   V(DotFieldAI, ".fieldAI")                                                    \
@@ -106,10 +110,10 @@ class ObjectPointerVisitor;
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \
+  V(NotEqualOperator, "!=")                                                    \
   V(Error, "Error")                                                            \
   V(EvalSourceUri, "evaluate:source")                                          \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
-  V(ExceptionVar, ":exception_var")                                            \
   V(Expando, "Expando")                                                        \
   V(ExprTemp, ":expr_temp")                                                    \
   V(FfiAbiSpecificMapping, "_FfiAbiSpecificMapping")                           \
@@ -149,7 +153,6 @@ class ObjectPointerVisitor;
   V(Finalizable, "Finalizable")                                                \
   V(FinalizerBase, "FinalizerBase")                                            \
   V(FinalizerEntry, "FinalizerEntry")                                          \
-  V(FinallyRetVal, ":finally_ret_val")                                         \
   V(FirstArg, "x")                                                             \
   V(Float32List, "Float32List")                                                \
   V(Float32x4, "Float32x4")                                                    \
@@ -241,7 +244,6 @@ class ObjectPointerVisitor;
   V(Record, "Record")                                                          \
   V(RegExp, "RegExp")                                                          \
   V(RightShiftOperator, ">>")                                                  \
-  V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(Script, "Script")                                                          \
   V(SecondArg, "y")                                                            \
   V(SendPort, "SendPort")                                                      \
@@ -515,50 +517,30 @@ class ObjectPointerVisitor;
   V(assetId, "assetId")                                                        \
   V(asyncStarBody, "asyncStarBody")                                            \
   V(byteOffset, "byteOffset")                                                  \
-  V(c_result, ":result")                                                       \
   V(call, "call")                                                              \
   V(callback, "callback")                                                      \
-  V(capture_length, ":capture_length")                                         \
-  V(capture_start_index, ":capture_start_index")                               \
-  V(char_in_capture, ":char_in_capture")                                       \
-  V(char_in_match, ":char_in_match")                                           \
   V(controller, "controller")                                                  \
-  V(current_character, ":current_character")                                   \
-  V(current_position, ":current_position")                                     \
   V(dynamic_assert_assignable_stc_check,                                       \
     ":dynamic_assert_assignable_stc_check")                                    \
   V(dyn_module_callable, "dyn-module:callable")                                \
   V(dyn_module_extendable, "dyn-module:extendable")                            \
   V(dyn_module_implicitly_callable, "dyn-module:implicitly-callable")          \
   V(dyn_module_can_be_used_as_type, "dyn-module:can-be-used-as-type")          \
-  V(end, "end")                                                                \
   V(executable, "executable")                                                  \
-  V(from, "from")                                                              \
   V(get, "get")                                                                \
-  V(index_temp, ":index_temp")                                                 \
   V(isLeaf, "isLeaf")                                                          \
   V(isPaused, "isPaused")                                                      \
   V(main, "main")                                                              \
-  V(match_end_index, ":match_end_index")                                       \
-  V(match_start_index, ":match_start_index")                                   \
   V(name, "name")                                                              \
   V(native_assets, "native-assets")                                            \
   V(null, "null")                                                              \
   V(options, "options")                                                        \
-  V(position_registers, ":position_registers")                                 \
   V(print, "print")                                                            \
   V(process, "process")                                                        \
   V(relative, "relative")                                                      \
   V(result, "result")                                                          \
   V(set, "set")                                                                \
-  V(skip_count, "skipCount")                                                   \
-  V(stack, ":stack")                                                           \
-  V(stack_pointer, ":stack_pointer")                                           \
-  V(start, "start")                                                            \
-  V(start_index_param, ":start_index_param")                                   \
   V(state, "state")                                                            \
-  V(string_param, ":string_param")                                             \
-  V(string_param_length, ":string_param_length")                               \
   V(symbol, "symbol")                                                          \
   V(system, "system")                                                          \
   V(vm_always_consider_inlining, "vm:always-consider-inlining")                \
@@ -602,13 +584,6 @@ class Symbols : public AllStatic {
 #define DEFINE_SYMBOL_INDEX(symbol, literal) k##symbol##Id,
     PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 #undef DEFINE_SYMBOL_INDEX
-
-    kTokenTableStart,  // First token at kTokenTableStart + 1.
-
-#define DEFINE_TOKEN_SYMBOL_INDEX(t, s, p, a) t##Id,
-    DART_TOKEN_LIST(DEFINE_TOKEN_SYMBOL_INDEX) DART_KEYWORD_LIST(
-        DEFINE_TOKEN_SYMBOL_INDEX)
-#undef DEFINE_TOKEN_SYMBOL_INDEX
 
     kNullCharId,  // One char code symbol starts here and takes up 256 entries.
     kMaxPredefinedId = kNullCharId + kMaxOneCharCodeSymbol + 1,
@@ -707,30 +682,12 @@ class Symbols : public AllStatic {
   static const String& Caret() { return *(symbol_handles_[kNullCharId + '^']); }
   static const String& Tilde() { return *(symbol_handles_[kNullCharId + '~']); }
 
-  static const String& Empty() { return *(symbol_handles_[kTokenTableStart]); }
-  static const String& False() { return *(symbol_handles_[kFALSEId]); }
-  static const String& Library() { return *(symbol_handles_[kLIBRARYId]); }
-  static const String& Super() { return *(symbol_handles_[kSUPERId]); }
-  static const String& This() { return *(symbol_handles_[kTHISId]); }
-  static const String& True() { return *(symbol_handles_[kTRUEId]); }
-  static const String& Void() { return *(symbol_handles_[kVOIDId]); }
-
 // Access methods for symbol handles stored in the vm isolate for predefined
 // symbols.
 #define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol, literal)                         \
   static const String& symbol() { return *(symbol_handles_[k##symbol##Id]); }
   PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 #undef DEFINE_SYMBOL_HANDLE_ACCESSOR
-
-// Access methods for symbol handles stored in the vm isolate for keywords.
-#define DEFINE_SYMBOL_HANDLE_ACCESSOR(t, s, p, a)                              \
-  static const String& t() { return *(symbol_handles_[t##Id]); }
-  DART_TOKEN_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
-  DART_KEYWORD_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
-#undef DEFINE_SYMBOL_HANDLE_ACCESSOR
-
-  // Get symbol for scanner token.
-  static const String& Token(Token::Kind token);
 
   // Initialize frequently used symbols in the vm isolate.
   static void Init(IsolateGroup* isolate_group);

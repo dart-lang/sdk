@@ -274,7 +274,7 @@ static Token::Kind RecognizeTokenKindHelper(const String& name) {
     return Token::kNEGATE;
   } else if (name.ptr() == Symbols::EqualOperator().ptr()) {
     return Token::kEQ;
-  } else if (name.ptr() == Symbols::Token(Token::kNE).ptr()) {
+  } else if (name.ptr() == Symbols::NotEqualOperator().ptr()) {
     return Token::kNE;
   } else if (name.ptr() == Symbols::LAngleBracket().ptr()) {
     return Token::kLT;
