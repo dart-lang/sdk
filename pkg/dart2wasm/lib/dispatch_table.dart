@@ -11,6 +11,7 @@ import 'package:vm/metadata/unreachable.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
+import 'code_generator.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'dynamic_modules.dart';
 import 'param_info.dart';
@@ -79,8 +80,9 @@ class SelectorInfo {
 
   SelectorTargets targets({required bool unchecked}) {
     if (useMultipleEntryPoints) {
-      assert(_checked!.allTargetRanges.length ==
-          _unchecked!.allTargetRanges.length);
+      assert(
+        _checked!.allTargetRanges.length == _unchecked!.allTargetRanges.length,
+      );
       return unchecked ? _unchecked! : _checked!;
     }
     assert(_checked == null && _unchecked == null);
@@ -116,7 +118,9 @@ class SelectorInfo {
   }
 
   factory SelectorInfo.deserialize(
-      DataDeserializer source, DispatchTable dispatchTable) {
+    DataDeserializer source,
+    DispatchTable dispatchTable,
+  ) {
     final id = source.readInt();
     final name = source.readString();
     final callCount = source.readInt();
@@ -128,23 +132,33 @@ class SelectorInfo {
       isDynamicSubmoduleCallable,
       isDynamicSubmoduleInheritable,
       useSentinelForOptionalParameters,
-    ] = source.readBoolList();
-    final checked =
-        source.readNullable(() => SelectorTargets.deserialize(source));
-    final unchecked =
-        source.readNullable(() => SelectorTargets.deserialize(source));
-    final normal =
-        source.readNullable(() => SelectorTargets.deserialize(source));
+    ] = source
+        .readBoolList();
+    final checked = source.readNullable(
+      () => SelectorTargets.deserialize(source),
+    );
+    final unchecked = source.readNullable(
+      () => SelectorTargets.deserialize(source),
+    );
+    final normal = source.readNullable(
+      () => SelectorTargets.deserialize(source),
+    );
     final references = source.readList(source.readReference);
 
     final paramInfo = _parameterInfoFromReferences(
-        source.component
-                .metadata[UnreachableNodeMetadataRepository.repositoryTag]
-            as UnreachableNodeMetadataRepository,
-        references,
-        useSentinelForOptionalParameters);
-    return SelectorInfo._(dispatchTable, id, name, callCount,
-        isSetter: isSetter, isIndexSetter: isIndexSetter)
+      source.component.metadata[UnreachableNodeMetadataRepository.repositoryTag]
+          as UnreachableNodeMetadataRepository,
+      references,
+      useSentinelForOptionalParameters,
+    );
+    return SelectorInfo._(
+        dispatchTable,
+        id,
+        name,
+        callCount,
+        isSetter: isSetter,
+        isIndexSetter: isIndexSetter,
+      )
       ..useMultipleEntryPoints = useMultipleEntryPoints
       ..isDynamicSubmoduleCallable = isDynamicSubmoduleCallable
       ..isDynamicSubmoduleOverridable = isDynamicSubmoduleOverridable
@@ -172,16 +186,21 @@ class SelectorInfo {
   w.FunctionType _computeSignature() {
     var nameIndex = paramInfo.nameIndex;
     final int returnCount = (isSetter || isIndexSetter) ? 0 : 1;
-    List<Set<w.ValueType>> inputSets =
-        List.generate(1 + paramInfo.paramCount, (_) => {});
+    List<Set<w.ValueType>> inputSets = List.generate(
+      1 + paramInfo.paramCount,
+      (_) => {},
+    );
     List<Set<w.ValueType>> outputSets = List.generate(returnCount, (_) => {});
     List<bool> ensureBoxed = List.filled(1 + paramInfo.paramCount, false);
-    Iterable<({Reference target, Range range})> targetRanges =
-        targets(unchecked: false).allTargetRanges;
+    Iterable<({Reference target, Range range})> targetRanges = targets(
+      unchecked: false,
+    ).allTargetRanges;
     for (final (range: _, :target) in targetRanges) {
       Member member = target.asMember;
-      DartType receiver =
-          InterfaceType(member.enclosingClass!, Nullability.nonNullable);
+      DartType receiver = InterfaceType(
+        member.enclosingClass!,
+        Nullability.nonNullable,
+      );
       List<DartType> positional;
       Map<String, DartType> named;
       List<DartType> returns;
@@ -205,12 +224,14 @@ class SelectorInfo {
           final typeForParam = translator.typeOfParameterVariable;
           positional = [
             for (int i = 0; i < function.positionalParameters.length; i++)
-              typeForParam(function.positionalParameters[i],
-                  i < function.requiredParameterCount)
+              typeForParam(
+                function.positionalParameters[i],
+                i < function.requiredParameterCount,
+              ),
           ];
           named = {
             for (VariableDeclaration param in function.namedParameters)
-              param.name!: typeForParam(param, param.isRequired)
+              param.name!: typeForParam(param, param.isRequired),
           };
           returns = returnCount == 0
               ? const []
@@ -218,9 +239,11 @@ class SelectorInfo {
         }
       }
       assert(returns.length <= outputSets.length);
-      inputSets[0].add(isDynamicSubmoduleOverridable
-          ? translator.topTypeNonNullable
-          : translator.translateType(receiver));
+      inputSets[0].add(
+        isDynamicSubmoduleOverridable
+            ? translator.topTypeNonNullable
+            : translator.translateType(receiver),
+      );
       for (int i = 0; i < positional.length; i++) {
         DartType type = positional[i];
         inputSets[1 + i].add(translator.translateType(type));
@@ -244,24 +267,38 @@ class SelectorInfo {
       }
     }
 
-    List<w.ValueType> typeParameters = List.filled(paramInfo.typeParamCount,
-        translator.classInfo[translator.typeClass]!.nonNullableType);
+    List<w.ValueType> typeParameters = List.filled(
+      paramInfo.typeParamCount,
+      translator.classInfo[translator.typeClass]!.nonNullableType,
+    );
     List<w.ValueType> inputs = List.generate(
-        inputSets.length,
-        (i) => _upperBound(inputSets[i],
-            ensureBoxed: ensureBoxed[i], isReceiver: i == 0));
+      inputSets.length,
+      (i) => _upperBound(
+        inputSets[i],
+        ensureBoxed: ensureBoxed[i],
+        isReceiver: i == 0,
+      ),
+    );
     if (name == '==') {
       // == can't be called with null
       inputs[1] = inputs[1].withNullability(false);
     }
-    List<w.ValueType> outputs = List.generate(outputSets.length,
-        (i) => _upperBound(outputSets[i], ensureBoxed: false));
-    return translator.typesBuilder.defineFunction(
-        [inputs[0], ...typeParameters, ...inputs.sublist(1)], outputs);
+    List<w.ValueType> outputs = List.generate(
+      outputSets.length,
+      (i) => _upperBound(outputSets[i], ensureBoxed: false),
+    );
+    return translator.typesBuilder.defineFunction([
+      inputs[0],
+      ...typeParameters,
+      ...inputs.sublist(1),
+    ], outputs);
   }
 
-  w.ValueType _upperBound(Set<w.ValueType> types,
-      {required bool ensureBoxed, bool isReceiver = false}) {
+  w.ValueType _upperBound(
+    Set<w.ValueType> types, {
+    required bool ensureBoxed,
+    bool isReceiver = false,
+  }) {
     if (types.isEmpty) {
       // This happens if the selector doesn't have any targets. Any call site of
       // such a selector is unreachable. Though such call sites still have to
@@ -280,16 +317,18 @@ class SelectorInfo {
     Set<w.DefType> heapTypes = types
         .where((type) => type is! w.RefType || type.heapType is w.DefType)
         .map((type) {
-      w.DefType def = type is w.RefType
-          ? type.heapType as w.DefType
-          : translator.classInfo[translator.boxedClasses[type]!]!.struct;
-      minDepth = min(minDepth, def.depth);
-      return def;
-    }).toSet();
+          w.DefType def = type is w.RefType
+              ? type.heapType as w.DefType
+              : translator.classInfo[translator.boxedClasses[type]!]!.struct;
+          minDepth = min(minDepth, def.depth);
+          return def;
+        })
+        .toSet();
     if (heapTypes.isEmpty) {
       // Only abstract heap types.
-      Set<w.HeapType> heapTypes =
-          types.map((type) => (type as w.RefType).heapType).toSet();
+      Set<w.HeapType> heapTypes = types
+          .map((type) => (type as w.RefType).heapType)
+          .toSet();
       return w.RefType(heapTypes.single, nullable: nullable);
     }
     int targetDepth = minDepth;
@@ -306,10 +345,7 @@ class SelectorInfo {
   }
 
   late final Set<Reference> _targetSet = useMultipleEntryPoints
-      ? {
-          ..._checked!._targetSet,
-          ..._unchecked!._targetSet,
-        }
+      ? {..._checked!._targetSet, ..._unchecked!._targetSet}
       : _normal!._targetSet;
 
   bool containsTarget(Reference target) => _targetSet.contains(target);
@@ -381,31 +417,39 @@ class SelectorTargets {
   /// offset of the class member for this selector.
   int? offset;
 
-  SelectorTargets(this.allTargetRanges, this._dispatchTableRanges,
-      this.staticDispatchRanges) {
-    assert(allTargetRanges.length ==
-        (_dispatchTableRanges.length + staticDispatchRanges.length));
-    assert((() {
-      int d = 0;
-      int s = 0;
-      for (int i = 0; i < allTargetRanges.length; ++i) {
-        final e = allTargetRanges[i];
-        if (d < _dispatchTableRanges.length && _dispatchTableRanges[d] == e) {
-          d++;
-          continue;
+  SelectorTargets(
+    this.allTargetRanges,
+    this._dispatchTableRanges,
+    this.staticDispatchRanges,
+  ) {
+    assert(
+      allTargetRanges.length ==
+          (_dispatchTableRanges.length + staticDispatchRanges.length),
+    );
+    assert(
+      (() {
+        int d = 0;
+        int s = 0;
+        for (int i = 0; i < allTargetRanges.length; ++i) {
+          final e = allTargetRanges[i];
+          if (d < _dispatchTableRanges.length && _dispatchTableRanges[d] == e) {
+            d++;
+            continue;
+          }
+          if (s < staticDispatchRanges.length && staticDispatchRanges[s] == e) {
+            s++;
+            continue;
+          }
+          return false;
         }
-        if (s < staticDispatchRanges.length && staticDispatchRanges[s] == e) {
-          s++;
-          continue;
-        }
-        return false;
-      }
-      return true;
-    })());
+        return true;
+      })(),
+    );
   }
 
-  late final Set<Reference> _targetSet =
-      allTargetRanges.map((e) => e.target).toSet();
+  late final Set<Reference> _targetSet = allTargetRanges
+      .map((e) => e.target)
+      .toSet();
 
   void serialize(DataSerializer sink) {
     sink.writeInt(offset == null ? 0 : offset! + 1);
@@ -441,10 +485,12 @@ class SelectorTargets {
     int s = 0;
     int d = 0;
     while (s < staticDispatchRangesLength || d < dispatchTableRangesLength) {
-      final se =
-          (s < staticDispatchRangesLength) ? staticDispatchRanges[s] : null;
-      final de =
-          (d < dispatchTableRangesLength) ? dispatchTableRanges[d] : null;
+      final se = (s < staticDispatchRangesLength)
+          ? staticDispatchRanges[s]
+          : null;
+      final de = (d < dispatchTableRangesLength)
+          ? dispatchTableRanges[d]
+          : null;
       if (se != null) {
         if (de == null || se.range.start < de.range.start) {
           allTargetRanges.add(se);
@@ -457,8 +503,10 @@ class SelectorTargets {
       d++;
     }
     return SelectorTargets(
-        allTargetRanges, dispatchTableRanges, staticDispatchRanges)
-      ..offset = offset == 0 ? null : offset - 1;
+      allTargetRanges,
+      dispatchTableRanges,
+      staticDispatchRanges,
+    )..offset = offset == 0 ? null : offset - 1;
   }
 }
 
@@ -468,27 +516,28 @@ class DispatchTable {
   final bool isDynamicSubmoduleTable;
 
   late final Map<TreeNode, ProcedureAttributesMetadata>
-      procedureAttributeMetadata =
+  procedureAttributeMetadata =
       translator.isDynamicSubmodule && !isDynamicSubmoduleTable
-          ? (translator.component
-                      .metadata[dynamicMainModuleProcedureAttributeMetadataTag]
-                  as ProcedureAttributesMetadataRepository)
-              .mapping
-          : translator.procedureAttributeMetadata;
+      ? (translator
+                    .component
+                    .metadata[dynamicMainModuleProcedureAttributeMetadataTag]
+                as ProcedureAttributesMetadataRepository)
+            .mapping
+      : translator.procedureAttributeMetadata;
 
   late final Translator translator;
 
   late final List<TableSelectorInfo> _selectorMetadata =
       translator.isDynamicSubmodule && !isDynamicSubmoduleTable
-          ? (translator.component.metadata[dynamicMainModuleSelectorMetadataTag]
-                  as TableSelectorMetadataRepository)
-              .mapping[translator.component]!
-              .selectors
-          : (translator.component
-                      .metadata[TableSelectorMetadataRepository.repositoryTag]
-                  as TableSelectorMetadataRepository)
-              .mapping[translator.component]!
-              .selectors;
+      ? (translator.component.metadata[dynamicMainModuleSelectorMetadataTag]
+                as TableSelectorMetadataRepository)
+            .mapping[translator.component]!
+            .selectors
+      : (translator.component.metadata[TableSelectorMetadataRepository
+                    .repositoryTag]
+                as TableSelectorMetadataRepository)
+            .mapping[translator.component]!
+            .selectors;
   late final int minClassId = isDynamicSubmoduleTable
       ? translator.classIdNumbering.firstDynamicSubmoduleClassId
       : 0;
@@ -505,8 +554,10 @@ class DispatchTable {
   late final List<Reference?> _table;
 
   late final w.TableBuilder _definedWasmTable;
-  late final WasmTableImporter _importedWasmTables =
-      WasmTableImporter(translator, 'dispatch');
+  late final WasmTableImporter _importedWasmTables = WasmTableImporter(
+    translator,
+    'dispatch',
+  );
 
   /// The Wasm table for the dispatch table.
   w.Table getWasmTable(w.ModuleBuilder module) =>
@@ -522,10 +573,12 @@ class DispatchTable {
   factory DispatchTable.deserialize(DataDeserializer source) {
     final dispatchTable = DispatchTable();
 
-    final selectors =
-        source.readList(() => SelectorInfo.deserialize(source, dispatchTable));
-    final table = source
-        .readList(() => source.readNullable(() => source.readReference()));
+    final selectors = source.readList(
+      () => SelectorInfo.deserialize(source, dispatchTable),
+    );
+    final table = source.readList(
+      () => source.readNullable(() => source.readReference()),
+    );
 
     for (final selector in selectors) {
       dispatchTable._selectorInfo[selector.id] = selector;
@@ -564,9 +617,16 @@ class DispatchTable {
     final callCount =
         _selectorMetadata[selectorId].callCount + (isNoSuchMethod ? 1 : 0);
     final selector = _selectorInfo.putIfAbsent(
+      selectorId,
+      () => SelectorInfo._(
+        this,
         selectorId,
-        () => SelectorInfo._(this, selectorId, member.name.text, callCount,
-            isSetter: isSetter, isIndexSetter: isIndexSetter));
+        member.name.text,
+        callCount,
+        isSetter: isSetter,
+        isIndexSetter: isIndexSetter,
+      ),
+    );
     assert(selector.isSetter == isSetter);
     assert(selector.isIndexSetter == isIndexSetter);
     selector._references.add(target);
@@ -624,8 +684,8 @@ class DispatchTable {
         selectors = Map.of(selectorsInClass[superCls]!);
       }
 
-      final classIsDynamicSubmoduleExtendable =
-          cls.isDynamicSubmoduleExtendable(translator.coreTypes);
+      final classIsDynamicSubmoduleExtendable = cls
+          .isDynamicSubmoduleExtendable(translator.coreTypes);
 
       /// Add a method (or getter, setter) of the current class ([info]) to
       /// [reference]'s selector's targets.
@@ -658,7 +718,7 @@ class DispatchTable {
         }
         final bool staticDispatch =
             translator.getPragma<bool>(member, 'wasm:static-dispatch', true) ??
-                false;
+            false;
         if (member is Field) {
           addMember(member.getterReference, staticDispatch);
           if (member.hasSetter) {
@@ -703,12 +763,15 @@ class DispatchTable {
       bool isDynamicSubmoduleInheritable = false;
       for (final target in selector._references) {
         final member = target.asMember;
-        isDynamicSubmoduleOverridable |=
-            member.isDynamicSubmoduleOverridable(translator.coreTypes);
-        isDynamicSubmoduleCallable |=
-            member.isDynamicSubmoduleCallable(translator.coreTypes);
-        isDynamicSubmoduleInheritable |=
-            member.isDynamicSubmoduleInheritable(translator.coreTypes);
+        isDynamicSubmoduleOverridable |= member.isDynamicSubmoduleOverridable(
+          translator.coreTypes,
+        );
+        isDynamicSubmoduleCallable |= member.isDynamicSubmoduleCallable(
+          translator.coreTypes,
+        );
+        isDynamicSubmoduleInheritable |= member.isDynamicSubmoduleInheritable(
+          translator.coreTypes,
+        );
       }
       selector.isDynamicSubmoduleOverridable = isDynamicSubmoduleOverridable;
       selector.isDynamicSubmoduleCallable = isDynamicSubmoduleCallable;
@@ -720,20 +783,26 @@ class DispatchTable {
         selector.useMultipleEntryPoints = false;
         selector._useSentinelForOptionalParameters = true;
         selector.paramInfo = _parameterInfoFromReferences(
-            translator.unreachableMetadata,
-            selector._references,
-            selector._useSentinelForOptionalParameters);
+          translator.unreachableMetadata,
+          selector._references,
+          selector._useSentinelForOptionalParameters,
+        );
       } else {
         // Will be initialized in the `selectorTargets.forEach()` below.
       }
     });
-    selectorTargets
-        .forEach((SelectorInfo selector, Map<int, Reference> targets) {
-      final List<({Range range, Reference target})> ranges = targets.entries
-          .map((entry) =>
-              (range: Range(entry.key, entry.key), target: entry.value))
-          .toList()
-        ..sort((a, b) => a.range.start.compareTo(b.range.start));
+    selectorTargets.forEach((
+      SelectorInfo selector,
+      Map<int, Reference> targets,
+    ) {
+      final List<({Range range, Reference target})> ranges =
+          targets.entries
+              .map(
+                (entry) =>
+                    (range: Range(entry.key, entry.key), target: entry.value),
+              )
+              .toList()
+            ..sort((a, b) => a.range.start.compareTo(b.range.start));
       assert(ranges.isNotEmpty);
       int writeIndex = 0;
       for (int readIndex = 1; readIndex < ranges.length; ++readIndex) {
@@ -744,7 +813,7 @@ class DispatchTable {
             identical(current.target, next.target)) {
           ranges[writeIndex] = (
             range: Range(current.range.start, next.range.end),
-            target: current.target
+            target: current.target,
           );
         } else {
           ranges[++writeIndex] = next;
@@ -789,9 +858,10 @@ class DispatchTable {
         selector._useSentinelForOptionalParameters = true;
       }
       selector.paramInfo = _parameterInfoFromReferences(
-          translator.unreachableMetadata,
-          selector._references,
-          selector._useSentinelForOptionalParameters);
+        translator.unreachableMetadata,
+        selector._references,
+        selector._useSentinelForOptionalParameters,
+      );
 
       // Split up [ranges] into those that are statically dispatched to and
       // those are used via dispatch table.
@@ -817,12 +887,13 @@ class DispatchTable {
         ({Range range, Reference target}) getChecked(
           ({Range range, Reference target}) targetRange,
           bool unchecked,
-        ) =>
-            (
-              range: targetRange.range,
-              target: translator.getFunctionEntry(targetRange.target,
-                  uncheckedEntry: unchecked)
-            );
+        ) => (
+          range: targetRange.range,
+          target: translator.getFunctionEntry(
+            targetRange.target,
+            uncheckedEntry: unchecked,
+          ),
+        );
         final checkedTargets = SelectorTargets(
           ranges.map((r) => getChecked(r, false)).toList(),
           tableDispatchRanges.map((r) => getChecked(r, false)).toList(),
@@ -836,16 +907,20 @@ class DispatchTable {
         selector._checked = checkedTargets;
         selector._unchecked = uncheckedTargets;
       } else {
-        final normalTargets =
-            SelectorTargets(ranges, tableDispatchRanges, staticDispatchRanges);
+        final normalTargets = SelectorTargets(
+          ranges,
+          tableDispatchRanges,
+          staticDispatchRanges,
+        );
         selector._normal = normalTargets;
       }
     });
 
     // Assign selector offsets
 
-    final List<SelectorInfo> selectors =
-        selectorTargets.keys.where(_isUsedViaDispatchTableCall).toList();
+    final List<SelectorInfo> selectors = selectorTargets.keys
+        .where(_isUsedViaDispatchTableCall)
+        .toList();
 
     // Sort the selectors based on number of targets and number of use sites.
     // This is a heuristic to keep the table small.
@@ -864,7 +939,8 @@ class DispatchTable {
     final rows = <Row<Reference>>[];
     for (final selector in selectors) {
       Row<Reference> buildRow(
-          List<({Range range, Reference target})> targetRanges) {
+        List<({Range range, Reference target})> targetRanges,
+      ) {
         final rowValues = <({int index, Reference value})>[];
         for (final (:range, :target) in targetRanges) {
           for (int classId = range.start; classId <= range.end; ++classId) {
@@ -923,16 +999,6 @@ class DispatchTable {
       // Though we can only hit a target if that target's class has been
       // allocated. In order for the class to be allocated, the deferred
       // module must've been loaded to call the constructor.
-      int end = start + 1;
-      while (end < _table.length && _table[end] == target) {
-        end++;
-      }
-      final strideWidth = end - start;
-
-      // If the stride of the current function is more than this (i.e. the table
-      // contains a large subsection with identical function entries) we
-      // initialize that section in #start function.
-      const strideElementTableLimit = 100;
 
       final targetModule = fun.enclosingModule;
       final targetModuleBuilder =
@@ -946,49 +1012,38 @@ class DispatchTable {
           fun = wrappedDynamicSubmoduleImports[fun] ??=
               _wrapDynamicSubmoduleFunction(target, fun, targetModuleBuilder);
         }
+      }
 
-        if (strideWidth < strideElementTableLimit) {
-          for (int i = start; i < end; ++i) {
-            _definedWasmTable.moduleBuilder.elements
-                .activeFunctionSegmentBuilderFor(_definedWasmTable)
-                .setFunctionAt(i, fun);
-          }
-        } else {
-          targetModuleBuilder.elements.declarativeSegmentBuilder.declare(fun);
-          final b = targetModuleBuilder.startFunction.body;
-          b.i32_const(start);
-          b.ref_func(fun);
-          b.i32_const(strideWidth);
-          b.table_fill(_definedWasmTable);
+      final strideWidth = calculateStrideWith(
+        start,
+        target,
+        _table,
+        (Reference a, Reference b) => a == b,
+      );
+
+      final table = getWasmTable(targetModuleBuilder);
+      if (strideWidth < strideElementTableLimit) {
+        for (int i = 0; i < strideWidth; ++i) {
+          targetModuleBuilder.elements
+              .activeFunctionSegmentBuilderFor(table)
+              .setFunctionAt(start + i, fun);
         }
       } else {
-        // This will generate the imported table if it doesn't already
-        // exist.
-        final importedTable =
-            getWasmTable(targetModuleBuilder) as w.ImportedTable;
-        if (strideWidth < strideElementTableLimit) {
-          for (int i = start; i < end; ++i) {
-            targetModuleBuilder.elements
-                .activeFunctionSegmentBuilderFor(importedTable)
-                .setFunctionAt(i, fun);
-          }
-        } else {
-          targetModuleBuilder.elements.declarativeSegmentBuilder.declare(fun);
-          final b = targetModuleBuilder.startFunction.body;
-          b.i32_const(start);
-          b.ref_func(fun);
-          b.i32_const(strideWidth);
-          b.table_fill(importedTable);
-        }
+        targetModuleBuilder.elements.declarativeSegmentBuilder.declare(fun);
+        final b = targetModuleBuilder.startFunction.body;
+        b.fillTableRange(table, start, strideWidth, fun);
       }
       start += strideWidth;
     }
   }
 
-  w.BaseFunction _wrapDynamicSubmoduleFunction(Reference target,
-      w.BaseFunction importedFunction, w.ModuleBuilder moduleBuilder) {
-    final mainSelector =
-        translator.dynamicMainModuleDispatchTable!.selectorForTarget(target);
+  w.BaseFunction _wrapDynamicSubmoduleFunction(
+    Reference target,
+    w.BaseFunction importedFunction,
+    w.ModuleBuilder moduleBuilder,
+  ) {
+    final mainSelector = translator.dynamicMainModuleDispatchTable!
+        .selectorForTarget(target);
     final mainSignature = translator.signatureForMainModule(target);
     final localSelector = translator.dispatchTable.selectorForTarget(target);
     final localSignature = localSelector.signature;
@@ -1003,8 +1058,10 @@ class DispatchTable {
     // The local signature should include all the parameters necessary to call
     // the target in main since the local signature must include the target
     // member itself and any other members in the main module's selector range.
-    final wrapper = moduleBuilder.functions
-        .define(localSignature, '${target.asMember} wrapper');
+    final wrapper = moduleBuilder.functions.define(
+      localSignature,
+      '${target.asMember} wrapper',
+    );
 
     final ib = wrapper.body;
 
@@ -1012,7 +1069,7 @@ class DispatchTable {
 
     final mainModulePreParamCount =
         (mainSelector.paramInfo.takesContextOrReceiver ? 1 : 0) +
-            mainSelector.paramInfo.typeParamCount;
+        mainSelector.paramInfo.typeParamCount;
     final mainModuleBeforeNamedCount =
         mainModulePreParamCount + mainSelector.paramInfo.positional.length;
     int mainIndex = 0;
@@ -1024,7 +1081,7 @@ class DispatchTable {
 
     final localPreParamCount =
         (localSelector.paramInfo.takesContextOrReceiver ? 1 : 0) +
-            localSelector.paramInfo.typeParamCount;
+        localSelector.paramInfo.typeParamCount;
 
     for (final name in mainSelector.paramInfo.names) {
       final namedIndex = localSelector.paramInfo.nameIndex[name]!;
@@ -1034,7 +1091,10 @@ class DispatchTable {
     }
     ib.call(importedFunction);
     translator.convertType(
-        ib, mainSignature.outputs.single, localSignature.outputs.single);
+      ib,
+      mainSignature.outputs.single,
+      localSignature.outputs.single,
+    );
     ib.end();
 
     return wrapper;
@@ -1053,26 +1113,31 @@ bool _isUsedViaDispatchTableCall(SelectorInfo selector) {
 }
 
 ParameterInfo _parameterInfoFromReferences(
-    UnreachableNodeMetadataRepository unreachableMetadata,
-    List<Reference> references,
-    bool useDefaultValueSentinel) {
+  UnreachableNodeMetadataRepository unreachableMetadata,
+  List<Reference> references,
+  bool useDefaultValueSentinel,
+) {
   final unreachableNodeMapping = unreachableMetadata.mapping;
   // We know all target implementations (closed world) if all of them use
   // the same default value for optionals, we can make the caller pass it.
   final first = references.first;
   final firstMember = first.asMember;
   final paramInfo = ParameterInfo.fromMember(
-      first,
-      useDefaultValueSentinel ||
-          firstMember.isAbstract ||
-          unreachableNodeMapping[firstMember] != null);
+    first,
+    useDefaultValueSentinel ||
+        firstMember.isAbstract ||
+        unreachableNodeMapping[firstMember] != null,
+  );
   for (final target in references.skip(1)) {
     final targetMember = target.asMember;
-    paramInfo.merge(ParameterInfo.fromMember(
+    paramInfo.merge(
+      ParameterInfo.fromMember(
         target,
         useDefaultValueSentinel ||
             targetMember.isAbstract ||
-            unreachableNodeMapping[targetMember] != null));
+            unreachableNodeMapping[targetMember] != null,
+      ),
+    );
   }
   return paramInfo;
 }
@@ -1086,8 +1151,11 @@ ParameterInfo _parameterInfoFromReferences(
 /// offset.
 ///
 /// The offset of all [Row]s will be initialized.
-List<V?> buildRowDisplacementTable<V extends Object>(List<Row<V>> rows,
-    {int firstAvailable = 0, bool uniqueOffsets = false}) {
+List<V?> buildRowDisplacementTable<V extends Object>(
+  List<Row<V>> rows, {
+  int firstAvailable = 0,
+  bool uniqueOffsets = false,
+}) {
   final offsetsTaken = <int>{};
   final table = <V?>[];
   for (final row in rows) {
@@ -1130,6 +1198,35 @@ List<V?> buildRowDisplacementTable<V extends Object>(List<Row<V>> rows,
   }
   return table;
 }
+
+/// Calculates the size of repeated entries in the table.
+///
+/// If the table has many repeated elements a caller may choose to not issue
+/// repeated entries in the element section but instead fill the table slots in
+/// the `start` function of the module.
+int calculateStrideWith<T>(
+  int start,
+  T startEntry,
+  List<T?> table,
+  bool Function(T, T) equals,
+) {
+  int end = start + 1;
+  while (end < table.length) {
+    final endEntry = table[end];
+    if (endEntry == null) break;
+    if (!equals(startEntry, endEntry)) break;
+    end++;
+  }
+  return end - start;
+}
+
+/// If the stride of the current table entry is more than this we initialize
+/// that table section in #start function instead of the element section.
+///
+/// This has the benefit that instead of adding O(stride-width) entries in the
+/// element section we have O(1) addition to the start function (which uses a
+/// `table.fill` instruction to fill the entire range with the same value)
+const strideElementTableLimit = 100;
 
 class Row<V extends Object> {
   /// The values of the table row, represented sparsely as (index, value) tuples.
