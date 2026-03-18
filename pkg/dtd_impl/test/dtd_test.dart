@@ -46,9 +46,8 @@ void main() {
       dtd = await DartToolingDaemon.startService([]);
 
       expect(
-        () async => await WebSocket.connect(
-          dtd!.uri!.replace(path: '').toString(),
-        ),
+        () async =>
+            await WebSocket.connect(dtd!.uri!.replace(path: '').toString()),
         throwsA(
           isA<WebSocketException>().having(
             (e) => e.message,
@@ -62,18 +61,19 @@ void main() {
     });
 
     test(
-        'allows connections with no URI auth code if started with --disable-service-auth-codes',
-        () async {
-      dtd = await DartToolingDaemon.startService([
-        '--disable-service-auth-codes',
-      ]);
+      'allows connections with no URI auth code if started with --disable-service-auth-codes',
+      () async {
+        dtd = await DartToolingDaemon.startService([
+          '--disable-service-auth-codes',
+        ]);
 
-      expect(dtd!.uri!.path, isEmpty); // No code.
+        expect(dtd!.uri!.path, isEmpty); // No code.
 
-      // Expect no exception.
-      final ws = await WebSocket.connect(dtd!.uri!.toString());
-      await ws.close();
-    });
+        // Expect no exception.
+        final ws = await WebSocket.connect(dtd!.uri!.toString());
+        await ws.close();
+      },
+    );
   });
 
   group('dtd', () {
@@ -106,14 +106,11 @@ void main() {
 
         expect(listenResult, {"type": "Success"});
 
-        final postResult = await client.sendRequest(
-          'postEvent',
-          {
-            'streamId': streamId,
-            'eventKind': eventKind,
-            'eventData': eventData,
-          },
-        );
+        final postResult = await client.sendRequest('postEvent', {
+          'streamId': streamId,
+          'eventKind': eventKind,
+          'eventData': eventData,
+        });
         expect(postResult, {"type": "Success"});
 
         final dataFromTheStream = await completer.future;
@@ -126,21 +123,15 @@ void main() {
 
         // Now cancel the stream
         completer = Completer<Map<Object?, Object?>>(); // Reset the completer
-        final cancelResult = await client.sendRequest(
-          'streamCancel',
-          {
-            'streamId': streamId,
-          },
-        );
+        final cancelResult = await client.sendRequest('streamCancel', {
+          'streamId': streamId,
+        });
         expect(cancelResult, {"type": "Success"});
-        final postResult2 = await client.sendRequest(
-          'postEvent',
-          {
-            'streamId': streamId,
-            'eventKind': eventKind,
-            'eventData': eventData,
-          },
-        );
+        final postResult2 = await client.sendRequest('postEvent', {
+          'streamId': streamId,
+          'eventKind': eventKind,
+          'eventData': eventData,
+        });
         expect(postResult2, {"type": "Success"});
         expect(
           completer.future.timeout(
@@ -159,9 +150,7 @@ void main() {
         expect(listenResult, {"type": "Success"});
 
         expect(
-          () => client.sendRequest('streamListen', {
-            "streamId": streamId,
-          }),
+          () => client.sendRequest('streamListen', {"streamId": streamId}),
           throwsA(
             isA<RpcException>().having(
               (e) => e.code,
@@ -174,9 +163,7 @@ void main() {
 
       test('stop listening to a stream that is not being listened to', () {
         expect(
-          () => client.sendRequest('streamCancel', {
-            "streamId": streamId,
-          }),
+          () => client.sendRequest('streamCancel', {"streamId": streamId}),
           throwsA(
             isA<RpcException>().having(
               (e) => e.code,
@@ -188,14 +175,11 @@ void main() {
       });
 
       test('postEvent when there are no listeners', () async {
-        final postResult = await client.sendRequest(
-          'postEvent',
-          {
-            'streamId': streamId,
-            'eventKind': eventKind,
-            'eventData': eventData,
-          },
-        );
+        final postResult = await client.sendRequest('postEvent', {
+          'streamId': streamId,
+          'eventKind': eventKind,
+          'eventData': eventData,
+        });
         expect(postResult, {"type": "Success"});
       });
     });
@@ -257,43 +241,47 @@ void main() {
       });
 
       test(
-          'disconnecting while handling a service request returns an error to the caller',
-          () async {
-        // Register a never-completing request that client2 can call.
-        final requestStartedCompleter = Completer<void>();
-        client.registerMethod('$service1.$method1', (Parameters parameters) {
-          requestStartedCompleter.complete(); // Signal the request has started.
-          return Completer<void>().future; // Never complete.
-        });
-        final registerResult = await client.sendRequest('registerService', {
-          "service": service1,
-          "method": method1,
-        });
-        expect(registerResult, {"type": "Success"});
+        'disconnecting while handling a service request returns an error to the caller',
+        () async {
+          // Register a never-completing request that client2 can call.
+          final requestStartedCompleter = Completer<void>();
+          client.registerMethod('$service1.$method1', (Parameters parameters) {
+            requestStartedCompleter
+                .complete(); // Signal the request has started.
+            return Completer<void>().future; // Never complete.
+          });
+          final registerResult = await client.sendRequest('registerService', {
+            "service": service1,
+            "method": method1,
+          });
+          expect(registerResult, {"type": "Success"});
 
-        // Begin a call to that method.
-        final client2 = _createClient(uri);
-        final responseFuture = client2.sendRequest('$service1.$method1', {});
-        await requestStartedCompleter.future;
+          // Begin a call to that method.
+          final client2 = _createClient(uri);
+          final responseFuture = client2.sendRequest('$service1.$method1', {});
+          await requestStartedCompleter.future;
 
-        // Disconnect client1 so it never responses.
-        await client.close();
+          // Disconnect client1 so it never responses.
+          await client.close();
 
-        // Expect that we complete with the expected RPC error.
-        expect(
-          responseFuture,
-          throwsA(
-            isA<RpcException>().having((e) => e.code, 'code', -32000).having(
-                  (e) => e.data,
-                  'data',
-                  containsPair(
-                    'full',
-                    'Bad state: The client closed with pending request "$service1.$method1".',
+          // Expect that we complete with the expected RPC error.
+          expect(
+            responseFuture,
+            throwsA(
+              isA<RpcException>()
+                  .having((e) => e.code, 'code', -32000)
+                  .having(
+                    (e) => e.data,
+                    'data',
+                    containsPair(
+                      'full',
+                      'Bad state: The client closed with pending request "$service1.$method1".',
+                    ),
                   ),
-                ),
-          ),
-        );
-      });
+            ),
+          );
+        },
+      );
 
       test('registering a service method that already exists', () async {
         final registerResult = await client.sendRequest('registerService', {
@@ -409,11 +397,10 @@ void main() {
           try {
             // The service method registration should succeed once the other
             // finishes closing.
-            client2RegisterResult =
-                await client2.sendRequest('registerService', {
-              "service": service1,
-              "method": method1,
-            });
+            client2RegisterResult = await client2.sendRequest(
+              'registerService',
+              {"service": service1, "method": method1},
+            );
             break;
           } catch (_) {}
           await Future<void>.delayed(Duration(seconds: 1));
@@ -446,80 +433,64 @@ void main() {
           });
 
           // Register a method on a second client.
-          await client2.sendRequest(
-            'registerService',
-            {
-              'service': service1,
-              'method': method1,
-              'capabilities': {'supportsFoo': true},
-            },
-          );
+          await client2.sendRequest('registerService', {
+            'service': service1,
+            'method': method1,
+            'capabilities': {'supportsFoo': true},
+          });
 
           // Expect we had a service registered event.
           final event = await serviceStream.stream.firstWhere(
             (event) => (event['eventData'] as Map?)?['service'] == 'foo1',
           );
-          expect(
-            event['streamId'],
-            CoreDtdServiceConstants.servicesStreamId,
-          );
+          expect(event['streamId'], CoreDtdServiceConstants.servicesStreamId);
           expect(
             event['eventKind'],
             CoreDtdServiceConstants.serviceRegisteredKind,
           );
-          expect(
-            event['eventData'],
-            {
-              'service': 'foo1',
-              'method': 'bar1',
-              'capabilities': {'supportsFoo': true},
-            },
-          );
+          expect(event['eventData'], {
+            'service': 'foo1',
+            'method': 'bar1',
+            'capabilities': {'supportsFoo': true},
+          });
         });
 
-        test('when a service method is registered before subscribing',
-            () async {
-          // Register a method on a second client _first_.
-          await client2.sendRequest(
-            'registerService',
-            {
+        test(
+          'when a service method is registered before subscribing',
+          () async {
+            // Register a method on a second client _first_.
+            await client2.sendRequest('registerService', {
               'service': service1,
               'method': method1,
               'capabilities': {'supportsFoo': true},
-            },
-          );
+            });
 
-          // Subscribe to the services stream.
-          var serviceStream = StreamController<Map<Object?, Object?>>();
-          client.registerMethod('streamNotify', (Parameters parameters) {
-            if (parameters['streamId'].asString ==
-                CoreDtdServiceConstants.servicesStreamId) {
-              serviceStream.add(parameters.asMap);
-            }
-          });
-          await client.sendRequest('streamListen', {
-            'streamId': CoreDtdServiceConstants.servicesStreamId,
-          });
+            // Subscribe to the services stream.
+            var serviceStream = StreamController<Map<Object?, Object?>>();
+            client.registerMethod('streamNotify', (Parameters parameters) {
+              if (parameters['streamId'].asString ==
+                  CoreDtdServiceConstants.servicesStreamId) {
+                serviceStream.add(parameters.asMap);
+              }
+            });
+            await client.sendRequest('streamListen', {
+              'streamId': CoreDtdServiceConstants.servicesStreamId,
+            });
 
-          // Expect we had a service registered event.
-          final event = await serviceStream.stream.first;
-          expect(
-            event['streamId'],
-            CoreDtdServiceConstants.servicesStreamId,
-          );
-          expect(
-            event['eventKind'],
-            CoreDtdServiceConstants.serviceRegisteredKind,
-          );
-          expect(
-            event['eventData'],
-            {
+            // Expect we had a service registered event.
+            final event = await serviceStream.stream.first;
+            expect(event['streamId'], CoreDtdServiceConstants.servicesStreamId);
+            expect(
+              event['eventKind'],
+              CoreDtdServiceConstants.serviceRegisteredKind,
+            );
+            expect(event['eventData'], {
               'service': 'foo1',
               'method': 'bar1',
               'capabilities': {'supportsFoo': true},
-            },
-          );
-        });
+            });
+          },
+        );
 
         test('when a service method is unregistered', () async {
           // Subscribe to the services stream.
@@ -536,14 +507,11 @@ void main() {
 
           // Register a method on a second client and then close it so the
           // service is removed.
-          await client2.sendRequest(
-            'registerService',
-            {
-              'service': service1,
-              'method': method1,
-              'capabilities': {'supportsFoo': true},
-            },
-          );
+          await client2.sendRequest('registerService', {
+            'service': service1,
+            'method': method1,
+            'capabilities': {'supportsFoo': true},
+          });
           await client2.close();
 
           // Expect we had a service unregistered event (after the registered
@@ -553,18 +521,12 @@ void main() {
                     CoreDtdServiceConstants.serviceUnregisteredKind &&
                 (event['eventData'] as Map?)?['service'] == 'foo1';
           });
-          expect(
-            event['streamId'],
-            CoreDtdServiceConstants.servicesStreamId,
-          );
-          expect(
-            event['eventData'],
-            {
-              'service': 'foo1',
-              'method': 'bar1',
-              // No capabilities on unregister.
-            },
-          );
+          expect(event['streamId'], CoreDtdServiceConstants.servicesStreamId);
+          expect(event['eventData'], {
+            'service': 'foo1',
+            'method': 'bar1',
+            // No capabilities on unregister.
+          });
         });
       });
     });
@@ -598,9 +560,7 @@ void main() {
 }
 
 Peer _createClient(String uri) {
-  final channel = WebSocketChannel.connect(
-    Uri.parse(uri),
-  );
+  final channel = WebSocketChannel.connect(Uri.parse(uri));
 
   final client = Peer(channel.cast());
   unawaited(client.listen());

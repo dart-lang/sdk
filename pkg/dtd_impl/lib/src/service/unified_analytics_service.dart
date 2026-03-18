@@ -152,8 +152,9 @@ class UnifiedAnalyticsService extends InternalService {
   static Analytics _initializeAnalytics(DashTool tool) {
     // Use helper method from package:unified_analytics to return
     // a cleaned dart sdk verison
-    final dartVersion =
-        _cachedDartVersion ??= parseDartSDKVersion(Platform.version);
+    final dartVersion = _cachedDartVersion ??= parseDartSDKVersion(
+      Platform.version,
+    );
 
     if (_cachedFlutterChannel == null || _cachedFlutterVersion == null) {
       // The location for the dart executable in the following path
@@ -176,8 +177,9 @@ class UnifiedAnalyticsService extends InternalService {
       // expect this file to exist
       if (flutterVersionFile.existsSync()) {
         try {
-          final flutterObj = jsonDecode(flutterVersionFile.readAsStringSync())
-              as Map<String, Object?>;
+          final flutterObj =
+              jsonDecode(flutterVersionFile.readAsStringSync())
+                  as Map<String, Object?>;
           _cachedFlutterChannel = flutterObj['channel'] as String?;
           _cachedFlutterVersion = flutterObj['frameworkVersion'] as String?;
         } catch (_) {

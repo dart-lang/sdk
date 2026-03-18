@@ -136,9 +136,7 @@ class ConnectedAppService extends InternalService {
   Future<Map<String, Object?>> _registerVmService(Parameters parameters) async {
     final incomingSecret = parameters[DtdParameters.secret].asString;
     if (!unrestrictedMode && secret != incomingSecret) {
-      throw RpcErrorCodes.buildRpcException(
-        RpcErrorCodes.kPermissionDenied,
-      );
+      throw RpcErrorCodes.buildRpcException(RpcErrorCodes.kPermissionDenied);
     }
 
     return await _mutex.runGuarded(() async {
@@ -159,12 +157,10 @@ class ConnectedAppService extends InternalService {
             name: name,
           );
           _vmServices[uri] = (vmService: vmService, info: info);
-          _vmServiceUpdates.add(
-            (
-              vmServiceInfo: info,
-              kind: _VmServiceUpdateKind.registered,
-            ),
-          );
+          _vmServiceUpdates.add((
+            vmServiceInfo: info,
+            kind: _VmServiceUpdateKind.registered,
+          ));
           unawaited(vmService.onDone.then((_) => _removeServiceAndNotify(uri)));
         });
       } catch (e) {
@@ -186,9 +182,7 @@ class ConnectedAppService extends InternalService {
   ) async {
     final incomingSecret = parameters[DtdParameters.secret].asString;
     if (!unrestrictedMode && secret != incomingSecret) {
-      throw RpcErrorCodes.buildRpcException(
-        RpcErrorCodes.kPermissionDenied,
-      );
+      throw RpcErrorCodes.buildRpcException(RpcErrorCodes.kPermissionDenied);
     }
 
     return await _mutex.runGuarded(() {
@@ -213,12 +207,10 @@ class ConnectedAppService extends InternalService {
     final removedService = _vmServices.remove(uri);
     // Only send a notification if the service has not already been removed.
     if (removedService != null) {
-      _vmServiceUpdates.add(
-        (
-          vmServiceInfo: removedService.info,
-          kind: _VmServiceUpdateKind.unregistered
-        ),
-      );
+      _vmServiceUpdates.add((
+        vmServiceInfo: removedService.info,
+        kind: _VmServiceUpdateKind.unregistered,
+      ));
     }
   }
 

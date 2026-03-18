@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/util/comment.dart';
 
@@ -13,14 +14,6 @@ class DartdocDirectiveInfo {
   /// A regular expression used to match a macro directive. There is one group
   /// that contains the name of the template.
   static final macroRegExp = RegExp(r'{@macro\s+([^}]+)}');
-
-  /// A regular expression used to match a template directive. There are two
-  /// groups. The first contains the name of the template, the second contains
-  /// the body of the template.
-  static final templateRegExp = RegExp(
-    r'[ ]*{@template\s+(.+?)}([\s\S]+?){@endtemplate}[ ]*\n?',
-    multiLine: true,
-  );
 
   /// A regular expression used to match a youtube or animation directive.
   ///
@@ -55,10 +48,65 @@ class DartdocDirectiveInfo {
   /// there is one.
   void extractTemplate(String? comment) {
     if (comment == null) return;
+    int end = comment.length;
 
-    for (Match match in templateRegExp.allMatches(comment)) {
-      String name = match.group(1)!.trim();
-      String body = match.group(2)!.trim();
+    // The smallest possible match is at least 28 characters long.
+    if (end < 28) return;
+
+    // Find all matches to "{@template\s+(.+?)}([\s\S]+?){@endtemplate}".
+    int from = 0;
+    while (true) {
+      from = _nextAtTemplate(comment, from);
+      if (from < 0) return;
+
+      // If the string isn't actually long enough to match we can return.
+      if (from + 17 > end) return;
+
+      // Require at least 1 \s character.
+      int char = comment.codeUnitAt(from++);
+      if (char != $SPACE && char != $TAB && char != $LF && char != $CR) {
+        continue;
+      }
+
+      // Allow more \s characters.
+      for (; from < end; from++) {
+        char = comment.codeUnitAt(from);
+        if (char != $SPACE && char != $TAB && char != $LF && char != $CR) break;
+      }
+
+      int nameStart = from;
+
+      // The next character (that is not a line-ending - but it can't be it
+      // would have been passed above) is included in the name - and then
+      // anything up to "}" that is not a line-ending is also included in the
+      // name.
+      int i = from + 1;
+
+      for (; i < end; i++) {
+        char = comment.codeUnitAt(i);
+        if (char == $LF || char == $CR || char == $CLOSE_CURLY_BRACKET) break;
+      }
+
+      // If no name was found this wasn't a match.
+      if (i == nameStart) continue;
+
+      // If no end-brace was found this wasn't a match.
+      if (char != $CLOSE_CURLY_BRACKET) continue;
+
+      int nameEnd = i;
+
+      // The body has at least 1 character.
+      i++;
+
+      // Find the end.
+      int endIndex = from = _nextAtEndtemplate(comment, i);
+      if (endIndex < 0) return;
+      // The endIndex is after the match - don't include the string
+      // "{@endtemplate}" though.
+      endIndex -= 14;
+
+      String name = comment.substring(nameStart, nameEnd).trim();
+      String body = comment.substring(nameEnd + 1, endIndex).trim();
       templateMap[name] = _stripDelimiters(body).join('\n');
     }
   }
@@ -120,6 +168,50 @@ class DartdocDirectiveInfo {
       return true;
     }
     return false;
+  }
+
+  int _nextAtEndtemplate(String comment, int offset) {
+    int end = comment.length;
+    while (true) {
+      for (; offset < end; offset++) {
+        if (comment.codeUnitAt(offset) == $OPEN_CURLY_BRACKET) break;
+      }
+      if (offset + 13 >= end) return -1;
+      if (comment.codeUnitAt(++offset) != $AT) continue;
+      if (comment.codeUnitAt(++offset) != $e) continue;
+      if (comment.codeUnitAt(++offset) != $n) continue;
+      if (comment.codeUnitAt(++offset) != $d) continue;
+      if (comment.codeUnitAt(++offset) != $t) continue;
+      if (comment.codeUnitAt(++offset) != $e) continue;
+      if (comment.codeUnitAt(++offset) != $m) continue;
+      if (comment.codeUnitAt(++offset) != $p) continue;
+      if (comment.codeUnitAt(++offset) != $l) continue;
+      if (comment.codeUnitAt(++offset) != $a) continue;
+      if (comment.codeUnitAt(++offset) != $t) continue;
+      if (comment.codeUnitAt(++offset) != $e) continue;
+      if (comment.codeUnitAt(++offset) != $CLOSE_CURLY_BRACKET) continue;
+      return offset + 1;
+    }
+  }
+
+  int _nextAtTemplate(String comment, int offset) {
+    int end = comment.length;
+    while (true) {
+      for (; offset < end; offset++) {
+        if (comment.codeUnitAt(offset) == $OPEN_CURLY_BRACKET) break;
+      }
+      if (offset + 9 >= end) return -1;
+      if (comment.codeUnitAt(++offset) != $AT) continue;
+      if (comment.codeUnitAt(++offset) != $t) continue;
+      if (comment.codeUnitAt(++offset) != $e) continue;
+      if (comment.codeUnitAt(++offset) != $m) continue;
+      if (comment.codeUnitAt(++offset) != $p) continue;
+      if (comment.codeUnitAt(++offset) != $l) continue;
+      if (comment.codeUnitAt(++offset) != $a) continue;
+      if (comment.codeUnitAt(++offset) != $t) continue;
+      if (comment.codeUnitAt(++offset) != $e) continue;
+      return offset + 1;
+    }
   }
 
   int _skipWhitespaceBackward(
