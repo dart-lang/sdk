@@ -110,7 +110,7 @@ import 'expression_generator_helper.dart';
 import 'external_ast_helper.dart';
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 import 'internal_ast.dart';
-import 'internal_ast_helper.dart';
+import 'internal_ast_helper.dart' as forest;
 import 'kernel_variable_builder.dart';
 import 'load_library_builder.dart';
 import 'type_algorithms.dart' show calculateBounds;
@@ -179,9 +179,6 @@ abstract class BodyBuilder {
 
 class BodyBuilderImpl extends StackListenerImpl
     implements BodyBuilder, ExpressionGeneratorHelper {
-  @override
-  final Forest forest;
-
   @override
   final SourceLibraryBuilder libraryBuilder;
 
@@ -372,7 +369,6 @@ class BodyBuilderImpl extends StackListenerImpl
     required this.extensionScope,
     required ThisVariable? internalThisVariable,
   }) : _context = context,
-       forest = const Forest(),
        enableNative = libraryBuilder.loader.target.backendTarget.enableNative(
          libraryBuilder.importUri,
        ),
@@ -4072,10 +4068,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<BreakStatementImpl>? continueStatements;
     if (continueTarget.hasUsers) {
       LabeledStatement labeledStatement = forest.createLabeledStatement(body);
-      continueStatements = continueTarget.resolveContinues(
-        forest,
-        labeledStatement,
-      );
+      continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
     Expression? condition;
@@ -4100,7 +4093,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement result = forStatement;
     if (breakTarget.hasUsers) {
       LabeledStatement labeledStatement = forest.createLabeledStatement(result);
-      breakTarget.resolveBreaks(forest, labeledStatement, forStatement);
+      breakTarget.resolveBreaks(labeledStatement, forStatement);
       result = labeledStatement;
     }
     if (variableOrExpression is PatternVariableDeclaration) {
@@ -8015,10 +8008,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<BreakStatementImpl>? continueStatements;
     if (continueTarget.hasUsers) {
       LabeledStatement labeledStatement = forest.createLabeledStatement(body);
-      continueStatements = continueTarget.resolveContinues(
-        forest,
-        labeledStatement,
-      );
+      continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
     Statement doStatement = forest.createDoStatement(
@@ -8036,7 +8026,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement result = doStatement;
     if (breakTarget.hasUsers) {
       LabeledStatement labeledStatement = forest.createLabeledStatement(result);
-      breakTarget.resolveBreaks(forest, labeledStatement, doStatement);
+      breakTarget.resolveBreaks(labeledStatement, doStatement);
       result = labeledStatement;
     }
     exitLoopOrSwitch(result);
@@ -8389,10 +8379,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<BreakStatementImpl>? continueStatements;
     if (continueTarget.hasUsers) {
       LabeledStatement labeledStatement = forest.createLabeledStatement(body);
-      continueStatements = continueTarget.resolveContinues(
-        forest,
-        labeledStatement,
-      );
+      continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
     ForInElements elements = _computeForInElements(
@@ -8437,7 +8424,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement result = forInStatement;
     if (breakTarget.hasUsers) {
       LabeledStatement labeledStatement = forest.createLabeledStatement(result);
-      breakTarget.resolveBreaks(forest, labeledStatement, forInStatement);
+      breakTarget.resolveBreaks(labeledStatement, forInStatement);
       result = labeledStatement;
     }
     if (problem != null) {
@@ -8496,9 +8483,9 @@ class BodyBuilderImpl extends StackListenerImpl
       if (statement is! LabeledStatement) {
         statement = forest.createLabeledStatement(statement);
       }
-      target.breakTarget.resolveBreaks(forest, statement, statement);
+      target.breakTarget.resolveBreaks(statement, statement);
       List<BreakStatementImpl>? continueStatements = target.continueTarget
-          .resolveContinues(forest, statement);
+          .resolveContinues(statement);
       if (continueStatements != null) {
         for (BreakStatementImpl continueStatement in continueStatements) {
           continueStatement.targetStatement = statement;
@@ -8592,10 +8579,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<BreakStatementImpl>? continueStatements;
     if (continueTarget.hasUsers) {
       LabeledStatement labeledStatement = forest.createLabeledStatement(body);
-      continueStatements = continueTarget.resolveContinues(
-        forest,
-        labeledStatement,
-      );
+      continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
     Statement whileStatement = forest.createWhileStatement(
@@ -8611,7 +8595,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement result = whileStatement;
     if (breakTarget.hasUsers) {
       LabeledStatement labeledStatement = forest.createLabeledStatement(result);
-      breakTarget.resolveBreaks(forest, labeledStatement, whileStatement);
+      breakTarget.resolveBreaks(labeledStatement, whileStatement);
       result = labeledStatement;
     }
     exitLoopOrSwitch(result);
@@ -9291,7 +9275,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // when they have no target.
     if (target.hasUsers || libraryFeatures.patterns.isEnabled) {
       LabeledStatement labeledStatement = forest.createLabeledStatement(result);
-      target.resolveBreaks(forest, labeledStatement, switchStatement);
+      target.resolveBreaks(labeledStatement, switchStatement);
       result = labeledStatement;
     }
     exitLoopOrSwitch(result);
@@ -9449,7 +9433,7 @@ class BodyBuilderImpl extends StackListenerImpl
           JumpTarget? target = _switchScope!.lookupLabel(label.name);
           if (target != null) {
             (caseLabelUsers[i] ??= <Statement>[]).addAll(target.users);
-            target.resolveGotos(forest, current);
+            target.resolveGotos(current);
           }
         }
       }

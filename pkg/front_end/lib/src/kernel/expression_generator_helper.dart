@@ -25,7 +25,6 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'constness.dart' show Constness;
 import 'expression_generator.dart';
 import 'internal_ast.dart';
-import 'internal_ast_helper.dart';
 
 /// Alias for Expression | Generator
 typedef Expression_Generator = dynamic;
@@ -51,8 +50,6 @@ abstract class ExpressionGeneratorHelper {
   /// This is used when creating [NamedTypeBuilder]s within
   /// [ExpressionGenerator]s.
   InstanceTypeParameterAccessState get instanceTypeParameterAccessState;
-
-  Forest get forest;
 
   ProblemReporting get problemReporting;
 

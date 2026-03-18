@@ -22,7 +22,7 @@ import '../builder/builder.dart';
 import '../builder/compilation_unit.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'internal_ast.dart';
-import 'internal_ast_helper.dart';
+import 'internal_ast_helper.dart' as forest;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
 class LoadLibraryBuilder extends NamedBuilderImpl {
@@ -68,20 +68,16 @@ class LoadLibraryBuilder extends NamedBuilderImpl {
   // Coverage-ignore(suite): Not run.
   Uri get fileUri => parent.fileUri;
 
-  LoadLibrary createLoadLibrary(
-    int charOffset,
-    Forest forest,
-    ActualArguments? arguments,
-  ) {
+  LoadLibrary createLoadLibrary(int charOffset, ActualArguments? arguments) {
     return forest.createLoadLibrary(charOffset, importDependency, arguments);
   }
 
-  Procedure createTearoffMethod(Forest forest) {
+  Procedure createTearoffMethod() {
     if (tearoff != null) {
       // Coverage-ignore-block(suite): Not run.
       return tearoff!;
     }
-    LoadLibrary expression = createLoadLibrary(fileOffset, forest, null);
+    LoadLibrary expression = createLoadLibrary(fileOffset, null);
     String prefix = expression.import.name!;
     Name name = new Name('_#loadLibrary_$prefix', parent.library);
     Reference? reference = parent.indexedLibrary?.lookupGetterReference(name);

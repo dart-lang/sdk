@@ -52,7 +52,7 @@ import 'body_builder.dart';
 import 'body_builder_context.dart';
 import 'external_ast_helper.dart';
 import 'internal_ast.dart';
-import 'internal_ast_helper.dart';
+import 'internal_ast_helper.dart' as forest;
 
 part 'resolver_helpers.dart';
 
@@ -1304,7 +1304,6 @@ class Resolver {
     required ConstantContext constantContext,
     required ThisVariable? internalThisVariable,
   }) {
-    const Forest forest = const Forest();
     AssignedVariables assignedVariables = context.assignedVariables;
 
     // Create variable get expressions for super parameters before finishing

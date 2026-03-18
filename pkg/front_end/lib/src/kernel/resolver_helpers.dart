@@ -590,7 +590,6 @@ class _InitializerBuilder {
       argumentsOffset = _bodyBuilderContext.memberNameOffset;
     }
 
-    const Forest forest = const Forest();
     if (argumentsOriginalOrder != null) {
       arguments = forest.createArguments(
         argumentsOffset,
