@@ -274,6 +274,14 @@ class ${0:A} {
     expect(result, equals(r'a, ${0:b}, c'));
   }
 
+  Future<void> test_tabStops_contains_notFinal() async {
+    var result = lsp.buildSnippetStringWithTabStops('a, b, c', [
+      3,
+      1,
+    ], markSingleTabStopAsFinal: false);
+    expect(result, equals(r'a, ${1:b}, c'));
+  }
+
   Future<void> test_tabStops_empty() async {
     var result = lsp.buildSnippetStringWithTabStops('a, b', []);
     expect(result, equals(r'a, b'));

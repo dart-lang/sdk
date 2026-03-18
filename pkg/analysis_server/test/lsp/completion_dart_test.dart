@@ -1763,7 +1763,7 @@ void f(int aaa) {
 ''',
       'Aaaaa(…)',
       insertTextFormat: InsertTextFormat.Snippet,
-      editText: r'Aaaaa(${0:a})',
+      editText: r'Aaaaa(${1:a})',
     );
   }
 
@@ -1961,7 +1961,7 @@ void f() {
 ''',
       'foo(…)',
       insertTextFormat: InsertTextFormat.Snippet,
-      editText: r'foo(${0:a})',
+      editText: r'foo(${1:a})',
     );
   }
 
@@ -1995,7 +1995,7 @@ void f() {
       content,
       'myFunction(…)',
       // With optional params, there should still be parens/tab stop inside.
-      editText: r'myFunction($0)',
+      editText: r'myFunction($1)',
       insertTextFormat: InsertTextFormat.Snippet,
     );
   }
@@ -2081,7 +2081,7 @@ final a = Stri^
       expect(item.insertText, isNull);
       expect(
         item.textEdit!.map((edit) => edit.newText, (edit) => edit.newText),
-        r'String.fromCharCode(${0:charCode})',
+        r'String.fromCharCode(${1:charCode})',
       );
     }
 
@@ -2129,7 +2129,7 @@ void f(int a) {
 ''',
       'f(…)',
       insertTextFormat: InsertTextFormat.Snippet,
-      editText: r'f(${0:a})',
+      editText: r'f(${1:a})',
     );
   }
 
@@ -2142,7 +2142,7 @@ void f(int a) {
 ''',
       'print(…)',
       insertTextFormat: InsertTextFormat.Snippet,
-      editText: r'print(${0:object})',
+      editText: r'print(${1:object})',
     );
   }
 

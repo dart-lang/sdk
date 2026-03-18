@@ -123,10 +123,11 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
           ? buildSnippetStringWithTabStops(
               requiredArgumentListString,
               requiredArgumentListTextRanges,
+              markSingleTabStopAsFinal: false,
             )
-          // Optional params still gets a final tab stop in the parens.
+          // Optional params still gets a tab stop in the parens so the user can tab out.
           : hasOptionalParameters
-          ? SnippetBuilder.finalTabStop
+          ? SnippetBuilder.firstTabStop
           // And no parameters at all we skip the tabstop in the parens.
           : '';
       insertText =

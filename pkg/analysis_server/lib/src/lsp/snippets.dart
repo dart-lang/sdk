@@ -39,11 +39,13 @@ String buildSnippetStringForEditGroups(
 /// [tabStopOffsetLengthPairs] are relative to the supplied text.
 String buildSnippetStringWithTabStops(
   String text,
-  List<int>? tabStopOffsetLengthPairs,
-) => _buildSnippetString(
+  List<int>? tabStopOffsetLengthPairs, {
+  bool markSingleTabStopAsFinal = true,
+}) => _buildSnippetString(
   text,
   filePath: null,
   tabStopOffsetLengthPairs: tabStopOffsetLengthPairs,
+  markSingleTabStopAsFinal: markSingleTabStopAsFinal,
 );
 
 /// Builds an LSP snippet string with supplied ranges as tab stops.
@@ -63,6 +65,7 @@ String _buildSnippetString(
   int? selectionLength,
   List<server.LinkedEditGroup>? editGroups,
   int editGroupsOffset = 0,
+  bool markSingleTabStopAsFinal = true,
 }) {
   tabStopOffsetLengthPairs ??= const [];
   editGroups ??= const [];
@@ -115,6 +118,7 @@ String _buildSnippetString(
         // If there's only a single tab stop (and no selection/editGroups), mark
         // it as the final stop so it exit "snippet mode" when tabbed to.
         isFinal:
+            markSingleTabStopAsFinal &&
             selectionOffset == null &&
             editGroups.isEmpty &&
             tabStopOffsetLengthPairs.length == 2,
@@ -151,6 +155,9 @@ String _buildSnippetString(
 class SnippetBuilder {
   /// The constant `$0` used do indicate a final tab stop in the snippet syntax.
   static const finalTabStop = r'$0';
+
+  /// The constant `$1` used to indicate a first tab stop in the snippet syntax.
+  static const firstTabStop = r'$1';
 
   /// Regex used by [escapeSnippetChoiceText].
   static final _escapeSnippetChoiceTextRegex = RegExp(
