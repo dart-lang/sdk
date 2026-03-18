@@ -146,7 +146,7 @@ vars = {
   "native_rev": "7d803f16c4d5a34844b3572962c78715c4ddcecf", # rolled manually while record_use is experimental
   "protobuf_rev": "d5639f45b8468fba684b076b9403ccd5f2290056",
   "pub_rev": "74408212b5348003381bc63f3b59274aaa23cfa3", # rolled manually
-  "shelf_rev": "900731b313dabf48927a82f2124e5a996c4a3d05",
+  "shelf_rev": "4d99e49fa9275bfa348a88c0ce066bfcd335f763",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "7e6d5dac07e40241238e0951438d0c0a2750e4b9",
