@@ -13,8 +13,5 @@ import 'package:dtd_impl/dtd.dart';
 /// send information about the DTD connection back over [port] instead of
 /// printing it to stdout.
 void main(List<String> args, Object? port) async {
-  await DartToolingDaemon.startService(
-    args,
-    sendPort: port as SendPort?,
-  );
+  await DartToolingDaemon.startService(args, sendPort: port as SendPort?);
 }

@@ -28,22 +28,16 @@ class DTDStreamManager extends StreamManager {
     String eventKind,
     Map<String, Object?> eventData,
   ) {
-    super.postEvent(
-      stream,
-      <String, Object?>{
-        DtdParameters.streamId: stream,
-        DtdParameters.eventKind: eventKind,
-        DtdParameters.eventData: eventData,
-        DtdParameters.timestamp: DateTime.now().millisecondsSinceEpoch,
-      },
-    );
+    super.postEvent(stream, <String, Object?>{
+      DtdParameters.streamId: stream,
+      DtdParameters.eventKind: eventKind,
+      DtdParameters.eventData: eventData,
+      DtdParameters.timestamp: DateTime.now().millisecondsSinceEpoch,
+    });
   }
 
   /// Send `streamNotify` notifications to clients subscribed to `streamId`.
-  void streamNotify(
-    String streamId,
-    Map<String, Object?> data,
-  ) {
+  void streamNotify(String streamId, Map<String, Object?> data) {
     super.postEvent(streamId, data);
   }
 }

@@ -82,7 +82,8 @@ enum DartToolingDaemonOptions {
     'disable-service-auth-codes',
     negatable: false,
     // This text mirrors what's in dartdev/commands/run for VM Service.
-    help: 'Disables the requirement for an authentication code to '
+    help:
+        'Disables the requirement for an authentication code to '
         'communicate with DTD. Authentication codes help '
         'protect against CSRF attacks, so it is not recommended to '
         'disable them unless behind a firewall on a secure device.',
@@ -102,7 +103,8 @@ enum DartToolingDaemonOptions {
   pingInterval.option(
     'ping-interval',
     defaultsTo: '$_pingIntervalSecondsDefault',
-    help: 'Sets the WebSocket ping interval in seconds (0 to disable). '
+    help:
+        'Sets the WebSocket ping interval in seconds (0 to disable). '
         'Enabling ping helps avoid connections being dropped by some proxies/'
         'antivirus products if a connection has no traffic for some period.',
   );
@@ -113,17 +115,14 @@ enum DartToolingDaemonOptions {
     this.verbose = false,
     this.hide = false,
     this.help,
-  })  : _kind = _DartToolingDaemonOptionKind.flag,
-        defaultsTo = null;
+  }) : _kind = _DartToolingDaemonOptionKind.flag,
+       defaultsTo = null;
 
-  const DartToolingDaemonOptions.option(
-    this.name, {
-    this.defaultsTo,
-    this.help,
-  })  : _kind = _DartToolingDaemonOptionKind.option,
-        negatable = false,
-        verbose = false,
-        hide = false;
+  const DartToolingDaemonOptions.option(this.name, {this.defaultsTo, this.help})
+    : _kind = _DartToolingDaemonOptionKind.option,
+      negatable = false,
+      verbose = false,
+      hide = false;
 
   final String name;
   final _DartToolingDaemonOptionKind _kind;
@@ -136,10 +135,7 @@ enum DartToolingDaemonOptions {
   final bool verbose;
 
   /// Populates an argument parser that can be used to configure the daemon.
-  static void populateArgOptions(
-    ArgParser argParser, {
-    bool verbose = false,
-  }) {
+  static void populateArgOptions(ArgParser argParser, {bool verbose = false}) {
     for (final entry in DartToolingDaemonOptions.values) {
       final hide = entry.hide || (entry.verbose && !verbose);
       switch (entry._kind) {
@@ -163,10 +159,7 @@ enum DartToolingDaemonOptions {
 }
 
 /// The kind of command line argument.
-enum _DartToolingDaemonOptionKind {
-  flag,
-  option,
-}
+enum _DartToolingDaemonOptionKind { flag, option }
 
 /// TODO(https://github.com/dart-lang/sdk/issues/54429): Add shutdown behavior.
 
@@ -184,17 +177,14 @@ class DartToolingDaemon {
     this._shouldLogRequests = false,
     bool useFakeAnalytics = false,
     this.pingInterval,
-  })  : _uriAuthCode = disableServiceAuthCodes ? null : _generateSecret() {
+  }) : _uriAuthCode = disableServiceAuthCodes ? null : _generateSecret() {
     streamManager = DTDStreamManager(this);
     clientManager = DTDClientManager();
 
     internalServices = Map.fromEntries(
       [
         ConnectedAppService(secret: secret, unrestrictedMode: unrestrictedMode),
-        FileSystemService(
-          secret: secret,
-          unrestrictedMode: unrestrictedMode,
-        ),
+        FileSystemService(secret: secret, unrestrictedMode: unrestrictedMode),
         UnifiedAnalyticsService(fake: useFakeAnalytics),
       ].map((service) => MapEntry(service.serviceName, service)),
     );
@@ -316,7 +306,7 @@ class DartToolingDaemon {
         int.tryParse(parsedArgs[DartToolingDaemonOptions.port.name]) ?? 0;
     final pingIntervalSeconds =
         int.tryParse(parsedArgs[DartToolingDaemonOptions.pingInterval.name]) ??
-            _pingIntervalSecondsDefault;
+        _pingIntervalSecondsDefault;
     final pingInterval = pingIntervalSeconds == 0
         ? null
         : Duration(seconds: pingIntervalSeconds);
@@ -364,40 +354,37 @@ class DartToolingDaemon {
   // standard HTTP requests. The websocket handler will fail quickly if the
   // request doesn't appear to be a websocket upgrade request.
   Handler _handlers() {
-    return Pipeline().addMiddleware(_uriTokenHandler).addHandler(
+    return Pipeline()
+        .addMiddleware(_uriTokenHandler)
+        .addHandler(
           Cascade().add(_webSocketHandler()).add(_sseHandler()).handler,
         );
   }
 
   Handler _uriTokenHandler(Handler innerHandler) => (Request request) {
-        if (_uriAuthCode != null) {
-          final forbidden =
-              Response.forbidden('missing or invalid authentication code');
-          final pathSegments = request.url.pathSegments;
-          if (pathSegments.isEmpty) {
-            return forbidden;
-          }
-          final clientProvidedCode = pathSegments[0];
-          if (clientProvidedCode != _uriAuthCode) {
-            return forbidden;
-          }
-        }
-        return innerHandler(request);
-      };
+    if (_uriAuthCode != null) {
+      final forbidden = Response.forbidden(
+        'missing or invalid authentication code',
+      );
+      final pathSegments = request.url.pathSegments;
+      if (pathSegments.isEmpty) {
+        return forbidden;
+      }
+      final clientProvidedCode = pathSegments[0];
+      if (clientProvidedCode != _uriAuthCode) {
+        return forbidden;
+      }
+    }
+    return innerHandler(request);
+  };
 
   // Note: the WebSocketChannel type below is needed for compatibility with
   // package:shelf_web_socket v2.
-  Handler _webSocketHandler() => webSocketHandler(
-        (WebSocketChannel ws, _) {
-          final client = DTDClient.fromWebSocket(
-            this,
-            ws,
-          );
-          _registerInternalServiceMethods(client);
-          clientManager.addClient(client);
-        },
-        pingInterval: pingInterval,
-      );
+  Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws, _) {
+    final client = DTDClient.fromWebSocket(this, ws);
+    _registerInternalServiceMethods(client);
+    clientManager.addClient(client);
+  }, pingInterval: pingInterval);
 
   Handler _sseHandler() {
     final handler = SseHandler(
@@ -406,10 +393,7 @@ class DartToolingDaemon {
     );
 
     handler.connections.rest.listen((sseConnection) {
-      final client = DTDClient.fromSSEConnection(
-        this,
-        sseConnection,
-      );
+      final client = DTDClient.fromSSEConnection(this, sseConnection);
       _registerInternalServiceMethods(client);
       clientManager.addClient(client);
     });
@@ -458,8 +442,10 @@ class DartToolingDaemon {
 
   static String? _getDtdDataHome() {
     try {
-      final String dir =
-          getDartDataHome(dtdDirName, environment: environmentOverride);
+      final String dir = getDartDataHome(
+        dtdDirName,
+        environment: environmentOverride,
+      );
       // createSync(recursive: true) is a no-op if the directory already exists.
       Directory(dir).createSync(recursive: true);
       return dir;
@@ -567,13 +553,8 @@ class DartToolingDaemonException implements Exception {
 }
 
 class ExistingDTDImplException extends DartToolingDaemonException {
-  ExistingDTDImplException._(
-    String message, {
-    this.dtdUri,
-  }) : super._(
-          DartToolingDaemonException.existingDtdInstanceError,
-          message,
-        );
+  ExistingDTDImplException._(String message, {this.dtdUri})
+    : super._(DartToolingDaemonException.existingDtdInstanceError, message);
 
   /// The URI of the existing DTD instance, if available.
   ///

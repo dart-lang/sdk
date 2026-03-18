@@ -23,11 +23,11 @@ void main() {
   late String dtdScriptPath;
 
   Future<(Process process, String uri)> startDtdProcess() async {
-    final process = await Process.start(
-      Platform.resolvedExecutable,
-      ['run', dtdScriptPath, '--port=0'],
-      environment: env,
-    );
+    final process = await Process.start(Platform.resolvedExecutable, [
+      'run',
+      dtdScriptPath,
+      '--port=0',
+    ], environment: env);
 
     String? uri;
     process.stderr.transform(utf8.decoder).listen((error) {
@@ -36,11 +36,13 @@ void main() {
       }
     });
 
-    final uriRegex =
-        RegExp(r'The Dart Tooling Daemon is listening on (ws://.*)');
-    await for (final line in process.stdout
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())) {
+    final uriRegex = RegExp(
+      r'The Dart Tooling Daemon is listening on (ws://.*)',
+    );
+    await for (final line
+        in process.stdout
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())) {
       if (line.startsWith('The Dart Tooling Daemon is listening on')) {
         final match = uriRegex.firstMatch(line);
         if (match != null) {
@@ -56,11 +58,12 @@ void main() {
       throw StateError('Failed to start DTD process. No URI printed.');
     }
 
-    // Since _recordDtdConnectionInfo() happens right after the print, poll
-    // briefly to ensure the file system has caught up before letting tests proceed.
     final dataHome = getDartDataHome(dtdDirName, environment: env);
     final pidFile = File(p.join(dataHome, process.pid.toString()));
-    for (var i = 0; i < 20; i++) {
+
+    // On Windows bots, file creation can take more than 1 second.
+    // Increasing timeout iterations to 100 (5 seconds) to avoid flakiness (Issue #62872).
+    for (var i = 0; i < 100; i++) {
       if (pidFile.existsSync()) break;
       await Future<void>.delayed(const Duration(milliseconds: 50));
     }
@@ -168,23 +171,21 @@ void main() {
 
       // Even valid JSON should be cleaned up if the process is no longer active.
       garbageFile.writeAsStringSync(
-        jsonEncode(
-          <String, Object?>{
-            'wsUri': 'ws://127.0.0.1:0',
-            'epoch': 123456789,
-            'pid': 999999,
-            'dartVersion': '3.0.0',
-            'workspaceRoot': '/test',
-          },
-        ),
+        jsonEncode(<String, Object?>{
+          'wsUri': 'ws://127.0.0.1:0',
+          'epoch': 123456789,
+          'pid': 999999,
+          'dartVersion': '3.0.0',
+          'workspaceRoot': '/test',
+        }),
       );
 
       // Trigger the list command
-      final result = await Process.run(
-        Platform.resolvedExecutable,
-        ['run', dtdScriptPath, '--list'],
-        environment: env,
-      );
+      final result = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        dtdScriptPath,
+        '--list',
+      ], environment: env);
 
       // It shouldn't crash, instead saying 0 instances
       expect(result.stdout.toString(), contains(noInstancesMessage));
@@ -196,20 +197,20 @@ void main() {
 
     test('list prints correct number of instances', () async {
       // 0 instances initially.
-      var result = await Process.run(
-        Platform.resolvedExecutable,
-        ['run', dtdScriptPath, '--list'],
-        environment: env,
-      );
+      var result = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        dtdScriptPath,
+        '--list',
+      ], environment: env);
       expect(result.stdout.toString(), contains(noInstancesMessage));
 
       // 1 instance.
       final (dtd1, _) = await startDtdProcess();
-      result = await Process.run(
-        Platform.resolvedExecutable,
-        ['run', dtdScriptPath, '--list'],
-        environment: env,
-      );
+      result = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        dtdScriptPath,
+        '--list',
+      ], environment: env);
       expect(
         result.stdout.toString(),
         contains('Found 1 Dart Tooling Daemon instance(s):'),
@@ -217,11 +218,11 @@ void main() {
 
       // 2 instances.
       final (dtd2, _) = await startDtdProcess();
-      result = await Process.run(
-        Platform.resolvedExecutable,
-        ['run', dtdScriptPath, '--list'],
-        environment: env,
-      );
+      result = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        dtdScriptPath,
+        '--list',
+      ], environment: env);
       expect(
         result.stdout.toString(),
         contains('Found 2 Dart Tooling Daemon instance(s):'),
@@ -236,31 +237,34 @@ void main() {
 
     test('list --machine prints JSON list of instances', () async {
       // 0 instances initially.
-      var result = await Process.run(
-        Platform.resolvedExecutable,
-        ['run', dtdScriptPath, '--list', '--machine'],
-        environment: env,
-      );
+      var result = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        dtdScriptPath,
+        '--list',
+        '--machine',
+      ], environment: env);
       var json = jsonDecode(result.stdout.toString()) as List;
       expect(json, isEmpty);
 
       // 1 instance.
       final (dtd1, _) = await startDtdProcess();
-      result = await Process.run(
-        Platform.resolvedExecutable,
-        ['run', dtdScriptPath, '--list', '--machine'],
-        environment: env,
-      );
+      result = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        dtdScriptPath,
+        '--list',
+        '--machine',
+      ], environment: env);
       json = jsonDecode(result.stdout.toString()) as List;
       expect(json.length, 1);
 
       // 2 instances.
       final (dtd2, _) = await startDtdProcess();
-      result = await Process.run(
-        Platform.resolvedExecutable,
-        ['run', dtdScriptPath, '--list', '--machine'],
-        environment: env,
-      );
+      result = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        dtdScriptPath,
+        '--list',
+        '--machine',
+      ], environment: env);
       json = jsonDecode(result.stdout.toString()) as List;
       expect(json.length, 2);
 
