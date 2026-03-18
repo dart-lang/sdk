@@ -322,6 +322,7 @@ class DartToolingDaemon {
       pingInterval: pingInterval,
     );
     await dtd._startService(port: port);
+    dtd._recordDtdConnectionInfo();
     if (machineMode) {
       final encoded = jsonEncode({
         'tooling_daemon_details': {
@@ -346,7 +347,6 @@ class DartToolingDaemon {
         print('Trusted Client Secret: $secret');
       }
     }
-    dtd._recordDtdConnectionInfo();
     return dtd;
   }
 
