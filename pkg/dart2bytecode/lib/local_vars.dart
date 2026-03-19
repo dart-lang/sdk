@@ -556,6 +556,12 @@ class _ScopeBuilder extends RecursiveVisitor {
   }
 
   @override
+  void visitCatchVariable(CatchVariable node) {
+    _declareVariable(node);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitVariableGet(VariableGet node) {
     _useVariable(node.expressionVariable);
     if (node.expressionVariable.isLate) {
@@ -1069,6 +1075,12 @@ class _Allocator extends RecursiveVisitor {
 
   void _handleVariableInitialization(VariableInitialization node) {
     _allocateVariable(node.variable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitCatchVariable(CatchVariable node) {
+    _allocateVariable(node);
     node.visitChildren(this);
   }
 

@@ -187,9 +187,7 @@ main() {
 
   // The following tests are known to fail due to the experiment.
   const Set<String> knownFailures = {
-    'async.dart',
     'type_ops.dart',
-    'try_blocks.dart',
     'literals.dart',
   };
 
