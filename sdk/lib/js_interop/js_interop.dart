@@ -416,6 +416,9 @@ extension type JSIteratorResult<T extends JSAny?>._(JSObject _)
     implements JSObject {
   /// Creates a result that indicates the end of iteration. The value is the
   /// "return value" of the iterator.
+  ///
+  /// This doesn't allow passing nulls, as it determines whether an argument is
+  /// passed based on whether it was null or not.
   factory JSIteratorResult.done([T? returnValue]) {
     final result = JSIteratorResult<T>._(JSObject());
     result._done = true;
@@ -436,18 +439,14 @@ extension type JSIteratorResult<T extends JSAny?>._(JSObject _)
   // This is a getter/setter pair to work around the bug described in
   // https://dart-review.googlesource.com/c/sdk/+/478704/12..14/sdk/lib/js_interop/js_interop.dart#b585.
   @JS('done')
-  external bool? get _done;
-  @JS('done')
-  external set _done(bool? value);
+  external bool? _done;
 
   /// Wrap this so that the setter is private.
   //
   // This is a getter/setter pair to work around the bug described in
   // https://dart-review.googlesource.com/c/sdk/+/478704/12..14/sdk/lib/js_interop/js_interop.dart#b585.
   @JS('value')
-  external T? get _value;
-  @JS('value')
-  external set _value(T? value);
+  external T? _value;
 
   /// See [`done`].
   ///
