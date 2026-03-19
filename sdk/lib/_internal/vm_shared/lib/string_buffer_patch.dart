@@ -123,7 +123,8 @@ class StringBuffer {
   @patch
   void clear() {
     _parts = null;
-    _partsCodeUnits = _bufferPosition = _bufferCodeUnitMagnitude = 0;
+    _partsCodeUnits = _bufferPosition = _bufferCodeUnitMagnitude =
+        _partsCompactionIndex = _partsCodeUnitsSinceCompaction = 0;
   }
 
   /** Returns the contents of buffer as a string. */
