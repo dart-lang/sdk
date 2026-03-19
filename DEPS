@@ -151,7 +151,7 @@ vars = {
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "36b9d8291803520b969b9ee623edf276fcc5d5e0",
   "tools_rev": "8f62a7792e30b4b512caa05fb84ce45a57f8d401", # rolled manually to expedite analytics work
-  "vector_math_rev": "70fe91cd469c4829b4ec06571a474de79b38a064",
+  "vector_math_rev": "5e717dfe507403747276b6565d71c8b3d610111c",
   "web_rev": "48b75126e511e2d3de65130f2e7aa21cca58f473",
   "webdev_rev": "1e47b492c0d364020615128573d12fec928aac07",
   "webdriver_rev": "bc92e4e9612a247c4388a7b437ad4e40a5fba1fd",
