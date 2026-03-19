@@ -2559,7 +2559,7 @@ static bool IsSingleTarget(IsolateGroup* isolate_group,
     if (!table->HasValidClassAt(cid)) continue;
     cls = table->At(cid);
     if (cls.is_abstract()) continue;
-    if (!cls.is_allocated()) continue;
+    if (!cls.is_allocated() && !cls.is_declared_in_bytecode()) continue;
     other_target = Resolver::ResolveDynamicAnyArgs(zone, cls, name,
                                                    /*allow_add=*/false);
     if (other_target.ptr() != target.ptr()) {

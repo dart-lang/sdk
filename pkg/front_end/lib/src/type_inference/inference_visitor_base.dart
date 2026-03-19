@@ -3476,7 +3476,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<VariableDeclaration>? hoistedExpressions,
   ) {
     if (hoistedExpressions != null &&
-        expression is! ThisExpression &&
+        !(expression is ThisExpression ||
+            expression is VariableGet &&
+                expression.expressionVariable is ThisVariable) &&
         expression is! FunctionExpression) {
       VariableDeclaration variable = createVariable(expression, type);
       hoistedExpressions.add(variable);

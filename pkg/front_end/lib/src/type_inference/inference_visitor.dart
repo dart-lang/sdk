@@ -3828,10 +3828,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionExpression node,
     DartType typeContext,
   ) {
+    ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
       _contextAllocationStrategy.handleVariablesCapturedByNode(
         node.function,
         _capturedVariablesForNode(node),
+      );
+      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
+        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
       );
       _handleDeclarationsOfParameters([
         ...node.function.positionalParameters,
@@ -3855,6 +3859,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     flowAnalysis.functionExpression_end();
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
+    if (scopeProviderInfo != null) {
+      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
+      node.function.scope = scopeProviderInfo.scope;
+    }
     return new ExpressionInferenceResult(inferredType, node);
   }
 

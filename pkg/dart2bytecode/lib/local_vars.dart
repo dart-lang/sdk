@@ -39,14 +39,11 @@ class LocalVariables {
     return v.index ?? (throw 'Variable $variable is not allocated');
   }
 
-  bool isCaptured(Variable variable) =>
-      _getVarDesc(variable).isCaptured;
+  bool isCaptured(Variable variable) => _getVarDesc(variable).isCaptured;
 
-  int getVarIndexInFrame(Variable variable) =>
-      _getVarIndex(variable, false);
+  int getVarIndexInFrame(Variable variable) => _getVarIndex(variable, false);
 
-  int getVarIndexInContext(Variable variable) =>
-      _getVarIndex(variable, true);
+  int getVarIndexInContext(Variable variable) => _getVarIndex(variable, true);
 
   int getOriginalParamSlotIndex(VariableDeclaration variable) =>
       _getVarDesc(variable).originalParamSlotIndex ??
@@ -120,13 +117,13 @@ class LocalVariables {
 
   bool get hasFactoryTypeArgsVar => _currentFrame.factoryTypeArgsVar != null;
 
-  VariableDeclaration get receiverVar =>
+  Variable get receiverVar =>
       _currentFrame.receiverVar ??
       (throw 'Receiver variable is not declared in ${_currentFrame.function}');
 
   bool get hasCapturedReceiverVar => _currentFrame.capturedReceiverVar != null;
 
-  VariableDeclaration get capturedReceiverVar =>
+  Variable get capturedReceiverVar =>
       _currentFrame.capturedReceiverVar ??
       (throw 'Captured receiver variable is not declared in ${_currentFrame.function}');
 
@@ -234,8 +231,8 @@ class Frame {
   bool hasOptionalParameters = false;
   bool hasCapturedParameters = false;
   bool hasClosures = false;
-  VariableDeclaration? receiverVar;
-  VariableDeclaration? capturedReceiverVar;
+  Variable? receiverVar;
+  Variable? capturedReceiverVar;
   VariableDeclaration? functionTypeArgsVar;
   VariableDeclaration? factoryTypeArgsVar;
   VariableDeclaration? closureVar;
@@ -328,8 +325,8 @@ class _ScopeBuilder extends RecursiveVisitor {
 
     if (node is Field) {
       if (_hasReceiverParameter(node)) {
-        final receiverVar =
-            _currentFrame.receiverVar = VariableDeclaration('this');
+        final receiverVar = _currentFrame.receiverVar =
+            _findThisVariable(node) ?? VariableDeclaration('this');
         _declareVariable(receiverVar);
       }
       node.initializer?.accept(this);
@@ -379,8 +376,8 @@ class _ScopeBuilder extends RecursiveVisitor {
       }
 
       if (_hasReceiverParameter(node)) {
-        final receiverVar =
-            _currentFrame.receiverVar = VariableDeclaration('this');
+        final receiverVar = _currentFrame.receiverVar =
+            _findThisVariable(node) ?? VariableDeclaration('this');
         _declareVariable(receiverVar);
       } else {
         final parentReceiverVar = _currentFrame.parent?.receiverVar;
@@ -554,6 +551,12 @@ class _ScopeBuilder extends RecursiveVisitor {
   }
 
   void _handleFunctionParameter(FunctionParameter node) {
+    _declareVariable(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitCatchVariable(CatchVariable node) {
     _declareVariable(node);
     node.visitChildren(this);
   }
@@ -880,7 +883,7 @@ class _Allocator extends RecursiveVisitor {
     _updateFrameSize();
   }
 
-  void _ensureVariableAllocated(VariableDeclaration? variable) {
+  void _ensureVariableAllocated(Variable? variable) {
     if (variable != null) {
       final VarDesc v = locals._getVarDesc(variable);
       if (!v.isAllocated) {
@@ -1076,6 +1079,12 @@ class _Allocator extends RecursiveVisitor {
   }
 
   @override
+  void visitCatchVariable(CatchVariable node) {
+    _allocateVariable(node);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitBlock(Block node) {
     _visit(node, scope: true);
   }
@@ -1267,3 +1276,18 @@ class _Allocator extends RecursiveVisitor {
 
 class LocalVariableIndexOverflowException
     extends BytecodeLimitExceededException {}
+
+ThisVariable? _findThisVariable(TreeNode? node) {
+  switch (node) {
+    case Procedure(function: FunctionNode(:var scope?)):
+    case Constructor(function: FunctionNode(:var scope?)):
+      for (var context in scope.contexts) {
+        for (var variable in context.variables) {
+          if (variable is ThisVariable) {
+            return variable;
+          }
+        }
+      }
+  }
+  return null;
+}
