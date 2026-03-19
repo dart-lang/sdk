@@ -149,11 +149,11 @@ vars = {
   "shelf_rev": "4d99e49fa9275bfa348a88c0ce066bfcd335f763",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "7e6d5dac07e40241238e0951438d0c0a2750e4b9",
+  "test_rev": "36b9d8291803520b969b9ee623edf276fcc5d5e0",
   "tools_rev": "8f62a7792e30b4b512caa05fb84ce45a57f8d401", # rolled manually to expedite analytics work
   "vector_math_rev": "70fe91cd469c4829b4ec06571a474de79b38a064",
   "web_rev": "48b75126e511e2d3de65130f2e7aa21cca58f473",
-  "webdev_rev": "5771ee58119af9835a3005a86fae4556c69d97f0",
+  "webdev_rev": "1e47b492c0d364020615128573d12fec928aac07",
   "webdriver_rev": "bc92e4e9612a247c4388a7b437ad4e40a5fba1fd",
   "webkit_inspection_protocol_rev": "bb493f55cafb4118f29ebd7cdb995efeafa7f30c",
 
@@ -166,7 +166,7 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "146.0.7680.31",
+  "chrome_tag": "147.0.7727.3",
   "download_firefox": False,
   "firefox_tag": "148.0",
 
