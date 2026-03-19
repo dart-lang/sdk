@@ -366,6 +366,19 @@ class B extends A {
     );
   }
 
+  test_publicFieldFromDeclaringParameter() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  int x = 0;
+}
+
+class B(var int x) extends A {}
+''',
+      [lint(42, 1)],
+    );
+  }
+
   test_publicFieldInSameLibrary() async {
     await assertDiagnostics(
       r'''
