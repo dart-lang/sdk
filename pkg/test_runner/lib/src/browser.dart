@@ -331,7 +331,7 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath,
         return {timeout};
       },
       scheduleRepeated: (intervalMicros, callback, arg) => {
-        const timeout = setInterval(() => callback(arg), Number(intervalMicros / 1000));
+        const timeout = setInterval(() => callback(arg), Number(intervalMicros / 1000n));
         return {timeout};
       },
       queueMicrotask: (callback, arg) => {

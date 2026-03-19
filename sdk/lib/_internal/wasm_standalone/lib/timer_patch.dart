@@ -31,12 +31,12 @@ abstract class _Timer implements Timer {
   int get tick => _tick;
 
   @override
-  bool get isActive => _handle != null;
+  bool get isActive => !_handle.isNull;
 
   _Timer(Duration duration)
     : _microseconds = duration.inMicroseconds,
       _tick = 0,
-      _handle = null {
+      _handle = WasmExternRef.nullRef {
     _schedule();
   }
 
@@ -73,7 +73,7 @@ class _OneShotTimer extends _Timer {
 
   _processTick() {
     _tick++;
-    _handle = null;
+    _handle = WasmExternRef.nullRef;
     _callback();
   }
 }
