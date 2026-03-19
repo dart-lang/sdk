@@ -321,8 +321,30 @@ $script
 """;
 }
 
-String dart2wasmHtml(
-    String title, String wasmPath, String mjsPath, String supportJsPath) {
+String dart2wasmHtml(String title, String wasmPath, String mjsPath,
+    String supportJsPath, bool standalone) {
+  const standaloneEmbedder = """
+    const dartEmbedder = {
+      // See sdk/lib/_internal/wasm_standalone/lib/embedder.dart for required definitions.
+      scheduleOnce: (delayInMicros, callback, arg) => {
+        const timeout = setTimeout(() => callback(arg), Number(delayInMicros / 1000n));
+        return {timeout};
+      },
+      scheduleRepeated: (intervalMicros, callback, arg) => {
+        const timeout = setInterval(() => callback(arg), Number(intervalMicros / 1000));
+        return {timeout};
+      },
+      queueMicrotask: (callback, arg) => {
+        queueMicrotask(() => callback(arg));
+      },
+      clearSchedule: (schedule) => {
+        clearTimeout(schedule.timeout);
+      },
+      currentTime: () => BigInt(Date.now()) * 1000n,
+    };
+""";
+  final additionalImports = standalone ? '{ dart: dartEmbedder }' : '{}';
+
   return """
 <!DOCTYPE html>
 <html>
@@ -365,7 +387,8 @@ String dart2wasmHtml(
       const response = await fetch(`\${path}/\${relativeToWasmFileUri}`);
       return response.arrayBuffer();
     };
-    const appInstance = await compiledApp.instantiate({}, {
+${standalone ? standaloneEmbedder : ''}
+    const appInstance = await compiledApp.instantiate($additionalImports, {
       loadDeferredModules: (modules, handleWasmBytes) =>
         Promise.all(modules.map((m) => fetch(m).then((b) => handleWasmBytes(m, b)))),
     });

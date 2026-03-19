@@ -50,6 +50,7 @@ class TranslatorOptions {
   int optimizationLevel = 1;
   bool? inliningOverride;
   bool jsCompatibility = false;
+  bool standalone = false;
   bool? omitImplicitTypeChecksOverride;
   bool omitExplicitTypeChecks = false;
   bool? omitBoundsChecksOverride;
@@ -84,6 +85,7 @@ class TranslatorOptions {
     sink.writeInt(optimizationLevel);
     sink.writeNullable(inliningOverride, sink.writeBool);
     sink.writeBool(jsCompatibility);
+    sink.writeBool(standalone);
     sink.writeNullable(omitImplicitTypeChecksOverride, sink.writeBool);
     sink.writeBool(omitExplicitTypeChecks);
     sink.writeNullable(omitBoundsChecksOverride, sink.writeBool);
@@ -112,6 +114,7 @@ class TranslatorOptions {
     options.optimizationLevel = source.readInt();
     options.inliningOverride = source.readNullable(source.readBool);
     options.jsCompatibility = source.readBool();
+    options.standalone = source.readBool();
     options.omitImplicitTypeChecksOverride =
         source.readNullable(source.readBool);
     options.omitExplicitTypeChecks = source.readBool();

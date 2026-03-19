@@ -42,6 +42,7 @@ import 'wasm_library_checks.dart' as wasmChecks;
 enum Mode {
   regular,
   jsCompatibility,
+  standalone,
 }
 
 class Dart2WasmConstantsBackend extends ConstantsBackend {
@@ -129,14 +130,16 @@ class WasmTarget extends Target {
   String get name {
     return switch (mode) {
       Mode.regular => 'wasm',
-      Mode.jsCompatibility => 'wasm_js_compatibility'
+      Mode.jsCompatibility => 'wasm_js_compatibility',
+      Mode.standalone => 'wasm_standalone',
     };
   }
 
   String get platformFile {
     return switch (mode) {
       Mode.regular => 'dart2wasm_platform.dill',
-      Mode.jsCompatibility => 'dart2wasm_js_compatibility_platform.dill'
+      Mode.jsCompatibility => 'dart2wasm_js_compatibility_platform.dill',
+      Mode.standalone => 'dart2wasm_standalone_platform.dill',
     };
   }
 

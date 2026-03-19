@@ -90,6 +90,12 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
+    --standalone)
+      PLATFORM_FILENAME="$BIN_DIR/dart2wasm_standalone_platform.dill"
+      DART2WASM_ARGS+=("--standalone")
+      shift
+      ;;
+
     --compiler-asserts)
       SNAPSHOT_NAME="dart2wasm_asserts"
       VM_ARGS+=("--enable-asserts")
