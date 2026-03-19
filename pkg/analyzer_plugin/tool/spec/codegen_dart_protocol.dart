@@ -614,63 +614,63 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     );
     indent(() {
       writeln('json ??= {};');
-      writeln('if (json is Map) {');
-      indent(() {
-        var args = <String>[];
-        var optionalArgs = <String>[];
-        for (var field in type.fields) {
-          var fieldNameString = literalString(field.name);
-          var fieldAccessor = 'json[$fieldNameString]';
-          var jsonPath = literalString('\$jsonPath.${field.name}');
-          if (field.value != null) {
-            var valueString = literalString(field.value as String);
-            writeln('if ($fieldAccessor != $valueString) {');
-            indent(() {
-              writeln(
-                "throw jsonDecoder.mismatch(jsonPath, \"equal to '${field.value}'\", json);",
-              );
-            });
-            writeln('}');
-            continue;
-          }
-          if (isOptionalConstructorArg(className, field)) {
-            optionalArgs.add('${field.name}: ${field.name}');
-          } else {
-            args.add(field.name);
-          }
-          var typeStr = fieldDartType(field);
-          writeln('$typeStr ${field.name};');
-          writeln('if (json.containsKey($fieldNameString)) {');
-          indent(() {
-            var fieldType = field.type;
-            var fromJson = fromJsonCode(
-              fieldType,
-            ).asSnippet(jsonPath, fieldAccessor);
-            writeln('${field.name} = $fromJson;');
-          });
-          write('}');
-          if (!field.optional) {
-            writeln(' else {');
-            indent(() {
-              writeln(
-                'throw jsonDecoder.mismatch(jsonPath, "$fieldNameString", json);',
-              );
-            });
-            writeln('}');
-          } else {
-            writeln();
-          }
-        }
-        args.addAll(optionalArgs);
-        writeln('return $className(${args.join(', ')});');
-      });
-      writeln('} else {');
+      writeln('if (json is! Map) {');
       indent(() {
         writeln(
           'throw jsonDecoder.mismatch(jsonPath, "$humanReadableNameString", json);',
         );
       });
       writeln('}');
+
+      var args = <String>[];
+      var optionalArgs = <String>[];
+      for (var field in type.fields) {
+        var fieldNameString = literalString(field.name);
+        var fieldNamePascalCase =
+            '${field.name[0].toUpperCase()}${field.name.substring(1)}';
+        var fieldAccessor = 'encoded$fieldNamePascalCase';
+        var jsonPath = literalString('\$jsonPath.${field.name}');
+        if (field.value != null) {
+          var valueString = literalString(field.value as String);
+          writeln('if (json[$fieldNameString] != $valueString) {');
+          indent(() {
+            writeln(
+              "throw jsonDecoder.mismatch(jsonPath, \"equal to '${field.value}'\", json);",
+            );
+          });
+          writeln('}');
+          continue;
+        }
+        if (isOptionalConstructorArg(className, field)) {
+          optionalArgs.add('${field.name}: ${field.name}');
+        } else {
+          args.add(field.name);
+        }
+        var typeStr = fieldDartType(field);
+        writeln('$typeStr ${field.name};');
+        writeln('if (json case {$fieldNameString: var $fieldAccessor}) {');
+        indent(() {
+          var fieldType = field.type;
+          var fromJson = fromJsonCode(
+            fieldType,
+          ).asSnippet(jsonPath, fieldAccessor);
+          writeln('${field.name} = $fromJson;');
+        });
+        write('}');
+        if (!field.optional) {
+          writeln(' else {');
+          indent(() {
+            writeln(
+              'throw jsonDecoder.mismatch(jsonPath, "$fieldNameString", json);',
+            );
+          });
+          writeln('}');
+        } else {
+          writeln();
+        }
+      }
+      args.addAll(optionalArgs);
+      writeln('return $className(${args.join(', ')});');
     });
     writeln('}');
   }
@@ -958,8 +958,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         var populateField = 'result[$fieldNameString] = $fieldToJson;';
         if (field.optional) {
           var name = field.name;
-          writeln('var $name = this.$name;');
-          writeln('if ($name != null) {');
+          writeln('if ($name case var $name?) {');
           indent(() {
             writeln(populateField);
           });
@@ -1087,6 +1086,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           return FromJsonSnippet((String jsonPath, String json) {
             var typeName = dartType(type);
             if (typeName == 'RefactoringFeedback') {
+              //
               return '$typeName.fromJson(jsonDecoder, $jsonPath, $json, json$namedArguments)';
             } else if (typeName == 'RefactoringOptions') {
               return '$typeName.fromJson(jsonDecoder, $jsonPath, $json, kind$namedArguments)';
@@ -1392,7 +1392,7 @@ class FromJsonIdentity extends FromJsonSnippet {
 /// Representation of FromJsonCode for a snippet of inline code.
 class FromJsonSnippet extends FromJsonCode {
   /// Callback that can be used to generate the code snippet, once the names
-  /// of the [jsonPath] and [json] variables are known.
+  /// of the `jsonPath` and `json` variables are known.
   final FromJsonSnippetCallback callback;
 
   FromJsonSnippet(this.callback);
