@@ -43,6 +43,10 @@ final List<Option> options = [
     o.translatorOptions.jsCompatibility = value;
     o.environment['dart.wasm.js_compatibility'] = 'true';
   }, defaultsTo: _d.translatorOptions.jsCompatibility),
+  Flag("standalone", (o, value) {
+    o.translatorOptions.standalone = value;
+    o.environment['dart.wasm.standalone'] = 'true';
+  }, defaultsTo: _d.translatorOptions.standalone),
   Flag(
       "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
       defaultsTo: _d.translatorOptions.enableAsserts),

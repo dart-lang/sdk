@@ -22,5 +22,7 @@ void installAdditionalTargets() {
   targets["dart2wasm"] = (TargetFlags flags) => new WasmTarget();
   targets["dart2wasm_js_compatibility"] = (TargetFlags flags) =>
       new WasmTarget(mode: wasm.Mode.jsCompatibility);
+  targets["dart2wasm_standalone"] = (TargetFlags flags) =>
+      new WasmTarget(mode: wasm.Mode.standalone);
   vm_target_install.installAdditionalTargets();
 }

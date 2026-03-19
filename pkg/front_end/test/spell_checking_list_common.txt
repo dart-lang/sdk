@@ -762,6 +762,7 @@ dart
 dart2js
 dart2wasm
 dart2wasm_js_compatibility
+dart2wasm_standalone
 dartdevc
 data
 date
