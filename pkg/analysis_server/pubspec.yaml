@@ -27,6 +27,7 @@ dependencies:
   meta: any
   path: any
   perf_witness: any
+  platform: any
   pub_semver: any
   stream_channel: any
   telemetry: any

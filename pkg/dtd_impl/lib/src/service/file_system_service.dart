@@ -129,7 +129,7 @@ class FileSystemService extends InternalService {
         // checks below for `whereType<File>` and `whereType<Directory>`. This
         // ensures that we are not returning project roots that are outside of
         // [_ideWorkspaceRoots].
-        final directoryContents = await (dir.list(followLinks: false)).toList();
+        final directoryContents = await dir.list(followLinks: false).toList();
         final pubspec = directoryContents.whereType<File>().firstWhereOrNull(
           (entity) => entity.path.endsWith('pubspec.yaml'),
         );
@@ -211,7 +211,7 @@ class FileSystemService extends InternalService {
       );
     }
 
-    final response = await (dir.list()).toList();
+    final response = await dir.list().toList();
 
     final uris = response.map((e) => e.uri).toList();
 

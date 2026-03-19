@@ -58,7 +58,7 @@ class IntervalList {
     assert(start < end);
     if (!isEmpty) {
       // Intervals should be added in descending order.
-      assert(end < endAt(0));
+      assert(end <= endAt(0));
       if (start == startAt(0)) {
         // Ignore nested interval.
         return;

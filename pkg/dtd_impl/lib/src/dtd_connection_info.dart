@@ -5,7 +5,8 @@
 /// Metadata regarding a running Dart Tooling Daemon instance.
 ///
 /// This metadata is serialized and written to a pid-file in the dart-data-home
-/// directory whenever a DTD instance is started. This allows `dart tooling-daemon --list`
+/// directory whenever a DTD instance is started. This allows
+/// `dart tooling-daemon --list`
 /// to discover locally running instances.
 class DTDConnectionInfo {
   /// Parses the [DTDConnectionInfo] from a json map.

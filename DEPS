@@ -155,7 +155,7 @@ vars = {
   "web_rev": "48b75126e511e2d3de65130f2e7aa21cca58f473",
   "webdev_rev": "5771ee58119af9835a3005a86fae4556c69d97f0",
   "webdriver_rev": "bc92e4e9612a247c4388a7b437ad4e40a5fba1fd",
-  "webkit_inspection_protocol_rev": "0f7685804d77ec02c6564d7ac1a6c8a2341c5bdf",
+  "webkit_inspection_protocol_rev": "bb493f55cafb4118f29ebd7cdb995efeafa7f30c",
 
   # Windows deps
   "crashpad_rev": "d256de317164c0eb362bdd9cbb4d259fe6d086f3",

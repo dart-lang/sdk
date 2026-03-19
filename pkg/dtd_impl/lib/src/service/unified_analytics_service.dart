@@ -11,6 +11,8 @@ import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:path/path.dart' as path;
 import 'package:unified_analytics/unified_analytics.dart';
 
+import '../../dtd.dart' show DartToolingDaemonOptions;
+import '../dart_tooling_daemon.dart' show DartToolingDaemonOptions;
 import '../dtd_client.dart';
 import 'internal_service.dart';
 
@@ -110,7 +112,7 @@ class UnifiedAnalyticsService extends InternalService {
   Map<String, Object?> _clientShowedMessage(Parameters parameters) {
     final analytics = _analyticsFromParams(parameters);
     analytics.clientShowedMessage();
-    return Success().toJson();
+    return const Success().toJson();
   }
 
   Map<String, Object?> _telemetryEnabled(Parameters parameters) {
@@ -123,14 +125,14 @@ class UnifiedAnalyticsService extends InternalService {
     final enable = parameters[DtdParameters.enable].asBool;
     final analytics = _analyticsFromParams(parameters);
     analytics.setTelemetry(enable);
-    return Success().toJson();
+    return const Success().toJson();
   }
 
   Map<String, Object?> _send(Parameters parameters) {
     final event = parameters[DtdParameters.event].asString;
     final analytics = _analyticsFromParams(parameters);
     analytics.send(Event.fromJson(event)!);
-    return Success().toJson();
+    return const Success().toJson();
   }
 
   DashTool _extractTool(Parameters parameters) {

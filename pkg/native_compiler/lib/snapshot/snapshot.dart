@@ -21,6 +21,7 @@ import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/runtime/names.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
+import 'package:native_compiler/runtime/vm_defs.dart';
 
 /// Kinds of Dart snapshots.
 /// Should match Snapshot::Kind enum in runtime/vm/snapshot.h.
@@ -77,6 +78,7 @@ enum PredefinedClusters {
   typeArguments,
   codes,
   icDatas,
+  subtypeTestCaches,
   objectPools,
   instances, // Separate cluster for every class.
 }
@@ -160,6 +162,12 @@ class SnapshotSerializer {
     addBaseObject(const ast.NullType());
     addBaseObject(const ast.NeverType.nonNullable());
     addBaseObject(ast.ListConstant(const ast.DynamicType(), const []));
+    // TODO: generate these stubs instead of referencig them from the VM.
+    addBaseObject(StubCode.Subtype1TestCache);
+    addBaseObject(StubCode.Subtype2TestCache);
+    addBaseObject(StubCode.Subtype3TestCache);
+    addBaseObject(StubCode.Subtype4TestCache);
+    addBaseObject(StubCode.Subtype6TestCache);
     numObjects = numBaseObjects;
   }
 
@@ -342,6 +350,9 @@ class SnapshotSerializer {
     // Generated code and object pool
     Code() => getPredefinedCluster(PredefinedClusters.codes),
     ICData() => getPredefinedCluster(PredefinedClusters.icDatas),
+    SubtypeTestCache() => getPredefinedCluster(
+      PredefinedClusters.subtypeTestCaches,
+    ),
     ObjectPool() => getPredefinedCluster(PredefinedClusters.objectPools),
     _ => throw 'Unxpected ${obj.runtimeType} $obj',
   };
@@ -381,6 +392,7 @@ class SnapshotSerializer {
     .typeParameterTypes => throw 'Unimplemented cluster $clusterId',
     .codes => CodeSerializationCluster(),
     .icDatas => ICDataSerializationCluster(),
+    .subtypeTestCaches => SubtypeTestCacheSerializationCluster(),
     .objectPools => ObjectPoolSerializationCluster(),
     .instances => throw 'Each class has a separate instance cluster',
   };
@@ -1266,6 +1278,36 @@ final class ICDataSerializationCluster extends SerializationCluster {
       serializer.writeRefId(obj.targetName);
       serializer.writeRefId(obj.argumentsShape);
       serializer.writeRefId(obj.owner);
+    }
+  }
+}
+
+final class SubtypeTestCacheSerializationCluster extends SerializationCluster {
+  final List<SubtypeTestCache> _objects = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final obj = object as SubtypeTestCache;
+    _objects.add(obj);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.subtypeTestCaches.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final obj in _objects) {
+      serializer.assignRef(obj);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (final obj in _objects) {
+      serializer.writeUint(obj.numInputs);
     }
   }
 }

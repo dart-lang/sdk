@@ -73,6 +73,7 @@ class ModuleSnapshot : public AllStatic {
     kTypeArguments,
     kCodes,
     kICDatas,
+    kSubtypeTestCaches,
     kObjectPools,
     kInstances,
   };
@@ -1127,6 +1128,30 @@ class ICDataDeserializationCluster : public DeserializationCluster {
   }
 };
 
+class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
+ public:
+  SubtypeTestCacheDeserializationCluster()
+      : DeserializationCluster("SubtypeTestCache") {}
+  ~SubtypeTestCacheDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, SubtypeTestCache::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      SubtypeTestCachePtr stc = static_cast<SubtypeTestCachePtr>(d.Ref(id));
+      Deserializer::InitializeHeader(stc, kSubtypeTestCacheCid,
+                                     SubtypeTestCache::InstanceSize());
+      stc->untag()->cache_ = Object::empty_subtype_test_cache_array().ptr();
+      stc->untag()->num_inputs_ = d.ReadUnsigned();
+      stc->untag()->num_occupied_ = 0;
+    }
+  }
+};
+
 class ObjectPoolDeserializationCluster : public DeserializationCluster {
  public:
   ObjectPoolDeserializationCluster() : DeserializationCluster("ObjectPool") {}
@@ -1350,6 +1375,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) CodeDeserializationCluster(Z);
     case ModuleSnapshot::kICDatas:
       return new (Z) ICDataDeserializationCluster();
+    case ModuleSnapshot::kSubtypeTestCaches:
+      return new (Z) SubtypeTestCacheDeserializationCluster();
     case ModuleSnapshot::kObjectPools:
       return new (Z) ObjectPoolDeserializationCluster();
     case ModuleSnapshot::kInstances: {
@@ -1406,6 +1433,11 @@ void Deserializer::Deserialize() {
   AddBaseObject(Type::Handle(zone(), object_store->null_type()));
   AddBaseObject(Type::Handle(zone(), object_store->never_type()));
   AddBaseObject(Object::empty_array());
+  AddBaseObject(StubCode::Subtype1TestCache());
+  AddBaseObject(StubCode::Subtype2TestCache());
+  AddBaseObject(StubCode::Subtype3TestCache());
+  AddBaseObject(StubCode::Subtype4TestCache());
+  AddBaseObject(StubCode::Subtype6TestCache());
 
   if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
     FATAL("Snapshot expects %" Pd

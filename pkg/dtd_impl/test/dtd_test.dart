@@ -60,20 +60,18 @@ void main() {
       );
     });
 
-    test(
-      'allows connections with no URI auth code if started with --disable-service-auth-codes',
-      () async {
-        dtd = await DartToolingDaemon.startService([
-          '--disable-service-auth-codes',
-        ]);
+    test('allows connections with no URI auth code if started with '
+        '--disable-service-auth-codes', () async {
+      dtd = await DartToolingDaemon.startService([
+        '--disable-service-auth-codes',
+      ]);
 
-        expect(dtd!.uri!.path, isEmpty); // No code.
+      expect(dtd!.uri!.path, isEmpty); // No code.
 
-        // Expect no exception.
-        final ws = await WebSocket.connect(dtd!.uri!.toString());
-        await ws.close();
-      },
-    );
+      // Expect no exception.
+      final ws = await WebSocket.connect(dtd!.uri!.toString());
+      await ws.close();
+    });
   });
 
   group('dtd', () {
@@ -101,24 +99,24 @@ void main() {
           completer.complete(parameters.asMap);
         });
         final listenResult = await client.sendRequest('streamListen', {
-          "streamId": streamId,
+          'streamId': streamId,
         });
 
-        expect(listenResult, {"type": "Success"});
+        expect(listenResult, {'type': 'Success'});
 
         final postResult = await client.sendRequest('postEvent', {
           'streamId': streamId,
           'eventKind': eventKind,
           'eventData': eventData,
         });
-        expect(postResult, {"type": "Success"});
+        expect(postResult, {'type': 'Success'});
 
         final dataFromTheStream = await completer.future;
         expect(dataFromTheStream, {
-          "streamId": streamId,
-          "eventKind": eventKind,
-          "eventData": eventData,
-          "timestamp": anything,
+          'streamId': streamId,
+          'eventKind': eventKind,
+          'eventData': eventData,
+          'timestamp': anything,
         });
 
         // Now cancel the stream
@@ -126,13 +124,13 @@ void main() {
         final cancelResult = await client.sendRequest('streamCancel', {
           'streamId': streamId,
         });
-        expect(cancelResult, {"type": "Success"});
+        expect(cancelResult, {'type': 'Success'});
         final postResult2 = await client.sendRequest('postEvent', {
           'streamId': streamId,
           'eventKind': eventKind,
           'eventData': eventData,
         });
-        expect(postResult2, {"type": "Success"});
+        expect(postResult2, {'type': 'Success'});
         expect(
           completer.future.timeout(
             const Duration(seconds: 1),
@@ -144,13 +142,13 @@ void main() {
 
       test('streamListen the same stream', () async {
         final listenResult = await client.sendRequest('streamListen', {
-          "streamId": streamId,
+          'streamId': streamId,
         });
 
-        expect(listenResult, {"type": "Success"});
+        expect(listenResult, {'type': 'Success'});
 
         expect(
-          () => client.sendRequest('streamListen', {"streamId": streamId}),
+          () => client.sendRequest('streamListen', {'streamId': streamId}),
           throwsA(
             isA<RpcException>().having(
               (e) => e.code,
@@ -163,7 +161,7 @@ void main() {
 
       test('stop listening to a stream that is not being listened to', () {
         expect(
-          () => client.sendRequest('streamCancel', {"streamId": streamId}),
+          () => client.sendRequest('streamCancel', {'streamId': streamId}),
           throwsA(
             isA<RpcException>().having(
               (e) => e.code,
@@ -180,7 +178,7 @@ void main() {
           'eventKind': eventKind,
           'eventData': eventData,
         });
-        expect(postResult, {"type": "Success"});
+        expect(postResult, {'type': 'Success'});
       });
     });
 
@@ -188,25 +186,25 @@ void main() {
       final service1 = 'foo1';
       final method1 = 'bar1';
       final method2 = 'bar2';
-      final data1 = {"data": 1};
-      final response1 = {"response": 1};
+      final data1 = {'data': 1};
+      final response1 = {'response': 1};
 
       test('basics', () async {
         client.registerMethod('$service1.$method1', (Parameters parameters) {
           return response1;
         });
         final registerResult = await client.sendRequest('registerService', {
-          "service": service1,
-          "method": method1,
+          'service': service1,
+          'method': method1,
         });
 
-        expect(registerResult, {"type": "Success"});
+        expect(registerResult, {'type': 'Success'});
 
         final register2Result = await client.sendRequest('registerService', {
-          "service": service1,
-          "method": method2,
+          'service': service1,
+          'method': method2,
         });
-        expect(register2Result, {"type": "Success"});
+        expect(register2Result, {'type': 'Success'});
 
         final methodResponse = await client.sendRequest(
           '$service1.$method1',
@@ -218,8 +216,8 @@ void main() {
       test('disallows dots in service name', () async {
         expect(
           () => client.sendRequest('registerService', {
-            "service": "a.b",
-            "method": method1,
+            'service': 'a.b',
+            'method': method1,
           }),
           throwsA(
             isA<RpcException>().having(
@@ -233,67 +231,65 @@ void main() {
 
       test('allows dots in service method name', () async {
         final registerResult = await client.sendRequest('registerService', {
-          "service": service1,
-          "method": "a.b",
+          'service': service1,
+          'method': 'a.b',
         });
 
-        expect(registerResult, {"type": "Success"});
+        expect(registerResult, {'type': 'Success'});
       });
 
-      test(
-        'disconnecting while handling a service request returns an error to the caller',
-        () async {
-          // Register a never-completing request that client2 can call.
-          final requestStartedCompleter = Completer<void>();
-          client.registerMethod('$service1.$method1', (Parameters parameters) {
-            requestStartedCompleter
-                .complete(); // Signal the request has started.
-            return Completer<void>().future; // Never complete.
-          });
-          final registerResult = await client.sendRequest('registerService', {
-            "service": service1,
-            "method": method1,
-          });
-          expect(registerResult, {"type": "Success"});
+      test('disconnecting while handling a service request returns an error '
+          'to the caller', () async {
+        // Register a never-completing request that client2 can call.
+        final requestStartedCompleter = Completer<void>();
+        client.registerMethod('$service1.$method1', (Parameters parameters) {
+          requestStartedCompleter.complete(); // Signal the request has started.
+          return Completer<void>().future; // Never complete.
+        });
+        final registerResult = await client.sendRequest('registerService', {
+          'service': service1,
+          'method': method1,
+        });
+        expect(registerResult, {'type': 'Success'});
 
-          // Begin a call to that method.
-          final client2 = _createClient(uri);
-          final responseFuture = client2.sendRequest('$service1.$method1', {});
-          await requestStartedCompleter.future;
+        // Begin a call to that method.
+        final client2 = _createClient(uri);
+        final responseFuture = client2.sendRequest('$service1.$method1', {});
+        await requestStartedCompleter.future;
 
-          // Disconnect client1 so it never responses.
-          await client.close();
+        // Disconnect client1 so it never responses.
+        await client.close();
 
-          // Expect that we complete with the expected RPC error.
-          expect(
-            responseFuture,
-            throwsA(
-              isA<RpcException>()
-                  .having((e) => e.code, 'code', -32000)
-                  .having(
-                    (e) => e.data,
-                    'data',
-                    containsPair(
-                      'full',
-                      'Bad state: The client closed with pending request "$service1.$method1".',
-                    ),
+        // Expect that we complete with the expected RPC error.
+        expect(
+          responseFuture,
+          throwsA(
+            isA<RpcException>()
+                .having((e) => e.code, 'code', -32000)
+                .having(
+                  (e) => e.data,
+                  'data',
+                  containsPair(
+                    'full',
+                    'Bad state: The client closed with pending request '
+                        '"$service1.$method1".',
                   ),
-            ),
-          );
-        },
-      );
+                ),
+          ),
+        );
+      });
 
       test('registering a service method that already exists', () async {
         final registerResult = await client.sendRequest('registerService', {
-          "service": service1,
-          "method": method1,
+          'service': service1,
+          'method': method1,
         });
 
-        expect(registerResult, {"type": "Success"});
+        expect(registerResult, {'type': 'Success'});
         expect(
           () => client.sendRequest('registerService', {
-            "service": service1,
-            "method": method1,
+            'service': service1,
+            'method': method1,
           }),
           throwsA(
             isA<RpcException>().having(
@@ -336,15 +332,15 @@ void main() {
       test('different clients cannot register the same service', () async {
         final client2 = _createClient(uri);
         final registerResult = await client.sendRequest('registerService', {
-          "service": service1,
-          "method": method1,
+          'service': service1,
+          'method': method1,
         });
-        expect(registerResult, {"type": "Success"});
+        expect(registerResult, {'type': 'Success'});
 
         expect(
           () => client2.sendRequest('registerService', {
-            "service": service1,
-            "method": method2,
+            'service': service1,
+            'method': method2,
           }),
           throwsA(
             isA<RpcException>().having(
@@ -359,8 +355,8 @@ void main() {
       test('clients cannot register an internal service', () async {
         expect(
           () => client.sendRequest('registerService', {
-            "service": FileSystemServiceConstants.serviceName,
-            "method": method2,
+            'service': FileSystemServiceConstants.serviceName,
+            'method': method2,
           }),
           throwsA(
             isA<RpcException>()
@@ -374,7 +370,8 @@ void main() {
                   'data',
                   containsPair(
                     'details',
-                    'Service \'FileSystem\' is already registered as a DTD internal service.',
+                    'Service \'FileSystem\' is already registered as a DTD '
+                        'internal service.',
                   ),
                 ),
           ),
@@ -384,10 +381,10 @@ void main() {
       test('releases service methods on disconnect', () async {
         final client2 = _createClient(uri);
         final registerResult = await client.sendRequest('registerService', {
-          "service": service1,
-          "method": method1,
+          'service': service1,
+          'method': method1,
         });
-        expect(registerResult, {"type": "Success"});
+        expect(registerResult, {'type': 'Success'});
 
         await client.close();
 
@@ -399,13 +396,13 @@ void main() {
             // finishes closing.
             client2RegisterResult = await client2.sendRequest(
               'registerService',
-              {"service": service1, "method": method1},
+              {'service': service1, 'method': method1},
             );
             break;
           } catch (_) {}
-          await Future<void>.delayed(Duration(seconds: 1));
+          await Future<void>.delayed(const Duration(seconds: 1));
         }
-        expect(client2RegisterResult, {"type": "Success"});
+        expect(client2RegisterResult, {'type': 'Success'});
       });
 
       group('sends notifications', () {
@@ -549,7 +546,7 @@ void main() {
       });
       test('explicitly enabled', () async {
         dtd = await DartToolingDaemon.startService(['--ping-interval=1']);
-        expect(dtd!.pingInterval, Duration(seconds: 1));
+        expect(dtd!.pingInterval, const Duration(seconds: 1));
       });
       test('explicitly disabled', () async {
         dtd = await DartToolingDaemon.startService(['--ping-interval=0']);

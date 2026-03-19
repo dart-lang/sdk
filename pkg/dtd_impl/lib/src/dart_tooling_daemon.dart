@@ -4,10 +4,10 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:args/args.dart';
 import 'package:dart_data_home/dart_data_home.dart';
@@ -52,7 +52,8 @@ const _pingIntervalSecondsDefault = 0;
 const String dtdDirName = 'dtd';
 
 /// The message printed when no running Dart Tooling Daemon instances are found
-/// after a user queries the list of running DTD processes with the `--list` argument.
+/// after a user queries the list of running DTD processes with the `--list`
+/// argument.
 const String noInstancesMessage =
     'No running debug processes or DTD process were found, try '
     'starting up your app from your IDE, `flutter run`, `dart run`, '
@@ -165,7 +166,8 @@ enum _DartToolingDaemonOptionKind { flag, option }
 
 /// A service that facilitates communication between dart tools.
 class DartToolingDaemon {
-  /// Used to override the environment variables for `dart_data_home` during tests.
+  /// Used to override the environment variables for `dart_data_home` during
+  /// tests.
   @visibleForTesting
   static Map<String, String>? environmentOverride;
 
@@ -277,7 +279,7 @@ class DartToolingDaemon {
   /// Set [shouldLogRequests] to true to enable logging.
   ///
   /// When [sendPort] is non-null, information about the DTD connection will be
-  /// sent over [port] instead of being printed to stdout.
+  /// sent over [sendPort] instead of being printed to stdout.
   static Future<DartToolingDaemon?> startService(
     List<String> args, {
     bool ipv6 = false,
@@ -290,22 +292,30 @@ class DartToolingDaemon {
     if (parsedArgs.wasParsed(DartToolingDaemonOptions.train.name)) {
       return null;
     }
-    final machineMode = parsedArgs[DartToolingDaemonOptions.machine.name];
-    final listMode = parsedArgs[DartToolingDaemonOptions.list.name];
+    final machineMode =
+        parsedArgs[DartToolingDaemonOptions.machine.name] as bool;
+    final listMode = parsedArgs[DartToolingDaemonOptions.list.name] as bool;
     if (listMode) {
       _listRunningDtdInstances(machineMode: machineMode);
       return null;
     }
     final unrestrictedMode =
-        parsedArgs[DartToolingDaemonOptions.unrestricted.name];
+        parsedArgs[DartToolingDaemonOptions.unrestricted.name] as bool;
     final disableServiceAuthCodes =
-        parsedArgs[DartToolingDaemonOptions.disableServiceAuthCodes.name];
+        parsedArgs[DartToolingDaemonOptions.disableServiceAuthCodes.name]
+            as bool;
     final useFakeAnalytics =
-        parsedArgs[DartToolingDaemonOptions.fakeAnalytics.name];
+        parsedArgs[DartToolingDaemonOptions.fakeAnalytics.name] as bool;
     final port =
-        int.tryParse(parsedArgs[DartToolingDaemonOptions.port.name]) ?? 0;
+        int.tryParse(
+          parsedArgs[DartToolingDaemonOptions.port.name] as String? ?? '',
+        ) ??
+        0;
     final pingIntervalSeconds =
-        int.tryParse(parsedArgs[DartToolingDaemonOptions.pingInterval.name]) ??
+        int.tryParse(
+          parsedArgs[DartToolingDaemonOptions.pingInterval.name] as String? ??
+              '',
+        ) ??
         _pingIntervalSecondsDefault;
     final pingInterval = pingIntervalSeconds == 0
         ? null
@@ -354,7 +364,7 @@ class DartToolingDaemon {
   // standard HTTP requests. The websocket handler will fail quickly if the
   // request doesn't appear to be a websocket upgrade request.
   Handler _handlers() {
-    return Pipeline()
+    return const Pipeline()
         .addMiddleware(_uriTokenHandler)
         .addHandler(
           Cascade().add(_webSocketHandler()).add(_sseHandler()).handler,
@@ -409,11 +419,11 @@ class DartToolingDaemon {
 
   static String _generateSecret() {
     final kTokenByteSize = 8;
-    Uint8List bytes = Uint8List(kTokenByteSize);
+    var bytes = Uint8List(kTokenByteSize);
     // Use a secure random number generator.
-    Random rand = Random.secure();
+    var rand = Random.secure();
 
-    for (int i = 0; i < kTokenByteSize; i++) {
+    for (var i = 0; i < kTokenByteSize; i++) {
       bytes[i] = rand.nextInt(256);
     }
     return base64Url.encode(bytes);
@@ -442,10 +452,7 @@ class DartToolingDaemon {
 
   static String? _getDtdDataHome() {
     try {
-      final String dir = getDartDataHome(
-        dtdDirName,
-        environment: environmentOverride,
-      );
+      final dir = getDartDataHome(dtdDirName, environment: environmentOverride);
       // createSync(recursive: true) is a no-op if the directory already exists.
       Directory(dir).createSync(recursive: true);
       return dir;
@@ -458,7 +465,7 @@ class DartToolingDaemon {
   /// Writes out DTD connection information to a file named with the DTD process
   /// PID in the [dtdDirName] directory within the Dart data home directory.
   void _recordDtdConnectionInfo() {
-    final String? dataHome = _getDtdDataHome();
+    final dataHome = _getDtdDataHome();
     if (dataHome == null) return;
     try {
       final info = DTDConnectionInfo(
@@ -478,7 +485,7 @@ class DartToolingDaemon {
 
   /// Lists all running DTD instances on the local system.
   static void _listRunningDtdInstances({bool machineMode = false}) {
-    final String? dataHome = _getDtdDataHome();
+    final dataHome = _getDtdDataHome();
     if (dataHome == null) return;
 
     final instances = <DTDConnectionInfo>[];
