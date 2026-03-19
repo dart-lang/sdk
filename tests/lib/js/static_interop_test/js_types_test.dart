@@ -158,6 +158,9 @@ external JSAny? undefinedAny;
 @JS()
 external JSAny? definedNonNullAny;
 
+@JS()
+external JSIterator<JSAny> getGenerator();
+
 class DartObject {
   String get foo => 'bar';
 }
@@ -247,6 +250,16 @@ void syncTests() {
       returnValue: () => JSIteratorResult.done(1.toJS),
     ).returnValue!().value,
   );
+
+  eval(r'''
+    globalThis.getGenerator = function*() {
+      yield 1;
+    }
+  ''');
+  Expect.equals(2.toJS, getGenerator().returnValue(2.toJS));
+  Expect.isTrue(getGenerator().returnValue().isUndefined);
+  Expect.isTrue(getGenerator().returnValue(null).isUndefined);
+  Expect.throws<JSString>(() => getGenerator().throwError("oh no".toJS));
 
   // [JSIterable] <-> [Iterable]
   final listFromIter = [...iterable.toDartIterable];

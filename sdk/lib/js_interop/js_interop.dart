@@ -304,7 +304,7 @@ extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
   ///
   /// This doesn't allow passing nulls, as it determines whether an argument is
   /// passed based on whether it was null or not.
-  JSIteratorResult<T> Function([JSAny? value])? get returnValue =>
+  JSIteratorResult<T> Function([T? value])? get returnValue =>
       // Make sure to pass along whether an argument was passed or not, because
       // that's observable from JavaScript.
       _nullableReturnValue == null
