@@ -366,11 +366,11 @@ class AstToIr extends ast.RecursiveVisitor {
     }
     return switch (typeParametersStyle) {
       .separateFunctionAndClassTypeParameters => [
-        visitor.containsFunctionTypeParams
-            ? functionTypeParameters!
-            : builder.graph.getConstant(ConstantValue.fromNull()),
         visitor.containsClassTypeParams
             ? classTypeParameters!
+            : builder.graph.getConstant(ConstantValue.fromNull()),
+        visitor.containsFunctionTypeParams
+            ? functionTypeParameters!
             : builder.graph.getConstant(ConstantValue.fromNull()),
       ],
     };

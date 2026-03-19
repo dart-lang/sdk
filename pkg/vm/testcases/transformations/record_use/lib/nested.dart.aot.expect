@@ -12,9 +12,17 @@ final class MyClass extends core::Object /*hasConstConstructor*/  {
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   [@vm.unboxing-info.metadata=[!regcc]]
   final field core::Object i;
+
+  [@vm.unreachable.metadata=]
+  const constructor •(core::Object i) → self::MyClass
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 @#C1
 final class MyOtherClass extends core::Object /*hasConstConstructor*/  {
+
+  [@vm.unreachable.metadata=]
+  const constructor •() → self::MyOtherClass
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]

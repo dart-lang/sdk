@@ -35,6 +35,7 @@ import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringMethodParameter, SourceChange;
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// [Refactoring] to convert getters into normal [MethodDeclaration]s.
 abstract class ConvertGetterToMethodRefactoring implements Refactoring {
@@ -386,7 +387,14 @@ abstract class Refactoring {
   Future<RefactoringStatus> checkInitialConditions();
 
   /// Returns the [SourceChange] to apply to perform this refactoring.
-  Future<SourceChange> createChange();
+  ///
+  /// If the optional [builder] is provided, and if this is one of the
+  /// refactorings that has been converted to use the builder, it will be used
+  /// to build the [SourceChange] so the return value can be ignored.
+  ///
+  /// The plan is to convert all refactorings to use the builder and to change
+  /// the signature of this method to return `void`.
+  Future<SourceChange> createChange({ChangeBuilder? builder});
 }
 
 /// Information about the workspace refactorings operate it.

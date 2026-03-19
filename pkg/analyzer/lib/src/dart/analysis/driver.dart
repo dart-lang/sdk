@@ -675,6 +675,11 @@ class AnalysisDriver {
     _libraryContext = null;
   }
 
+  void discardMemoryExpensiveData() {
+    currentSession.clearHierarchies();
+    libraryContext.elementFactory.discardLibraryManifestInstances();
+  }
+
   /// Discovers all files that are potentially available, so that they are
   /// included in [knownFiles].
   void discoverAvailableFiles() {
@@ -2552,6 +2557,14 @@ class AnalysisDriverScheduler {
   /// The object used to watch as analysis drivers are created and deleted.
   final DriverWatcher? driverWatcher;
 
+  /// When Analysis Server is idle, we want to reduce memory usage, so we
+  /// discard a few expensive data structures once [AnalysisDriver] has no
+  /// more work to do.
+  ///
+  /// This does not work well for `build_runner`, which makes requests one
+  /// by one, without big chunks of work in form of added files.
+  final bool shouldDiscardMemoryExpensiveDataOnIdle;
+
   /// The controller for [events] stream.
   final StreamController<Object> eventsController = StreamController<Object>();
 
@@ -2586,7 +2599,11 @@ class AnalysisDriverScheduler {
   /// File updates since last transition to working status.
   FileUpdatesStatistics _fileUpdatesStatistics = FileUpdatesStatistics();
 
-  AnalysisDriverScheduler(this._logger, {this.driverWatcher});
+  AnalysisDriverScheduler(
+    this._logger, {
+    this.driverWatcher,
+    this.shouldDiscardMemoryExpensiveDataOnIdle = true,
+  });
 
   /// The [Stream] that produces analysis results for all drivers, and status
   /// events.
@@ -2731,10 +2748,9 @@ class AnalysisDriverScheduler {
           bestPriority = priority;
         }
         if (priority == AnalysisDriverPriority.nothing) {
-          if (driver.withFineDependencies) {
-            driver.currentSession.clearHierarchies();
-            driver.libraryContext.elementFactory
-                .discardLibraryManifestInstances();
+          if (driver.withFineDependencies &&
+              shouldDiscardMemoryExpensiveDataOnIdle) {
+            driver.discardMemoryExpensiveData();
           }
         }
       }

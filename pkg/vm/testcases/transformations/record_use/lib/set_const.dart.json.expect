@@ -1,0 +1,85 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 1
+    },
+    {
+      "type": "int",
+      "value": 2
+    },
+    {
+      "type": "int",
+      "value": 3
+    },
+    {
+      "type": "string",
+      "value": "a"
+    },
+    {
+      "type": "string",
+      "value": "b"
+    },
+    {
+      "type": "set",
+      "value": [
+        3,
+        4
+      ]
+    },
+    {
+      "type": "set",
+      "value": [
+        0,
+        1,
+        2
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "recorded"
+        }
+      ],
+      "uri": "package:record_use_test/set_const.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              5
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              6
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

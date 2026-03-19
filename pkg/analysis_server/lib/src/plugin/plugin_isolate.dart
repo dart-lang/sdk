@@ -11,6 +11,7 @@ import 'dart:collection';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/server_isolate_channel.dart';
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
@@ -25,6 +26,16 @@ import 'package:meta/meta.dart';
 
 /// An interface to a configured plugin isolate.
 class PluginIsolate {
+  /// The maximum size of the [pluginPrints] list.
+  ///
+  /// After the list grows larger than this size, the first message is dropped,
+  /// so that it acts like a ring buffer.
+  static const _maxPluginPrintsSize = 1000;
+
+  /// The number of [protocol.PluginPrint]s discarded from [pluginPrints], keyed
+  /// to plugin names
+  Map<String, int> discardedPluginPrintCount = {};
+
   /// The path to the root directory of the definition of the plugin on disk
   /// (the directory containing the 'pubspec.yaml' file and the 'bin'
   /// directory).
@@ -51,6 +62,10 @@ class PluginIsolate {
   /// plugin.
   Set<analyzer.ContextRoot> contextRoots = HashSet<analyzer.ContextRoot>();
 
+  /// A mapping of each plugin's name to the list of [print] messages which have
+  /// been sent by the plugin.
+  Map<String, Queue<protocol.PluginPrint>> pluginPrints = {};
+
   /// The current execution of the plugin, or `null` if the plugin is not
   /// currently being executed.
   PluginSession? currentSession;
@@ -67,7 +82,23 @@ class PluginIsolate {
     this._instrumentationService,
     this.sessionLogger, {
     required this.isLegacy,
-  });
+  }) {
+    // TODO(srawlins): Also print to stdout if this is `dart analyze` or
+    // `flutter analyze`.
+    _notificationManager.pluginPrints.listen((pluginPrint) {
+      var printsForPlugin = pluginPrints.putIfAbsent(
+        pluginPrint.pluginName,
+        () => ListQueue(),
+      );
+      if (printsForPlugin.length >= _maxPluginPrintsSize) {
+        printsForPlugin.removeFirst();
+        discardedPluginPrintCount
+          ..putIfAbsent(pluginPrint.pluginName, () => 0)
+          ..update(pluginPrint.pluginName, (e) => e++);
+      }
+      printsForPlugin.add(pluginPrint);
+    });
+  }
 
   /// The data known about this plugin, for instrumentation and exception
   /// purposes.

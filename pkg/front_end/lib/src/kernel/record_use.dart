@@ -67,6 +67,9 @@ bool _enclosedInLibraryWithPackageUri(Annotatable node) {
     Library l => l,
     Class c => c.enclosingLibrary,
     Member m => m.enclosingLibrary,
+    Extension e => e.enclosingLibrary,
+    ExtensionTypeDeclaration e => e.enclosingLibrary,
+    Typedef t => t.enclosingLibrary,
     _ => null,
   };
   return library?.importUri.isScheme('package') ?? false;

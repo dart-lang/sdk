@@ -13,8 +13,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/utilities/element_location2.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 
@@ -77,7 +75,7 @@ class PrepareTypeHierarchyHandler
         return success(null);
       }
 
-      var item = toLspItem(target, unit.lineInfo);
+      var item = toLspItem(target);
       return success([item]);
     });
   }
@@ -143,7 +141,7 @@ class TypeHierarchySubtypesHandler
 
       var location = ElementLocation.decode(data.ref);
       var calls = await computer.findSubtypes(location, server.searchEngine);
-      var results = calls != null ? _convertItems(unit, calls) : null;
+      var results = calls != null ? convert(calls, toLspItem).toList() : null;
       return success(results);
     });
   }
@@ -191,7 +189,7 @@ class TypeHierarchySupertypesHandler
 
       var location = ElementLocation.decode(data.ref);
       var calls = await computer.findSupertypes(location);
-      var results = calls != null ? _convertItems(unit, calls) : null;
+      var results = calls != null ? convert(calls, toLspItem).toList() : null;
       return success(results);
     });
   }
@@ -205,57 +203,14 @@ mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
 
   /// Converts a server [type_hierarchy.TypeHierarchyItem] to an LSP
   /// [TypeHierarchyItem].
-  TypeHierarchyItem toLspItem(
-    type_hierarchy.TypeHierarchyItem item,
-    LineInfo lineInfo,
-  ) {
+  TypeHierarchyItem toLspItem(type_hierarchy.TypeHierarchyItem item) {
     return TypeHierarchyItem(
       name: item.displayName,
       kind: SymbolKind.Class,
       uri: uriConverter.toClientUri(item.file),
-      range: sourceRangeToRange(lineInfo, item.codeRange),
-      selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
+      range: sourceRangeToRange(item.lineInfo, item.codeRange),
+      selectionRange: sourceRangeToRange(item.lineInfo, item.nameRange),
       data: TypeHierarchyItemInfo(ref: item.location.encoding),
     );
-  }
-
-  /// Converts a server [type_hierarchy.TypeHierarchyItem] to an LSP
-  /// [TypeHierarchyItem].
-  ///
-  /// Reads [LineInfo]s from [session], using [lineInfoCache] as a cache.
-  TypeHierarchyItem? _convertItem(
-    AnalysisSession session,
-    Map<String, LineInfo?> lineInfoCache,
-    type_hierarchy.TypeHierarchyItem item,
-  ) {
-    var filePath = item.file;
-    var lineInfo = lineInfoCache.putIfAbsent(filePath, () {
-      var file = session.getFile(filePath);
-      return file is FileResult ? file.lineInfo : null;
-    });
-    if (lineInfo == null) {
-      return null;
-    }
-
-    return toLspItem(item, lineInfo);
-  }
-
-  /// Converts multiple server [type_hierarchy.TypeHierarchyItem] to an LSP
-  /// [TypeHierarchyItem].
-  ///
-  /// Reads [LineInfo]s from `unit.session`, caching them for items in the same
-  /// file.
-  List<TypeHierarchyItem> _convertItems(
-    ResolvedUnitResult unit,
-    List<type_hierarchy.TypeHierarchyRelatedItem> items,
-  ) {
-    var session = unit.session;
-    var lineInfoCache = <String, LineInfo?>{unit.path: unit.lineInfo};
-    var results = convert(
-      items,
-      (type_hierarchy.TypeHierarchyRelatedItem item) =>
-          _convertItem(session, lineInfoCache, item),
-    );
-    return results.toList();
   }
 }

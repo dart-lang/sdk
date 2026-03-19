@@ -79,18 +79,14 @@ class FileSystemService extends InternalService {
       return;
     }
 
-    throw RpcErrorCodes.buildRpcException(
-      RpcErrorCodes.kPermissionDenied,
-    );
+    throw RpcErrorCodes.buildRpcException(RpcErrorCodes.kPermissionDenied);
   }
 
   Map<String, Object?> _setIDEWorkspaceRoots(Parameters parameters) {
     final incomingSecret = parameters[DtdParameters.secret].asString;
 
     if (!unrestrictedMode && secret != incomingSecret) {
-      throw RpcErrorCodes.buildRpcException(
-        RpcErrorCodes.kPermissionDenied,
-      );
+      throw RpcErrorCodes.buildRpcException(RpcErrorCodes.kPermissionDenied);
     }
     final newRoots = <Uri>[];
     for (final root in parameters[DtdParameters.roots].asList.cast<String>()) {
@@ -115,8 +111,9 @@ class FileSystemService extends InternalService {
   }
 
   Future<Map<String, Object?>> _getProjectRoots(Parameters parameters) async {
-    final searchDepth =
-        parameters[DtdParameters.depth].asIntOr(_defaultGetProjectRootsDepth);
+    final searchDepth = parameters[DtdParameters.depth].asIntOr(
+      _defaultGetProjectRootsDepth,
+    );
 
     final projectRoots = <Uri>[];
 
@@ -132,10 +129,10 @@ class FileSystemService extends InternalService {
         // checks below for `whereType<File>` and `whereType<Directory>`. This
         // ensures that we are not returning project roots that are outside of
         // [_ideWorkspaceRoots].
-        final directoryContents = await (dir.list(followLinks: false)).toList();
-        final pubspec = directoryContents
-            .whereType<File>()
-            .firstWhereOrNull((entity) => entity.path.endsWith('pubspec.yaml'));
+        final directoryContents = await dir.list(followLinks: false).toList();
+        final pubspec = directoryContents.whereType<File>().firstWhereOrNull(
+          (entity) => entity.path.endsWith('pubspec.yaml'),
+        );
         if (pubspec != null) {
           projectRoots.add(dir.uri);
         }
@@ -164,9 +161,7 @@ class FileSystemService extends InternalService {
     final file = File.fromUri(uri);
 
     if (!(await file.exists())) {
-      throw RpcErrorCodes.buildRpcException(
-        RpcErrorCodes.kFileDoesNotExist,
-      );
+      throw RpcErrorCodes.buildRpcException(RpcErrorCodes.kFileDoesNotExist);
     }
 
     final content = await file.readAsString();
@@ -198,10 +193,7 @@ class FileSystemService extends InternalService {
       await file.create(recursive: true);
     }
 
-    await file.writeAsString(
-      contents,
-      encoding: encoding,
-    );
+    await file.writeAsString(contents, encoding: encoding);
 
     return RPCResponses.success;
   }
@@ -219,7 +211,7 @@ class FileSystemService extends InternalService {
       );
     }
 
-    final response = await (dir.list()).toList();
+    final response = await dir.list().toList();
 
     final uris = response.map((e) => e.uri).toList();
 

@@ -9,6 +9,7 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'dispatch_table.dart';
+import 'dynamic_dispatch_table.dart';
 import 'dynamic_modules.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
@@ -32,11 +33,13 @@ class FunctionCollector {
   // Selector IDs that are invoked via GDT.
   final Set<int> _calledSelectors = {};
   final Set<int> _calledUncheckedSelectors = {};
+  final Set<CallShape> _calledDynamicSelectors = {};
   // Class IDs for classes that are allocated somewhere in the program
   final Set<int> _allocatedClasses = {};
   // For each class ID, which functions should be added to the compilation queue
   // if an allocation of that class is encountered
   final Map<int, List<Reference>> _pendingAllocation = {};
+  final Map<int, List<(CallShape, Reference)>> _pendingAllocationDynamic = {};
 
   FunctionCollector(this.translator);
 
@@ -167,9 +170,19 @@ class FunctionCollector {
     });
   }
 
+  bool hasDynamicSelectorCall(CallShape shape) =>
+      _calledDynamicSelectors.contains(shape);
+
+  w.BaseFunction? getExistingDynamicForwarder(
+      Reference target, CallShape shape) {
+    return _dynamicForwarderFunctions[target]?[shape];
+  }
+
   w.BaseFunction getDynamicForwarder(Reference target, CallShape shape) {
     return (_dynamicForwarderFunctions[target] ??= {}).putIfAbsent(shape, () {
-      final module = translator.moduleForReference(target);
+      final module = translator.isDynamicSubmodule
+          ? translator.dynamicSubmodule
+          : translator.moduleForReference(target);
       final ftype = makeDynamicForwarderSignature(translator, shape);
       final name = getDynamicForwarderName(target, shape);
       final function = module.functions.define(ftype, name);
@@ -181,7 +194,7 @@ class FunctionCollector {
     });
   }
 
-  w.BaseFunction getInvocationCreatorStub(CallShape shape) {
+  w.BaseFunction getInvocationCreatorStub(MethodCallShape shape) {
     return _invocationCreatorStubs.putIfAbsent(shape, () {
       final module = translator.isDynamicSubmodule
           ? translator.dynamicSubmodule
@@ -246,14 +259,6 @@ class FunctionCollector {
       // dispatch table) and with checked arguments. That means we can make a
       // precise function type signature based on that member's argument types.
       return makeFunctionTypeForBody(translator, member);
-    }
-
-    if (target.isTearOffReference) {
-      assert(!translator.dispatchTable
-              .selectorForTarget(target)
-              .containsTarget(target) ||
-          translator.dynamicModuleSupportEnabled);
-      return translator.signatureForDirectCall(target);
     }
 
     return member.accept1(_FunctionTypeGenerator(translator), target);
@@ -347,6 +352,25 @@ class FunctionCollector {
     }
   }
 
+  void recordDynamicSelectorUse(DynamicSelector selector) {
+    if (_calledDynamicSelectors.add(selector.shape)) {
+      selector.targets.forEach((classId, target) {
+        recordClassDynamicTargetUse(classId, selector.shape, target);
+      });
+    }
+  }
+
+  void recordClassDynamicTargetUse(
+      int classId, CallShape shape, Reference target) {
+    if (_allocatedClasses.contains(classId)) {
+      getDynamicForwarder(target, shape);
+    } else {
+      _pendingAllocationDynamic
+          .putIfAbsent(classId, () => [])
+          .add((shape, target));
+    }
+  }
+
   void recordClassAllocation(ClassId classId) {
     final id = switch (classId) {
       RelativeClassId() => classId.relativeValue,
@@ -356,6 +380,10 @@ class FunctionCollector {
       // Schedule all members that were pending allocation of this class.
       for (Reference target in _pendingAllocation[id] ?? const []) {
         getFunction(target);
+      }
+      for (final (shape, target) in _pendingAllocationDynamic[id] ??
+          const <(CallShape, Reference)>[]) {
+        getDynamicForwarder(target, shape);
       }
     }
   }
@@ -399,16 +427,18 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     }
 
     assert(!translator.dispatchTable
-            .selectorForTarget(target)
-            .containsTarget(target) &&
-        !translator.dispatchTable
-            .selectorForTarget(target)
-            .containsTarget(target));
+        .selectorForTarget(target)
+        .containsTarget(target));
 
-    final receiverType = target.asMember.enclosingClass!
-        .getThisType(translator.coreTypes, Nullability.nonNullable);
-    return _makeFunctionType(
-        translator, target, translator.translateType(receiverType));
+    final receiverType = translator.translateType(target
+        .asMember.enclosingClass!
+        .getThisType(translator.coreTypes, Nullability.nonNullable));
+
+    if (target.isTearOffReference) {
+      return makeTearOffFunctionType(translator, node.function, receiverType);
+    }
+
+    return _makeFunctionType(translator, target, receiverType);
   }
 
   @override
@@ -634,21 +664,55 @@ w.FunctionType makeFunctionTypeForBody(Translator translator, Member member) {
   return translator.typesBuilder.defineFunction(inputs, outputs);
 }
 
+w.FunctionType makeDynamicDispatcherSignature(
+        Translator translator, CallShape shape) =>
+    _makeDynamicSignature(translator, shape, true);
+
 w.FunctionType makeDynamicForwarderSignature(
-    Translator translator, CallShape shape) {
+        Translator translator, CallShape shape) =>
+    _makeDynamicSignature(translator, shape, false);
+
+w.FunctionType _makeDynamicSignature(
+    Translator translator, CallShape shape, bool nullableReceiver) {
+  switch (shape) {
+    case GetterCallShape():
+      return translator.typesBuilder.defineFunction([
+        nullableReceiver ? translator.topType : translator.topTypeNonNullable,
+      ], [
+        translator.topType
+      ]);
+
+    case SetterCallShape():
+      return translator.typesBuilder.defineFunction([
+        nullableReceiver ? translator.topType : translator.topTypeNonNullable,
+        translator.topType,
+      ], []);
+
+    case MethodCallShape():
+      return translator.typesBuilder.defineFunction([
+        nullableReceiver ? translator.topType : translator.topTypeNonNullable,
+        for (int i = 0; i < shape.typeCount; ++i)
+          translator.translateType(translator.types.typeType),
+        for (int i = 0; i < shape.positionalCount; ++i) translator.topType,
+        for (int i = 0; i < shape.named.length; ++i) translator.topType,
+      ], [
+        translator.topType
+      ]);
+  }
+}
+
+w.FunctionType makeTearOffFunctionType(
+    Translator translator, FunctionNode function, w.ValueType? receiverType) {
   return translator.typesBuilder.defineFunction([
-    translator.topTypeNonNullable,
-    for (int i = 0; i < shape.typeCount; ++i)
-      translator.translateType(translator.types.typeType),
-    for (int i = 0; i < shape.positionalCount; ++i) translator.topType,
-    for (int i = 0; i < shape.named.length; ++i) translator.topType,
+    ?receiverType,
   ], [
-    translator.topType
+    translator
+        .translateType(function.computeFunctionType(Nullability.nonNullable)),
   ]);
 }
 
 w.FunctionType makeInvocationCreatorSignature(
-    Translator translator, CallShape shape) {
+    Translator translator, MethodCallShape shape) {
   return translator.typesBuilder.defineFunction([
     for (int i = 0; i < shape.typeCount; ++i)
       translator.translateType(translator.types.typeType),
@@ -703,13 +767,28 @@ w.FunctionType _makeFunctionType(
   return translator.typesBuilder.defineFunction(inputs, outputs);
 }
 
-class CallShape {
+sealed class CallShape {
   final Name name;
+  CallShape(this.name);
+
+  bool get isGetter;
+  bool get isSetter;
+  bool get isMethod;
+}
+
+final class MethodCallShape extends CallShape {
   final int typeCount;
   final int positionalCount;
   final List<String> named;
 
-  CallShape(this.name, this.typeCount, this.positionalCount, this.named);
+  MethodCallShape(super.name, this.typeCount, this.positionalCount, this.named);
+
+  @override
+  bool get isGetter => false;
+  @override
+  bool get isSetter => false;
+  @override
+  bool get isMethod => true;
 
   int get totalArgumentCount => typeCount + positionalCount + named.length;
 
@@ -735,20 +814,22 @@ class CallShape {
     return true;
   }
 
+  MethodCallShape copyWithName(Name newName) =>
+      MethodCallShape(newName, typeCount, positionalCount, named);
+
   @override
   int get hashCode =>
       Object.hash(name, typeCount, positionalCount, Object.hashAll(named));
 
   @override
   bool operator ==(other) {
-    if (other is! CallShape) return false;
+    if (other is! MethodCallShape) return false;
     if (name != other.name) return false;
     if (typeCount != other.typeCount) return false;
+    if (positionalCount != other.positionalCount) return false;
     if (named.length != other.named.length) return false;
     for (int i = 0; i < named.length; ++i) {
-      if (named[i] != other.named[i]) {
-        return false;
-      }
+      if (named[i] != other.named[i]) return false;
     }
     return true;
   }
@@ -766,6 +847,58 @@ class CallShape {
     if (named.isNotEmpty) {
       sb.write(' names:${named.join('-')}');
     }
-    return 'CallShape($sb)';
+    return 'MethodCallShape($sb)';
+  }
+}
+
+final class GetterCallShape extends CallShape {
+  GetterCallShape(super.name);
+
+  @override
+  bool get isGetter => true;
+  @override
+  bool get isSetter => false;
+  @override
+  bool get isMethod => false;
+
+  @override
+  int get hashCode => name.hashCode;
+
+  @override
+  bool operator ==(other) {
+    if (other is! GetterCallShape) return false;
+    if (name != other.name) return false;
+    return true;
+  }
+
+  @override
+  String toString() {
+    return 'GetterCallShape($name)';
+  }
+}
+
+final class SetterCallShape extends CallShape {
+  SetterCallShape(super.name);
+
+  @override
+  bool get isGetter => false;
+  @override
+  bool get isSetter => true;
+  @override
+  bool get isMethod => false;
+
+  @override
+  int get hashCode => name.hashCode;
+
+  @override
+  bool operator ==(other) {
+    if (other is! SetterCallShape) return false;
+    if (name != other.name) return false;
+    return true;
+  }
+
+  @override
+  String toString() {
+    return 'SetterCallShape($name)';
   }
 }

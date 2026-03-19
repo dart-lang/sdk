@@ -139,6 +139,18 @@ abstract class IntegrationTestMixin {
   /// Stream controller for [onPluginError].
   late StreamController<PluginErrorParams> _onPluginError;
 
+  /// Contains a message printed by a plugin.
+  ///
+  /// Parameters
+  ///
+  /// * `pluginPrint: PluginPrint`
+  ///
+  ///   Information about the message being printed.
+  late Stream<PluginPrintParams> onPluginPrint;
+
+  /// Stream controller for [onPluginPrint].
+  late StreamController<PluginPrintParams> _onPluginPrint;
+
   /// Reports the current status of the plugin. Parameters are omitted if there
   /// has been no change in the status represented by that parameter.
   ///
@@ -724,6 +736,8 @@ abstract class IntegrationTestMixin {
   void initializeInttestMixin() {
     _onPluginError = StreamController<PluginErrorParams>(sync: true);
     onPluginError = _onPluginError.stream.asBroadcastStream();
+    _onPluginPrint = StreamController<PluginPrintParams>(sync: true);
+    onPluginPrint = _onPluginPrint.stream.asBroadcastStream();
     _onPluginStatus = StreamController<PluginStatusParams>(sync: true);
     onPluginStatus = _onPluginStatus.stream.asBroadcastStream();
     _onAnalysisErrors = StreamController<AnalysisErrorsParams>(sync: true);
@@ -755,6 +769,12 @@ abstract class IntegrationTestMixin {
         outOfTestExpect(params, isPluginErrorParams);
         _onPluginError.add(
           PluginErrorParams.fromJson(decoder, 'params', params),
+        );
+        break;
+      case 'plugin.print':
+        outOfTestExpect(params, isPluginPrintParams);
+        _onPluginPrint.add(
+          PluginPrintParams.fromJson(decoder, 'params', params),
         );
         break;
       case 'plugin.status':

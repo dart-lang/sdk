@@ -537,9 +537,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Save THR which is callee-saved.
   __ pushq(THR);
+  __ pushq(R12);
+  __ pushq(R13);
 
-  // 2 = THR & return address
-  COMPILE_ASSERT(2 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
+  // 4 = return address, THR, R12, R13
+  COMPILE_ASSERT(4 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
 
   // Save all registers which might hold arguments.
   __ PushRegisters(kArgumentRegisterSet);
@@ -551,19 +553,6 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   {
     COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
     __ movq(CallingConventions::kArg1Reg, RAX);
-
-    // We also need to look up the entry point for the trampoline. This is
-    // returned using a pointer passed to the second arg of the C function
-    // below. We aim that pointer at a reserved stack slot.
-    COMPILE_ASSERT(RAX != CallingConventions::kArg2Reg);
-    __ pushq(Immediate(0));  // Reserve a stack slot for the entry point.
-    __ movq(CallingConventions::kArg2Reg, RSP);
-
-    // We also need to know if this is a sync or async callback. This is also
-    // returned by pointer.
-    COMPILE_ASSERT(RAX != CallingConventions::kArg3Reg);
-    __ pushq(Immediate(0));  // Reserve a stack slot for the trampoline type.
-    __ movq(CallingConventions::kArg3Reg, RSP);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
@@ -580,222 +569,61 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
     __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
+    __ ReserveAlignedFrameSpace(3 * target::kWordSize);
+    __ movq(CallingConventions::kArg2Reg, RSP);
 
-    __ CallCFunction(RAX);
+    __ CallCFunction(RAX, /*restore_rsp=*/true);
     __ movq(THR, RAX);
 
+    __ movq(RAX, Address(RSP, 0 * target::kWordSize));  // entry_point
+    __ movq(R12, Address(RSP, 1 * target::kWordSize));  // is_tail
+    __ movq(R13, Address(RSP, 2 * target::kWordSize));  // epilogue
+
     __ LeaveFrame();
-
-    // The trampoline type is at the top of the stack. Pop it into RAX.
-    __ popq(RAX);
-
-    // Entry point is now at the top of the stack. Pop it into TMP.
-    __ popq(TMP);
   }
 
   // Restore the arguments.
   __ PopRegisters(kArgumentRegisterSet);
 
-  // Current state:
-  //
-  // Stack:
-  //  <old stack (arguments)>
-  //  <return address>
-  //  <saved THR>
-  //
-  // Registers: Like entry, except TMP == target, RAX == abi, and THR == thread
-  //            All argument registers are untouched.
+  Label tail;
+  __ cmpq(R12, Immediate(0));
+  __ j(NOT_ZERO, &tail);
 
-  Label async_callback;
-  Label sync_isolate_group_bound_callback;
-  Label sync_callback_isolate_ownership;
-  Label done;
+  const RegisterSet return_registers(
+      (1 << CallingConventions::kReturnReg) |
+          (1 << CallingConventions::kSecondReturnReg),
+      (1 << CallingConventions::kReturnFpuReg) |
+          (1 << CallingConventions::kSecondReturnFpuReg));
 
-  // Check the trampoline type to see how the callback should be invoked.
-  __ cmpq(RAX, Immediate(static_cast<uword>(
-                   FfiCallbackMetadata::TrampolineType::kAsync)));
-  __ j(EQUAL, &async_callback);
-
-  __ cmpq(RAX,
-          Immediate(static_cast<uword>(
-              FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
-  __ j(EQUAL, &sync_isolate_group_bound_callback);
-
-  __ testq(RAX,
-           Immediate(FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
-  __ j(NOT_ZERO, &sync_callback_isolate_ownership);
-
-  // Sync callback. The entry point contains the target function, so just call
-  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
-  // re-enter it afterwards.
-
-  // On entry to the function, there will be two extra slots on the stack:
-  // the saved THR and the return address. The target will know to skip them.
-  __ call(TMP);
-
-  // Takes care to not clobber *any* registers (besides TMP).
-  __ EnterFullSafepoint();
-
-  if (FLAG_target_memory_sanitizer) {
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        (1 << CallingConventions::kReturnFpuReg) |
-            (1 << CallingConventions::kSecondReturnFpuReg));
-    __ PushRegisters(return_registers);
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitSyncCallback, RAX, TMP);
-    } else {
-      __ movq(RAX, Immediate(reinterpret_cast<int64_t>(DLRT_ExitSyncCallback)));
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitSyncCallback, RAX);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    __ CallCFunction(RAX);
-    __ CallCFunction(RAX);  // dart_msan_unpoison_retval
-
-    __ LeaveFrame();
-
-    __ PopRegisters(return_registers);
-  }
-
-  __ jmp(&done);
-
-  __ Bind(&sync_callback_isolate_ownership);
-
-  __ call(TMP);
-
-  // Exit the target isolate.
   {
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        (1 << CallingConventions::kReturnFpuReg) |
-            (1 << CallingConventions::kSecondReturnFpuReg));
+    __ call(RAX);  // entry_point
     __ PushRegisters(return_registers);
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitSyncCallbackTargetIsolate,
-                           RAX, TMP);
-    } else {
-      __ movq(RAX, Immediate(reinterpret_cast<int64_t>(
-                       DLRT_ExitSyncCallbackTargetIsolate)));
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, RAX);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    __ CallCFunction(RAX);
+    __ movq(CallingConventions::kArg1Reg, THR);
+    __ CallCFunction(R13, /*restore_rsp=*/true);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
-      __ CallCFunction(RAX);  // dart_msan_unpoison_retval
+      __ CallCFunction(RAX, /*restore_rsp=*/true);  // dart_msan_unpoison_retval
     }
-
-    __ LeaveFrame();
-
     __ PopRegisters(return_registers);
-  }
-
-  __ jmp(&done, Assembler::kNearJump);
-
-  __ Bind(&sync_isolate_group_bound_callback);
-
-  __ call(TMP);
-
-  // Exit isolate group bound isolate.
-  {
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        (1 << CallingConventions::kReturnFpuReg) |
-            (1 << CallingConventions::kSecondReturnFpuReg));
-    __ PushRegisters(return_registers);
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupBoundIsolate,
-                           RAX, TMP);
-    } else {
-      __ movq(RAX, Immediate(reinterpret_cast<int64_t>(
-                       DLRT_ExitIsolateGroupBoundIsolate)));
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, RAX);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    __ CallCFunction(RAX);
-    if (FLAG_target_memory_sanitizer) {
-      __ CallCFunction(RAX);  // dart_msan_unpoison_retval
-    }
-
-    __ LeaveFrame();
-
-    __ PopRegisters(return_registers);
-  }
-
-  __ jmp(&done, Assembler::kNearJump);
-
-  __ Bind(&async_callback);
-
-  // Async callback. The entrypoint marshals the arguments into a message and
-  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
-  // entered a temporary isolate, so exit it afterwards.
-
-  // On entry to the function, there will be two extra slots on the stack:
-  // the saved THR and the return address. The target will know to skip them.
-  __ call(TMP);
-
-  // Exit the temporary isolate.
-  {
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitTemporaryIsolate, RAX,
-                           TMP);
-    } else {
-      __ movq(RAX,
-              Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitTemporaryIsolate, RAX);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    // Restore THR (callee-saved).
+    __ popq(R13);
+    __ popq(R12);
     __ popq(THR);
+    __ ret();
+  }
 
+  {
+    __ Bind(&tail);
+    __ call(RAX);  // entry_point
+    __ movq(CallingConventions::kArg1Reg, THR);
+    __ movq(RAX, R13);
+    __ popq(R13);
+    __ popq(R12);
+    __ popq(THR);
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
-    __ jmp(RAX);
+    __ jmp(RAX);  // DLRT_ExitTemporaryIsolate
     __ int3();
   }
-
-  __ Bind(&done);
-
-  // Restore THR (callee-saved).
-  __ popq(THR);
-
-  __ ret();
 
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.

@@ -12,8 +12,6 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 typedef _RefactorData = ({
   FieldElement fieldElement,
   ConstructorFieldInitializer? initializer,
@@ -269,8 +267,8 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
       (node) => node is ClassDeclaration || node is EnumDeclaration,
     );
     return switch (declaration) {
-      ClassDeclaration() => declaration.members2,
-      EnumDeclaration() => declaration.members2,
+      ClassDeclaration() => declaration.body.members,
+      EnumDeclaration() => declaration.body.members,
       _ => null,
     };
   }

@@ -1,0 +1,14 @@
+final a = A(bExt: .f(c: .f(0)));
+
+class A {
+  final BExt bExt;
+  const A({required this.bExt});
+}
+
+class C {
+  C.f(num n);
+}
+
+extension type BExt(C c) {
+  BExt.f({required C c}) : this(c);
+}

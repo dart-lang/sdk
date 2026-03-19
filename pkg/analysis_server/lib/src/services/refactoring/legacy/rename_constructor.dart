@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/utilities/change_builder.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -19,6 +18,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// A [Refactoring] for renaming [ConstructorElement]s.
@@ -42,22 +43,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     return 'Rename Constructor';
   }
 
-  @override
-  Future<RefactoringStatus> checkFinalConditions() {
-    var result = RefactoringStatus();
-    return Future.value(result);
-  }
-
-  @override
-  RefactoringStatus checkNewName() {
-    var result = super.checkNewName();
-    result.addStatus(validateConstructorName(newName));
-    _analyzePossibleConflicts(result);
-    return result;
-  }
-
-  @override
-  Future<void> fillChange() async {
+  Future<void> buildChange({required ChangeBuilder builder}) async {
     // prepare references
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
@@ -67,18 +53,22 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       var coveringNode = await _nodeCoveringReference(reference);
       var coveringParent = coveringNode?.parent;
       if (coveringParent is ClassDeclaration) {
-        _addDefaultConstructorToClass(
-          reference: reference,
-          classDeclaration: coveringParent,
-        );
+        await builder.addDartFileEdit(reference.file, (builder) {
+          _addDefaultConstructorToClass(
+            builder: builder,
+            classDeclaration: coveringParent,
+          );
+        });
         continue;
       } else if (coveringParent is ConstructorDeclaration &&
           // TODO(scheglov): support primary constructors
           coveringParent.typeName!.offset == reference.range.offset) {
-        _addSuperInvocationToConstructor(
-          reference: reference,
-          constructor: coveringParent,
-        );
+        await builder.addDartFileEdit(reference.file, (builder) {
+          _addSuperInvocationToConstructor(
+            builder: builder,
+            constructor: coveringParent,
+          );
+        });
         continue;
       }
 
@@ -101,51 +91,82 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       if (reference.isInvocationByEnumConstantWithoutArguments) {
         replacement += '()';
       }
-      reference.addEdit(change, replacement);
+      await builder.addDartFileEdit(reference.file, (builder) {
+        builder.addSimpleReplacement(reference.range, replacement);
+      });
     }
     // Update the declaration.
     if (element.isOriginImplicitDefault) {
-      await _replaceSynthetic();
+      await _replaceSynthetic(builder: builder);
     } else if (element.firstFragment.typeNameOffset != null) {
-      _replaceWhenTypeName();
+      await _replaceWhenTypeName(builder: builder);
     } else {
-      _replaceWhenKeyword();
+      await _replaceWhenKeyword(builder: builder);
     }
+  }
+
+  @override
+  Future<RefactoringStatus> checkFinalConditions() {
+    var result = RefactoringStatus();
+    return Future.value(result);
+  }
+
+  @override
+  RefactoringStatus checkNewName() {
+    var result = super.checkNewName();
+    result.addStatus(validateConstructorName(newName));
+    _analyzePossibleConflicts(result);
+    return result;
+  }
+
+  @override
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
+    );
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = "$refactoringName '$oldName' to '$newName'";
+    return sourceChange;
+  }
+
+  @override
+  Future<void> fillChange() {
+    throw UnsupportedError('This method should never be called.');
   }
 
   void _addDefaultConstructorToClass({
-    required SourceReference reference,
+    required DartFileEditBuilder builder,
     required ClassDeclaration classDeclaration,
   }) {
     var body = classDeclaration.body;
-    if (body is! BlockClassBody) {
-      return;
-    }
-
     var className = classDeclaration.namePart.typeName.lexeme;
-    _replaceInReferenceFile(
-      reference: reference,
-      range: range.endLength(body.leftBracket, 0),
-      replacement: '${utils.endOfLine}  $className() : super.$newName();',
-    );
+    if (body is BlockClassBody) {
+      builder.addSimpleInsertion(
+        body.leftBracket.end,
+        '${utils.endOfLine}  $className() : super.$newName();',
+      );
+    } else if (body is EmptyClassBody) {
+      var endOfLine = utils.endOfLine;
+      builder.addSimpleReplacement(
+        range.token(body.semicolon),
+        ' {$endOfLine  $className() : super.$newName();$endOfLine}',
+      );
+    }
   }
 
   void _addSuperInvocationToConstructor({
-    required SourceReference reference,
+    required DartFileEditBuilder builder,
     required ConstructorDeclaration constructor,
   }) {
     var initializers = constructor.initializers;
     if (initializers.lastOrNull case var last?) {
-      _replaceInReferenceFile(
-        reference: reference,
-        range: range.endLength(last, 0),
-        replacement: ', super.$newName()',
-      );
+      builder.addSimpleInsertion(last.end, ', super.$newName()');
     } else {
-      _replaceInReferenceFile(
-        reference: reference,
-        range: range.endLength(constructor.parameters, 0),
-        replacement: ' : super.$newName()',
+      builder.addSimpleInsertion(
+        constructor.parameters.end,
+        ' : super.$newName()',
       );
     }
   }
@@ -180,19 +201,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         ?.coveringNode;
   }
 
-  void _replaceInReferenceFile({
-    required SourceReference reference,
-    required SourceRange range,
-    required String replacement,
-  }) {
-    doSourceChange_addFragmentEdit(
-      change,
-      reference.element.firstFragment,
-      newSourceEdit_range(range, replacement),
-    );
-  }
-
-  Future<void> _replaceSynthetic() async {
+  Future<void> _replaceSynthetic({required ChangeBuilder builder}) async {
     var classElement = element.enclosingElement;
 
     var fragment = classElement.firstFragment;
@@ -214,25 +223,23 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       return;
     }
 
-    var edit = await buildEditForInsertedConstructor(
-      node,
-      resolvedUnit: resolvedUnit,
-      session: sessionHelper.session,
-      (builder) => builder.writeConstructorDeclaration(
-        classElement.name!,
-        constructorName: newName,
-        isConst: node is EnumDeclaration,
-      ),
-    );
-    if (edit == null) {
-      return;
-    }
-    doSourceChange_addFragmentEdit(change, fragment, edit);
+    await builder.addDartFileEdit(fragment.libraryFragment.source.fullName, (
+      builder,
+    ) {
+      builder.insertConstructor(
+        node,
+        (builder) => builder.writeConstructorDeclaration(
+          classElement.name!,
+          constructorName: newName,
+          isConst: node is EnumDeclaration,
+        ),
+      );
+    });
   }
 
   /// Adds a source edit for when the constructor is declared using the `new`
   /// or `factory` keywords instead of a type name.
-  void _replaceWhenKeyword() {
+  Future<void> _replaceWhenKeyword({required ChangeBuilder builder}) async {
     // Compute the source range always including any space because we may
     // need to remove it.
     var fragment = element.firstFragment;
@@ -243,21 +250,21 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         ? fragment.nameOffset! + fragment.name.length
         : offset;
     var replacementRange = SourceRange(offset, end - offset);
-
-    doSourceChange_addSourceEdit(
-      change,
-      element.firstFragment.libraryFragment.source,
-      newSourceEdit_range(
-        replacementRange,
-        // Replace assuming any existing space is in the range.
-        newName.isNotEmpty ? ' $newName' : '',
-      ),
+    await builder.addDartFileEdit(
+      element.firstFragment.libraryFragment.source.fullName,
+      (builder) {
+        builder.addSimpleReplacement(
+          replacementRange,
+          // Replace assuming any existing period is in the range.
+          newName.isNotEmpty ? ' $newName' : '',
+        );
+      },
     );
   }
 
   /// Adds a source edit for when the constructor is declared using the type
   /// name.
-  void _replaceWhenTypeName() {
+  Future<void> _replaceWhenTypeName({required ChangeBuilder builder}) async {
     SourceRange replacementRange;
 
     // Compute the source range always including the period because we may
@@ -274,14 +281,15 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       );
     }
 
-    doSourceChange_addSourceEdit(
-      change,
-      element.firstFragment.libraryFragment.source,
-      newSourceEdit_range(
-        replacementRange,
-        // Replace assuming any existing period is in the range.
-        newName.isNotEmpty ? '.$newName' : '',
-      ),
+    await builder.addDartFileEdit(
+      element.firstFragment.libraryFragment.source.fullName,
+      (builder) {
+        builder.addSimpleReplacement(
+          replacementRange,
+          // Replace assuming any existing period is in the range.
+          newName.isNotEmpty ? '.$newName' : '',
+        );
+      },
     );
   }
 }

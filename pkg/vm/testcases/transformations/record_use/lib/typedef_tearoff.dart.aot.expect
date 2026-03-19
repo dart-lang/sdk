@@ -16,7 +16,7 @@ final class C<T extends core::Object? = dynamic, U extends core::Object? = dynam
   [@vm.unboxing-info.metadata=()->i]
   final field self::C::U% u;
 
-  [@vm.unboxing-info.metadata=(b,i)->b]
+  [@vm.unboxing-info.metadata=[!regcc]]
   constructor •(self::C::T% t, [@vm.inferred-arg-type.metadata=int] self::C::U% u) → self::C<self::C::T%, self::C::U%>
     : self::C::t = t, self::C::u = u, super core::Object::•()
     ;
@@ -31,6 +31,7 @@ static method main() → void {
 }
 
 [@vm.inferred-return-type.metadata=#lib::C]
+[@vm.unboxing-info.metadata=[!regcc]]
 static synthetic method _#TC#new#tearOff<T extends core::Object? = dynamic>(self::_#TC#new#tearOff::T% t, core::int u) → self::C<self::_#TC#new#tearOff::T%, core::int>
   return new self::C::•<self::_#TC#new#tearOff::T%, core::int>(t, u);
 constants  {

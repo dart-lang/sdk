@@ -1,0 +1,163 @@
+{
+  "constants": [
+    {
+      "type": "double",
+      "value": {
+        "type": "negative_infinity"
+      }
+    },
+    {
+      "type": "double",
+      "value": {
+        "type": "number",
+        "value": -5e-324
+      }
+    },
+    {
+      "type": "double",
+      "value": {
+        "type": "number",
+        "value": -0.0
+      }
+    },
+    {
+      "type": "double",
+      "value": {
+        "type": "number",
+        "value": 5e-324
+      }
+    },
+    {
+      "type": "double",
+      "value": {
+        "type": "number",
+        "value": 0.12345678901234566
+      }
+    },
+    {
+      "type": "double",
+      "value": {
+        "type": "number",
+        "value": 1.234
+      }
+    },
+    {
+      "type": "double",
+      "value": {
+        "type": "number",
+        "value": 3.141592653589793
+      }
+    },
+    {
+      "type": "double",
+      "value": {
+        "type": "positive_infinity"
+      }
+    },
+    {
+      "type": "double",
+      "value": {
+        "type": "not_a_number"
+      }
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "someStaticMethod"
+        }
+      ],
+      "uri": "package:record_use_test/double_constants.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
+    "version": "0.4.0"
+  },
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              0
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              1
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              2
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              3
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              4
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              5
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              6
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              7
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              8
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

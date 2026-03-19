@@ -24,7 +24,6 @@ import '../codes/cfe_codes.dart' show LocatedMessage;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'constness.dart' show Constness;
 import 'expression_generator.dart';
-import 'forest.dart' show Forest;
 import 'internal_ast.dart';
 
 /// Alias for Expression | Generator
@@ -51,8 +50,6 @@ abstract class ExpressionGeneratorHelper {
   /// This is used when creating [NamedTypeBuilder]s within
   /// [ExpressionGenerator]s.
   InstanceTypeParameterAccessState get instanceTypeParameterAccessState;
-
-  Forest get forest;
 
   ProblemReporting get problemReporting;
 

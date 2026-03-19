@@ -11,7 +11,7 @@
   (global $1 (import "module0" "global2") (ref $BoxedInt))
   (global $2 (import "module0" "global3") (ref $BoxedInt))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 18 funcref)
-  (table $module0.dispatch0 (import "module0" "dispatch0") 678 funcref)
+  (table $module0.dispatch0 (import "module0" "dispatch0") 668 funcref)
   (global $"\"Foo0.doitDispatch(\"" (ref $JSExternWrapper)
     (i32.const 108)
     (i32.const 0)
@@ -75,7 +75,7 @@
       global.get $1
       local.get $var0
       struct.get $Object $field0
-      i32.const 452
+      i32.const 521
       i32.add
       call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top)) (result (ref null $#Top))
       drop

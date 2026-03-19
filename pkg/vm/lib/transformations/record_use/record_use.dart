@@ -236,9 +236,7 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   ast.NullConstant() => NullConstant(),
   ast.BoolConstant() => BoolConstant(constant.value),
   ast.IntConstant() => IntConstant(constant.value),
-  ast.DoubleConstant() => UnsupportedConstant(
-    'Double literals are not supported for recording.',
-  ),
+  ast.DoubleConstant() => DoubleConstant(constant.value),
   ast.StringConstant() => StringConstant(constant.value),
   ast.SymbolConstant() => SymbolConstant(
     constant.name,
@@ -268,8 +266,8 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   // The following are not supported, but theoretically could be, so they
   // are listed explicitly here.
   ast.AuxiliaryConstant() => _unsupported('AuxiliaryConstant'),
-  ast.SetConstant() => UnsupportedConstant(
-    'Set literals are not supported for recording.',
+  ast.SetConstant() => SetConstant(
+    constant.entries.map(evaluateConstant).toList(),
   ),
   ast.InstantiationConstant() => evaluateConstant(constant.tearOffConstant),
   ast.TearOffConstant() => UnsupportedConstant(
@@ -289,9 +287,7 @@ Constant evaluateLiteral(ast.BasicLiteral expression) => switch (expression) {
   ast.IntLiteral() => IntConstant(expression.value),
   ast.BoolLiteral() => BoolConstant(expression.value),
   ast.StringLiteral() => StringConstant(expression.value),
-  ast.DoubleLiteral() => UnsupportedConstant(
-    'Double literals are not supported for recording.',
-  ),
+  ast.DoubleLiteral() => DoubleConstant(expression.value),
   ast.BasicLiteral() => _unsupported(expression.runtimeType.toString()),
 };
 

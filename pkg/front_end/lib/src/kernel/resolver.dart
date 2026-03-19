@@ -38,7 +38,6 @@ import '../source/check_helper.dart';
 import '../source/offset_map.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
-import '../type_inference/external_ast_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart'
     show ExpressionEvaluationHelper;
@@ -51,8 +50,9 @@ import 'assigned_variables_impl.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
 import 'body_builder.dart';
 import 'body_builder_context.dart';
-import 'forest.dart';
+import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
+import 'internal_ast_helper.dart' as intern;
 
 part 'resolver_helpers.dart';
 
@@ -1304,7 +1304,6 @@ class Resolver {
     required ConstantContext constantContext,
     required ThisVariable? internalThisVariable,
   }) {
-    const Forest forest = const Forest();
     AssignedVariables assignedVariables = context.assignedVariables;
 
     // Create variable get expressions for super parameters before finishing
@@ -1342,7 +1341,7 @@ class Resolver {
         if (inferInitializer) {
           if (!parameter.initializerWasInferred) {
             // Coverage-ignore(suite): Not run.
-            initializer ??= forest.createNullLiteral(
+            initializer ??= intern.createNullLiteral(
               // TODO(ahe): Should store: originParameter.fileOffset
               // https://github.com/dart-lang/sdk/issues/32289
               noLocation,

@@ -1727,8 +1727,10 @@ enum ParallelMoveStage {
   output,
   // Spill output of the instruction.
   spill,
-  // Split live ranges.
+  // Split live ranges between instructions.
   split,
+  // Split live ranges at the next instruction.
+  splitLate,
   // Moves at control flow edges (including phi moves).
   control,
   // Move instruction inputs to their fixed locations.

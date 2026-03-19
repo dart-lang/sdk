@@ -2183,8 +2183,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _declareLocalVariable(
-      Variable variable, int initializedPosition) {
+  void _declareLocalVariable(Variable variable, int initializedPosition) {
     bool isCaptured = locals.isCaptured(variable);
     asm.localVariableTable.declareVariable(
         asm.offset,

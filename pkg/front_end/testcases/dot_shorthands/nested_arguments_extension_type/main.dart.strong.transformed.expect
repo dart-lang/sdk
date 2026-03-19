@@ -1,0 +1,44 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field mai::BExt% /* erasure=mai::C, declared=! */ bExt;
+  const constructor •({required mai::BExt% /* erasure=mai::C, declared=! */ bExt}) → self::A
+    : self::A::bExt = bExt, super core::Object::•()
+    ;
+}
+static final field self::A a = new self::A::•(bExt: mai::BExt|constructor#f(c: new mai::C::f(0)));
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor f(core::num n) → mai::C
+    : super core::Object::•()
+    ;
+}
+extension type BExt(mai::C c) {
+  abstract extension-type-member representation-field get c() → mai::C;
+  constructor • = mai::BExt|constructor#;
+  constructor tearoff • = mai::BExt|constructor#_#new#tearOff;
+  constructor f = mai::BExt|constructor#f;
+  constructor tearoff f = mai::BExt|constructor#_#f#tearOff;
+}
+static extension-type-member method BExt|constructor#(mai::C c) → mai::BExt% /* erasure=mai::C, declared=! */ {
+  lowered final mai::BExt% /* erasure=mai::C, declared=! */ #this = c;
+  return #this;
+}
+static extension-type-member synthetic method BExt|constructor#_#new#tearOff(mai::C c) → mai::BExt% /* erasure=mai::C, declared=! */
+  return mai::BExt|constructor#(c);
+static extension-type-member method BExt|constructor#f({required mai::C c}) → mai::BExt% /* erasure=mai::C, declared=! */ {
+  lowered final mai::BExt% /* erasure=mai::C, declared=! */ #this;
+  #this = mai::BExt|constructor#(c);
+  return #this;
+}
+static extension-type-member synthetic method BExt|constructor#_#f#tearOff({required mai::C c}) → mai::BExt% /* erasure=mai::C, declared=! */
+  return mai::BExt|constructor#f(c: c);

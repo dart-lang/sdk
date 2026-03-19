@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
@@ -899,7 +898,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       node.namePart.typeName.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.tryCast<BlockEnumBody>()?.members ?? [],
+      memberNodes: node.body.members,
     );
 
     super.visitEnumDeclaration(node);

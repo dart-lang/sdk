@@ -609,8 +609,11 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   bool get hasInitializer => _introductoryField!.hasInitializer;
 
-  bool get isExtensionTypeDeclaredInstanceField =>
-      _introductoryField!.isExtensionTypeDeclaredInstanceField;
+  /// Returns `true` if the field of this property is not a valid declaration.
+  ///
+  /// For instance declaring an instance field in an extension or extension type
+  /// is not allowed and cannot be encoded coherently in the AST.
+  bool get isInvalidField => _introductoryField!.isInvalidField;
 
   @override
   bool get isFinal => _introductoryField!.isFinal;

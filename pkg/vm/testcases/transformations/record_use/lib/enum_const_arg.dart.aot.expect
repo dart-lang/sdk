@@ -8,6 +8,16 @@ import "package:meta/meta.dart" show RecordUse;
 @#C1
 class A extends core::_Enum /*isEnum*/  {
 
+  [@vm.unreachable.metadata=]
+  enum-element static const field self::A a;
+
+  [@vm.unreachable.metadata=]
+  enum-element static const field self::A b;
+
+  [@vm.unreachable.metadata=]
+  const synthetic constructor •(core::int #index, core::String #name) → self::A
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+
   [@vm.inferred-return-type.metadata=!]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method core::_enumToString() → core::String
@@ -23,6 +33,7 @@ static method main() → void {
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static method doSomething([@vm.inferred-arg-type.metadata=#lib::A (value: const #lib::A{dart.core::_Enum.index: 1, dart.core::_Enum._name: "b"})] self::A a) → void {
   core::print([@vm.inferred-type.metadata=dart.core::_OneByteString] core::EnumName|get#name(a));

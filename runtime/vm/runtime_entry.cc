@@ -2559,7 +2559,7 @@ static bool IsSingleTarget(IsolateGroup* isolate_group,
     if (!table->HasValidClassAt(cid)) continue;
     cls = table->At(cid);
     if (cls.is_abstract()) continue;
-    if (!cls.is_allocated()) continue;
+    if (!cls.is_allocated() && !cls.is_declared_in_bytecode()) continue;
     other_target = Resolver::ResolveDynamicAnyArgs(zone, cls, name,
                                                    /*allow_add=*/false);
     if (other_target.ptr() != target.ptr()) {
@@ -4986,9 +4986,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(ExitSafepoint,
                           DLRT_ExitSafepoint);
 
 namespace {
-Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
-                               uword* out_entry_point,
-                               uword* out_trampoline_type) {
+Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata) {
   // NOTE: This is only thread safe if the user is using the API correctly.
   // Otherwise, the callback could have been deleted and replaced, in which case
   // IsLive would still be true. Or it could have been deleted after we looked
@@ -4998,8 +4996,6 @@ Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
   // after free errors. Trying to lock FfiCallbackMetadata::lock_, or any
   // similar lock, leads to deadlocks.
 
-  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
-  *out_entry_point = metadata.target_entry_point();
   Isolate* target_isolate = metadata.target_isolate();
 
   Isolate* current_isolate = nullptr;
@@ -5033,13 +5029,8 @@ Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
 }
 
 Thread* HandleIsolateGroupBoundSyncFfiCallback(
-    FfiCallbackMetadata::Metadata metadata,
-    uword* out_entry_point,
-    uword* out_trampoline_type) {
+    FfiCallbackMetadata::Metadata metadata) {
   Thread* current_thread = Thread::Current();
-
-  *out_entry_point = metadata.target_entry_point();
-  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
 
   if (current_thread != nullptr) {
     current_thread->ExitSafepointFromNative();
@@ -5086,12 +5077,8 @@ void FfiCallbackThreadChecks(Thread* thread, Isolate* target_isolate) {
 
 Thread* HandleIsolateBoundSyncFfiCallback(
     FfiCallbackMetadata::Metadata metadata,
-    uword* out_entry_point,
-    uword* out_trampoline_type) {
+    CallbackMetadata* out) {
   Thread* current_thread = Thread::Current();
-
-  *out_entry_point = metadata.target_entry_point();
-  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
 
   Isolate* target_isolate = metadata.target_isolate();
   if (current_thread == nullptr) {
@@ -5100,15 +5087,16 @@ Thread* HandleIsolateBoundSyncFfiCallback(
     }
     Thread::EnterIsolate(target_isolate);
     current_thread = Thread::Current();
-    *out_trampoline_type |=
-        FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag;
     FfiCallbackThreadChecks(current_thread, target_isolate);
+    out->epilogue =
+        reinterpret_cast<uword>(&DLRT_ExitSyncCallbackTargetIsolate);
   } else {
     FfiCallbackThreadChecks(current_thread, target_isolate);
     if (current_thread->execution_state() != Thread::kThreadInNative) {
       FATAL("Cannot invoke native callback from a leaf call.");
     }
     current_thread->ExitSafepointFromNative();
+    out->epilogue = reinterpret_cast<uword>(&DLRT_ExitSyncCallback);
   }
 
   current_thread->set_execution_state(Thread::kThreadInVM);
@@ -5123,13 +5111,11 @@ Thread* HandleIsolateBoundSyncFfiCallback(
 // a runtime entry because we can't use Thread to look it up.
 extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     FfiCallbackMetadata::Trampoline trampoline,
-    uword* out_entry_point,
-    uword* out_trampoline_type) {
+    CallbackMetadata* out) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p",
                      reinterpret_cast<void*>(trampoline));
-  ASSERT(out_entry_point != nullptr);
-  ASSERT(out_trampoline_type != nullptr);
+  ASSERT(out != nullptr);
 
   if (!Isolate::IsolateCreationEnabled()) {
     FATAL("GetFfiCallbackMetadata called after shutdown %p",
@@ -5155,23 +5141,37 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   }
 
   Thread* thread = nullptr;
+
+  out->entry_point = metadata.target_entry_point();
+  switch (metadata.trampoline_type()) {
+    default:
+      out->type = 0;  // Call
+      break;
+    case FfiCallbackMetadata::TrampolineType::kAsync:
+      out->type = 1;  // Tail call.
+      break;
+#if defined(TARGET_ARCH_IA32)
+    case FfiCallbackMetadata::TrampolineType::kSyncStackDelta4:
+    case FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBoundStackDelta4:
+      out->type = 2;  // Call, ret4.
+      break;
+#endif
+  }
+
   if (metadata.trampoline_type() ==
       FfiCallbackMetadata::TrampolineType::kAsync) {
-    thread =
-        HandleAsyncFfiCallback(metadata, out_entry_point, out_trampoline_type);
+    thread = HandleAsyncFfiCallback(metadata);
+    out->epilogue = reinterpret_cast<uword>(&DLRT_ExitTemporaryIsolate);
   } else if (metadata.is_isolate_group_bound()) {
-    thread = HandleIsolateGroupBoundSyncFfiCallback(metadata, out_entry_point,
-                                                    out_trampoline_type);
+    thread = HandleIsolateGroupBoundSyncFfiCallback(metadata);
+    out->epilogue = reinterpret_cast<uword>(&DLRT_ExitIsolateGroupBoundIsolate);
   } else {
-    thread = HandleIsolateBoundSyncFfiCallback(metadata, out_entry_point,
-                                               out_trampoline_type);
+    thread = HandleIsolateBoundSyncFfiCallback(metadata, out);
   }
 
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", thread);
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",
-                     (void*)*out_entry_point);
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
-                     (void*)*out_trampoline_type);
+                     reinterpret_cast<void*>(out->entry_point));
   return thread;
 }
 
@@ -5187,10 +5187,10 @@ extern "C" LargestReturn dart_msan_unpoison_retval() {
 }
 #endif
 
-extern "C" void* DLRT_ExitIsolateGroupBoundIsolate() {
+extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread* thread) {
   TRACE_RUNTIME_CALL("ExitIsolateGroupBoundIsolate%s", "");
-  Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
   Isolate* source_isolate =
       reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
   // Need to accommodate ExitIsolateGroupAsHelper assumptions.
@@ -5207,10 +5207,10 @@ extern "C" void* DLRT_ExitIsolateGroupBoundIsolate() {
 #endif
 }
 
-extern "C" void* DLRT_ExitSyncCallbackTargetIsolate() {
+extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread* thread) {
   TRACE_RUNTIME_CALL("ExitSyncCallbackTargetIsolate%s", "");
-  Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
   thread->set_execution_state(Thread::kThreadInVM);
   Thread::ExitIsolate(/*isolate_shutdown=*/false);
 #if defined(USING_MEMORY_SANITIZER)
@@ -5220,7 +5220,12 @@ extern "C" void* DLRT_ExitSyncCallbackTargetIsolate() {
 #endif
 }
 
-extern "C" void* DLRT_ExitSyncCallback() {
+extern "C" void* DLRT_ExitSyncCallback(Thread* thread) {
+  ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
+
+  thread->EnterSafepointToNative();
+
 #if defined(USING_MEMORY_SANITIZER)
   return reinterpret_cast<void*>(dart_msan_unpoison_retval);
 #else
@@ -5228,10 +5233,17 @@ extern "C" void* DLRT_ExitSyncCallback() {
 #endif
 }
 
-extern "C" void DLRT_ExitTemporaryIsolate() {
-  TRACE_RUNTIME_CALL("ExitTemporaryIsolate%s", "");
+#if defined(HOST_ARCH_IA32)
+// A function with arguments isn't compatible with the tail-call because on IA32
+// the arguments are on the stack and caller pops.
+extern "C" void* DLRT_ExitTemporaryIsolate() {
   Thread* thread = Thread::Current();
+#else
+extern "C" void* DLRT_ExitTemporaryIsolate(Thread* thread) {
+#endif
+  TRACE_RUNTIME_CALL("ExitTemporaryIsolate%s", "");
   ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
   Isolate* source_isolate =
       reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
 
@@ -5250,6 +5262,7 @@ extern "C" void DLRT_ExitTemporaryIsolate() {
     thread->EnterSafepoint();
   }
   TRACE_RUNTIME_CALL("ExitTemporaryIsolate %s", "done");
+  return nullptr;
 }
 
 extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread) {

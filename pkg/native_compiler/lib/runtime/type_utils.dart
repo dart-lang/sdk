@@ -100,6 +100,23 @@ bool isAllDynamic(List<ast.DartType> typeArgs) {
   return true;
 }
 
+/// Calculate index of [tp] in the type arguments vector.
+int computeIndexOfTypeParameter(ast.TypeParameter tp) {
+  final decl = tp.declaration!;
+  int index = decl.typeParameters.indexOf(tp);
+  assert(index >= 0);
+  if (decl is ast.LocalFunction) {
+    ast.TreeNode node = decl.parent!;
+    while (node is! ast.Member) {
+      if (node is ast.FunctionNode) {
+        index += node.typeParameters.length;
+      }
+      node = node.parent!;
+    }
+  }
+  return index;
+}
+
 /// Returns true if [field] has a non-trivial initializer.
 ///
 /// VM does not allow field initializer functions for fields

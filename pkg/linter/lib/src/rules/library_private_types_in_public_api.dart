@@ -49,9 +49,7 @@ class Validator extends SimpleAstVisitor<void> {
       return;
     }
     namePart.typeParameters?.accept(this);
-    if (node.body case BlockClassBody body) {
-      body.members.accept(this);
-    }
+    node.body.members.accept(this);
     if (namePart is PrimaryConstructorDeclaration) {
       visitPrimaryConstructorDeclaration(namePart);
     }
@@ -85,9 +83,7 @@ class Validator extends SimpleAstVisitor<void> {
       return;
     }
     node.namePart.typeParameters?.accept(this);
-    if (node.body case BlockEnumBody body) {
-      body.members.accept(this);
-    }
+    node.body.members.accept(this);
   }
 
   @override
@@ -98,9 +94,7 @@ class Validator extends SimpleAstVisitor<void> {
     }
     node.typeParameters?.accept(this);
     node.onClause?.extendedType.accept(this);
-    if (node.body case BlockClassBody body) {
-      body.members.accept(this);
-    }
+    node.body.members.accept(this);
   }
 
   @override
@@ -120,9 +114,7 @@ class Validator extends SimpleAstVisitor<void> {
       }
     }
 
-    if (node.body case BlockClassBody body) {
-      body.members.accept(this);
-    }
+    node.body.members.accept(this);
   }
 
   @override
@@ -225,9 +217,7 @@ class Validator extends SimpleAstVisitor<void> {
     }
     node.onClause?.superclassConstraints.accept(this);
     node.typeParameters?.accept(this);
-    if (node.body case BlockClassBody body) {
-      body.members.accept(this);
-    }
+    node.body.members.accept(this);
   }
 
   @override

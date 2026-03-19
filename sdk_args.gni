@@ -7,18 +7,9 @@ _dart_root = get_path_info(".", "abspath")
 declare_args() {
   # Absolute path to the .git folder.
   #
-  # This is used in rules that need to refer to `.git/logs/HEAD` to include
-  # a hash in the version string. By default the folder is `.git`, but we define
-  # it as an argument so it can be overridden by users of `git-worktree` (See
-  # Issue #33619).
-  #
-  # When using git-worktree, you can add
-  #
-  #    default_git_folder = "/path/to/main/git/repo/.git/worktrees/name/"
-  #
-  # to out/ReleaseX64/args.gn. The path above can be extracted from the `.git`
-  # file under the git worktree folder.
-  # The script run here should take care of everything automatically though.
+  # This variable is potentially no longer needed as an gn arg. It was first
+  # exposed to allow adjusting the location for `git-worktrees`, but now the
+  # `get_dot_git_folder.py` script below properly accounts for that.
   default_git_folder = ""
 
   # Whether to enable the SDK hash check that will prevent loading a kernel

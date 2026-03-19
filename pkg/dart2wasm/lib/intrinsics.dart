@@ -9,7 +9,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'abi.dart' show kWasmAbiEnumIndex;
 import 'class_info.dart';
 import 'code_generator.dart';
-import 'dynamic_forwarders.dart';
+import 'dynamic_dispatchers.dart';
 import 'dynamic_modules.dart';
 import 'translator.dart';
 import 'types.dart';
@@ -2917,12 +2917,10 @@ class Intrinsifier {
 
         b.end(); // noSuchMethodBlock
 
-        generateNoSuchMethodCall(
-            translator,
-            b,
-            () => b.local_get(closureLocal),
-            () => createInvocationObject(translator, b, Name('call'),
-                typeArgsLocal, posArgsLocal, namedArgsListLocal));
+        b.local_get(closureLocal);
+        createInvocationObject(translator, b, Name('call'), typeArgsLocal,
+            posArgsLocal, namedArgsListLocal);
+        translator.callReference(translator.invokeNoSuchMethod.reference, b);
 
       // Error._throw
       case MemberIntrinsic.errorThrow:

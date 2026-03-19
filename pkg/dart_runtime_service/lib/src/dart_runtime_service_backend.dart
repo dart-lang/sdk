@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'dart:collection';
+
 import 'package:meta/meta.dart';
 
 import 'dart_runtime_service.dart';
+import 'dart_runtime_service_rpcs.dart';
 import 'event_streams.dart';
+import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
 
 /// A backend implementation of a service used to inject non-common
@@ -19,6 +22,9 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
 
   /// Manages and tracks the lifecycle of isolates for the backend.
   IM get isolateManager;
+
+  /// Adds support for expression evaluation if non-null.
+  ExpressionEvaluator? get expressionEvaluator => null;
 
   /// Invoked by the [DartRuntimeService] when the service is initializing,
   /// before the service's HTTP server is started.
@@ -68,14 +74,14 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   /// more clients listening to [streamId].
   void onStreamCancel({required String streamId}) {}
 
-  /// Invoked by the [DartRuntimeService] to register handlers for the RPCs
-  /// provided by the backend.
-  void registerRpcs(json_rpc.Peer clientPeer);
+  /// RPCs to be registered with the [DartRuntimeService].
+  UnmodifiableListView<ServiceRpcHandler> get rpcs =>
+      UnmodifiableListView(const []);
 
-  /// Invoked by the [DartRuntimeService] to register fallback handlers
-  /// provided by the backend.
+  /// Fallbacks to be registered with the [DartRuntimeService].
   ///
   /// Backend fallbacks are executed after incoming RPC requests fail to match
   /// any registered RPCs or service extensions provided by other clients.
-  void registerFallbacks(json_rpc.Peer clientPeer);
+  UnmodifiableListView<RpcHandlerWithParameters> get fallbacks =>
+      UnmodifiableListView(const []);
 }

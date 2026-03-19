@@ -7,6 +7,7 @@ import "package:meta/meta.dart" show RecordUse;
 
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static method topLevelFunction() → void {}
 

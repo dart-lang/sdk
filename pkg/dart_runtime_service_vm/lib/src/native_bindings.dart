@@ -133,17 +133,25 @@ class NativeBindings {
     const kData = 'data';
 
     final Object? converted;
-    if (value case [final Uint8List utf8String]) {
+    if (value case final String string) {
+      converted = json.decode(string);
+    } else if (value case [final Uint8List utf8String]) {
       converted = jsonUtf8Decoder.decode(utf8String);
     } else {
-      RpcException.internalError.throwException();
+      RpcException.internalError.throwException(
+        data: {
+          'details': 'Unknown response type (${value.runtimeType}: $value)',
+        },
+      );
     }
     if (converted case {kResult: final Map<String, Object?> result}) {
       return result;
     } else if (converted case {
       kError: {kCode: final int code, kMessage: final String message},
     }) {
-      final data = converted[kData];
+      // 'data' is not always present, so it can't be included in the object
+      // destructuring pattern.
+      final data = (converted[kError]! as Map<String, Object?>)[kData];
       throw json_rpc.RpcException(code, message, data: data);
     } else {
       RpcException.internalError.throwException();

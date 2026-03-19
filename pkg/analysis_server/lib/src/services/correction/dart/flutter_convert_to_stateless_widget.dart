@@ -17,8 +17,6 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
   FlutterConvertToStatelessWidget({required super.context});
 
@@ -70,7 +68,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     var verifier = _StatelessVerifier();
     var fieldFinder = _FieldFinder();
 
-    for (var member in stateClass.members2) {
+    for (var member in stateClass.body.members) {
       if (member is ConstructorDeclaration) {
         member.accept(fieldFinder);
       } else if (member is MethodDeclaration) {
@@ -93,7 +91,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     // Prepare nodes to move.
     var nodesToMove = <ClassMember>[];
     var elementsToMove = <Element>{};
-    for (var member in stateClass.members2) {
+    for (var member in stateClass.body.members) {
       if (member is FieldDeclaration) {
         if (member.isStatic) {
           return;
@@ -189,7 +187,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
   }
 
   MethodDeclaration? _findCreateStateMethod(ClassDeclaration widgetClass) {
-    for (var member in widgetClass.members2) {
+    for (var member in widgetClass.body.members) {
       if (member is MethodDeclaration && member.name.lexeme == 'createState') {
         var parameters = member.parameters;
         if (parameters?.parameters.isEmpty ?? false) {

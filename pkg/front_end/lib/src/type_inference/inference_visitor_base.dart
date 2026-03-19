@@ -31,6 +31,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../kernel/assigned_variables_impl.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/external_ast_helper.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
@@ -43,7 +44,6 @@ import '../testing/id_extractor.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'context_allocation_strategy.dart';
-import 'external_ast_helper.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
 import 'object_access_target.dart';
@@ -3476,7 +3476,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<VariableDeclaration>? hoistedExpressions,
   ) {
     if (hoistedExpressions != null &&
-        expression is! ThisExpression &&
+        !(expression is ThisExpression ||
+            expression is VariableGet &&
+                expression.expressionVariable is ThisVariable) &&
         expression is! FunctionExpression) {
       VariableDeclaration variable = createVariable(expression, type);
       hoistedExpressions.add(variable);

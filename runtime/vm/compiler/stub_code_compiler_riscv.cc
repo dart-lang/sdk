@@ -351,8 +351,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ Bind(&body);
 
   // Save THR (callee-saved) and RA. Keeps stack aligned.
-  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 2);
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
   __ PushRegisterPair(RA, THR);
+  __ PushRegisterPair(S2, S3);
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
   // Load the thread, verify the callback ID and exit the safepoint.
@@ -361,29 +362,26 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // code size on this shared stub.
   {
     // Push arguments and callback id.
-    __ subi(SP, SP, 9 * target::kWordSize);
-    __ sx(T1, Address(SP, 8 * target::kWordSize));
-    __ sx(A7, Address(SP, 7 * target::kWordSize));
-    __ sx(A6, Address(SP, 6 * target::kWordSize));
-    __ sx(A5, Address(SP, 5 * target::kWordSize));
-    __ sx(A4, Address(SP, 4 * target::kWordSize));
-    __ sx(A3, Address(SP, 3 * target::kWordSize));
-    __ sx(A2, Address(SP, 2 * target::kWordSize));
-    __ sx(A1, Address(SP, 1 * target::kWordSize));
-    __ sx(A0, Address(SP, 0 * target::kWordSize));
+    __ subi(SP, SP, 12 * target::kWordSize);
+    __ sx(A7, Address(SP, 11 * target::kWordSize));
+    __ sx(A6, Address(SP, 10 * target::kWordSize));
+    __ sx(A5, Address(SP, 9 * target::kWordSize));
+    __ sx(A4, Address(SP, 8 * target::kWordSize));
+    __ sx(A3, Address(SP, 7 * target::kWordSize));
+    __ sx(A2, Address(SP, 6 * target::kWordSize));
+    __ sx(A1, Address(SP, 5 * target::kWordSize));
+    __ sx(A0, Address(SP, 4 * target::kWordSize));
+    // 3 - alignment gap
+    // 2 - Out.epilogue
+    // 1 - Out.is_tail
+    // 0 - Out.entry_point
 
-    __ EnterFrame(0);
-    // Reserve one slot for the entry point and one for the tramp abi.
-    __ ReserveAlignedFrameSpace(2 * target::kWordSize);
+    __ mv(A0, T1);
+    __ mv(A1, SP);
 
     // Since DLRT_GetFfiCallbackMetadata can theoretically be loaded anywhere,
     // we use the same trick as before to ensure a predictable instruction
     // sequence.
-    Label call;
-    __ mv(A0, T1);                          // trampoline
-    __ mv(A1, SPREG);                       // out_entry_point
-    __ addi(A2, SPREG, target::kWordSize);  // out_trampoline_type
-
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
@@ -394,6 +392,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
       intptr_t start = __ CodeSize();
       __ auipc(T1, 0);
       __ lx(T1, Address(T1, kPCRelativeLoadOffset));
+      Label call;
       __ j(&call);
 
       ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
@@ -402,267 +401,68 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #else
       __ Emit64(reinterpret_cast<int64_t>(&DLRT_GetFfiCallbackMetadata));
 #endif
+      __ Bind(&call);
     }
 #else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, T1);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
-    __ Bind(&call);
     __ jalr(T1);
     __ mv(THR, A0);
-    __ lx(T2, Address(SPREG, 0));                  // entry_point
-    __ lx(T3, Address(SPREG, target::kWordSize));  // trampoline_type
+    __ lx(T2, Address(SP, 0 * target::kWordSize));  // entry_point
+    __ lx(S2, Address(SP, 1 * target::kWordSize));  // is_tail
+    __ lx(S3, Address(SP, 2 * target::kWordSize));  // epilogue
 
-    __ LeaveFrame();
-
-    // Restore arguments and callback id.
-    __ lx(A0, Address(SP, 0 * target::kWordSize));
-    __ lx(A1, Address(SP, 1 * target::kWordSize));
-    __ lx(A2, Address(SP, 2 * target::kWordSize));
-    __ lx(A3, Address(SP, 3 * target::kWordSize));
-    __ lx(A4, Address(SP, 4 * target::kWordSize));
-    __ lx(A5, Address(SP, 5 * target::kWordSize));
-    __ lx(A6, Address(SP, 6 * target::kWordSize));
-    __ lx(A7, Address(SP, 7 * target::kWordSize));
-    __ lx(T1, Address(SP, 8 * target::kWordSize));
-    __ addi(SP, SP, 9 * target::kWordSize);
+    __ lx(A0, Address(SP, 4 * target::kWordSize));
+    __ lx(A1, Address(SP, 5 * target::kWordSize));
+    __ lx(A2, Address(SP, 6 * target::kWordSize));
+    __ lx(A3, Address(SP, 7 * target::kWordSize));
+    __ lx(A4, Address(SP, 8 * target::kWordSize));
+    __ lx(A5, Address(SP, 9 * target::kWordSize));
+    __ lx(A6, Address(SP, 10 * target::kWordSize));
+    __ lx(A7, Address(SP, 11 * target::kWordSize));
+    __ addi(SP, SP, 12 * target::kWordSize);
   }
 
-  COMPILE_ASSERT(!IsCalleeSavedRegister(T2) && !IsArgumentRegister(T2));
-  COMPILE_ASSERT(!IsCalleeSavedRegister(T3) && !IsArgumentRegister(T3));
+  Label tail;
+  __ bnez(S2, &tail, Assembler::kNearJump);
 
-  Label something_other_than_sync_callback;
-  Label async_callback;
-  Label sync_isolate_group_bound_callback;
-  Label done;
-
-  // Check the trampoline type to see how the callback should be invoked.
-
-  COMPILE_ASSERT(
-      static_cast<uword>(FfiCallbackMetadata::TrampolineType::kSync) == 0);
-  __ bnez(T3, &something_other_than_sync_callback);
-
-  // Sync callback. The entry point contains the target function, so just call
-  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
-  // re-enter it afterwards.
-
-  // Clobbers all volatile registers, including the callback ID in T1.
-  __ jalr(T2);
-
-  // Clobbers TMP, TMP2 and T1 -- all volatile and not holding return values.
-  __ EnterFullSafepoint(/*scratch=*/T1);
-
-  if (FLAG_target_memory_sanitizer) {
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        (1 << CallingConventions::kReturnFpuReg) |
-            (1 << CallingConventions::kSecondReturnFpuReg));
-    __ PushRegisters(return_registers);
-
-    Label call;
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitSyncCallback, T1, T2);
-    } else {
-      const intptr_t kPCRelativeLoadOffset = 12;
-      intptr_t start = __ CodeSize();
-      __ auipc(T1, 0);
-      __ lx(T1, Address(T1, kPCRelativeLoadOffset));
-      __ j(&call);
-
-      ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
-#if XLEN == 32
-      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitSyncCallback));
-#else
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitSyncCallback));
-#endif
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, T1);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    __ Bind(&call);
-    __ jalr(T1);
-    __ jalr(A0);  // dart_msan_unpoison_retval
-
-    __ PopRegisters(return_registers);
-
-    __ LeaveFrame();
-    __ j(&done, Assembler::kNearJump);
-  }
-
-  __ j(&done);
-
-  __ Bind(&something_other_than_sync_callback);
-  __ li(T4, static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync));
-  __ beq(T3, T4, &async_callback, Assembler::kNearJump);
-
-  __ li(T4, static_cast<uword>(
-                FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound));
-  __ beq(T3, T4, &sync_isolate_group_bound_callback, Assembler::kNearJump);
-
-  // Sync callback that entered the target isolate.
-  __ jalr(T2);
-
-  // Exit the target isolate.
   {
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        (1 << CallingConventions::kReturnFpuReg) |
-            (1 << CallingConventions::kSecondReturnFpuReg));
-    __ PushRegisters(return_registers);
-
-    Label call;
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitSyncCallbackTargetIsolate,
-                           T1, T2);
-    } else {
-      const intptr_t kPCRelativeLoadOffset = 12;
-      intptr_t start = __ CodeSize();
-      __ auipc(T1, 0);
-      __ lx(T1, Address(T1, kPCRelativeLoadOffset));
-      __ j(&call);
-
-      ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
-#if XLEN == 32
-      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitSyncCallbackTargetIsolate));
-#else
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitSyncCallbackTargetIsolate));
-#endif
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, T1);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    __ Bind(&call);
-    __ jalr(T1);
+    __ jalr(T2);          // entry_point
+    __ subi(SP, SP, 32);  // Not using word size to keep RV32 stack aligned.
+    __ sx(A0, Address(SP, 24));
+    __ sx(A1, Address(SP, 16));
+    __ fsd(FA0, Address(SP, 8));
+    __ fsd(FA1, Address(SP, 0));
+    __ mv(A0, THR);
+    __ jalr(S3);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ jalr(A0);  // dart_msan_unpoison_retval
     }
-
-    __ PopRegisters(return_registers);
-
-    __ LeaveFrame();
-    __ j(&done, Assembler::kNearJump);
-  }
-
-  __ Bind(&sync_isolate_group_bound_callback);
-  __ jalr(T2);
-
-  // Exit isolate group bound isolate.
-  {
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        (1 << CallingConventions::kReturnFpuReg) |
-            (1 << CallingConventions::kSecondReturnFpuReg));
-    __ PushRegisters(return_registers);
-
-    Label call;
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupBoundIsolate,
-                           T1, T2);
-    } else {
-      const intptr_t kPCRelativeLoadOffset = 12;
-      intptr_t start = __ CodeSize();
-      __ auipc(T1, 0);
-      __ lx(T1, Address(T1, kPCRelativeLoadOffset));
-      __ j(&call);
-
-      ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
-#if XLEN == 32
-      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitIsolateGroupBoundIsolate));
-#else
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupBoundIsolate));
-#endif
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, T1);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    __ Bind(&call);
-    __ jalr(T1);
-    if (FLAG_target_memory_sanitizer) {
-      __ jalr(A0);  // dart_msan_unpoison_retval
-    }
-
-    __ PopRegisters(return_registers);
-
-    __ LeaveFrame();
-    __ j(&done, Assembler::kNearJump);
-  }
-
-  __ Bind(&async_callback);
-
-  // Async callback. The entrypoint marshals the arguments into a message and
-  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
-  // entered a temporary isolate, so exit it afterwards.
-
-  // Clobbers all volatile registers, including the callback ID in T1.
-  __ jalr(T2);
-
-  // Exit the temporary isolate.
-  {
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitTemporaryIsolate, T1, T2);
-    } else {
-      Label call;
-      const intptr_t kPCRelativeLoadOffset = 12;
-      intptr_t start = __ CodeSize();
-      __ auipc(T1, 0);
-      __ lx(T1, Address(T1, kPCRelativeLoadOffset));
-      __ j(&call);
-
-      ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
-#if XLEN == 32
-      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitTemporaryIsolate));
-#else
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitTemporaryIsolate));
-#endif
-      __ Bind(&call);
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitTemporaryIsolate, T1);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
+    __ fld(FA1, Address(SP, 0));
+    __ fld(FA0, Address(SP, 8));
+    __ lx(A1, Address(SP, 16));
+    __ lx(A0, Address(SP, 24));
+    __ addi(SP, SP, 32);
+    __ PopRegisterPair(S2, S3);
     __ PopRegisterPair(RA, THR);
+    __ ret();
+  }
 
+  {
+    __ Bind(&tail);
+    __ jalr(T2);  // entry_point
+    __ mv(A0, THR);
+    __ mv(A1, S3);
+    __ PopRegisterPair(S2, S3);
+    __ PopRegisterPair(RA, THR);
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
-    __ jr(T1);
+    __ jr(A1);  // DLRT_ExitTemporaryIsolate.
     __ ebreak();
   }
-
-  __ Bind(&done);
-  __ PopRegisterPair(RA, THR);
-  __ ret();
 
   ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
                        FfiCallbackMetadata::kNativeCallbackSharedStubSize);

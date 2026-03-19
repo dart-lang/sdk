@@ -54,6 +54,8 @@
       "out/ReleaseX64/dart2wasm_platform.dill",
       "out/ReleaseX64/dart2wasm_js_compatibility_outline.dill",
       "out/ReleaseX64/dart2wasm_js_compatibility_platform.dill",
+      "out/ReleaseX64/dart2wasm_standalone_outline.dill",
+      "out/ReleaseX64/dart2wasm_standalone_platform.dill",
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/wasm/",
       "out/ReleaseX64/wasm-opt",
@@ -524,6 +526,17 @@
           "--js-compatibility"
         ],
         "host-asserts": true,
+        "timeout": 60
+      }
+    },
+    "dart2wasm-(linux|mac|win)-standalone-(chrome|firefox|safari)": {
+      "options": {
+        "dart2wasm-options": [
+          "-O0",
+          "--standalone"
+        ],
+        "host-asserts": true,
+        "use-sdk": false,
         "timeout": 60
       }
     },
@@ -2883,6 +2896,37 @@
             "language",
             "lib",
             "web"
+          ],
+          "shards": 8,
+          "fileset": "dart2wasm_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart2wasm-linux-standalone-chrome"
+      ],
+      "meta": {
+        "description": "dart2wasm standalone tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart2wasm",
+            "dartaotruntime"
+          ]
+        },
+        {
+          "name": "dart2wasm tests",
+          "arguments": [
+            "-ndart2wasm-${system}-standalone-${runtime}",
+            "co19",
+            "corelib",
+            "language",
+            "lib"
           ],
           "shards": 8,
           "fileset": "dart2wasm_hostasserts"

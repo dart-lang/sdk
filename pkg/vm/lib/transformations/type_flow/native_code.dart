@@ -111,6 +111,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitClass(Class klass) {
+    if (record_use.isBeingRecorded(klass)) {
+      nativeCodeOracle.addClassWithPersistentShape(klass);
+    }
     for (final type in entryPointTypesFromPragmas(klass.annotations)) {
       if (type == PragmaEntryPointType.Default) {
         if (!klass.isAbstract) {
@@ -136,6 +139,13 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitProcedure(Procedure proc) {
+    if (record_use.isBeingRecorded(proc)) {
+      nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
+      final enclosingClass = proc.enclosingClass;
+      if (enclosingClass != null) {
+        nativeCodeOracle.addClassWithPersistentShape(enclosingClass);
+      }
+    }
     final types = entryPointTypesFromPragmas(proc.annotations);
     if (types.isEmpty) return;
 
@@ -208,6 +218,10 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitConstructor(Constructor ctor) {
+    if (record_use.isBeingRecorded(ctor)) {
+      nativeCodeOracle.setMemberReferencedFromNativeCode(ctor);
+      nativeCodeOracle.addClassWithPersistentShape(ctor.enclosingClass);
+    }
     for (final type in entryPointTypesFromPragmas(ctor.annotations)) {
       if (type != PragmaEntryPointType.Default &&
           type != PragmaEntryPointType.CallOnly) {
@@ -228,6 +242,13 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitField(Field field) {
+    if (record_use.isBeingRecorded(field)) {
+      nativeCodeOracle.setMemberReferencedFromNativeCode(field);
+      final enclosingClass = field.enclosingClass;
+      if (enclosingClass != null) {
+        nativeCodeOracle.addClassWithPersistentShape(enclosingClass);
+      }
+    }
     if (field.isInstanceMember &&
         field.enclosingClass!.hasConstConstructor &&
         record_use.isBeingRecorded(field.enclosingClass!)) {
@@ -290,6 +311,7 @@ class NativeCodeOracle {
   final Set<Member> _membersReferencedFromNativeCode = Set<Member>();
   final Set<Member> _dynamicallyOverriddenMembers = Set<Member>();
   final Set<Class> _classesReferencedFromNativeCode = Set<Class>();
+  final Set<Class> _classesWithPersistentShape = Set<Class>();
   final Set<Class> _classesWithDynamicallyExtendableSubtypes = Set<Class>();
   final Set<Library> _librariesReferencedFromNativeCode = Set<Library>();
   final PragmaAnnotationParser _matcher;
@@ -309,6 +331,13 @@ class NativeCodeOracle {
 
   bool isClassReferencedFromNativeCode(Class klass) =>
       _classesReferencedFromNativeCode.contains(klass);
+
+  void addClassWithPersistentShape(Class klass) {
+    _classesWithPersistentShape.add(klass);
+  }
+
+  bool isClassWithPersistentShape(Class klass) =>
+      _classesWithPersistentShape.contains(klass);
 
   void setMemberReferencedFromNativeCode(Member member) {
     _membersReferencedFromNativeCode.add(member);

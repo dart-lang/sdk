@@ -8,12 +8,14 @@ import "package:meta/meta.dart" show RecordUse;
 class MyEnum extends core::_Enum /*isEnum*/  {
 
   [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.unboxing-info.metadata=[!regcc]]
   @#C1
   static method staticMethod() → void {}
 }
 abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
 
   [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.unboxing-info.metadata=[!regcc]]
   @#C1
   static method staticMethod() → void {}
 }

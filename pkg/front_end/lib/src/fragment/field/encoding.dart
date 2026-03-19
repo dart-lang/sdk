@@ -1218,13 +1218,15 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
               dummyName,
               ProcedureKind.Method,
               new FunctionNode(
-                null,
-                positionalParameters: [
-                  new VariableDeclaration(syntheticThisName)
-                    ..fileOffset = _fragment.nameOffset
-                    ..isLowered = true,
-                ],
-              ),
+                  null,
+                  positionalParameters: [
+                    new VariableDeclaration(syntheticThisName)
+                      ..fileOffset = _fragment.nameOffset
+                      ..isLowered = true,
+                  ],
+                )
+                ..fileOffset = _fragment.nameOffset
+                ..fileEndOffset = _fragment.endOffset,
               fileUri: _fragment.fileUri,
               reference: references.getterReference,
             )
@@ -1268,7 +1270,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           new Procedure(
               dummyName,
               ProcedureKind.Getter,
-              new FunctionNode(null),
+              new FunctionNode(null)
+                ..fileOffset = _fragment.nameOffset
+                ..fileEndOffset = _fragment.endOffset,
               fileUri: _fragment.fileUri,
               reference: references.getterReference,
             )

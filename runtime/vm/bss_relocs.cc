@@ -31,17 +31,6 @@ void BSS::Initialize(Thread* current, uword* bss_start, bool vm) {
   InitializeBSSEntry(Relocation::DLRT_GetFfiCallbackMetadata,
                      reinterpret_cast<uword>(DLRT_GetFfiCallbackMetadata),
                      bss_start);
-  InitializeBSSEntry(Relocation::DLRT_ExitTemporaryIsolate,
-                     reinterpret_cast<uword>(DLRT_ExitTemporaryIsolate),
-                     bss_start);
-  InitializeBSSEntry(Relocation::DLRT_ExitIsolateGroupBoundIsolate,
-                     reinterpret_cast<uword>(DLRT_ExitIsolateGroupBoundIsolate),
-                     bss_start);
-  InitializeBSSEntry(
-      Relocation::DLRT_ExitSyncCallbackTargetIsolate,
-      reinterpret_cast<uword>(DLRT_ExitSyncCallbackTargetIsolate), bss_start);
-  InitializeBSSEntry(Relocation::DLRT_ExitSyncCallback,
-                     reinterpret_cast<uword>(DLRT_ExitSyncCallback), bss_start);
 }
 
 }  // namespace dart

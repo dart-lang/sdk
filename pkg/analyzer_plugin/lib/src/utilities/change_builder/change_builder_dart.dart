@@ -3143,8 +3143,7 @@ class _InsertionPreparer {
 
     var hasConstants = false;
     if (declaration is EnumDeclaration) {
-      var body = declaration.body;
-      hasConstants = body is BlockEnumBody && body.constants.isNotEmpty;
+      hasConstants = declaration.body.constants.isNotEmpty;
     }
 
     if (_foundTargetMember) {
@@ -3177,8 +3176,7 @@ class _InsertionPreparer {
     var declaration = _declaration;
     var hasConstants = false;
     if (declaration is EnumDeclaration) {
-      var body = declaration.body;
-      hasConstants = body is BlockEnumBody && body.constants.isNotEmpty;
+      hasConstants = declaration.body.constants.isNotEmpty;
     }
     if (declaration is EnumDeclaration && hasConstants) {
       return;
@@ -3379,25 +3377,16 @@ extension on CompilationUnitMember {
     var self = this;
     switch (self) {
       case ClassDeclaration():
-        if (self.body case BlockClassBody body) {
-          return body.members;
-        } else if (self.body case EmptyClassBody()) {
-          return const [];
-        }
+        return self.body.members;
       case EnumDeclaration():
         // Enum constants are handled separately; not considered members.
-        var body = self.body;
-        return body is BlockEnumBody ? body.members : const [];
+        return self.body.members;
       case ExtensionDeclaration():
-        var body = self.body;
-        return body is BlockClassBody ? body.members : const [];
+        return self.body.members;
       case ExtensionTypeDeclaration():
-        if (self.body case BlockClassBody body) {
-          return body.members;
-        }
+        return self.body.members;
       case MixinDeclaration():
-        var body = self.body;
-        return body is BlockClassBody ? body.members : const [];
+        return self.body.members;
     }
     return null;
   }

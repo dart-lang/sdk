@@ -102,10 +102,10 @@ extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
 static field core::int? lateTopLevelField1Init;
 static field core::int? _#lateTopLevelField1 = null;
 static field core::bool _#lateTopLevelField1#isSet = false;
-static field core::int? Extension|lateExtensionField1Init;
+static field core::int? Extension|lateExtensionField1Init = null;
 static field core::int? _#Extension|lateExtensionField1 = null;
 static field core::bool _#Extension|lateExtensionField1#isSet = false;
-static field core::int? Extension|lateExtensionField2Init;
+static field core::int? Extension|lateExtensionField2Init = null;
 static field core::int? _#Extension|lateExtensionField2 = null;
 static field core::bool _#Extension|lateExtensionField2#isSet = false;
 static method initLateTopLevelField1(core::int value) → core::int? {

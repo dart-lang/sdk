@@ -18,6 +18,25 @@ void main() {
 @reflectiveTest
 class AddSuperConstructorInvocationTest extends FixProcessorTest
     with AddSuperConstructorInvocationTestCases {
+  Future<void> test_new() async {
+    await resolveTestCode('''
+class A {
+  A(int p);
+}
+class B extends A {
+  new () {}
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int p);
+}
+class B extends A {
+  new () : super(0) {}
+}
+''');
+  }
+
   Future<void> test_optionalPositional() async {
     await resolveTestCode('''
 class A {
@@ -33,6 +52,101 @@ class A {
 }
 class B extends A {
   B(super.p1) : super(0);
+}
+''');
+  }
+
+  Future<void> test_primary_withBlockBody() async {
+    await resolveTestCode('''
+class A {
+  A(int p);
+}
+class B() extends A {
+  this {}
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int p);
+}
+class B() extends A {
+  this : super(0) {}
+}
+''');
+  }
+
+  Future<void> test_primary_withBodyAndInitializer() async {
+    await resolveTestCode('''
+class A {
+  A(int p);
+}
+class B() extends A {
+  int f;
+
+  this : f = 1 {}
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int p);
+}
+class B() extends A {
+  int f;
+
+  this : f = 1, super(0) {}
+}
+''');
+  }
+
+  Future<void> test_primary_withEmptyBody() async {
+    await resolveTestCode('''
+class A {
+  A(int p);
+}
+class B() extends A {
+  this;
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int p);
+}
+class B() extends A {
+  this : super(0);
+}
+''');
+  }
+
+  Future<void> test_primary_withoutBody_classHasBody() async {
+    await resolveTestCode('''
+class A {
+  A(int p);
+}
+class B() extends A {}
+''');
+    await assertHasFix('''
+class A {
+  A(int p);
+}
+class B() extends A {
+  this : super(0);
+}
+''');
+  }
+
+  Future<void> test_primary_withoutBody_classHasNoBody() async {
+    await resolveTestCode('''
+class A {
+  A(int p);
+}
+class B() extends A;
+''');
+    await assertHasFix('''
+class A {
+  A(int p);
+}
+class B() extends A {
+  this : super(0);
 }
 ''');
   }

@@ -4,8 +4,10 @@
 
 import 'package:dart_service_protocol_shared/dart_service_protocol_shared.dart';
 import 'package:dtd/dtd.dart' show DtdParameters;
+import 'package:vm_service/vm_service.dart' show RPCError;
 
 import 'dart_tooling_daemon.dart';
+import 'dtd_client.dart' show DTDClient;
 
 /// Manages state related to stream subscriptions made by [DTDClient]s.
 class DTDStreamManager extends StreamManager {
@@ -19,31 +21,25 @@ class DTDStreamManager extends StreamManager {
   /// as part of the VM service protocol).
   ///
   /// If [stream] is not a registered custom stream, an [RPCError] with code
-  /// [kCustomStreamDoesNotExist] will be thrown.
+  /// `kCustomStreamDoesNotExist` will be thrown.
   ///
   /// If [stream] is a core stream, an [RPCError] with code
-  /// [kCoreStreamNotAllowed] will be thrown.
+  /// `kCoreStreamNotAllowed` will be thrown.
   void postEventHelper(
     String stream,
     String eventKind,
     Map<String, Object?> eventData,
   ) {
-    super.postEvent(
-      stream,
-      <String, Object?>{
-        DtdParameters.streamId: stream,
-        DtdParameters.eventKind: eventKind,
-        DtdParameters.eventData: eventData,
-        DtdParameters.timestamp: DateTime.now().millisecondsSinceEpoch,
-      },
-    );
+    super.postEvent(stream, <String, Object?>{
+      DtdParameters.streamId: stream,
+      DtdParameters.eventKind: eventKind,
+      DtdParameters.eventData: eventData,
+      DtdParameters.timestamp: DateTime.now().millisecondsSinceEpoch,
+    });
   }
 
   /// Send `streamNotify` notifications to clients subscribed to `streamId`.
-  void streamNotify(
-    String streamId,
-    Map<String, Object?> data,
-  ) {
+  void streamNotify(String streamId, Map<String, Object?> data) {
     super.postEvent(streamId, data);
   }
 }

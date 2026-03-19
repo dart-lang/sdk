@@ -117,7 +117,7 @@ extension type ET<X4 extends dynamic>(X4% x4) {
   constructor tearoff • = self::ET|constructor#_#new#tearOff;
 }
 static field dynamic topLevelField;
-static field dynamic Extension|staticField;
+static field dynamic Extension|staticField = null;
 static field dynamic ExtensionType|staticField = null;
 static extension-member method Extension|instanceMethod<T13 extends dynamic, T14 extends dynamic>(lowered final self::Class<self::Extension|instanceMethod::T13%> #this, self::Extension|instanceMethod::T13% t13, self::Extension|instanceMethod::T14% t14) → void {}
 static extension-member method Extension|get#instanceMethod<T13 extends dynamic>(lowered final self::Class<self::Extension|get#instanceMethod::T13%> #this) → <T14 extends dynamic>(self::Extension|get#instanceMethod::T13%, T14%) → void

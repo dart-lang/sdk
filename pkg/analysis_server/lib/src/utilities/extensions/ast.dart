@@ -208,17 +208,6 @@ extension BinaryExpressionExtension on BinaryExpression {
   }
 }
 
-extension ClassDeclarationExtension on ClassDeclaration {
-  List<ClassMember> get members2 {
-    switch (body) {
-      case BlockClassBody body:
-        return body.members;
-      default:
-        return [];
-    }
-  }
-}
-
 extension CompilationUnitExtension on CompilationUnit {
   /// Return the list of tokens that comprise the file header comment for this
   /// compilation unit.
@@ -328,13 +317,6 @@ extension DirectiveExtension on Directive {
   }
 }
 
-extension EnumDeclarationExtension on EnumDeclaration {
-  List<ClassMember> get members2 {
-    var body = this.body;
-    return body is BlockEnumBody ? body.members : const [];
-  }
-}
-
 extension ExpressionExtension on Expression {
   /// Whether this [Expression] should be wrapped with parentheses when we want
   /// to use it as operand of a logical and-expression.
@@ -345,24 +327,6 @@ extension ExpressionExtension on Expression {
     }
     var precedence = self.operator.type.precedence;
     return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
-  }
-}
-
-extension ExtensionDeclarationExtension on ExtensionDeclaration {
-  List<ClassMember> get members2 {
-    var body = this.body;
-    return body is BlockClassBody ? body.members : const [];
-  }
-}
-
-extension ExtensionTypeDeclarationExtension on ExtensionTypeDeclaration {
-  List<ClassMember> get members2 {
-    switch (body) {
-      case BlockClassBody body:
-        return body.members;
-      default:
-        return [];
-    }
   }
 }
 
@@ -401,13 +365,6 @@ extension MethodInvocationExtension on MethodInvocation {
   bool get isToSetMethodInvocation {
     var element = methodName.element;
     return element is MethodElement && element.isToSetMethod;
-  }
-}
-
-extension MixinDeclarationExtension on MixinDeclaration {
-  List<ClassMember> get members2 {
-    var body = this.body;
-    return body is BlockClassBody ? body.members : const [];
   }
 }
 

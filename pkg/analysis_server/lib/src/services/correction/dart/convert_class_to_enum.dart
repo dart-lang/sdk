@@ -22,8 +22,6 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-import '../../../utilities/extensions/ast.dart';
-
 typedef _Constructors = Map<ConstructorElement, _Constructor>;
 
 /// This correction producer converts a class to an enum, if possible, by making
@@ -215,7 +213,7 @@ class _EnumDescription {
 
     // Compute the declarations of the enum constants and delete the fields
     // being converted.
-    var members = classDeclaration.members2;
+    var members = classDeclaration.body.members;
     var indent = utils.oneIndent;
     var eol = utils.endOfLine;
     var constantsBuffer = StringBuffer();
@@ -369,7 +367,7 @@ class _EnumDescription {
   /// potentially the index field), has no metadata, and has no doc comments.
   AstNode? /* ConstructorDeclaration? | PrimaryConstructorDeclaration? */
   _removeUnnamedConstructor() {
-    var members = classDeclaration.members2;
+    var members = classDeclaration.body.members;
     var constructors = members.whereType<ConstructorDeclaration>().toList();
     var primaryConstructor = classDeclaration.namePart
         .ifTypeOrNull<PrimaryConstructorDeclaration>();
@@ -625,7 +623,7 @@ class _EnumDescription {
 
     var constructorMap = <ConstructorElement, _Constructor>{};
     for (var member
-        in classDeclaration.members2.whereType<ConstructorDeclaration>()) {
+        in classDeclaration.body.members.whereType<ConstructorDeclaration>()) {
       var constructor = member.declaredFragment?.element;
       if (constructor is! ConstructorElement) return null;
 
@@ -662,7 +660,7 @@ class _EnumDescription {
     _Field? indexFieldData;
 
     // First, look through variable declarations.
-    for (var member in classDeclaration.members2) {
+    for (var member in classDeclaration.body.members) {
       if (member is! FieldDeclaration) continue;
 
       var fields = member.fields.variables;
@@ -765,7 +763,7 @@ class _EnumDescription {
   /// Return `true` if the [classDeclaration] does not contain any methods that
   /// prevent it from being converted.
   static bool _validateMethods(ClassDeclaration classDeclaration) {
-    for (var member in classDeclaration.members2) {
+    for (var member in classDeclaration.body.members) {
       if (member is MethodDeclaration) {
         var name = member.name.lexeme;
         if (name == '==' || name == 'hashCode') {

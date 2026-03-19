@@ -1,0 +1,30 @@
+final v1;
+
+final int v2;
+
+class Class {
+  static final v3;
+  static final int v4;
+}
+
+extension Extension on Class {
+  static final v5;
+  static final int v6;
+}
+
+extension type ExtensionType(Class c) {
+  static final v7;
+  static final int v8;
+}
+
+mixin Mixin {
+  static final v9;
+  static final int v10;
+}
+
+enum Enum {
+  a;
+
+  static final v11;
+  static final int v12;
+}

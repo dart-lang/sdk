@@ -297,6 +297,7 @@ code's
 codebase
 codec
 codes
+coherently
 collides
 collision
 coloring
@@ -664,6 +665,7 @@ expr
 expression's
 ext
 extenders
+extern
 extracted
 extracts
 extras

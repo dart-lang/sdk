@@ -11,8 +11,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-import '../../utilities/extensions/ast.dart';
-
 /// Sorter for unit/class members.
 class MemberSorter {
   final String _initialCode;
@@ -101,15 +99,15 @@ class MemberSorter {
   void _sortClassesMembers() {
     for (var unitMember in _unit.declarations) {
       if (unitMember is ClassDeclaration) {
-        _sortClassMembers(unitMember.members2);
+        _sortClassMembers(unitMember.body.members);
       } else if (unitMember is EnumDeclaration) {
-        _sortClassMembers(unitMember.members2);
+        _sortClassMembers(unitMember.body.members);
       } else if (unitMember is ExtensionDeclaration) {
-        _sortClassMembers(unitMember.members2);
+        _sortClassMembers(unitMember.body.members);
       } else if (unitMember is ExtensionTypeDeclaration) {
-        _sortClassMembers(unitMember.members2);
+        _sortClassMembers(unitMember.body.members);
       } else if (unitMember is MixinDeclaration) {
-        _sortClassMembers(unitMember.members2);
+        _sortClassMembers(unitMember.body.members);
       }
     }
   }

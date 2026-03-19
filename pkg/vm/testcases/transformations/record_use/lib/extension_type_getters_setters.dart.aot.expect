@@ -22,23 +22,23 @@ static extension-type-member const method ET|constructor#() → self::ET% /* era
 }
 
 [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
-[@vm.unboxing-info.metadata=()->i]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C2
 static extension-type-member get ET|staticGetter() → core::int
   return 42;
 
-[@vm.unboxing-info.metadata=(i)->b]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C2
 static extension-type-member set ET|staticSetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 123)] core::int value) → void {}
 
 [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
-[@vm.unboxing-info.metadata=(i)->i]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C2
 static extension-type-member method ET|get#instanceGetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::ET% /* erasure=core::int, declared=! */ #this) → core::int
   return _in::unsafeCast<core::int>(#this);
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
-[@vm.unboxing-info.metadata=(i,i)->b]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C2
 static extension-type-member method ET|set#instanceSetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::ET% /* erasure=core::int, declared=! */ #this, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 456)] core::int value) → void {}
 

@@ -839,12 +839,9 @@ package:analyzer/dart/ast/ast.dart:
     statements (getter: NodeList<Statement>)
   BlockClassBody (class extends Object implements ClassBody, sealed (immediate subtypes: BlockClassBodyImpl)):
     leftBracket (getter: Token)
-    members (getter: NodeList<ClassMember>)
     rightBracket (getter: Token)
   BlockEnumBody (class extends Object implements EnumBody, abstract, final):
-    constants (getter: NodeList<EnumConstantDeclaration>)
     leftBracket (getter: Token)
-    members (getter: NodeList<ClassMember>)
     rightBracket (getter: Token)
     semicolon (getter: Token?)
   BlockFunctionBody (class extends Object implements FunctionBody, abstract, final):
@@ -881,7 +878,8 @@ package:analyzer/dart/ast/ast.dart:
   CatchClauseParameter (class extends AstNode, abstract, final):
     declaredFragment (getter: LocalVariableFragment?)
     name (getter: Token)
-  ClassBody (class extends Object implements AstNode, sealed (immediate subtypes: BlockClassBody, ClassBodyImpl, EmptyClassBody))
+  ClassBody (class extends Object implements AstNode, sealed (immediate subtypes: BlockClassBody, ClassBodyImpl, EmptyClassBody)):
+    members (getter: NodeList<ClassMember>)
   ClassDeclaration (class extends Object implements CompilationUnitMember, abstract, final):
     abstractKeyword (getter: Token?)
     augmentKeyword (getter: Token?)
@@ -1058,7 +1056,9 @@ package:analyzer/dart/ast/ast.dart:
     semicolon (getter: Token)
   EmptyStatement (class extends Object implements Statement, abstract, final):
     semicolon (getter: Token)
-  EnumBody (class extends Object implements AstNode, sealed (immediate subtypes: BlockEnumBody, EmptyEnumBody, EnumBodyImpl))
+  EnumBody (class extends Object implements AstNode, sealed (immediate subtypes: BlockEnumBody, EmptyEnumBody, EnumBodyImpl)):
+    constants (getter: NodeList<EnumConstantDeclaration>)
+    members (getter: NodeList<ClassMember>)
   EnumConstantArguments (class extends Object implements AstNode, abstract, final):
     argumentList (getter: ArgumentList)
     constructorSelector (getter: ConstructorSelector?)

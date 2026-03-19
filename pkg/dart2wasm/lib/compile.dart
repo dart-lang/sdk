@@ -215,6 +215,8 @@ Future<CompilationResult> compile(
   final wasm.Mode mode;
   if (options.translatorOptions.jsCompatibility) {
     mode = wasm.Mode.jsCompatibility;
+  } else if (options.translatorOptions.standalone) {
+    mode = wasm.Mode.standalone;
   } else {
     mode = wasm.Mode.regular;
   }

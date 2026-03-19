@@ -465,7 +465,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<SourceChange> createChange() {
+  Future<SourceChange> createChange({ChangeBuilder? builder}) {
     return Future.value(change);
   }
 

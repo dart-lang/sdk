@@ -27,38 +27,33 @@ class DartUnitOutlineComputer {
         unitContents.add(
           _newClassOutline(unitMember, [
             ...?_outlinesForPrimaryConstructor(unitMember.namePart),
-            if (unitMember.body case BlockClassBody body)
-              ..._outlinesForMembers(body.members),
+            ..._outlinesForMembers(unitMember.body.members),
           ]),
         );
       } else if (unitMember is MixinDeclaration) {
         unitContents.add(
           _newMixinOutline(unitMember, [
-            if (unitMember.body case BlockClassBody body)
-              ..._outlinesForMembers(body.members),
+            ..._outlinesForMembers(unitMember.body.members),
           ]),
         );
       } else if (unitMember is EnumDeclaration) {
         unitContents.add(
           _newEnumOutline(unitMember, [
-            if (unitMember.body case BlockEnumBody body) ...[
-              for (var constant in body.constants) _newEnumConstant(constant),
-              ..._outlinesForMembers(body.members),
-            ],
+            for (var constant in unitMember.body.constants)
+              _newEnumConstant(constant),
+            ..._outlinesForMembers(unitMember.body.members),
           ]),
         );
       } else if (unitMember is ExtensionDeclaration) {
         unitContents.add(
           _newExtensionOutline(unitMember, [
-            if (unitMember.body case BlockClassBody body)
-              ..._outlinesForMembers(body.members),
+            ..._outlinesForMembers(unitMember.body.members),
           ]),
         );
       } else if (unitMember is ExtensionTypeDeclaration) {
         unitContents.add(
           _newExtensionTypeOutline(unitMember, [
-            if (unitMember.body case BlockClassBody body)
-              ..._outlinesForMembers(body.members),
+            ..._outlinesForMembers(unitMember.body.members),
           ]),
         );
       } else if (unitMember is TopLevelVariableDeclaration) {

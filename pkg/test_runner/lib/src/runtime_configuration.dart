@@ -383,8 +383,10 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         break;
       case Sanitizer.hwasan:
       case Sanitizer.asan:
-      case Sanitizer.msan:
         multiplier *= 2;
+        break;
+      case Sanitizer.msan:
+        multiplier *= 3;
         break;
       case Sanitizer.tsan:
         multiplier *= 6;

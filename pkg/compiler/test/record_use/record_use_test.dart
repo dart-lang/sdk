@@ -252,6 +252,10 @@ const Set<String> dart2jsNotSupported = {
   // a compile-time error for these literals when targeting the web.
   'large_integers.dart',
 
+  // The JS backend represents doubles that are an int value as that int value
+  // and clamps large double values.
+  'double_constants_js_divergent.dart',
+
   // There is an extra loading unit out_2 which contains the shared stuff
   // between out_1 and out_3. Either of those loads out_2. We need a more robust
   // semanticEquality solution than mapping loading unit names. We might only be

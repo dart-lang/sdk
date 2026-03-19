@@ -402,6 +402,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     super.pluginManager,
     super.messageSchedulerListener,
     PerformanceLogger? performanceLogger,
+    super.environment,
   }) : lspClientConfiguration = lsp.LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),

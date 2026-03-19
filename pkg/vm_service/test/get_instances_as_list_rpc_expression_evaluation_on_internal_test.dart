@@ -23,7 +23,7 @@ final tests = <IsolateTest>[
       // Unexpected character (at offset 329)'
       await service.evaluate(isolateId, result.id!, 'this').catchError((error) {
         if (error.code == 113 &&
-            error.message == 'Expression compilation error' &&
+            error.message.contains('Expression compilation error') &&
             error.details.contains(
               "invalid 'targetId' parameter: Cannot evaluate against a VM-internal object",
             )) {

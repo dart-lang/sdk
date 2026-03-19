@@ -1,4 +1,4 @@
-## 1.18.2-wip
+## 1.18.2
 
 - Change private types in the public API signatures to `Object`.
 - Update documentation to follow the "single line first paragraph" style.

@@ -407,7 +407,9 @@ abstract class BodyBuilderContext {
   /// types, don't have an internal [ThisVariable] because `this` is desugared
   /// as a parameter in that case.
   ThisVariable? createInternalThisVariable() {
-    return thisType != null ? new ThisVariable(type: thisType!) : null;
+    return thisType != null && isDeclarationInstanceContext
+        ? new ThisVariable(type: thisType!)
+        : null;
   }
 }
 

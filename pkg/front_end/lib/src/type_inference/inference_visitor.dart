@@ -5,8 +5,8 @@
 // TODO(jensj): Probably all `_createVariableGet(result)` needs their offset
 // "nulled out".
 
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -53,6 +53,7 @@ import '../kernel/collections.dart'
         PatternForMapEntry,
         SpreadElement,
         SpreadMapEntry;
+import '../kernel/external_ast_helper.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
@@ -63,7 +64,6 @@ import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'context_allocation_strategy.dart';
-import 'external_ast_helper.dart';
 import 'for_in.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
@@ -3828,10 +3828,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionExpression node,
     DartType typeContext,
   ) {
+    ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
       _contextAllocationStrategy.handleVariablesCapturedByNode(
         node.function,
         _capturedVariablesForNode(node),
+      );
+      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
+        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
       );
       _handleDeclarationsOfParameters([
         ...node.function.positionalParameters,
@@ -3855,6 +3859,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     flowAnalysis.functionExpression_end();
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
+    if (scopeProviderInfo != null) {
+      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
+      node.function.scope = scopeProviderInfo.scope;
+    }
     return new ExpressionInferenceResult(inferredType, node);
   }
 
@@ -16745,6 +16753,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       // The shorthand expression is inferred in the empty context and then type
       // inference infers the type arguments.
+      ensureMemberType(member);
       FunctionType functionType = member.function.computeThisFunctionType(
         Nullability.nonNullable,
       );
@@ -16827,6 +16836,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         // The shorthand expression is inferred in the empty context and then
         // type inference infers the type arguments.
+        ensureMemberType(constructor);
         FunctionType functionType = constructor.function
             .computeThisFunctionType(Nullability.nonNullable);
         InvocationInferenceResult result = inferInvocation(
@@ -16872,6 +16882,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         // The shorthand expression is inferred in the empty context and then
         // type inference infers the type arguments.
+        ensureMemberType(constructor);
         FunctionType functionType = constructor.function
             .computeThisFunctionType(Nullability.nonNullable);
         InvocationInferenceResult result = inferInvocation(

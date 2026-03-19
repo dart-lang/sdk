@@ -10,6 +10,7 @@ extension type ET(core::int i) {
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static extension-type-member method ET|staticMethod() → void
   return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::print("hello");
