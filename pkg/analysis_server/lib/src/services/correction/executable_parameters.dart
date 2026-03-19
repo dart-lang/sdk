@@ -53,14 +53,8 @@ class ExecutableParameters {
       return function.parameters;
     } else if (targetDeclaration is MethodDeclaration) {
       return targetDeclaration.parameters;
-    } else if (targetDeclaration
-        case ClassDeclaration(
-              namePart: PrimaryConstructorDeclaration(:var formalParameters),
-            ) ||
-            EnumDeclaration(
-              namePart: PrimaryConstructorDeclaration(:var formalParameters),
-            )) {
-      return formalParameters;
+    } else if (targetDeclaration is PrimaryConstructorDeclaration) {
+      return targetDeclaration.formalParameters;
     }
     return null;
   }

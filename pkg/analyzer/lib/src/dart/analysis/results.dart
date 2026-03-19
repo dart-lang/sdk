@@ -22,14 +22,19 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 ///
 /// - If the fragment is named, the [Fragment.nameOffset] is used.
 /// - If the fragment is a a [ConstructorFragment] for an unnamed constructor,
-/// the [ConstructorFragment.typeNameOffset] is used.
+///   one of [ConstructorFragment.typeNameOffset],
+///   [ConstructorFragment.newKeywordOffset] or
+///   [ConstructorFragment.factoryKeywordOffset] is used.
 /// - If the fragment is an unnamed [ExtensionFragment], the
 /// [ExtensionFragment.offset] is used.
 int? _getFragmentNameOffset(Fragment fragment) {
   var nameOffset = fragment.nameOffset;
   if (nameOffset == null) {
     if (fragment is ConstructorFragment) {
-      nameOffset = fragment.typeNameOffset ?? fragment.offset;
+      nameOffset =
+          fragment.typeNameOffset ??
+          fragment.newKeywordOffset ??
+          fragment.factoryKeywordOffset;
     } else if (fragment is ExtensionFragment) {
       nameOffset = fragment.offset;
     }
@@ -45,6 +50,9 @@ abstract class AnalysisResultImpl implements AnalysisResult {
 }
 
 /// A visitor which locates the [AstNode] which declares an [Element].
+///
+/// The returned node may be something like a [PrimaryConstructorDeclaration]
+/// which declares a primary constructor but not a subclass of [Declaration].
 class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
   // TODO(srawlins): This visitor could be further optimized by special casing each static
   // type of [element]. For example, for library-level elements (classes etc),
@@ -66,109 +74,93 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
 
     if (fragment is InterfaceFragment) {
       if (node is ClassDeclaration) {
-        if (_hasOffset2(node.namePart.typeName)) {
+        if (_hasOffset(node.namePart.typeName)) {
           result = node;
         }
       } else if (node is ClassTypeAlias) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset(node.name)) {
           result = node;
         }
       } else if (node is EnumDeclaration) {
-        if (_hasOffset2(node.namePart.typeName)) {
+        if (_hasOffset(node.namePart.typeName)) {
           result = node;
         }
       } else if (node is MixinDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset(node.name)) {
           result = node;
         }
       } else if (node is ExtensionTypeDeclaration) {
-        if (_hasOffset2(node.primaryConstructor.typeName)) {
+        if (_hasOffset(node.primaryConstructor.typeName)) {
           result = node;
         }
       }
     } else if (fragment is ConstructorFragment) {
-      if (node is ConstructorDeclaration) {
-        if (node.name != null) {
-          if (_hasOffset2(node.name)) {
-            result = node;
-          }
-        } else if (node.typeName case var typeName?) {
-          if (_hasOffset(typeName)) {
-            result = node;
-          }
-        } else {
-          if (_hasOffset(node)) {
-            result = node;
-          }
-        }
-      } else if ((fragment.element as ConstructorElementImpl).isPrimary) {
-        if (node
-            case ClassDeclaration(:var namePart) ||
-                EnumDeclaration(:var namePart)) {
-          if (_hasOffset2(namePart.typeName)) {
-            result = node;
-          } else if (namePart case PrimaryConstructorDeclaration(
-            :var constructorName?,
-          )) {
-            if (_hasOffset2(constructorName.name)) {
-              result = node;
-            }
-          }
-        }
+      var token = switch (node) {
+        ConstructorDeclaration() =>
+          node.name ??
+              node.typeName?.token ??
+              node.newKeyword ??
+              node.factoryKeyword,
+        PrimaryConstructorDeclaration() =>
+          node.constructorName?.name ?? node.typeName,
+        _ => null,
+      };
+      if (_hasOffset(token)) {
+        result = node;
       }
     } else if (fragment is ExtensionFragment) {
       if (node is ExtensionDeclaration) {
-        if (_hasOffset2(node.name ?? node.extensionKeyword)) {
+        if (_hasOffset(node.name ?? node.extensionKeyword)) {
           result = node;
         }
       }
     } else if (fragment is FieldFragment) {
       if (node is EnumConstantDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset(node.name)) {
           result = node;
         }
       } else if (node is VariableDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset(node.name)) {
           result = node;
         }
       }
     } else if (fragment is TopLevelFunctionFragment) {
-      if (node is FunctionDeclaration && _hasOffset2(node.name)) {
+      if (node is FunctionDeclaration && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is LocalFunctionFragment) {
-      if (node is FunctionDeclaration && _hasOffset2(node.name)) {
+      if (node is FunctionDeclaration && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is LocalVariableFragment) {
-      if (node is VariableDeclaration && _hasOffset2(node.name)) {
+      if (node is VariableDeclaration && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is MethodFragment) {
-      if (node is MethodDeclaration && _hasOffset2(node.name)) {
+      if (node is MethodDeclaration && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is FormalParameterFragment) {
-      if (node is FormalParameter && _hasOffset2(node.name)) {
+      if (node is FormalParameter && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is PropertyAccessorFragment) {
       if (node is FunctionDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset(node.name)) {
           result = node;
         }
       } else if (node is MethodDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset(node.name)) {
           result = node;
         }
       }
     } else if (fragment is TopLevelVariableFragment) {
-      if (node is VariableDeclaration && _hasOffset2(node.name)) {
+      if (node is VariableDeclaration && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is TypeAliasFragment) {
       if (node is GenericTypeAlias) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset(node.name)) {
           result = node;
         }
       }
@@ -179,11 +171,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
     }
   }
 
-  bool _hasOffset(AstNode? node) {
-    return node?.offset == _nameOffset;
-  }
-
-  bool _hasOffset2(Token? token) {
+  bool _hasOffset(Token? token) {
     return token?.offset == _nameOffset;
   }
 }

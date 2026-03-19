@@ -395,10 +395,11 @@ class B() {}
     var declaration = parsedLibrary.getFragmentDeclaration(
       element.firstFragment,
     )!;
-    var node = declaration.node as ClassDeclaration;
-    expect(node.namePart.typeName.lexeme, 'B');
-    expect(node.offset, 11);
-    expect(node.length, 12);
+    var node = declaration.node as PrimaryConstructorDeclaration;
+    expect(node.constructorName, isNull);
+    expect(node.typeName.lexeme, 'B');
+    expect(node.offset, 17);
+    expect(node.length, 3);
   }
 
   test_getParsedLibrary_getElementDeclaration_constructor_secondary() async {
