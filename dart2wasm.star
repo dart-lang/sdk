@@ -35,40 +35,45 @@ dart.poller(
 
 _dart2wasm_builder(
     "dart2wasm-linux-d8",
-    category = "d2w|d",
+    category = "dart2wasm|cmd|d",
 )
 
 _dart2wasm_builder(
     "dart2wasm-asserts-minified-linux-d8",
-    category = "d2w|d|m",
+    category = "dart2wasm|cmd|dm",
 )
 
 _dart2wasm_builder(
     "dart2wasm-linux-optimized-jsc",
-    category = "d2w|j",
+    category = "dart2wasm|cmd|j",
     properties = [js_engines],
 )
 
 _dart2wasm_builder(
     "dart2wasm-asserts-linux-chrome",
-    category = "d2w|ca",
+    category = "dart2wasm|browser|ca",
     properties = [chrome],
 )
 
 _dart2wasm_builder(
     "dart2wasm-linux-chrome",
-    category = "d2w|c",
+    category = "dart2wasm|browser|c",
     properties = [chrome],
 )
 
 _dart2wasm_builder(
     "dart2wasm-linux-jscm-chrome",
-    category = "d2w|cm",
+    category = "dart2wasm|browser|cm",
     properties = [chrome],
 )
 
 _dart2wasm_builder(
     "dart2wasm-linux-firefox",
-    category = "d2w|f",
+    category = "dart2wasm|browser|f",
     properties = [firefox],
+)
+_dart2wasm_builder(
+    "dart2wasm-linux-standalone-chrome",
+    category = "dart2wasm|sc",
+    properties = [chrome],
 )
