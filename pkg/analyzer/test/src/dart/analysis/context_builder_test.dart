@@ -193,9 +193,10 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   /// Return a single expected analysis context at the [path].
   DriverBasedAnalysisContext _createSingleAnalysisContext(String path) {
-    var roots = ContextLocatorImpl(
+    var roots = locateContextRoots(
+      includedPaths: [path],
       resourceProvider: resourceProvider,
-    ).locateRoots(includedPaths: [path]);
+    );
 
     return ContextBuilderImpl(resourceProvider: resourceProvider).createContext(
       contextRoot: roots.single,

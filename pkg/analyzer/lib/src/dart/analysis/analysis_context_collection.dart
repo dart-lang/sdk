@@ -90,12 +90,10 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);
 
-    var contextLocator = ContextLocatorImpl(
-      resourceProvider: this.resourceProvider,
-    );
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: includedPaths,
-      excludedPaths: excludedPaths,
+      resourceProvider: this.resourceProvider,
+      excludedPaths: excludedPaths = const [],
       optionsFile: optionsFile,
       packageConfigFile: packageConfigFile,
     );

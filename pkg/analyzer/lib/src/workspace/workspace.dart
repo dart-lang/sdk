@@ -19,6 +19,9 @@ import 'package:pub_semver/pub_semver.dart';
 /// Abstract superclass of classes that provide information about the workspace
 /// in which analysis is being performed.
 abstract class Workspace {
+  /// A single source factory  which has no SDK or summary data.
+  late final partialSourceFactory = createSourceFactory(null, null);
+
   /// Return true iff this [Workspace] is a [BlazeWorkspace].
   bool get isBlaze => false;
 

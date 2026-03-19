@@ -1064,8 +1064,10 @@ class LspAnalysisServer extends AnalysisServer {
   /// This is used when there are no workspace folders open directly.
   Set<String> _getRootsForOpenFiles() {
     var openFiles = priorityFiles.toList();
-    var contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
-    var roots = contextLocator.locateRoots(includedPaths: openFiles);
+    var roots = locateContextRoots(
+      includedPaths: openFiles,
+      resourceProvider: resourceProvider,
+    );
 
     var results = <String>{};
     for (var file in openFiles) {
