@@ -256,10 +256,25 @@ void syncTests() {
       yield 1;
     }
   ''');
-  Expect.equals(2.toJS, getGenerator().returnValue(2.toJS));
-  Expect.isTrue(getGenerator().returnValue().isUndefined);
-  Expect.isTrue(getGenerator().returnValue(null).isUndefined);
-  Expect.throws<JSString>(() => getGenerator().throwError("oh no".toJS));
+  Expect.equals(2.toJS, getGenerator().returnValue!(2.toJS));
+  final returnNoArg = getGenerator().returnValue!();
+  Expect.isTrue(returnNoArg.isUndefined);
+  Expect.isTrue(isJSBackend ? returnNoArg.isUndefined : returnNoArg.isUndefinedOrNull);
+  Expect.throws<JSString>(() => getGenerator().throwError!("oh no".toJS));
+
+  // Nullish errors should be caught and converted to Dart wrappers.
+  try {
+    getGenerator().throwError!(null);
+    Expect.fail('Expected error to be thrown');
+  } catch (error) {
+    Expect.isTrue(!error.isA<JSAny?>());
+  }
+  try {
+    getGenerator().throwError!();
+    Expect.fail('Expected error to be thrown');
+  } catch (error) {
+    Expect.isTrue(!error.isA<JSAny?>());
+  }
 
   // [JSIterable] <-> [Iterable]
   final listFromIter = [...iterable.toDartIterable];
