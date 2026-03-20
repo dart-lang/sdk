@@ -4134,7 +4134,7 @@ class AstBuilder extends StackListener {
       constant = EnumConstantDeclarationImpl(
         comment: constant.documentationComment,
         metadata: constant.metadata,
-        augmentKeyword: augmentToken,
+        augmentKeyword: null,
         name: constant.name,
         arguments: EnumConstantArgumentsImpl(
           typeArguments: typeArguments,
@@ -4488,18 +4488,11 @@ class AstBuilder extends StackListener {
       var metadata = pop() as List<AnnotationImpl>?;
       var comment = _findComment(metadata, token);
 
-      Token? augmentKeyword;
-      if (token.previous case var previous?) {
-        if (optional('augment', previous)) {
-          augmentKeyword = previous;
-        }
-      }
-
       push(
         EnumConstantDeclarationImpl(
           comment: comment,
           metadata: metadata,
-          augmentKeyword: augmentKeyword,
+          augmentKeyword: null,
           name: token,
           arguments: null,
         ),

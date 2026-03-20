@@ -45,7 +45,7 @@ augment enum E {
   augment v
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([error(diag.extraneousModifier, 19, 7)]);
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -58,7 +58,6 @@ EnumDeclaration
     leftBracket: {
     constants
       EnumConstantDeclaration
-        augmentKeyword: augment
         name: v
     rightBracket: }
 ''');
@@ -70,7 +69,7 @@ augment enum E {
   augment v.foo()
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([error(diag.extraneousModifier, 19, 7)]);
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -83,7 +82,6 @@ EnumDeclaration
     leftBracket: {
     constants
       EnumConstantDeclaration
-        augmentKeyword: augment
         name: v
         arguments: EnumConstantArguments
           constructorSelector: ConstructorSelector
@@ -93,6 +91,29 @@ EnumDeclaration
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
+    rightBracket: }
+''');
+  }
+
+  test_constant_named_augment() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  augment
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: augment
     rightBracket: }
 ''');
   }

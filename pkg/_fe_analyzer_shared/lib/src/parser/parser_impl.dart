@@ -2878,10 +2878,14 @@ class Parser {
     Token beginToken = token;
     token = parseMetadataStar(token);
 
-    Token? augmentToken;
-    if (token.next!.isA(Keyword.AUGMENT)) {
-      augmentToken = token.next!;
+    // Enum values can no longer be augmented. Preserve `augment` as a valid
+    // built-in identifier when it's the actual value name, but recover from the
+    // removed `augment foo` syntax by treating the leading `augment` as an
+    // extraneous modifier and continuing with `foo`.
+    while (token.next!.isA(Keyword.AUGMENT) &&
+        token.next!.next!.isKeywordOrIdentifier) {
       token = token.next!;
+      reportRecoverableErrorWithToken(token, diag.extraneousModifier);
     }
 
     token = ensureIdentifier(token, IdentifierContext.enumValueDeclaration);
@@ -2923,7 +2927,7 @@ class Parser {
     } else {
       listener.handleNoArguments(token);
     }
-    listener.handleEnumElement(beginToken, augmentToken);
+    listener.handleEnumElement(beginToken, null);
     return token;
   }
 
