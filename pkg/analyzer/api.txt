@@ -1065,7 +1065,7 @@ package:analyzer/dart/ast/ast.dart:
     typeArguments (getter: TypeArgumentList?)
   EnumConstantDeclaration (class extends Object implements Declaration, abstract, final):
     arguments (getter: EnumConstantArguments?)
-    augmentKeyword (getter: Token?)
+    augmentKeyword (getter: Token?, deprecated)
     constructorElement (getter: ConstructorElement?)
     declaredFragment (getter: FieldFragment?)
     name (getter: Token)

@@ -1179,7 +1179,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         var field = FieldFragmentImpl(name: _getFragmentName(nameToken))
           ..hasImplicitType = true
           ..hasInitializer = true
-          ..isAugmentation = constant.augmentKeyword != null
+          ..isAugmentation = false
           ..isConst = true
           ..isEnumConstant = true
           ..isOriginDeclaration = true

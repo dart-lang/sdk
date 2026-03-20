@@ -9028,7 +9028,14 @@ abstract final class EnumConstantDeclaration implements Declaration {
   /// doesn't provide any explicit arguments.
   EnumConstantArguments? get arguments;
 
-  /// The `augment` keyword, or `null` if the keyword was absent.
+  /// The `augment` keyword.
+  ///
+  /// Enum values can no longer be augmented, so this getter always returns
+  /// `null`.
+  @Deprecated(
+    'Enum values can no longer be augmented, so this getter is always null '
+    'and will be removed in a future analyzer major version.',
+  )
   Token? get augmentKeyword;
 
   /// The constructor that's invoked by this enum constant.
@@ -9053,6 +9060,10 @@ abstract final class EnumConstantDeclaration implements Declaration {
 )
 final class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
+  @Deprecated(
+    'Enum values can no longer be augmented, so this getter is always null '
+    'and will be removed in a future analyzer major version.',
+  )
   @generated
   @override
   final Token? augmentKeyword;
