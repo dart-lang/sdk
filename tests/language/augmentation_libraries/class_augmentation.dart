@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library augment 'class_augmentation_test.dart';
+augment library 'class_augmentation_test.dart';
 
 String get foo => 'a';
 
@@ -16,7 +16,7 @@ augment class A extends B implements I {
 
   String str = 'hello';
   augment String get str => '$augmented world';
-  augment set str(String value) => augmented = '2$value'
+  augment set str(String value) => augmented = '2$value';
 
   augment int needsInitialization = 1;
 
