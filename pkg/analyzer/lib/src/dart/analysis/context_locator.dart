@@ -242,7 +242,9 @@ class _ContextLocator {
     required _RootLocation location,
   }) {
     if (location.workspace is WorkspaceWithDefaultAnalysisOptions) {
-      optionsFile ??= _findDefaultOptionsFile(location.sourceFactory);
+      optionsFile ??= _findDefaultOptionsFile(
+        location.workspace.partialSourceFactory,
+      );
     }
 
     var root = ContextRootImpl(
@@ -257,7 +259,7 @@ class _ContextLocator {
     }
 
     root.excludedGlobs.addAll(
-      _getExcludedGlobs(optionsFile, location.sourceFactory),
+      _getExcludedGlobs(optionsFile, location.workspace.partialSourceFactory),
     );
     roots.add(root);
     return root;
@@ -917,9 +919,6 @@ class _RootLocation {
   final Workspace workspace;
   final File? optionsFile;
   final File? packageConfigFile;
-
-  /// A single source factory for [workspace].
-  late final sourceFactory = workspace.createSourceFactory(null, null);
 
   _RootLocation({
     required this.rootFolder,
