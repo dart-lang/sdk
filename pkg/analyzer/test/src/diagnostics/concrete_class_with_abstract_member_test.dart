@@ -53,18 +53,18 @@ class A {
 
   test_augment_emptyBody() async {
     newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+part of 'test.dart';
 
-class C {
-  void foo() {}
+augment class C {
+  augment void foo();
 }
 ''');
 
     await assertNoErrorsInCode(r'''
-part of 'a.dart';
+part 'a.dart';
 
-augment class C {
-  augment void foo();
+class C {
+  void foo() {}
 }
 ''');
   }
