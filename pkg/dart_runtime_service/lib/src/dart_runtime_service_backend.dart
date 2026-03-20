@@ -2,15 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:meta/meta.dart';
+import 'package:shelf/shelf.dart';
 
 import 'dart_runtime_service.dart';
 import 'dart_runtime_service_rpcs.dart';
 import 'event_streams.dart';
 import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
+
+typedef OptionalHandler = FutureOr<Response?> Function(Request);
 
 /// A backend implementation of a service used to inject non-common
 /// functionality into a [DartRuntimeService].
@@ -84,4 +88,13 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   /// any registered RPCs or service extensions provided by other clients.
   UnmodifiableListView<RpcHandlerWithParameters> get fallbacks =>
       UnmodifiableListView(const []);
+
+  /// A custom handler for handling HTTP requests.
+  ///
+  /// This handler is invoked before attempting to execute the HTTP request as
+  /// an RPC invocation or performing a redirection to a developer tool (e.g.,
+  /// DevTools). Returning null from the handler indicates that the request was
+  /// not handled by the custom handler.
+  OptionalHandler get httpHandler =>
+      (_) => null;
 }
