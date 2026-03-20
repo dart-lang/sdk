@@ -206,7 +206,7 @@ class BuilderFactory {
       case ClassFragment():
         _createClassBuilder(fragment, augmentations);
       case MixinFragment():
-        _createMixinBuilder(fragment);
+        _createMixinBuilder(fragment, augmentations);
       case NamedMixinApplicationFragment():
         _createNamedMixinApplicationBuilder(fragment);
       case EnumFragment():
@@ -1057,7 +1057,10 @@ class BuilderFactory {
     );
   }
 
-  void _createMixinBuilder(MixinFragment fragment) {
+  void _createMixinBuilder(
+    MixinFragment fragment,
+    List<Fragment>? augmentations,
+  ) {
     IndexedClass? indexedClass = _indexedLibrary?.lookupIndexedClass(
       fragment.name,
     );
@@ -1072,20 +1075,87 @@ class BuilderFactory {
       ownerName: fragment.name,
       allowNameConflict: false,
     );
+    DeclarationNameSpaceBuilder nameSpaceBuilder = fragment
+        .toDeclarationNameSpaceBuilder();
+    List<ClassDeclaration> augmentationDeclarations = [];
+    if (augmentations != null) {
+      int introductoryTypeParameterCount = fragment.typeParameters?.length ?? 0;
+      for (Fragment augmentation in augmentations) {
+        augmentation as MixinFragment;
+
+        augmentationDeclarations.add(new MixinDeclaration(augmentation));
+        nameSpaceBuilder.includeBuilders(
+          augmentation.toDeclarationNameSpaceBuilder(),
+        );
+
+        int augmentationTypeParameterCount =
+            augmentation.typeParameters?.length ?? 0;
+        if (introductoryTypeParameterCount != augmentationTypeParameterCount) {
+          _problemReporting.addProblem(
+            diag.patchClassTypeParametersMismatch,
+            augmentation.nameOffset,
+            fragment.name.length,
+            augmentation.fileUri,
+            context: [
+              diag.patchClassOrigin.withLocation(
+                fragment.fileUri,
+                fragment.nameOffset,
+                fragment.name.length,
+              ),
+            ],
+          );
+
+          augmentation.nominalParameterNameSpace.addTypeParameters(
+            _problemReporting,
+            _typeParameterFactory.createNominalParameterBuilders(
+              augmentation.typeParameters,
+            ),
+            ownerName: augmentation.name,
+            allowNameConflict: false,
+          );
+        } else if (augmentation.typeParameters != null) {
+          for (int index = 0; index < introductoryTypeParameterCount; index++) {
+            SourceNominalParameterBuilder nominalParameterBuilder =
+                typeParameters![index];
+            TypeParameterFragment typeParameterFragment =
+                augmentation.typeParameters![index];
+            nominalParameterBuilder.addAugmentingDeclaration(
+              new RegularNominalParameterDeclaration(typeParameterFragment),
+            );
+            typeParameterFragment.builder = nominalParameterBuilder;
+          }
+          augmentation.nominalParameterNameSpace.addTypeParameters(
+            _problemReporting,
+            typeParameters,
+            ownerName: augmentation.name,
+            allowNameConflict: false,
+          );
+        }
+      }
+    }
     SourceClassBuilder mixinBuilder = new SourceClassBuilder(
       modifiers: fragment.modifiers,
       name: fragment.name,
       typeParameters: typeParameters,
       typeParameterScope: fragment.typeParameterScope,
-      nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
+      nameSpaceBuilder: nameSpaceBuilder,
       libraryBuilder: _enclosingLibraryBuilder,
       fileUri: fragment.fileUri,
       nameOffset: fragment.nameOffset,
       indexedClass: indexedClass,
       introductory: new MixinDeclaration(fragment),
+      augmentations: augmentationDeclarations,
     );
     fragment.builder = mixinBuilder;
     fragment.bodyScope.declarationBuilder = mixinBuilder;
+    if (augmentations != null) {
+      for (Fragment augmentation in augmentations) {
+        augmentation as MixinFragment;
+        augmentation.builder = mixinBuilder;
+        augmentation.bodyScope.declarationBuilder = mixinBuilder;
+      }
+      augmentations.clear();
+    }
     if (indexedClass != null) {
       _loader.referenceMap.registerNamedBuilder(
         indexedClass.reference,
