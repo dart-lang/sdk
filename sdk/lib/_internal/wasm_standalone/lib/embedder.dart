@@ -10,7 +10,7 @@
 /// run without `js_interop`. This will enable embedders without JavaScript
 /// support to run `dart2wasm` apps by either:
 ///
-///  - providing `dartrt` imports when instantiating the module.
+///  - providing `dart:` imports when instantiating the module.
 ///  - using an external tool like `wasm-merge` to link another module that
 ///    could provide implementations by e.g. delegating to WASI definitions.
 library;

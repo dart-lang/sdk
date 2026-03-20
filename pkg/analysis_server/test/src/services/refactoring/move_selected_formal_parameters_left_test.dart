@@ -125,6 +125,44 @@ void f() {
 ''');
   }
 
+  Future<void> test_primaryConstructor() async {
+    addTestSource(r'''
+class A(int a, int b, [!int c, int d,!] int e) {}
+
+void f() {
+  A(0, 1, 2, 3, 4);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A(int a, int c, int d, int b, int e) {}
+
+void f() {
+  A(0, 2, 3, 1, 4);
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_named() async {
+    addTestSource(r'''
+class A.named(int a, int b, [!int c, int d,!] int e) {}
+
+void f() {
+  A.named(0, 1, 2, 3, 4);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A.named(int a, int c, int d, int b, int e) {}
+
+void f() {
+  A.named(0, 2, 3, 1, 4);
+}
+''');
+  }
+
   Future<void> test_single_optionalNamed_middle() async {
     addTestSource(r'''
 void test({
