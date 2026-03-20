@@ -820,8 +820,10 @@ analyzer:
     await initialAnalysis;
     expect(diagnostics[mainFileUri], isNull);
 
-    await updateConfig({'showTodos': true});
-    await waitForAnalysisComplete();
+    await Future.wait([
+      updateConfig({'showTodos': true}),
+      waitForAnalysisComplete(),
+    ]);
     expect(diagnostics[mainFileUri], hasLength(1));
   }
 
