@@ -220,18 +220,17 @@ CompilationUnit
                             rightBracket: >
                           parameters: FormalParameterList
                             leftParenthesis: (
-                            parameter: SimpleFormalParameter
+                            parameter: RegularFormalParameter
                               type: NamedType
                                 name: int
-                            parameter: SimpleFormalParameter
+                            parameter: RegularFormalParameter
                               type: NamedType
                                 name: String
                             leftDelimiter: {
-                            parameter: DefaultFormalParameter
-                              parameter: SimpleFormalParameter
-                                type: NamedType
-                                  name: Bar
-                                name: b
+                            parameter: RegularFormalParameter
+                              type: NamedType
+                                name: Bar
+                              name: b
                             rightDelimiter: }
                             rightParenthesis: )
                         GenericFunctionType
@@ -246,20 +245,18 @@ CompilationUnit
                             rightBracket: >
                           parameters: FormalParameterList
                             leftParenthesis: (
-                            parameter: SimpleFormalParameter
+                            parameter: RegularFormalParameter
                               type: NamedType
                                 name: int
                               name: i
                             leftDelimiter: [
-                            parameter: DefaultFormalParameter
-                              parameter: SimpleFormalParameter
-                                type: NamedType
-                                  name: String
-                                name: j
-                            parameter: DefaultFormalParameter
-                              parameter: SimpleFormalParameter
-                                type: NamedType
-                                  name: K
+                            parameter: RegularFormalParameter
+                              type: NamedType
+                                name: String
+                              name: j
+                            parameter: RegularFormalParameter
+                              type: NamedType
+                                name: K
                             rightDelimiter: ]
                             rightParenthesis: )
                         NamedType
@@ -836,7 +833,7 @@ Block
               rightBracket: >
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: T
               rightParenthesis: )
@@ -881,7 +878,7 @@ Block
               rightBracket: >
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: T
               rightParenthesis: )
@@ -1953,7 +1950,7 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 name: int
               name: p
@@ -1997,7 +1994,7 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 name: E
               name: p
@@ -2039,7 +2036,7 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 name: E
               name: p
@@ -2549,13 +2546,14 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: FunctionTypedFormalParameter
-              returnType: NamedType
+            parameter: RegularFormalParameter
+              type: NamedType
                 name: void
               name: g
-              parameters: FormalParameterList
-                leftParenthesis: (
-                rightParenthesis: )
+              functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
             rightParenthesis: )
           body: BlockFunctionBody
             block: Block
@@ -2643,7 +2641,7 @@ Block
         function: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               name: a
             rightParenthesis: )
           body: BlockFunctionBody
@@ -2691,7 +2689,7 @@ Block
           functionKeyword: Function
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 name: int
             rightParenthesis: )
@@ -2699,7 +2697,7 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 name: String
               name: s
@@ -2856,7 +2854,7 @@ Block
           functionKeyword: Function
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 name: int
             rightParenthesis: )
@@ -2890,16 +2888,15 @@ Block
             functionKeyword: Function
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: int
                 name: x1
               leftDelimiter: {
-              parameter: DefaultFormalParameter
-                parameter: SimpleFormalParameter
-                  type: NamedType
-                    name: Function
-                  name: x
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: Function
+                name: x
               rightDelimiter: }
               rightParenthesis: )
           functionKeyword: Function
@@ -2917,7 +2914,7 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 name: int
               name: x
@@ -2950,14 +2947,14 @@ Block
             functionKeyword: Function
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: int
               rightParenthesis: )
           functionKeyword: Function
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 name: int
             rightParenthesis: )
@@ -2991,14 +2988,14 @@ Block
             functionKeyword: Function
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: int
               rightParenthesis: )
           functionKeyword: Function
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 name: int
             rightParenthesis: )
@@ -3029,7 +3026,7 @@ Block
           functionKeyword: Function
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 name: int
             rightParenthesis: )
@@ -3191,7 +3188,7 @@ Block
                 functionKeyword: Function
                 parameters: FormalParameterList
                   leftParenthesis: (
-                  parameter: SimpleFormalParameter
+                  parameter: RegularFormalParameter
                     type: NamedType
                       name: String
                     name: s
@@ -3261,7 +3258,7 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               type: NamedType
                 importPrefix: ImportPrefixReference
                   name: core
@@ -3336,9 +3333,9 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               name: a
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               name: b
             rightParenthesis: )
           body: BlockFunctionBody
@@ -3369,9 +3366,9 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               name: a
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               name: b
             rightParenthesis: )
           body: BlockFunctionBody
@@ -3408,9 +3405,9 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               name: a
-            parameter: SimpleFormalParameter
+            parameter: RegularFormalParameter
               name: b
             rightParenthesis: )
           body: BlockFunctionBody

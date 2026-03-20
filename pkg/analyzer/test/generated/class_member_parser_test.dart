@@ -505,7 +505,7 @@ ConstructorDeclaration
     token: Foo
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: dynamic
       name: a
@@ -557,11 +557,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
@@ -614,11 +614,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
@@ -673,11 +673,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
@@ -732,11 +732,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
@@ -789,11 +789,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
@@ -846,11 +846,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
@@ -905,11 +905,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
@@ -964,11 +964,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
@@ -1041,9 +1041,9 @@ ConstructorDeclaration
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: _
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: _$
     parameter: FieldFormalParameter
       thisKeyword: this
@@ -1162,14 +1162,14 @@ FieldDeclaration
         functionKeyword: Function
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: int
           rightParenthesis: )
       functionKeyword: Function
       parameters: FormalParameterList
         leftParenthesis: (
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: String
         rightParenthesis: )
@@ -1195,10 +1195,10 @@ FieldDeclaration
       functionKeyword: Function
       parameters: FormalParameterList
         leftParenthesis: (
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: int
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: String
         rightParenthesis: )
@@ -1437,7 +1437,7 @@ MethodDeclaration
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
       rightParenthesis: )
@@ -1507,7 +1507,7 @@ MethodDeclaration
   name: m
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: int
       name: a
@@ -1563,7 +1563,7 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: T
       name: p
@@ -1847,7 +1847,7 @@ MethodDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           importPrefix: ImportPrefixReference
             name: core
@@ -1898,7 +1898,7 @@ MethodDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           importPrefix: ImportPrefixReference
             name: core
@@ -2010,7 +2010,7 @@ MethodDeclaration
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: String
       rightParenthesis: )
@@ -2089,7 +2089,7 @@ MethodDeclaration
   name: C
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: _
     rightParenthesis: )
   body: BlockFunctionBody
@@ -2227,11 +2227,11 @@ MethodDeclaration
   name: f
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: int
       name: x
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: int
       name: y
@@ -2264,7 +2264,7 @@ MethodDeclaration
   name: +
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: GenericFunctionType
         returnType: NamedType
           name: int
@@ -2306,7 +2306,7 @@ CompilationUnit
             name: >>>
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: other
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -2342,7 +2342,7 @@ CompilationUnit
             name: foo
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: int
                 name: value
@@ -2380,7 +2380,7 @@ MethodDeclaration
   name: []
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: int
       name: i
@@ -2408,7 +2408,7 @@ MethodDeclaration
   name: []=
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: int
       name: i
@@ -2436,7 +2436,7 @@ MethodDeclaration
   name: <
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: other
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -2544,9 +2544,9 @@ ConstructorDeclaration
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: x
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: y
     rightParenthesis: )
   separator: :
@@ -2643,9 +2643,9 @@ ConstructorDeclaration
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: x
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: y
     rightParenthesis: )
   separator: :
@@ -3522,7 +3522,7 @@ MethodDeclaration
   name: +
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: A
       name: a
@@ -3552,8 +3552,8 @@ MethodDeclaration
   name: a
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: var
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
       name: x
     rightParenthesis: )
   body: EmptyFunctionBody
@@ -3582,8 +3582,8 @@ MethodDeclaration
   name: a
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: var
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
       name: x
     rightParenthesis: )
   body: BlockFunctionBody
@@ -3611,7 +3611,7 @@ MethodDeclaration
   name: f
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       documentationComment: Comment
         tokens
           /// Doc

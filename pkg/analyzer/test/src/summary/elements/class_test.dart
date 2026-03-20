@@ -8408,7 +8408,7 @@ library
                             functionKeyword: Function @62
                             parameters: FormalParameterList
                               leftParenthesis: ( @70
-                              parameter: SimpleFormalParameter
+                              parameter: RegularFormalParameter
                                 type: NamedType
                                   name: double @71
                                   element: dart:core::@class::double

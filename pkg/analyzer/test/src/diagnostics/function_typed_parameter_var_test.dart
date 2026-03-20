@@ -27,19 +27,20 @@ class A {
     var node = parseResult.findNode.superFormalParameter('super.a');
     assertParsedNodeText(node, r'''
 SuperFormalParameter
-  keyword: var
+  constFinalOrVarKeyword: var
   superKeyword: super
   period: .
   name: a
-  typeParameters: TypeParameterList
-    leftBracket: <
-    typeParameters
-      TypeParameter
-        name: T
-    rightBracket: >
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+      rightBracket: >
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
 ''');
   }
 }

@@ -193,7 +193,7 @@ ExtensionDeclaration
         name: s
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: int
               element: dart:core::@class::int

@@ -1333,7 +1333,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: <empty> <synthetic>
           rightParenthesis: )
         body: BlockFunctionBody
@@ -1640,9 +1640,9 @@ CompilationUnit
                       FunctionExpression
                         parameters: FormalParameterList
                           leftParenthesis: (
-                          parameter: SimpleFormalParameter
+                          parameter: RegularFormalParameter
                             name: name
-                          parameter: SimpleFormalParameter
+                          parameter: RegularFormalParameter
                             name: value
                           rightParenthesis: )
                         body: BlockFunctionBody
@@ -2471,7 +2471,7 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: BlockFunctionBody
@@ -3237,21 +3237,21 @@ CompilationUnit
             name: b
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: DefaultFormalParameter
-                parameter: SimpleFormalParameter
-                  name: c
-                separator: :
-                defaultValue: IntegerLiteral
-                  literal: 0
-              parameter: DefaultFormalParameter
-                parameter: SimpleFormalParameter
-                  type: NamedType
-                    name: Foo
-                  name: d
-                separator: :
-                defaultValue: IntegerLiteral
-                  literal: 0
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
+                name: c
+                defaultClause: FormalParameterDefaultClause
+                  separator: :
+                  value: IntegerLiteral
+                    literal: 0
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: Foo
+                name: d
+                defaultClause: FormalParameterDefaultClause
+                  separator: :
+                  value: IntegerLiteral
+                    literal: 0
+              parameter: RegularFormalParameter
                 name: e
               rightParenthesis: )
             body: BlockFunctionBody

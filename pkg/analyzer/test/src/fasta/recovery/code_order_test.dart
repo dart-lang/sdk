@@ -783,9 +783,8 @@ CompilationUnit
             parameters: FormalParameterList
               leftParenthesis: (
               leftDelimiter: [
-              parameter: DefaultFormalParameter
-                parameter: SimpleFormalParameter
-                  name: x
+              parameter: RegularFormalParameter
+                name: x
               rightDelimiter: ]
               rightParenthesis: )
             body: EmptyFunctionBody

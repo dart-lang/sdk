@@ -403,7 +403,7 @@ library
                     functionKeyword: Function @36
                     parameters: FormalParameterList
                       leftParenthesis: ( @44
-                      parameter: SimpleFormalParameter
+                      parameter: RegularFormalParameter
                         type: NamedType
                           name: String @45
                           element: dart:core::@class::String
@@ -471,7 +471,7 @@ library
                 functionKeyword: Function @36
                 parameters: FormalParameterList
                   leftParenthesis: ( @44
-                  parameter: SimpleFormalParameter
+                  parameter: RegularFormalParameter
                     type: NamedType
                       name: String @45
                       element: dart:core::@class::String
@@ -564,17 +564,13 @@ library
                         parameters: FormalParameterList
                           leftParenthesis: ( @56
                           leftDelimiter: { @57
-                          parameter: DefaultFormalParameter
-                            parameter: SimpleFormalParameter
-                              type: NamedType
-                                name: int @58
-                                question: ? @61
-                                element: dart:core::@class::int
-                                type: int?
-                              name: a @63
-                              declaredFragment: <testLibraryFragment> a@63
-                                element: isPublic
-                                  type: int?
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: int @58
+                              question: ? @61
+                              element: dart:core::@class::int
+                              type: int?
+                            name: a @63
                             declaredFragment: <testLibraryFragment> a@63
                               element: isPublic
                                 type: int?
@@ -676,17 +672,13 @@ library
                         parameters: FormalParameterList
                           leftParenthesis: ( @56
                           leftDelimiter: [ @57
-                          parameter: DefaultFormalParameter
-                            parameter: SimpleFormalParameter
-                              type: NamedType
-                                name: int @58
-                                question: ? @61
-                                element: dart:core::@class::int
-                                type: int?
-                              name: a @63
-                              declaredFragment: <testLibraryFragment> a@63
-                                element: isPublic
-                                  type: int?
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: int @58
+                              question: ? @61
+                              element: dart:core::@class::int
+                              type: int?
+                            name: a @63
                             declaredFragment: <testLibraryFragment> a@63
                               element: isPublic
                                 type: int?
@@ -788,17 +780,13 @@ library
                         parameters: FormalParameterList
                           leftParenthesis: ( @56
                           leftDelimiter: { @57
-                          parameter: DefaultFormalParameter
-                            parameter: SimpleFormalParameter
-                              requiredKeyword: required @58
-                              type: NamedType
-                                name: int @67
-                                element: dart:core::@class::int
-                                type: int
-                              name: a @71
-                              declaredFragment: <testLibraryFragment> a@71
-                                element: isPublic
-                                  type: int
+                          parameter: RegularFormalParameter
+                            requiredKeyword: required @58
+                            type: NamedType
+                              name: int @67
+                              element: dart:core::@class::int
+                              type: int
+                            name: a @71
                             declaredFragment: <testLibraryFragment> a@71
                               element: isPublic
                                 type: int
@@ -899,7 +887,7 @@ library
                         functionKeyword: Function @48
                         parameters: FormalParameterList
                           leftParenthesis: ( @56
-                          parameter: SimpleFormalParameter
+                          parameter: RegularFormalParameter
                             type: NamedType
                               name: int @57
                               element: dart:core::@class::int

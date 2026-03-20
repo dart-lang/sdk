@@ -72,7 +72,7 @@ ConstructorDeclaration
   name: named
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: int
         element: dart:core::@class::int
@@ -159,7 +159,7 @@ ConstructorDeclaration
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: int
         element: dart:core::@class::int
@@ -523,7 +523,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: String
           element: dart:core::@class::String
@@ -595,7 +595,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -651,7 +651,7 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: T
         element: #E0 T
@@ -660,7 +660,7 @@ MethodDeclaration
       declaredFragment: <testLibraryFragment> t@46
         element: isPublic
           type: T
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: U
         element: #E1 U
@@ -712,21 +712,17 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: a
-          declaredFragment: <testLibraryFragment> a@22
-            element: isFinal isPublic
-              type: int
-              field: <testLibrary>::@extensionType::A::@field::a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
-          staticType: int
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
+            staticType: int
         declaredFragment: <testLibraryFragment> a@22
           element: isFinal isPublic
             type: int
@@ -758,21 +754,17 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: a
-          declaredFragment: <testLibraryFragment> a@22
-            element: isFinal isPublic
-              type: int
-              field: <testLibrary>::@extensionType::A::@field::a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
-          staticType: int
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
+            staticType: int
         declaredFragment: <testLibraryFragment> a@22
           element: isFinal isPublic
             type: int
@@ -876,15 +868,16 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: FunctionTypedFormalParameter
-        returnType: NamedType
+      parameter: RegularFormalParameter
+        type: NamedType
           name: int
           element: dart:core::@class::int
           type: int
         name: it
-        parameters: FormalParameterList
-          leftParenthesis: (
-          rightParenthesis: )
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
         declaredFragment: <testLibraryFragment> it@21
           element: isFinal isPublic
             type: int Function()
@@ -918,15 +911,16 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: FunctionTypedFormalParameter
-        returnType: NamedType
+      parameter: RegularFormalParameter
+        type: NamedType
           name: int
           element: dart:core::@class::int
           type: int
         name: it
-        parameters: FormalParameterList
-          leftParenthesis: (
-          rightParenthesis: )
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
         declaredFragment: <testLibraryFragment> it@37
           element: isFinal isPublic
             type: int Function()
@@ -959,8 +953,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: const
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: const
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -999,8 +993,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: const
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: const
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -1038,7 +1032,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
         type: NamedType
           name: int
@@ -1078,7 +1072,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
         type: NamedType
           name: int
@@ -1114,8 +1108,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -1154,8 +1148,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -1190,8 +1184,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         name: it
         declaredFragment: <testLibraryFragment> it@23
           element: hasImplicitType isFinal isPublic
@@ -1229,8 +1223,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         name: it
         declaredFragment: <testLibraryFragment> it@39
           element: hasImplicitType isFinal isPublic
@@ -1264,7 +1258,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         requiredKeyword: required
         type: NamedType
           name: int
@@ -1303,7 +1297,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -1341,8 +1335,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: var
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: var
         name: it
         declaredFragment: <testLibraryFragment> it@21
           element: hasImplicitType isFinal isPublic
@@ -1380,8 +1374,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: var
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: var
         name: it
         declaredFragment: <testLibraryFragment> it@37
           element: hasImplicitType isFinal isPublic
@@ -1413,18 +1407,13 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: it
-          declaredFragment: <testLibraryFragment> it@23
-            element: isFinal isPublic
-              type: int?
-              field: <testLibrary>::@extensionType::A::@field::it
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: it
         declaredFragment: <testLibraryFragment> it@23
           element: isFinal isPublic
             type: int?
@@ -1460,18 +1449,13 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: it
-          declaredFragment: <testLibraryFragment> it@39
-            element: isFinal isPublic
-              type: int?
-              field: <testLibrary>::@extensionType::A::@field::it
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: it
         declaredFragment: <testLibraryFragment> it@39
           element: isFinal isPublic
             type: int?
@@ -1506,33 +1490,24 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: a
-          declaredFragment: <testLibraryFragment> a@23
-            element: isFinal isPublic
-              type: int?
-              field: <testLibrary>::@extensionType::A::@field::a
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: a
         declaredFragment: <testLibraryFragment> a@23
           element: isFinal isPublic
             type: int?
             field: <testLibrary>::@extensionType::A::@field::a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: b
-          declaredFragment: <testLibraryFragment> b@31
-            element: isPublic
-              type: int?
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: b
         declaredFragment: <testLibraryFragment> b@31
           element: isPublic
             type: int?
@@ -1567,33 +1542,24 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: a
-          declaredFragment: <testLibraryFragment> a@39
-            element: isFinal isPublic
-              type: int?
-              field: <testLibrary>::@extensionType::A::@field::a
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: a
         declaredFragment: <testLibraryFragment> a@39
           element: isFinal isPublic
             type: int?
             field: <testLibrary>::@extensionType::A::@field::a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: b
-          declaredFragment: <testLibraryFragment> b@47
-            element: isPublic
-              type: int?
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: b
         declaredFragment: <testLibraryFragment> b@47
           element: isPublic
             type: int?
@@ -1627,33 +1593,24 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: a
-          declaredFragment: <testLibraryFragment> a@23
-            element: isFinal isPublic
-              type: int?
-              field: <testLibrary>::@extensionType::A::@field::a
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: a
         declaredFragment: <testLibraryFragment> a@23
           element: isFinal isPublic
             type: int?
             field: <testLibrary>::@extensionType::A::@field::a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: b
-          declaredFragment: <testLibraryFragment> b@39
-            element: isPublic
-              type: int
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: b
         declaredFragment: <testLibraryFragment> b@39
           element: isPublic
             type: int
@@ -1684,18 +1641,13 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: it
-          declaredFragment: <testLibraryFragment> it@23
-            element: isFinal isPublic
-              type: int?
-              field: <testLibrary>::@extensionType::A::@field::it
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: it
         declaredFragment: <testLibraryFragment> it@23
           element: isFinal isPublic
             type: int?
@@ -1731,18 +1683,13 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: it
-          declaredFragment: <testLibraryFragment> it@39
-            element: isFinal isPublic
-              type: int?
-              field: <testLibrary>::@extensionType::A::@field::it
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: it
         declaredFragment: <testLibraryFragment> it@39
           element: isFinal isPublic
             type: int?
@@ -1777,33 +1724,24 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: a
-          declaredFragment: <testLibraryFragment> a@23
-            element: isFinal isPublic
-              type: int?
-              field: <testLibrary>::@extensionType::A::@field::a
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: a
         declaredFragment: <testLibraryFragment> a@23
           element: isFinal isPublic
             type: int?
             field: <testLibrary>::@extensionType::A::@field::a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: b
-          declaredFragment: <testLibraryFragment> b@31
-            element: isPublic
-              type: int?
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: b
         declaredFragment: <testLibraryFragment> b@31
           element: isPublic
             type: int?
@@ -1838,33 +1776,24 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: a
-          declaredFragment: <testLibraryFragment> a@39
-            element: isFinal isPublic
-              type: int?
-              field: <testLibrary>::@extensionType::A::@field::a
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: a
         declaredFragment: <testLibraryFragment> a@39
           element: isFinal isPublic
             type: int?
             field: <testLibrary>::@extensionType::A::@field::a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: b
-          declaredFragment: <testLibraryFragment> b@47
-            element: isPublic
-              type: int?
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: b
         declaredFragment: <testLibraryFragment> b@47
           element: isPublic
             type: int?
@@ -1895,18 +1824,13 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: it
-          declaredFragment: <testLibraryFragment> it@31
-            element: isFinal isPublic
-              type: int
-              field: <testLibrary>::@extensionType::A::@field::it
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
         declaredFragment: <testLibraryFragment> it@31
           element: isFinal isPublic
             type: int
@@ -1942,18 +1866,13 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: it
-          declaredFragment: <testLibraryFragment> it@47
-            element: isFinal isPublic
-              type: int
-              field: <testLibrary>::@extensionType::A::@field::it
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
         declaredFragment: <testLibraryFragment> it@47
           element: isFinal isPublic
             type: int
@@ -1988,33 +1907,24 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: a
-          declaredFragment: <testLibraryFragment> a@31
-            element: isFinal isPublic
-              type: int
-              field: <testLibrary>::@extensionType::A::@field::a
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: a
         declaredFragment: <testLibraryFragment> a@31
           element: isFinal isPublic
             type: int
             field: <testLibrary>::@extensionType::A::@field::a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: b
-          declaredFragment: <testLibraryFragment> b@39
-            element: isPublic
-              type: int?
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: b
         declaredFragment: <testLibraryFragment> b@39
           element: isPublic
             type: int?
@@ -2048,33 +1958,24 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: a
-          declaredFragment: <testLibraryFragment> a@31
-            element: isFinal isPublic
-              type: int
-              field: <testLibrary>::@extensionType::A::@field::a
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: a
         declaredFragment: <testLibraryFragment> a@31
           element: isFinal isPublic
             type: int
             field: <testLibrary>::@extensionType::A::@field::a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: b
-          declaredFragment: <testLibraryFragment> b@47
-            element: isPublic
-              type: int
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: b
         declaredFragment: <testLibraryFragment> b@47
           element: isPublic
             type: int
@@ -2104,7 +2005,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2140,7 +2041,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2178,7 +2079,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2189,17 +2090,13 @@ ExtensionTypeDeclaration
             type: int
             field: <testLibrary>::@extensionType::A::@field::a
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: b
-          declaredFragment: <testLibraryFragment> b@30
-            element: isPublic
-              type: int?
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: b
         declaredFragment: <testLibraryFragment> b@30
           element: isPublic
             type: int?
@@ -2233,7 +2130,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2244,17 +2141,13 @@ ExtensionTypeDeclaration
             type: int
             field: <testLibrary>::@extensionType::A::@field::a
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: b
-          declaredFragment: <testLibraryFragment> b@46
-            element: isPublic
-              type: int?
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: b
         declaredFragment: <testLibraryFragment> b@46
           element: isPublic
             type: int?
@@ -2287,7 +2180,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2298,17 +2191,13 @@ ExtensionTypeDeclaration
             type: int
             field: <testLibrary>::@extensionType::A::@field::a
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: b
-          declaredFragment: <testLibraryFragment> b@30
-            element: isPublic
-              type: int?
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: b
         declaredFragment: <testLibraryFragment> b@30
           element: isPublic
             type: int?
@@ -2342,7 +2231,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2353,17 +2242,13 @@ ExtensionTypeDeclaration
             type: int
             field: <testLibrary>::@extensionType::A::@field::a
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-            element: dart:core::@class::int
-            type: int?
-          name: b
-          declaredFragment: <testLibraryFragment> b@46
-            element: isPublic
-              type: int?
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: b
         declaredFragment: <testLibraryFragment> b@46
           element: isPublic
             type: int?
@@ -2396,7 +2281,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2406,7 +2291,7 @@ ExtensionTypeDeclaration
           element: isFinal isPublic
             type: int
             field: <testLibrary>::@extensionType::A::@field::a
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2444,7 +2329,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2454,7 +2339,7 @@ ExtensionTypeDeclaration
           element: isFinal isPublic
             type: int
             field: <testLibrary>::@extensionType::A::@field::a
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2491,7 +2376,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2530,7 +2415,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -2567,7 +2452,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         metadata
           Annotation
             atSign: @
@@ -2667,7 +2552,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: it
         declaredFragment: <testLibraryFragment> it@17
           element: hasImplicitType isFinal isPublic
@@ -2702,7 +2587,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: it
         declaredFragment: <testLibraryFragment> it@33
           element: hasImplicitType isFinal isPublic
@@ -2733,7 +2618,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         metadata
           Annotation
             atSign: @
@@ -2776,7 +2661,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         metadata
           Annotation
             atSign: @
@@ -2820,7 +2705,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: <testLibrary>::@extensionType::A::@getter::int
@@ -2876,7 +2761,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -3000,7 +2885,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -3039,7 +2924,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -3110,7 +2995,7 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -3162,30 +3047,26 @@ PrimaryConstructorDeclaration
   formalParameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        metadata
-          Annotation
-            atSign: @
-            name: SimpleIdentifier
-              token: foo
-              element: <testLibrary>::@extensionType::E::@getter::foo
-              staticType: null
+    parameter: RegularFormalParameter
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: foo
             element: <testLibrary>::@extensionType::E::@getter::foo
-        type: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        name: it
-        declaredFragment: <testLibraryFragment> it@50
-          element: isFinal isPublic
-            type: int
-            field: <testLibrary>::@extensionType::E::@field::it
-      separator: =
-      defaultValue: SimpleIdentifier
-        token: foo
-        element: <testLibrary>::@extensionType::E::@getter::foo
-        staticType: int
+            staticType: null
+          element: <testLibrary>::@extensionType::E::@getter::foo
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      name: it
+      defaultClause: FormalParameterDefaultClause
+        separator: =
+        value: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@extensionType::E::@getter::foo
+          staticType: int
       declaredFragment: <testLibraryFragment> it@50
         element: isFinal isPublic
           type: int
@@ -3231,7 +3112,7 @@ PrimaryConstructorDeclaration
     rightBracket: >
   formalParameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: T
         element: #E1 T
@@ -3273,21 +3154,17 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: bool
-            element: dart:core::@class::bool
-            type: bool
-          name: it
-          declaredFragment: <testLibraryFragment> it@23
-            element: isFinal isPublic
-              type: bool
-              field: <testLibrary>::@extensionType::A::@field::it
-        separator: =
-        defaultValue: BooleanLiteral
-          literal: false
-          staticType: bool
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: bool
+          element: dart:core::@class::bool
+          type: bool
+        name: it
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: BooleanLiteral
+            literal: false
+            staticType: bool
         declaredFragment: <testLibraryFragment> it@23
           element: isFinal isPublic
             type: bool
@@ -3485,7 +3362,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -3548,7 +3425,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: num
           element: dart:core::@class::num
@@ -3575,7 +3452,7 @@ ExtensionTypeDeclaration
         name: named
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: int
               element: dart:core::@class::int
@@ -3651,7 +3528,7 @@ ExtensionTypeDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: Map
           typeArguments: TypeArgumentList
@@ -3719,7 +3596,7 @@ ExtensionTypeDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
           element: dart:core::@class::int

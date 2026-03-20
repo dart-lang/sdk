@@ -216,17 +216,18 @@ CompilationUnit
             name: f
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: FunctionTypedFormalParameter
+              parameter: RegularFormalParameter
                 name: <empty> <synthetic>
-                typeParameters: TypeParameterList
-                  leftBracket: <
-                  typeParameters
-                    TypeParameter
-                      name: T
-                  rightBracket: >
-                parameters: FormalParameterList
-                  leftParenthesis: (
-                  rightParenthesis: )
+                functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                  typeParameters: TypeParameterList
+                    leftBracket: <
+                    typeParameters
+                      TypeParameter
+                        name: T
+                    rightBracket: >
+                  formalParameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
               rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
@@ -1701,7 +1702,7 @@ CompilationUnit
                   FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
-                      parameter: SimpleFormalParameter
+                      parameter: RegularFormalParameter
                         name: e
                       rightParenthesis: )
                     body: ExpressionFunctionBody
@@ -1770,7 +1771,7 @@ CompilationUnit
                   FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
-                      parameter: SimpleFormalParameter
+                      parameter: RegularFormalParameter
                         name: e
                       rightParenthesis: )
                     body: ExpressionFunctionBody
@@ -1963,7 +1964,7 @@ CompilationUnit
                               functionKeyword: Function
                               parameters: FormalParameterList
                                 leftParenthesis: (
-                                parameter: SimpleFormalParameter
+                                parameter: RegularFormalParameter
                                   type: NamedType
                                     name: String
                                 rightParenthesis: )
@@ -2126,7 +2127,7 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             importPrefix: ImportPrefixReference
               name: core
@@ -2205,7 +2206,7 @@ void f(Function() x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     functionKeyword: Function
     parameters: FormalParameterList
@@ -2222,15 +2223,15 @@ void f(Function(int, int) x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
       rightParenthesis: )
@@ -2245,7 +2246,7 @@ void f(Function<S, T>() x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     functionKeyword: Function
     typeParameters: TypeParameterList
@@ -2271,7 +2272,7 @@ void f(Function<T>(String, {T t}) x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     functionKeyword: Function
     typeParameters: TypeParameterList
@@ -2282,15 +2283,14 @@ SimpleFormalParameter
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: String
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: T
-          name: t
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: T
+        name: t
       rightDelimiter: }
       rightParenthesis: )
   name: x
@@ -2304,7 +2304,7 @@ void f(Function x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: NamedType
     name: Function
   name: x
@@ -2318,7 +2318,7 @@ void f(A Function(B, C) Function(D) x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     returnType: GenericFunctionType
       returnType: NamedType
@@ -2326,17 +2326,17 @@ SimpleFormalParameter
       functionKeyword: Function
       parameters: FormalParameterList
         leftParenthesis: (
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: B
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: C
         rightParenthesis: )
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: D
       rightParenthesis: )
@@ -2351,7 +2351,7 @@ void f(List<int> Function() x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     returnType: NamedType
       name: List
@@ -2376,7 +2376,7 @@ void f(List<int> Function(String s, int i) x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     returnType: NamedType
       name: List
@@ -2389,11 +2389,11 @@ SimpleFormalParameter
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: String
         name: s
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: i
@@ -2409,17 +2409,17 @@ void f(A Function(B, C) x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     returnType: NamedType
       name: A
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: B
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: C
       rightParenthesis: )
@@ -2434,7 +2434,7 @@ void f(List<T> Function<T>() x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     returnType: NamedType
       name: List
@@ -2466,7 +2466,7 @@ void f(List<T> Function<T>(String s, [T]) x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     returnType: NamedType
       name: List
@@ -2485,15 +2485,14 @@ SimpleFormalParameter
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: String
         name: s
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: T
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: T
       rightDelimiter: ]
       rightParenthesis: )
   name: x
@@ -2507,7 +2506,7 @@ void f(A<B> Function(C) x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: GenericFunctionType
     returnType: NamedType
       name: A
@@ -2520,7 +2519,7 @@ SimpleFormalParameter
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: C
       rightParenthesis: )
@@ -2535,7 +2534,7 @@ void f(A<B> x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: NamedType
     name: A
     typeArguments: TypeArgumentList
@@ -2557,7 +2556,7 @@ void f(
     parseResult.assertErrors([error(diag.expectedTypeName, 12, 1)]);
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: NamedType
     name: C
     typeArguments: TypeArgumentList
@@ -2577,7 +2576,7 @@ void f(C<int, int, int> x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: NamedType
     name: C
     typeArguments: TypeArgumentList
@@ -2601,7 +2600,7 @@ void f(C<A<B>> x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: NamedType
     name: C
     typeArguments: TypeArgumentList
@@ -2627,7 +2626,7 @@ void f(C<A<B /* 0 */>> x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: NamedType
     name: C
     typeArguments: TypeArgumentList
@@ -2653,7 +2652,7 @@ void f(C<A<B<C /* 0 */>>> x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: NamedType
     name: C
     typeArguments: TypeArgumentList
@@ -2685,7 +2684,7 @@ void f(C<int> x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: NamedType
     name: C
     typeArguments: TypeArgumentList
@@ -2705,7 +2704,7 @@ void f(List<int> x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: NamedType
     name: List
     typeArguments: TypeArgumentList
@@ -2725,7 +2724,7 @@ void f(int x) {}
     parseResult.assertNoErrors();
     var node = parseResult.findNode.firstFormalParameter;
     assertParsedNodeText(node, r'''
-SimpleFormalParameter
+RegularFormalParameter
   type: NamedType
     name: int
   name: x
@@ -2753,7 +2752,7 @@ ClassDeclaration
             functionKeyword: Function
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: int
               rightParenthesis: )
@@ -2787,7 +2786,7 @@ ClassDeclaration
             functionKeyword: Function
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: int
               rightParenthesis: )
@@ -3317,19 +3316,20 @@ CompilationUnit
         functionKeyword: Function
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: FunctionTypedFormalParameter
+          parameter: RegularFormalParameter
             name: <empty> <synthetic>
-            typeParameters: TypeParameterList
-              leftBracket: <
-              typeParameters
-                TypeParameter
-                  name: <empty> <synthetic>
-              rightBracket: >
-            parameters: FormalParameterList
-              leftParenthesis: (
-              parameter: SimpleFormalParameter
-                name: $
-              rightParenthesis: ) <synthetic>
+            functionTypedSuffix: FunctionTypedFormalParameterSuffix
+              typeParameters: TypeParameterList
+                leftBracket: <
+                typeParameters
+                  TypeParameter
+                    name: <empty> <synthetic>
+                rightBracket: >
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                parameter: RegularFormalParameter
+                  name: $
+                rightParenthesis: ) <synthetic>
           rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
 ''');
@@ -3355,17 +3355,18 @@ CompilationUnit
         functionKeyword: Function
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: FunctionTypedFormalParameter
+          parameter: RegularFormalParameter
             name: <empty> <synthetic>
-            typeParameters: TypeParameterList
-              leftBracket: <
-              typeParameters
-                TypeParameter
-                  name: S
-              rightBracket: >
-            parameters: FormalParameterList
-              leftParenthesis: (
-              rightParenthesis: )
+            functionTypedSuffix: FunctionTypedFormalParameterSuffix
+              typeParameters: TypeParameterList
+                leftBracket: <
+                typeParameters
+                  TypeParameter
+                    name: S
+                rightBracket: >
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
           rightParenthesis: )
       semicolon: ;
 ''');

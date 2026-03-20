@@ -729,27 +729,24 @@ void f({a = b?..foo}) {}
 
     var node = findNode.defaultParameter('a =');
     assertResolvedNodeText(node, r'''
-DefaultFormalParameter
-  parameter: SimpleFormalParameter
-    name: a
-    declaredFragment: <testLibraryFragment> a@8
-      element: hasImplicitType isPublic
-        type: dynamic
-  separator: =
-  defaultValue: CascadeExpression
-    target: SimpleIdentifier
-      token: b
-      element: <null>
-      staticType: InvalidType
-    cascadeSections
-      PropertyAccess
-        operator: ?..
-        propertyName: SimpleIdentifier
-          token: foo
-          element: <null>
-          staticType: InvalidType
+RegularFormalParameter
+  name: a
+  defaultClause: FormalParameterDefaultClause
+    separator: =
+    value: CascadeExpression
+      target: SimpleIdentifier
+        token: b
+        element: <null>
         staticType: InvalidType
-    staticType: InvalidType
+      cascadeSections
+        PropertyAccess
+          operator: ?..
+          propertyName: SimpleIdentifier
+            token: foo
+            element: <null>
+            staticType: InvalidType
+          staticType: InvalidType
+      staticType: InvalidType
   declaredFragment: <testLibraryFragment> a@8
     element: hasImplicitType isPublic
       type: dynamic

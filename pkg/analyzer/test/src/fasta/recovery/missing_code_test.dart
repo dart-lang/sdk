@@ -480,7 +480,7 @@ CompilationUnit
             name: &
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -513,7 +513,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: ExpressionFunctionBody
@@ -544,7 +544,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: ExpressionFunctionBody
@@ -661,7 +661,7 @@ CompilationUnit
             name: |
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -696,7 +696,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: BlockFunctionBody
@@ -770,11 +770,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: int
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: int
             name: b
@@ -910,7 +910,7 @@ CompilationUnit
             name: ==
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -940,7 +940,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: ExpressionFunctionBody
@@ -965,7 +965,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: ExpressionFunctionBody
@@ -1034,7 +1034,7 @@ CompilationUnit
             name: >
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -1108,7 +1108,7 @@ CompilationUnit
             name: >>
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -1182,7 +1182,7 @@ CompilationUnit
             name: >=
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -1256,7 +1256,7 @@ CompilationUnit
             name: ^
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -1467,7 +1467,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: BlockFunctionBody
@@ -1549,7 +1549,7 @@ CompilationUnit
             name: <
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -1623,7 +1623,7 @@ CompilationUnit
             name: <<
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -1697,7 +1697,7 @@ CompilationUnit
             name: <=
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -1771,7 +1771,7 @@ CompilationUnit
             name: -
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -1883,7 +1883,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: ExpressionFunctionBody
@@ -1956,7 +1956,7 @@ CompilationUnit
             name: %
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -2030,7 +2030,7 @@ CompilationUnit
             name: +
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -2151,7 +2151,7 @@ CompilationUnit
             name: /
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -2225,7 +2225,7 @@ CompilationUnit
             name: *
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -2352,7 +2352,7 @@ CompilationUnit
             name: ~/
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -2389,9 +2389,8 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
+          parameter: RegularFormalParameter
+            name: a
           rightDelimiter: }
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2417,15 +2416,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: <empty> <synthetic>
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: b
+          parameter: RegularFormalParameter
+            name: a
+          parameter: RegularFormalParameter
+            name: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: b
           rightDelimiter: }
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2451,9 +2447,8 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
+          parameter: RegularFormalParameter
+            name: a
           rightDelimiter: ]
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2479,15 +2474,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: <empty> <synthetic>
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: b
+          parameter: RegularFormalParameter
+            name: a
+          parameter: RegularFormalParameter
+            name: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: b
           rightDelimiter: ]
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2512,7 +2504,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: a
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2537,11 +2529,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: <empty> <synthetic>
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: b
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2586,7 +2578,7 @@ CompilationUnit
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: this
               rightParenthesis: )
             body: EmptyFunctionBody
@@ -2630,9 +2622,9 @@ CompilationUnit
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: this
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: p
               rightParenthesis: )
             body: EmptyFunctionBody
@@ -2722,7 +2714,7 @@ CompilationUnit
                 thisKeyword: this
                 period: .
                 name: <empty> <synthetic>
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 name: p
               rightParenthesis: )
             body: EmptyFunctionBody
@@ -2747,12 +2739,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: :
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: IntegerLiteral
+                literal: 0
           rightDelimiter: } <synthetic>
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2781,12 +2773,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: :
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: IntegerLiteral
+                literal: 0
           rightDelimiter: } <synthetic>
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2811,7 +2803,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: a
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2836,7 +2828,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: a
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2865,12 +2857,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: =
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
           rightDelimiter: ] <synthetic>
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2897,12 +2889,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: =
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
           rightDelimiter: ] <synthetic>
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2931,11 +2923,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: a
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: b
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: c
           rightParenthesis: )
         body: BlockFunctionBody
@@ -2947,11 +2939,11 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: v1
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: v2
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             name: v
           rightParenthesis: )
         body: BlockFunctionBody
@@ -3005,12 +2997,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: :
-            defaultValue: SimpleIdentifier
-              token: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: SimpleIdentifier
+                token: <empty> <synthetic>
           rightDelimiter: }
           rightParenthesis: )
         body: BlockFunctionBody
@@ -3036,15 +3028,14 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: :
-            defaultValue: SimpleIdentifier
-              token: <empty> <synthetic>
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: b
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: SimpleIdentifier
+                token: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: b
           rightDelimiter: }
           rightParenthesis: )
         body: BlockFunctionBody
@@ -3070,12 +3061,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: =
-            defaultValue: SimpleIdentifier
-              token: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: SimpleIdentifier
+                token: <empty> <synthetic>
           rightDelimiter: ]
           rightParenthesis: )
         body: BlockFunctionBody
@@ -3101,15 +3092,14 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: =
-            defaultValue: SimpleIdentifier
-              token: <empty> <synthetic>
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: b
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: SimpleIdentifier
+                token: <empty> <synthetic>
+          parameter: RegularFormalParameter
+            name: b
           rightDelimiter: ]
           rightParenthesis: )
         body: BlockFunctionBody
@@ -3136,12 +3126,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: =
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
           rightDelimiter: ]
           rightParenthesis: )
         body: BlockFunctionBody
@@ -3168,12 +3158,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: =
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
           rightDelimiter: ]
           rightParenthesis: )
         body: BlockFunctionBody
@@ -3199,12 +3189,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: :
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: IntegerLiteral
+                literal: 0
           rightDelimiter: }
           rightParenthesis: )
         body: BlockFunctionBody
@@ -3230,12 +3220,12 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: =
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
           rightDelimiter: ]
           rightParenthesis: )
         body: BlockFunctionBody
@@ -3260,12 +3250,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: :
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: IntegerLiteral
+                literal: 0
           rightParenthesis: )
         body: BlockFunctionBody
           block: Block
@@ -3289,12 +3279,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              name: a
-            separator: =
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
           rightParenthesis: )
         body: BlockFunctionBody
           block: Block
@@ -3333,7 +3323,7 @@ CompilationUnit
         functionKeyword: Function <synthetic>
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: E
             name: element

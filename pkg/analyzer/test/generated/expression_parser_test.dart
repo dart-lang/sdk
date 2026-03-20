@@ -1784,7 +1784,7 @@ FunctionExpressionInvocation
   function: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: a
       rightParenthesis: )
     body: BlockFunctionBody
@@ -2122,7 +2122,7 @@ var v = (int i) => i++;
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: int
       name: i
@@ -2152,7 +2152,7 @@ FunctionExpression
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: E
       name: i
@@ -2208,7 +2208,7 @@ FunctionExpression
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: E
       name: i
@@ -3109,7 +3109,7 @@ var v = (int i) => i + 1;
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: int
       name: i
@@ -3161,7 +3161,7 @@ FunctionExpression
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: Map
         typeArguments: TypeArgumentList
@@ -3173,7 +3173,7 @@ FunctionExpression
               name: Y
           rightBracket: >
       name: m
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: X
       name: x
@@ -3536,7 +3536,7 @@ AsExpression
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
       rightParenthesis: )
@@ -3560,7 +3560,7 @@ AsExpression
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
       rightParenthesis: )
