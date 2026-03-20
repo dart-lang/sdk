@@ -459,7 +459,7 @@ String applyArgumentsToTemplate(
     return template;
   }
   return template.replaceAllMapped(templateKey, (Match match) {
-    String? key = match.group(1);
+    String? key = match[1];
     Object? value = arguments[key];
     assert(value != null, "No value for '$key' found in $arguments");
     return value.toString();

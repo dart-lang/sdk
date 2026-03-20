@@ -12,8 +12,8 @@ class RegEx2Test {
       print("got match");
       int groupCount = match.groupCount;
       print("groupCount is $groupCount");
-      print("group 0 is ${match.group(0)}");
-      print("group 1 is ${match.group(1)}");
+      print("group 0 is ${match[0]}");
+      print("group 1 is ${match[1]}");
     } else {
       print("match not round");
     }

@@ -1406,20 +1406,21 @@ final class _StringMatch implements Match {
   const _StringMatch(this.start, this.input, this.pattern);
 
   int get end => start + pattern.length;
-  String operator [](int g) => group(g);
-  int get groupCount => 0;
-
-  String group(int group) {
+  String operator [](int group) {
     if (group != 0) {
       throw RangeError.value(group);
     }
     return pattern;
   }
 
+  int get groupCount => 0;
+
+  String group(int group) => this[group];
+
   List<String> groups(List<int> groups) {
     List<String> result = <String>[];
     for (int g in groups) {
-      result.add(group(g));
+      result.add(this[g]);
     }
     return result;
   }

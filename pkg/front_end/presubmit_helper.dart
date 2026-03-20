@@ -210,7 +210,7 @@ MessagesWork? _createMessagesTestWork(List<String> changedFiles) {
   List<String> filters = [];
   for (String file in changedFiles) {
     if (_messagesYamlPathRegExp.matchAsPrefix(file) case var match?) {
-      filters.add('messages/${match.group(1)}/...');
+      filters.add('messages/${match[1]}/...');
     }
   }
 

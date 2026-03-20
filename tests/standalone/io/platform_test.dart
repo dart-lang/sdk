@@ -105,19 +105,19 @@ testVersion() {
     if (match == null) {
       throw new FormatException();
     }
-    var major = int.parse(match.group(1)!);
+    var major = int.parse(match[1]!);
     // Major version.
     Expect.isTrue(major == 1 || major == 2 || major == 3);
     // Minor version.
-    Expect.isTrue(int.parse(match.group(2)!) >= 0);
+    Expect.isTrue(int.parse(match[2]!) >= 0);
     // Patch version.
-    Expect.isTrue(int.parse(match.group(3)!) >= 0);
+    Expect.isTrue(int.parse(match[3]!) >= 0);
     // Dev
-    if (match.group(4) != null) {
+    if (match[4] != null) {
       // Dev prerelease minor version
-      Expect.isTrue(int.parse(match.group(5)!) >= 0);
+      Expect.isTrue(int.parse(match[5]!) >= 0);
       // Dev prerelease patch version
-      Expect.isTrue(int.parse(match.group(6)!) >= 0);
+      Expect.isTrue(int.parse(match[6]!) >= 0);
     }
   }
 

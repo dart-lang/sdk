@@ -127,7 +127,7 @@ List<(String?, int?, int?, String?)?> parseStack(
     if (hexOffsetMatch == null) {
       throw 'Unable to parse hex offset in frame "$line"';
     }
-    final hexOffsetStr = hexOffsetMatch.group(1)!; // includes '0x'
+    final hexOffsetStr = hexOffsetMatch[1]!; // includes '0x'
     final offset = int.tryParse(hexOffsetStr);
     if (offset == null) {
       throw 'Unable to parse hex number in frame "$line"';
@@ -136,7 +136,7 @@ List<(String?, int?, int?, String?)?> parseStack(
     if (moduleIdMatch == null) {
       throw 'Unable to parse module name in frame "$line"';
     }
-    final moduleIdString = moduleIdMatch.group(1)!;
+    final moduleIdString = moduleIdMatch[1]!;
     final moduleId = isMinified
         ? parseMinifiedModule(moduleIdString)
         : int.parse(moduleIdString.replaceAll('module', ''));

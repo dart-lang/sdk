@@ -580,7 +580,7 @@ class BlazeWorkspace extends Workspace
 
     var pattern = RegExp(r'(^|\s+)_version\s*=\s*"(\d+\.\d+)"');
     for (var match in pattern.allMatches(content)) {
-      return Version.parse('${match.group(2)}.0');
+      return Version.parse('${match[2]}.0');
     }
 
     return null;

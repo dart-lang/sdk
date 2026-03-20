@@ -320,7 +320,7 @@ abstract class DiagnosticCode {
       if (correctionMessage != null) correctionMessage,
     ]) {
       for (RegExpMatch match in _positionalArgumentRegExp.allMatches(s)) {
-        result = max(result, int.parse(match.group(1)!) + 1);
+        result = max(result, int.parse(match[1]!) + 1);
       }
     }
     return result;

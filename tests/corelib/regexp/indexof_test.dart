@@ -43,7 +43,7 @@ void main() {
         var length = matches[idx][1];
         var expected = str.substring(from, from + length);
         var name = "$str[$from..${from + length}]";
-        assertEquals(expected, result[idx].group(0), name);
+        assertEquals(expected, result[idx][0], name);
       }
     } else {
       assertTrue(result.isEmpty);

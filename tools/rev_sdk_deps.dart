@@ -157,7 +157,7 @@ Set<String> calculatePinnedDeps() {
   return depsFile
       .readAsLinesSync()
       .where((line) => packageRevision.hasMatch(line) && line.contains('", #'))
-      .map((line) => packageRevision.firstMatch(line)!.group(1)!)
+      .map((line) => packageRevision.firstMatch(line)![1]!)
       .toSet();
 }
 

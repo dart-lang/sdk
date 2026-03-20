@@ -792,5 +792,5 @@ Uri _extractVmServiceUri(OutputEventBody vmConnectionBanner) {
   // TODO(dantup): Change this to use the dart.debuggerUris custom event
   //   if implemented (which VS Code also needs).
   final match = dapVmServiceBannerPattern.firstMatch(vmConnectionBanner.output);
-  return Uri.parse(match!.group(1)!);
+  return Uri.parse(match![1]!);
 }

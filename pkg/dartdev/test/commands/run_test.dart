@@ -534,7 +534,7 @@ void main(List<String> args) => print("$b $args");
     );
     void onData(event) {
       if (event.contains('The Dart VM service is listening on')) {
-        final vmServicePort = int.parse(regexp.firstMatch(event)!.group(1)!);
+        final vmServicePort = int.parse(regexp.firstMatch(event)![1]!);
         expect(server.port != vmServicePort, isTrue);
         p.kill();
       }

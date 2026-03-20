@@ -25,7 +25,7 @@ List<CompletionSuggestionBuilder> fuzzyFilterSort({
 
     if (suggestion.kind == CompletionSuggestionKind.KEYWORD ||
         suggestion.kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
-      var identifier = _identifierPattern.matchAsPrefix(textToMatch)?.group(1);
+      var identifier = _identifierPattern.matchAsPrefix(textToMatch)?[1];
       if (identifier == null) {
         return -1;
       }

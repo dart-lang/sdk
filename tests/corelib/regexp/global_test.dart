@@ -43,7 +43,7 @@ void main() {
   str = "It was a pleasure to burn.";
   str = str.replaceAllMapped(
     new RegExp(r"(?=(\w+))\b"),
-    (Match m) => m.group(1)!.length.toString(),
+    (Match m) => m[1]!.length.toString(),
   );
   assertEquals("2It 3was 1a 8pleasure 2to 4burn.", str);
 
@@ -52,9 +52,9 @@ void main() {
   str = str.replaceAllMapped(
     new RegExp(r"(not?)|(do)|(try)", caseSensitive: false),
     (m) {
-      if (m.group(1) != null) return "-";
-      if (m.group(2) != null) return "+";
-      if (m.group(3) != null) return "=";
+      if (m[1] != null) return "-";
+      if (m[2] != null) return "+";
+      if (m[3] != null) return "=";
       throw 'Unexpected match $m';
     },
   );
@@ -63,9 +63,9 @@ void main() {
   // Test multiple alternate captures.
   str = "FOUR LEGS GOOD, TWO LEGS BAD!";
   str = str.replaceAllMapped(new RegExp(r"(FOUR|TWO) LEGS (GOOD|BAD)"), (m) {
-    if (m.group(1) == "FOUR") assertTrue(m.group(2) == "GOOD");
-    if (m.group(1) == "TWO") assertTrue(m.group(2) == "BAD");
-    return (m.group(0)!.length - 10).toString();
+    if (m[1] == "FOUR") assertTrue(m[2] == "GOOD");
+    if (m[1] == "TWO") assertTrue(m[2] == "BAD");
+    return (m[0]!.length - 10).toString();
   });
   assertEquals("4, 2!", str);
 
@@ -84,7 +84,7 @@ void main() {
   str = "It was a pleasure to \u70e7.";
   str = str.replaceAllMapped(
     new RegExp(r"(?=(\w+))\b"),
-    (m) => "${m.group(1)!.length}",
+    (m) => "${m[1]!.length}",
   );
   assertEquals("2It 3was 1a 8pleasure 2to \u70e7.", str);
 
@@ -93,9 +93,9 @@ void main() {
   str = str.replaceAllMapped(
     new RegExp(r"(not?)|(d\u26aa)|(try)", caseSensitive: false),
     (m) {
-      if (m.group(1) != null) return "-";
-      if (m.group(2) != null) return "+";
-      if (m.group(3) != null) return "=";
+      if (m[1] != null) return "-";
+      if (m[2] != null) return "+";
+      if (m[3] != null) return "=";
       throw 'Unexpected match $m';
     },
   );
@@ -104,9 +104,9 @@ void main() {
   // Test multiple alternate captures.
   str = "FOUR \u817f GOOD, TWO \u817f BAD!";
   str = str.replaceAllMapped(new RegExp(r"(FOUR|TWO) \u817f (GOOD|BAD)"), (m) {
-    if (m.group(1) == "FOUR") assertTrue(m.group(2) == "GOOD");
-    if (m.group(1) == "TWO") assertTrue(m.group(2) == "BAD");
-    return (m.group(0)!.length - 7).toString();
+    if (m[1] == "FOUR") assertTrue(m[2] == "GOOD");
+    if (m[1] == "TWO") assertTrue(m[2] == "BAD");
+    return (m[0]!.length - 7).toString();
   });
   assertEquals("4, 2!", str);
 
@@ -120,7 +120,7 @@ void main() {
   str = "up up up up";
   str = str.replaceAllMapped(
     new RegExp(r"\b(?=u(p))"),
-    (m) => "${m.group(1)!.length}",
+    (m) => "${m[1]!.length}",
   );
 
   assertEquals("1up 1up 1up 1up", str);

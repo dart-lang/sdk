@@ -563,7 +563,7 @@ main() {
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
-          port = int.parse(match.group(1)!);
+          port = int.parse(match[1]!);
           await collectAndCheckCoverageData(port, true);
           if (!portLineCompleter.isCompleted) {
             portLineCompleter.complete("done");
@@ -673,7 +673,7 @@ main() {
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
-          port = int.parse(match.group(1)!);
+          port = int.parse(match[1]!);
           await collectAndCheckCoverageData(
             port,
             true,
@@ -958,7 +958,7 @@ main() {
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
-          port = int.parse(match.group(1)!);
+          port = int.parse(match[1]!);
           Set<int> hits1 = await collectAndCheckCoverageData(
             port,
             true,
@@ -1063,7 +1063,7 @@ main() {
       );
       expect(dartVMServicePortRegExp.hasMatch(portLine), isTrue);
       final match = dartVMServicePortRegExp.firstMatch(portLine)!;
-      final port = int.parse(match.group(1)!);
+      final port = int.parse(match[1]!);
 
       var remoteVm = new RemoteVm(port);
       await remoteVm.resume();
@@ -1491,7 +1491,7 @@ main() {
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
-          port = int.parse(match.group(1)!);
+          port = int.parse(match[1]!);
           RemoteVm remoteVm = new RemoteVm(port);
 
           // Wait for the script to have loaded.
