@@ -582,6 +582,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       yield export.exportedCompilationUnit.importUri;
     }
     for (Import import in _compilationUnitData.imports) {
+      if (import.isAugmentationImport) continue;
       CompilationUnit? imported = import.importedCompilationUnit;
       if (imported != null) {
         yield imported.importUri;
@@ -729,6 +730,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     }
 
     for (Import import in _compilationUnitData.imports) {
+      if (import.isAugmentationImport) continue;
       // Rather than add a LibraryDependency, we attach an annotation.
       if (import.nativeImportPath != null) {
         _addNativeDependency(library, import.nativeImportPath!);
@@ -1266,6 +1268,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         // Coverage-ignore(suite): Not run.
         !forPatchLibrary;
     for (Import import in _compilationUnitData.imports) {
+      if (import.isAugmentationImport) continue;
       if (import.importedCompilationUnit?.isPart ?? false) {
         addProblem(
           diag.partOfInLibrary.withArguments(
@@ -1350,6 +1353,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
     int total = 0;
     for (Import import in _compilationUnitData.imports) {
+      if (import.isAugmentationImport) continue;
       if (import.deferred) {
         Procedure? tearoff =
             import.prefixFragment!.builder.loadLibraryBuilder?.tearoff;
