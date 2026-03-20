@@ -931,7 +931,7 @@ class IsolateManager {
     final terseMessageMatch =
         _terseBreakpointFailureRegex.firstMatch(userMessage);
     if (terseMessageMatch != null) {
-      userMessage = terseMessageMatch.group(1) ?? userMessage;
+      userMessage = terseMessageMatch[1] ?? userMessage;
     }
 
     final updatedBreakpoint = Breakpoint(
@@ -1008,7 +1008,7 @@ class IsolateManager {
             // avoid any clever parsing, just prefix them with $ and treat them
             // like other Dart interpolation expressions.
             .replaceAllMapped(_braceNotPrefixedByDollarOrBackslashPattern,
-                (match) => '${match.group(1)}\${')
+                (match) => '${match[1]}\${')
             // Remove any backslashes the user added to "escape" braces.
             .replaceAll(r'\\{', '{');
         return _evaluateAndPrintErrors(thread, expression, 'log message');

@@ -142,8 +142,8 @@ class EvaluationExpression {
   /// format a value should be presented in.
   factory EvaluationExpression.parse(String expression) {
     final match = _expressionWithFormatSpecifierRegex.firstMatch(expression);
-    expression = match?.group(1) ?? expression;
-    final formatSpecifiers = match?.group(2)?.split(',').toSet() ?? const {};
+    expression = match?[1] ?? expression;
+    final formatSpecifiers = match?[2]?.split(',').toSet() ?? const {};
     final format = formatSpecifiers.isEmpty
         ? null
         : VariableFormat(

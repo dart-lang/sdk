@@ -388,13 +388,13 @@ class Package implements Comparable<Package> {
 
       var match = importRegex1.firstMatch(line);
       if (match != null) {
-        results.add(match.group(2)!);
+        results.add(match[2]!);
         continue;
       }
 
       match = importRegex2.firstMatch(line);
       if (match != null) {
-        results.add(match.group(2)!);
+        results.add(match[2]!);
         continue;
       }
     }
@@ -444,7 +444,7 @@ class SdkDeps {
       var pkgDep = pkgRegExp.firstMatch(line);
 
       if (pkgDep != null) {
-        pkgs.add(pkgDep.group(1)!);
+        pkgs.add(pkgDep[1]!);
       }
     }
 

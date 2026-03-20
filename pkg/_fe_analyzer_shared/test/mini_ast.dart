@@ -144,7 +144,7 @@ String computeLocation() {
       '_locationRegExp failed to match $stackLine in $callStack',
     );
   }
-  return match.group(0)!;
+  return match[0]!;
 }
 
 Statement continue_([Label? target]) =>

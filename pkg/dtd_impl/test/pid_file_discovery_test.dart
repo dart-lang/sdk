@@ -46,7 +46,7 @@ void main() {
       if (line.startsWith('The Dart Tooling Daemon is listening on')) {
         final match = uriRegex.firstMatch(line);
         if (match != null) {
-          uri = match.group(1);
+          uri = match[1];
         }
       } else if (line.startsWith('Trusted Client Secret')) {
         break; // We have both the URI (printed first) and the secret.

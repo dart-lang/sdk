@@ -11,9 +11,13 @@ class RegExpGroupsTest {
     var match = new RegExp("(a(b)((c|de)+))").firstMatch("abcde")!;
     var groups = match.groups([0, 4, 2, 3]);
     Expect.equals('abcde', groups[0]);
+    Expect.equals('abcde', match.group(0));
     Expect.equals('de', groups[1]);
+    Expect.equals('de', match.group(4));
     Expect.equals('b', groups[2]);
+    Expect.equals('b', match.group(2));
     Expect.equals('cde', groups[3]);
+    Expect.equals('cde', match.group(3));
   }
 }
 

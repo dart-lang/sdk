@@ -39,14 +39,10 @@ FormalParameterList
         type: int
         field: <testLibrary>::@extensionType::E::@field::it
   leftDelimiter: {
-  parameter: DefaultFormalParameter
-    parameter: SuperFormalParameter
-      superKeyword: super
-      period: .
-      name: foo
-      declaredFragment: <testLibraryFragment> foo@53
-        element: hasImplicitType isFinal isPublic
-          type: dynamic
+  parameter: SuperFormalParameter
+    superKeyword: super
+    period: .
+    name: foo
     declaredFragment: <testLibraryFragment> foo@53
       element: hasImplicitType isFinal isPublic
         type: dynamic

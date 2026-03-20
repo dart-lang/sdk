@@ -115,8 +115,8 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
         final match = group.matcher.firstMatch('${lib.uri}');
         if (match != null) {
           var name = group.name;
-          if (name == null && match.groupCount > 0) name = match.group(1);
-          name ??= match.group(0);
+          if (name == null && match.groupCount > 0) name = match[1];
+          name ??= match[0];
           sizes.putIfAbsent(name, () => _SizeEntry(name, group.cluster));
           sizes[name].size += lib.size;
         }

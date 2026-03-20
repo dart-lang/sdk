@@ -309,8 +309,8 @@ String _memberNameForType(TypeBase type) {
 String _rewriteCommentReference(String comment) {
   var commentReferencePattern = RegExp(r'\[([\w ]+)\]\(#(\w+)\)');
   return comment.replaceAllMapped(commentReferencePattern, (m) {
-    var description = m.group(1);
-    var reference = m.group(2);
+    var description = m[1];
+    var reference = m[2];
     if (description == reference) {
       return '[$reference]';
     } else {

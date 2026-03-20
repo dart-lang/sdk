@@ -68,8 +68,8 @@ main(List<String> arguments) async {
       continue;
     }
     Match m = ms.first;
-    int l = int.parse(m.group(1)!);
-    int c = int.parse(m.group(2)!);
+    int l = int.parse(m[1]!);
+    int c = int.parse(m[2]!);
     SourceMapSpan? span = sourceMap.spanFor(l, c);
     if (span == null) {
       if (options['inline']) {

@@ -33,7 +33,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -59,7 +59,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -454,7 +454,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -468,7 +468,7 @@ ExtensionTypeDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             covariantKeyword: covariant
             type: NamedType
               name: int
@@ -501,7 +501,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -516,7 +516,7 @@ ExtensionTypeDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             covariantKeyword: covariant
             type: NamedType
               name: int
@@ -577,7 +577,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -620,7 +620,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -661,7 +661,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -702,7 +702,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -741,7 +741,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -781,7 +781,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -794,7 +794,7 @@ ExtensionTypeDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: int
             name: _
@@ -828,7 +828,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -866,7 +866,7 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -901,7 +901,7 @@ ExtensionTypeDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -931,7 +931,7 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -958,7 +958,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -1007,14 +1007,14 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1039,14 +1039,14 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: ]
       rightParenthesis: )
   body: BlockClassBody
@@ -1073,21 +1073,22 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: FunctionTypedFormalParameter
+      parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
             /// aaa
-        keyword: final
-        returnType: NamedType
+        constFinalOrVarKeyword: final
+        type: NamedType
           name: int
         name: a
-        parameters: FormalParameterList
-          leftParenthesis: (
-          parameter: SimpleFormalParameter
-            type: NamedType
-              name: String
-            name: x
-          rightParenthesis: )
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: String
+              name: x
+            rightParenthesis: )
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
@@ -1114,19 +1115,19 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          documentationComment: Comment
-            tokens
-              /// aaa
-          requiredKeyword: required
-          keyword: final
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1153,11 +1154,11 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
             /// aaa
-        keyword: final
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: a
@@ -1209,13 +1210,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: FunctionTypedFormalParameter
-        returnType: NamedType
+      parameter: RegularFormalParameter
+        type: NamedType
           name: int
         name: it
-        parameters: FormalParameterList
-          leftParenthesis: (
-          rightParenthesis: )
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
@@ -1238,8 +1240,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: const
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: const
         type: NamedType
           name: int
         name: it
@@ -1267,7 +1269,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
         type: NamedType
           name: int
@@ -1296,9 +1298,9 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
-        keyword: final
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: it
@@ -1327,7 +1329,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
         type: NamedType
           name: int
@@ -1354,9 +1356,9 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
-        keyword: var
+        constFinalOrVarKeyword: var
         type: NamedType
           name: int
         name: it
@@ -1382,8 +1384,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: it
@@ -1410,8 +1412,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: it
@@ -1437,8 +1439,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         name: it
       rightParenthesis: )
   body: BlockClassBody
@@ -1463,8 +1465,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         name: it
       rightParenthesis: )
   body: BlockClassBody
@@ -1488,7 +1490,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         requiredKeyword: required
         type: NamedType
           name: int
@@ -1515,7 +1517,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -1541,8 +1543,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: var
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: var
         name: it
       rightParenthesis: )
   body: BlockClassBody
@@ -1567,8 +1569,8 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: var
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: var
         name: it
       rightParenthesis: )
   body: BlockClassBody
@@ -1593,14 +1595,14 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-          name: it
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1626,14 +1628,14 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-          name: it
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1658,18 +1660,16 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: a
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: b
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1695,18 +1695,16 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: a
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: b
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1731,18 +1729,16 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: b
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: a
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: b
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1767,14 +1763,14 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-          name: it
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: ]
       rightParenthesis: )
   body: BlockClassBody
@@ -1800,14 +1796,14 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-          name: it
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: ]
       rightParenthesis: )
   body: BlockClassBody
@@ -1832,18 +1828,16 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: a
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: b
       rightDelimiter: ]
       rightParenthesis: )
   body: BlockClassBody
@@ -1869,18 +1863,16 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: a
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: b
       rightDelimiter: ]
       rightParenthesis: )
   body: BlockClassBody
@@ -1905,12 +1897,11 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: it
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: it
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1936,12 +1927,11 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: it
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: it
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1966,18 +1956,16 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: a
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: b
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -2002,18 +1990,16 @@ ExtensionTypeDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: a
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: b
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: a
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: b
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -2037,7 +2023,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -2064,7 +2050,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -2090,17 +2076,16 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: a
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: b
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -2125,17 +2110,16 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: a
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: b
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -2159,17 +2143,16 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: a
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: b
       rightDelimiter: ]
       rightParenthesis: )
   body: BlockClassBody
@@ -2194,17 +2177,16 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: a
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+        name: b
       rightDelimiter: ]
       rightParenthesis: )
   body: BlockClassBody
@@ -2228,11 +2210,11 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: a
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: b
@@ -2259,11 +2241,11 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: a
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: b
@@ -2289,7 +2271,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: A
@@ -2315,7 +2297,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         metadata
           Annotation
             atSign: @
@@ -2391,7 +2373,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: it
       rightParenthesis: )
   body: BlockClassBody
@@ -2416,7 +2398,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: it
       rightParenthesis: )
   body: BlockClassBody
@@ -2440,7 +2422,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         metadata
           Annotation
             atSign: @
@@ -2495,7 +2477,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -2522,7 +2504,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -2581,7 +2563,7 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -2615,7 +2597,7 @@ ExtensionTypeDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -2644,7 +2626,7 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -2670,7 +2652,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -2698,7 +2680,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -2729,7 +2711,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it
@@ -2768,7 +2750,7 @@ ExtensionTypeDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: it

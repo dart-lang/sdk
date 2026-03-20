@@ -172,7 +172,7 @@ ExtensionDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: int
             name: _

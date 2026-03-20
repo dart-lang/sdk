@@ -374,17 +374,16 @@ ConstructorDeclaration
   newKeyword: new
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: int
       name: x
     leftDelimiter: {
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        requiredKeyword: required
-        type: NamedType
-          name: String
-        name: y
+    parameter: RegularFormalParameter
+      requiredKeyword: required
+      type: NamedType
+        name: String
+      name: y
     rightDelimiter: }
     rightParenthesis: )
   body: EmptyFunctionBody
@@ -436,14 +435,14 @@ ConstructorDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
-    parameter: DefaultFormalParameter
-      parameter: FieldFormalParameter
-        thisKeyword: this
-        period: .
-        name: f
-      separator: =
-      defaultValue: IntegerLiteral
-        literal: 0
+    parameter: FieldFormalParameter
+      thisKeyword: this
+      period: .
+      name: f
+      defaultClause: FormalParameterDefaultClause
+        separator: =
+        value: IntegerLiteral
+          literal: 0
     rightDelimiter: ]
     rightParenthesis: )
   body: EmptyFunctionBody
@@ -658,17 +657,18 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: FunctionTypedFormalParameter
-      returnType: NamedType
+    parameter: RegularFormalParameter
+      type: NamedType
         name: int
       name: a
-      parameters: FormalParameterList
-        leftParenthesis: (
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: String
-          name: x
-        rightParenthesis: )
+      functionTypedSuffix: FunctionTypedFormalParameterSuffix
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: String
+            name: x
+          rightParenthesis: )
     rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
@@ -693,20 +693,21 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: FunctionTypedFormalParameter
+    parameter: RegularFormalParameter
       documentationComment: Comment
         tokens
           /// aaa
-      returnType: NamedType
+      type: NamedType
         name: int
       name: a
-      parameters: FormalParameterList
-        leftParenthesis: (
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: String
-          name: x
-        rightParenthesis: )
+      functionTypedSuffix: FunctionTypedFormalParameterSuffix
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: String
+            name: x
+          rightParenthesis: )
     rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
@@ -731,18 +732,19 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: FunctionTypedFormalParameter
-      keyword: final
-      returnType: NamedType
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: final
+      type: NamedType
         name: int
       name: a
-      parameters: FormalParameterList
-        leftParenthesis: (
-        parameter: SimpleFormalParameter
-          type: NamedType
-            name: String
-          name: x
-        rightParenthesis: )
+      functionTypedSuffix: FunctionTypedFormalParameterSuffix
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: String
+            name: x
+          rightParenthesis: )
     rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
@@ -764,8 +766,8 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: const
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: const
       type: NamedType
         name: int
       name: a
@@ -793,7 +795,7 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       documentationComment: Comment
         tokens
           /// aaa
@@ -821,8 +823,8 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: final
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: final
       type: NamedType
         name: int
       name: a
@@ -1124,15 +1126,15 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          keyword: final
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1156,15 +1158,15 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          keyword: var
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: var
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1188,16 +1190,16 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          keyword: final
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1224,19 +1226,19 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          documentationComment: Comment
-            tokens
-              /// aaa
-          requiredKeyword: required
-          keyword: final
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1260,16 +1262,16 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          keyword: var
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: var
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1293,15 +1295,15 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          keyword: final
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: ]
       rightParenthesis: )
   body: BlockClassBody
@@ -1325,15 +1327,15 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          keyword: var
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: var
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: ]
       rightParenthesis: )
   body: BlockClassBody
@@ -1356,17 +1358,18 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: FunctionTypedFormalParameter
-        returnType: NamedType
+      parameter: RegularFormalParameter
+        type: NamedType
           name: int
         name: a
-        parameters: FormalParameterList
-          leftParenthesis: (
-          parameter: SimpleFormalParameter
-            type: NamedType
-              name: String
-            name: x
-          rightParenthesis: )
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: String
+              name: x
+            rightParenthesis: )
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
@@ -1388,18 +1391,19 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: FunctionTypedFormalParameter
-        keyword: final
-        returnType: NamedType
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
+        type: NamedType
           name: int
         name: a
-        parameters: FormalParameterList
-          leftParenthesis: (
-          parameter: SimpleFormalParameter
-            type: NamedType
-              name: String
-            name: x
-          rightParenthesis: )
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: String
+              name: x
+            rightParenthesis: )
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
@@ -1424,21 +1428,22 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: FunctionTypedFormalParameter
+      parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
             /// aaa
-        keyword: final
-        returnType: NamedType
+        constFinalOrVarKeyword: final
+        type: NamedType
           name: int
         name: a
-        parameters: FormalParameterList
-          leftParenthesis: (
-          parameter: SimpleFormalParameter
-            type: NamedType
-              name: String
-            name: x
-          rightParenthesis: )
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: String
+              name: x
+            rightParenthesis: )
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
@@ -1460,18 +1465,19 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: FunctionTypedFormalParameter
-        keyword: var
-        returnType: NamedType
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: var
+        type: NamedType
           name: int
         name: a
-        parameters: FormalParameterList
-          leftParenthesis: (
-          parameter: SimpleFormalParameter
-            type: NamedType
-              name: String
-            name: x
-          rightParenthesis: )
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: String
+              name: x
+            rightParenthesis: )
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
@@ -1493,8 +1499,8 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: const
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: const
         type: NamedType
           name: int
         name: a
@@ -1519,8 +1525,8 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: a
@@ -1548,11 +1554,11 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
             /// aaa
-        keyword: final
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: a
@@ -1577,8 +1583,8 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: var
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: var
         type: NamedType
           name: int
         name: a
@@ -1604,7 +1610,7 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
-        keyword: final
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         thisKeyword: this
@@ -1632,7 +1638,7 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
-        keyword: var
+        constFinalOrVarKeyword: var
         type: NamedType
           name: int
         thisKeyword: this
@@ -1662,13 +1668,12 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          covariantKeyword: covariant
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: it
+      parameter: RegularFormalParameter
+        covariantKeyword: covariant
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: it
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1694,14 +1699,13 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          covariantKeyword: covariant
-          requiredKeyword: required
-          keyword: final
-          type: NamedType
-            name: int
-          name: it
+      parameter: RegularFormalParameter
+        covariantKeyword: covariant
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: it
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1725,14 +1729,13 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          covariantKeyword: covariant
-          requiredKeyword: required
-          keyword: var
-          type: NamedType
-            name: int
-          name: it
+      parameter: RegularFormalParameter
+        covariantKeyword: covariant
+        requiredKeyword: required
+        constFinalOrVarKeyword: var
+        type: NamedType
+          name: int
+        name: it
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1756,12 +1759,11 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: a
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: a
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1785,14 +1787,13 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          covariantKeyword: covariant
-          requiredKeyword: required
-          keyword: var
-          type: NamedType
-            name: int
-          name: a
+      parameter: RegularFormalParameter
+        covariantKeyword: covariant
+        requiredKeyword: required
+        constFinalOrVarKeyword: var
+        type: NamedType
+          name: int
+        name: a
       rightDelimiter: }
       rightParenthesis: )
   body: BlockClassBody
@@ -1817,7 +1818,7 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
         type: NamedType
           name: int
@@ -1845,9 +1846,9 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
-        keyword: final
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: it
@@ -1872,9 +1873,9 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
-        keyword: var
+        constFinalOrVarKeyword: var
         type: NamedType
           name: int
         name: it
@@ -1899,7 +1900,7 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         requiredKeyword: required
         type: NamedType
           name: int
@@ -2033,7 +2034,7 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: SuperFormalParameter
-        keyword: final
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         superKeyword: super
@@ -2061,7 +2062,7 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: SuperFormalParameter
-        keyword: var
+        constFinalOrVarKeyword: var
         type: NamedType
           name: int
         superKeyword: super
@@ -2233,7 +2234,7 @@ MethodDeclaration
   name: foo @16
   parameters: FormalParameterList
     leftParenthesis: ( @20 <synthetic>
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: <empty> @20 <synthetic>
     rightParenthesis: ) @20 <synthetic>
   body: BlockFunctionBody
@@ -2260,7 +2261,7 @@ MethodDeclaration
   name: foo @16
   parameters: FormalParameterList
     leftParenthesis: ( @19
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: a @21
     rightParenthesis: ) @23
   body: BlockFunctionBody
@@ -2287,7 +2288,7 @@ MethodDeclaration
   name: foo @16
   parameters: FormalParameterList
     leftParenthesis: ( @19
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: a @21
     rightParenthesis: ) @23
   body: BlockFunctionBody
@@ -2314,7 +2315,7 @@ MethodDeclaration
   name: foo @16
   parameters: FormalParameterList
     leftParenthesis: ( @19
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: a @20
     rightParenthesis: ) @27
   body: BlockFunctionBody
@@ -2341,7 +2342,7 @@ MethodDeclaration
   name: foo @16
   parameters: FormalParameterList
     leftParenthesis: ( @19
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: <empty> @20 <synthetic>
     rightParenthesis: ) @20
   body: BlockFunctionBody

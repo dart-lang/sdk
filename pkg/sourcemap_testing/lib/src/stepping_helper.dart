@@ -369,8 +369,8 @@ List<_DartStackTraceDataEntry> _extractStackTrace(
       continue;
     }
     Match m = ms.first;
-    int l = int.parse(m.group(1)!);
-    int c = int.parse(m.group(2)!);
+    int l = int.parse(m[1]!);
+    int c = int.parse(m[2]!);
     SourceMapSpan? span = _getColumnOrPredecessor(sourceMap, l, c);
     if (span?.start == null) {
       result.add(

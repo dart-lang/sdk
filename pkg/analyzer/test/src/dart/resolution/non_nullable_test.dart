@@ -259,15 +259,16 @@ void f3({void p3()?}) {}
     assertResolvedNodeText(p1, r'''
 FormalParameterList
   leftParenthesis: (
-  parameter: FunctionTypedFormalParameter
-    returnType: NamedType
+  parameter: RegularFormalParameter
+    type: NamedType
       name: void
       element: <null>
       type: void
     name: p1
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
+    functionTypedSuffix: FunctionTypedFormalParameterSuffix
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
     declaredFragment: <testLibraryFragment> p1@13
       element: isPublic
         type: void Function()
@@ -278,16 +279,17 @@ FormalParameterList
     assertResolvedNodeText(p2, r'''
 FormalParameterList
   leftParenthesis: (
-  parameter: FunctionTypedFormalParameter
-    returnType: NamedType
+  parameter: RegularFormalParameter
+    type: NamedType
       name: void
       element: <null>
       type: void
     name: p2
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    question: ?
+    functionTypedSuffix: FunctionTypedFormalParameterSuffix
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      question: ?
     declaredFragment: <testLibraryFragment> p2@35
       element: isPublic
         type: void Function()?
@@ -299,20 +301,17 @@ FormalParameterList
 FormalParameterList
   leftParenthesis: (
   leftDelimiter: {
-  parameter: DefaultFormalParameter
-    parameter: FunctionTypedFormalParameter
-      returnType: NamedType
-        name: void
-        element: <null>
-        type: void
-      name: p3
-      parameters: FormalParameterList
+  parameter: RegularFormalParameter
+    type: NamedType
+      name: void
+      element: <null>
+      type: void
+    name: p3
+    functionTypedSuffix: FunctionTypedFormalParameterSuffix
+      formalParameters: FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredFragment: <testLibraryFragment> p3@59
-        element: isPublic
-          type: void Function()?
     declaredFragment: <testLibraryFragment> p3@59
       element: isPublic
         type: void Function()?
@@ -345,9 +344,10 @@ FormalParameterList
     thisKeyword: this
     period: .
     name: f1
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
+    functionTypedSuffix: FunctionTypedFormalParameterSuffix
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
     declaredFragment: <testLibraryFragment> f1@57
       element: isFinal isPublic
         type: void Function()
@@ -367,10 +367,11 @@ FormalParameterList
     thisKeyword: this
     period: .
     name: f2
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    question: ?
+    functionTypedSuffix: FunctionTypedFormalParameterSuffix
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      question: ?
     declaredFragment: <testLibraryFragment> f2@81
       element: isFinal isPublic
         type: void Function()?
@@ -383,23 +384,19 @@ FormalParameterList
 FormalParameterList
   leftParenthesis: (
   leftDelimiter: {
-  parameter: DefaultFormalParameter
-    parameter: FieldFormalParameter
-      type: NamedType
-        name: void
-        element: <null>
-        type: void
-      thisKeyword: this
-      period: .
-      name: f3
-      parameters: FormalParameterList
+  parameter: FieldFormalParameter
+    type: NamedType
+      name: void
+      element: <null>
+      type: void
+    thisKeyword: this
+    period: .
+    name: f3
+    functionTypedSuffix: FunctionTypedFormalParameterSuffix
+      formalParameters: FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredFragment: <testLibraryFragment> f3@107
-        element: isFinal isPublic
-          type: void Function()?
-          field: <testLibrary>::@class::A::@field::f3
     declaredFragment: <testLibraryFragment> f3@107
       element: isFinal isPublic
         type: void Function()?
@@ -429,15 +426,16 @@ f() {
     assertResolvedNodeText(p1, r'''
 FormalParameterList
   leftParenthesis: (
-  parameter: FunctionTypedFormalParameter
-    returnType: NamedType
+  parameter: RegularFormalParameter
+    type: NamedType
       name: void
       element: <null>
       type: void
     name: p1
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
+    functionTypedSuffix: FunctionTypedFormalParameterSuffix
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
     declaredFragment: <testLibraryFragment> p1@21
       element: isPublic
         type: void Function()
@@ -448,16 +446,17 @@ FormalParameterList
     assertResolvedNodeText(p2, r'''
 FormalParameterList
   leftParenthesis: (
-  parameter: FunctionTypedFormalParameter
-    returnType: NamedType
+  parameter: RegularFormalParameter
+    type: NamedType
       name: void
       element: <null>
       type: void
     name: p2
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    question: ?
+    functionTypedSuffix: FunctionTypedFormalParameterSuffix
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      question: ?
     declaredFragment: <testLibraryFragment> p2@45
       element: isPublic
         type: void Function()?
@@ -469,20 +468,17 @@ FormalParameterList
 FormalParameterList
   leftParenthesis: (
   leftDelimiter: {
-  parameter: DefaultFormalParameter
-    parameter: FunctionTypedFormalParameter
-      returnType: NamedType
-        name: void
-        element: <null>
-        type: void
-      name: p3
-      parameters: FormalParameterList
+  parameter: RegularFormalParameter
+    type: NamedType
+      name: void
+      element: <null>
+      type: void
+    name: p3
+    functionTypedSuffix: FunctionTypedFormalParameterSuffix
+      formalParameters: FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredFragment: <testLibraryFragment> p3@71
-        element: isPublic
-          type: void Function()?
     declaredFragment: <testLibraryFragment> p3@71
       element: isPublic
         type: void Function()?

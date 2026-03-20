@@ -735,16 +735,16 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          keyword: final
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockEnumBody
@@ -775,19 +775,19 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          documentationComment: Comment
-            tokens
-              /// aaa
-          requiredKeyword: required
-          keyword: final
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockEnumBody
@@ -817,21 +817,22 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: FunctionTypedFormalParameter
+      parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
             /// aaa
-        keyword: final
-        returnType: NamedType
+        constFinalOrVarKeyword: final
+        type: NamedType
           name: int
         name: a
-        parameters: FormalParameterList
-          leftParenthesis: (
-          parameter: SimpleFormalParameter
-            type: NamedType
-              name: String
-            name: x
-          rightParenthesis: )
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: String
+              name: x
+            rightParenthesis: )
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
@@ -857,8 +858,8 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: a
@@ -890,11 +891,11 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
             /// aaa
-        keyword: final
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: a
@@ -924,7 +925,7 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
         type: NamedType
           name: int
@@ -962,9 +963,9 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
-        keyword: final
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: it
@@ -999,9 +1000,9 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
-        keyword: var
+        constFinalOrVarKeyword: var
         type: NamedType
           name: int
         name: it

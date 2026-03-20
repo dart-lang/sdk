@@ -52,13 +52,13 @@ Future<void> main() async {
       while (true) {
         RegExpMatch? match = tagParser.firstMatch(line);
         if (match != null) {
-          int value = int.parse(match.group(2)!);
+          int value = int.parse(match[2]!);
           int end = value + 1;
-          if (uses8Tags(match.group(1)!)) {
+          if (uses8Tags(match[1]!)) {
             end = value + 8;
           }
           for (int j = value; j < end; j++) {
-            vmTagToName[j] = match.group(1)!;
+            vmTagToName[j] = match[1]!;
           }
         }
         if (!vmTagLines[i].trim().endsWith(r"\")) {
@@ -71,7 +71,7 @@ Future<void> main() async {
       while (true) {
         RegExpMatch? match = constantTagParser.firstMatch(line);
         if (match != null) {
-          vmConstantTagToName[int.parse(match.group(2)!)] = match.group(1)!;
+          vmConstantTagToName[int.parse(match[2]!)] = match[1]!;
         }
         if (vmTagLines[i].trim().startsWith("}")) {
           break;

@@ -298,14 +298,14 @@ CompilationUnit
         parameters: FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
-          parameter: DefaultFormalParameter
-            parameter: SimpleFormalParameter
-              type: NamedType
-                name: int
-              name: with
-            separator: :
-            defaultValue: IntegerLiteral
-              literal: 0
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: with
+            defaultClause: FormalParameterDefaultClause
+              separator: :
+              value: IntegerLiteral
+                literal: 0
           rightDelimiter: }
           rightParenthesis: )
         body: BlockFunctionBody
@@ -362,13 +362,14 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: FunctionTypedFormalParameter
+          parameter: RegularFormalParameter
             name: <empty> <synthetic>
-            parameters: FormalParameterList
-              leftParenthesis: (
-              parameter: SimpleFormalParameter
-                name: enum
-              rightParenthesis: )
+            functionTypedSuffix: FunctionTypedFormalParameterSuffix
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                parameter: RegularFormalParameter
+                  name: enum
+                rightParenthesis: )
           rightParenthesis: )
         body: EmptyFunctionBody
           semicolon: ;

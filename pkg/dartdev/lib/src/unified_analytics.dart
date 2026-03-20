@@ -79,7 +79,7 @@ String sanitizeStacktrace(dynamic st, {bool shorten = true}) {
   iter = iter.toList().reversed;
 
   for (var match in iter) {
-    var replacement = match.group(1)!;
+    var replacement = match[1]!;
     str =
         str.substring(0, match.start) + replacement + str.substring(match.end);
   }

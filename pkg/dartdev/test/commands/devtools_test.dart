@@ -241,7 +241,7 @@ Future<void> main() async {
             if (event.contains(dartVMServiceRegExp)) {
               await sub.cancel();
               serviceUriCompleter.complete(
-                dartVMServiceRegExp.firstMatch(event)!.group(1),
+                dartVMServiceRegExp.firstMatch(event)![1],
               );
             }
           });

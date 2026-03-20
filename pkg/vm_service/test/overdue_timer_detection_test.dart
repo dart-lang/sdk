@@ -41,7 +41,7 @@ final tests = <IsolateTest>[
           r'A timer should have fired (\d+) ms ago, but just fired now.',
         );
         final millisecondsOverdueAsString =
-            detailsRegex.firstMatch(event.details!)!.group(1)!;
+            detailsRegex.firstMatch(event.details!)![1]!;
         expect(
           int.parse(millisecondsOverdueAsString),
           greaterThanOrEqualTo(100),
