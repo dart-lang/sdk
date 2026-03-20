@@ -171,15 +171,14 @@ class IncrementalCompiler {
     }
     uriToSource.addAll(candidate.uriToSource);
 
-    _lastKnownGood =
-        lastKnownGood = new IncrementalCompilerResult(
-          new Component(
-            libraries: combined.values.toList(),
-            uriToSource: uriToSource,
-          )..setMainMethodAndMode(candidate.mainMethod?.reference, true),
-          classHierarchy: result.classHierarchy,
-          coreTypes: result.coreTypes,
-        );
+    _lastKnownGood = lastKnownGood = new IncrementalCompilerResult(
+      new Component(
+        libraries: combined.values.toList(),
+        uriToSource: uriToSource,
+      )..setMainMethodAndMode(candidate.mainMethod?.reference, true),
+      classHierarchy: result.classHierarchy,
+      coreTypes: result.coreTypes,
+    );
     for (final repo in candidate.metadata.values) {
       lastKnownGood.component.addMetadataRepository(repo);
     }

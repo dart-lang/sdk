@@ -41,16 +41,15 @@ Future<void> shakeAndRun(
     target: target,
   );
 
-  List<Class> messageClasses =
-      component.libraries
-          .expand(
-            (lib) => lib.classes.where(
-              (klass) =>
-                  !klass.isEliminatedMixin &&
-                  _hasGeneratedMessageSuper(klass.superclass),
-            ),
-          )
-          .toList();
+  List<Class> messageClasses = component.libraries
+      .expand(
+        (lib) => lib.classes.where(
+          (klass) =>
+              !klass.isEliminatedMixin &&
+              _hasGeneratedMessageSuper(klass.superclass),
+        ),
+      )
+      .toList();
 
   globalTypeFlow.transformComponent(
     VmTarget(TargetFlags()),

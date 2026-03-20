@@ -55,10 +55,9 @@ class DirectCallMetadata {
   (Member, int)? get targetClosure => isClosure ? (_member, _closureId) : null;
 
   @override
-  String toString() =>
-      isClosure
-          ? 'closure ${_closureId} in ${_member.toText(astTextStrategyForTesting)}'
-          : '${_member.toText(astTextStrategyForTesting)}${checkReceiverForNull ? '??' : ''}';
+  String toString() => isClosure
+      ? 'closure ${_closureId} in ${_member.toText(astTextStrategyForTesting)}'
+      : '${_member.toText(astTextStrategyForTesting)}${checkReceiverForNull ? '??' : ''}';
 }
 
 /// Repository for [DirectCallMetadata].
@@ -86,14 +85,16 @@ class DirectCallMetadataRepository
 
   @override
   DirectCallMetadata readFromBinary(Node node, BinarySource source) {
-    final memberReference =
-        source.readNullableCanonicalNameReference()?.reference;
+    final memberReference = source
+        .readNullableCanonicalNameReference()
+        ?.reference;
     if (memberReference == null) {
       throw 'DirectCallMetadata should have a non-null member';
     }
     final flags = source.readByte();
-    final closureId =
-        (flags & DirectCallMetadata.flagClosure) != 0 ? source.readUInt30() : 0;
+    final closureId = (flags & DirectCallMetadata.flagClosure) != 0
+        ? source.readUInt30()
+        : 0;
     return DirectCallMetadata._(memberReference, flags, closureId);
   }
 }

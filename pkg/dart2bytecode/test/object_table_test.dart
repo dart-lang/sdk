@@ -16,13 +16,17 @@ main() {
   late Supertype objectSupertype;
   late ObjectTable objectTable;
 
-  Class addClass(Library lib, String name,
-      [List<TypeParameter> typeParameters = const []]) {
+  Class addClass(
+    Library lib,
+    String name, [
+    List<TypeParameter> typeParameters = const [],
+  ]) {
     final cls = Class(
-        name: name,
-        supertype: objectSupertype,
-        typeParameters: typeParameters,
-        fileUri: lib.fileUri);
+      name: name,
+      supertype: objectSupertype,
+      typeParameters: typeParameters,
+      fileUri: lib.fileUri,
+    );
     cls.parent = lib;
     lib.addClass(cls);
     return cls;
@@ -35,13 +39,19 @@ main() {
     objectSupertype = coreTypes.objectClass.asThisSupertype;
 
     // Add test libraries.
-    lib1 = Library(Uri.parse('org-dartlang:///test1.dart'),
-        name: 'lib1', fileUri: Uri.parse('file:///test1.dart'));
+    lib1 = Library(
+      Uri.parse('org-dartlang:///test1.dart'),
+      name: 'lib1',
+      fileUri: Uri.parse('file:///test1.dart'),
+    );
     lib1.parent = component;
     component.libraries.add(lib1);
 
-    lib2 = Library(Uri.parse('org-dartlang:///test2.dart'),
-        name: 'lib2', fileUri: Uri.parse('file:///test2.dart'));
+    lib2 = Library(
+      Uri.parse('org-dartlang:///test2.dart'),
+      name: 'lib2',
+      fileUri: Uri.parse('file:///test2.dart'),
+    );
     lib2.parent = component;
     component.libraries.add(lib2);
 
@@ -86,10 +96,12 @@ main() {
   });
 
   test('simple-types', () {
-    final h1a = objectTable
-        .getHandle(InterfaceType(coreTypes.intClass, Nullability.nonNullable))!;
-    final h1b = objectTable
-        .getHandle(InterfaceType(coreTypes.intClass, Nullability.nonNullable))!;
+    final h1a = objectTable.getHandle(
+      InterfaceType(coreTypes.intClass, Nullability.nonNullable),
+    )!;
+    final h1b = objectTable.getHandle(
+      InterfaceType(coreTypes.intClass, Nullability.nonNullable),
+    )!;
     final h2a = objectTable.getHandle(const DynamicType())!;
     final h2b = objectTable.getHandle(DynamicType())!;
     Expect.identical(h1a, h1b);
@@ -98,10 +110,11 @@ main() {
     Expect.equals(true, h1a.isCacheable);
     Expect.equals(true, h2a.isCacheable);
     Expect.equals(false, h1a.shouldBeIncludedIntoIndexTable); // 2 uses
-    objectTable.getHandle(InterfaceType(
-        coreTypes.listClass,
-        Nullability.nonNullable,
-        [InterfaceType(coreTypes.intClass, Nullability.nonNullable)]));
+    objectTable.getHandle(
+      InterfaceType(coreTypes.listClass, Nullability.nonNullable, [
+        InterfaceType(coreTypes.intClass, Nullability.nonNullable),
+      ]),
+    );
     Expect.equals(true, h1a.shouldBeIncludedIntoIndexTable); // 3 uses
   });
 }

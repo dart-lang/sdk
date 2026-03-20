@@ -221,7 +221,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final clazz = component.single;
         final mustBeTransformed =
             (transformCompoundsInvalid.contains(clazz) ||
-                transformCompounds.contains(clazz));
+            transformCompounds.contains(clazz));
         if (!mustBeTransformed) {
           compoundCache[clazz] = _compoundAnnotatedNativeTypeCfe(clazz);
         } else {
@@ -431,16 +431,17 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
       return p.isGetter;
     });
-    final compoundMembers = [...node.fields, ...getterSetters]..sort((m1, m2) {
-      if (m1.fileOffset == m2.fileOffset) {
-        // Getter and setter have same offset, getter comes first.
-        if (m1 is Procedure) {
-          return m1.isGetter ? -1 : 1;
+    final compoundMembers = [...node.fields, ...getterSetters]
+      ..sort((m1, m2) {
+        if (m1.fileOffset == m2.fileOffset) {
+          // Getter and setter have same offset, getter comes first.
+          if (m1 is Procedure) {
+            return m1.isGetter ? -1 : 1;
+          }
+          // Generated fields with fileOffset identical to class, fallthrough.
         }
-        // Generated fields with fileOffset identical to class, fallthrough.
-      }
-      return m1.fileOffset - m2.fileOffset;
-    });
+        return m1.fileOffset - m2.fileOffset;
+      });
     return compoundMembers;
   }
 
@@ -757,8 +758,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
 
     final packingAnnotations = _getPackedAnnotations(node);
-    final packing =
-        (packingAnnotations.isNotEmpty) ? packingAnnotations.first : null;
+    final packing = (packingAnnotations.isNotEmpty)
+        ? packingAnnotations.first
+        : null;
 
     final compoundType = () {
       if (types.whereType<InvalidNativeTypeCfe>().isNotEmpty) {
@@ -946,9 +948,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
     }
     if (compoundClass.superclass == structClass) {
-      final packingConstant =
-          layoutConstant.fieldValues[ffiStructLayoutPackingField
-              .fieldReference];
+      final packingConstant = layoutConstant
+          .fieldValues[ffiStructLayoutPackingField.fieldReference];
       if (packingConstant is IntConstant) {
         return StructNativeTypeCfe(
           compoundClass,
@@ -966,8 +967,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     List<NativeTypeCfe> types,
     int? packing,
   ) {
-    List<Constant> constants =
-        types.map((t) => t.generateConstant(this)).toList();
+    List<Constant> constants = types
+        .map((t) => t.generateConstant(this))
+        .toList();
 
     node.addAnnotation(
       ConstantExpression(
@@ -979,8 +981,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                   InterfaceType(typeClass, Nullability.nonNullable),
                   constants,
                 ),
-                ffiStructLayoutPackingField.fieldReference:
-                    packing == null ? NullConstant() : IntConstant(packing),
+                ffiStructLayoutPackingField.fieldReference: packing == null
+                    ? NullConstant()
+                    : IntConstant(packing),
               }),
         }),
         InterfaceType(pragmaClass, Nullability.nonNullable, []),
@@ -1005,11 +1008,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           pragmaName.fieldReference: StringConstant(vmFfiAbiSpecificIntMapping),
           pragmaOptions.fieldReference:
               InstanceConstant(ffiAbiSpecificMappingClass.reference, [], {
-                ffiAbiSpecificMappingNativeTypesField
-                    .fieldReference: ListConstant(
-                  InterfaceType(typeClass, Nullability.nullable),
-                  constants,
-                ),
+                ffiAbiSpecificMappingNativeTypesField.fieldReference:
+                    ListConstant(
+                      InterfaceType(typeClass, Nullability.nullable),
+                      constants,
+                    ),
               }),
         }),
         InterfaceType(pragmaClass, Nullability.nonNullable, []),
@@ -1139,19 +1142,20 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final name = Name("#sizeOf");
     final getterReference = indexedClass?.lookupGetterReference(name);
 
-    final Procedure getter = Procedure(
-      name,
-      ProcedureKind.Getter,
-      FunctionNode(
-        ReturnStatement(runtimeBranchOnLayout(sizes)),
-        returnType: coreTypes.intNonNullableRawType,
-      ),
-      fileUri: compound.fileUri,
-      reference: getterReference,
-      isStatic: true,
-    )
-    ..fileOffset = compound.fileOffset
-    ..isSynthetic = true;
+    final Procedure getter =
+        Procedure(
+            name,
+            ProcedureKind.Getter,
+            FunctionNode(
+              ReturnStatement(runtimeBranchOnLayout(sizes)),
+              returnType: coreTypes.intNonNullableRawType,
+            ),
+            fileUri: compound.fileUri,
+            reference: getterReference,
+            isStatic: true,
+          )
+          ..fileOffset = compound.fileOffset
+          ..isSynthetic = true;
     addPragmaPreferInline(getter);
     compound.addProcedure(getter);
   }

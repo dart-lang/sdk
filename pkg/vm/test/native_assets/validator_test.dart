@@ -34,8 +34,8 @@ native-assets:
   test('not yaml', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-      previousErrorHandler:
-          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+      previousErrorHandler: (message) =>
+          errors.add(message as NativeAssetsDiagnosticMessage),
     );
     final yamlString = '&&&';
     final result = NativeAssetsValidator(
@@ -49,8 +49,8 @@ native-assets:
   test('no format-version', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-      previousErrorHandler:
-          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+      previousErrorHandler: (message) =>
+          errors.add(message as NativeAssetsDiagnosticMessage),
     );
 
     final yamlString = '''
@@ -69,8 +69,8 @@ native-assets:
   test('wrong format-version', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-      previousErrorHandler:
-          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+      previousErrorHandler: (message) =>
+          errors.add(message as NativeAssetsDiagnosticMessage),
     );
     final yamlString = '''
 format-version: [9000, 0, 1]
@@ -92,8 +92,8 @@ native-assets:
   test('no native-assets', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-      previousErrorHandler:
-          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+      previousErrorHandler: (message) =>
+          errors.add(message as NativeAssetsDiagnosticMessage),
     );
     final yamlString = '''
 format-version: [1, 0, 0]
@@ -109,8 +109,8 @@ format-version: [1, 0, 0]
   test('invalid target warning', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-      previousErrorHandler:
-          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+      previousErrorHandler: (message) =>
+          errors.add(message as NativeAssetsDiagnosticMessage),
     );
     final yamlString = '''
 format-version: [1,0,0]
@@ -138,8 +138,8 @@ native-assets:
   test('invalid path', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-      previousErrorHandler:
-          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+      previousErrorHandler: (message) =>
+          errors.add(message as NativeAssetsDiagnosticMessage),
     );
     final yamlString = '''
 format-version: [1,0,0]
@@ -161,8 +161,8 @@ native-assets:
   test('invalid absolute path', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-      previousErrorHandler:
-          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+      previousErrorHandler: (message) =>
+          errors.add(message as NativeAssetsDiagnosticMessage),
     );
     final yamlString = '''
 format-version: [1,0,0]
@@ -186,8 +186,8 @@ native-assets:
   test('invalid process path', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-      previousErrorHandler:
-          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+      previousErrorHandler: (message) =>
+          errors.add(message as NativeAssetsDiagnosticMessage),
     );
     final yamlString = '''
 format-version: [1,0,0]

@@ -390,17 +390,18 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     previousErrorHandler: errorPrinter.call,
   );
 
-  final Uri? nativeAssetsUri =
-      nativeAssetsPath == null ? null : resolveInputUri(nativeAssetsPath);
+  final Uri? nativeAssetsUri = nativeAssetsPath == null
+      ? null
+      : resolveInputUri(nativeAssetsPath);
 
-  final Uri? recordedUsagesUri =
-      recordedUsagesFile == null ? null : resolveInputUri(recordedUsagesFile);
+  final Uri? recordedUsagesUri = recordedUsagesFile == null
+      ? null
+      : resolveInputUri(recordedUsagesFile);
 
   final String? dynamicInterfaceFilePath = options['dynamic-interface'];
-  final Uri? dynamicInterfaceUri =
-      dynamicInterfaceFilePath == null
-          ? null
-          : resolveInputUri(dynamicInterfaceFilePath);
+  final Uri? dynamicInterfaceUri = dynamicInterfaceFilePath == null
+      ? null
+      : resolveInputUri(dynamicInterfaceFilePath);
   final String? dumpDetailedDynamicInterface =
       options['dump-detailed-dynamic-interface'];
 
@@ -414,24 +415,23 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final List<Uri> additionalSources = sources.map(resolveInputUri).toList();
 
-  final CompilerOptions compilerOptions =
-      new CompilerOptions()
-        ..sdkSummary = platformKernelUri
-        ..fileSystem = fileSystem
-        ..additionalDills = additionalDills
-        ..packagesFileUri = packagesUri
-        ..explicitExperimentalFlags = parseExperimentalFlags(
-          parseExperimentalArguments(experimentalFlags),
-          onError: print,
-        )
-        ..onDiagnostic = (CfeDiagnosticMessage m) {
-          errorDetector(m);
-        }
-        ..embedSourceText = embedSources
-        ..invocationModes = InvocationMode.parseArguments(
-          options['invocation-modes'],
-        )
-        ..verbosity = verbosity;
+  final CompilerOptions compilerOptions = new CompilerOptions()
+    ..sdkSummary = platformKernelUri
+    ..fileSystem = fileSystem
+    ..additionalDills = additionalDills
+    ..packagesFileUri = packagesUri
+    ..explicitExperimentalFlags = parseExperimentalFlags(
+      parseExperimentalArguments(experimentalFlags),
+      onError: print,
+    )
+    ..onDiagnostic = (CfeDiagnosticMessage m) {
+      errorDetector(m);
+    }
+    ..embedSourceText = embedSources
+    ..invocationModes = InvocationMode.parseArguments(
+      options['invocation-modes'],
+    )
+    ..verbosity = verbosity;
 
   compilerOptions.target = createFrontEndTarget(
     targetName,
@@ -681,14 +681,14 @@ Future<KernelCompilationResults> compileToKernel(
     ) async {
       return args.requireMain
           ? await kernelForProgram(
-            args.source!,
-            options,
-            additionalSources: additionalSources,
-          )
+              args.source!,
+              options,
+              additionalSources: additionalSources,
+            )
           : await kernelForModule([
-            args.source!,
-            ...additionalSources,
-          ], options);
+              args.source!,
+              ...additionalSources,
+            ], options);
     });
     usedPackageConfig = await processedOptions.resolvePackagesFileUri();
   }
@@ -935,19 +935,19 @@ class ErrorPrinter {
   }
 
   void printCompilationMessages() {
-    final sortedUris =
-        compilationMessages.keys.toList()..sort((a, b) {
-          // Sort messages without a corresponding uri before the location based
-          // messages, since these related to the whole compilation.
-          if (a != null && b != null) {
-            return '$a'.compareTo('$b');
-          } else if (a != null) {
-            return 1;
-          } else if (b != null) {
-            return -1;
-          }
-          return 0;
-        });
+    final sortedUris = compilationMessages.keys.toList()
+      ..sort((a, b) {
+        // Sort messages without a corresponding uri before the location based
+        // messages, since these related to the whole compilation.
+        if (a != null && b != null) {
+          return '$a'.compareTo('$b');
+        } else if (a != null) {
+          return 1;
+        } else if (b != null) {
+          return -1;
+        }
+        return 0;
+      });
     for (final Uri? sourceUri in sortedUris) {
       for (final CfeDiagnosticMessage message
           in compilationMessages[sourceUri]!) {
@@ -1093,10 +1093,8 @@ Future writeOutputSplitByPackages(
 
         final BinaryPrinter printer = new BinaryPrinter(
           sink,
-          libraryFilter:
-              (lib) =>
-                  packageFor(lib, compilationResults.loadedLibraries) ==
-                  package,
+          libraryFilter: (lib) =>
+              packageFor(lib, compilationResults.loadedLibraries) == package,
         );
         printer.writeComponentFile(component);
 

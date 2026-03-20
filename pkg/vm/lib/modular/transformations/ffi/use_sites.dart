@@ -317,10 +317,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               node.fileOffset,
             ),
             index: VariableGet(indexVar),
-            value:
-                target == abiSpecificIntegerArraySetElemAt
-                    ? node.arguments.positional.last
-                    : null,
+            value: target == abiSpecificIntegerArraySetElemAt
+                ? node.arguments.positional.last
+                : null,
             fileOffset: node.fileOffset,
           ),
         );
@@ -348,14 +347,14 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           typedDataBase: node.arguments.positional[0],
           index:
               (target == abiSpecificIntegerPointerElemAt ||
-                      target == abiSpecificIntegerPointerSetElemAt)
-                  ? node.arguments.positional[1]
-                  : null,
+                  target == abiSpecificIntegerPointerSetElemAt)
+              ? node.arguments.positional[1]
+              : null,
           value:
               (target == abiSpecificIntegerPointerSetValue ||
-                      target == abiSpecificIntegerPointerSetElemAt)
-                  ? node.arguments.positional.last
-                  : null,
+                  target == abiSpecificIntegerPointerSetElemAt)
+              ? node.arguments.positional.last
+              : null,
           fileOffset: node.fileOffset,
         );
       }
@@ -651,15 +650,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         final replacement = _replaceNativeCallableListenerConstructor(node);
 
-        final compoundClasses =
-            funcType.positionalParameters
-                .whereType<InterfaceType>()
-                .map((t) => t.classNode)
-                .where(
-                  (c) =>
-                      c.superclass == structClass || c.superclass == unionClass,
-                )
-                .toList();
+        final compoundClasses = funcType.positionalParameters
+            .whereType<InterfaceType>()
+            .map((t) => t.classNode)
+            .where(
+              (c) => c.superclass == structClass || c.superclass == unionClass,
+            )
+            .toList();
         return invokeCompoundConstructors(replacement, compoundClasses);
       } else if (target == allocateMethod) {
         if (_isMissingArguments(node)) {
@@ -1322,14 +1319,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       );
     }
 
-    final compoundClasses =
-        funcType.positionalParameters
-            .whereType<InterfaceType>()
-            .map((t) => t.classNode)
-            .where(
-              (c) => c.superclass == structClass || c.superclass == unionClass,
-            )
-            .toList();
+    final compoundClasses = funcType.positionalParameters
+        .whereType<InterfaceType>()
+        .map((t) => t.classNode)
+        .where((c) => c.superclass == structClass || c.superclass == unionClass)
+        .toList();
     return invokeCompoundConstructors(
       replacement(node, exceptionalReturn, isStaticFunction),
       compoundClasses,
@@ -1343,11 +1337,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return _verifyAndReplaceNativeCallable(
       node,
       fromFunction: fromFunction,
-      replacement:
-          fromFunction
-              ? (node, exceptionalReturn, _) =>
-                  _replaceFromFunction(node, exceptionalReturn)
-              : _replaceNativeCallableIsolateLocalConstructor,
+      replacement: fromFunction
+          ? (node, exceptionalReturn, _) =>
+                _replaceFromFunction(node, exceptionalReturn)
+          : _replaceNativeCallableIsolateLocalConstructor,
     );
   }
 
@@ -1548,9 +1541,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           ConstantExpression(
             dartType.typeArguments.isNotEmpty
                 ? InstantiationConstant(
-                  ConstructorTearOffConstant(constructor),
-                  dartType.typeArguments,
-                )
+                    ConstructorTearOffConstant(constructor),
+                    dartType.typeArguments,
+                  )
                 : ConstructorTearOffConstant(constructor),
           ),
         ],
@@ -2074,11 +2067,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       _ => throw UnimplementedError('Unexpected parent: ${parent}'),
     };
 
-    final existingNewTarget =
-        members
-            .whereType<Procedure>()
-            .where((element) => element.name.text == newName)
-            .firstOrNull;
+    final existingNewTarget = members
+        .whereType<Procedure>()
+        .where((element) => element.name.text == newName)
+        .firstOrNull;
     if (existingNewTarget != null) {
       newTarget = existingNewTarget;
     } else {
@@ -2230,8 +2222,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         } else {
           arrayElementType = firstParamType.typeArguments.single;
         }
-        final arrayElementSize =
-            inlineSizeOf(arrayElementType as InterfaceType)!;
+        final arrayElementSize = inlineSizeOf(
+          arrayElementType as InterfaceType,
+        )!;
         // Array element. Pass in a newly constructed `_Compound`, with
         // adjusted offset.
         return (
@@ -2253,13 +2246,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final receiverType = staticTypeContext!.getExpressionType(
           subExpression.receiver,
         );
-        final implementsTypedData = TypeEnvironment(
-          coreTypes,
-          hierarchy,
-        ).isSubtypeOf(
-          receiverType,
-          InterfaceType(typedDataClass, Nullability.nonNullable),
-        );
+        final implementsTypedData = TypeEnvironment(coreTypes, hierarchy)
+            .isSubtypeOf(
+              receiverType,
+              InterfaceType(typedDataClass, Nullability.nonNullable),
+            );
         if (!implementsTypedData) break;
         if (receiverType is! InterfaceType) break;
         final classNode = receiverType.classNode;

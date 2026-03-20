@@ -272,10 +272,9 @@ class ForInLowering {
     final Block body = Block([syncForLoopVariableInitialization, stmt.body])
       ..fileOffset = stmt.bodyOffset;
 
-    final forStatement =
-        ForStatement([], condition, [], body)
-          ..scope = stmt.scope
-          ..fileOffset = stmt.fileOffset;
+    final forStatement = ForStatement([], condition, [], body)
+      ..scope = stmt.scope
+      ..fileOffset = stmt.fileOffset;
 
     return Block([syncForIteratorVariableInitialization, forStatement]);
   }

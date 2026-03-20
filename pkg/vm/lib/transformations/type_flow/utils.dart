@@ -124,10 +124,9 @@ bool hasReceiverArg(Member member) =>
 // generic classes at the moment.
 //
 // TODO(sjindel/tfa): Extend support to normal generic functions.
-int numTypeParams(Member member) =>
-    member is Procedure && member.isFactory
-        ? member.function.typeParameters.length
-        : 0;
+int numTypeParams(Member member) => member is Procedure && member.isFactory
+    ? member.function.typeParameters.length
+    : 0;
 
 /// Returns true if elements in [list] are in strictly increasing order.
 /// List with duplicates is considered not sorted.

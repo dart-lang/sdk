@@ -557,12 +557,12 @@ class VmTarget extends Target {
   }
 
   @override
-  ConstantsBackend get constantsBackend => switch (flags
-      .constKeepLocalsIndicator) {
-    null => const ConstantsBackend(/* keeps defaults */),
-    true => const ConstantsBackend(keepLocals: true),
-    false => const ConstantsBackend(keepLocals: false),
-  };
+  ConstantsBackend get constantsBackend =>
+      switch (flags.constKeepLocalsIndicator) {
+        null => const ConstantsBackend(/* keeps defaults */),
+        true => const ConstantsBackend(keepLocals: true),
+        false => const ConstantsBackend(keepLocals: false),
+      };
 
   @override
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) {
@@ -573,10 +573,9 @@ class VmTarget extends Target {
   }
 
   @override
-  DartLibrarySupport get dartLibrarySupport =>
-      flags.supportMirrors
-          ? const DefaultDartLibrarySupport()
-          : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
+  DartLibrarySupport get dartLibrarySupport => flags.supportMirrors
+      ? const DefaultDartLibrarySupport()
+      : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
 
   @override
   bool isSupportedPragma(String pragmaName) =>

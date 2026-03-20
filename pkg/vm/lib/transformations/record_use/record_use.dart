@@ -255,13 +255,13 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   ast.InstanceConstant() =>
     !isBeingRecorded(constant.classNode)
         ? UnsupportedConstant(
-          "The definition of '${constant.classNode.name}' from "
-          "'${constant.classNode.enclosingLibrary.importUri}' must be "
-          "annotated with '@RecordUse()'.",
-        )
+            "The definition of '${constant.classNode.name}' from "
+            "'${constant.classNode.enclosingLibrary.importUri}' must be "
+            "annotated with '@RecordUse()'.",
+          )
         : (constant.classNode.isEnum
-            ? evaluateEnumConstant(constant)
-            : evaluateInstanceConstant(constant)),
+              ? evaluateEnumConstant(constant)
+              : evaluateInstanceConstant(constant)),
   ast.RecordConstant() => evaluateRecordConstant(constant),
   // The following are not supported, but theoretically could be, so they
   // are listed explicitly here.
@@ -350,12 +350,11 @@ UnsupportedConstant _unsupported(String constantType) =>
 
 Name className(ast.Class cls) => Name(
   cls.name,
-  kind:
-      cls.isEnum
-          ? DefinitionKind.enumKind
-          : cls.isMixinDeclaration
-          ? DefinitionKind.mixinKind
-          : DefinitionKind.classKind,
+  kind: cls.isEnum
+      ? DefinitionKind.enumKind
+      : cls.isMixinDeclaration
+      ? DefinitionKind.mixinKind
+      : DefinitionKind.classKind,
 );
 
 Definition _definitionFromClass(ast.Class cls) {

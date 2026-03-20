@@ -240,10 +240,9 @@ main() {
 
     group('successes', () {
       final successCasesPath = path.join(testCasesPath, 'successes');
-      for (var entry
-          in Directory(
-            successCasesPath,
-          ).listSync(recursive: true, followLinks: false).reversed) {
+      for (var entry in Directory(
+        successCasesPath,
+      ).listSync(recursive: true, followLinks: false).reversed) {
         if (entry.path.endsWith('.dart')) {
           runTest(entry.path, entry.uri);
         }
@@ -253,10 +252,9 @@ main() {
     group('failures', () {
       final errorCasesPath = path.join(testCasesPath, 'errors');
 
-      for (var entry
-          in Directory(
-            errorCasesPath,
-          ).listSync(recursive: true, followLinks: false).reversed) {
+      for (var entry in Directory(
+        errorCasesPath,
+      ).listSync(recursive: true, followLinks: false).reversed) {
         if (entry.path.endsWith('.dart')) {
           runTest(entry.path, entry.uri, throws: true);
         }

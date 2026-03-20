@@ -117,8 +117,8 @@ class CallRecorder {
     // receiver.
     MaybeConstant? receiver =
         (hasReceiver && node.arguments.positional.isNotEmpty)
-            ? _evaluateLiteral(node.arguments.positional[0])
-            : null;
+        ? _evaluateLiteral(node.arguments.positional[0])
+        : null;
 
     if (isTearOffLowering) {
       return CallTearoff(
@@ -129,11 +129,10 @@ class CallRecorder {
 
     final int argumentStart = receiver != null ? 1 : 0;
 
-    final positionalArguments =
-        node.arguments.positional
-            .skip(argumentStart)
-            .map((argument) => _evaluateLiteral(argument))
-            .toList();
+    final positionalArguments = node.arguments.positional
+        .skip(argumentStart)
+        .map((argument) => _evaluateLiteral(argument))
+        .toList();
 
     final namedArguments = {
       for (final argument in node.arguments.named)
@@ -218,10 +217,9 @@ class CallRecorder {
           hasUnnamedExtensionNamePrefix(target.name.text)
               ? '<unnamed>'
               : parts[0],
-          kind:
-              target.isExtensionMember
-                  ? DefinitionKind.extensionKind
-                  : DefinitionKind.extensionTypeKind,
+          kind: target.isExtensionMember
+              ? DefinitionKind.extensionKind
+              : DefinitionKind.extensionTypeKind,
         ),
         Name(
           parts[1],

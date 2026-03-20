@@ -127,20 +127,18 @@ class InstanceRecorder {
     ast.TreeNode context,
   ) {
     final cls = target.enclosingClass!;
-    final positionalArguments =
-        arguments.positional
-            .map((argument) => evaluateExpression(argument))
-            .toList();
+    final positionalArguments = arguments.positional
+        .map((argument) => evaluateExpression(argument))
+        .toList();
     final namedArguments = <String, MaybeConstant>{};
     for (final argument in arguments.named) {
       namedArguments[argument.name] = evaluateExpression(argument.value);
     }
 
     // Fill up with the default values
-    final function =
-        target is ast.Procedure
-            ? target.function
-            : (target as ast.Constructor).function;
+    final function = target is ast.Procedure
+        ? target.function
+        : (target as ast.Constructor).function;
     for (final parameter in function.namedParameters) {
       final initializer = parameter.initializer;
       final name = parameter.name;

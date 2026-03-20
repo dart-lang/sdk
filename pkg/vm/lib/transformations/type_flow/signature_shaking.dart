@@ -667,9 +667,8 @@ class _Transform extends RecursiveVisitor {
     }
     // 2. All named parameters that are always passed and can't be eliminated,
     //    as required positional parameters, alphabetically by name.
-    final List<NamedExpression> sortedNamed =
-        args.named.toList()
-          ..sort((var1, var2) => var1.name.compareTo(var2.name));
+    final List<NamedExpression> sortedNamed = args.named.toList()
+      ..sort((var1, var2) => var1.name.compareTo(var2.name));
     for (NamedExpression arg in sortedNamed) {
       final _ParameterInfo param = info.named[arg.name]!;
       if (param.isAlwaysPassed && !param.canBeEliminated) {

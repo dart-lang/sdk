@@ -718,7 +718,8 @@ class _Scope {
   String toString() => toStringIndented();
 
   toStringIndented({int indentation = 0}) {
-    final nonIndented = '''node: $node
+    final nonIndented =
+        '''node: $node
 declarations:${_declarations.map((e) => '''
   $e''').join()}
 declaresThis: $declaresThis
