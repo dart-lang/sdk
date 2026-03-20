@@ -203,6 +203,6 @@ class Scanner {
       ? fasta.ScannerConfiguration()
       : fasta.ScannerConfiguration(
           enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
-          forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
+          forAugmentationLibrary: featureSet.isEnabled(Feature.augmentations),
         );
 }
