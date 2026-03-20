@@ -245,12 +245,11 @@ class RapidTypeAnalysis {
     bool isVirtual,
     bool isSetter,
   ) {
-    final Class cl =
-        isVirtual
-            ? currentClass!
-            : (interfaceTarget != null
-                ? interfaceTarget.enclosingClass!
-                : coreTypes.objectClass);
+    final Class cl = isVirtual
+        ? currentClass!
+        : (interfaceTarget != null
+              ? interfaceTarget.enclosingClass!
+              : coreTypes.objectClass);
     final Selector selector = Selector(name, isSetter);
     if (isVirtual) {
       hierarchyCache.addVirtualCall(selector, cl, this);
@@ -304,10 +303,8 @@ class _MemberVisitor extends RecursiveVisitor {
 
   _MemberVisitor(this.rta) : _constantVisitor = _ConstantVisitor(rta);
 
-  ClassInfo get superclassInfo =>
-      _superclassInfo ??= rta.hierarchyCache.getClassInfo(
-        _currentClass!.superclass!,
-      );
+  ClassInfo get superclassInfo => _superclassInfo ??= rta.hierarchyCache
+      .getClassInfo(_currentClass!.superclass!);
 
   @override
   void defaultMember(Member node) {

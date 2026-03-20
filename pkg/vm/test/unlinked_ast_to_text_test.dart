@@ -16,10 +16,12 @@ main() async {
   );
 
   final dillFile = outDir.uri.resolve("dart2js.dart.dill").toFilePath();
-  final unlinkedDillFile =
-      outDir.uri.resolve("dart2js.dart.unlinked.dill").toFilePath();
-  final unlinkedDillTxtFile =
-      outDir.uri.resolve("dart2js.dart.unlinked dill.txt").toFilePath();
+  final unlinkedDillFile = outDir.uri
+      .resolve("dart2js.dart.unlinked.dill")
+      .toFilePath();
+  final unlinkedDillTxtFile = outDir.uri
+      .resolve("dart2js.dart.unlinked dill.txt")
+      .toFilePath();
 
   final executable = File(Platform.executable).uri;
   final executableName = Platform.isWindows ? 'dart.exe' : 'dart';
@@ -27,8 +29,9 @@ main() async {
   if (executable.path.endsWith('ReleaseX64/$executableName')) {
     platformDill = executable.resolve('vm_platform.dill').toFilePath();
   } else if (executable.path.endsWith('dart-sdk/bin/$executableName')) {
-    platformDill =
-        executable.resolve('../lib/_internal/vm_platform.dill').toFilePath();
+    platformDill = executable
+        .resolve('../lib/_internal/vm_platform.dill')
+        .toFilePath();
   } else {
     print(
       'Skipping test due to not being run .../ReleaseX64/$executableName '
@@ -65,12 +68,11 @@ main() async {
     // Ensure we can load the unlinked dill file and ensure it doesn't include
     // core libraries.
     final unlinkedComponent = loadComponentFromBinary(unlinkedDillFile);
-    final coreLibraryCount =
-        unlinkedComponent.libraries
-            .where(
-              (lib) => lib.importUri.isScheme('dart') && lib.members.isNotEmpty,
-            )
-            .length;
+    final coreLibraryCount = unlinkedComponent.libraries
+        .where(
+          (lib) => lib.importUri.isScheme('dart') && lib.members.isNotEmpty,
+        )
+        .length;
     Expect.equals(0, coreLibraryCount);
 
     // Ensure we can print the unlinked kernel to text.

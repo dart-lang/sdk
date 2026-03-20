@@ -7,12 +7,11 @@ import 'package:test/test.dart';
 import 'generated/foo.pb.dart';
 
 main() {
-  FooKeep foo =
-      FooKeep()
-        ..barKeep = (BarKeep()..aKeep = 5)
-        ..mapKeep['foo'] = (BarKeep()..aKeep = 2)
-        ..aKeep = 43
-        ..mixinKeep = (MixinKeep()..aKeep = 42);
+  FooKeep foo = FooKeep()
+    ..barKeep = (BarKeep()..aKeep = 5)
+    ..mapKeep['foo'] = (BarKeep()..aKeep = 2)
+    ..aKeep = 43
+    ..mixinKeep = (MixinKeep()..aKeep = 42);
   test('retrieving values', () {
     expect(foo.barKeep.aKeep, 5);
     expect(foo.mapKeep['foo']!.aKeep, 2);

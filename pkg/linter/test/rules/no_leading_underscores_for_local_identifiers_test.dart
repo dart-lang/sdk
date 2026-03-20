@@ -376,6 +376,46 @@ void f(int p) {}
 ''');
   }
 
+  test_parameter_primary_declaring() async {
+    await assertNoDiagnostics(r'''
+class C(final int _x) {
+  void p() => print(_x);
+}
+''');
+  }
+
+  test_parameter_primary_simple() async {
+    await assertDiagnostics(
+      r'''
+class C(int _x) {}
+''',
+      [lint(12, 2)],
+    );
+  }
+
+  test_parameter_secondary_factory() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  factory (int _x) => C._();
+  C._();
+}
+''',
+      [lint(25, 2)],
+    );
+  }
+
+  test_parameter_secondary_new() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  new (int _x);
+}
+''',
+      [lint(21, 2)],
+    );
+  }
+
   test_recordPattern_destructured() async {
     await assertDiagnostics(
       r'''

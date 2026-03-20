@@ -29,8 +29,9 @@ class FlowGraph {
          for (var e in desc.entries)
            e.key: InstructionDescriptor.fromJson(e.value),
        },
-       codegenBlockOrder =
-           codegenBlockOrder?.map((idx) => _blocks[idx as int]).toList();
+       codegenBlockOrder = codegenBlockOrder
+           ?.map((idx) => _blocks[idx as int])
+           .toList();
 
   PrettyPrinter get printer => PrettyPrinter(descriptors);
 
@@ -403,8 +404,8 @@ class _RefMatcher implements Matcher {
       return e.nameToId[name] == v
           ? MatchStatus.matched
           : MatchStatus.fail(
-            'expected $name to bind to ${e.nameToId[name]} but got $v',
-          );
+              'expected $name to bind to ${e.nameToId[name]} but got $v',
+            );
     }
 
     if (!binding) {
@@ -805,18 +806,16 @@ class Matchers {
     };
     final op = getName(invocation.memberName);
     final binding = op == 'Phi'; // Allow Phis to have undeclared arguments.
-    final inputs =
-        invocation.positionalArguments
-            .map((v) => Matchers._toInputMatcher(v, binding: binding))
-            .toList();
-    final compileTimeMatcher =
-        invocation.namedArguments.containsKey(#T)
-            ? invocation.namedArguments[#T] as _CompileTypeMatcher
-            : null;
+    final inputs = invocation.positionalArguments
+        .map((v) => Matchers._toInputMatcher(v, binding: binding))
+        .toList();
+    final compileTimeMatcher = invocation.namedArguments.containsKey(#T)
+        ? invocation.namedArguments[#T] as _CompileTypeMatcher
+        : null;
     final skipUntilMatched =
         invocation.namedArguments.containsKey(#skipUntilMatched)
-            ? invocation.namedArguments[#skipUntilMatched] as bool
-            : true;
+        ? invocation.namedArguments[#skipUntilMatched] as bool
+        : true;
     return InstructionMatcher._(
       op: op,
       matchers: {
@@ -884,49 +883,46 @@ late String Function(Symbol) getName;
 
 const testRunnerKey = 'test_runner.configuration';
 
-final bool isSimulator =
-    (() {
-      if (bool.hasEnvironment(testRunnerKey)) {
-        const config = String.fromEnvironment(testRunnerKey);
-        return config.contains('-sim');
-      }
-      final runtimeConfiguration = Platform.environment['DART_CONFIGURATION'];
-      if (runtimeConfiguration == null) {
-        throw 'Expected DART_CONFIGURATION to be defined';
-      }
-      return runtimeConfiguration.contains('SIM');
-    })();
+final bool isSimulator = (() {
+  if (bool.hasEnvironment(testRunnerKey)) {
+    const config = String.fromEnvironment(testRunnerKey);
+    return config.contains('-sim');
+  }
+  final runtimeConfiguration = Platform.environment['DART_CONFIGURATION'];
+  if (runtimeConfiguration == null) {
+    throw 'Expected DART_CONFIGURATION to be defined';
+  }
+  return runtimeConfiguration.contains('SIM');
+})();
 
-final bool is32BitConfiguration =
-    (() {
-      if (bool.hasEnvironment(testRunnerKey)) {
-        const config = String.fromEnvironment(testRunnerKey);
-        // No IA32 as AOT mode is unsupported there.
-        return config.endsWith('arm') ||
-            config.endsWith('arm_x64') ||
-            config.endsWith('riscv32');
-      }
-      final runtimeConfiguration = Platform.environment['DART_CONFIGURATION'];
-      if (runtimeConfiguration == null) {
-        throw 'Expected DART_CONFIGURATION to be defined';
-      }
-      // No IA32 as AOT mode is unsupported there.
-      return runtimeConfiguration.endsWith('ARM') ||
-          runtimeConfiguration.endsWith('ARM_X64') ||
-          runtimeConfiguration.endsWith('RISCV32');
-    })();
+final bool is32BitConfiguration = (() {
+  if (bool.hasEnvironment(testRunnerKey)) {
+    const config = String.fromEnvironment(testRunnerKey);
+    // No IA32 as AOT mode is unsupported there.
+    return config.endsWith('arm') ||
+        config.endsWith('arm_x64') ||
+        config.endsWith('riscv32');
+  }
+  final runtimeConfiguration = Platform.environment['DART_CONFIGURATION'];
+  if (runtimeConfiguration == null) {
+    throw 'Expected DART_CONFIGURATION to be defined';
+  }
+  // No IA32 as AOT mode is unsupported there.
+  return runtimeConfiguration.endsWith('ARM') ||
+      runtimeConfiguration.endsWith('ARM_X64') ||
+      runtimeConfiguration.endsWith('RISCV32');
+})();
 
-final String _config =
-    (() {
-      if (bool.hasEnvironment(testRunnerKey)) {
-        return const String.fromEnvironment(testRunnerKey);
-      } else if (Platform.environment['DART_CONFIGURATION']
-          case final runtimeConfiguration?) {
-        return runtimeConfiguration.toLowerCase();
-      } else {
-        throw 'Expected either $testRunnerKey or DART_CONFIGURATION to be defined';
-      }
-    })();
+final String _config = (() {
+  if (bool.hasEnvironment(testRunnerKey)) {
+    return const String.fromEnvironment(testRunnerKey);
+  } else if (Platform.environment['DART_CONFIGURATION']
+      case final runtimeConfiguration?) {
+    return runtimeConfiguration.toLowerCase();
+  } else {
+    throw 'Expected either $testRunnerKey or DART_CONFIGURATION to be defined';
+  }
+})();
 
 final bool isArm64 = _config.endsWith('arm64');
 final bool isX64 = _config.endsWith('x64') && !_config.endsWith('arm_x64');

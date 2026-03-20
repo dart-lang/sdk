@@ -89,8 +89,8 @@ main() {
     });
 
     test('compile exclude sources', () async {
-      CompilerOptions optionsExcludeSources =
-          getFreshOptions()..embedSourceText = false;
+      CompilerOptions optionsExcludeSources = getFreshOptions()
+        ..embedSourceText = false;
       IncrementalCompiler compiler = new IncrementalCompiler(
         optionsExcludeSources,
         [main.uri],
@@ -120,12 +120,11 @@ main() {
 
     test('compile expressions errors are not re-reported', () async {
       var errorsReported = 0;
-      CompilerOptions optionsAcceptErrors =
-          getFreshOptions()
-            ..onDiagnostic = (CfeDiagnosticMessage message) {
-              errorsReported++;
-              message.plainTextFormatted.forEach(print);
-            };
+      CompilerOptions optionsAcceptErrors = getFreshOptions()
+        ..onDiagnostic = (CfeDiagnosticMessage message) {
+          errorsReported++;
+          message.plainTextFormatted.forEach(print);
+        };
       IncrementalCompiler compiler = new IncrementalCompiler(
         optionsAcceptErrors,
         [main.uri],
@@ -1158,8 +1157,8 @@ main() {
 
       Uri packageEntry = Uri.parse('package:foo/foo.dart');
 
-      CompilerOptions optionsModified =
-          getFreshOptions()..packagesFileUri = packageUri;
+      CompilerOptions optionsModified = getFreshOptions()
+        ..packagesFileUri = packageUri;
       IncrementalCompiler compiler = new IncrementalCompiler(optionsModified, [
         packageEntry,
       ]);
@@ -1270,21 +1269,20 @@ main() {
       }
       compiler.accept();
       {
-        final Procedure procedure =
-            (await compiler.compileExpression(
-              'a',
-              <String>[],
-              <String>[],
-              <String>[],
-              <String>[],
-              <String>[],
-              barUri.toString(),
-              'A',
-              null,
-              -1,
-              null,
-              true,
-            ))!;
+        final Procedure procedure = (await compiler.compileExpression(
+          'a',
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          barUri.toString(),
+          'A',
+          null,
+          -1,
+          null,
+          true,
+        ))!;
         // Verify that the expression only has links to the only bar we know
         // about.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
@@ -1333,21 +1331,20 @@ main() {
         expect(lrc.librariesReferenced, equals(<Library>{fooLib, barLib}));
       }
       {
-        final Procedure procedure =
-            (await compiler.compileExpression(
-              'a',
-              <String>[],
-              <String>[],
-              <String>[],
-              <String>[],
-              <String>[],
-              barUri.toString(),
-              'A',
-              null,
-              -1,
-              null,
-              true,
-            ))!;
+        final Procedure procedure = (await compiler.compileExpression(
+          'a',
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          barUri.toString(),
+          'A',
+          null,
+          -1,
+          null,
+          true,
+        ))!;
         // Verify that the expression only has links to the original bar.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
         procedure.accept(lrc);
@@ -1379,12 +1376,11 @@ main() {
           }
           """);
 
-        CompilerOptions optionsModified =
-            getFreshOptions()
-              ..onDiagnostic = (CfeDiagnosticMessage message) {
-                // sometimes expected on this one.
-                print(message.ansiFormatted);
-              };
+        CompilerOptions optionsModified = getFreshOptions()
+          ..onDiagnostic = (CfeDiagnosticMessage message) {
+            // sometimes expected on this one.
+            print(message.ansiFormatted);
+          };
         IncrementalCompiler compiler = new IncrementalCompiler(
           optionsModified,
           [v1Uri],
@@ -1853,8 +1849,8 @@ main() {
 
         Uri mainUri = Uri.parse("package:foo/main.dart");
 
-        CompilerOptions optionsModified =
-            getFreshOptions()..packagesFileUri = packagesFile.uri;
+        CompilerOptions optionsModified = getFreshOptions()
+          ..packagesFileUri = packagesFile.uri;
         IncrementalCompiler compiler = new IncrementalCompiler(
           optionsModified,
           [mainUri],

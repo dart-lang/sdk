@@ -19,7 +19,8 @@ import 'package:vm/kernel_front_end.dart'
 
 final ArgParser _argParser = createCompilerArgParser();
 
-final String _usage = '''
+final String _usage =
+    '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform.dill [options] input.dart
 Compiles Dart sources to a kernel binary file for Dart VM.
 

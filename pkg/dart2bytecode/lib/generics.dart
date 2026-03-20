@@ -29,8 +29,11 @@ List<DartType> getTypeParameterTypes(List<TypeParameter> typeParameters) {
   return types;
 }
 
-bool _canReuseSuperclassTypeArguments(List<DartType> superTypeArgs,
-    List<TypeParameter> typeParameters, int overlap) {
+bool _canReuseSuperclassTypeArguments(
+  List<DartType> superTypeArgs,
+  List<TypeParameter> typeParameters,
+  int overlap,
+) {
   for (int i = 0; i < overlap; ++i) {
     final superTypeArg = superTypeArgs[superTypeArgs.length - overlap + i];
     final typeParam = typeParameters[i];
@@ -44,7 +47,9 @@ bool _canReuseSuperclassTypeArguments(List<DartType> superTypeArgs,
 }
 
 List<DartType> flattenInstantiatorTypeArguments(
-    Class instantiatedClass, List<DartType> typeArgs) {
+  Class instantiatedClass,
+  List<DartType> typeArgs,
+) {
   final typeParameters = instantiatedClass.typeParameters;
   assert(typeArgs.length == typeParameters.length);
 
@@ -54,7 +59,9 @@ List<DartType> flattenInstantiatorTypeArguments(
   }
 
   final superTypeArgs = flattenInstantiatorTypeArguments(
-      supertype.classNode, supertype.typeArguments);
+    supertype.classNode,
+    supertype.typeArguments,
+  );
 
   // Shrink type arguments by reusing portion of superclass type arguments
   // if there is an overlapping. This optimization should be consistent with
@@ -62,7 +69,10 @@ List<DartType> flattenInstantiatorTypeArguments(
   int overlap = min(superTypeArgs.length, typeArgs.length);
   for (; overlap > 0; --overlap) {
     if (_canReuseSuperclassTypeArguments(
-        superTypeArgs, typeParameters, overlap)) {
+      superTypeArgs,
+      typeParameters,
+      overlap,
+    )) {
       break;
     }
   }
@@ -81,9 +91,13 @@ List<DartType> flattenInstantiatorTypeArguments(
 }
 
 List<DartType>? getInstantiatorTypeArguments(
-    Class instantiatedClass, List<DartType> typeArgs) {
-  final flatTypeArgs =
-      flattenInstantiatorTypeArguments(instantiatedClass, typeArgs);
+  Class instantiatedClass,
+  List<DartType> typeArgs,
+) {
+  final flatTypeArgs = flattenInstantiatorTypeArguments(
+    instantiatedClass,
+    typeArgs,
+  );
   if (isAllDynamic(flatTypeArgs)) {
     return null;
   }
@@ -178,12 +192,13 @@ class FindFreeTypeParametersVisitor
   @override
   bool visitFunctionType(FunctionType node) {
     if (node.typeParameters.isNotEmpty) {
-      final declaredTypeParameters =
-          (_declaredTypeParameters ??= Set<StructuralParameter>());
+      final declaredTypeParameters = (_declaredTypeParameters ??=
+          Set<StructuralParameter>());
       declaredTypeParameters.addAll(node.typeParameters);
     }
 
-    final bool result = node.positionalParameters.any((t) => t.accept(this)) ||
+    final bool result =
+        node.positionalParameters.any((t) => t.accept(this)) ||
         node.namedParameters.any((p) => p.type.accept(this)) ||
         node.returnType.accept(this);
 
@@ -228,8 +243,11 @@ bool isSealedType(DartType type, CoreTypes coreTypes) {
 /// Returns true if an instance call to [interfaceTarget] with given
 /// [receiver] can omit argument type checks needed due to generic-covariant
 /// parameters.
-bool isUncheckedCall(Member? interfaceTarget, Expression receiver,
-    StaticTypeContext staticTypeContext) {
+bool isUncheckedCall(
+  Member? interfaceTarget,
+  Expression receiver,
+  StaticTypeContext staticTypeContext,
+) {
   if (interfaceTarget == null) {
     // Dynamic call cannot be unchecked.
     return false;
@@ -258,7 +276,9 @@ bool isUncheckedCall(Member? interfaceTarget, Expression receiver,
       switch (typeParameters[i].variance) {
         case Variance.covariant:
           if (!isSealedType(
-              typeArguments[i], staticTypeContext.typeEnvironment.coreTypes)) {
+            typeArguments[i],
+            staticTypeContext.typeEnvironment.coreTypes,
+          )) {
             return false;
           }
           break;
@@ -283,7 +303,9 @@ bool isUncheckedCall(Member? interfaceTarget, Expression receiver,
 /// [interfaceTarget] with given [staticReceiverType] may benefit from
 /// this optimization.
 bool isInstantiatedInterfaceCall(
-    Member? interfaceTarget, DartType staticReceiverType) {
+  Member? interfaceTarget,
+  DartType staticReceiverType,
+) {
   // Providing instantiated receiver type wouldn't help in case of a
   // dynamic call or call without any parameter type checks.
   if (interfaceTarget == null ||

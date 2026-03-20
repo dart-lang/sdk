@@ -40,55 +40,53 @@ import 'package:vm/transformations/type_flow/transformer.dart'
     show transformComponent;
 
 ArgResults parseArgs(List<String> args) {
-  ArgParser argParser =
-      ArgParser()
-        ..addOption(
-          'platform',
-          valueHelp: "path/to/vm_platform.dill",
-          help:
-              'A platform.dill file to append to the input. If not given, no '
-              'platform.dill will be appended.',
-        )
-        ..addOption(
-          'target',
-          allowed: ['dart_runner', 'flutter', 'flutter-runner', 'vm'],
-          defaultsTo: 'vm',
-          help: 'Target platform.',
-        )
-        ..addFlag(
-          'aot',
-          help:
-              'If set, produces kernel file for AOT compilation (enables '
-              'global transformations). Otherwise, writes regular dill.',
-          defaultsTo: false,
-        )
-        ..addFlag(
-          'write-txt',
-          help: 'Also write the result in kernel-text format as <out.dill>.txt',
-          defaultsTo: false,
-        )
-        ..addFlag(
-          'remove-core-libs',
-          help:
-              'If set, the output dill file will not include `dart:` libraries',
-          defaultsTo: false,
-        )
-        ..addMultiOption(
-          'define',
-          abbr: 'D',
-          help: 'Perform constant evaluation with this environment define set.',
-          valueHelp: 'variable=value',
-        )
-        ..addFlag(
-          'remove-source',
-          help: 'Removes source code from the emitted dill',
-          defaultsTo: false,
-        )
-        ..addFlag(
-          'verbose',
-          help: 'Write to stdout about what classes and fields where removed',
-        )
-        ..addFlag('help', help: 'Prints this help', negatable: false);
+  ArgParser argParser = ArgParser()
+    ..addOption(
+      'platform',
+      valueHelp: "path/to/vm_platform.dill",
+      help:
+          'A platform.dill file to append to the input. If not given, no '
+          'platform.dill will be appended.',
+    )
+    ..addOption(
+      'target',
+      allowed: ['dart_runner', 'flutter', 'flutter-runner', 'vm'],
+      defaultsTo: 'vm',
+      help: 'Target platform.',
+    )
+    ..addFlag(
+      'aot',
+      help:
+          'If set, produces kernel file for AOT compilation (enables '
+          'global transformations). Otherwise, writes regular dill.',
+      defaultsTo: false,
+    )
+    ..addFlag(
+      'write-txt',
+      help: 'Also write the result in kernel-text format as <out.dill>.txt',
+      defaultsTo: false,
+    )
+    ..addFlag(
+      'remove-core-libs',
+      help: 'If set, the output dill file will not include `dart:` libraries',
+      defaultsTo: false,
+    )
+    ..addMultiOption(
+      'define',
+      abbr: 'D',
+      help: 'Perform constant evaluation with this environment define set.',
+      valueHelp: 'variable=value',
+    )
+    ..addFlag(
+      'remove-source',
+      help: 'Removes source code from the emitted dill',
+      defaultsTo: false,
+    )
+    ..addFlag(
+      'verbose',
+      help: 'Write to stdout about what classes and fields where removed',
+    )
+    ..addFlag('help', help: 'Prints this help', negatable: false);
 
   ArgResults? argResults;
   try {
@@ -132,11 +130,10 @@ Future main(List<String> args) async {
   installAdditionalTargets();
   final aot = argResults['aot'];
 
-  final target =
-      getTarget(
-        argResults['target'],
-        TargetFlags(constKeepLocalsIndicator: !aot),
-      )!;
+  final target = getTarget(
+    argResults['target'],
+    TargetFlags(constKeepLocalsIndicator: !aot),
+  )!;
 
   // The [component] is treeshaken and has TFA annotations. Write output.
   if (aot) {

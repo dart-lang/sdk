@@ -36,7 +36,8 @@ void main(){
     final dartToolDir = Directory.fromUri(tempDir.uri.resolve('.dart_tool/'));
     await dartToolDir.create(recursive: true);
 
-    final packageConfigContents = '''{
+    final packageConfigContents =
+        '''{
   "configVersion": 2,
   "packages": [],
   "generated": "${DateTime.now()}",

@@ -67,7 +67,10 @@ class RecognizedMethods {
         return specializedBytecodeForUnaryOp(selector, receiver);
       case 1:
         return specializedBytecodeForBinaryOp(
-            selector, receiver, args.positional.single);
+          selector,
+          receiver,
+          args.positional.single,
+        );
       default:
         return null;
     }
@@ -87,7 +90,10 @@ class RecognizedMethods {
   }
 
   Opcode? specializedBytecodeForBinaryOp(
-      String selector, Expression a, Expression b) {
+    String selector,
+    Expression a,
+    Expression b,
+  ) {
     if (selector == '==' && (a is NullLiteral || b is NullLiteral)) {
       return Opcode.kEqualsNull;
     }

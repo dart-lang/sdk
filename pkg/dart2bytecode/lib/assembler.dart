@@ -66,7 +66,7 @@ class BytecodeAssembler {
   int currentSourcePositionFlags = 0;
 
   BytecodeAssembler(BytecodeOptions options)
-      : _emitSourcePositions = options.emitSourcePositions;
+    : _emitSourcePositions = options.emitSourcePositions;
 
   int get offset => _length;
 
@@ -88,14 +88,20 @@ class BytecodeAssembler {
         ? SourcePositions.noSourcePosition
         : currentSourcePosition;
     if (_emitSourcePositions && !isUnreachable) {
-      bool added =
-          sourcePositions.add(offset, position, currentSourcePositionFlags);
+      bool added = sourcePositions.add(
+        offset,
+        position,
+        currentSourcePositionFlags,
+      );
       if (!added) {
         // There's already an entry for the current PC, so emit a Nop instruction
         // to provide a new pc offset for the requested source position.
         _emitNop();
-        added =
-            sourcePositions.add(offset, position, currentSourcePositionFlags);
+        added = sourcePositions.add(
+          offset,
+          position,
+          currentSourcePositionFlags,
+        );
         assert(added);
       }
     }
@@ -122,8 +128,14 @@ class BytecodeAssembler {
     _buffer = newBuffer;
   }
 
-  void _growAndEmitBytes(int b0,
-      [int? b1, int? b2, int? b3, int? b4, int? b5]) {
+  void _growAndEmitBytes(
+    int b0, [
+    int? b1,
+    int? b2,
+    int? b3,
+    int? b4,
+    int? b5,
+  ]) {
     _grow();
     assert(_length + 6 < _buffer.length);
     _buffer[_length] = b0;
@@ -201,11 +213,13 @@ class BytecodeAssembler {
   }
 
   void _emitBytes5(int b0, int b1, int b2, int b3, int b4) {
-    assert(_isUint8(b0) &&
-        _isUint8(b1) &&
-        _isUint8(b2) &&
-        _isUint8(b3) &&
-        _isUint8(b4));
+    assert(
+      _isUint8(b0) &&
+          _isUint8(b1) &&
+          _isUint8(b2) &&
+          _isUint8(b3) &&
+          _isUint8(b4),
+    );
     if (_length + 4 < _buffer.length) {
       _buffer[_length] = b0;
       _buffer[_length + 1] = b1;
@@ -219,12 +233,14 @@ class BytecodeAssembler {
   }
 
   void _emitBytes6(int b0, int b1, int b2, int b3, int b4, int b5) {
-    assert(_isUint8(b0) &&
-        _isUint8(b1) &&
-        _isUint8(b2) &&
-        _isUint8(b3) &&
-        _isUint8(b4) &&
-        _isUint8(b5));
+    assert(
+      _isUint8(b0) &&
+          _isUint8(b1) &&
+          _isUint8(b2) &&
+          _isUint8(b3) &&
+          _isUint8(b4) &&
+          _isUint8(b5),
+    );
     if (_length + 5 < _buffer.length) {
       _buffer[_length] = b0;
       _buffer[_length + 1] = b1;
@@ -299,8 +315,13 @@ class BytecodeAssembler {
       _emitBytes2(opcode.index, rd);
     } else {
       assert(_isUint32(rd));
-      _emitBytes5(opcode.index + kWideModifier, _byte0(rd), _byte1(rd),
-          _byte2(rd), _byte3(rd));
+      _emitBytes5(
+        opcode.index + kWideModifier,
+        _byte0(rd),
+        _byte1(rd),
+        _byte2(rd),
+        _byte3(rd),
+      );
     }
   }
 
@@ -313,8 +334,13 @@ class BytecodeAssembler {
       _emitBytes2(opcode.index, rx & kByteMask);
     } else {
       assert(_isInt32(rx));
-      _emitBytes5(opcode.index + kWideModifier, _byte0(rx), _byte1(rx),
-          _byte2(rx), _byte3(rx));
+      _emitBytes5(
+        opcode.index + kWideModifier,
+        _byte0(rx),
+        _byte1(rx),
+        _byte2(rx),
+        _byte3(rx),
+      );
     }
   }
 
@@ -327,8 +353,14 @@ class BytecodeAssembler {
       _emitBytes3(opcode.index, ra, re);
     } else {
       assert(_isUint32(re));
-      _emitBytes6(opcode.index + kWideModifier, ra, _byte0(re), _byte1(re),
-          _byte2(re), _byte3(re));
+      _emitBytes6(
+        opcode.index + kWideModifier,
+        ra,
+        _byte0(re),
+        _byte1(re),
+        _byte2(re),
+        _byte3(re),
+      );
     }
   }
 
@@ -341,8 +373,14 @@ class BytecodeAssembler {
       _emitBytes3(opcode.index, ra, ry & kByteMask);
     } else {
       assert(_isInt32(ry));
-      _emitBytes6(opcode.index + kWideModifier, ra, _byte0(ry), _byte1(ry),
-          _byte2(ry), _byte3(ry));
+      _emitBytes6(
+        opcode.index + kWideModifier,
+        ra,
+        _byte0(ry),
+        _byte1(ry),
+        _byte2(ry),
+        _byte3(ry),
+      );
     }
   }
 
@@ -355,8 +393,14 @@ class BytecodeAssembler {
       _emitBytes3(opcode.index, rd, rf);
     } else {
       assert(_isUint32(rd));
-      _emitBytes6(opcode.index + kWideModifier, _byte0(rd), _byte1(rd),
-          _byte2(rd), _byte3(rd), rf);
+      _emitBytes6(
+        opcode.index + kWideModifier,
+        _byte0(rd),
+        _byte1(rd),
+        _byte2(rd),
+        _byte3(rd),
+        rf,
+      );
     }
   }
 
@@ -388,8 +432,12 @@ class BytecodeAssembler {
       _emitBytes2(opcode.index, target & kByteMask);
     } else {
       assert(_isInt24(target));
-      _emitBytes4(opcode.index + kWideModifier, _byte0(target), _byte1(target),
-          _byte2(target));
+      _emitBytes4(
+        opcode.index + kWideModifier,
+        _byte0(target),
+        _byte1(target),
+        _byte2(target),
+      );
     }
   }
 
