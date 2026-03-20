@@ -256,7 +256,7 @@ void syncTests() {
       yield 1;
     }
   ''');
-  Expect.equals(2.toJS, getGenerator().returnValue!(2.toJS));
+  Expect.equals(2.toJS, getGenerator().returnValue!(2.toJS).value);
   final returnNoArg = getGenerator().returnValue!();
   Expect.isTrue(returnNoArg.isUndefined);
   Expect.isTrue(isJSBackend ? returnNoArg.isUndefined : returnNoArg.isUndefinedOrNull);
