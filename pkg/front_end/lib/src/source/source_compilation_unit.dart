@@ -587,6 +587,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         yield imported.importUri;
       }
     }
+    if (_augmentations case var augmentations?) {
+      for (CompilationUnit augmentation in augmentations) {
+        yield augmentation.importUri;
+      }
+    }
   }
 
   @override

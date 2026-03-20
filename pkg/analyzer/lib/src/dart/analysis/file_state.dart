@@ -51,7 +51,7 @@ import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 /// Information about a directive that "includes" a file - `import`, `export`,
-/// or `part`. But not `part of` or `library augment` - these are modelled as
+/// or `part`. But not `part of` or `augment library` - these are modelled as
 /// kinds.
 sealed class DirectiveState {
   final FileKind container;

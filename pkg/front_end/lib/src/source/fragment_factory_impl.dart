@@ -983,6 +983,10 @@ class FragmentFactoryImpl implements FragmentFactory {
               _indexedLibrary
             : null,
       );
+      if (isAugmentationImport) {
+        _augmentationRoot.registerAugmentation(compilationUnit);
+        return;
+      }
     }
 
     Import import = new Import(
