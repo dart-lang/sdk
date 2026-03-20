@@ -37919,14 +37919,11 @@ import 'a.dart';
     hashForRequirements: #H2
     exportMapId: #M0
   requirements
-[operation] reuseLinkedBundle
+[operation] linkLibraryCycle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  libraryIsOriginNotExistingFileMismatch
-    libraryUri: package:test/a.dart
-    expected: true
-    actual: false
+    hashForRequirements: #H1
+    exportMapId: #M1
+  requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -99334,6 +99331,122 @@ double get a => 0;
     uri: package:test/test.dart
     flags: isLibrary
 ''');
+  }
+
+  test_operation_getErrors_changeImported_kindLibraryToPartToLibrary() async {
+    configuration
+      ..withLinkLibraryCycle = true
+      ..withCheckLinkedBundleRequirements = true;
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+const x = 0;
+''');
+
+    addTestFile(r'''
+import 'a.dart';
+void f() {
+  x;
+}
+''');
+
+    // 1. Populate the cache, `a.dart` is a library.
+    {
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+      collector.getErrors('T1', testFile);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+[operation] linkLibraryCycle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''');
+      await disposeAnalysisContextCollection();
+    }
+
+    // 2. Change `a.dart` to be a part.
+    modifyFile2(a, r'''
+part of 'b.dart';
+const x = 0;
+''');
+    {
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+      collector.getErrors('T2', testFile);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 IMPORT_OF_NON_LIBRARY
+      30 +1 UNDEFINED_IDENTIFIER
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 IMPORT_OF_NON_LIBRARY
+      30 +1 UNDEFINED_IDENTIFIER
+''');
+      await disposeAnalysisContextCollection();
+    }
+
+    // 3. Change `a.dart` to be a library again.
+    modifyFile2(a, r'''
+const x = 0;
+''');
+    {
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+      collector.getErrors('T3', testFile);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] linkLibraryCycle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+[future] getErrors T3
+  ErrorsResult #4
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''');
+    }
   }
 
   test_operation_getErrors_changeImported_notAffected() async {
