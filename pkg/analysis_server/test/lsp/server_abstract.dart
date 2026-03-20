@@ -1452,6 +1452,26 @@ mixin LspAnalysisServerTestMixin
     return provideConfig(sendDidChangeConfiguration, config);
   }
 
+  /// Returns a [Future] that completes when the next analysis completion status
+  /// is received.
+  ///
+  /// To avoid races, this method should be called synchronously in the test
+  /// after the code that triggers the analysis and not after an `await` (or
+  /// it should be called before, but awaited after).
+  ///
+  /// Good:
+  /// ```
+  ///     await Future.wait([
+  ///       doSomething(),
+  ///       waitForAnalysisComplete(),
+  ///     ]);
+  /// ```
+  ///
+  /// Bad:
+  /// ```
+  ///     await doSomething();
+  ///     await waitForAnalysisComplete();
+  /// ```
   Future<void> waitForAnalysisComplete() => waitForAnalysisStatus(false);
 
   Future<void> waitForAnalysisStart() => waitForAnalysisStatus(true);
