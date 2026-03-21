@@ -1998,6 +1998,7 @@ class AnalysisDriver {
       keyBuilder.addString(file.path);
       keyBuilder.addString(file.uriStr);
       keyBuilder.addString(file.contentHash);
+      file.kind.addDirectivesSignature(keyBuilder);
     }
 
     var key = '${keyBuilder.toHex()}.resolved2';

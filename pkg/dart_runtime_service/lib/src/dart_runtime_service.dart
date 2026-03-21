@@ -177,11 +177,11 @@ class DartRuntimeService {
 
   /// Creates an artificial client to process JSON-RPC requests from
   /// non-standard sources (e.g., from native code).
-  void addArtificialClient({
+  Client addArtificialClient({
     required StreamChannel<String> connection,
     required String name,
   }) {
-    clientManager.addClient(connection: connection, name: name);
+    return clientManager.addClient(connection: connection, name: name);
   }
 
   Future<void> _startServer() async {
@@ -272,6 +272,11 @@ class DartRuntimeService {
       );
     }
 
+    if (!config.disableOriginCheck) {
+      _logger.info('Origin checks are enabled. Adding CORS check handler.');
+      pipeline = pipeline.addMiddleware(originCheckMiddleware(frontend: this));
+    }
+
     var handlerCascade = shelf.Cascade();
     if (config.sseHandlerPath != null) {
       _logger.info(
@@ -293,6 +298,9 @@ class DartRuntimeService {
     handlerCascade = handlerCascade.add(
       webSocketClientHandler(clientManager: clientManager),
     );
+
+    _logger.info('HTTP requests are accepted. Adding HTTP request handler.');
+    handlerCascade = handlerCascade.add(httpRequestHandler(frontend: this));
 
     _logger.info('Shelf handlers generated.');
     return pipeline.addHandler(handlerCascade.handler);

@@ -121,6 +121,7 @@ Future<void> main([List<String> args = const []]) async {
       enableLogging: true,
       port: _port,
       disableAuthCodes: _authCodesDisabled,
+      disableOriginCheck: _originCheckDisabled,
       autoStart: _autoStart,
     ),
     backendBuilder: (frontend) => DartRuntimeServiceVMBackend(

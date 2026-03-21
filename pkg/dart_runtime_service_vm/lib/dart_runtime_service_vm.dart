@@ -16,6 +16,7 @@ import 'package:stream_channel/stream_channel.dart';
 
 import 'src/dart_runtime_service_vm_rpcs.dart';
 import 'src/native_bindings.dart';
+import 'src/vm_dev_fs.dart';
 import 'src/vm_expression_evaluator.dart';
 import 'src/vm_isolate_manager.dart';
 
@@ -68,6 +69,7 @@ class DartRuntimeServiceVMBackend
 
   final _nativeBindings = NativeBindings();
   final _logger = Logger('$DartRuntimeServiceVMBackend');
+  final _devFs = VMDevelopmentFileSystemCollection.createDevFS();
 
   @override
   final VmIsolateManager isolateManager;
@@ -79,7 +81,7 @@ class DartRuntimeServiceVMBackend
 
   @override
   UnmodifiableListView<ServiceRpcHandler> get rpcs =>
-      UnmodifiableListView(_vmServiceRpcs.rpcs);
+      UnmodifiableListView([..._vmServiceRpcs.rpcs, ..._devFs.rpcs]);
 
   @override
   UnmodifiableListView<RpcHandlerWithParameters>
@@ -88,6 +90,9 @@ class DartRuntimeServiceVMBackend
     // it to the native VM service implementation for processing.
     sendToRuntime,
   ]);
+
+  @override
+  OptionalHandler get httpHandler => _devFs.handlePutStreamRequest;
 
   @override
   Future<void> initialize() async {
@@ -116,6 +121,7 @@ class DartRuntimeServiceVMBackend
     await Future.wait([
       _sigquitSubscription?.cancel() ?? Future<void>.value(),
       _nativeRpcClientStreamChannelController.local.sink.close(),
+      _devFs.cleanup(),
     ]);
     isolateControlPort.close();
     _nativeBindings.onExit();

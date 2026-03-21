@@ -72,7 +72,7 @@ final tests = <VMTest>[
   },
   (VmService service) async {
     const fsId = 'banana';
-    const filePath = '/foo/bar.dat';
+    final fileUri = 'foo/bar.dat';
     final fileContents = base64Encode(utf8.encode('fileContents'));
 
     // Create DevFS.
@@ -93,7 +93,7 @@ final tests = <VMTest>[
         '_readDevFSFile',
         args: {
           'fsName': fsId,
-          'path': filePath,
+          'uri': fileUri,
         },
       );
       fail('Unreachable');
@@ -108,7 +108,7 @@ final tests = <VMTest>[
       '_writeDevFSFile',
       args: {
         'fsName': fsId,
-        'path': filePath,
+        'uri': fileUri,
         'fileContents': fileContents,
       },
     );
@@ -120,26 +120,13 @@ final tests = <VMTest>[
       '_readDevFSFile',
       args: {
         'fsName': fsId,
-        'path': filePath,
+        'uri': fileUri,
       },
     );
     if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
       expect(contents, fileContents);
     } else {
       invalidResponse(result);
-    }
-
-    // The leading '/' is optional.
-    result = await callMethod(
-      service,
-      '_readDevFSFile',
-      args: {
-        'fsName': fsId,
-        'path': filePath.substring(1),
-      },
-    );
-    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
-      expect(contents, fileContents);
     }
 
     // Read a file outside of the fs.
@@ -149,13 +136,13 @@ final tests = <VMTest>[
         '_readDevFSFile',
         args: {
           'fsName': fsId,
-          'path': '../foo',
+          'uri': '../foo',
         },
       );
       fail('Unreachable');
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kInvalidParams.code);
-      expect(e.details, "_readDevFSFile: invalid 'path' parameter: ../foo");
+      expect(e.details, "_readDevFSFile: invalid 'uri' parameter: ../foo");
     }
 
     // Write a set of files.
@@ -165,8 +152,8 @@ final tests = <VMTest>[
       args: {
         'fsName': fsId,
         'files': [
-          ['/a', base64Encode(utf8.encode('a_contents'))],
-          ['/b', base64Encode(utf8.encode('b_contents'))],
+          ['a', base64Encode(utf8.encode('a_contents'))],
+          ['b', base64Encode(utf8.encode('b_contents'))],
         ],
       },
     );
@@ -178,7 +165,7 @@ final tests = <VMTest>[
       '_readDevFSFile',
       args: {
         'fsName': fsId,
-        'path': '/b',
+        'uri': 'b',
       },
     );
 
