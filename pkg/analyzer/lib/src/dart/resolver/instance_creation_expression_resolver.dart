@@ -118,9 +118,11 @@ class InstanceCreationExpressionResolver {
         );
       }
     } else {
-      _resolver.diagnosticReporter.report(
-        diag.dotShorthandMissingContext.at(node),
-      );
+    // TODO: Improve this message. Context type exists in some cases (e.g. dynamic, void)
+    // but has no static scope. Current message is misleading (see issue #62863).
+    _resolver.diagnosticReporter.report(
+      diag.dotShorthandMissingContext.at(node),
+    );
       // Prevents `constructorElementToInfer` (called by
       // `_resolveDotShorthandConstructorInvocation`) from considering the
       // context type to be valid.
