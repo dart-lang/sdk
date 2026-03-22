@@ -118,7 +118,7 @@ class InstanceCreationExpressionResolver {
         );
       }
     } else {
-    // TODO: Improve this message. Context type exists in some cases (e.g. dynamic, void)
+    // TODO: Improve this message. Context type exists in some cases (e.g. dynamic, void) 
     // but has no static scope. Current message is misleading (see issue #62863).
     _resolver.diagnosticReporter.report(
       diag.dotShorthandMissingContext.at(node),
