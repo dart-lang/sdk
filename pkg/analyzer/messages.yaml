@@ -4629,7 +4629,7 @@ CompileTimeErrorCode:
     problemMessage: "The constructor with name '#name' is already defined."
     correctionMessage: Try renaming one of the constructors.
     hasPublishedDocs: true
-    dotShorthandMissingContext:
+  dotShorthandMissingContext:
     type: compileTimeError
     parameters: none
     problemMessage: "A dot shorthand can't be used with a context type that doesn't have a static scope."
