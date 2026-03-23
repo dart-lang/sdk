@@ -238,4 +238,13 @@ enum Clip { none, hardEdge, antiAlias, antiAliasWithSaveLayer }
 class TextHeightBehavior {}
 
 typedef VoidCallback = void Function();
+
+enum Brightness {
+  dark,
+  light,
+}
+
+class Locale {
+  Locale(String languageCode, [String? countryCode]);
+}
 ''');

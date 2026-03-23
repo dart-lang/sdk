@@ -279,6 +279,22 @@ Notifies the client when Flutter outline information is available (or updated) f
 
 Nodes contains multiple ranges as described for the `dart/textDocument/publishOutline` notification.
 
+### dart/textDocument/getFlutterWidgetPreviews Method
+
+Direction: Client -> Server
+Params: `TextDocumentIdentifier`
+Returns: `FlutterWidgetPreviews | null`
+
+Returns the set of detected Flutter Widget Previews in the provided document or null if the document doesn't exist.
+
+### dart/workspace/getFlutterWidgetPreviews Method
+
+Direction: Client -> Server
+Params: None
+Returns: `FlutterWidgetPreviews | null`
+
+Returns the set of detected Flutter Widget Previews in the analyzed project.
+
 ### dart/openUri Notification
 
 Direction: Server -> Client
