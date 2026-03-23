@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:test/test.dart';
 
 import '../mini_ast.dart';
@@ -328,55 +329,91 @@ main() {
     group('integer literal', () {
       test('double type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: true,
-          ).checkType('double').checkIR('1.0f').inTypeSchema('double'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  true,
+                );
+              })
+              .checkType('double')
+              .checkIR('1.0f')
+              .inTypeSchema('double'),
         ]);
       });
 
       test('int type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: false,
-          ).checkType('int').checkIR('1').inTypeSchema('int'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  false,
+                );
+              })
+              .checkType('int')
+              .checkIR('1')
+              .inTypeSchema('int'),
         ]);
       });
 
       test('num type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: false,
-          ).checkType('int').checkIR('1').inTypeSchema('num'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  false,
+                );
+              })
+              .checkType('int')
+              .checkIR('1')
+              .inTypeSchema('num'),
         ]);
       });
 
       test('double? type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: true,
-          ).checkType('double').checkIR('1.0f').inTypeSchema('double?'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  true,
+                );
+              })
+              .checkType('double')
+              .checkIR('1.0f')
+              .inTypeSchema('double?'),
         ]);
       });
 
       test('int? type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: false,
-          ).checkType('int').checkIR('1').inTypeSchema('int?'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  false,
+                );
+              })
+              .checkType('int')
+              .checkIR('1')
+              .inTypeSchema('int?'),
         ]);
       });
 
       test('unknown type schema', () {
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: false,
-          ).checkType('int').checkIR('1').inTypeSchema('_'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  false,
+                );
+              })
+              .checkType('int')
+              .checkIR('1')
+              .inTypeSchema('_'),
         ]);
       });
 
@@ -389,10 +426,16 @@ main() {
         //     x = 1;
         //   }
         h.run([
-          intLiteral(
-            1,
-            expectConversionToDouble: false,
-          ).checkType('int').checkIR('1').inTypeSchema('String'),
+          intLiteral(1)
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as IntTypeAnalysisResult).convertedToDouble,
+                  false,
+                );
+              })
+              .checkType('int')
+              .checkIR('1')
+              .inTypeSchema('String'),
         ]);
       });
     });
@@ -3447,6 +3490,13 @@ main() {
           x
               .pattern()
               .assign(expr('int').checkSchema('num'))
+              .checkExpressionTypeAnalysisResult((result) {
+                expect(
+                  (result as PatternAssignmentAnalysisResult).patternSchema
+                      .toString(),
+                  'num',
+                );
+              })
               .inTypeSchema('Object'),
         ]);
       });
