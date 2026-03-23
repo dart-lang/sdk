@@ -216,6 +216,20 @@ class DynamicDispatchTable {
         (TableEntry a, TableEntry b) =>
             a.target == b.target && a.shape == b.shape,
       );
+      assert(
+        (() {
+          final target = entry.target;
+          final startClassId = entry.classId;
+          for (int i = 0; i < strideWidth; ++i) {
+            final entry = _table[start + i]!;
+            if (entry.classId != (startClassId + i)) return false;
+            if (entry.target != target) return false;
+          }
+          return true;
+        })(),
+        'Expected $strideWidth entries of identical target and '
+        'consecutive class ids.',
+      );
 
       final targetModuleBuilder = translator.isDynamicSubmodule
           ? translator.dynamicSubmodule
@@ -224,16 +238,23 @@ class DynamicDispatchTable {
       // The dynamic selector is invoked and the class has a target, we have to
       // write the class id - to make it match at runtime.
       final classIdsTable = getClassIdsTable(targetModuleBuilder);
-      for (int i = 0; i < strideWidth; ++i) {
-        targetModuleBuilder.elements
-            .activeExpressionSegmentBuilderFor(classIdsTable)
-            .setExpressionAt(
-              start + i,
-              buildIntegerExpression(
-                targetModuleBuilder,
-                _table[start + i]!.classId,
-              ),
-            );
+      if (strideWidth < strideElementTableLimit) {
+        for (int i = 0; i < strideWidth; ++i) {
+          targetModuleBuilder.elements
+              .activeExpressionSegmentBuilderFor(classIdsTable)
+              .setExpressionAt(
+                start + i,
+                buildIntegerExpression(targetModuleBuilder, entry.classId + i),
+              );
+        }
+      } else {
+        final b = targetModuleBuilder.startFunction.body;
+        b.fillTableRangeWithIncreasingIntegers(
+          classIdsTable,
+          start,
+          strideWidth,
+          entry.classId,
+        );
       }
 
       // Only write out a dynamic forwarder function iff the target supports the

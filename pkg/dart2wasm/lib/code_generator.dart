@@ -5918,6 +5918,53 @@ extension MacroAssembler on w.InstructionsBuilder {
     i32_const(strideWidth);
     table_fill(table);
   }
+
+  void fillTableRangeWithIncreasingIntegers(
+    w.Table table,
+    int start,
+    int strideWidth,
+    int startValue,
+  ) {
+    // index = start
+    final index = addLocal(w.NumType.i32);
+    i32_const(start);
+    local_set(index);
+
+    // value = startValue
+    final value = addLocal(w.NumType.i32);
+    i32_const(startValue);
+    local_set(value);
+
+    // while (index < (start + strideWidth)) { ... }
+    final done = block();
+    final next = loop();
+    local_get(index);
+    i32_const(start + strideWidth);
+    i32_ge_u();
+    br_if(done);
+
+    // table[index] = value
+    local_get(index);
+    local_get(value);
+    i31_new();
+    table_set(table);
+
+    // index++
+    local_get(index);
+    i32_const(1);
+    i32_add();
+    local_set(index);
+
+    // value++
+    local_get(value);
+    i32_const(1);
+    i32_add();
+    local_set(value);
+
+    br(next);
+    end(); // next
+    end(); // done
+  }
 }
 
 /// A call target that may be called with a direct call or may be inlined.
