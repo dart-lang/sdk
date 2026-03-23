@@ -207,7 +207,7 @@ main() {
   });
 
   // The following tests are known to fail due to the experiment.
-  const Set<String> knownFailures = {'type_ops.dart', 'literals.dart'};
+  const Set<String> knownFailures = {'literals.dart'};
 
   group('gen-bytecode-with-closure-context-lowering', () {
     final testCasesDir = new Directory(

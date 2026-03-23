@@ -4577,7 +4577,7 @@ class ConstantEvaluator
 
   @override
   Constant visitInstanceGet(InstanceGet node) {
-    if (node.receiver is ThisExpression) {
+    if (isThisExpression(node.receiver)) {
       // Coverage-ignore: Probably unreachable unless trying to evaluate
       // non-const stuff as const.
       // Access "this" during instance creation.

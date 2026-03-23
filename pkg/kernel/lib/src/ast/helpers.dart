@@ -299,3 +299,9 @@ List<DartType> getAsTypeArguments(
           new TypeParameterType.withDefaultNullability(typeParameters[i]),
       growable: false);
 }
+
+bool isThisExpression(Expression expression) {
+  return expression is ThisExpression ||
+      expression is VariableGet &&
+          expression.expressionVariable is ThisVariable;
+}

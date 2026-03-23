@@ -204,6 +204,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) : _contextAllocationStrategy = new LoopDepthAllocationStrategy();
 
   @override
+  // Coverage-ignore(suite): Not run.
   ThisVariable get internalThisVariable =>
       _contextAllocationStrategy.thisVariable;
 
@@ -305,7 +306,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType receiverType,
     DartType nonNullReceiverType,
   ) {
-    if (receiver is ThisExpression) {
+    if (isThisExpression(receiver)) {
       // Null-aware access is not needed on `this`.
       return receiver;
     }
@@ -2286,7 +2287,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.propertyName,
       const UnknownType(),
-      isThisReceiver: node.receiver is ThisExpression,
+      isThisReceiver: isThisExpression(node.receiver),
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -3935,7 +3936,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     Expression replacement;
-    if (left is ThisExpression) {
+    if (isThisExpression(left)) {
       replacement = left;
     } else {
       VariableDeclaration variable = createVariable(left, t1);
@@ -9039,7 +9040,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.name,
       const UnknownType(),
-      isThisReceiver: node.receiver is ThisExpression,
+      isThisReceiver: isThisExpression(node.receiver),
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -9173,7 +9174,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.propertyName,
       const UnknownType(),
-      isThisReceiver: node.receiver is ThisExpression,
+      isThisReceiver: isThisExpression(node.receiver),
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -9267,7 +9268,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.propertyName,
       const UnknownType(),
-      isThisReceiver: node.receiver is ThisExpression,
+      isThisReceiver: isThisExpression(node.receiver),
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -9521,7 +9522,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         preCheckInvocationContravariance(
           receiverType,
           indexGetTarget,
-          isThisReceiver: node.receiver is ThisExpression,
+          isThisReceiver: isThisExpression(node.receiver),
         );
 
     ExpressionInferenceResult indexResult = inferExpression(
@@ -10011,7 +10012,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     MethodContravarianceCheckKind checkKind = preCheckInvocationContravariance(
       receiverType,
       readTarget,
-      isThisReceiver: node.receiver is ThisExpression,
+      isThisReceiver: isThisExpression(node.receiver),
     );
 
     DartType readIndexType = readTarget.getIndexKeyType(this);
@@ -11677,7 +11678,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         preCheckInvocationContravariance(
           receiverType,
           readTarget,
-          isThisReceiver: node.receiver is ThisExpression,
+          isThisReceiver: isThisExpression(node.receiver),
         );
 
     DartType readIndexType = readTarget.getIndexKeyType(this);
@@ -12455,7 +12456,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.name,
       typeContext,
-      isThisReceiver: node.receiver is ThisExpression,
+      isThisReceiver: isThisExpression(node.receiver),
       propertyGetNode: node,
     );
     ExpressionInferenceResult readResult =
@@ -13233,6 +13234,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     if (isClosureContextLoweringEnabled) {
+      // Coverage-ignore-block(suite): Not run.
       node.receiver = new VariableGet(internalThisVariable)
         ..fileOffset = node.fileOffset;
     }
@@ -13288,6 +13290,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: true,
     );
     if (isClosureContextLoweringEnabled) {
+      // Coverage-ignore-block(suite): Not run.
       node.receiver = new VariableGet(internalThisVariable)
         ..fileOffset = node.fileOffset;
     }

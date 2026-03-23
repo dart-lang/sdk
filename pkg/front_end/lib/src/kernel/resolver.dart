@@ -417,9 +417,7 @@ class Resolver {
         internalThisVariable: internalThisVariable,
       );
       context.performBacklog(result.annotations);
-    }
-    // Coverage-ignore(suite): Not run.
-    on DebugAbort {
+    } on DebugAbort {
       rethrow;
     } catch (e, s) {
       throw new Crash(fileUri, token.charOffset, e, s);
