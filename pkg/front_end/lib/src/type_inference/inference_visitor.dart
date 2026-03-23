@@ -14418,8 +14418,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionTypeAnalysisResult dispatchExpression(
     Expression node,
-    SharedTypeSchemaView context,
-  ) {
+    SharedTypeSchemaView context, {
+    bool isVoidAllowed = false,
+  }) {
     // Normally the CFE performs expression coercion in the process of type
     // inference of the nodes where an assignment is executed. The inference on
     // the pattern-related nodes is driven by the shared analysis, and some of
@@ -14445,14 +14446,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         needsCoercion ||
         parent is RelationalPattern && parent.expression == node;
 
-    ExpressionInferenceResult expressionResult =
-        // TODO(johnniwinther): Handle [isVoidAllowed] through
-        //  [dispatchExpression].
-        inferExpression(
-          node,
-          context.unwrapTypeSchemaView(),
-          isVoidAllowed: true,
-        );
+    ExpressionInferenceResult expressionResult = inferExpression(
+      node,
+      context.unwrapTypeSchemaView(),
+      isVoidAllowed: isVoidAllowed,
+    );
 
     if (needsCoercion) {
       expressionResult =

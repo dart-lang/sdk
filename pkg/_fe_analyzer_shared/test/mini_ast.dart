@@ -7120,8 +7120,9 @@ class _MiniAstTypeAnalyzer
   @override
   ExpressionTypeAnalysisResult dispatchExpression(
     Expression expression,
-    SharedTypeSchemaView schema,
-  ) {
+    SharedTypeSchemaView schema, {
+    bool isVoidAllowed = false,
+  }) {
     if (expression._expectedSchema case var expectedSchema?) {
       expect(schema.unwrapTypeSchemaView<Type>().type, expectedSchema);
     }
