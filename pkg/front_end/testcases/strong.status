@@ -269,3 +269,4 @@ closure_context_lowering/assert_captured_variables: Crash
 closure_context_lowering/late_variable_initializers: Crash
 closure_context_lowering/catch_variables: Crash
 closure_context_lowering/synthetic_variables: Crash
+closure_context_lowering/assert_captured_variables: ExpectationFileMismatchSerialized

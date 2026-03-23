@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' as ast_helper show isThisExpression;
 import 'package:kernel/src/printer.dart';
 
 import '../base/problems.dart' show unsupported;
@@ -690,7 +691,8 @@ bool isErroneousNode(Object? node) {
   return node is InvalidExpression;
 }
 
-bool isThisExpression(Object node) => node is ThisExpression;
+bool isThisExpression(Object node) =>
+    node is Expression && ast_helper.isThisExpression(node);
 
 bool isVariablesDeclaration(Object? node) => node is _VariablesDeclaration;
 

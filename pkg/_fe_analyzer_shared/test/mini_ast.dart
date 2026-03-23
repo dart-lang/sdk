@@ -339,12 +339,8 @@ CollectionElement ifElement(
   );
 }
 
-ConstExpression intLiteral(int value, {bool? expectConversionToDouble}) =>
-    new IntLiteral(
-      value,
-      expectConversionToDouble: expectConversionToDouble,
-      location: computeLocation(),
-    );
+ConstExpression intLiteral(int value) =>
+    new IntLiteral(value, location: computeLocation());
 
 /// Creates a list literal containing the given [elements].
 ///
@@ -1479,6 +1475,12 @@ abstract class Expression extends Node
         ProtoStatement<Expression>,
         ProtoCollectionElement<Expression>,
         ProtoExpression {
+  /// If non-null, an auxiliary checker function that will be invoked, and
+  /// passed the return value from [TypeAnalyzer.dispatchExpression], when this
+  /// expression is analyzed.
+  void Function(ExpressionTypeAnalysisResult)?
+  _checkExpressionTypeAnalysisResult;
+
   /// If non-null, the expected IR that should be produced when this expression
   /// is analyzed.
   String? _expectedIR;
@@ -2342,15 +2344,7 @@ class IfNull extends Expression {
 class IntLiteral extends ConstExpression {
   final int value;
 
-  /// `true` or `false` if we should assert that int->double conversion either
-  /// does, or does not, happen.  `null` if no assertion should be done.
-  final bool? expectConversionToDouble;
-
-  IntLiteral(
-    this.value, {
-    this.expectConversionToDouble,
-    required super.location,
-  }) : super._();
+  IntLiteral(this.value, {required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -2361,9 +2355,6 @@ class IntLiteral extends ConstExpression {
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     var result = h.typeAnalyzer.analyzeIntLiteral(schema);
-    if (expectConversionToDouble != null) {
-      expect(result.convertedToDouble, expectConversionToDouble);
-    }
     h.irBuilder.atom(
       result.convertedToDouble ? '${value.toDouble()}f' : '$value',
       Kind.expression,
@@ -4772,6 +4763,17 @@ mixin ProtoExpression
     );
   }
 
+  /// Wraps `this` in such a way that, when the test is run, it will call
+  /// [checker], passing it the [ExpressionTypeAnalysisResult] returned by
+  /// [TypeAnalyzer.dispatchExpression].
+  Expression checkExpressionTypeAnalysisResult(
+    void Function(ExpressionTypeAnalysisResult) checker,
+  ) {
+    var location = computeLocation();
+    return asExpression(location: location)
+      .._checkExpressionTypeAnalysisResult = checker;
+  }
+
   /// Wraps `this` in such a way that, when the test is run, it will verify that
   /// the IR produced matches [expectedIR].
   @override
@@ -7118,8 +7120,9 @@ class _MiniAstTypeAnalyzer
   @override
   ExpressionTypeAnalysisResult dispatchExpression(
     Expression expression,
-    SharedTypeSchemaView schema,
-  ) {
+    SharedTypeSchemaView schema, {
+    bool isVoidAllowed = false,
+  }) {
     if (expression._expectedSchema case var expectedSchema?) {
       expect(schema.unwrapTypeSchemaView<Type>().type, expectedSchema);
     }
@@ -7127,6 +7130,7 @@ class _MiniAstTypeAnalyzer
       expression,
       () => expression.visit(_harness, schema),
     );
+    expression._checkExpressionTypeAnalysisResult?.call(result);
     if (expression._expectedType case var expectedType?) {
       expect(
         result.type.unwrapTypeView<Type>().type,

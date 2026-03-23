@@ -1217,7 +1217,7 @@ class ThisVariable extends Variable {
   }
 
   @override
-  bool get isFinal => false;
+  bool get isFinal => true;
 
   @override
   void set isFinal(bool value) {

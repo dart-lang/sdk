@@ -259,7 +259,7 @@ bool isUncheckedCall(
   }
 
   // Calls via [this] do not require checks.
-  if (receiver is ThisExpression) {
+  if (isThisExpression(receiver)) {
     return true;
   }
 

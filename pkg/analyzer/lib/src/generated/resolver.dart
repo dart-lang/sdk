@@ -451,6 +451,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     ExpressionImpl node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
+    bool isVoidAllowed = false,
   }) {
     inferenceLogWriter?.setExpressionVisitCodePath(
       node,
@@ -460,6 +461,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node,
       schema,
       continueNullShorting: continueNullShorting,
+      isVoidAllowed: isVoidAllowed,
     );
   }
 
@@ -744,8 +746,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   ExpressionTypeAnalysisResult dispatchExpression(
     covariant ExpressionImpl expression,
-    SharedTypeSchemaView context,
-  ) {
+    SharedTypeSchemaView context, {
+    bool isVoidAllowed = false,
+  }) {
+    // Note: the analyzer doesn't use the `isVoidAllowed` boolean; it detects
+    // invalid use of void through more ad hoc mechanisms. See
+    // https://github.com/dart-lang/sdk/issues/62942.
+    // TODO(paulberry): address this.
+
     int? stackDepth;
     assert(() {
       stackDepth = rewriteStackDepth;
