@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,6 +21,30 @@ void main() {
 
 @reflectiveTest
 class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
+  Future<void> test_emptyBodies() async {
+    failTestOnErrorDiagnostic = false; // Enum without items is an error
+
+    var content = '''
+class /*[0*/A/*0]*/;
+mixin /*[1*/M/*1]*/;
+enum /*[2*/En/*2]*/;
+extension /*[3*/Ex1/*3]*/ on String;
+extension /*[4*/Ex2/*4]*/;
+extension on /*[5*/String/*5]*/;
+extension on/*[6*//*6]*/;
+''';
+
+    await verifySymbolNamesWithRanges(content, [
+      'A',
+      'M',
+      'En',
+      'Ex1',
+      'Ex2',
+      'extension on String',
+      '<unnamed extension>',
+    ]);
+  }
+
   Future<void> test_enumMember_notSupported() async {
     const content = '''
 enum Theme {
@@ -82,21 +107,13 @@ enum Theme {
     failTestOnErrorDiagnostic = false;
 
     const content = '''
-extension StringExtensions on String {}
-extension _StringExtensions on String {}
-extension on String {}
-extension on {}
+extension /*[0*/StringExtensions/*0]*/ on String {}
+extension /*[1*/_StringExtensions/*1]*/ on String {}
+extension on /*[2*/String/*2]*/ {}
+extension on /*[3*//*3]*/{}
 ''';
-    newFile(mainFilePath, content);
-    await initialize();
 
-    var result = await getDocumentSymbols(mainFileUri);
-    var symbols = result.map(
-      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
-      (symbolInfos) => symbolInfos,
-    );
-    var names = symbols.map((symbol) => symbol.name).toList();
-    expect(names, [
+    await verifySymbolNamesWithRanges(content, [
       'StringExtensions',
       '_StringExtensions',
       'extension on String',
@@ -386,6 +403,39 @@ class /*[0*/MyClass/*0]*/ {
       (symbolInfos) => symbolInfos,
     );
     expect(symbols, isEmpty);
+  }
+
+  /// Using [content] as the test file, verifies that the returned document
+  /// symbols exactly match [expectedNames] in-order along with the matching
+  /// ranges marked in [content].
+  Future<void> verifySymbolNamesWithRanges(
+    String content,
+    List<String> expectedNames,
+  ) async {
+    var code = TestCode.parseNormalized(content);
+    expect(
+      code.ranges,
+      hasLength(expectedNames.length),
+      reason:
+          'The number of expected names must match the number of '
+          'marked ranges in the code',
+    );
+
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var result = await getDocumentSymbols(mainFileUri);
+    var symbols = result.map(
+      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (symbolInfos) => symbolInfos,
+    );
+    var results = symbols
+        .map((symbol) => (symbol.name, symbol.location.range))
+        .toList();
+    expect(
+      results,
+      code.ranges.mapIndexed((i, range) => (expectedNames[i], range.range)),
+    );
   }
 
   Future<List<DocumentSymbol>> _getSymbols(String content) async {

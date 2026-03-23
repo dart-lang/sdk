@@ -174,6 +174,20 @@ class OutlineComputerTest extends AbstractOutlineComputerTest {
         );
   }
 
+  Matcher hasElementOffsetLength(TestCodeRange range) {
+    return TypeMatcher<Element>()
+        .having(
+          (element) => element.location?.offset,
+          'offset',
+          range.sourceRange.offset,
+        )
+        .having(
+          (element) => element.location?.length,
+          'length',
+          range.sourceRange.length,
+        );
+  }
+
   Matcher hasOffsetLength(TestCodeRange range) {
     return TypeMatcher<Outline>()
         .having((outline) => outline.offset, 'offset', range.sourceRange.offset)
@@ -490,6 +504,30 @@ augment class C {
       element_ma.location?.offset,
       testCode.indexOf('m()', testCode.indexOf('m()') + 1),
     );
+  }
+
+  Future<void> test_emptyBodies() async {
+    var unitOutline = await _computeOutline('''
+class /*[0*/A/*0]*/;
+mixin /*[1*/M/*1]*/;
+enum /*[2*/En/*2]*/;
+extension /*[3*/Ex1/*3]*/ on String;
+extension /*[4*/Ex2/*4]*/;
+''');
+    var topOutlines = unitOutline.children!;
+
+    void expectItem(int i, String expectedName) {
+      var expectedRange = parsedTestCode.ranges[i];
+      var actualElement = topOutlines[i].element;
+      expect(actualElement.name, expectedName);
+      expect(actualElement, hasElementOffsetLength(expectedRange));
+    }
+
+    expectItem(0, 'A');
+    expectItem(1, 'M');
+    expectItem(2, 'En');
+    expectItem(3, 'Ex1');
+    expectItem(4, 'Ex2');
   }
 
   Future<void> test_enum_constants() async {
