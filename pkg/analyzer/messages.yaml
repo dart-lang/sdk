@@ -4629,16 +4629,16 @@ CompileTimeErrorCode:
     problemMessage: "The constructor with name '#name' is already defined."
     correctionMessage: Try renaming one of the constructors.
     hasPublishedDocs: true
-  dotShorthandMissingContext:
+    dotShorthandMissingContext:
     type: compileTimeError
     parameters: none
-    problemMessage: "A dot shorthand can't be used where there is no context type."
+    problemMessage: "A dot shorthand can't be used with a context type that doesn't have a static scope."
     hasPublishedDocs: true
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a dot shorthand is used where
-      there is no context type.
+      The analyzer produces this diagnostic when a dot shorthand is used with a
+      context type that doesn't have a static scope.
 
       #### Example
 
@@ -4650,14 +4650,13 @@ CompileTimeErrorCode:
         var e = [!.a!];
         print(e);
       }
-
-      enum E {a, b}
       ```
 
       #### Common fixes
 
-      If you want to use a dot shorthand, then add a context type, which in this
-      example means adding the explicit type `E` to the local variable:
+      If you want to use a dot shorthand, then provide a context type that has a 
+      static scope (such as a class or enum), which in this example means 
+      adding the explicit type `E` to the local variable:
 
       ```dart
       void f() {
