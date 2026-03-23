@@ -622,7 +622,7 @@ class DietListener extends StackListenerImpl {
       this,
     );
     // Augmentation imports register augmentations on the root compilation unit
-    // instead of contributing a regular LibraryDependency.
+    // instead of adding a regular LibraryDependency.
     if (augmentToken != null) return;
     if (importUri.startsWith("dart-ext:")) return;
 
