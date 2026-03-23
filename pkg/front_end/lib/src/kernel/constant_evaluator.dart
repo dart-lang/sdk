@@ -6778,7 +6778,9 @@ class HasUninstantiatedVisitor extends FindTypeVisitor {
 
 bool _isFormalParameter(Variable variable) {
   final TreeNode? parent = variable.parent;
-  if (parent is FunctionNode) {
+  if (variable is FunctionParameter) {
+    return true;
+  } else if (parent is FunctionNode) {
     return parent.positionalParameters.contains(variable) ||
         parent.namedParameters.contains(variable);
   }

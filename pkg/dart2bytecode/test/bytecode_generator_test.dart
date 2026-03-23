@@ -206,9 +206,6 @@ main() {
     }
   });
 
-  // The following tests are known to fail due to the experiment.
-  const Set<String> knownFailures = {'literals.dart'};
-
   group('gen-bytecode-with-closure-context-lowering', () {
     final testCasesDir = new Directory(
       dartSdkPkgDir + 'dart2bytecode/testcases',
@@ -218,8 +215,7 @@ main() {
       recursive: true,
       followLinks: false,
     )) {
-      if (entry.path.endsWith(".dart") &&
-          !knownFailures.contains(entry.uri.pathSegments.last)) {
+      if (entry.path.endsWith(".dart")) {
         test(
           entry.path,
           () => runTestCase(entry.uri, isClosureContextLoweringEnabled: true),
