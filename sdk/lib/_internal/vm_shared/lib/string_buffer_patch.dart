@@ -176,6 +176,7 @@ class StringBuffer {
     } else {
       localParts.add(str);
       int partsSinceCompaction = localParts.length - _partsCompactionIndex;
+      assert(partsSinceCompaction > 0);
       if (partsSinceCompaction == _PARTS_TO_COMPACT) {
         _compact();
       }
