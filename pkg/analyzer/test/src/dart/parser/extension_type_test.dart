@@ -44,6 +44,39 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_augment_implementsClause() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) implements I {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: I
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''',
+    );
+  }
+
   test_body_empty() {
     var parseResult = parseStringWithErrors(r'''
 extension type A(int it);
@@ -603,6 +636,135 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_members_constructor_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment E.named();
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      ConstructorDeclaration
+        augmentKeyword: augment
+        typeName: SimpleIdentifier
+          token: E
+        period: .
+        name: named
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+''',
+    );
+  }
+
+  test_members_field_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment int foo = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: foo
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''',
+    );
+  }
+
+  test_members_field_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment static int foo = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: foo
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''',
+    );
+  }
+
   test_members_field_instance() {
     var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
@@ -724,6 +886,91 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_members_getter_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment int get foo => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        propertyKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''',
+    );
+  }
+
+  test_members_getter_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment static int get foo => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        returnType: NamedType
+          name: int
+        propertyKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''',
+    );
+  }
+
   test_members_method() {
     var parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
@@ -762,6 +1009,142 @@ ExtensionTypeDeclaration
             rightBracket: }
     rightBracket: }
 ''');
+  }
+
+  test_members_method_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''',
+    );
+  }
+
+  test_members_method_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment static void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''',
+    );
+  }
+
+  test_members_operator_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment int operator+(int other) => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        operatorKeyword: operator
+        name: +
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: other
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''',
+    );
   }
 
   test_members_setter() {
@@ -805,6 +1188,99 @@ ExtensionTypeDeclaration
             rightBracket: }
     rightBracket: }
 ''');
+  }
+
+  test_members_setter_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment set foo(int x) {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''',
+    );
+  }
+
+  test_members_setter_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment extension type E(int it) {
+  augment static set foo(int x) {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(
+      parseResult.findNode.singleExtensionTypeDeclaration,
+      r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''',
+    );
   }
 
   test_metadata() {

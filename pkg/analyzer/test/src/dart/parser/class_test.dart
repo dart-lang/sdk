@@ -17,6 +17,268 @@ main() {
 
 @reflectiveTest
 class ClassDeclarationParserTest extends ParserDiagnosticsTest {
+  test_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_abstract() {
+    var parseResult = parseStringWithErrors(r'''
+augment abstract class A {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  abstractKeyword: abstract
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_abstract_base() {
+    var parseResult = parseStringWithErrors(r'''
+augment abstract base class A {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  abstractKeyword: abstract
+  baseKeyword: base
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_base() {
+    var parseResult = parseStringWithErrors(r'''
+augment base class A {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  baseKeyword: base
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_extendsClause() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A extends B {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  extendsClause: ExtendsClause
+    extendsKeyword: extends
+    superclass: NamedType
+      name: B
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_final() {
+    var parseResult = parseStringWithErrors(r'''
+augment final class A {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  finalKeyword: final
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_implementsClause() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A implements B {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: B
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_interface() {
+    var parseResult = parseStringWithErrors(r'''
+augment interface class A {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  interfaceKeyword: interface
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_mixin() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin class A {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  //TODO(fshcheglov): Mixin application classes can't be augmented.
+  test_augment_namedMixinApplication() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A = B with M;
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.unit, r'''
+CompilationUnit
+  declarations
+    ClassTypeAlias
+      augmentKeyword: augment
+      typedefKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: M
+      semicolon: ;
+''');
+  }
+
+  test_augment_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+augment sealed class A {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  sealedKeyword: sealed
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_typeParameters_withBound() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A<T extends int> {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: int
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_withClause() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A with M {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_body_empty() {
     var parseResult = parseStringWithErrors(r'''
 class A;
@@ -901,6 +1163,351 @@ ConstructorDeclaration
 ''');
   }
 
+  test_field_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment int x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_field_augment_covariant() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment covariant int x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        covariantKeyword: covariant
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_field_augment_late() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment late int x;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        fields: VariableDeclarationList
+          lateKeyword: late
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_field_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment static int x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_field_augment_static_final() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment static final int x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: final
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_getter_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment int get foo => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        propertyKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_getter_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment static int get foo => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        returnType: NamedType
+          name: int
+        propertyKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_method_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_method_augment_abstract() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment abstract void foo();
+}
+''');
+    parseResult.assertErrors([error(diag.abstractClassMember, 28, 8)]);
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_method_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment static void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_nameWithTypeParameters_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A<T> {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_nameWithTypeParameters_hasTypeParameters() {
     var parseResult = parseStringWithErrors(r'''
 class A<T, U> {}
@@ -941,6 +1548,44 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_operator_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment int operator+(int other) => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        operatorKeyword: operator
+        name: +
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: other
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
     rightBracket: }
 ''');
   }
@@ -2216,6 +2861,77 @@ PrimaryConstructorBody
   thisKeyword: this
   body: EmptyFunctionBody
     semicolon: ;
+''');
+  }
+
+  test_setter_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment set foo(int x) {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_setter_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment class A {
+  augment static set foo(int x) {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
 ''');
   }
 
