@@ -138,6 +138,57 @@ abstract interface class TypeAnalyzerOperations<
     required bool inferenceUsingBoundsIsEnabled,
   });
 
+  /// Computes `flatten` of [type].
+  ///
+  /// See the `Function Expressions` section of
+  /// https://storage.googleapis.com/dart-specification/DartLangSpecDraft.pdf.
+  SharedTypeView flatten(SharedTypeView type);
+
+  /// Returns the type `FutureOr` with omitted nullability and type argument
+  /// [argumentTypeSchema].
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [futureOrTypeInternal] to
+  /// receive a concrete implementation of [futureOrType] instead of
+  /// implementing [futureOrType] directly.
+  SharedTypeView futureOrType(SharedTypeView argumentTypeSchema);
+
+  /// [futureOrTypeInternal] should be implemented by concrete classes
+  /// implementing [TypeAnalyzerOperations]. The implementations of
+  /// [futureOrType] and [futureOrTypeSchema] are provided by mixing in
+  /// [TypeAnalyzerOperationsMixin], which defines [futureOrType] and
+  /// [futureOrTypeSchema] in terms of [futureOrTypeInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case [futureOrTypeInternal], and
+  /// receive the implementation of both [futureOrType] and [futureOrTypeSchema]
+  /// from the mixin.
+  ///
+  /// The auxiliary purpose of [futureOrTypeInternal] is to facilitate the
+  /// development of the shared code at early stages. Sometimes the sharing of
+  /// the code starts by unifying the implementations of some concrete members
+  /// in the Analyzer and the CFE by bringing them in a form that looks
+  /// syntactically very similar in both tools, and then continues by
+  /// abstracting the two concrete members and using the shared abstracted one
+  /// instead of the two concrete methods existing previously. During the early
+  /// stages of unifying the two concrete members it can be beneficial to use
+  /// [futureOrTypeInternal] instead of the tool-specific ways of constructing a
+  /// future type, for the sake of uniformity, and to simplify the abstraction
+  /// step too.
+  SharedType futureOrTypeInternal(covariant SharedType typeStructure);
+
+  /// Returns the type schema `FutureOr` with omitted nullability and type
+  /// argument [argumentTypeSchema].
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [futureOrTypeInternal] to
+  /// receive a concrete implementation of [futureOrTypeSchema] instead of
+  /// implementing [futureOrTypeSchema] directly.
+  SharedTypeSchemaView futureOrTypeSchema(
+    SharedTypeSchemaView argumentTypeSchema,
+  );
+
   /// Returns the type `Future` with omitted nullability and type argument
   /// [argumentType].
   ///
@@ -1064,6 +1115,22 @@ mixin TypeAnalyzerOperationsMixin<
     }
 
     return inferredTypes;
+  }
+
+  @override
+  SharedTypeView futureOrType(SharedTypeView argumentType) {
+    return new SharedTypeView(
+      futureOrTypeInternal(argumentType.unwrapTypeView()),
+    );
+  }
+
+  @override
+  SharedTypeSchemaView futureOrTypeSchema(
+    SharedTypeSchemaView argumentTypeSchema,
+  ) {
+    return new SharedTypeSchemaView(
+      futureOrTypeInternal(argumentTypeSchema.unwrapTypeSchemaView()),
+    );
   }
 
   @override

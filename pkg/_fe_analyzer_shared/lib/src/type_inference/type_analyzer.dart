@@ -380,6 +380,65 @@ mixin TypeAnalyzer<
     flow.promotedType(variable) ?? operations.variableType(variable),
   );
 
+  /// Analyzes an expression of the form `await operand`.
+  ///
+  /// Returns an [AwaitExpressionResult] containing the static type of the await
+  /// expression and its operand.
+  ///
+  /// Stack effect: pushes the operand expression.
+  AwaitExpressionResult analyzeAwaitExpression(
+    Expression operand,
+    SharedTypeSchemaView schema,
+  ) {
+    // Stack: ()
+
+    // (Note: comments pulled from
+    // https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md)
+
+    // Expression inference of an await expression await e_1, in context K,
+    // produces an elaborated expression m with static type T, where m and T are
+    // determined as follows:
+    SharedTypeSchemaView k = schema;
+
+    // Define K_1 as follows:
+    // - If K is FutureOr<S> or FutureOr<S>? for some type schema S, then let
+    //   K_1 be K.
+    // - Otherwise, if K is dynamic, then let K_1 be FutureOr<_>.
+    // - Otherwise, let K_1 be FutureOr<K>.
+    assert(
+      schema is! SharedDynamicTypeSchemaView,
+      'Caller should convert dynamic context to _',
+    );
+    SharedTypeSchemaView k1 = operations.matchTypeSchemaFutureOr(k) != null
+        ? k
+        : operations.futureOrTypeSchema(k);
+
+    // Let m_1 be the result of performing expression inference on e_1, in
+    // context K_1.
+    ExpressionTypeAnalysisResult m1 = analyzeExpression(
+      operand,
+      k1,
+      isVoidAllowed: false,
+    );
+    // Stack: (operand)
+
+    // Let T_1 be the static type of m_1.
+    SharedTypeView t1 = m1.type;
+
+    // If T_1 is incompatible with await (as defined in the extension types
+    // specification), then there is a compile-time error.
+    // (Currently this error is detected by the analyzer and front_end clients,
+    // not by shared code. TODO(paulberry): share this logic.)
+
+    // Let T_2 be flatten(T_1).
+    SharedTypeView t2 = operations.flatten(t1);
+
+    // Let m_2 be @AWAIT_WITH_TYPE_CHECK(m_1), with static type Future<T_2>.
+
+    // Let T be T_2, and let m be `await m_2`.
+    return new AwaitExpressionResult(type: t2, operandType: t1);
+  }
+
   /// Analyzes a cast pattern.  [innerPattern] is the sub-pattern] and
   /// [requiredType] is the type to cast to.
   ///

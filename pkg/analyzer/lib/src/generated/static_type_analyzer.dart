@@ -58,16 +58,6 @@ class StaticTypeAnalyzer {
     node.recordStaticType(_getType(node.type), resolver: _resolver);
   }
 
-  /// The Dart Language Specification, 16.29 (Await Expressions):
-  ///
-  ///   The static type of [the expression "await e"] is flatten(T) where T is
-  ///   the static type of e.
-  void visitAwaitExpression(covariant AwaitExpressionImpl node) {
-    var resultType = node.expression.typeOrThrow;
-    resultType = _typeSystem.flatten(resultType);
-    node.recordStaticType(resultType, resolver: _resolver);
-  }
-
   /// The Dart Language Specification, 12.4: <blockquote>The static type of a boolean literal is
   /// bool.</blockquote>
   void visitBooleanLiteral(covariant BooleanLiteralImpl node) {

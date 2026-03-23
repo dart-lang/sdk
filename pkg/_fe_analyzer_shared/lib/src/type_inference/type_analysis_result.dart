@@ -23,6 +23,19 @@ class AssignedVariablePatternResult<Error> extends PatternResult {
   });
 }
 
+/// Result for analyzing an await expression in
+/// [TypeAnalyzer.analyzeSwitchExpression].
+class AwaitExpressionResult extends ExpressionTypeAnalysisResult {
+  /// The static type of the operand.
+  final SharedTypeView operandType;
+
+  AwaitExpressionResult({
+    required super.type,
+    super.flowAnalysisInfo,
+    required this.operandType,
+  });
+}
+
 /// Result for analyzing a constant pattern in
 /// [TypeAnalyzer.analyzeConstantPattern].
 class ConstantPatternResult<Error> extends PatternResult {

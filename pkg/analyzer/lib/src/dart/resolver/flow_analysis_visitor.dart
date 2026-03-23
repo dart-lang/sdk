@@ -567,6 +567,16 @@ class TypeSystemOperations
   }
 
   @override
+  SharedTypeView flatten(SharedTypeView type) {
+    return typeSystem.flatten(type.unwrapTypeView()).wrapSharedTypeView();
+  }
+
+  @override
+  SharedType futureOrTypeInternal(TypeImpl argumentType) {
+    return typeSystem.typeProvider.futureOrType(argumentType);
+  }
+
+  @override
   TypeImpl futureTypeInternal(TypeImpl argumentType) {
     return typeSystem.typeProvider.futureType(argumentType);
   }

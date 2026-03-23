@@ -294,6 +294,75 @@ main() {
   });
 
   group('Expressions:', () {
+    group('await:', () {
+      group('AwaitExpressionResult:', () {
+        test('operandType', () {
+          h.run([
+            await_(expr('int')).checkExpressionTypeAnalysisResult((result) {
+              result as AwaitExpressionResult;
+              expect(result.operandType.toString(), 'int');
+            }),
+          ]);
+        });
+      });
+
+      group('Downward inference:', () {
+        test('Schema is FutureOr<S>', () {
+          h.run([
+            await_(
+              expr('int').checkSchema('FutureOr<int>'),
+            ).inTypeSchema('FutureOr<int>'),
+          ]);
+        });
+
+        test('Schema is FutureOr<S>?', () {
+          h.run([
+            await_(
+              expr('int').checkSchema('FutureOr<int>?'),
+            ).inTypeSchema('FutureOr<int>?'),
+          ]);
+        });
+
+        test('Schema is dynamic', () {
+          h.run([
+            await_(
+              expr('int').checkSchema('FutureOr<_>'),
+            ).inTypeSchema('dynamic'),
+          ]);
+        });
+
+        test('Schema is other type', () {
+          h.run([
+            await_(
+              expr('int').checkSchema('FutureOr<int>'),
+            ).inTypeSchema('int'),
+          ]);
+        });
+      });
+
+      group('Upward inference:', () {
+        test('Operand has type Future<S>', () {
+          h.run([await_(expr('Future<int>')).checkType('int')]);
+        });
+
+        test('Operand has type FutureOr<S>', () {
+          h.run([await_(expr('FutureOr<int>')).checkType('int')]);
+        });
+
+        test('Operand has type Future<S>?', () {
+          h.run([await_(expr('Future<int>?')).checkType('int?')]);
+        });
+
+        test('Operand has type FutureOr<S>?', () {
+          h.run([await_(expr('FutureOr<int>?')).checkType('int?')]);
+        });
+
+        test('Operand has other type', () {
+          h.run([await_(expr('int')).checkType('int')]);
+        });
+      });
+    });
+
     group('cascade:', () {
       group('IR:', () {
         test('not null-aware', () {
