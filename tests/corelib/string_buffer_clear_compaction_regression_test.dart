@@ -11,7 +11,7 @@ final String _expected = List.generate(
   (int i) => i.isEven ? "foo " : "bar ",
 ).join();
 
-void _writeFooBar(StringBuffer buffer) {
+void writeFooBar(StringBuffer buffer) {
   for (int i = 0; i < _iterations; i++) {
     buffer.write(i.isEven ? "foo" : "bar");
     buffer.write(" ");
@@ -21,9 +21,9 @@ void _writeFooBar(StringBuffer buffer) {
 void main() {
   final buffer = StringBuffer();
 
-  _writeFooBar(buffer);
+  writeFooBar(buffer);
   buffer.clear();
-  _writeFooBar(buffer);
+  writeFooBar(buffer);
 
   Expect.equals(_expected.length, buffer.length);
   Expect.equals(_expected, buffer.toString());
