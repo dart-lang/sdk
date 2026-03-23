@@ -11,4 +11,5 @@ final List<MockLibraryUnit> units = [cupertinoLibrary, cupertinoColorsLibrary];
 
 final cupertinoLibrary = MockLibraryUnit('lib/cupertino.dart', r'''
 export 'src/cupertino/colors.dart';
+export 'src/cupertino/theme.dart';
 ''');

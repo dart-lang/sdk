@@ -52,6 +52,7 @@ final widgetsLibrary = MockLibraryUnit('lib/widgets.dart', r'''
 export 'package:vector_math/vector_math.dart';
 
 export 'foundation.dart' show UniqueKey;
+export 'src/widgets/app.dart';
 export 'src/widgets/async.dart';
 export 'src/widgets/basic.dart';
 export 'src/widgets/container.dart';
