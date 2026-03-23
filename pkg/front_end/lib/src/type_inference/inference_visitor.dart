@@ -1213,17 +1213,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (typeContext is DynamicType) {
       typeContext = const UnknownType();
     }
-    typeContext = wrapFutureOrType(typeContext);
-    ExpressionInferenceResult operandResult = inferExpression(
+    AwaitExpressionResult analysisResult = analyzeAwaitExpression(
       node.operand,
-      typeContext,
-      isVoidAllowed: false,
+      typeContext.wrapSharedTypeSchemaView(),
     );
-    DartType operandType = operandResult.inferredType;
-    DartType flattenType = typeSchemaEnvironment.flatten(operandType);
+    Expression operandRewrite = popRewrite() as Expression;
+    DartType operandType = analysisResult.operandType.unwrapTypeView();
+    DartType flattenType = analysisResult.type.unwrapTypeView();
     if (_isIncompatibleWithAwait(operandType)) {
-      Expression wrapped = operandResult.expression;
-      node.operand = problemReporting.wrapInProblem(
+      Expression wrapped = operandRewrite;
+      operandRewrite = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: wrapped,
         message: diag.awaitOfExtensionTypeNotFuture,
@@ -1231,10 +1230,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         fileOffset: wrapped.fileOffset,
         length: 1,
       );
-      wrapped.parent = node.operand;
-    } else {
-      node.operand = operandResult.expression..parent = node;
+      wrapped.parent = operandRewrite;
     }
+    node.operand = operandRewrite..parent = node;
     DartType runtimeCheckType = new InterfaceType(
       coreTypes.futureClass,
       Nullability.nonNullable,

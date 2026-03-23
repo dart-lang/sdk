@@ -3,7 +3,7 @@ name: dart_runtime_service_vm
 publish_to: none
 
 environment:
-  sdk: ^3.12.0-edge
+  sdk: ^3.12.0-0
 
 resolution: workspace
 

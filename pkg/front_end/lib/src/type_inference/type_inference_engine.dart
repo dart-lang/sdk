@@ -588,6 +588,11 @@ class OperationsCfe
   }
 
   @override
+  SharedTypeView flatten(SharedTypeView type) {
+    return new SharedTypeView(typeEnvironment.flatten(type.unwrapTypeView()));
+  }
+
+  @override
   bool isAlwaysExhaustiveType(SharedTypeView type) {
     return computeIsAlwaysExhaustiveType(
       type.unwrapTypeView(),
@@ -991,6 +996,11 @@ class OperationsCfe
     } else {
       return null;
     }
+  }
+
+  @override
+  FutureOrType futureOrTypeInternal(DartType argumentType) {
+    return new FutureOrType(argumentType, Nullability.nonNullable);
   }
 
   @override

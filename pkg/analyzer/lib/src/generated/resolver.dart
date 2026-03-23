@@ -2146,12 +2146,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    analyzeExpression(
+    var analysisResult = analyzeAwaitExpression(
       node.expression,
-      SharedTypeSchemaView(_createFutureOr(contextType)),
+      contextType.wrapSharedTypeSchemaView(),
     );
-    popRewrite();
-    typeAnalyzer.visitAwaitExpression(node);
+    node.expression = popRewrite()!;
+    node.recordStaticType(
+      analysisResult.type.unwrapTypeView<TypeImpl>(),
+      resolver: this,
+    );
     _insertImplicitCallReference(
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
@@ -4539,15 +4542,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             .at(node.name),
       );
     }
-  }
-
-  /// Creates a union of `T | Future<T>`, unless `T` is already a
-  /// future-union, in which case it simply returns `T`.
-  TypeImpl _createFutureOr(TypeImpl type) {
-    if (type.isDartAsyncFutureOr) {
-      return type;
-    }
-    return typeProvider.futureOrType(type);
   }
 
   /// Helper function used to print information to the console in debug mode.

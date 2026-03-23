@@ -58,6 +58,14 @@ Statement assert_(ProtoExpression condition, [ProtoExpression? message]) {
   );
 }
 
+Expression await_(ProtoExpression operand) {
+  var location = computeLocation();
+  return new AwaitExpression._(
+    operand.asExpression(location: location),
+    location: location,
+  );
+}
+
 Statement block(List<ProtoStatement> statements) =>
     new Block._(statements, location: computeLocation());
 
@@ -713,6 +721,32 @@ class Assert extends Statement {
       Kind.statement,
       location: location,
     );
+  }
+}
+
+class AwaitExpression extends Expression {
+  final Expression operand;
+
+  AwaitExpression._(this.operand, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    operand.preVisit(visitor);
+  }
+
+  @override
+  String toString() => 'await $operand';
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    var result = h.typeAnalyzer.analyzeAwaitExpression(operand, schema);
+    h.irBuilder.apply(
+      'awaitExpr',
+      [Kind.expression],
+      Kind.expression,
+      location: location,
+    );
+    return result;
   }
 }
 
@@ -3259,6 +3293,54 @@ class MiniAstOperations
         what.unwrapTypeView<Type>(),
       ),
     );
+  }
+
+  @override
+  SharedTypeView flatten(SharedTypeView type) {
+    // (Note: comments below are pulled from the definition of the "flatten"
+    // function in the "Function Expressions" section of the language  spec.)
+
+    // We define the auxiliary function flatten(T) as follows, using the first
+    // applicable case:
+    var t = type.unwrapTypeView<Type>();
+
+    // - If T is X & S for some type variable X and type S then
+    if (t case TypeParameterType(:var typeParameter, promotion: var s?)) {
+      //   - If S derives a future type U then flatten(T) ≜ flatten(U).
+      if (_typeSystem.derivedFutureType(s) case var u?) {
+        return flatten(u.wrapSharedTypeView());
+      }
+
+      //   - otherwise, flatten(T) ≜ flatten(X)
+      return flatten(TypeParameterType(typeParameter).wrapSharedTypeView());
+    }
+
+    // - If T derives a future type Future<S> or FutureOr<S> then
+    //   flatten(T) ≜ S.
+    // - If T derives a future type Future<S>? or FutureOr<S>? then
+    //   flatten(T) ≜ S?.
+    if (_typeSystem.derivedFutureType(t) case var f?) {
+      var s = switch (f) {
+        PrimaryType(nameInfo: TypeNameInfo(name: 'Future'), args: [var s]) ||
+        FutureOrType(typeArgument: var s) => s,
+        _ => fail(
+          'Derived future type should always be Future<...> or FutureOr<...>',
+        ),
+      };
+      if (f.isQuestionType) {
+        return s.asQuestionType(true).wrapSharedTypeView();
+      } else {
+        return s.wrapSharedTypeView();
+      }
+    }
+
+    // - Otherwise, flatten(T) ≜ T.
+    return t.wrapSharedTypeView();
+  }
+
+  @override
+  Type futureOrTypeInternal(Type argumentType) {
+    return FutureOrType(argumentType);
   }
 
   @override
