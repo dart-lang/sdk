@@ -58,20 +58,14 @@ class _AllowedCommentVisitor extends SimpleAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     Token? token = node.beginToken;
     while (token != null) {
-      _getPrecedingComments(token).forEach(_visitComment);
+      Token? comment = token.precedingComments;
+      while (comment != null) {
+        _visitComment(comment);
+        comment = comment.next;
+      }
       if (token == token.next) break;
       token = token.next;
     }
-  }
-
-  Iterable<Token> _getPrecedingComments(Token token) {
-    var tokens = <Token>[];
-    Token? comment = token.precedingComments;
-    while (comment != null) {
-      tokens.add(comment);
-      comment = comment.next;
-    }
-    return tokens;
   }
 
   void _visitComment(Token comment) {
