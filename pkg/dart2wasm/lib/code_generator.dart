@@ -87,10 +87,6 @@ abstract class AstCodeGenerator
   w.Local? returnValueLocal;
   final Map<TypeParameter, w.Local> typeLocals = {};
 
-  // Maps a classes' fields to corresponding locals so that we can update the
-  // local directly if a field has both a default value and a FieldInitializer.
-  final Map<Field, w.Local> fieldLocals = {};
-
   /// Finalizers to run on `return`.
   final List<TryBlockFinalizer> returnFinalizers = [];
 
@@ -475,70 +471,6 @@ abstract class AstCodeGenerator
     captureParameters();
   }
 
-  void _setupDefaultFieldValues(ClassInfo info) {
-    fieldLocals.clear();
-
-    for (Field field in info.cls!.fields) {
-      if (field.isInstanceMember && field.initializer != null) {
-        final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
-        final (oldSource, oldFileOffset) = setSourceMapSourceAndFileOffset(
-          source,
-          field.fileOffset,
-        );
-
-        int fieldIndex = translator.fieldIndex[field]!;
-        w.Local local = addLocal(info.struct.fields[fieldIndex].type.unpacked);
-
-        translateExpression(
-          field.initializer!,
-          info.struct.fields[fieldIndex].type.unpacked,
-        );
-        b.local_set(local);
-        fieldLocals[field] = local;
-
-        setSourceMapSourceAndFileOffset(oldSource, oldFileOffset);
-      }
-    }
-  }
-
-  List<w.Local> _getConstructorArgumentLocals(
-    Reference target, [
-    reverse = false,
-  ]) {
-    Constructor member = target.asConstructor;
-    List<w.Local> constructorArgs = [];
-
-    List<TypeParameter> typeParameters = member.enclosingClass.typeParameters;
-
-    for (int i = 0; i < typeParameters.length; i++) {
-      constructorArgs.add(typeLocals[typeParameters[i]]!);
-    }
-
-    List<VariableDeclaration> positional = member.function.positionalParameters;
-    for (VariableDeclaration pos in positional) {
-      constructorArgs.add(locals[pos]!);
-    }
-
-    Map<String, w.Local> namedArgs = {};
-    List<VariableDeclaration> named = member.function.namedParameters;
-    for (VariableDeclaration param in named) {
-      namedArgs[param.name!] = locals[param]!;
-    }
-
-    final ParameterInfo paramInfo = translator.paramInfoForDirectCall(target);
-
-    for (String name in paramInfo.names) {
-      w.Local namedLocal = namedArgs[name]!;
-      constructorArgs.add(namedLocal);
-    }
-
-    if (reverse) {
-      return constructorArgs.reversed.toList();
-    }
-
-    return constructorArgs;
-  }
-
   void setupLambdaParametersAndContexts(Lambda lambda) {
     FunctionNode functionNode = lambda.functionNode;
     _initializeContextLocals(functionNode);
@@ -747,15 +679,6 @@ abstract class AstCodeGenerator
     }
   }
 
-  void visitInitializer(Initializer node) {
-    try {
-      node.accept(this);
-    } catch (_) {
-      _printLocation(node);
-      rethrow;
-    }
-  }
-
   void _printLocation(TreeNode node) {
     if (!exceptionLocationPrinted) {
       print("Exception in ${node.runtimeType} at ${node.location}");
@@ -768,82 +691,33 @@ abstract class AstCodeGenerator
   }
 
   @override
-  void visitInvalidInitializer(InvalidInitializer node) {}
+  void visitInvalidInitializer(InvalidInitializer node) {
+    throw StateError('Should be handled in InitializerListCodeGenerator.');
+  }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
-    translateStatement(node.statement);
+    throw StateError('Should be handled in InitializerListCodeGenerator.');
   }
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    translateStatement(node.variable);
+    throw StateError('Should be handled in InitializerListCodeGenerator.');
   }
 
   @override
   void visitFieldInitializer(FieldInitializer node) {
-    Class cls = (node.parent as Constructor).enclosingClass;
-    w.StructType struct = translator.classInfo[cls]!.struct;
-    Field field = node.field;
-    int fieldIndex = translator.fieldIndex[field]!;
-
-    w.Local? local = fieldLocals[field];
-
-    local ??= addLocal(struct.fields[fieldIndex].type.unpacked);
-
-    translateExpression(node.value, struct.fields[fieldIndex].type.unpacked);
-    b.local_set(local);
-    fieldLocals[field] = local;
+    throw StateError('Should be handled in InitializerListCodeGenerator.');
   }
 
   @override
   void visitRedirectingInitializer(RedirectingInitializer node) {
-    Class cls = (node.parent as Constructor).enclosingClass;
-
-    for (TypeParameter typeParam in cls.typeParameters) {
-      types.makeType(
-        this,
-        TypeParameterType(typeParam, Nullability.nonNullable),
-      );
-    }
-
-    final targetMember = node.targetReference.asMember;
-    final target = targetMember.initializerReference;
-    _visitArguments(
-      node.arguments,
-      translator.signatureForDirectCall(target),
-      translator.paramInfoForDirectCall(target),
-      cls.typeParameters.length,
-    );
-
-    b.comment("Direct call of '$targetMember Redirected Initializer'");
-    call(target);
+    throw StateError('Should be handled in InitializerListCodeGenerator.');
   }
 
   @override
   void visitSuperInitializer(SuperInitializer node) {
-    Supertype? supertype =
-        (node.parent as Constructor).enclosingClass.supertype;
-    Supertype? supersupertype = node.target.enclosingClass.supertype;
-
-    // Skip calls to the constructor for Object, as this is empty
-    if (supersupertype != null) {
-      for (DartType typeArg in supertype!.typeArguments) {
-        types.makeType(this, typeArg);
-      }
-
-      final targetMember = node.targetReference.asMember;
-      final target = targetMember.initializerReference;
-      _visitArguments(
-        node.arguments,
-        translator.signatureForDirectCall(target),
-        translator.paramInfoForDirectCall(target),
-        supertype.typeArguments.length,
-      );
-
-      b.comment("Direct call of '$targetMember Initializer'");
-      call(target);
-    }
+    throw StateError('Should be handled in InitializerListCodeGenerator.');
   }
 
   @override
@@ -4266,8 +4140,57 @@ void createInvocationObject(
   );
 }
 
-class InitializerListCodeGenerator extends AstCodeGenerator {
+abstract class ConstructorCodeGeneratorBase extends AstCodeGenerator {
+  ConstructorCodeGeneratorBase(
+    super.translator,
+    super.functionType,
+    super.member,
+  );
+  List<w.Local> _getConstructorArgumentLocals(
+    Reference target, [
+    reverse = false,
+  ]) {
+    Constructor member = target.asConstructor;
+    List<w.Local> constructorArgs = [];
+
+    List<TypeParameter> typeParameters = member.enclosingClass.typeParameters;
+
+    for (int i = 0; i < typeParameters.length; i++) {
+      constructorArgs.add(typeLocals[typeParameters[i]]!);
+    }
+
+    List<VariableDeclaration> positional = member.function.positionalParameters;
+    for (VariableDeclaration pos in positional) {
+      constructorArgs.add(locals[pos]!);
+    }
+
+    Map<String, w.Local> namedArgs = {};
+    List<VariableDeclaration> named = member.function.namedParameters;
+    for (VariableDeclaration param in named) {
+      namedArgs[param.name!] = locals[param]!;
+    }
+
+    final ParameterInfo paramInfo = translator.paramInfoForDirectCall(target);
+
+    for (String name in paramInfo.names) {
+      w.Local namedLocal = namedArgs[name]!;
+      constructorArgs.add(namedLocal);
+    }
+
+    if (reverse) {
+      return constructorArgs.reversed.toList();
+    }
+
+    return constructorArgs;
+  }
+}
+
+class InitializerListCodeGenerator extends ConstructorCodeGeneratorBase {
   final Constructor member;
+
+  // Maps a classes' fields to corresponding locals so that we can update the
+  // local directly if a field has both a default value and a FieldInitializer.
+  final Map<Field, w.Local> fieldLocals = {};
 
   InitializerListCodeGenerator(
     Translator translator,
@@ -4373,7 +4296,7 @@ class InitializerListCodeGenerator extends AstCodeGenerator {
 
     // Generate initializer list
     for (Initializer initializer in member.initializers) {
-      visitInitializer(initializer);
+      initializer.accept(this);
 
       if (initializer is SuperInitializer) {
         // Save super classes' fields to locals
@@ -4420,9 +4343,114 @@ class InitializerListCodeGenerator extends AstCodeGenerator {
 
     return superclassFields.reversed.toList() + typeFields + orderedFieldLocals;
   }
+
+  void _setupDefaultFieldValues(ClassInfo info) {
+    fieldLocals.clear();
+
+    for (Field field in info.cls!.fields) {
+      if (field.isInstanceMember && field.initializer != null) {
+        final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
+        final (oldSource, oldFileOffset) = setSourceMapSourceAndFileOffset(
+          source,
+          field.fileOffset,
+        );
+
+        int fieldIndex = translator.fieldIndex[field]!;
+        w.Local local = addLocal(info.struct.fields[fieldIndex].type.unpacked);
+
+        translateExpression(
+          field.initializer!,
+          info.struct.fields[fieldIndex].type.unpacked,
+        );
+        b.local_set(local);
+        fieldLocals[field] = local;
+
+        setSourceMapSourceAndFileOffset(oldSource, oldFileOffset);
+      }
+    }
+  }
+
+  @override
+  void visitInvalidInitializer(InvalidInitializer node) {}
+
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
+    translateStatement(node.statement);
+  }
+
+  @override
+  void visitLocalInitializer(LocalInitializer node) {
+    translateStatement(node.variable);
+  }
+
+  @override
+  void visitFieldInitializer(FieldInitializer node) {
+    Class cls = (node.parent as Constructor).enclosingClass;
+    w.StructType struct = translator.classInfo[cls]!.struct;
+    Field field = node.field;
+    int fieldIndex = translator.fieldIndex[field]!;
+
+    w.Local? local = fieldLocals[field];
+
+    local ??= addLocal(struct.fields[fieldIndex].type.unpacked);
+
+    translateExpression(node.value, struct.fields[fieldIndex].type.unpacked);
+    b.local_set(local);
+    fieldLocals[field] = local;
+  }
+
+  @override
+  void visitRedirectingInitializer(RedirectingInitializer node) {
+    Class cls = (node.parent as Constructor).enclosingClass;
+
+    for (TypeParameter typeParam in cls.typeParameters) {
+      types.makeType(
+        this,
+        TypeParameterType(typeParam, Nullability.nonNullable),
+      );
+    }
+
+    final targetMember = node.targetReference.asMember;
+    final target = targetMember.initializerReference;
+    _visitArguments(
+      node.arguments,
+      translator.signatureForDirectCall(target),
+      translator.paramInfoForDirectCall(target),
+      cls.typeParameters.length,
+    );
+
+    b.comment("Direct call of '$targetMember Redirected Initializer'");
+    call(target);
+  }
+
+  @override
+  void visitSuperInitializer(SuperInitializer node) {
+    Supertype? supertype =
+        (node.parent as Constructor).enclosingClass.supertype;
+    Supertype? supersupertype = node.target.enclosingClass.supertype;
+
+    // Skip calls to the constructor for Object, as this is empty
+    if (supersupertype != null) {
+      for (DartType typeArg in supertype!.typeArguments) {
+        types.makeType(this, typeArg);
+      }
+
+      final targetMember = node.targetReference.asMember;
+      final target = targetMember.initializerReference;
+      _visitArguments(
+        node.arguments,
+        translator.signatureForDirectCall(target),
+        translator.paramInfoForDirectCall(target),
+        supertype.typeArguments.length,
+      );
+
+      b.comment("Direct call of '$targetMember Initializer'");
+      call(target);
+    }
+  }
 }
 
-class ConstructorAllocatorCodeGenerator extends AstCodeGenerator {
+class ConstructorAllocatorCodeGenerator extends ConstructorCodeGeneratorBase {
   final Constructor member;
 
   ConstructorAllocatorCodeGenerator(
@@ -4545,7 +4573,7 @@ class ConstructorAllocatorCodeGenerator extends AstCodeGenerator {
   }
 }
 
-class ConstructorCodeGenerator extends AstCodeGenerator {
+class ConstructorCodeGenerator extends ConstructorCodeGeneratorBase {
   final Constructor member;
 
   ConstructorCodeGenerator(
