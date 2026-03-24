@@ -317,6 +317,9 @@ class DartLibraryCalls : public AllStatic {
   static ObjectPtr LookupOpenPorts();
 
   // Returns null on success, an ErrorPtr on failure.
+  //
+  // On an error, the caller should continue to drain the microtask
+  // queue after processing the error.
   static ObjectPtr DrainMicrotaskQueue();
 
   // Runs the `_rehashObjects()` function in `dart:compact_hash`.

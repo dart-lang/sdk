@@ -38,12 +38,12 @@ class CheckingState {
   /// If `true`, inequivalences are currently reported.
   final bool isAsserting;
 
-  CheckingState(
-      {this.isAsserting = true,
-      UnionFind<Reference>? assumedReferences,
-      State? currentState})
-      : _assumedReferences = assumedReferences ?? new UnionFind<Reference>(),
-        _currentState = currentState;
+  CheckingState({
+    this.isAsserting = true,
+    UnionFind<Reference>? assumedReferences,
+    State? currentState,
+  }) : _assumedReferences = assumedReferences ?? new UnionFind<Reference>(),
+       _currentState = currentState;
 
   /// Returns that value that should be used as the result value when
   /// inequivalence are found.
@@ -123,8 +123,12 @@ class CheckingState {
 
   /// Registers the inequivalence [message] on [propertyName].
   void registerInequivalence(String propertyName, String message) {
-    _inequivalences.add(new Inequivalence(
-        new PropertyState(propertyName, _currentState), message));
+    _inequivalences.add(
+      new Inequivalence(
+        new PropertyState(propertyName, _currentState),
+        message,
+      ),
+    );
   }
 
   /// Returns `true` if inequivalences have been registered.
@@ -135,8 +139,9 @@ class CheckingState {
   /// inequivalences, even when none have been registered.
   EquivalenceResult toResult({bool hasInequivalences = false}) =>
       new EquivalenceResult(
-          hasInequivalences: hasInequivalences,
-          registeredInequivalences: _inequivalences.toList());
+        hasInequivalences: hasInequivalences,
+        registeredInequivalences: _inequivalences.toList(),
+      );
 }
 
 /// The result of performing equivalence checking.
@@ -144,8 +149,10 @@ class EquivalenceResult {
   final bool hasInequivalences;
   final List<Inequivalence> registeredInequivalences;
 
-  EquivalenceResult(
-      {this.hasInequivalences = false, required this.registeredInequivalences});
+  EquivalenceResult({
+    this.hasInequivalences = false,
+    required this.registeredInequivalences,
+  });
 
   bool get isEquivalent =>
       !hasInequivalences && registeredInequivalences.isEmpty;
@@ -246,26 +253,39 @@ class ReferenceName {
 
   ReferenceName.internal(this.kind, this.name, {this.parent, this.uri});
 
-  factory ReferenceName.fromNamedNode(NamedNode node,
-      [ReferenceNameKind? memberKind]) {
+  factory ReferenceName.fromNamedNode(
+    NamedNode node, [
+    ReferenceNameKind? memberKind,
+  ]) {
     if (node is Library) {
       return new ReferenceName.internal(
-          ReferenceNameKind.Library, node.importUri.toString());
+        ReferenceNameKind.Library,
+        node.importUri.toString(),
+      );
     } else if (node is Extension) {
       return new ReferenceName.internal(
-          ReferenceNameKind.Declaration, node.name,
-          parent: new ReferenceName.fromNamedNode(node.enclosingLibrary));
+        ReferenceNameKind.Declaration,
+        node.name,
+        parent: new ReferenceName.fromNamedNode(node.enclosingLibrary),
+      );
     } else if (node is ExtensionTypeDeclaration) {
       return new ReferenceName.internal(
-          ReferenceNameKind.Declaration, node.name,
-          parent: new ReferenceName.fromNamedNode(node.enclosingLibrary));
+        ReferenceNameKind.Declaration,
+        node.name,
+        parent: new ReferenceName.fromNamedNode(node.enclosingLibrary),
+      );
     } else if (node is Class) {
       return new ReferenceName.internal(
-          ReferenceNameKind.Declaration, node.name,
-          parent: new ReferenceName.fromNamedNode(node.enclosingLibrary));
+        ReferenceNameKind.Declaration,
+        node.name,
+        parent: new ReferenceName.fromNamedNode(node.enclosingLibrary),
+      );
     } else if (node is Typedef) {
-      return new ReferenceName.internal(ReferenceNameKind.Typedef, node.name,
-          parent: new ReferenceName.fromNamedNode(node.enclosingLibrary));
+      return new ReferenceName.internal(
+        ReferenceNameKind.Typedef,
+        node.name,
+        parent: new ReferenceName.fromNamedNode(node.enclosingLibrary),
+      );
     } else if (node is Member) {
       TreeNode? parent = node.parent;
       Reference? libraryReference = node.name.libraryReference;
@@ -297,17 +317,26 @@ class ReferenceName {
         }
       }
       if (parent is Class) {
-        return new ReferenceName.internal(memberKind, name,
-            parent: new ReferenceName.fromNamedNode(parent), uri: uri);
+        return new ReferenceName.internal(
+          memberKind,
+          name,
+          parent: new ReferenceName.fromNamedNode(parent),
+          uri: uri,
+        );
       } else if (parent is Library) {
-        return new ReferenceName.internal(memberKind, name,
-            parent: new ReferenceName.fromNamedNode(parent), uri: uri);
+        return new ReferenceName.internal(
+          memberKind,
+          name,
+          parent: new ReferenceName.fromNamedNode(parent),
+          uri: uri,
+        );
       } else {
         return new ReferenceName.internal(memberKind, name, uri: uri);
       }
     } else {
       throw new ArgumentError(
-          'Unexpected named node ${node} (${node.runtimeType})');
+        'Unexpected named node ${node} (${node.runtimeType})',
+      );
     }
   }
 
@@ -325,8 +354,10 @@ class ReferenceName {
       String name = parents[index].name;
       if (index == 1) {
         // Library reference.
-        referenceName =
-            new ReferenceName.internal(ReferenceNameKind.Library, name);
+        referenceName = new ReferenceName.internal(
+          ReferenceNameKind.Library,
+          name,
+        );
       } else if (CanonicalName.isSymbolicName(name)) {
         // Skip symbolic names
         kind = kindFromSymbolicName(name);
@@ -334,12 +365,18 @@ class ReferenceName {
         if (index + 2 == parents.length) {
           // This is a private name.
           referenceName = new ReferenceName.internal(
-              kind, parents[index + 1].name,
-              parent: referenceName, uri: name);
+            kind,
+            parents[index + 1].name,
+            parent: referenceName,
+            uri: name,
+          );
           break;
         } else {
-          referenceName =
-              new ReferenceName.internal(kind, name, parent: referenceName);
+          referenceName = new ReferenceName.internal(
+            kind,
+            name,
+            parent: referenceName,
+          );
         }
       }
     }

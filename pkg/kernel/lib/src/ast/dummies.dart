@@ -6,78 +6,123 @@ part of '../../ast.dart';
 
 /// Almost const <NamedExpression>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<NamedExpression> emptyListOfNamedExpression =
-    List.filled(0, dummyNamedExpression, growable: false);
+final List<NamedExpression> emptyListOfNamedExpression = List.filled(
+  0,
+  dummyNamedExpression,
+  growable: false,
+);
 
 /// Almost const <VariableDeclaration>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<VariableDeclaration> emptyListOfVariableDeclaration =
-    List.filled(0, dummyVariableDeclaration, growable: false);
+final List<VariableDeclaration> emptyListOfVariableDeclaration = List.filled(
+  0,
+  dummyVariableDeclaration,
+  growable: false,
+);
 
 /// Almost const <Combinator>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Combinator> emptyListOfCombinator =
-    List.filled(0, dummyCombinator, growable: false);
+final List<Combinator> emptyListOfCombinator = List.filled(
+  0,
+  dummyCombinator,
+  growable: false,
+);
 
 /// Almost const <Expression>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Expression> emptyListOfExpression =
-    List.filled(0, dummyExpression, growable: false);
+final List<Expression> emptyListOfExpression = List.filled(
+  0,
+  dummyExpression,
+  growable: false,
+);
 
 /// Almost const <AssertStatement>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<AssertStatement> emptyListOfAssertStatement =
-    List.filled(0, dummyAssertStatement, growable: false);
+final List<AssertStatement> emptyListOfAssertStatement = List.filled(
+  0,
+  dummyAssertStatement,
+  growable: false,
+);
 
 /// Almost const <SwitchCase>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<SwitchCase> emptyListOfSwitchCase =
-    List.filled(0, dummySwitchCase, growable: false);
+final List<SwitchCase> emptyListOfSwitchCase = List.filled(
+  0,
+  dummySwitchCase,
+  growable: false,
+);
 
 /// Almost const <SwitchExpressionCase>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<SwitchExpressionCase> emptyListOfSwitchExpressionCase =
-    List.filled(0, dummySwitchExpressionCase, growable: false);
+final List<SwitchExpressionCase> emptyListOfSwitchExpressionCase = List.filled(
+  0,
+  dummySwitchExpressionCase,
+  growable: false,
+);
 
 /// Almost const <PatternSwitchCase>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<PatternSwitchCase> emptyListOfPatternSwitchCase =
-    List.filled(0, dummyPatternSwitchCase, growable: false);
+final List<PatternSwitchCase> emptyListOfPatternSwitchCase = List.filled(
+  0,
+  dummyPatternSwitchCase,
+  growable: false,
+);
 
 /// Almost const <Catch>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Catch> emptyListOfCatch =
-    List.filled(0, dummyCatch, growable: false);
+final List<Catch> emptyListOfCatch = List.filled(
+  0,
+  dummyCatch,
+  growable: false,
+);
 
 /// Almost const <Supertype>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Supertype> emptyListOfSupertype =
-    List.filled(0, dummySupertype, growable: false);
+final List<Supertype> emptyListOfSupertype = List.filled(
+  0,
+  dummySupertype,
+  growable: false,
+);
 
 /// Almost const <DartType>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<DartType> emptyListOfDartType =
-    List.filled(0, dummyDartType, growable: false);
+final List<DartType> emptyListOfDartType = List.filled(
+  0,
+  dummyDartType,
+  growable: false,
+);
 
 /// Almost const <NamedType>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<NamedType> emptyListOfNamedType =
-    List.filled(0, dummyNamedType, growable: false);
+final List<NamedType> emptyListOfNamedType = List.filled(
+  0,
+  dummyNamedType,
+  growable: false,
+);
 
 /// Almost const <TypeParameter>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<TypeParameter> emptyListOfTypeParameter =
-    List.filled(0, dummyTypeParameter, growable: false);
+final List<TypeParameter> emptyListOfTypeParameter = List.filled(
+  0,
+  dummyTypeParameter,
+  growable: false,
+);
 
 /// Almost const <StructuralParameter>[], but not const in an attempt to
 /// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<StructuralParameter> emptyListOfStructuralParameter =
-    List.filled(0, dummyStructuralParameter, growable: false);
+final List<StructuralParameter> emptyListOfStructuralParameter = List.filled(
+  0,
+  dummyStructuralParameter,
+  growable: false,
+);
 
 /// Almost const <Constant>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Constant> emptyListOfConstant =
-    List.filled(0, dummyConstant, growable: false);
+final List<Constant> emptyListOfConstant = List.filled(
+  0,
+  dummyConstant,
+  growable: false,
+);
 
 /// Almost const <String>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -85,13 +130,19 @@ final List<String> emptyListOfString = List.filled(0, '', growable: false);
 
 /// Almost const <Typedef>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Typedef> emptyListOfTypedef =
-    List.filled(0, dummyTypedef, growable: false);
+final List<Typedef> emptyListOfTypedef = List.filled(
+  0,
+  dummyTypedef,
+  growable: false,
+);
 
 /// Almost const <Extension>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Extension> emptyListOfExtension =
-    List.filled(0, dummyExtension, growable: false);
+final List<Extension> emptyListOfExtension = List.filled(
+  0,
+  dummyExtension,
+  growable: false,
+);
 
 /// Almost const <ExtensionTypeDeclaration>[], but not const in an attempt to
 /// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -100,33 +151,51 @@ final List<ExtensionTypeDeclaration> emptyListOfExtensionTypeDeclaration =
 
 /// Almost const <Field>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Field> emptyListOfField =
-    List.filled(0, dummyField, growable: false);
+final List<Field> emptyListOfField = List.filled(
+  0,
+  dummyField,
+  growable: false,
+);
 
 /// Almost const <LibraryPart>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<LibraryPart> emptyListOfLibraryPart =
-    List.filled(0, dummyLibraryPart, growable: false);
+final List<LibraryPart> emptyListOfLibraryPart = List.filled(
+  0,
+  dummyLibraryPart,
+  growable: false,
+);
 
 /// Almost const <LibraryDependency>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<LibraryDependency> emptyListOfLibraryDependency =
-    List.filled(0, dummyLibraryDependency, growable: false);
+final List<LibraryDependency> emptyListOfLibraryDependency = List.filled(
+  0,
+  dummyLibraryDependency,
+  growable: false,
+);
 
 /// Almost const <Procedure>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Procedure> emptyListOfProcedure =
-    List.filled(0, dummyProcedure, growable: false);
+final List<Procedure> emptyListOfProcedure = List.filled(
+  0,
+  dummyProcedure,
+  growable: false,
+);
 
 /// Almost const <MapLiteralEntry>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<MapLiteralEntry> emptyListOfMapLiteralEntry =
-    List.filled(0, dummyMapLiteralEntry, growable: false);
+final List<MapLiteralEntry> emptyListOfMapLiteralEntry = List.filled(
+  0,
+  dummyMapLiteralEntry,
+  growable: false,
+);
 
 /// Almost const <Class>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Class> emptyListOfClass =
-    List.filled(0, dummyClass, growable: false);
+final List<Class> emptyListOfClass = List.filled(
+  0,
+  dummyClass,
+  growable: false,
+);
 
 /// Almost const <ExtensionMemberDescriptor>[], but not const in an attempt to
 /// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -137,23 +206,35 @@ final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
 /// to avoid polymorphism. See
 /// https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<ExtensionTypeMemberDescriptor>
-    emptyListOfExtensionTypeMemberDescriptor =
-    List.filled(0, dummyExtensionTypeMemberDescriptor, growable: false);
+emptyListOfExtensionTypeMemberDescriptor = List.filled(
+  0,
+  dummyExtensionTypeMemberDescriptor,
+  growable: false,
+);
 
 /// Almost const <TypeDeclarationType>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<TypeDeclarationType> emptyListOfTypeDeclarationType =
-    List.filled(0, dummyExtensionType, growable: false);
+final List<TypeDeclarationType> emptyListOfTypeDeclarationType = List.filled(
+  0,
+  dummyExtensionType,
+  growable: false,
+);
 
 /// Almost const <Constructor>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Constructor> emptyListOfConstructor =
-    List.filled(0, dummyConstructor, growable: false);
+final List<Constructor> emptyListOfConstructor = List.filled(
+  0,
+  dummyConstructor,
+  growable: false,
+);
 
 /// Almost const <Initializer>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Initializer> emptyListOfInitializer =
-    List.filled(0, dummyInitializer, growable: false);
+final List<Initializer> emptyListOfInitializer = List.filled(
+  0,
+  dummyInitializer,
+  growable: false,
+);
 
 /// Non-nullable [DartType] dummy value.
 ///
@@ -174,8 +255,11 @@ final Supertype dummySupertype = new Supertype(dummyClass, const []);
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final NamedType dummyNamedType =
-    new NamedType('', dummyDartType, isRequired: false);
+final NamedType dummyNamedType = new NamedType(
+  '',
+  dummyDartType,
+  isRequired: false,
+);
 
 /// Non-nullable [Uri] dummy value.
 final Uri dummyUri = new Uri(scheme: 'dummy');
@@ -204,8 +288,9 @@ final Library dummyLibrary = new Library(dummyUri, fileUri: dummyUri);
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final LibraryDependency dummyLibraryDependency =
-    new LibraryDependency.import(dummyLibrary);
+final LibraryDependency dummyLibraryDependency = new LibraryDependency.import(
+  dummyLibrary,
+);
 
 /// Non-nullable [Combinator] dummy value.
 ///
@@ -233,8 +318,11 @@ final Class dummyClass = new Class(name: '', fileUri: dummyUri);
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Constructor dummyConstructor =
-    new Constructor(dummyFunctionNode, name: dummyName, fileUri: dummyUri);
+final Constructor dummyConstructor = new Constructor(
+  dummyFunctionNode,
+  name: dummyName,
+  fileUri: dummyUri,
+);
 
 /// Non-nullable [Extension] dummy value.
 ///
@@ -250,10 +338,11 @@ final Extension dummyExtension = new Extension(name: '', fileUri: dummyUri);
 /// constructor.
 final ExtensionMemberDescriptor dummyExtensionMemberDescriptor =
     new ExtensionMemberDescriptor(
-        name: dummyName,
-        kind: ExtensionMemberKind.Getter,
-        memberReference: dummyReference,
-        tearOffReference: null);
+      name: dummyName,
+      kind: ExtensionMemberKind.Getter,
+      memberReference: dummyReference,
+      tearOffReference: null,
+    );
 
 /// Non-nullable [ExtensionTypeDeclaration] dummy value.
 ///
@@ -270,18 +359,21 @@ final ExtensionTypeDeclaration dummyExtensionTypeDeclaration =
 /// constructor.
 final ExtensionTypeMemberDescriptor dummyExtensionTypeMemberDescriptor =
     new ExtensionTypeMemberDescriptor(
-        name: dummyName,
-        kind: ExtensionTypeMemberKind.Getter,
-        memberReference: dummyReference,
-        tearOffReference: null);
+      name: dummyName,
+      kind: ExtensionTypeMemberKind.Getter,
+      memberReference: dummyReference,
+      tearOffReference: null,
+    );
 
 /// Non-nullable [ExtensionType] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final ExtensionType dummyExtensionType =
-    new ExtensionType(dummyExtensionTypeDeclaration, Nullability.nonNullable);
+final ExtensionType dummyExtensionType = new ExtensionType(
+  dummyExtensionTypeDeclaration,
+  Nullability.nonNullable,
+);
 
 /// Non-nullable [Member] dummy value.
 ///
@@ -295,8 +387,11 @@ final Member dummyMember = new Field.mutable(dummyName, fileUri: dummyUri);
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final Procedure dummyProcedure = new Procedure(
-    dummyName, ProcedureKind.Method, dummyFunctionNode,
-    fileUri: dummyUri);
+  dummyName,
+  ProcedureKind.Method,
+  dummyFunctionNode,
+  fileUri: dummyUri,
+);
 
 /// Non-nullable [Field] dummy value.
 ///
@@ -345,42 +440,57 @@ final Expression dummyExpression = new NullLiteral();
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final NamedExpression dummyNamedExpression =
-    new NamedExpression('', dummyExpression);
+final NamedExpression dummyNamedExpression = new NamedExpression(
+  '',
+  dummyExpression,
+);
 
 /// Almost const <Pattern>[], but not const in an attempt to avoid
 /// polymorphism. See
 /// https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Pattern> emptyListOfPattern =
-    List.filled(0, dummyPattern, growable: false);
+final List<Pattern> emptyListOfPattern = List.filled(
+  0,
+  dummyPattern,
+  growable: false,
+);
 
 /// Almost const <NamedPattern>[], but not const in an attempt to avoid
 /// polymorphism. See
 /// https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<NamedPattern> emptyListOfNamedPattern =
-    List.filled(0, dummyNamedPattern, growable: false);
+final List<NamedPattern> emptyListOfNamedPattern = List.filled(
+  0,
+  dummyNamedPattern,
+  growable: false,
+);
 
 /// Almost const <MapPatternEntry>[], but not const in an attempt to avoid
 /// polymorphism. See
 /// https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<MapPatternEntry> emptyListOfMapPatternEntry =
-    List.filled(0, dummyMapPatternEntry, growable: false);
+final List<MapPatternEntry> emptyListOfMapPatternEntry = List.filled(
+  0,
+  dummyMapPatternEntry,
+  growable: false,
+);
 
 /// Non-nullable [VariableDeclaration] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final VariableDeclaration dummyVariableDeclaration =
-    new VariableDeclaration(null, isSynthesized: true);
+final VariableDeclaration dummyVariableDeclaration = new VariableDeclaration(
+  null,
+  isSynthesized: true,
+);
 
 /// Non-nullable [CatchVariable] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final CatchVariable dummyCatchVariable =
-    new CatchVariable(name: "#dummy-catch-variable", type: const DynamicType());
+final CatchVariable dummyCatchVariable = new CatchVariable(
+  name: "#dummy-catch-variable",
+  type: const DynamicType(),
+);
 
 /// Non-nullable [PositionalParameter] dummy value.
 ///
@@ -388,7 +498,10 @@ final CatchVariable dummyCatchVariable =
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final PositionalParameter dummyPositionalParameter = new PositionalParameter(
-    cosmeticName: null, type: const DynamicType(), defaultValue: null);
+  cosmeticName: null,
+  type: const DynamicType(),
+  defaultValue: null,
+);
 
 /// Non-nullable [TypeParameter] dummy value.
 ///
@@ -409,8 +522,10 @@ final StructuralParameter dummyStructuralParameter = new StructuralParameter();
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final MapLiteralEntry dummyMapLiteralEntry =
-    new MapLiteralEntry(dummyExpression, dummyExpression);
+final MapLiteralEntry dummyMapLiteralEntry = new MapLiteralEntry(
+  dummyExpression,
+  dummyExpression,
+);
 
 /// Non-nullable [Arguments] dummy value.
 ///
@@ -425,9 +540,10 @@ final Arguments dummyArguments = new Arguments(const []);
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final AssertStatement dummyAssertStatement = new AssertStatement(
-    dummyExpression,
-    conditionStartOffset: TreeNode.noOffset,
-    conditionEndOffset: TreeNode.noOffset);
+  dummyExpression,
+  conditionStartOffset: TreeNode.noOffset,
+  conditionEndOffset: TreeNode.noOffset,
+);
 
 /// Non-nullable [SwitchCase] dummy value.
 ///

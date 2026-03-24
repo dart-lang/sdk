@@ -62,14 +62,18 @@ class ExtensionTypeMemberInfo {
   final ExtensionTypeMemberDescriptor descriptor;
 
   ExtensionTypeMemberInfo(
-      this.extensionTypeDeclaration, this.member, this.descriptor);
+    this.extensionTypeDeclaration,
+    this.member,
+    this.descriptor,
+  );
 }
 
 class _LibraryInfo {
   final Library _library;
   late final _ExtensionTable _extensionTable = new _ExtensionTable(_library);
-  late final _ExtensionTypeTable _extensionTypeTable =
-      new _ExtensionTypeTable(_library);
+  late final _ExtensionTypeTable _extensionTypeTable = new _ExtensionTypeTable(
+    _library,
+  );
 
   _LibraryInfo(this._library);
 
@@ -95,8 +99,11 @@ class _ExtensionTable {
         }
         Member? tearOff = descriptor.tearOffReference?.asMember;
         if (tearOff != null) {
-          _map[tearOff] =
-              new ExtensionMemberInfo(extension, tearOff, descriptor);
+          _map[tearOff] = new ExtensionMemberInfo(
+            extension,
+            tearOff,
+            descriptor,
+          );
         }
       }
     }
@@ -120,12 +127,18 @@ class _ExtensionTypeTable {
         Member? member = descriptor.memberReference?.asMember;
         if (member != null) {
           _map[member] = new ExtensionTypeMemberInfo(
-              extensionTypeDeclaration, member, descriptor);
+            extensionTypeDeclaration,
+            member,
+            descriptor,
+          );
         }
         Member? tearOff = descriptor.tearOffReference?.asMember;
         if (tearOff != null) {
           _map[tearOff] = new ExtensionTypeMemberInfo(
-              extensionTypeDeclaration, tearOff, descriptor);
+            extensionTypeDeclaration,
+            tearOff,
+            descriptor,
+          );
         }
       }
     }

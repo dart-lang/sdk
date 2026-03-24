@@ -22,15 +22,17 @@ class Typedef extends NamedNode
   // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
-  Typedef(this.name, this.type,
-      {Reference? reference,
-      required this.fileUri,
-      List<TypeParameter>? typeParameters,
-      List<TypeParameter>? typeParametersOfFunctionType,
-      List<VariableDeclaration>? positionalParameters,
-      List<VariableDeclaration>? namedParameters})
-      : this.typeParameters = typeParameters ?? <TypeParameter>[],
-        super(reference) {
+  Typedef(
+    this.name,
+    this.type, {
+    Reference? reference,
+    required this.fileUri,
+    List<TypeParameter>? typeParameters,
+    List<TypeParameter>? typeParametersOfFunctionType,
+    List<VariableDeclaration>? positionalParameters,
+    List<VariableDeclaration>? namedParameters,
+  }) : this.typeParameters = typeParameters ?? <TypeParameter>[],
+       super(reference) {
     setParents(this.typeParameters, this);
   }
 
@@ -88,8 +90,12 @@ class Typedef extends NamedNode
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset,
-        viaForErrorMessage: "Typedef '$name'");
+    return _getLocationInComponent(
+      enclosingComponent,
+      fileUri,
+      offset,
+      viaForErrorMessage: "Typedef '$name'",
+    );
   }
 
   @override

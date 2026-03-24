@@ -97,10 +97,7 @@ class CanonicalName implements Comparable<CanonicalName?> {
     _nonRootTop = parent.isRoot ? this : parent._nonRootTop;
   }
 
-  CanonicalName.root()
-      : _parent = null,
-        _nonRootTop = null,
-        name = '';
+  CanonicalName.root() : _parent = null, _nonRootTop = null, name = '';
 
   bool get isRoot => _parent == null;
 
@@ -130,8 +127,9 @@ class CanonicalName implements Comparable<CanonicalName?> {
   }
 
   CanonicalName getChildFromProcedure(Procedure procedure) {
-    return getChild(getProcedureQualifier(procedure))
-        .getChildFromQualifiedName(procedure.name);
+    return getChild(
+      getProcedureQualifier(procedure),
+    ).getChildFromQualifiedName(procedure.name);
   }
 
   CanonicalName getChildFromField(Field field) {
@@ -147,8 +145,9 @@ class CanonicalName implements Comparable<CanonicalName?> {
   }
 
   CanonicalName getChildFromConstructor(Constructor constructor) {
-    return getChild(constructorsName)
-        .getChildFromQualifiedName(constructor.name);
+    return getChild(
+      constructorsName,
+    ).getChildFromQualifiedName(constructor.name);
   }
 
   CanonicalName getChildFromFieldWithName(Name name) {
@@ -202,15 +201,19 @@ class CanonicalName implements Comparable<CanonicalName?> {
       StringBuffer sb = new StringBuffer();
       sb.write('$this is already bound to ${_reference}');
       if (_reference?._node != null) {
-        sb.write(' with node ${_reference?._node}'
-            ' (${_reference?._node.runtimeType}'
-            ':${_reference?._node.hashCode})');
+        sb.write(
+          ' with node ${_reference?._node}'
+          ' (${_reference?._node.runtimeType}'
+          ':${_reference?._node.hashCode})',
+        );
       }
       sb.write(', trying to bind to ${target}');
       if (target._node != null) {
-        sb.write(' with node ${target._node}'
-            ' (${target._node.runtimeType}'
-            ':${target._node.hashCode})');
+        sb.write(
+          ' with node ${target._node}'
+          ' (${target._node.runtimeType}'
+          ':${target._node.hashCode})',
+        );
       }
       throw sb.toString();
     }
@@ -293,16 +296,22 @@ class CanonicalName implements Comparable<CanonicalName?> {
         return;
       } else {
         throw buildCanonicalNameError(
-            "Null reference (${name}) ($this).", this);
+          "Null reference (${name}) ($this).",
+          this,
+        );
       }
     }
     if (_reference!.canonicalName != this) {
       throw buildCanonicalNameError(
-          "Canonical name and reference doesn't agree.", this);
+        "Canonical name and reference doesn't agree.",
+        this,
+      );
     }
     if (_reference!.node == null) {
       throw buildCanonicalNameError(
-          "Reference is null (${name}) ($this).", this);
+        "Reference is null (${name}) ($this).",
+        this,
+      );
     }
   }
 
@@ -592,26 +601,36 @@ class Reference implements Comparable<Reference> {
             node.getterReference != this &&
             node.setterReference != this) {
           sb.write(' _node=${node} (${node.runtimeType}:${node.hashCode})');
-          sb.write(' _node.fieldReference='
-              '${node.fieldReference} (${node.fieldReference.hashCode})');
-          sb.write(' _node.getterReference='
-              '${node.getterReference} (${node.getterReference.hashCode})');
-          sb.write(' _node.setterReference='
-              '${node.setterReference} (${node.setterReference.hashCode})');
+          sb.write(
+            ' _node.fieldReference='
+            '${node.fieldReference} (${node.fieldReference.hashCode})',
+          );
+          sb.write(
+            ' _node.getterReference='
+            '${node.getterReference} (${node.getterReference.hashCode})',
+          );
+          sb.write(
+            ' _node.setterReference='
+            '${node.setterReference} (${node.setterReference.hashCode})',
+          );
         }
       } else {
         if (node.reference != this) {
           sb.write(' _node=${node} (${node.runtimeType}:${node.hashCode})');
-          sb.write(' _node.reference='
-              '${node.reference} (${node.reference.hashCode})');
+          sb.write(
+            ' _node.reference='
+            '${node.reference} (${node.reference.hashCode})',
+          );
         }
       }
     }
     if (canonicalName != null && canonicalName!._reference != this) {
       sb.write(' canonicalName=${canonicalName} (${canonicalName.hashCode})');
-      sb.write(' canonicalName.reference='
-          '${canonicalName!._reference} '
-          '(${canonicalName!._reference.hashCode})');
+      sb.write(
+        ' canonicalName.reference='
+        '${canonicalName!._reference} '
+        '(${canonicalName!._reference.hashCode})',
+      );
     }
     return sb.toString();
   }
@@ -667,7 +686,9 @@ class CanonicalNameSdkError extends CanonicalNameError {
 }
 
 CanonicalNameError buildCanonicalNameError(
-    String message, CanonicalName problemNode) {
+  String message,
+  CanonicalName problemNode,
+) {
   // Special-case missing sdk entries as that is probably a change to the
   // platform - that's something we might want to react differently to.
   String libraryUri = problemNode.nonRootTop?.name ?? "";

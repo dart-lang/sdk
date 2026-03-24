@@ -32,16 +32,17 @@ class CloneVisitorNotMembers
   /// The boolean value of [cloneAnnotations] tells if the annotations on the
   /// outline elements in the source AST should be cloned to the target AST. The
   /// annotations in procedure bodies are cloned unconditionally.
-  CloneVisitorNotMembers(
-      {Map<TypeParameter, DartType>? typeSubstitution,
-      Map<TypeParameter, TypeParameter>? typeParams,
-      Map<StructuralParameter, StructuralParameter>? structuralParameters,
-      this.cloneAnnotations = true})
-      : this.typeSubstitution = ensureMutable(typeSubstitution),
-        this.typeParams = typeParams ?? <TypeParameter, TypeParameter>{};
+  CloneVisitorNotMembers({
+    Map<TypeParameter, DartType>? typeSubstitution,
+    Map<TypeParameter, TypeParameter>? typeParams,
+    Map<StructuralParameter, StructuralParameter>? structuralParameters,
+    this.cloneAnnotations = true,
+  }) : this.typeSubstitution = ensureMutable(typeSubstitution),
+       this.typeParams = typeParams ?? <TypeParameter, TypeParameter>{};
 
   static Map<TypeParameter, DartType> ensureMutable(
-      Map<TypeParameter, DartType>? map) {
+    Map<TypeParameter, DartType>? map,
+  ) {
     // We need to mutate this map, so make sure we don't use a constant map.
     if (map == null || map.isEmpty) {
       return <TypeParameter, DartType>{};
@@ -59,7 +60,9 @@ class CloneVisitorNotMembers
   ///
   /// Returns the [clone].
   VariableDeclaration setVariableClone(
-      VariableDeclaration variable, VariableDeclaration clone) {
+    VariableDeclaration variable,
+    VariableDeclaration clone,
+  ) {
     return _variables[variable] = clone;
   }
 
@@ -113,9 +116,10 @@ class CloneVisitorNotMembers
     if (node is FileUriNode && clone is FileUriNode) {
       if (node.fileUri != clone.fileUri) {
         assert(
-            false,
-            "Original and clone disagrees on file uri: "
-            "${node.fileUri} vs ${clone.fileUri}");
+          false,
+          "Original and clone disagrees on file uri: "
+          "${node.fileUri} vs ${clone.fileUri}",
+        );
         return false;
       }
       return true;
@@ -190,7 +194,9 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitInvalidExpression(InvalidExpression node) {
     return new InvalidExpression(
-        node.message, node.expression != null ? clone(node.expression!) : null);
+      node.message,
+      node.expression != null ? clone(node.expression!) : null,
+    );
   }
 
   @override
@@ -210,25 +216,39 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) {
     return new AbstractSuperPropertyGet.byReference(
-        clone(node.receiver), node.name, node.interfaceTargetReference);
+      clone(node.receiver),
+      node.name,
+      node.interfaceTargetReference,
+    );
   }
 
   @override
   TreeNode visitAbstractSuperPropertySet(AbstractSuperPropertySet node) {
-    return new AbstractSuperPropertySet.byReference(clone(node.receiver),
-        node.name, clone(node.value), node.interfaceTargetReference);
+    return new AbstractSuperPropertySet.byReference(
+      clone(node.receiver),
+      node.name,
+      clone(node.value),
+      node.interfaceTargetReference,
+    );
   }
 
   @override
   TreeNode visitSuperPropertyGet(SuperPropertyGet node) {
     return new SuperPropertyGet.byReference(
-        clone(node.receiver), node.name, node.interfaceTargetReference);
+      clone(node.receiver),
+      node.name,
+      node.interfaceTargetReference,
+    );
   }
 
   @override
   TreeNode visitSuperPropertySet(SuperPropertySet node) {
-    return new SuperPropertySet.byReference(clone(node.receiver), node.name,
-        clone(node.value), node.interfaceTargetReference);
+    return new SuperPropertySet.byReference(
+      clone(node.receiver),
+      node.name,
+      clone(node.value),
+      node.interfaceTargetReference,
+    );
   }
 
   @override
@@ -243,36 +263,52 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitAbstractSuperMethodInvocation(
-      AbstractSuperMethodInvocation node) {
-    return new AbstractSuperMethodInvocation.byReference(clone(node.receiver),
-        node.name, clone(node.arguments), node.interfaceTargetReference);
+    AbstractSuperMethodInvocation node,
+  ) {
+    return new AbstractSuperMethodInvocation.byReference(
+      clone(node.receiver),
+      node.name,
+      clone(node.arguments),
+      node.interfaceTargetReference,
+    );
   }
 
   @override
   TreeNode visitSuperMethodInvocation(SuperMethodInvocation node) {
-    return new SuperMethodInvocation.byReference(clone(node.receiver),
-        node.name, clone(node.arguments), node.interfaceTargetReference);
+    return new SuperMethodInvocation.byReference(
+      clone(node.receiver),
+      node.name,
+      clone(node.arguments),
+      node.interfaceTargetReference,
+    );
   }
 
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
     return new StaticInvocation.byReference(
-        node.targetReference, clone(node.arguments),
-        isConst: node.isConst);
+      node.targetReference,
+      clone(node.arguments),
+      isConst: node.isConst,
+    );
   }
 
   @override
   TreeNode visitConstructorInvocation(ConstructorInvocation node) {
     return new ConstructorInvocation.byReference(
-        node.targetReference, clone(node.arguments),
-        isConst: node.isConst);
+      node.targetReference,
+      clone(node.arguments),
+      isConst: node.isConst,
+    );
   }
 
   @override
   TreeNode visitRedirectingFactoryInvocation(
-      RedirectingFactoryInvocation node) {
+    RedirectingFactoryInvocation node,
+  ) {
     return new RedirectingFactoryInvocation.byReference(
-        node.redirectingFactoryTargetReference, clone(node.expression));
+      node.redirectingFactoryTargetReference,
+      clone(node.expression),
+    );
   }
 
   @override
@@ -288,13 +324,20 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitLogicalExpression(LogicalExpression node) {
     return new LogicalExpression(
-        clone(node.left), node.operatorEnum, clone(node.right));
+      clone(node.left),
+      node.operatorEnum,
+      clone(node.right),
+    );
   }
 
   @override
   TreeNode visitConditionalExpression(ConditionalExpression node) {
-    return new ConditionalExpression(clone(node.condition), clone(node.then),
-        clone(node.otherwise), visitType(node.staticType));
+    return new ConditionalExpression(
+      clone(node.condition),
+      clone(node.then),
+      clone(node.otherwise),
+      visitType(node.staticType),
+    );
   }
 
   @override
@@ -304,20 +347,27 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitListConcatenation(ListConcatenation node) {
-    return new ListConcatenation(node.lists.map(clone).toList(),
-        typeArgument: visitType(node.typeArgument));
+    return new ListConcatenation(
+      node.lists.map(clone).toList(),
+      typeArgument: visitType(node.typeArgument),
+    );
   }
 
   @override
   TreeNode visitSetConcatenation(SetConcatenation node) {
-    return new SetConcatenation(node.sets.map(clone).toList(),
-        typeArgument: visitType(node.typeArgument));
+    return new SetConcatenation(
+      node.sets.map(clone).toList(),
+      typeArgument: visitType(node.typeArgument),
+    );
   }
 
   @override
   TreeNode visitMapConcatenation(MapConcatenation node) {
-    return new MapConcatenation(node.maps.map(clone).toList(),
-        keyType: visitType(node.keyType), valueType: visitType(node.valueType));
+    return new MapConcatenation(
+      node.maps.map(clone).toList(),
+      keyType: visitType(node.keyType),
+      valueType: visitType(node.valueType),
+    );
   }
 
   @override
@@ -327,11 +377,12 @@ class CloneVisitorNotMembers
       fieldValues[fieldRef] = clone(value);
     });
     return new InstanceCreation(
-        node.classReference,
-        node.typeArguments.map(visitType).toList(),
-        fieldValues,
-        node.asserts.map(clone).toList(),
-        node.unusedArguments.map(clone).toList());
+      node.classReference,
+      node.typeArguments.map(visitType).toList(),
+      fieldValues,
+      node.asserts.map(clone).toList(),
+      node.unusedArguments.map(clone).toList(),
+    );
   }
 
   @override
@@ -377,22 +428,30 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitListLiteral(ListLiteral node) {
-    return new ListLiteral(node.expressions.map(clone).toList(),
-        typeArgument: visitType(node.typeArgument), isConst: node.isConst);
+    return new ListLiteral(
+      node.expressions.map(clone).toList(),
+      typeArgument: visitType(node.typeArgument),
+      isConst: node.isConst,
+    );
   }
 
   @override
   TreeNode visitSetLiteral(SetLiteral node) {
-    return new SetLiteral(node.expressions.map(clone).toList(),
-        typeArgument: visitType(node.typeArgument), isConst: node.isConst);
+    return new SetLiteral(
+      node.expressions.map(clone).toList(),
+      typeArgument: visitType(node.typeArgument),
+      isConst: node.isConst,
+    );
   }
 
   @override
   TreeNode visitMapLiteral(MapLiteral node) {
-    return new MapLiteral(node.entries.map(clone).toList(),
-        keyType: visitType(node.keyType),
-        valueType: visitType(node.valueType),
-        isConst: node.isConst);
+    return new MapLiteral(
+      node.entries.map(clone).toList(),
+      keyType: visitType(node.keyType),
+      valueType: visitType(node.valueType),
+      isConst: node.isConst,
+    );
   }
 
   @override
@@ -403,10 +462,11 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitRecordLiteral(RecordLiteral node) {
     return new RecordLiteral(
-        node.positional.map(clone).toList(),
-        node.named.map(clone).toList(),
-        visitType(node.recordType) as RecordType,
-        isConst: node.isConst);
+      node.positional.map(clone).toList(),
+      node.named.map(clone).toList(),
+      visitType(node.recordType) as RecordType,
+      isConst: node.isConst,
+    );
   }
 
   @override
@@ -425,11 +485,16 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitConstantExpression(ConstantExpression node) {
     if (node is FileUriConstantExpression) {
-      return new FileUriConstantExpression(visitConstant(node.constant),
-          type: visitType(node.type), fileUri: node.fileUri);
+      return new FileUriConstantExpression(
+        visitConstant(node.constant),
+        type: visitType(node.type),
+        fileUri: node.fileUri,
+      );
     }
     return new ConstantExpression(
-        visitConstant(node.constant), visitType(node.type));
+      visitConstant(node.constant),
+      visitType(node.type),
+    );
   }
 
   @override
@@ -470,14 +535,20 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitRecordIndexGet(RecordIndexGet node) {
-    return new RecordIndexGet(clone(node.receiver),
-        visitType(node.receiverType) as RecordType, node.index);
+    return new RecordIndexGet(
+      clone(node.receiver),
+      visitType(node.receiverType) as RecordType,
+      node.index,
+    );
   }
 
   @override
   TreeNode visitRecordNameGet(RecordNameGet node) {
-    return new RecordNameGet(clone(node.receiver),
-        visitType(node.receiverType) as RecordType, node.name);
+    return new RecordNameGet(
+      clone(node.receiver),
+      visitType(node.receiverType) as RecordType,
+      node.name,
+    );
   }
 
   @override
@@ -503,10 +574,12 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitAssertStatement(AssertStatement node) {
-    return new AssertStatement(clone(node.condition),
-        conditionStartOffset: node.conditionStartOffset,
-        conditionEndOffset: node.conditionEndOffset,
-        message: cloneOptional(node.message));
+    return new AssertStatement(
+      clone(node.condition),
+      conditionStartOffset: node.conditionStartOffset,
+      conditionEndOffset: node.conditionEndOffset,
+      message: cloneOptional(node.message),
+    );
   }
 
   @override
@@ -534,34 +607,43 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForStatement(ForStatement node) {
-    List<VariableInitialization> variables =
-        node.variableInitializations.map(clone).toList();
-    return new ForStatement(variables, cloneOptional(node.condition),
-        node.updates.map(clone).toList(), clone(node.body));
+    List<VariableInitialization> variables = node.variableInitializations
+        .map(clone)
+        .toList();
+    return new ForStatement(
+      variables,
+      cloneOptional(node.condition),
+      node.updates.map(clone).toList(),
+      clone(node.body),
+    );
   }
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
     Variable newVariable = clone(node.expressionVariable);
     return new ForInStatement(
-        newVariable, clone(node.iterable), clone(node.body),
-        isAsync: node.isAsync)
-      ..bodyOffset = node.bodyOffset;
+      newVariable,
+      clone(node.iterable),
+      clone(node.body),
+      isAsync: node.isAsync,
+    )..bodyOffset = node.bodyOffset;
   }
 
   @override
   TreeNode visitSwitchStatement(SwitchStatement node) {
     for (SwitchCase switchCase in node.cases) {
       switchCases[switchCase] = new SwitchCase(
-          switchCase.expressions.map(clone).toList(),
-          new List<int>.of(switchCase.expressionOffsets),
-          dummyStatement,
-          isDefault: switchCase.isDefault);
+        switchCase.expressions.map(clone).toList(),
+        new List<int>.of(switchCase.expressionOffsets),
+        dummyStatement,
+        isDefault: switchCase.isDefault,
+      );
     }
     return new SwitchStatement(
-        clone(node.expression), node.cases.map(clone).toList(),
-        isExplicitlyExhaustive: node.isExplicitlyExhaustive)
-      ..expressionTypeInternal = visitOptionalType(node.expressionTypeInternal);
+      clone(node.expression),
+      node.cases.map(clone).toList(),
+      isExplicitlyExhaustive: node.isExplicitlyExhaustive,
+    )..expressionTypeInternal = visitOptionalType(node.expressionTypeInternal);
   }
 
   @override
@@ -579,7 +661,10 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitIfStatement(IfStatement node) {
     return new IfStatement(
-        clone(node.condition), clone(node.then), cloneOptional(node.otherwise));
+      clone(node.condition),
+      clone(node.then),
+      cloneOptional(node.otherwise),
+    );
   }
 
   @override
@@ -589,16 +674,23 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitTryCatch(TryCatch node) {
-    return new TryCatch(clone(node.body), node.catches.map(clone).toList(),
-        isSynthetic: node.isSynthetic);
+    return new TryCatch(
+      clone(node.body),
+      node.catches.map(clone).toList(),
+      isSynthetic: node.isSynthetic,
+    );
   }
 
   @override
   TreeNode visitCatch(Catch node) {
     VariableDeclaration? newException = cloneOptional(node.exception);
     VariableDeclaration? newStackTrace = cloneOptional(node.stackTrace);
-    return new Catch(newException, clone(node.body),
-        stackTrace: newStackTrace, guard: visitType(node.guard));
+    return new Catch(
+      newException,
+      clone(node.body),
+      stackTrace: newStackTrace,
+      guard: visitType(node.guard),
+    );
   }
 
   @override
@@ -614,15 +706,18 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitVariableDeclaration(VariableDeclaration node) {
     return setVariableClone(
-        node,
-        new VariableDeclaration(node.name,
-            initializer: cloneOptional(node.initializer),
-            type: visitType(node.type),
-            flags: node.flags)
-          ..annotations = cloneAnnotations && !node.annotations.isEmpty
-              ? node.annotations.map(clone).toList()
-              : const <Expression>[]
-          ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset));
+      node,
+      new VariableDeclaration(
+          node.name,
+          initializer: cloneOptional(node.initializer),
+          type: visitType(node.type),
+          flags: node.flags,
+        )
+        ..annotations = cloneAnnotations && !node.annotations.isEmpty
+            ? node.annotations.map(clone).toList()
+            : const <Expression>[]
+        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+    );
   }
 
   @override
@@ -630,8 +725,10 @@ class CloneVisitorNotMembers
     VariableDeclaration newVariable = clone(node.variable);
     // Create the declaration before cloning the body to support recursive
     // [LocalFunctionInvocation] nodes.
-    FunctionDeclaration declaration =
-        new FunctionDeclaration(newVariable, dummyFunctionNode)..id = node.id;
+    FunctionDeclaration declaration = new FunctionDeclaration(
+      newVariable,
+      dummyFunctionNode,
+    )..id = node.id;
     FunctionNode functionNode = clone(node.function);
     declaration.function = functionNode..parent = declaration;
     return declaration;
@@ -644,8 +741,10 @@ class CloneVisitorNotMembers
       if (newNode == null) {
         newNode = new TypeParameter(node.name);
         typeParams[node] = newNode;
-        typeSubstitution[node] =
-            new TypeParameterType(newNode, node.computeNullabilityFromBound());
+        typeSubstitution[node] = new TypeParameterType(
+          newNode,
+          node.computeNullabilityFromBound(),
+        );
       }
     }
   }
@@ -675,31 +774,36 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitFunctionNode(FunctionNode node) {
     prepareTypeParameters(node.typeParameters);
-    List<TypeParameter> typeParameters =
-        node.typeParameters.map(clone).toList();
-    List<VariableDeclaration> positional =
-        node.positionalParameters.map(clone).toList();
+    List<TypeParameter> typeParameters = node.typeParameters
+        .map(clone)
+        .toList();
+    List<VariableDeclaration> positional = node.positionalParameters
+        .map(clone)
+        .toList();
     List<VariableDeclaration> named = node.namedParameters.map(clone).toList();
     final DartType? futureValueType = node.emittedValueType != null
         ? visitType(node.emittedValueType!)
         : null;
-    return new FunctionNode(cloneFunctionNodeBody(node),
-        typeParameters: typeParameters,
-        positionalParameters: positional,
-        namedParameters: named,
-        requiredParameterCount: node.requiredParameterCount,
-        returnType: visitType(node.returnType),
-        asyncMarker: node.asyncMarker,
-        dartAsyncMarker: node.dartAsyncMarker,
-        emittedValueType: futureValueType)
-      ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
+    return new FunctionNode(
+      cloneFunctionNodeBody(node),
+      typeParameters: typeParameters,
+      positionalParameters: positional,
+      namedParameters: named,
+      requiredParameterCount: node.requiredParameterCount,
+      returnType: visitType(node.returnType),
+      asyncMarker: node.asyncMarker,
+      dartAsyncMarker: node.dartAsyncMarker,
+      emittedValueType: futureValueType,
+    )..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
   }
 
   @override
   TreeNode visitArguments(Arguments node) {
-    return new Arguments(node.positional.map(clone).toList(),
-        types: node.types.map(visitType).toList(),
-        named: node.named.map(clone).toList());
+    return new Arguments(
+      node.positional.map(clone).toList(),
+      types: node.types.map(visitType).toList(),
+      named: node.named.map(clone).toList(),
+    );
   }
 
   @override
@@ -730,13 +834,17 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitFieldInitializer(FieldInitializer node) {
     return new FieldInitializer.byReference(
-        node.fieldReference, clone(node.value));
+      node.fieldReference,
+      clone(node.value),
+    );
   }
 
   @override
   TreeNode visitInstantiation(Instantiation node) {
     return new Instantiation(
-        clone(node.expression), node.typeArguments.map(visitType).toList());
+      clone(node.expression),
+      node.typeArguments.map(visitType).toList(),
+    );
   }
 
   @override
@@ -772,13 +880,17 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitRedirectingInitializer(RedirectingInitializer node) {
     return new RedirectingInitializer.byReference(
-        node.targetReference, clone(node.arguments));
+      node.targetReference,
+      clone(node.arguments),
+    );
   }
 
   @override
   TreeNode visitSuperInitializer(SuperInitializer node) {
     return new SuperInitializer.byReference(
-        node.targetReference, clone(node.arguments));
+      node.targetReference,
+      clone(node.arguments),
+    );
   }
 
   @override
@@ -794,21 +906,31 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitDynamicInvocation(DynamicInvocation node) {
     return new DynamicInvocation(
-        node.kind, clone(node.receiver), node.name, clone(node.arguments))
-      ..flags = node.flags;
+      node.kind,
+      clone(node.receiver),
+      node.name,
+      clone(node.arguments),
+    )..flags = node.flags;
   }
 
   @override
   TreeNode visitDynamicSet(DynamicSet node) {
     return new DynamicSet(
-        node.kind, clone(node.receiver), node.name, clone(node.value));
+      node.kind,
+      clone(node.receiver),
+      node.name,
+      clone(node.value),
+    );
   }
 
   @override
   TreeNode visitEqualsCall(EqualsCall node) {
-    return new EqualsCall.byReference(clone(node.left), clone(node.right),
-        functionType: visitType(node.functionType) as FunctionType,
-        interfaceTargetReference: node.interfaceTargetReference);
+    return new EqualsCall.byReference(
+      clone(node.left),
+      clone(node.right),
+      functionType: visitType(node.functionType) as FunctionType,
+      interfaceTargetReference: node.interfaceTargetReference,
+    );
   }
 
   @override
@@ -819,55 +941,77 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitFunctionInvocation(FunctionInvocation node) {
     return new FunctionInvocation(
-        node.kind, clone(node.receiver), clone(node.arguments),
-        functionType: visitOptionalType(node.functionType) as FunctionType?);
+      node.kind,
+      clone(node.receiver),
+      clone(node.arguments),
+      functionType: visitOptionalType(node.functionType) as FunctionType?,
+    );
   }
 
   @override
   TreeNode visitInstanceGet(InstanceGet node) {
     return new InstanceGet.byReference(
-        node.kind, clone(node.receiver), node.name,
-        resultType: visitType(node.resultType),
-        interfaceTargetReference: node.interfaceTargetReference);
+      node.kind,
+      clone(node.receiver),
+      node.name,
+      resultType: visitType(node.resultType),
+      interfaceTargetReference: node.interfaceTargetReference,
+    );
   }
 
   @override
   TreeNode visitInstanceInvocation(InstanceInvocation node) {
     return new InstanceInvocation.byReference(
-        node.kind, clone(node.receiver), node.name, clone(node.arguments),
-        functionType: visitType(node.functionType) as FunctionType,
-        interfaceTargetReference: node.interfaceTargetReference)
-      ..flags = node.flags;
+      node.kind,
+      clone(node.receiver),
+      node.name,
+      clone(node.arguments),
+      functionType: visitType(node.functionType) as FunctionType,
+      interfaceTargetReference: node.interfaceTargetReference,
+    )..flags = node.flags;
   }
 
   @override
   TreeNode visitInstanceGetterInvocation(InstanceGetterInvocation node) {
     return new InstanceGetterInvocation.byReference(
-        node.kind, clone(node.receiver), node.name, clone(node.arguments),
-        functionType: visitOptionalType(node.functionType) as FunctionType?,
-        interfaceTargetReference: node.interfaceTargetReference);
+      node.kind,
+      clone(node.receiver),
+      node.name,
+      clone(node.arguments),
+      functionType: visitOptionalType(node.functionType) as FunctionType?,
+      interfaceTargetReference: node.interfaceTargetReference,
+    );
   }
 
   @override
   TreeNode visitInstanceSet(InstanceSet node) {
     return new InstanceSet.byReference(
-        node.kind, clone(node.receiver), node.name, clone(node.value),
-        interfaceTargetReference: node.interfaceTargetReference);
+      node.kind,
+      clone(node.receiver),
+      node.name,
+      clone(node.value),
+      interfaceTargetReference: node.interfaceTargetReference,
+    );
   }
 
   @override
   TreeNode visitInstanceTearOff(InstanceTearOff node) {
     return new InstanceTearOff.byReference(
-        node.kind, clone(node.receiver), node.name,
-        resultType: visitType(node.resultType),
-        interfaceTargetReference: node.interfaceTargetReference);
+      node.kind,
+      clone(node.receiver),
+      node.name,
+      resultType: visitType(node.resultType),
+      interfaceTargetReference: node.interfaceTargetReference,
+    );
   }
 
   @override
   TreeNode visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     return new LocalFunctionInvocation(
-        getVariableClone(node.variable)!, clone(node.arguments),
-        functionType: visitType(node.functionType) as FunctionType);
+      getVariableClone(node.variable)!,
+      clone(node.arguments),
+      functionType: visitType(node.functionType) as FunctionType,
+    );
   }
 
   @override
@@ -892,8 +1036,11 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitTypedefTearOff(TypedefTearOff node) {
-    return new TypedefTearOff(node.structuralParameters, clone(node.expression),
-        node.typeArguments.map(visitType).toList());
+    return new TypedefTearOff(
+      node.structuralParameters,
+      clone(node.expression),
+      node.typeArguments.map(visitType).toList(),
+    );
   }
 
   @override
@@ -920,21 +1067,29 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitInvalidPattern(InvalidPattern node) {
-    return new InvalidPattern(clone(node.invalidExpression),
-        declaredVariables:
-            node.declaredVariables.map((e) => getVariableClone(e)!).toList());
+    return new InvalidPattern(
+      clone(node.invalidExpression),
+      declaredVariables: node.declaredVariables
+          .map((e) => getVariableClone(e)!)
+          .toList(),
+    );
   }
 
   @override
   TreeNode visitListPattern(ListPattern node) {
-    return new ListPattern(visitOptionalType(node.typeArgument),
-        node.patterns.map(clone).toList());
+    return new ListPattern(
+      visitOptionalType(node.typeArgument),
+      node.patterns.map(clone).toList(),
+    );
   }
 
   @override
   TreeNode visitMapPattern(MapPattern node) {
-    return new MapPattern(visitOptionalType(node.keyType),
-        visitOptionalType(node.valueType), node.entries.map(clone).toList());
+    return new MapPattern(
+      visitOptionalType(node.keyType),
+      visitOptionalType(node.valueType),
+      node.entries.map(clone).toList(),
+    );
   }
 
   @override
@@ -965,15 +1120,20 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitObjectPattern(ObjectPattern node) {
     return new ObjectPattern(
-        visitType(node.requiredType), node.fields.map(clone).toList());
+      visitType(node.requiredType),
+      node.fields.map(clone).toList(),
+    );
   }
 
   @override
   TreeNode visitOrPattern(OrPattern node) {
-    return new OrPattern(clone(node.left), clone(node.right),
-        orPatternJointVariables: node.orPatternJointVariables
-            .map((e) => getVariableClone(e)!)
-            .toList());
+    return new OrPattern(
+      clone(node.left),
+      clone(node.right),
+      orPatternJointVariables: node.orPatternJointVariables
+          .map((e) => getVariableClone(e)!)
+          .toList(),
+    );
   }
 
   @override
@@ -995,7 +1155,9 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitVariablePattern(VariablePattern node) {
     return new VariablePattern(
-        visitOptionalType(node.type), clone(node.variable));
+      visitOptionalType(node.type),
+      clone(node.variable),
+    );
   }
 
   @override
@@ -1010,28 +1172,35 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitPatternSwitchCase(PatternSwitchCase node) {
-    return new PatternSwitchCase(new List<int>.of(node.caseOffsets),
-        node.patternGuards.map(clone).toList(), clone(node.body),
-        isDefault: node.isDefault,
-        hasLabel: node.hasLabel,
-        jointVariables:
-            node.jointVariables.map((e) => getVariableClone(e)!).toList(),
-        jointVariableFirstUseOffsets: node.jointVariableFirstUseOffsets == null
-            ? null
-            : new List<int>.of(node.jointVariableFirstUseOffsets!));
+    return new PatternSwitchCase(
+      new List<int>.of(node.caseOffsets),
+      node.patternGuards.map(clone).toList(),
+      clone(node.body),
+      isDefault: node.isDefault,
+      hasLabel: node.hasLabel,
+      jointVariables: node.jointVariables
+          .map((e) => getVariableClone(e)!)
+          .toList(),
+      jointVariableFirstUseOffsets: node.jointVariableFirstUseOffsets == null
+          ? null
+          : new List<int>.of(node.jointVariableFirstUseOffsets!),
+    );
   }
 
   @override
   TreeNode visitPatternSwitchStatement(PatternSwitchStatement node) {
     return new PatternSwitchStatement(
-        clone(node.expression), node.cases.map(clone).toList())
-      ..expressionTypeInternal = visitOptionalType(node.expressionTypeInternal);
+      clone(node.expression),
+      node.cases.map(clone).toList(),
+    )..expressionTypeInternal = visitOptionalType(node.expressionTypeInternal);
   }
 
   @override
   TreeNode visitSwitchExpression(SwitchExpression node) {
     return new SwitchExpression(
-        clone(node.expression), node.cases.map(clone).toList())
+        clone(node.expression),
+        node.cases.map(clone).toList(),
+      )
       ..expressionType = visitOptionalType(node.expressionType)
       ..staticType = visitOptionalType(node.staticType);
   }
@@ -1039,14 +1208,18 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitSwitchExpressionCase(SwitchExpressionCase node) {
     return new SwitchExpressionCase(
-        clone(node.patternGuard), clone(node.expression));
+      clone(node.patternGuard),
+      clone(node.expression),
+    );
   }
 
   @override
   TreeNode visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     return new PatternVariableDeclaration(
-        clone(node.pattern), clone(node.initializer),
-        isFinal: node.isFinal);
+      clone(node.pattern),
+      clone(node.initializer),
+      isFinal: node.isFinal,
+    );
   }
 
   @override
@@ -1056,26 +1229,33 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitIfCaseStatement(IfCaseStatement node) {
-    return new IfCaseStatement(clone(node.expression), clone(node.patternGuard),
-        clone(node.then), cloneOptional(node.otherwise));
+    return new IfCaseStatement(
+      clone(node.expression),
+      clone(node.patternGuard),
+      clone(node.then),
+      cloneOptional(node.otherwise),
+    );
   }
 
   @override
   TreeNode visitAuxiliaryExpression(AuxiliaryExpression node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary expression ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary expression ${node} (${node.runtimeType}).",
+    );
   }
 
   @override
   TreeNode visitAuxiliaryStatement(AuxiliaryStatement node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary statement ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary statement ${node} (${node.runtimeType}).",
+    );
   }
 
   @override
   TreeNode visitAuxiliaryInitializer(AuxiliaryInitializer node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary initializer ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary initializer ${node} (${node.runtimeType}).",
+    );
   }
 }
 
@@ -1085,14 +1265,15 @@ class CloneVisitorNotMembers
 /// It is safe to clone members, but cloning a class or library is not
 /// supported.
 class CloneVisitorWithMembers extends CloneVisitorNotMembers {
-  CloneVisitorWithMembers(
-      {Map<TypeParameter, DartType>? typeSubstitution,
-      Map<TypeParameter, TypeParameter>? typeParams,
-      bool cloneAnnotations = true})
-      : super(
-            typeSubstitution: typeSubstitution,
-            typeParams: typeParams,
-            cloneAnnotations: cloneAnnotations);
+  CloneVisitorWithMembers({
+    Map<TypeParameter, DartType>? typeSubstitution,
+    Map<TypeParameter, TypeParameter>? typeParams,
+    bool cloneAnnotations = true,
+  }) : super(
+         typeSubstitution: typeSubstitution,
+         typeParams: typeParams,
+         cloneAnnotations: cloneAnnotations,
+       );
 
   @override
   @Deprecated("When cloning with members one should use the specific cloneX")
@@ -1104,22 +1285,23 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     final Uri? activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri;
 
-    Constructor result = new Constructor(
-      super.clone(node.function),
-      name: node.name,
-      isConst: node.isConst,
-      isExternal: node.isExternal,
-      isSynthetic: node.isSynthetic,
-      initializers: node.initializers.map(super.clone).toList(),
-      transformerFlags: node.transformerFlags,
-      fileUri: node.fileUri,
-      reference: reference,
-    )
-      ..annotations = cloneAnnotations && !node.annotations.isEmpty
-          ? node.annotations.map(super.clone).toList()
-          : const <Expression>[]
-      ..fileOffset = _cloneFileOffset(node.fileOffset)
-      ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
+    Constructor result =
+        new Constructor(
+            super.clone(node.function),
+            name: node.name,
+            isConst: node.isConst,
+            isExternal: node.isExternal,
+            isSynthetic: node.isSynthetic,
+            initializers: node.initializers.map(super.clone).toList(),
+            transformerFlags: node.transformerFlags,
+            fileUri: node.fileUri,
+            reference: reference,
+          )
+          ..annotations = cloneAnnotations && !node.annotations.isEmpty
+              ? node.annotations.map(super.clone).toList()
+              : const <Expression>[]
+          ..fileOffset = _cloneFileOffset(node.fileOffset)
+          ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
     setParents(result.annotations, result);
 
     assert(_assertFileUriTarget(node, result));
@@ -1131,20 +1313,24 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
   Procedure cloneProcedure(Procedure node, Reference? reference) {
     final Uri? activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri;
-    Procedure result = new Procedure(
-        node.name, node.kind, super.clone(node.function),
-        reference: reference,
-        transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri,
-        stubKind: node.stubKind,
-        stubTarget: node.stubTarget)
-      ..annotations = cloneAnnotations && !node.annotations.isEmpty
-          ? node.annotations.map(super.clone).toList()
-          : const <Expression>[]
-      ..fileStartOffset = _cloneFileOffset(node.fileStartOffset)
-      ..fileOffset = _cloneFileOffset(node.fileOffset)
-      ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
-      ..flags = node.flags;
+    Procedure result =
+        new Procedure(
+            node.name,
+            node.kind,
+            super.clone(node.function),
+            reference: reference,
+            transformerFlags: node.transformerFlags,
+            fileUri: node.fileUri,
+            stubKind: node.stubKind,
+            stubTarget: node.stubTarget,
+          )
+          ..annotations = cloneAnnotations && !node.annotations.isEmpty
+              ? node.annotations.map(super.clone).toList()
+              : const <Expression>[]
+          ..fileStartOffset = _cloneFileOffset(node.fileStartOffset)
+          ..fileOffset = _cloneFileOffset(node.fileOffset)
+          ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
+          ..flags = node.flags;
     setParents(result.annotations, result);
 
     assert(_assertFileUriTarget(node, result));
@@ -1153,33 +1339,42 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  Field cloneField(Field node, Reference? fieldReference,
-      Reference? getterReference, Reference? setterReference) {
+  Field cloneField(
+    Field node,
+    Reference? fieldReference,
+    Reference? getterReference,
+    Reference? setterReference,
+  ) {
     final Uri? activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri;
 
     Field result;
     if (node.hasSetter) {
-      result = new Field.mutable(node.name,
-          type: visitType(node.type),
-          initializer: cloneOptional(node.initializer),
-          transformerFlags: node.transformerFlags,
-          fileUri: node.fileUri,
-          fieldReference: fieldReference,
-          getterReference: getterReference,
-          setterReference: setterReference);
+      result = new Field.mutable(
+        node.name,
+        type: visitType(node.type),
+        initializer: cloneOptional(node.initializer),
+        transformerFlags: node.transformerFlags,
+        fileUri: node.fileUri,
+        fieldReference: fieldReference,
+        getterReference: getterReference,
+        setterReference: setterReference,
+      );
     } else {
       assert(
-          setterReference == null,
-          "Cannot use setter reference $setterReference "
-          "for clone of an immutable field.");
-      result = new Field.immutable(node.name,
-          type: visitType(node.type),
-          initializer: cloneOptional(node.initializer),
-          transformerFlags: node.transformerFlags,
-          fileUri: node.fileUri,
-          fieldReference: fieldReference,
-          getterReference: getterReference);
+        setterReference == null,
+        "Cannot use setter reference $setterReference "
+        "for clone of an immutable field.",
+      );
+      result = new Field.immutable(
+        node.name,
+        type: visitType(node.type),
+        initializer: cloneOptional(node.initializer),
+        transformerFlags: node.transformerFlags,
+        fileUri: node.fileUri,
+        fieldReference: fieldReference,
+        getterReference: getterReference,
+      );
     }
     result
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
@@ -1203,14 +1398,16 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
   Map<Name, Member>? _getterMap;
   Map<Name, Member>? _setterMap;
 
-  MixinApplicationCloner(this.mixinApplicationClass,
-      {Map<TypeParameter, DartType>? typeSubstitution,
-      Map<TypeParameter, TypeParameter>? typeParams,
-      bool cloneAnnotations = true})
-      : super(
-            typeSubstitution: typeSubstitution,
-            typeParams: typeParams,
-            cloneAnnotations: cloneAnnotations);
+  MixinApplicationCloner(
+    this.mixinApplicationClass, {
+    Map<TypeParameter, DartType>? typeSubstitution,
+    Map<TypeParameter, TypeParameter>? typeParams,
+    bool cloneAnnotations = true,
+  }) : super(
+         typeSubstitution: typeSubstitution,
+         typeParams: typeParams,
+         cloneAnnotations: cloneAnnotations,
+       );
 
   Member? _findSuperMember(Name name, {required bool isSetter}) {
     Map<Name, Member> cache;
@@ -1265,8 +1462,8 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
   SuperMethodInvocation visitSuperMethodInvocation(SuperMethodInvocation node) {
     SuperMethodInvocation cloned =
         super.visitSuperMethodInvocation(node) as SuperMethodInvocation;
-    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: false)
-            as Procedure? ??
+    cloned.interfaceTarget =
+        _findSuperMember(node.name, isSetter: false) as Procedure? ??
         // TODO(johnniwinther): Remove this when an error is reported instead.
         cloned.interfaceTarget;
     return cloned;
@@ -1276,7 +1473,8 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
   SuperPropertyGet visitSuperPropertyGet(SuperPropertyGet node) {
     SuperPropertyGet cloned =
         super.visitSuperPropertyGet(node) as SuperPropertyGet;
-    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: false) ??
+    cloned.interfaceTarget =
+        _findSuperMember(node.name, isSetter: false) ??
         // TODO(johnniwinther): Remove this when an error is reported instead.
         cloned.interfaceTarget;
     return cloned;
@@ -1286,7 +1484,8 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
   SuperPropertySet visitSuperPropertySet(SuperPropertySet node) {
     SuperPropertySet cloned =
         super.visitSuperPropertySet(node) as SuperPropertySet;
-    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: true) ??
+    cloned.interfaceTarget =
+        _findSuperMember(node.name, isSetter: true) ??
         // TODO(johnniwinther): Remove this when an error is reported instead.
         cloned.interfaceTarget;
     return cloned;
@@ -1294,12 +1493,13 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
 }
 
 class CloneProcedureWithoutBody extends CloneVisitorWithMembers {
-  CloneProcedureWithoutBody(
-      {Map<TypeParameter, DartType>? typeSubstitution,
-      bool cloneAnnotations = true})
-      : super(
-            typeSubstitution: typeSubstitution,
-            cloneAnnotations: cloneAnnotations);
+  CloneProcedureWithoutBody({
+    Map<TypeParameter, DartType>? typeSubstitution,
+    bool cloneAnnotations = true,
+  }) : super(
+         typeSubstitution: typeSubstitution,
+         cloneAnnotations: cloneAnnotations,
+       );
 
   /// Clones procedure and replaces its parts with those passed as arguments
   ///
@@ -1311,9 +1511,12 @@ class CloneProcedureWithoutBody extends CloneVisitorWithMembers {
   /// anywhere. If either [positionalParameters] or [namedParameters] are
   /// passed in, they are used in place of the freshly cloned
   /// [FunctionNode.positionalParameters] and [FunctionNode.namedParameters].
-  Procedure cloneProcedureWith(Procedure node, Reference? reference,
-      {List<VariableDeclaration>? positionalParameters,
-      List<VariableDeclaration>? namedParameters}) {
+  Procedure cloneProcedureWith(
+    Procedure node,
+    Reference? reference, {
+    List<VariableDeclaration>? positionalParameters,
+    List<VariableDeclaration>? namedParameters,
+  }) {
     Procedure cloned = cloneProcedure(node, reference);
     if (positionalParameters != null) {
       cloned.function.positionalParameters = positionalParameters;

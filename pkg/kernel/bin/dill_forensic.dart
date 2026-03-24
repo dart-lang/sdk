@@ -58,14 +58,17 @@ List<Component> splitAndRead(Uint8List bytes) {
         bytes[index + 2] == magicTagBytes[2] &&
         bytes[index + 3] == magicTagBytes[3]) {
       // Try to read binary version too and see if it matches.
-      int version = (bytes[index + 4] << 24) |
+      int version =
+          (bytes[index + 4] << 24) |
           (bytes[index + 5] << 16) |
           (bytes[index + 6] << 8) |
           bytes[index + 7];
       if (version != Tag.BinaryFormatVersion) {
-        print("Found tag, but version mismatches "
-            "('$version' vs readable version '${Tag.BinaryFormatVersion}'). "
-            "Try again in a different checkout.");
+        print(
+          "Found tag, but version mismatches "
+          "('$version' vs readable version '${Tag.BinaryFormatVersion}'). "
+          "Try again in a different checkout.",
+        );
       } else {
         tagOffsets.add(index);
       }
@@ -86,16 +89,21 @@ List<Component> splitAndRead(Uint8List bytes) {
       // Cut bytes and try to load.
       int fromOffset = tagOffsets[fromIndex];
       int toOffset = tagOffsets[toIndex];
-      Uint8List bytesView =
-          new Uint8List.sublistView(bytes, fromOffset, toOffset);
+      Uint8List bytesView = new Uint8List.sublistView(
+        bytes,
+        fromOffset,
+        toOffset,
+      );
       try {
         Component loaded = loadComponentFromBytes(bytesView);
         components.add(loaded);
         print("Loaded from tag ${fromIndex} to ${toIndex}.");
         break;
       } catch (e) {
-        print("Failed loading from tag ${fromIndex} to ${toIndex}"
-            " (${toOffset - fromOffset} bytes).");
+        print(
+          "Failed loading from tag ${fromIndex} to ${toIndex}"
+          " (${toOffset - fromOffset} bytes).",
+        );
         toIndex++;
       }
     }

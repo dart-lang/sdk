@@ -21,12 +21,9 @@ String errorPrefix =
 /// We mostly test negative cases here, as we get plenty of positive cases by
 /// compiling the Dart test suite with the verifier enabled.
 void main() {
-  positiveTest(
-    'Test harness has no errors',
-    (TestHarness test) {
-      test.addNode(NullLiteral());
-    },
-  );
+  positiveTest('Test harness has no errors', (TestHarness test) {
+    test.addNode(NullLiteral());
+  });
   negative1Test(
     'VariableGet out of scope',
     (TestHarness test) {
@@ -49,10 +46,12 @@ void main() {
     'Variable block scope',
     (TestHarness test) {
       VariableDeclaration variable = test.makeVariable();
-      test.addNode(Block([
-        new Block([variable]),
-        new ReturnStatement(new VariableGet(variable))
-      ]));
+      test.addNode(
+        Block([
+          new Block([variable]),
+          new ReturnStatement(new VariableGet(variable)),
+        ]),
+      );
       return variable;
     },
     (Node? node) => "${errorPrefix}Variable '$node' used out of scope.",
@@ -61,10 +60,13 @@ void main() {
     'Variable let scope',
     (TestHarness test) {
       VariableDeclaration variable = test.makeVariable();
-      test.addNode(LogicalExpression(
+      test.addNode(
+        LogicalExpression(
           new Let(variable, new VariableGet(variable)),
           LogicalExpressionOperator.AND,
-          new VariableGet(variable)));
+          new VariableGet(variable),
+        ),
+      );
       return variable;
     },
     (Node? node) => "${errorPrefix}Variable '$node' used out of scope.",
@@ -81,14 +83,19 @@ void main() {
   negative1Test(
     'Member redeclared',
     (TestHarness test) {
-      Field field = new Field.mutable(new Name('field'),
-          initializer: new NullLiteral(), fileUri: dummyUri);
-      test.addNode(Class(
+      Field field = new Field.mutable(
+        new Name('field'),
+        initializer: new NullLiteral(),
+        fileUri: dummyUri,
+      );
+      test.addNode(
+        Class(
           name: 'Test',
           supertype: test.objectClass.asRawSupertype,
           fields: [field, field],
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset);
+          fileUri: dummyUri,
+        )..fileOffset = dummyFileOffset,
+      );
       return field;
     },
     (Node? node) =>
@@ -99,7 +106,8 @@ void main() {
     (TestHarness test) {
       Class otherClass = test.otherClass;
       test.addNode(
-          otherClass); // Test harness also adds otherClass to component.
+        otherClass,
+      ); // Test harness also adds otherClass to component.
       return test.otherClass;
     },
     (Node? node) => "${errorPrefix}Class '$node' declared more than once.",
@@ -108,12 +116,14 @@ void main() {
     'Class type parameter redeclared',
     (TestHarness test) {
       TypeParameter parameter = test.makeTypeParameter();
-      test.addNode(Class(
+      test.addNode(
+        Class(
           name: 'Test',
           supertype: test.objectClass.asRawSupertype,
           typeParameters: [parameter, parameter],
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset);
+          fileUri: dummyUri,
+        )..fileOffset = dummyFileOffset,
+      );
       return parameter;
     },
     (Node? node) => "${errorPrefix}Type parameter '$node' redeclared.",
@@ -122,13 +132,17 @@ void main() {
     'Member type parameter redeclared',
     (TestHarness test) {
       TypeParameter parameter = test.makeTypeParameter();
-      test.addNode(Procedure(
+      test.addNode(
+        Procedure(
           new Name('bar'),
           ProcedureKind.Method,
-          new FunctionNode(new ReturnStatement(new NullLiteral()),
-              typeParameters: [parameter, parameter]),
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset);
+          new FunctionNode(
+            new ReturnStatement(new NullLiteral()),
+            typeParameters: [parameter, parameter],
+          ),
+          fileUri: dummyUri,
+        )..fileOffset = dummyFileOffset,
+      );
 
       return parameter;
     },
@@ -138,9 +152,15 @@ void main() {
     'Type parameter out of scope',
     (TestHarness test) {
       TypeParameter parameter = test.makeTypeParameter();
-      test.addNode(ListLiteral([],
-          typeArgument:
-              new TypeParameterType(parameter, Nullability.nonNullable)));
+      test.addNode(
+        ListLiteral(
+          [],
+          typeArgument: new TypeParameterType(
+            parameter,
+            Nullability.nonNullable,
+          ),
+        ),
+      );
       return [parameter, null];
     },
     (Node? node, Node? parent) =>
@@ -152,7 +172,8 @@ void main() {
     (TestHarness test) {
       TypeParameter node = test.otherClass.typeParameters[0];
       test.addNode(
-          TypeLiteral(new TypeParameterType(node, Nullability.nonNullable)));
+        TypeLiteral(new TypeParameterType(node, Nullability.nonNullable)),
+      );
       return [node, test.otherClass];
     },
     (Node? node, Node? parent) =>
@@ -163,14 +184,21 @@ void main() {
     'Class type parameter in static method',
     (TestHarness test) {
       TypeParameter node = test.classTypeParameter;
-      test.addNode(Procedure(
+      test.addNode(
+        Procedure(
           new Name('bar'),
           ProcedureKind.Method,
-          new FunctionNode(new ReturnStatement(new TypeLiteral(
-              new TypeParameterType(node, Nullability.nonNullable)))),
+          new FunctionNode(
+            new ReturnStatement(
+              new TypeLiteral(
+                new TypeParameterType(node, Nullability.nonNullable),
+              ),
+            ),
+          ),
           isStatic: true,
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset);
+          fileUri: dummyUri,
+        )..fileOffset = dummyFileOffset,
+      );
 
       return [node, test.enclosingClass];
     },
@@ -182,12 +210,16 @@ void main() {
     'Class type parameter in static field',
     (TestHarness test) {
       TypeParameter node = test.classTypeParameter;
-      test.addNode(Field.mutable(new Name('field'),
+      test.addNode(
+        Field.mutable(
+          new Name('field'),
           initializer: new TypeLiteral(
-              new TypeParameterType(node, Nullability.nonNullable)),
+            new TypeParameterType(node, Nullability.nonNullable),
+          ),
           isStatic: true,
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset);
+          fileUri: dummyUri,
+        )..fileOffset = dummyFileOffset,
+      );
       return [node, test.enclosingClass];
     },
     (Node? node, Node? parent) =>
@@ -198,26 +230,37 @@ void main() {
     'Method type parameter out of scope',
     (TestHarness test) {
       TypeParameter parameter = test.makeTypeParameter();
-      FunctionNode parent =
-          new FunctionNode(new EmptyStatement(), typeParameters: [parameter]);
-      test.addNode(Class(
+      FunctionNode parent = new FunctionNode(
+        new EmptyStatement(),
+        typeParameters: [parameter],
+      );
+      test.addNode(
+        Class(
           name: 'Test',
           supertype: test.objectClass.asRawSupertype,
           procedures: [
-            new Procedure(new Name('generic'), ProcedureKind.Method, parent,
-                fileUri: dummyUri)
-              ..fileOffset = dummyFileOffset,
             new Procedure(
-                new Name('use'),
-                ProcedureKind.Method,
-                new FunctionNode(new ReturnStatement(new TypeLiteral(
-                    new TypeParameterType(
-                        parameter, Nullability.nonNullable)))),
-                fileUri: dummyUri)
-              ..fileOffset = dummyFileOffset
+              new Name('generic'),
+              ProcedureKind.Method,
+              parent,
+              fileUri: dummyUri,
+            )..fileOffset = dummyFileOffset,
+            new Procedure(
+              new Name('use'),
+              ProcedureKind.Method,
+              new FunctionNode(
+                new ReturnStatement(
+                  new TypeLiteral(
+                    new TypeParameterType(parameter, Nullability.nonNullable),
+                  ),
+                ),
+              ),
+              fileUri: dummyUri,
+            )..fileOffset = dummyFileOffset,
           ],
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset);
+          fileUri: dummyUri,
+        )..fileOffset = dummyFileOffset,
+      );
 
       return [parameter, parent];
     },
@@ -228,23 +271,31 @@ void main() {
   negative1Test(
     'Interface type arity too low',
     (TestHarness test) {
-      InterfaceType node =
-          new InterfaceType(test.otherClass, Nullability.nonNullable, []);
+      InterfaceType node = new InterfaceType(
+        test.otherClass,
+        Nullability.nonNullable,
+        [],
+      );
       test.addNode(TypeLiteral(node));
       return node;
     },
-    (Node? node) => "${errorPrefix}Type $node provides 0 type arguments,"
+    (Node? node) =>
+        "${errorPrefix}Type $node provides 0 type arguments,"
         " but the class declares 1 parameters.",
   );
   negative1Test(
     'Interface type arity too high',
     (TestHarness test) {
-      InterfaceType node = new InterfaceType(test.otherClass,
-          Nullability.nonNullable, [new DynamicType(), new DynamicType()]);
+      InterfaceType node = new InterfaceType(
+        test.otherClass,
+        Nullability.nonNullable,
+        [new DynamicType(), new DynamicType()],
+      );
       test.addNode(TypeLiteral(node));
       return node;
     },
-    (Node? node) => "${errorPrefix}Type $node provides 2 type arguments,"
+    (Node? node) =>
+        "${errorPrefix}Type $node provides 2 type arguments,"
         " but the class declares 1 parameters.",
   );
   negative1Test(
@@ -253,7 +304,8 @@ void main() {
       Class orphan = new Class(name: 'Class', fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       test.addNode(
-          new TypeLiteral(new InterfaceType(orphan, Nullability.nonNullable)));
+        new TypeLiteral(new InterfaceType(orphan, Nullability.nonNullable)),
+      );
       return orphan;
     },
     (Node? node) =>
@@ -288,39 +340,43 @@ void main() {
         " expected TestClass.bar, but found: null.",
     (TestHarness test) {
       var procedure = new Procedure(
-          new Name('bar'), ProcedureKind.Method, dummyFunctionNode,
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+        new Name('bar'),
+        ProcedureKind.Method,
+        dummyFunctionNode,
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       procedure.function = new FunctionNode(new EmptyStatement());
       test.addNode(procedure);
     },
   );
-  positiveTest(
-    'Correct StaticInvocation',
-    (TestHarness test) {
-      var method = new Procedure(
-          new Name('foo'),
-          ProcedureKind.Method,
-          new FunctionNode(new EmptyStatement(),
-              positionalParameters: [new VariableDeclaration('p')]),
-          isStatic: true,
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      test.enclosingClass.addProcedure(method);
-      test.addNode(
-          StaticInvocation(method, new Arguments([new NullLiteral()])));
-    },
-  );
+  positiveTest('Correct StaticInvocation', (TestHarness test) {
+    var method = new Procedure(
+      new Name('foo'),
+      ProcedureKind.Method,
+      new FunctionNode(
+        new EmptyStatement(),
+        positionalParameters: [new VariableDeclaration('p')],
+      ),
+      isStatic: true,
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
+    test.enclosingClass.addProcedure(method);
+    test.addNode(StaticInvocation(method, new Arguments([new NullLiteral()])));
+  });
   negative1Test(
     'StaticInvocation with too many parameters',
     (TestHarness test) {
-      var method = new Procedure(new Name('bar'), ProcedureKind.Method,
-          new FunctionNode(new EmptyStatement()),
-          isStatic: true, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+      var method = new Procedure(
+        new Name('bar'),
+        ProcedureKind.Method,
+        new FunctionNode(new EmptyStatement()),
+        isStatic: true,
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       test.enclosingClass.addProcedure(method);
       test.addNode(
-          StaticInvocation(method, new Arguments([new NullLiteral()])));
+        StaticInvocation(method, new Arguments([new NullLiteral()])),
+      );
       return method;
     },
     (Node? node) =>
@@ -331,13 +387,15 @@ void main() {
     'StaticInvocation with too few parameters',
     (TestHarness test) {
       var method = new Procedure(
-          new Name('bar'),
-          ProcedureKind.Method,
-          new FunctionNode(new EmptyStatement(),
-              positionalParameters: [new VariableDeclaration('p')]),
-          isStatic: true,
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+        new Name('bar'),
+        ProcedureKind.Method,
+        new FunctionNode(
+          new EmptyStatement(),
+          positionalParameters: [new VariableDeclaration('p')],
+        ),
+        isStatic: true,
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       test.enclosingClass.addProcedure(method);
       test.addNode(StaticInvocation(method, new Arguments.empty()));
       return method;
@@ -349,15 +407,23 @@ void main() {
   negative1Test(
     'StaticInvocation with unmatched named parameter',
     (TestHarness test) {
-      var method = new Procedure(new Name('bar'), ProcedureKind.Method,
-          new FunctionNode(new EmptyStatement()),
-          isStatic: true, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+      var method = new Procedure(
+        new Name('bar'),
+        ProcedureKind.Method,
+        new FunctionNode(new EmptyStatement()),
+        isStatic: true,
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       test.enclosingClass.addProcedure(method);
-      test.addNode(StaticInvocation(
+      test.addNode(
+        StaticInvocation(
           method,
-          new Arguments([],
-              named: [new NamedExpression('p', new NullLiteral())])));
+          new Arguments(
+            [],
+            named: [new NamedExpression('p', new NullLiteral())],
+          ),
+        ),
+      );
       return method;
     },
     (Node? node) =>
@@ -368,13 +434,15 @@ void main() {
     'StaticInvocation with missing type argument',
     (TestHarness test) {
       Procedure method = new Procedure(
-          new Name('bar'),
-          ProcedureKind.Method,
-          new FunctionNode(new EmptyStatement(),
-              typeParameters: [test.makeTypeParameter()]),
-          isStatic: true,
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+        new Name('bar'),
+        ProcedureKind.Method,
+        new FunctionNode(
+          new EmptyStatement(),
+          typeParameters: [test.makeTypeParameter()],
+        ),
+        isStatic: true,
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       test.enclosingClass.addProcedure(method);
       test.addNode(StaticInvocation(method, new Arguments.empty()));
       return method;
@@ -386,9 +454,11 @@ void main() {
   negative1Test(
     'ConstructorInvocation with missing type argument',
     (TestHarness test) {
-      var constructor = new Constructor(new FunctionNode(new EmptyStatement()),
-          name: new Name('foo'), fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+      var constructor = new Constructor(
+        new FunctionNode(new EmptyStatement()),
+        name: new Name('foo'),
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       test.enclosingClass.addConstructor(constructor);
       test.addNode(ConstructorInvocation(constructor, new Arguments.empty()));
       return constructor;
@@ -397,75 +467,69 @@ void main() {
         "${errorPrefix}ConstructorInvocation with wrong number of type "
         "arguments for '$node'.",
   );
-  positiveTest(
-    'Valid typedef Foo = `(C) => void`',
-    (TestHarness test) {
-      var typedef_ = new Typedef(
-          'Foo',
-          new FunctionType(
-              [test.otherRawType], const VoidType(), Nullability.nonNullable),
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      test.addNode(typedef_);
-    },
-  );
-  positiveTest(
-    'Valid typedef Foo = C<dynamic>',
-    (TestHarness test) {
-      var typedef_ = new Typedef(
-          'Foo',
-          new InterfaceType(
-              test.otherClass, Nullability.nonNullable, [const DynamicType()]),
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      test.addNode(typedef_);
-    },
-  );
-  positiveTest(
-    'Valid typedefs Foo = Bar, Bar = C',
-    (TestHarness test) {
-      var foo = new Typedef('Foo', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      var bar = new Typedef('Bar', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      foo.type = new TypedefType(bar, Nullability.nonNullable);
-      bar.type = test.otherRawType;
-      test.enclosingLibrary.addTypedef(foo);
-      test.enclosingLibrary.addTypedef(bar);
-    },
-  );
-  positiveTest(
-    'Valid typedefs Foo = C<Bar>, Bar = C',
-    (TestHarness test) {
-      var foo = new Typedef('Foo', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      var bar = new Typedef('Bar', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      foo.type = new InterfaceType(test.otherClass, Nullability.nonNullable,
-          [new TypedefType(bar, Nullability.nonNullable)]);
-      bar.type = test.otherRawType;
-      test.enclosingLibrary.addTypedef(foo);
-      test.enclosingLibrary.addTypedef(bar);
-    },
-  );
-  positiveTest(
-    'Valid typedef type in field',
-    (TestHarness test) {
-      var typedef_ = new Typedef(
-          'Foo',
-          new FunctionType(
-              [test.otherRawType], const VoidType(), Nullability.nonNullable),
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      var field = new Field.mutable(new Name('field'),
-          type: new TypedefType(typedef_, Nullability.nonNullable),
-          isStatic: true,
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      test.enclosingLibrary.addTypedef(typedef_);
-      test.enclosingLibrary.addField(field);
-    },
-  );
+  positiveTest('Valid typedef Foo = `(C) => void`', (TestHarness test) {
+    var typedef_ = new Typedef(
+      'Foo',
+      new FunctionType(
+        [test.otherRawType],
+        const VoidType(),
+        Nullability.nonNullable,
+      ),
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
+    test.addNode(typedef_);
+  });
+  positiveTest('Valid typedef Foo = C<dynamic>', (TestHarness test) {
+    var typedef_ = new Typedef(
+      'Foo',
+      new InterfaceType(test.otherClass, Nullability.nonNullable, [
+        const DynamicType(),
+      ]),
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
+    test.addNode(typedef_);
+  });
+  positiveTest('Valid typedefs Foo = Bar, Bar = C', (TestHarness test) {
+    var foo = new Typedef('Foo', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    var bar = new Typedef('Bar', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    foo.type = new TypedefType(bar, Nullability.nonNullable);
+    bar.type = test.otherRawType;
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+  });
+  positiveTest('Valid typedefs Foo = C<Bar>, Bar = C', (TestHarness test) {
+    var foo = new Typedef('Foo', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    var bar = new Typedef('Bar', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    foo.type = new InterfaceType(test.otherClass, Nullability.nonNullable, [
+      new TypedefType(bar, Nullability.nonNullable),
+    ]);
+    bar.type = test.otherRawType;
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+  });
+  positiveTest('Valid typedef type in field', (TestHarness test) {
+    var typedef_ = new Typedef(
+      'Foo',
+      new FunctionType(
+        [test.otherRawType],
+        const VoidType(),
+        Nullability.nonNullable,
+      ),
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
+    var field = new Field.mutable(
+      new Name('field'),
+      type: new TypedefType(typedef_, Nullability.nonNullable),
+      isStatic: true,
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
+    test.enclosingLibrary.addTypedef(typedef_);
+    test.enclosingLibrary.addField(field);
+  });
   negative1Test(
     'Invalid typedef Foo = Foo',
     (TestHarness test) {
@@ -483,9 +547,10 @@ void main() {
       var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       typedef_.type = new FunctionType(
-          [new TypedefType(typedef_, Nullability.nonNullable)],
-          const VoidType(),
-          Nullability.nonNullable);
+        [new TypedefType(typedef_, Nullability.nonNullable)],
+        const VoidType(),
+        Nullability.nonNullable,
+      );
       test.addNode(typedef_);
       return typedef_;
     },
@@ -496,9 +561,11 @@ void main() {
     (TestHarness test) {
       var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      typedef_.type = new FunctionType([],
-          new TypedefType(typedef_, Nullability.nonNullable),
-          Nullability.nonNullable);
+      typedef_.type = new FunctionType(
+        [],
+        new TypedefType(typedef_, Nullability.nonNullable),
+        Nullability.nonNullable,
+      );
       test.addNode(typedef_);
       return typedef_;
     },
@@ -510,9 +577,10 @@ void main() {
       var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       typedef_.type = new InterfaceType(
-          test.otherClass,
-          Nullability.nonNullable,
-          [new TypedefType(typedef_, Nullability.nonNullable)]);
+        test.otherClass,
+        Nullability.nonNullable,
+        [new TypedefType(typedef_, Nullability.nonNullable)],
+      );
       test.addNode(typedef_);
       return typedef_;
     },
@@ -541,8 +609,9 @@ void main() {
       var bar = new Typedef('Bar', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
       foo.type = new TypedefType(bar, Nullability.nonNullable);
-      bar.type = new InterfaceType(test.otherClass, Nullability.nonNullable,
-          [new TypedefType(foo, Nullability.nonNullable)]);
+      bar.type = new InterfaceType(test.otherClass, Nullability.nonNullable, [
+        new TypedefType(foo, Nullability.nonNullable),
+      ]);
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addTypedef(bar);
       return foo;
@@ -556,31 +625,33 @@ void main() {
         ..fileOffset = dummyFileOffset;
       var bar = new Typedef('Bar', null, fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      foo.type = new InterfaceType(test.otherClass, Nullability.nonNullable,
-          [new TypedefType(bar, Nullability.nonNullable)]);
-      bar.type = new InterfaceType(test.otherClass, Nullability.nonNullable,
-          [new TypedefType(foo, Nullability.nonNullable)]);
+      foo.type = new InterfaceType(test.otherClass, Nullability.nonNullable, [
+        new TypedefType(bar, Nullability.nonNullable),
+      ]);
+      bar.type = new InterfaceType(test.otherClass, Nullability.nonNullable, [
+        new TypedefType(foo, Nullability.nonNullable),
+      ]);
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addTypedef(bar);
       return foo;
     },
     (Node? foo) => "${errorPrefix}The typedef '$foo' refers to itself",
   );
-  positiveTest(
-    'Valid long typedefs C20 = C19 = ... = C1 = C0 = dynamic',
-    (TestHarness test) {
-      var typedef_ = new Typedef('C0', const DynamicType(), fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+  positiveTest('Valid long typedefs C20 = C19 = ... = C1 = C0 = dynamic', (
+    TestHarness test,
+  ) {
+    var typedef_ = new Typedef('C0', const DynamicType(), fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    test.enclosingLibrary.addTypedef(typedef_);
+    for (int i = 1; i < 20; ++i) {
+      typedef_ = new Typedef(
+        'C$i',
+        new TypedefType(typedef_, Nullability.nonNullable),
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       test.enclosingLibrary.addTypedef(typedef_);
-      for (int i = 1; i < 20; ++i) {
-        typedef_ = new Typedef(
-            'C$i', new TypedefType(typedef_, Nullability.nonNullable),
-            fileUri: dummyUri)
-          ..fileOffset = dummyFileOffset;
-        test.enclosingLibrary.addTypedef(typedef_);
-      }
-    },
-  );
+    }
+  });
   negative1Test(
     'Invalid long typedefs C20 = C19 = ... = C1 = C0 = C20',
     (TestHarness test) {
@@ -591,9 +662,10 @@ void main() {
       var first = typedef_;
       for (int i = 1; i < 20; ++i) {
         typedef_ = new Typedef(
-            'C$i', new TypedefType(typedef_, Nullability.nonNullable),
-            fileUri: dummyUri)
-          ..fileOffset = dummyFileOffset;
+          'C$i',
+          new TypedefType(typedef_, Nullability.nonNullable),
+          fileUri: dummyUri,
+        )..fileOffset = dummyFileOffset;
         test.enclosingLibrary.addTypedef(typedef_);
       }
       first.type = new TypedefType(typedef_, Nullability.nonNullable);
@@ -601,77 +673,85 @@ void main() {
     },
     (Node? node) => "${errorPrefix}The typedef '$node' refers to itself",
   );
-  positiveTest(
-    'Valid typedef Foo<T extends C> = C<T>',
-    (TestHarness test) {
-      var param = new TypeParameter('T', test.otherRawType, test.otherRawType);
-      var foo = new Typedef(
-          'Foo',
-          new InterfaceType(test.otherClass, Nullability.nonNullable,
-              [new TypeParameterType(param, Nullability.nonNullable)]),
-          typeParameters: [param],
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      test.addNode(foo);
-    },
-  );
-  positiveTest(
-    'Valid typedef Foo<T extends C<T>> = C<T>',
-    (TestHarness test) {
-      var param = new TypeParameter('T', test.otherRawType, test.otherRawType);
-      param.bound = new InterfaceType(test.otherClass, Nullability.nonNullable,
-          [new TypeParameterType(param, Nullability.nonNullable)]);
-      var foo = new Typedef(
-          'Foo',
-          new InterfaceType(test.otherClass, Nullability.nonNullable,
-              [new TypeParameterType(param, Nullability.nonNullable)]),
-          typeParameters: [param],
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      test.addNode(foo);
-    },
-  );
-  positiveTest(
-    'Valid typedef Foo<T> = dynamic, Bar<T extends Foo<T>> = C<T>',
-    (TestHarness test) {
-      var fooParam = test.makeTypeParameter('T');
-      var foo = new Typedef('Foo', const DynamicType(),
-          typeParameters: [fooParam], fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      var barParam = new TypeParameter('T', null);
-      barParam.bound = new TypedefType(foo, Nullability.nonNullable,
-          [new TypeParameterType(barParam, Nullability.nonNullable)]);
-      barParam.defaultType = const DynamicType();
-      var bar = new Typedef(
-          'Bar',
-          new InterfaceType(test.otherClass, Nullability.nonNullable,
-              [new TypeParameterType(barParam, Nullability.nonNullable)]),
-          typeParameters: [barParam],
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      test.enclosingLibrary.addTypedef(foo);
-      test.enclosingLibrary.addTypedef(bar);
-    },
-  );
+  positiveTest('Valid typedef Foo<T extends C> = C<T>', (TestHarness test) {
+    var param = new TypeParameter('T', test.otherRawType, test.otherRawType);
+    var foo = new Typedef(
+      'Foo',
+      new InterfaceType(test.otherClass, Nullability.nonNullable, [
+        new TypeParameterType(param, Nullability.nonNullable),
+      ]),
+      typeParameters: [param],
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
+    test.addNode(foo);
+  });
+  positiveTest('Valid typedef Foo<T extends C<T>> = C<T>', (TestHarness test) {
+    var param = new TypeParameter('T', test.otherRawType, test.otherRawType);
+    param.bound = new InterfaceType(test.otherClass, Nullability.nonNullable, [
+      new TypeParameterType(param, Nullability.nonNullable),
+    ]);
+    var foo = new Typedef(
+      'Foo',
+      new InterfaceType(test.otherClass, Nullability.nonNullable, [
+        new TypeParameterType(param, Nullability.nonNullable),
+      ]),
+      typeParameters: [param],
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
+    test.addNode(foo);
+  });
+  positiveTest('Valid typedef Foo<T> = dynamic, Bar<T extends Foo<T>> = C<T>', (
+    TestHarness test,
+  ) {
+    var fooParam = test.makeTypeParameter('T');
+    var foo = new Typedef(
+      'Foo',
+      const DynamicType(),
+      typeParameters: [fooParam],
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
+    var barParam = new TypeParameter('T', null);
+    barParam.bound = new TypedefType(foo, Nullability.nonNullable, [
+      new TypeParameterType(barParam, Nullability.nonNullable),
+    ]);
+    barParam.defaultType = const DynamicType();
+    var bar = new Typedef(
+      'Bar',
+      new InterfaceType(test.otherClass, Nullability.nonNullable, [
+        new TypeParameterType(barParam, Nullability.nonNullable),
+      ]),
+      typeParameters: [barParam],
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+  });
   negative1Test(
     'Invalid typedefs Foo<T extends Bar<T>>, Bar<T extends Foo<T>>',
     (TestHarness test) {
       var fooParam = test.makeTypeParameter('T');
-      var foo = new Typedef('Foo', const DynamicType(),
-          typeParameters: [fooParam], fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+      var foo = new Typedef(
+        'Foo',
+        const DynamicType(),
+        typeParameters: [fooParam],
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       var barParam = new TypeParameter('T', null);
-      barParam.bound = new TypedefType(foo, Nullability.nonNullable,
-          [new TypeParameterType(barParam, Nullability.nonNullable)]);
+      barParam.bound = new TypedefType(foo, Nullability.nonNullable, [
+        new TypeParameterType(barParam, Nullability.nonNullable),
+      ]);
       barParam.defaultType = const DynamicType();
       var bar = new Typedef(
-          'Bar',
-          new InterfaceType(test.otherClass, Nullability.nonNullable,
-              [new TypeParameterType(barParam, Nullability.nonNullable)]),
-          typeParameters: [barParam],
-          fileUri: dummyUri);
-      fooParam.bound = new TypedefType(bar, Nullability.nonNullable,
-          [new TypeParameterType(fooParam, Nullability.nonNullable)]);
+        'Bar',
+        new InterfaceType(test.otherClass, Nullability.nonNullable, [
+          new TypeParameterType(barParam, Nullability.nonNullable),
+        ]),
+        typeParameters: [barParam],
+        fileUri: dummyUri,
+      );
+      fooParam.bound = new TypedefType(bar, Nullability.nonNullable, [
+        new TypeParameterType(fooParam, Nullability.nonNullable),
+      ]);
       fooParam.defaultType = const DynamicType();
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addTypedef(bar);
@@ -684,14 +764,16 @@ void main() {
     (TestHarness test) {
       var param = new TypeParameter('T', null);
       var foo = new Typedef(
-          'Foo',
-          new InterfaceType(test.otherClass, Nullability.nonNullable,
-              [new TypeParameterType(param, Nullability.nonNullable)]),
-          typeParameters: [param],
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      param.bound =
-          new TypedefType(foo, Nullability.nonNullable, [const DynamicType()]);
+        'Foo',
+        new InterfaceType(test.otherClass, Nullability.nonNullable, [
+          new TypeParameterType(param, Nullability.nonNullable),
+        ]),
+        typeParameters: [param],
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
+      param.bound = new TypedefType(foo, Nullability.nonNullable, [
+        const DynamicType(),
+      ]);
       param.defaultType = const DynamicType();
       test.addNode(foo);
       return foo;
@@ -702,13 +784,19 @@ void main() {
     'Typedef arity error',
     (TestHarness test) {
       var param = test.makeTypeParameter('T');
-      var foo = new Typedef('Foo', test.otherRawType,
-          typeParameters: [param], fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+      var foo = new Typedef(
+        'Foo',
+        test.otherRawType,
+        typeParameters: [param],
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       var typedefType = new TypedefType(foo, Nullability.nonNullable, []);
-      var field = new Field.mutable(new Name('field'),
-          type: typedefType, isStatic: true, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+      var field = new Field.mutable(
+        new Name('field'),
+        type: typedefType,
+        isStatic: true,
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addField(field);
       return typedefType;
@@ -720,14 +808,18 @@ void main() {
   negative1Test(
     'Dangling typedef reference',
     (TestHarness test) {
-      var foo = new Typedef('Foo', test.otherRawType,
-          typeParameters: [], fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      var field = new Field.mutable(new Name('field'),
-          type: new TypedefType(foo, Nullability.nonNullable, []),
-          isStatic: true,
-          fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+      var foo = new Typedef(
+        'Foo',
+        test.otherRawType,
+        typeParameters: [],
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
+      var field = new Field.mutable(
+        new Name('field'),
+        type: new TypedefType(foo, Nullability.nonNullable, []),
+        isStatic: true,
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       test.enclosingLibrary.addField(field);
       return foo;
     },
@@ -738,28 +830,36 @@ void main() {
     'Unset bound typedef Foo<T> = dynamic',
     (TestHarness test) {
       var param = new TypeParameter('T', null);
-      var foo = new Typedef('Foo', const DynamicType(),
-          typeParameters: [param], fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+      var foo = new Typedef(
+        'Foo',
+        const DynamicType(),
+        typeParameters: [param],
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       param.defaultType = const DynamicType();
       test.addNode(foo);
       return foo;
     },
-    (Node? foo) => "${errorPrefix}"
+    (Node? foo) =>
+        "${errorPrefix}"
         "Unset bound on type parameter NominalTypeParameter(Foo.T)",
   );
   negative1Test(
     'Unset default type typedef Foo<T> = dynamic',
     (TestHarness test) {
       var param = new TypeParameter('T', null);
-      var foo = new Typedef('Foo', const DynamicType(),
-          typeParameters: [param], fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
+      var foo = new Typedef(
+        'Foo',
+        const DynamicType(),
+        typeParameters: [param],
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       param.bound = const DynamicType();
       test.addNode(foo);
       return foo;
     },
-    (Node? foo) => "${errorPrefix}"
+    (Node? foo) =>
+        "${errorPrefix}"
         "Unset default type on type parameter NominalTypeParameter(Foo.T)",
   );
   negative1Test(
@@ -779,15 +879,11 @@ void main() {
     test.component.libraries.add(library);
     return null;
   });
-  negative1Test(
-    'Class file offset',
-    (TestHarness test) {
-      var cls = new Class(name: 'Class', fileUri: dummyUri);
-      test.enclosingLibrary.addClass(cls);
-      return null;
-    },
-    (Node? node) => "${errorPrefix}'Class' has no fileOffset",
-  );
+  negative1Test('Class file offset', (TestHarness test) {
+    var cls = new Class(name: 'Class', fileUri: dummyUri);
+    test.enclosingLibrary.addClass(cls);
+    return null;
+  }, (Node? node) => "${errorPrefix}'Class' has no fileOffset");
   negative1Test(
     'Extension file offset',
     (TestHarness test) {
@@ -801,28 +897,30 @@ void main() {
     'Procedure file offset',
     (TestHarness test) {
       var method = new Procedure(
-          new Name('method'), ProcedureKind.Method, new FunctionNode(null),
-          fileUri: dummyUri);
+        new Name('method'),
+        ProcedureKind.Method,
+        new FunctionNode(null),
+        fileUri: dummyUri,
+      );
       test.enclosingClass.addProcedure(method);
       return null;
     },
     (Node? node) => "${errorPrefix}'method' has no fileOffset",
   );
-  negative1Test(
-    'Field file offset',
-    (TestHarness test) {
-      var field = new Field.mutable(new Name('field'), fileUri: dummyUri);
-      test.enclosingClass.addField(field);
-      return null;
-    },
-    (Node? node) => "${errorPrefix}'field' has no fileOffset",
-  );
+  negative1Test('Field file offset', (TestHarness test) {
+    var field = new Field.mutable(new Name('field'), fileUri: dummyUri);
+    test.enclosingClass.addField(field);
+    return null;
+  }, (Node? node) => "${errorPrefix}'field' has no fileOffset");
 }
 
 void checkHasError(Target target, Component component, Matcher matcher) {
   try {
     verifyComponent(
-        target, VerificationStage.afterModularTransformations, component);
+      target,
+      VerificationStage.afterModularTransformations,
+      component,
+    );
   } on VerificationError catch (e) {
     expect(e.details, matcher);
     return;
@@ -922,7 +1020,10 @@ class TestHarness {
     objectClass = new Class(name: 'Object', fileUri: dartCoreUri)
       ..fileOffset = dummyFileOffset;
     objectRawType = new InterfaceType(
-        objectClass, Nullability.nonNullable, const <DartType>[]);
+      objectClass,
+      Nullability.nonNullable,
+      const <DartType>[],
+    );
     stubLibrary.addClass(objectClass);
     Uri testUri = Uri.parse('file://test.dart');
     enclosingLibrary = new Library(testUri, fileUri: testUri);
@@ -930,89 +1031,95 @@ class TestHarness {
     enclosingLibrary.name = 'test_lib';
     classTypeParameter = makeTypeParameter('T');
     enclosingClass = new Class(
-        name: 'TestClass',
-        typeParameters: [classTypeParameter],
-        supertype: objectClass.asRawSupertype,
-        fileUri: testUri)
-      ..fileOffset = dummyFileOffset;
-    enclosingRawType = new InterfaceType(enclosingClass,
-        Nullability.nonNullable, const <DartType>[const DynamicType()]);
+      name: 'TestClass',
+      typeParameters: [classTypeParameter],
+      supertype: objectClass.asRawSupertype,
+      fileUri: testUri,
+    )..fileOffset = dummyFileOffset;
+    enclosingRawType = new InterfaceType(
+      enclosingClass,
+      Nullability.nonNullable,
+      const <DartType>[const DynamicType()],
+    );
     enclosingLibrary.addClass(enclosingClass);
-    enclosingMember = new Procedure(new Name('test'), ProcedureKind.Method,
-        new FunctionNode(new EmptyStatement()),
-        fileUri: dummyUri)
-      ..fileOffset = dummyFileOffset;
+    enclosingMember = new Procedure(
+      new Name('test'),
+      ProcedureKind.Method,
+      new FunctionNode(new EmptyStatement()),
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
     enclosingClass.addProcedure(enclosingMember);
     otherClass = new Class(
-        name: 'OtherClass',
-        typeParameters: [makeTypeParameter('OtherT')],
-        supertype: objectClass.asRawSupertype,
-        fileUri: testUri)
-      ..fileOffset = dummyFileOffset;
-    otherRawType = new InterfaceType(otherClass, Nullability.nonNullable,
-        const <DartType>[const DynamicType()]);
+      name: 'OtherClass',
+      typeParameters: [makeTypeParameter('OtherT')],
+      supertype: objectClass.asRawSupertype,
+      fileUri: testUri,
+    )..fileOffset = dummyFileOffset;
+    otherRawType = new InterfaceType(
+      otherClass,
+      Nullability.nonNullable,
+      const <DartType>[const DynamicType()],
+    );
     enclosingLibrary.addClass(otherClass);
   }
 }
 
-void negative1Test(String name, Node? Function(TestHarness test) nodeProvider,
-    dynamic Function(Node? node) matcher) {
+void negative1Test(
+  String name,
+  Node? Function(TestHarness test) nodeProvider,
+  dynamic Function(Node? node) matcher,
+) {
   TestHarness testHarness = new TestHarness();
   Node? node = nodeProvider(testHarness);
-  test(
-    name,
-    () {
-      dynamic matcherResult = matcher(node);
-      if (matcherResult is String) {
-        matcherResult = equals(matcherResult);
-      }
-      checkHasError(testHarness.target, testHarness.component, matcherResult);
-    },
-  );
+  test(name, () {
+    dynamic matcherResult = matcher(node);
+    if (matcherResult is String) {
+      matcherResult = equals(matcherResult);
+    }
+    checkHasError(testHarness.target, testHarness.component, matcherResult);
+  });
 }
 
 void negative2Test(
-    String name,
-    List<Node?> Function(TestHarness test) nodeProvider,
-    dynamic Function(Node? node, Node? other) matcher) {
+  String name,
+  List<Node?> Function(TestHarness test) nodeProvider,
+  dynamic Function(Node? node, Node? other) matcher,
+) {
   TestHarness testHarness = new TestHarness();
   List<Node?> nodes = nodeProvider(testHarness);
   if (nodes.length != 2) throw "Needs exactly 2 nodes: Node and other!";
-  test(
-    name,
-    () {
-      dynamic matcherResult = matcher(nodes[0], nodes[1]);
-      if (matcherResult is String) {
-        matcherResult = equals(matcherResult);
-      }
-      checkHasError(testHarness.target, testHarness.component, matcherResult);
-    },
-  );
+  test(name, () {
+    dynamic matcherResult = matcher(nodes[0], nodes[1]);
+    if (matcherResult is String) {
+      matcherResult = equals(matcherResult);
+    }
+    checkHasError(testHarness.target, testHarness.component, matcherResult);
+  });
 }
 
-void simpleNegativeTest(String name, dynamic matcher,
-    void Function(TestHarness test) makeTestCase) {
+void simpleNegativeTest(
+  String name,
+  dynamic matcher,
+  void Function(TestHarness test) makeTestCase,
+) {
   TestHarness testHarness = new TestHarness();
-  test(
-    name,
-    () {
-      makeTestCase(testHarness);
-      if (matcher is String) {
-        matcher = equals(matcher);
-      }
-      checkHasError(testHarness.target, testHarness.component, matcher);
-    },
-  );
+  test(name, () {
+    makeTestCase(testHarness);
+    if (matcher is String) {
+      matcher = equals(matcher);
+    }
+    checkHasError(testHarness.target, testHarness.component, matcher);
+  });
 }
 
 void positiveTest(String name, void makeTestCase(TestHarness test)) {
-  test(
-    name,
-    () {
-      var test = new TestHarness();
-      makeTestCase(test);
-      verifyComponent(test.target,
-          VerificationStage.afterModularTransformations, test.component);
-    },
-  );
+  test(name, () {
+    var test = new TestHarness();
+    makeTestCase(test);
+    verifyComponent(
+      test.target,
+      VerificationStage.afterModularTransformations,
+      test.component,
+    );
+  });
 }

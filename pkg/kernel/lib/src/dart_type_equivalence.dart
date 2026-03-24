@@ -15,10 +15,12 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   bool _atTopLevel = true;
   List<Map<StructuralParameter, StructuralParameter>> _alphaRenamingStack = [];
 
-  DartTypeEquivalence(this.coreTypes,
-      {this.equateTopTypes = false,
-      this.ignoreAllNullabilities = false,
-      this.ignoreTopLevelNullability = false});
+  DartTypeEquivalence(
+    this.coreTypes, {
+    this.equateTopTypes = false,
+    this.ignoreAllNullabilities = false,
+    this.ignoreTopLevelNullability = false,
+  });
 
   bool areEqual(DartType type1, DartType type2) {
     _alphaRenamingStack.clear();
@@ -29,7 +31,8 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   @override
   bool visitAuxiliaryType(AuxiliaryType node, DartType other) {
     throw new UnsupportedError(
-        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary type ${node} (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -41,7 +44,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   bool visitFunctionType(FunctionType node, DartType other) {
     if (other is FunctionType) {
       if (!_checkAndRegisterNullabilities(
-          node.declaredNullability, other.declaredNullability)) {
+        node.declaredNullability,
+        other.declaredNullability,
+      )) {
         return false;
       }
 
@@ -66,15 +71,19 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
       bool result = true;
 
       for (int i = 0; result && i < node.typeParameters.length; ++i) {
-        if (!node.typeParameters[i].bound
-            .accept1(this, other.typeParameters[i].bound)) {
+        if (!node.typeParameters[i].bound.accept1(
+          this,
+          other.typeParameters[i].bound,
+        )) {
           result = false;
         }
         // Don't check defaultTypes: they are a convenience mechanism.
       }
       for (int i = 0; result && i < node.positionalParameters.length; ++i) {
-        if (!node.positionalParameters[i]
-            .accept1(this, other.positionalParameters[i])) {
+        if (!node.positionalParameters[i].accept1(
+          this,
+          other.positionalParameters[i],
+        )) {
           result = false;
         }
       }
@@ -110,7 +119,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   bool visitRecordType(RecordType node, DartType other) {
     if (other is RecordType) {
       if (!_checkAndRegisterNullabilities(
-          node.declaredNullability, other.declaredNullability)) {
+        node.declaredNullability,
+        other.declaredNullability,
+      )) {
         return false;
       }
 
@@ -159,7 +170,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
 
     if (other is InterfaceType) {
       if (!_checkAndRegisterNullabilities(
-          node.declaredNullability, other.declaredNullability)) {
+        node.declaredNullability,
+        other.declaredNullability,
+      )) {
         return false;
       }
       if (node.classNode != other.classNode) {
@@ -185,7 +198,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
 
     if (other is ExtensionType) {
       if (!_checkAndRegisterNullabilities(
-          node.declaredNullability, other.declaredNullability)) {
+        node.declaredNullability,
+        other.declaredNullability,
+      )) {
         return false;
       }
       if (node.extensionTypeDeclaration != other.extensionTypeDeclaration) {
@@ -211,7 +226,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
 
     if (other is FutureOrType) {
       if (!_checkAndRegisterNullabilities(
-          node.declaredNullability, other.declaredNullability)) {
+        node.declaredNullability,
+        other.declaredNullability,
+      )) {
         return false;
       }
       if (!node.typeArgument.accept1(this, other.typeArgument)) {
@@ -236,7 +253,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   bool visitNeverType(NeverType node, DartType other) {
     if (other is NeverType) {
       return _checkAndRegisterNullabilities(
-          node.declaredNullability, other.declaredNullability);
+        node.declaredNullability,
+        other.declaredNullability,
+      );
     }
     return false;
   }
@@ -245,7 +264,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   bool visitTypeParameterType(TypeParameterType node, DartType other) {
     if (other is TypeParameterType) {
       if (!_checkAndRegisterNullabilities(
-          node.declaredNullability, other.declaredNullability)) {
+        node.declaredNullability,
+        other.declaredNullability,
+      )) {
         return false;
       }
       if (!identical(node.parameter, other.parameter)) {
@@ -258,10 +279,14 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
 
   @override
   bool visitStructuralParameterType(
-      StructuralParameterType node, DartType other) {
+    StructuralParameterType node,
+    DartType other,
+  ) {
     if (other is StructuralParameterType) {
       if (!_checkAndRegisterNullabilities(
-          node.declaredNullability, other.declaredNullability)) {
+        node.declaredNullability,
+        other.declaredNullability,
+      )) {
         return false;
       }
       if (!identical(_lookup(node.parameter), other.parameter)) {
@@ -274,18 +299,24 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
 
   @override
   bool visitFunctionTypeParameterType(
-      FunctionTypeParameterType node, DartType other) {
+    FunctionTypeParameterType node,
+    DartType other,
+  ) {
     // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
     throw new UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
   }
 
   @override
   bool visitClassTypeParameterType(
-      ClassTypeParameterType node, DartType other) {
+    ClassTypeParameterType node,
+    DartType other,
+  ) {
     // TODO(cstefantsova): Implement visitClassTypeParameterType.
     throw new UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -301,7 +332,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   bool visitTypedefType(TypedefType node, DartType other) {
     if (other is TypedefType) {
       if (!_checkAndRegisterNullabilities(
-          node.declaredNullability, other.declaredNullability)) {
+        node.declaredNullability,
+        other.declaredNullability,
+      )) {
         return false;
       }
       if (node.typedefNode != other.typedefNode) {
@@ -324,7 +357,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   }
 
   bool _checkAndRegisterNullabilities(
-      Nullability nodeNullability, Nullability otherNullability) {
+    Nullability nodeNullability,
+    Nullability otherNullability,
+  ) {
     bool result;
     if (nodeNullability == otherNullability ||
         ignoreAllNullabilities ||
@@ -338,7 +373,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   }
 
   void _pushTypeParameters(
-      List<StructuralParameter> keys, List<StructuralParameter> values) {
+    List<StructuralParameter> keys,
+    List<StructuralParameter> values,
+  ) {
     assert(keys.length == values.length);
     Map<StructuralParameter, StructuralParameter> parameters =
         new Map<StructuralParameter, StructuralParameter>.identity();

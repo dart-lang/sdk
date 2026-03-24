@@ -69,8 +69,8 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   /// member signatures from inherited non-extension type members.
   ExtensionTypeDeclaration? get enclosingExtensionTypeDeclaration =>
       parent is ExtensionTypeDeclaration
-          ? parent as ExtensionTypeDeclaration
-          : null;
+      ? parent as ExtensionTypeDeclaration
+      : null;
 
   Library get enclosingLibrary {
     TreeNode? parent = this.parent;
@@ -291,21 +291,22 @@ class Field extends Member {
   /// in the field values of [InstanceConstant].
   Reference get fieldReference => super.reference;
 
-  Field.mutable(Name name,
-      {this.type = const DynamicType(),
-      this.initializer,
-      bool isCovariantByDeclaration = false,
-      bool isFinal = false,
-      bool isStatic = false,
-      bool isLate = false,
-      int transformerFlags = 0,
-      required Uri fileUri,
-      Reference? fieldReference,
-      Reference? getterReference,
-      Reference? setterReference})
-      : this.getterReference = getterReference ?? new Reference(),
-        this.setterReference = setterReference ?? new Reference(),
-        super(name, fileUri, fieldReference) {
+  Field.mutable(
+    Name name, {
+    this.type = const DynamicType(),
+    this.initializer,
+    bool isCovariantByDeclaration = false,
+    bool isFinal = false,
+    bool isStatic = false,
+    bool isLate = false,
+    int transformerFlags = 0,
+    required Uri fileUri,
+    Reference? fieldReference,
+    Reference? getterReference,
+    Reference? setterReference,
+  }) : this.getterReference = getterReference ?? new Reference(),
+       this.setterReference = setterReference ?? new Reference(),
+       super(name, fileUri, fieldReference) {
     this.getterReference.node = this;
     this.setterReference!.node = this;
     initializer?.parent = this;
@@ -316,22 +317,23 @@ class Field extends Member {
     this.transformerFlags = transformerFlags;
   }
 
-  Field.immutable(Name name,
-      {this.type = const DynamicType(),
-      this.initializer,
-      bool isCovariantByDeclaration = false,
-      bool isFinal = false,
-      bool isConst = false,
-      bool isStatic = false,
-      bool isLate = false,
-      int transformerFlags = 0,
-      required Uri fileUri,
-      Reference? fieldReference,
-      Reference? getterReference,
-      bool isEnumElement = false})
-      : this.getterReference = getterReference ?? new Reference(),
-        this.setterReference = null,
-        super(name, fileUri, fieldReference) {
+  Field.immutable(
+    Name name, {
+    this.type = const DynamicType(),
+    this.initializer,
+    bool isCovariantByDeclaration = false,
+    bool isFinal = false,
+    bool isConst = false,
+    bool isStatic = false,
+    bool isLate = false,
+    int transformerFlags = 0,
+    required Uri fileUri,
+    Reference? fieldReference,
+    Reference? getterReference,
+    bool isEnumElement = false,
+  }) : this.getterReference = getterReference ?? new Reference(),
+       this.setterReference = null,
+       super(name, fileUri, fieldReference) {
     this.getterReference.node = this;
     initializer?.parent = this;
     this.isCovariantByDeclaration = isCovariantByDeclaration;
@@ -438,8 +440,9 @@ class Field extends Member {
   }
 
   void set isExtensionMember(bool value) {
-    flags =
-        value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
+    flags = value
+        ? (flags | FlagExtensionMember)
+        : (flags & ~FlagExtensionMember);
   }
 
   void set isCovariantByClass(bool value) {
@@ -530,8 +533,12 @@ class Field extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset,
-        viaForErrorMessage: "Field '$name'");
+    return _getLocationInComponent(
+      enclosingComponent,
+      fileUri,
+      offset,
+      viaForErrorMessage: "Field '$name'",
+    );
   }
 
   @override
@@ -559,8 +566,11 @@ class Constructor extends Member {
   int startFileOffset = TreeNode.noOffset;
 
   @override
-  List<int>? get fileOffsetsIfMultiple =>
-      [fileOffset, startFileOffset, fileEndOffset];
+  List<int>? get fileOffsetsIfMultiple => [
+    fileOffset,
+    startFileOffset,
+    fileEndOffset,
+  ];
 
   int flags = 0;
 
@@ -569,17 +579,18 @@ class Constructor extends Member {
 
   List<Initializer> initializers;
 
-  Constructor(this.function,
-      {required Name name,
-      bool isConst = false,
-      bool isExternal = false,
-      bool isSynthetic = false,
-      List<Initializer>? initializers,
-      int transformerFlags = 0,
-      required Uri fileUri,
-      Reference? reference})
-      : this.initializers = initializers ?? <Initializer>[],
-        super(name, fileUri, reference) {
+  Constructor(
+    this.function, {
+    required Name name,
+    bool isConst = false,
+    bool isExternal = false,
+    bool isSynthetic = false,
+    List<Initializer>? initializers,
+    int transformerFlags = 0,
+    required Uri fileUri,
+    Reference? reference,
+  }) : this.initializers = initializers ?? <Initializer>[],
+       super(name, fileUri, reference) {
     function.parent = this;
     setParents(this.initializers, this);
     this.isConst = isConst;
@@ -689,8 +700,12 @@ class Constructor extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset,
-        viaForErrorMessage: "Constructor '$name'");
+    return _getLocationInComponent(
+      enclosingComponent,
+      fileUri,
+      offset,
+      viaForErrorMessage: "Constructor '$name'",
+    );
   }
 }
 
@@ -910,8 +925,11 @@ class Procedure extends Member implements GenericFunction {
   int fileStartOffset = TreeNode.noOffset;
 
   @override
-  List<int>? get fileOffsetsIfMultiple =>
-      [fileOffset, fileStartOffset, fileEndOffset];
+  List<int>? get fileOffsetsIfMultiple => [
+    fileOffset,
+    fileStartOffset,
+    fileEndOffset,
+  ];
 
   final ProcedureKind kind;
   int flags = 0;
@@ -953,48 +971,60 @@ class Procedure extends Member implements GenericFunction {
   /// being null.
   FunctionType? signatureType;
 
-  Procedure(Name name, ProcedureKind kind, FunctionNode function,
-      {bool isAbstract = false,
-      bool isStatic = false,
-      bool isExternal = false,
-      bool isConst = false,
-      bool isExtensionMember = false,
-      bool isExtensionTypeMember = false,
-      bool isSynthetic = false,
-      int transformerFlags = 0,
-      required Uri fileUri,
-      Reference? reference,
-      ProcedureStubKind stubKind = ProcedureStubKind.Regular,
-      Member? stubTarget})
-      : this._byReferenceRenamed(name, kind, function,
-            isAbstract: isAbstract,
-            isStatic: isStatic,
-            isExternal: isExternal,
-            isConst: isConst,
-            isExtensionMember: isExtensionMember,
-            isExtensionTypeMember: isExtensionTypeMember,
-            isSynthetic: isSynthetic,
-            transformerFlags: transformerFlags,
-            fileUri: fileUri,
-            reference: reference,
-            stubKind: stubKind,
-            stubTargetReference:
-                getMemberReferenceBasedOnProcedureKind(stubTarget, kind));
+  Procedure(
+    Name name,
+    ProcedureKind kind,
+    FunctionNode function, {
+    bool isAbstract = false,
+    bool isStatic = false,
+    bool isExternal = false,
+    bool isConst = false,
+    bool isExtensionMember = false,
+    bool isExtensionTypeMember = false,
+    bool isSynthetic = false,
+    int transformerFlags = 0,
+    required Uri fileUri,
+    Reference? reference,
+    ProcedureStubKind stubKind = ProcedureStubKind.Regular,
+    Member? stubTarget,
+  }) : this._byReferenceRenamed(
+         name,
+         kind,
+         function,
+         isAbstract: isAbstract,
+         isStatic: isStatic,
+         isExternal: isExternal,
+         isConst: isConst,
+         isExtensionMember: isExtensionMember,
+         isExtensionTypeMember: isExtensionTypeMember,
+         isSynthetic: isSynthetic,
+         transformerFlags: transformerFlags,
+         fileUri: fileUri,
+         reference: reference,
+         stubKind: stubKind,
+         stubTargetReference: getMemberReferenceBasedOnProcedureKind(
+           stubTarget,
+           kind,
+         ),
+       );
 
-  Procedure._byReferenceRenamed(Name name, this.kind, this.function,
-      {bool isAbstract = false,
-      bool isStatic = false,
-      bool isExternal = false,
-      bool isConst = false,
-      bool isExtensionMember = false,
-      bool isExtensionTypeMember = false,
-      bool isSynthetic = false,
-      int transformerFlags = 0,
-      required Uri fileUri,
-      Reference? reference,
-      this.stubKind = ProcedureStubKind.Regular,
-      this.stubTargetReference})
-      : super(name, fileUri, reference) {
+  Procedure._byReferenceRenamed(
+    Name name,
+    this.kind,
+    this.function, {
+    bool isAbstract = false,
+    bool isStatic = false,
+    bool isExternal = false,
+    bool isConst = false,
+    bool isExtensionMember = false,
+    bool isExtensionTypeMember = false,
+    bool isSynthetic = false,
+    int transformerFlags = 0,
+    required Uri fileUri,
+    Reference? reference,
+    this.stubKind = ProcedureStubKind.Regular,
+    this.stubTargetReference,
+  }) : super(name, fileUri, reference) {
     function.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
@@ -1004,13 +1034,16 @@ class Procedure extends Member implements GenericFunction {
     this.isExtensionTypeMember = isExtensionTypeMember;
     this.isSynthetic = isSynthetic;
     setTransformerFlagsWithoutLazyLoading(transformerFlags);
-    assert(!(isMemberSignature && stubTargetReference == null),
-        "No member signature origin for member signature $this.");
     assert(
-        !(memberSignatureOrigin is Procedure &&
-            (memberSignatureOrigin as Procedure).isMemberSignature),
-        "Member signature origin cannot be a member signature "
-        "$memberSignatureOrigin for $this.");
+      !(isMemberSignature && stubTargetReference == null),
+      "No member signature origin for member signature $this.",
+    );
+    assert(
+      !(memberSignatureOrigin is Procedure &&
+          (memberSignatureOrigin as Procedure).isMemberSignature),
+      "Member signature origin cannot be a member signature "
+      "$memberSignatureOrigin for $this.",
+    );
   }
 
   @override
@@ -1146,8 +1179,9 @@ class Procedure extends Member implements GenericFunction {
   }
 
   void set isExtensionMember(bool value) {
-    flags =
-        value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
+    flags = value
+        ? (flags | FlagExtensionMember)
+        : (flags & ~FlagExtensionMember);
   }
 
   void set isExtensionTypeMember(bool value) {
@@ -1177,13 +1211,13 @@ class Procedure extends Member implements GenericFunction {
 
   Member? get concreteForwardingStubTarget =>
       stubKind == ProcedureStubKind.ConcreteForwardingStub
-          ? stubTargetReference?.asMember
-          : null;
+      ? stubTargetReference?.asMember
+      : null;
 
   Member? get abstractForwardingStubTarget =>
       stubKind == ProcedureStubKind.AbstractForwardingStub
-          ? stubTargetReference?.asMember
-          : null;
+      ? stubTargetReference?.asMember
+      : null;
 
   Member? get stubTarget => stubTargetReference?.asMember;
 
@@ -1194,8 +1228,8 @@ class Procedure extends Member implements GenericFunction {
   @override
   Member? get memberSignatureOrigin =>
       stubKind == ProcedureStubKind.MemberSignature
-          ? stubTargetReference?.asMember
-          : null;
+      ? stubTargetReference?.asMember
+      : null;
 
   bool get hasWeakTearoffReferencePragma =>
       flags & FlagHasWeakTearoffReferencePragma != 0;
@@ -1255,8 +1289,10 @@ class Procedure extends Member implements GenericFunction {
     function = v.transform(function);
     function.parent = this;
     if (signatureType != null) {
-      DartType newSignatureType =
-          v.visitDartType(signatureType!, dummyDartType);
+      DartType newSignatureType = v.visitDartType(
+        signatureType!,
+        dummyDartType,
+      );
       if (identical(newSignatureType, dummyDartType)) {
         signatureType = null;
       } else {
@@ -1270,7 +1306,7 @@ class Procedure extends Member implements GenericFunction {
     return isGetter
         ? (signatureType?.returnType ?? function.returnType)
         : (signatureType ??
-            function.computeFunctionType(enclosingLibrary.nonNullable));
+              function.computeFunctionType(enclosingLibrary.nonNullable));
   }
 
   @override
@@ -1284,7 +1320,7 @@ class Procedure extends Member implements GenericFunction {
   DartType get setterType {
     return isSetter
         ? (signatureType?.positionalParameters[0] ??
-            function.positionalParameters[0].type)
+              function.positionalParameters[0].type)
         : const NeverType.nonNullable();
   }
 
@@ -1297,18 +1333,16 @@ class Procedure extends Member implements GenericFunction {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset,
-        viaForErrorMessage: "Procedure '$name'");
+    return _getLocationInComponent(
+      enclosingComponent,
+      fileUri,
+      offset,
+      viaForErrorMessage: "Procedure '$name'",
+    );
   }
 }
 
-enum ProcedureKind {
-  Method,
-  Getter,
-  Setter,
-  Operator,
-  Factory,
-}
+enum ProcedureKind { Method, Getter, Setter, Operator, Factory }
 
 /// The target constructor and passed type arguments of a redirecting factory,
 /// or if erroneous, the message for the error.
@@ -1326,15 +1360,16 @@ class RedirectingFactoryTarget {
   final String? errorMessage;
 
   RedirectingFactoryTarget(Member target, List<DartType> typeArguments)
-      : this.byReference(target.reference, typeArguments);
+    : this.byReference(target.reference, typeArguments);
 
   RedirectingFactoryTarget.byReference(
-      Reference this.targetReference, List<DartType> this.typeArguments)
-      : errorMessage = null;
+    Reference this.targetReference,
+    List<DartType> this.typeArguments,
+  ) : errorMessage = null;
 
   RedirectingFactoryTarget.error(String this.errorMessage)
-      : targetReference = null,
-        typeArguments = null;
+    : targetReference = null,
+      typeArguments = null;
 
   /// The target constructor if this is a valid redirecting factory. `null`
   /// otherwise.
@@ -1344,6 +1379,7 @@ class RedirectingFactoryTarget {
   bool get isError => errorMessage != null;
 
   @override
-  String toString() => 'RedirectingFactoryTarget('
+  String toString() =>
+      'RedirectingFactoryTarget('
       '${isError ? '$errorMessage' : '$target,$typeArguments'})';
 }

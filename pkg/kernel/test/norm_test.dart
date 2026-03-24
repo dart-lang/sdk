@@ -60,8 +60,11 @@ void run() {
   checkNormToSame('() -> bool');
   check('() ->? List<FutureOr<Object?>>', '() ->? List<Object?>');
   check('() ->? List<T>', '() ->? List<Never>', 'T extends Never');
-  check('() ->? List<T?>', '() ->? List<Null>',
-      'T extends S, S extends U, U extends Never');
+  check(
+    '() ->? List<T?>',
+    '() ->? List<Null>',
+    'T extends S, S extends U, U extends Never',
+  );
 
   checkNormToSame('(int?) -> void');
   checkNormToSame('(int) -> void');
@@ -74,15 +77,19 @@ void run() {
   check('(List<FutureOr<Object?>>) -> void', '(List<Object?>) -> void');
   check('([List<FutureOr<Object?>>]) -> void', '([List<Object?>]) -> void');
   check('({List<FutureOr<Object?>> x}) -> void', '({List<Object?> x}) -> void');
-  check('({required List<FutureOr<Object?>> x}) -> void',
-      '({required List<Object?> x}) -> void');
+  check(
+    '({required List<FutureOr<Object?>> x}) -> void',
+    '({required List<Object?> x}) -> void',
+  );
 
   checkNormToSame('<T>(T) -> void');
   checkNormToSame('<T>(T?) -> void');
   checkNormToSame('<T extends bool>(T) -> void');
   checkNormToSame('<T extends List<T>>(T) -> void');
-  check('<T extends List<FutureOr<Object?>>>(T) -> void',
-      '<T extends List<Object?>>(T) -> void');
+  check(
+    '<T extends List<FutureOr<Object?>>>(T) -> void',
+    '<T extends List<Object?>>(T) -> void',
+  );
 
   checkNormToSame('T', 'T extends Object?');
   checkNormToSame('T?', 'T extends Object?');
@@ -106,16 +113,26 @@ void run() {
   check('FutureOr<int?>', 'FutureOr<int?>?');
   check('FutureOr<FutureOr<int?>>', 'FutureOr<FutureOr<int?>?>?');
   check('FutureOr<FutureOr<int>?>', 'FutureOr<FutureOr<int>?>?');
-  check('FutureOr<FutureOr<FutureOr<int>>?>',
-      'FutureOr<FutureOr<FutureOr<int>>?>?');
+  check(
+    'FutureOr<FutureOr<FutureOr<int>>?>',
+    'FutureOr<FutureOr<FutureOr<int>>?>?',
+  );
 
-  check('(T, S & Never, {R foo})', '(Never, Never, {Never foo})',
-      'T extends Never, S extends Object?, R extends T');
-  check('(T, bool?, {FutureOr<Null> foo, FutureOr<dynamic> bar})',
-      '(Never, bool?, {Future<Null>? foo, dynamic bar})', 'T extends Never');
+  check(
+    '(T, S & Never, {R foo})',
+    '(Never, Never, {Never foo})',
+    'T extends Never, S extends Object?, R extends T',
+  );
+  check(
+    '(T, bool?, {FutureOr<Null> foo, FutureOr<dynamic> bar})',
+    '(Never, bool?, {Future<Null>? foo, dynamic bar})',
+    'T extends Never',
+  );
   check('() -> List<({FutureOr<dynamic> foo})>', '() -> List<({dynamic foo})>');
-  check('<T extends Never>((T, T)) -> void',
-      '<T extends Never>((Never, Never)) -> void');
+  check(
+    '<T extends Never>((T, T)) -> void',
+    '<T extends Never>((Never, Never)) -> void',
+  );
 
   checkNormToSame('(int, {String? foo})');
   checkNormToSame('(int, String?, {List<int> foo, T bar})', 'T extends num');
@@ -131,11 +148,12 @@ void check(String input, String output, [String typeParameters = '']) {
   DartType actualOutputType = norm(env.coreTypes, inputType);
   print('norm($inputType) = $actualOutputType, expected $expectedOutputType');
   Expect.equals(
-      expectedOutputType,
-      actualOutputType,
-      "Unexpected norm of $inputType ('$input'):\n"
-      "Expected: ${expectedOutputType} ('$output')\n"
-      "Actual: ${actualOutputType}");
+    expectedOutputType,
+    actualOutputType,
+    "Unexpected norm of $inputType ('$input'):\n"
+    "Expected: ${expectedOutputType} ('$output')\n"
+    "Actual: ${actualOutputType}",
+  );
 }
 
 void checkNormToSame(String type, [String typeParameters = '']) {
