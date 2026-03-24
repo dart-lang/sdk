@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// `out` and `inout` are built-in identifiers. They cannot be used as type
-// names.
+// `out` and `inout` are built-in identifiers.They cannot be used as names in
+// declarations.
 
 // SharedOptions=--enable-experiment=variance
 
@@ -18,35 +18,45 @@ class B<inout> {}
 // [cfe] unspecified
 
 class C<out, inout> {}
-//      ^
-// [analyzer] unspecified
+//      ^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] unspecified
-//           ^
-// [analyzer] unspecified
+//           ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] unspecified
 
 F<inout, out>() {}
-//^
-// [analyzer] unspecified
+//^^^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] unspecified
-//       ^
-// [analyzer] unspecified
+//       ^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] unspecified
 
 mixin G<out, inout> {}
-//      ^
-// [analyzer] unspecified
+//      ^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] unspecified
-//           ^
-// [analyzer] unspecified
+//           ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] unspecified
+
+class I<out out> {}
+//          ^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
+// [cfe] unspecified
+
+class J<out inout> {}
+//          ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] unspecified
 
 typedef H<inout, out> = out Function(inout);
-//        ^
-// [analyzer] unspecified
+//        ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] unspecified
-//               ^
-// [analyzer] unspecified
+//               ^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] unspecified
 
 class out {}
@@ -55,7 +65,6 @@ class out {}
 // [cfe] unspecified
 
 class inout {}
-
 //    ^
 // [analyzer] unspecified
 // [cfe] unspecified

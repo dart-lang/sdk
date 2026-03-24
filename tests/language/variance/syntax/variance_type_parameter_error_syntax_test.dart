@@ -60,6 +60,8 @@ class D<in out inout in out X> {}
 // [cfe] Each type parameter can have at most one variance modifier.
 
 typedef E<out T> = T Function(T a);
+//        ^^^
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 //            ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ',' before this.
