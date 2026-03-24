@@ -27,7 +27,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.20.0';
+const String vmServiceVersion = '4.21.0';
 
 /// @optional
 const String optional = 'optional';
@@ -2577,6 +2577,10 @@ abstract class InstanceKind {
 
   /// An instance of the Dart class FinalizerEntry.
   static const String kFinalizerEntry = 'FinalizerEntry';
+
+  /// An instance of the dart:ffi `Pointer<T>` class. Note: The type argument T
+  /// is erased at runtime.
+  static const String kPointer = 'Pointer';
 }
 
 /// A `SentinelKind` is used to distinguish different kinds of `Sentinel`
@@ -4849,6 +4853,7 @@ class InstanceRef extends ObjRef {
   ///  - Float64x2
   ///  - Int32x4
   ///  - StackTrace
+  ///  - Pointer (the native address, e.g. "0x7f00abcd1234")
   @optional
   String? valueAsString;
 
