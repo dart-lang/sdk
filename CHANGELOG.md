@@ -1,5 +1,7 @@
 ## 3.11.4
 
+**Released on:** 2026-03-24
+
 This is a patch release that:
 
 - Fixes a bug causing the analyzer and analysis server to crash when calling a
