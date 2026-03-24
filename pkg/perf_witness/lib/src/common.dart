@@ -45,12 +45,16 @@ List<({int pid, String socketPath})> getAllControlSockets() {
   }
 }
 
-final String? controlSocketPath = () {
-  final dirPath = _controlSocketsDirectory;
+String? controlSocketPathForPid(int pid, {String? controlSocketDirectory}) {
+  final dirPath = controlSocketDirectory ?? _controlSocketsDirectory;
   if (dirPath == null) {
     return null;
   }
-  return p.join(dirPath, '${io.pid}');
+  return p.join(dirPath, '$pid');
+}
+
+final String? controlSocketPath = () {
+  return controlSocketPathForPid(io.pid);
 }();
 
 final String? recorderSocketPath = () {
