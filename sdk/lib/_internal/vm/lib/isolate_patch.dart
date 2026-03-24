@@ -187,9 +187,8 @@ final class _RawReceivePort implements RawReceivePort {
     if (handler == null) {
       return null;
     }
-    // TODO(floitsch): this relies on the fact that any exception aborts the
-    // VM. Once we have non-fatal global exceptions we need to catch errors
-    // so that we can run the immediate callbacks.
+    // If handler or microtasks throw, the VM will drain microtasks again
+    // after handling the error.
     handler(message);
     _runPendingImmediateCallback();
     return handler;
