@@ -577,18 +577,15 @@ class Symbols : public AllStatic {
   enum { kMaxOneCharCodeSymbol = 0xFF };
 
   // List of strings that are pre created in the vm isolate.
+  // clang-format off
   enum SymbolId {
-    // clang-format off
-    kIllegal = 0,
-
 #define DEFINE_SYMBOL_INDEX(symbol, literal) k##symbol##Id,
-    PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
+PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 #undef DEFINE_SYMBOL_INDEX
-
     kNullCharId,  // One char code symbol starts here and takes up 256 entries.
     kMaxPredefinedId = kNullCharId + kMaxOneCharCodeSymbol + 1,
-    // clang-format on
   };
+  // clang-format on
 
   // Number of one character symbols being predefined in the predefined_ array.
   static constexpr int kNumberOfOneCharCodeSymbols =
@@ -598,11 +595,11 @@ class Symbols : public AllStatic {
   static constexpr int kNullCharCodeSymbolOffset = 0;
 
   static const String& Symbol(intptr_t index) {
-    ASSERT((index > kIllegal) && (index < kMaxPredefinedId));
+    ASSERT((index >= 0) && (index < kMaxPredefinedId));
     return *(symbol_handles_[index]);
   }
   static void InitSymbol(intptr_t index, String* symbol) {
-    ASSERT((index > kIllegal) && (index < kMaxPredefinedId));
+    ASSERT((index >= 0) && (index < kMaxPredefinedId));
     symbol_handles_[index] = symbol;
   }
 
