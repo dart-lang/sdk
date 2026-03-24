@@ -92,7 +92,7 @@ void f() {
 class ^C;
 ''';
 
-    await verifySelectionRanges(content, ['C', 'class C;']);
+    await verifySelectionRanges(content, ['class C;']);
   }
 
   Future<void> test_emptyBody_enum() async {
@@ -102,7 +102,7 @@ class ^C;
 enum ^E;
 ''';
 
-    await verifySelectionRanges(content, ['E', 'enum E;']);
+    await verifySelectionRanges(content, ['enum E;']);
   }
 
   Future<void> test_emptyBody_extension() async {
