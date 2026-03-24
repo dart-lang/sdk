@@ -1119,7 +1119,6 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
           loader: loader,
           resolveInLibrary: libraryBuilder,
           conditionalImportSupported: true,
-          forAugmentationLibrary: false,
           isAugmenting: false,
           forPatchLibrary: false,
           referenceIsPartOwner: null,
@@ -1220,7 +1219,6 @@ class DocTestSourceLoader extends SourceLoader {
     SourceCompilationUnit? origin,
     IndexedLibrary? referencesFromIndex,
     bool? referenceIsPartOwner,
-    bool isAugmentation = false,
     bool isPatch = false,
     required bool mayImplementRestrictedTypes,
   }) {
@@ -1244,7 +1242,6 @@ class DocTestSourceLoader extends SourceLoader {
       origin: origin,
       referencesFromIndex: referencesFromIndex,
       referenceIsPartOwner: referenceIsPartOwner,
-      isAugmentation: isAugmentation,
       isPatch: isPatch,
       mayImplementRestrictedTypes: mayImplementRestrictedTypes,
     );

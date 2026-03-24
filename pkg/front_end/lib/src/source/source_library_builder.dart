@@ -338,7 +338,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   // Coverage-ignore(suite): Not run.
   /// `true` if this is an augmentation library.
-  bool get isAugmentationLibrary => compilationUnit.forAugmentationLibrary;
+  bool get isAugmentationLibrary => compilationUnit.isAugmenting;
 
   // Coverage-ignore(suite): Not run.
   /// `true` if this is a patch library.

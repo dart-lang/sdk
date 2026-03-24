@@ -2127,7 +2127,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             conditionalImportSupported:
                 libraryBuilder.conditionalImportSupported,
             importability: libraryBuilder.importability,
-            forAugmentationLibrary: false,
             forPatchLibrary: false,
             referenceIsPartOwner: null,
             packageUri: null,
@@ -2193,7 +2192,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         parentExtensionScope: debugCompilationUnit.extensionScope,
         conditionalImportSupported: libraryBuilder.conditionalImportSupported,
         importability: libraryBuilder.importability,
-        forAugmentationLibrary: false,
         forPatchLibrary: false,
         referenceIsPartOwner: null,
         packageUri: null,
