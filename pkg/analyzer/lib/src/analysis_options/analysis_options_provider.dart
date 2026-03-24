@@ -7,9 +7,9 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
-import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/source.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
@@ -21,38 +21,6 @@ class AnalysisOptionsProvider {
   final SourceFactory _sourceFactory;
 
   AnalysisOptionsProvider(this._sourceFactory);
-
-  /// Provides the analysis options that apply to [root].
-  ///
-  /// The analysis options come from either [file_paths.analysisOptionsYaml]
-  /// found directly in [root] or one of [root]'s ancestor directories.
-  ///
-  /// Recursively merges options referenced by any 'include' directives
-  /// and removes any 'include' directives from the resulting options map.
-  /// Returns an empty options map if the file does not exist or cannot be
-  /// parsed.
-  YamlMap getOptions(Folder root) {
-    File? optionsFile = getOptionsFile(root);
-    if (optionsFile == null) {
-      return YamlMap();
-    }
-    return getOptionsFromFile(optionsFile);
-  }
-
-  /// Returns the analysis options file from which options should be read, or
-  /// `null` if there is no analysis options file for code in the given [root].
-  ///
-  /// The given [root] directory will be searched first. If no file is found,
-  /// then enclosing directories will be searched.
-  File? getOptionsFile(Folder root) {
-    for (var current in root.withAncestors) {
-      var file = current.getChildAssumingFile(file_paths.analysisOptionsYaml);
-      if (file.exists) {
-        return file;
-      }
-    }
-    return null;
-  }
 
   /// Provides the options found in [file].
   ///
@@ -141,7 +109,7 @@ class AnalysisOptionsProvider {
   ///     {'opt1': true, 'opt2': true}.
   ///   * maps are merged recursively.
   ///   * if map values cannot be merged, the overriding value is taken.
-  ///
+  @visibleForTesting
   YamlMap merge(YamlMap defaults, YamlMap overrides) =>
       Merger().mergeMap(defaults, overrides);
 
