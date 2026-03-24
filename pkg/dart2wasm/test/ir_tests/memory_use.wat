@@ -6,8 +6,6 @@
     (field $value f64))))
   (memory $foo.mem (import "foo" "mem") 1)
   (func $"main <noInline>"
-    memory.size $foo.mem
-    drop
     i32.const 1
     memory.grow $foo.mem
     drop
