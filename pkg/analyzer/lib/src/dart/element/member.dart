@@ -727,11 +727,10 @@ class SubstitutedFormalParameterElementImpl
     FormalParameterElementImpl baseElement;
     var combined = substitution;
     if (element is SubstitutedFormalParameterElementImpl) {
-      var member = element;
-      baseElement = member.baseElement;
+      baseElement = element.baseElement;
 
       var map = <TypeParameterElement, DartType>{
-        for (var MapEntry(:key, :value) in member.substitution.map.entries)
+        for (var MapEntry(:key, :value) in element.substitution.map.entries)
           key: substitution.substituteType(value),
       };
       combined = Substitution.fromMap(map);

@@ -233,16 +233,15 @@ class _BuilderGenerator extends _BaseGenerator {
       var type = field.type;
       var name = field.name;
       if (type.isList) {
-        var localName = name;
         out('var $name = this._$name;');
-        out('if ($localName == null) {');
+        out('if ($name == null) {');
         indent(() {
           out('signatureSink.addInt(0);');
         });
         out('} else {');
         indent(() {
-          out('signatureSink.addInt($localName.length);');
-          out('for (var x in $localName) {');
+          out('signatureSink.addInt($name.length);');
+          out('for (var x in $name) {');
           indent(() {
             _generateSignatureCall(type.typeName, 'x', false);
           });

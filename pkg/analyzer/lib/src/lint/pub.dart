@@ -291,11 +291,10 @@ class _Pubspec implements Pubspec {
     PubspecDependencyList? devDependencies;
     PubspecDependencyList? dependencyOverrides;
 
-    yaml.nodes.forEach((k, v) {
-      if (k is! YamlScalar) {
+    yaml.nodes.forEach((key, v) {
+      if (key is! YamlScalar) {
         return;
       }
-      YamlScalar key = k;
       switch (key.toString()) {
         case 'author':
           author = _processScalar(key, v, resourceProvider);
@@ -462,11 +461,10 @@ class _PubspecDependency extends PubspecDependency {
       // Simple version constraint.
       version = PubspecEntry(null, PubspecNodeImpl(value, resourceProvider));
     } else if (value is YamlMap) {
-      value.nodes.forEach((k, v) {
-        if (k is! YamlScalar) {
+      value.nodes.forEach((key, v) {
+        if (key is! YamlScalar) {
           return;
         }
-        YamlScalar key = k;
         switch (key.toString()) {
           case 'path':
             path = _processScalar(key, v, resourceProvider);

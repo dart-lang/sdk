@@ -6140,7 +6140,6 @@ class AstBuilder extends StackListener {
       type: type,
       variables: variables,
     );
-    var covariantKeyword = covariantToken;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     _classLikeBuilder?.members.add(
@@ -6149,7 +6148,7 @@ class AstBuilder extends StackListener {
         metadata: metadata,
         abstractKeyword: abstractToken,
         augmentKeyword: augmentToken,
-        covariantKeyword: covariantKeyword,
+        covariantKeyword: covariantToken,
         externalKeyword: externalToken,
         staticKeyword: staticToken,
         fields: variableList,

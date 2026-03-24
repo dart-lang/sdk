@@ -1243,14 +1243,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       allowVoid: true,
       allowEmptyStruct: true,
     )) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(
               executableName:
                   '$_allocatorExtensionName.$_allocateExtensionMethodName',
             )
-            .at(errorNode),
+            .at(node),
       );
     }
   }
@@ -1496,11 +1495,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     var dartType = typeArgumentTypes[0];
     if (!_isValidFfiNativeType(dartType)) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: '$errorClass.create')
-            .at(errorNode),
+            .at(node),
       );
     }
   }
@@ -1511,11 +1509,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var T = targetType.typeArguments[0];
 
       if (!_isValidFfiNativeType(T, allowVoid: true, allowEmptyStruct: true)) {
-        AstNode errorNode = node;
         _diagnosticReporter.report(
           diag.nonConstantTypeArgument
               .withArguments(executableName: 'elementAt')
-              .at(errorNode),
+              .at(node),
         );
       }
     }
@@ -2060,11 +2057,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       allowEmptyStruct: true,
       allowArray: true,
     )) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: '[]')
-            .at(errorNode),
+            .at(node),
       );
     }
   }
@@ -2074,11 +2070,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateRefPrefixedIdentifier(PrefixedIdentifierImpl node) {
     var targetType = node.prefix.staticType;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: 'ref')
-            .at(errorNode),
+            .at(node),
       );
     }
   }
@@ -2086,11 +2081,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateRefPropertyAccess(PropertyAccessImpl node) {
     var targetType = node.realTarget.typeOrThrow;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: 'ref')
-            .at(errorNode),
+            .at(node),
       );
     }
   }
@@ -2116,11 +2110,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     var T = typeArgumentTypes[0];
     if (!_isValidFfiNativeType(T, allowVoid: true, allowEmptyStruct: true)) {
-      AstNode errorNode = node;
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: 'sizeOf')
-            .at(errorNode),
+            .at(node),
       );
     }
   }

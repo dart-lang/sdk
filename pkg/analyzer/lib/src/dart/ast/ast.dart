@@ -16692,8 +16692,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   bool inGetterContext() {
     // TODO(brianwilkerson): Convert this to a getter.
     var parent = this.parent!;
-    if (parent is AssignmentExpression) {
-      AssignmentExpression assignment = parent;
+    if (parent case AssignmentExpression assignment) {
       if (identical(assignment.leftHandSide, this) &&
           assignment.operator.type == TokenType.EQ) {
         return false;
@@ -26360,8 +26359,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       return identical(parent.propertyName, this);
     } else if (parent is ConstructorName) {
       return identical(parent.name, this);
-    } else if (parent is MethodInvocation) {
-      MethodInvocation invocation = parent;
+    } else if (parent case MethodInvocation invocation) {
       return identical(invocation.methodName, this) &&
           invocation.realTarget != null;
     }
