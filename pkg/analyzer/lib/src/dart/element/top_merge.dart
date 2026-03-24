@@ -62,14 +62,14 @@ class TopMergeHelper {
       return VoidTypeImpl.instance;
     }
 
-    // NNBD_TOP_MERGE(Object?, void) = void
-    // NNBD_TOP_MERGE(void, Object?) = void
+    // NNBD_TOP_MERGE(Object?, void) = Object?
+    // NNBD_TOP_MERGE(void, Object?) = Object?
     if (T_isObjectQuestion && S_isVoid || T_isVoid && S_isObjectQuestion) {
       return typeSystem.objectQuestion;
     }
 
-    // NNBD_TOP_MERGE(dynamic, void) = void
-    // NNBD_TOP_MERGE(void, dynamic) = void
+    // NNBD_TOP_MERGE(dynamic, void) = Object?
+    // NNBD_TOP_MERGE(void, dynamic) = Object?
     if (T_isDynamic && S_isVoid || T_isVoid && S_isDynamic) {
       return typeSystem.objectQuestion;
     }
@@ -255,7 +255,7 @@ class TopMergeHelper {
     }
 
     if (T.isOptionalPositional && S.isOptionalPositional) {
-      return ParameterKind.REQUIRED;
+      return ParameterKind.POSITIONAL;
     }
 
     if (T.isRequiredNamed && S.isRequiredNamed) {
@@ -264,11 +264,6 @@ class TopMergeHelper {
 
     if (T.isOptionalNamed && S.isOptionalNamed) {
       return ParameterKind.NAMED;
-    }
-
-    // Legacy named vs. Required named.
-    if (T.isRequiredNamed && S.isNamed || T.isNamed || S.isRequiredNamed) {
-      return ParameterKind.NAMED_REQUIRED;
     }
 
     return null;

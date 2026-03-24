@@ -643,20 +643,16 @@ class ApiNativeScope {
  public:
   ApiNativeScope() {
     // Currently no support for nesting native scopes.
-    ASSERT(Current() == nullptr);
-    OSThread::SetThreadLocal(Api::api_native_key_,
-                             reinterpret_cast<uword>(this));
+    ASSERT(current_ == nullptr);
+    current_ = this;
   }
 
   ~ApiNativeScope() {
-    ASSERT(Current() == this);
-    OSThread::SetThreadLocal(Api::api_native_key_, 0);
+    ASSERT(current_ == this);
+    current_ = nullptr;
   }
 
-  static inline ApiNativeScope* Current() {
-    return reinterpret_cast<ApiNativeScope*>(
-        OSThread::GetThreadLocal(Api::api_native_key_));
-  }
+  static inline ApiNativeScope* Current() { return current_; }
 
   Zone* zone() {
     Zone* result = zone_.GetZone();
@@ -667,6 +663,10 @@ class ApiNativeScope {
 
  private:
   ApiZone zone_;
+
+  static inline thread_local ApiNativeScope* current_ = nullptr;
+
+  DISALLOW_COPY_AND_ASSIGN(ApiNativeScope);
 };
 
 // Api growable arrays use a zone for allocation. The constructor

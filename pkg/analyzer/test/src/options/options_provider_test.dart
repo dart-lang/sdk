@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -388,11 +389,15 @@ include: ../analysis_options.yaml
     );
   }
 
-  AnalysisOptions _getOptionsObject(String filePath) =>
-      AnalysisOptionsImpl.fromYaml(
-        optionsMap: provider.getOptions(getFolder(filePath)),
-        file: getFile(filePath),
-      );
+  AnalysisOptions _getOptionsObject(String folderPath) {
+    var file = getFolder(
+      folderPath,
+    ).getChildAssumingFile(file_paths.analysisOptionsYaml);
+    return AnalysisOptionsImpl.fromYaml(
+      optionsMap: provider.getOptionsFromFile(file),
+      file: getFile(folderPath),
+    );
+  }
 }
 
 class TestRule extends AnalysisRule {

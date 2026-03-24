@@ -475,6 +475,7 @@ mixin _ConstructorDeclarationMixin
     } else if (lastInitializer is InternalSuperInitializer) {
       superTarget = lastInitializer.target;
     } else if (lastInitializer is InvalidInitializer &&
+        // Coverage-ignore(suite): Not run.
         lastInitializer.isSuperInitializer) {
       // Erroneous super initializer.
       return null;
@@ -529,6 +530,8 @@ mixin _ConstructorDeclarationMixin
     DeclarationBuilder declarationBuilder,
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
+    if (!_hasSuperInitializingFormals) return;
+
     if (_beginInitializers != null && initializers.isNotEmpty) {
       // If the initializers aren't built yet, we can't compute the super
       // target. The synthetic initializers should be excluded, since they can

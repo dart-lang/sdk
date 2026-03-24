@@ -102,7 +102,6 @@ DEFINE_FLAG(bool,
     }                                                                          \
   }
 
-ThreadLocalKey Api::api_native_key_ = kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = nullptr;
 Dart_Handle Api::false_handle_ = nullptr;
 Dart_Handle Api::null_handle_ = nullptr;
@@ -509,13 +508,6 @@ ApiLocalScope* Api::TopScope(Thread* thread) {
   ApiLocalScope* scope = thread->api_top_scope();
   ASSERT(scope != nullptr);
   return scope;
-}
-
-void Api::Init() {
-  if (api_native_key_ == kUnsetThreadLocalKey) {
-    api_native_key_ = OSThread::CreateThreadLocal();
-  }
-  ASSERT(api_native_key_ != kUnsetThreadLocalKey);
 }
 
 static Dart_Handle InitNewReadOnlyApiHandle(ObjectPtr raw) {

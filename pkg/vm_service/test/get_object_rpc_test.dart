@@ -124,6 +124,15 @@ NativeFinalizer getNativeFinalizer() {
 final nativeFinalizer =
     NativeFinalizer(DynamicLibrary.process().lookup('free'));
 
+@pragma('vm:entry-point')
+Pointer<Uint8> getTestPointer() {
+  final address = sizeOf<IntPtr>() == 4 ? 0xdeadbeef : 0xdeadbeefdeadbeef;
+  return Pointer<Uint8>.fromAddress(address);
+}
+
+@pragma('vm:entry-point')
+Pointer<Uint8> getTestPointerSmall() => Pointer<Uint8>.fromAddress(0x1);
+
 var tests = <IsolateTest>[
   // null object.
   (VmService service, IsolateRef isolateRef) async {
@@ -1986,6 +1995,53 @@ var tests = <IsolateTest>[
     final allEntries =
         await service.getObject(isolateId, allEntriesRef!.id!) as Instance;
     expect(allEntries.elements, isEmpty);
+  },
+
+  // A Pointer<T> instance (dart:ffi)
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    final evalResult = await service.invoke(
+      isolateId,
+      isolate.rootLib!.id!,
+      'getTestPointer',
+      [],
+    ) as InstanceRef;
+
+    final expectedAddress =
+        sizeOf<IntPtr>() == 4 ? '0xdeadbeef' : '0xdeadbeefdeadbeef';
+
+    expect(evalResult.kind, InstanceKind.kPointer);
+    expect(evalResult.valueAsString, equals(expectedAddress));
+
+    final result =
+        await service.getObject(isolateId, evalResult.id!) as Instance;
+    expect(result.kind, InstanceKind.kPointer);
+    expect(result.id, startsWith('objects/'));
+    expect(result.classRef!.name, equals('Pointer'));
+    expect(result.classRef!.library!.uri, equals('dart:ffi'));
+    expect(result.size, isPositive);
+    expect(result.valueAsString, equals(expectedAddress));
+  },
+
+  // A Pointer<T> instance with a small address
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    final evalResult = await service.invoke(
+      isolateId,
+      isolate.rootLib!.id!,
+      'getTestPointerSmall',
+      [],
+    ) as InstanceRef;
+
+    expect(evalResult.kind, InstanceKind.kPointer);
+    expect(evalResult.valueAsString, equals('0x1'));
+
+    final result =
+        await service.getObject(isolateId, evalResult.id!) as Instance;
+    expect(result.kind, InstanceKind.kPointer);
+    expect(result.valueAsString, equals('0x1'));
   },
 ];
 
