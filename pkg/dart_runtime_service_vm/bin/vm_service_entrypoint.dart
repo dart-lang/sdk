@@ -112,6 +112,7 @@ void _populateResidentCompilerInfoFile(
   // TODO(bkonyi): implement
 }
 
+@pragma('vm:entry-point', 'get')
 Future<void> main([List<String> args = const []]) async {
   if (args case ['--help']) {
     return;
