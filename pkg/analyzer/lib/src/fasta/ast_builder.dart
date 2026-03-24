@@ -5817,14 +5817,8 @@ class AstBuilder extends StackListener {
     return tailList.nonNulls.toList();
   }
 
-  // TODO(scheglov): This is probably not optimal.
   List<T> popTypedList2<T>(int count) {
-    var result = <T>[];
-    for (var i = 0; i < count; i++) {
-      var element = stack.pop(null) as T;
-      result.add(element);
-    }
-    return result.reversed.toList();
+    return stack.popNonNullableNewList<T>(count);
   }
 
   void reportErrorIfNullableType(Token? questionMark) {
