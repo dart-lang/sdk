@@ -383,7 +383,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Service::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
-  Api::Init();
   NativeSymbolResolver::Init();
   Page::Init();
   StoreBuffer::Init();
