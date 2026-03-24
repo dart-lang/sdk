@@ -23,11 +23,11 @@ class C3 extends core::Object {
     ;
 }
 class C4 extends core::Object {
-  constructor •([final core::Object? e = 0]) → self::C4
+  constructor •([final dynamic e = 0]) → self::C4
     ;
 }
 class C5 extends core::Object {
-  constructor •({final core::Object? f = true}) → self::C5
+  constructor •({final dynamic f = true}) → self::C5
     ;
 }
 static method test() → dynamic

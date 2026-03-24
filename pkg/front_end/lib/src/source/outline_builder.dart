@@ -3083,7 +3083,12 @@ class OutlineBuilder extends StackListenerImpl {
           metadata: metadata,
           kind: kind,
           modifiers: modifiers,
-          type: type ?? _createOmittedParameterTypeBuilder(memberKind),
+          type:
+              type ??
+              _createOmittedParameterTypeBuilder(
+                memberKind,
+                isDeclaringParameter: modifiers.isDeclaringParameter,
+              ),
           name: parameterName,
           publicName: publicName,
           hasThis: thisKeyword != null,
@@ -3097,7 +3102,10 @@ class OutlineBuilder extends StackListenerImpl {
 
   /// Creates the [TypeBuilder] use for an omitted parameter type on the given
   /// member [kind].
-  TypeBuilder _createOmittedParameterTypeBuilder(MemberKind kind) {
+  TypeBuilder _createOmittedParameterTypeBuilder(
+    MemberKind kind, {
+    bool isDeclaringParameter = false,
+  }) {
     switch (kind) {
       case MemberKind.Catch:
       case MemberKind.FunctionTypeAlias:
@@ -3127,7 +3135,9 @@ class OutlineBuilder extends StackListenerImpl {
         if (libraryFeatures.primaryConstructors.isEnabled) {
           // Parameter type is inferred with `Object?` as default.
           return _builderFactory.addInferableType(
-            InferenceDefaultType.NullableObject,
+            isDeclaringParameter
+                ? InferenceDefaultType.NullableObject
+                : InferenceDefaultType.Dynamic,
           );
         } else {
           // Parameter type is not inferred.
