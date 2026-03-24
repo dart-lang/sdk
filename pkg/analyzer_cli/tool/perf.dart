@@ -78,7 +78,7 @@ void collectSources(Source? start, Set<Source?> files) {
   var unit = parseDirectives(start!);
   for (var directive in unit.directives) {
     if (directive is UriBasedDirective) {
-      var next = sources.resolveUri(start, directive.uri.stringValue);
+      var next = sources.resolveUri(start, directive.uri.stringValue!);
       collectSources(next, files);
     }
   }

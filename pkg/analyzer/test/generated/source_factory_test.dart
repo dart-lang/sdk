@@ -59,7 +59,9 @@ class SourceFactoryTest with ResourceProviderMixin {
   void test_resolveUri_absolute() {
     UriResolver_absolute resolver = UriResolver_absolute();
     SourceFactory factory = SourceFactory([resolver]);
-    factory.resolveUri(null, "dart:core");
+    String sourcePath = convertPath('/does/not/exist.dart');
+    Source sourceSource = FileSource(getFile(sourcePath));
+    factory.resolveUri(sourceSource, "dart:core");
     expect(resolver.invoked, isTrue);
   }
 

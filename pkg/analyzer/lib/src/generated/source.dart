@@ -152,7 +152,7 @@ abstract class SourceFactory {
   /// [containingSource], whether or not the resulting source exists, or `null`
   /// if either the [containedUri] is invalid or if it cannot be resolved
   /// against the [containingSource]'s URI.
-  Source? resolveUri(Source? containingSource, String? containedUri);
+  Source? resolveUri(Source containingSource, String containedUri);
 }
 
 /// The abstract class `UriResolver` defines the behavior of objects that are
