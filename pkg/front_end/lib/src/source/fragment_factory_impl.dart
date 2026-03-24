@@ -976,7 +976,6 @@ class FragmentFactoryImpl implements FragmentFactory {
               _augmentationRoot
             : null,
         accessor: _compilationUnit,
-        isAugmentation: isAugmentationImport,
         referencesFromIndex: isAugmentationImport
             ?
               // Coverage-ignore(suite): Not run.

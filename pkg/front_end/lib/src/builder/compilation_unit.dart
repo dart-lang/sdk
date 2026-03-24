@@ -156,9 +156,6 @@ abstract class SourceCompilationUnit
   });
 
   // TODO(johnniwinther): Remove this.
-  bool get forAugmentationLibrary;
-
-  // TODO(johnniwinther): Remove this.
   bool get forPatchLibrary;
 
   /// If this is an compilation unit for an augmentation library, returns the

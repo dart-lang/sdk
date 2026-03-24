@@ -108,7 +108,6 @@ Future<void> main() async {
       ),
       originImportUri: uri,
       indexedLibrary: null,
-      forAugmentationLibrary: false,
       augmentationRoot: null,
       resolveInLibrary: null,
       referenceIsPartOwner: null,
