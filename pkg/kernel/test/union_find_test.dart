@@ -31,7 +31,7 @@ void main() {
   testFind(unionFind, 0, 0);
   testSame(unionFind, 0, 0, true);
   testSets(unionFind, {
-    {0}
+    {0},
   });
 
   // {0}, {1}
@@ -41,7 +41,7 @@ void main() {
   testSame(unionFind, 1, 1, true);
   testSets(unionFind, {
     {0},
-    {1}
+    {1},
   });
 
   // {0}, {1}, {2}
@@ -52,7 +52,7 @@ void main() {
   testSets(unionFind, {
     {0},
     {1},
-    {2}
+    {2},
   });
 
   // {0}, {1}, {2}
@@ -63,7 +63,7 @@ void main() {
   testSets(unionFind, {
     {0},
     {1},
-    {2}
+    {2},
   });
 
   // {0, 1}, {2}
@@ -76,7 +76,7 @@ void main() {
   testFind(unionFind, 1, 0);
   testSets(unionFind, {
     {0, 1},
-    {2}
+    {2},
   });
 
   // {0, 1}, {2, 3}
@@ -93,13 +93,13 @@ void main() {
   testFind(unionFind, 3, 2);
   testSets(unionFind, {
     {0, 1},
-    {2, 3}
+    {2, 3},
   });
 
   // {0, 1, 2, 3}
   testUnion(unionFind, 1, 2, 0);
   testSets(unionFind, {
-    {0, 1, 2, 3}
+    {0, 1, 2, 3},
   });
 }
 

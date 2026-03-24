@@ -36,8 +36,10 @@ String typedefTearOffName(String typedefName, String constructorName) {
       name.text.endsWith(_tearOffNameSuffix) &&
       name.text.length >
           _tearOffNamePrefix.length + _tearOffNameSuffix.length) {
-    String text =
-        name.text.substring(0, name.text.length - _tearOffNameSuffix.length);
+    String text = name.text.substring(
+      0,
+      name.text.length - _tearOffNameSuffix.length,
+    );
     text = text.substring(_tearOffNamePrefix.length);
     int hashIndex = text.indexOf('#');
     if (hashIndex == -1) {
@@ -77,8 +79,10 @@ String? extractConstructorNameFromTearOff(Name name) {
       name.text.endsWith(_tearOffNameSuffix) &&
       name.text.length >
           _tearOffNamePrefix.length + _tearOffNameSuffix.length) {
-    String text =
-        name.text.substring(0, name.text.length - _tearOffNameSuffix.length);
+    String text = name.text.substring(
+      0,
+      name.text.length - _tearOffNameSuffix.length,
+    );
     text = text.substring(_tearOffNamePrefix.length);
     if (text.contains('#')) {
       return null;

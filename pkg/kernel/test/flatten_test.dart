@@ -52,27 +52,35 @@ class Test {
 
 void main() {
   Env env = new Env('');
-  ClassHierarchy classHierarchy =
-      new ClassHierarchy(env.component, env.coreTypes);
-  TypeEnvironment typeEnvironment =
-      new TypeEnvironment(env.coreTypes, classHierarchy);
+  ClassHierarchy classHierarchy = new ClassHierarchy(
+    env.component,
+    env.coreTypes,
+  );
+  TypeEnvironment typeEnvironment = new TypeEnvironment(
+    env.coreTypes,
+    classHierarchy,
+  );
   data.forEach((Test test) {
-    env.withTypeParameters(test.typeParameters,
-        (List<TypeParameter> typeParameterNodes) {
+    env.withTypeParameters(test.typeParameters, (
+      List<TypeParameter> typeParameterNodes,
+    ) {
       String input = test.input;
       String output = test.output;
       DartType inputType = env.parseType(input);
       DartType expectedOutputType = env.parseType(output);
       DartType actualOutputType = typeEnvironment.flatten(inputType);
-      print('flatten($inputType) '
-          '${test.typeParameters != null ? 'with ${test.typeParameters} ' : ''}'
-          '= $actualOutputType, expected $expectedOutputType');
+      print(
+        'flatten($inputType) '
+        '${test.typeParameters != null ? 'with ${test.typeParameters} ' : ''}'
+        '= $actualOutputType, expected $expectedOutputType',
+      );
       Expect.equals(
-          expectedOutputType,
-          actualOutputType,
-          "Unexpected flatten of $inputType ('$input'):\n"
-          "Expected: ${expectedOutputType} ('$output')\n"
-          "Actual: ${actualOutputType}");
+        expectedOutputType,
+        actualOutputType,
+        "Unexpected flatten of $inputType ('$input'):\n"
+        "Expected: ${expectedOutputType} ('$output')\n"
+        "Actual: ${actualOutputType}",
+      );
     });
   });
 }

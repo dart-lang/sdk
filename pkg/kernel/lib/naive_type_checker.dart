@@ -17,29 +17,43 @@ abstract class FailureListener {
 class NaiveTypeChecker extends type_checker.TypeChecker {
   final FailureListener failures;
 
-  factory NaiveTypeChecker(FailureListener failures, Component component,
-      {bool ignoreSdk = false}) {
+  factory NaiveTypeChecker(
+    FailureListener failures,
+    Component component, {
+    bool ignoreSdk = false,
+  }) {
     CoreTypes coreTypes = new CoreTypes(component);
     return new NaiveTypeChecker._(
-        failures,
+      failures,
+      coreTypes,
+      new ClassHierarchy(
+        component,
         coreTypes,
-        new ClassHierarchy(component, coreTypes,
-            onAmbiguousSupertypes: (Class cls, Supertype s0, Supertype s1) {
+        onAmbiguousSupertypes: (Class cls, Supertype s0, Supertype s1) {
           failures.reportFailure(cls, "$cls can't implement both $s1 and $s1");
-        }),
-        ignoreSdk);
+        },
+      ),
+      ignoreSdk,
+    );
   }
 
-  NaiveTypeChecker._(this.failures, CoreTypes coreTypes,
-      ClassHierarchy hierarchy, bool ignoreSdk)
-      : super(coreTypes, hierarchy, ignoreSdk: ignoreSdk);
+  NaiveTypeChecker._(
+    this.failures,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    bool ignoreSdk,
+  ) : super(coreTypes, hierarchy, ignoreSdk: ignoreSdk);
 
   // TODO(vegorov) this only gets called for immediate overrides which leads
   // to less strict checking that Dart 2.0 specification demands for covariant
   // parameters.
   @override
   void checkOverride(
-      Class host, Member ownMember, Member superMember, bool isSetter) {
+    Class host,
+    Member ownMember,
+    Member superMember,
+    bool isSetter,
+  ) {
     // Skip erroneous members: they are allowed to be incorrect overrides.
     if (ownMember.isErroneous) return;
 
@@ -80,11 +94,16 @@ ${superMember} is a ${_memberKind(superMember)}
         final bool isCovariantByDeclaration = ownMember is Field
             ? ownMember.isCovariantByDeclaration
             : ownMember
-                .function!.positionalParameters[0].isCovariantByDeclaration;
-        if (!_isValidParameterOverride(ownType, superType,
-            isCovariantByDeclaration: isCovariantByDeclaration,
-            isSuperNoSuchMethodForwarder: superMember is Procedure &&
-                superMember.isNoSuchMethodForwarder)) {
+                  .function!
+                  .positionalParameters[0]
+                  .isCovariantByDeclaration;
+        if (!_isValidParameterOverride(
+          ownType,
+          superType,
+          isCovariantByDeclaration: isCovariantByDeclaration,
+          isSuperNoSuchMethodForwarder:
+              superMember is Procedure && superMember.isNoSuchMethodForwarder,
+        )) {
           if (isCovariantByDeclaration) {
             return failures.reportInvalidOverride(ownMember, superMember, '''
 ${ownType} is neither a subtype nor supertype of ${superType}
@@ -105,8 +124,11 @@ ${ownType} is not a subtype of ${superType}
         }
       }
     } else {
-      final String? msg =
-          _checkFunctionOverride(host, ownMember, superMember as Procedure);
+      final String? msg = _checkFunctionOverride(
+        host,
+        ownMember,
+        superMember as Procedure,
+      );
       if (msg != null) {
         return failures.reportInvalidOverride(ownMember, superMember, msg);
       }
@@ -131,8 +153,10 @@ ${ownType} is not a subtype of ${superType}
   }
 
   Substitution _makeSubstitutionForMember(Class host, Member member) {
-    final Supertype hostType =
-        hierarchy.getClassAsInstanceOf(host, member.enclosingClass!)!;
+    final Supertype hostType = hierarchy.getClassAsInstanceOf(
+      host,
+      member.enclosingClass!,
+    )!;
     return Substitution.fromSupertype(hostType);
   }
 
@@ -142,7 +166,10 @@ ${ownType} is not a subtype of ${superType}
   /// Note: this function is a copy of [SubtypeTester._isFunctionSubtypeOf]
   /// but it additionally accounts for parameter covariance.
   String? _checkFunctionOverride(
-      Class host, Procedure ownMember, Procedure superMember) {
+    Class host,
+    Procedure ownMember,
+    Procedure superMember,
+  ) {
     if (ownMember.isMemberSignature ||
         (ownMember.isForwardingStub && !ownMember.isForwardingSemiStub)) {
       // Synthesized members are not obligated to override super members.
@@ -152,8 +179,10 @@ ${ownType} is not a subtype of ${superType}
     final FunctionNode ownFunction = ownMember.function;
     final FunctionNode superFunction = superMember.function;
     Substitution ownSubstitution = _makeSubstitutionForMember(host, ownMember);
-    final Substitution superSubstitution =
-        _makeSubstitutionForMember(host, superMember);
+    final Substitution superSubstitution = _makeSubstitutionForMember(
+      host,
+      superMember,
+    );
 
     if (ownFunction.requiredParameterCount >
         superFunction.requiredParameterCount) {
@@ -179,20 +208,26 @@ ${ownType} is not a subtype of ${superType}
       }
 
       ownSubstitution = Substitution.combine(
-          ownSubstitution, Substitution.fromMap(typeParameterMap));
+        ownSubstitution,
+        Substitution.fromMap(typeParameterMap),
+      );
       for (int i = 0; i < ownFunction.typeParameters.length; ++i) {
         TypeParameter subParameter = ownFunction.typeParameters[i];
         TypeParameter superParameter = superFunction.typeParameters[i];
         DartType subBound = ownSubstitution.substituteType(subParameter.bound);
         if (!_isSubtypeOf(
-            superSubstitution.substituteType(superParameter.bound), subBound)) {
+          superSubstitution.substituteType(superParameter.bound),
+          subBound,
+        )) {
           return 'type parameters have incompatible bounds';
         }
       }
     }
 
-    if (!_isSubtypeOf(ownSubstitution.substituteType(ownFunction.returnType),
-        superSubstitution.substituteType(superFunction.returnType))) {
+    if (!_isSubtypeOf(
+      ownSubstitution.substituteType(ownFunction.returnType),
+      superSubstitution.substituteType(superFunction.returnType),
+    )) {
       return 'return type of override ${ownFunction.returnType} is not a'
           ' subtype of ${superFunction.returnType}';
     }
@@ -203,10 +238,11 @@ ${ownType} is not a subtype of ${superType}
       final VariableDeclaration superParameter =
           superFunction.positionalParameters[i];
       if (!_isValidParameterOverride(
-          ownSubstitution.substituteType(ownParameter.type),
-          superSubstitution.substituteType(superParameter.type),
-          isCovariantByDeclaration: ownParameter.isCovariantByDeclaration,
-          isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder)) {
+        ownSubstitution.substituteType(ownParameter.type),
+        superSubstitution.substituteType(superParameter.type),
+        isCovariantByDeclaration: ownParameter.isCovariantByDeclaration,
+        isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder,
+      )) {
         return '''
 type of parameter ${ownParameter.name} is incompatible
 override declares ${ownParameter.type}
@@ -223,8 +259,9 @@ super method declares ${superParameter.type}
     // to map to make lookup faster.
     final Map<String, VariableDeclaration> ownParameters =
         new Map<String, VariableDeclaration>.fromIterable(
-            ownFunction.namedParameters,
-            key: (v) => v.name);
+          ownFunction.namedParameters,
+          key: (v) => v.name,
+        );
     for (VariableDeclaration superParameter in superFunction.namedParameters) {
       final VariableDeclaration? ownParameter =
           ownParameters[superParameter.name];
@@ -233,10 +270,11 @@ super method declares ${superParameter.type}
       }
 
       if (!_isValidParameterOverride(
-          ownSubstitution.substituteType(ownParameter.type),
-          superSubstitution.substituteType(superParameter.type),
-          isCovariantByDeclaration: ownParameter.isCovariantByDeclaration,
-          isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder)) {
+        ownSubstitution.substituteType(ownParameter.type),
+        superSubstitution.substituteType(superParameter.type),
+        isCovariantByDeclaration: ownParameter.isCovariantByDeclaration,
+        isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder,
+      )) {
         return '''
 type of parameter ${ownParameter.name} is incompatible
 override declares ${ownParameter.type}
@@ -252,9 +290,11 @@ super method declares ${superParameter.type}
   /// for parameter with [superParameterType] type taking into account its
   /// covariance and applying type parameter [substitution] if necessary.
   bool _isValidParameterOverride(
-      DartType ownParameterType, DartType superParameterType,
-      {required bool isCovariantByDeclaration,
-      required bool isSuperNoSuchMethodForwarder}) {
+    DartType ownParameterType,
+    DartType superParameterType, {
+    required bool isCovariantByDeclaration,
+    required bool isSuperNoSuchMethodForwarder,
+  }) {
     if (_isSubtypeOf(superParameterType, ownParameterType)) {
       return true;
     } else if (isCovariantByDeclaration &&
@@ -266,10 +306,11 @@ super method declares ${superParameter.type}
       // type mismatch should be ignored by the verifier.
       if (isSuperNoSuchMethodForwarder) {
         return _isValidParameterOverride(
-            ownParameterType.withDeclaredNullability(Nullability.nullable),
-            superParameterType,
-            isCovariantByDeclaration: isCovariantByDeclaration,
-            isSuperNoSuchMethodForwarder: false);
+          ownParameterType.withDeclaredNullability(Nullability.nullable),
+          superParameterType,
+          isCovariantByDeclaration: isCovariantByDeclaration,
+          isSuperNoSuchMethodForwarder: false,
+        );
       }
 
       return false;

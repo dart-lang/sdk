@@ -322,9 +322,7 @@ mixin PatternVisitorDefaultMixin<R> implements PatternVisitor<R> {
 mixin PatternVisitorInternalNodeMixin<R> implements PatternVisitor<R> {
   @override
   R visitAndPattern(AndPattern node) {
-    throw StateError(
-      "${runtimeType}.visitAndPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitAndPattern isn't supported.");
   }
 
   @override
@@ -336,107 +334,77 @@ mixin PatternVisitorInternalNodeMixin<R> implements PatternVisitor<R> {
 
   @override
   R visitCastPattern(CastPattern node) {
-    throw StateError(
-      "${runtimeType}.visitCastPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitCastPattern isn't supported.");
   }
 
   @override
   R visitConstantPattern(ConstantPattern node) {
-    throw StateError(
-      "${runtimeType}.visitConstantPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitConstantPattern isn't supported.");
   }
 
   @override
   R visitInvalidPattern(InvalidPattern node) {
-    throw StateError(
-      "${runtimeType}.visitInvalidPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitInvalidPattern isn't supported.");
   }
 
   @override
   R visitListPattern(ListPattern node) {
-    throw StateError(
-      "${runtimeType}.visitListPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitListPattern isn't supported.");
   }
 
   @override
   R visitMapPattern(MapPattern node) {
-    throw StateError(
-      "${runtimeType}.visitMapPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitMapPattern isn't supported.");
   }
 
   @override
   R visitNamedPattern(NamedPattern node) {
-    throw StateError(
-      "${runtimeType}.visitNamedPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitNamedPattern isn't supported.");
   }
 
   @override
   R visitNullAssertPattern(NullAssertPattern node) {
-    throw StateError(
-      "${runtimeType}.visitNullAssertPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitNullAssertPattern isn't supported.");
   }
 
   @override
   R visitNullCheckPattern(NullCheckPattern node) {
-    throw StateError(
-      "${runtimeType}.visitNullCheckPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitNullCheckPattern isn't supported.");
   }
 
   @override
   R visitObjectPattern(ObjectPattern node) {
-    throw StateError(
-      "${runtimeType}.visitObjectPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitObjectPattern isn't supported.");
   }
 
   @override
   R visitOrPattern(OrPattern node) {
-    throw StateError(
-      "${runtimeType}.visitOrPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitOrPattern isn't supported.");
   }
 
   @override
   R visitRecordPattern(RecordPattern node) {
-    throw StateError(
-      "${runtimeType}.visitRecordPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitRecordPattern isn't supported.");
   }
 
   @override
   R visitRelationalPattern(RelationalPattern node) {
-    throw StateError(
-      "${runtimeType}.visitRelationalPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitRelationalPattern isn't supported.");
   }
 
   @override
   R visitRestPattern(RestPattern node) {
-    throw StateError(
-      "${runtimeType}.visitRestPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitRestPattern isn't supported.");
   }
 
   @override
   R visitVariablePattern(VariablePattern node) {
-    throw StateError(
-      "${runtimeType}.visitVariablePattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitVariablePattern isn't supported.");
   }
 
   @override
   R visitWildcardPattern(WildcardPattern node) {
-    throw StateError(
-      "${runtimeType}.visitWildcardPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitWildcardPattern isn't supported.");
   }
 }
 
@@ -450,9 +418,7 @@ mixin PatternVisitorInternalNodeMixin<R> implements PatternVisitor<R> {
 mixin PatternVisitor1InternalNodeMixin<R, A> implements PatternVisitor1<R, A> {
   @override
   R visitAndPattern(AndPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitAndPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitAndPattern isn't supported.");
   }
 
   @override
@@ -464,107 +430,77 @@ mixin PatternVisitor1InternalNodeMixin<R, A> implements PatternVisitor1<R, A> {
 
   @override
   R visitCastPattern(CastPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitCastPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitCastPattern isn't supported.");
   }
 
   @override
   R visitConstantPattern(ConstantPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitConstantPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitConstantPattern isn't supported.");
   }
 
   @override
   R visitInvalidPattern(InvalidPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitInvalidPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitInvalidPattern isn't supported.");
   }
 
   @override
   R visitListPattern(ListPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitListPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitListPattern isn't supported.");
   }
 
   @override
   R visitMapPattern(MapPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitMapPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitMapPattern isn't supported.");
   }
 
   @override
   R visitNamedPattern(NamedPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitNamedPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitNamedPattern isn't supported.");
   }
 
   @override
   R visitNullAssertPattern(NullAssertPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitNullAssertPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitNullAssertPattern isn't supported.");
   }
 
   @override
   R visitNullCheckPattern(NullCheckPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitNullCheckPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitNullCheckPattern isn't supported.");
   }
 
   @override
   R visitObjectPattern(ObjectPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitObjectPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitObjectPattern isn't supported.");
   }
 
   @override
   R visitOrPattern(OrPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitOrPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitOrPattern isn't supported.");
   }
 
   @override
   R visitRecordPattern(RecordPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitRecordPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitRecordPattern isn't supported.");
   }
 
   @override
   R visitRelationalPattern(RelationalPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitRelationalPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitRelationalPattern isn't supported.");
   }
 
   @override
   R visitRestPattern(RestPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitRestPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitRestPattern isn't supported.");
   }
 
   @override
   R visitVariablePattern(VariablePattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitVariablePattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitVariablePattern isn't supported.");
   }
 
   @override
   R visitWildcardPattern(WildcardPattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitWildcardPattern isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitWildcardPattern isn't supported.");
   }
 }
 
@@ -1073,8 +1009,8 @@ abstract class TreeVisitor1Default<R, A>
   R defaultMember(Member node, A arg) => defaultTreeNode(node, arg);
 }
 
-typedef DartTypeVisitorAuxiliaryFunction<R> = R Function(
-    AuxiliaryType node, R Function(AuxiliaryType node) recursor);
+typedef DartTypeVisitorAuxiliaryFunction<R> =
+    R Function(AuxiliaryType node, R Function(AuxiliaryType node) recursor);
 
 abstract class DartTypeVisitor<R> {
   const DartTypeVisitor();
@@ -1142,8 +1078,12 @@ mixin DartTypeVisitorDefaultMixin<R> implements DartTypeVisitor<R> {
       defaultDartType(node);
 }
 
-typedef DartTypeVisitor1AuxiliaryFunction<R, A> = R Function(
-    AuxiliaryType node, A arg, R Function(AuxiliaryType node, A arg) recursor);
+typedef DartTypeVisitor1AuxiliaryFunction<R, A> =
+    R Function(
+      AuxiliaryType node,
+      A arg,
+      R Function(AuxiliaryType node, A arg) recursor,
+    );
 
 abstract class DartTypeVisitor1<R, A> {
   const DartTypeVisitor1();
@@ -1241,7 +1181,8 @@ abstract class ConstantVisitor<R> {
   R visitStaticTearOffConstant(StaticTearOffConstant node);
   R visitConstructorTearOffConstant(ConstructorTearOffConstant node);
   R visitRedirectingFactoryTearOffConstant(
-      RedirectingFactoryTearOffConstant node);
+    RedirectingFactoryTearOffConstant node,
+  );
   R visitTypeLiteralConstant(TypeLiteralConstant node);
   R visitUnevaluatedConstant(UnevaluatedConstant node);
 }
@@ -1289,8 +1230,8 @@ mixin ConstantVisitorDefaultMixin<R> implements ConstantVisitor<R> {
       defaultConstant(node);
   @override
   R visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant node) =>
-      defaultConstant(node);
+    RedirectingFactoryTearOffConstant node,
+  ) => defaultConstant(node);
   @override
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   @override
@@ -1317,7 +1258,9 @@ abstract class ConstantVisitor1<R, A> {
   R visitTypedefTearOffConstant(TypedefTearOffConstant node, A arg);
   R visitConstructorTearOffConstant(ConstructorTearOffConstant node, A arg);
   R visitRedirectingFactoryTearOffConstant(
-      RedirectingFactoryTearOffConstant node, A arg);
+    RedirectingFactoryTearOffConstant node,
+    A arg,
+  );
   R visitTypeLiteralConstant(TypeLiteralConstant node, A arg);
   R visitUnevaluatedConstant(UnevaluatedConstant node, A arg);
 }
@@ -1371,8 +1314,9 @@ mixin ConstantVisitor1DefaultMixin<R, A> implements ConstantVisitor1<R, A> {
       defaultConstant(node, arg);
   @override
   R visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant node, A arg) =>
-      defaultConstant(node, arg);
+    RedirectingFactoryTearOffConstant node,
+    A arg,
+  ) => defaultConstant(node, arg);
   @override
   R visitTypeLiteralConstant(TypeLiteralConstant node, A arg) =>
       defaultConstant(node, arg);
@@ -1398,7 +1342,8 @@ abstract class ConstantReferenceVisitor<R> {
   R visitStaticTearOffConstantReference(StaticTearOffConstant node);
   R visitConstructorTearOffConstantReference(ConstructorTearOffConstant node);
   R visitRedirectingFactoryTearOffConstantReference(
-      RedirectingFactoryTearOffConstant node);
+    RedirectingFactoryTearOffConstant node,
+  );
   R visitTypedefTearOffConstantReference(TypedefTearOffConstant node);
   R visitTypeLiteralConstantReference(TypeLiteralConstant node);
   R visitUnevaluatedConstantReference(UnevaluatedConstant node);
@@ -1457,8 +1402,8 @@ mixin ConstantReferenceVisitorDefaultMixin<R>
       defaultConstantReference(node);
   @override
   R visitRedirectingFactoryTearOffConstantReference(
-          RedirectingFactoryTearOffConstant node) =>
-      defaultConstantReference(node);
+    RedirectingFactoryTearOffConstant node,
+  ) => defaultConstantReference(node);
   @override
   R visitTypedefTearOffConstantReference(TypedefTearOffConstant node) =>
       defaultConstantReference(node);
@@ -1485,9 +1430,13 @@ abstract class ConstantReferenceVisitor1<R, A> {
   R visitInstanceConstantReference(InstanceConstant node, A arg);
   R visitInstantiationConstantReference(InstantiationConstant node, A arg);
   R visitConstructorTearOffConstantReference(
-      ConstructorTearOffConstant node, A arg);
+    ConstructorTearOffConstant node,
+    A arg,
+  );
   R visitRedirectingFactoryTearOffConstantReference(
-      RedirectingFactoryTearOffConstant node, A arg);
+    RedirectingFactoryTearOffConstant node,
+    A arg,
+  );
   R visitStaticTearOffConstantReference(StaticTearOffConstant node, A arg);
   R visitTypedefTearOffConstantReference(TypedefTearOffConstant node, A arg);
   R visitTypeLiteralConstantReference(TypeLiteralConstant node, A arg);
@@ -1541,12 +1490,14 @@ mixin ConstantReferenceVisitor1DefaultMixin<R, A>
       defaultConstantReference(node, arg);
   @override
   R visitConstructorTearOffConstantReference(
-          ConstructorTearOffConstant node, A arg) =>
-      defaultConstantReference(node, arg);
+    ConstructorTearOffConstant node,
+    A arg,
+  ) => defaultConstantReference(node, arg);
   @override
   R visitRedirectingFactoryTearOffConstantReference(
-          RedirectingFactoryTearOffConstant node, A arg) =>
-      defaultConstantReference(node, arg);
+    RedirectingFactoryTearOffConstant node,
+    A arg,
+  ) => defaultConstantReference(node, arg);
   @override
   R visitStaticTearOffConstantReference(StaticTearOffConstant node, A arg) =>
       defaultConstantReference(node, arg);
@@ -1579,7 +1530,8 @@ abstract class _ConstantCallback<R> {
   R visitStaticTearOffConstant(StaticTearOffConstant node);
   R visitConstructorTearOffConstant(ConstructorTearOffConstant node);
   R visitRedirectingFactoryTearOffConstant(
-      RedirectingFactoryTearOffConstant node);
+    RedirectingFactoryTearOffConstant node,
+  );
   R visitTypeLiteralConstant(TypeLiteralConstant node);
   R visitUnevaluatedConstant(UnevaluatedConstant node);
 }
@@ -1607,8 +1559,8 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
 
   @override
   R visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant node) =>
-      _callback.visitRedirectingFactoryTearOffConstant(node);
+    RedirectingFactoryTearOffConstant node,
+  ) => _callback.visitRedirectingFactoryTearOffConstant(node);
 
   @override
   R visitInstantiationConstant(InstantiationConstant node) =>
@@ -1705,8 +1657,8 @@ mixin OnceConstantVisitorDefaultMixin<R> implements _ConstantCallback<R> {
       defaultConstant(node);
   @override
   R visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant node) =>
-      defaultConstant(node);
+    RedirectingFactoryTearOffConstant node,
+  ) => defaultConstant(node);
   @override
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   @override
@@ -1882,7 +1834,9 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   R visitTypedefReference(Typedef node, A arg);
   R visitExtensionReference(Extension node, A arg);
   R visitExtensionTypeDeclarationReference(
-      ExtensionTypeDeclaration node, A arg);
+    ExtensionTypeDeclaration node,
+    A arg,
+  );
 
   R visitName(Name node, A arg);
   R visitSupertype(Supertype node, A arg);
@@ -1934,50 +1888,58 @@ abstract class Visitor1Default<R, A> extends TreeVisitor1Default<R, A>
 mixin VisitorThrowingMixin<R> implements VisitorDefault<R> {
   @override
   R defaultNode(Node node) {
-    throw new UnimplementedError('Unimplemented ${runtimeType}.defaultNode for '
-        '${node} (${node.runtimeType})');
+    throw new UnimplementedError(
+      'Unimplemented ${runtimeType}.defaultNode for '
+      '${node} (${node.runtimeType})',
+    );
   }
 
   @override
   R visitClassReference(Class node) {
     throw new UnimplementedError(
-        'Unimplemented ${runtimeType}.visitClassReference for '
-        '${node} (${node.runtimeType})');
+      'Unimplemented ${runtimeType}.visitClassReference for '
+      '${node} (${node.runtimeType})',
+    );
   }
 
   @override
   R visitTypedefReference(Typedef node) {
     throw new UnimplementedError(
-        'Unimplemented ${runtimeType}.visitTypedefReference for '
-        '${node} (${node.runtimeType})');
+      'Unimplemented ${runtimeType}.visitTypedefReference for '
+      '${node} (${node.runtimeType})',
+    );
   }
 
   @override
   R visitExtensionReference(Extension node) {
     throw new UnimplementedError(
-        'Unimplemented ${runtimeType}.visitExtensionReference for '
-        '${node} (${node.runtimeType})');
+      'Unimplemented ${runtimeType}.visitExtensionReference for '
+      '${node} (${node.runtimeType})',
+    );
   }
 
   @override
   R visitExtensionTypeDeclarationReference(ExtensionTypeDeclaration node) {
     throw new UnimplementedError(
-        'Unimplemented ${runtimeType}.visitExtensionTypeDeclarationReference '
-        'for ${node} (${node.runtimeType})');
+      'Unimplemented ${runtimeType}.visitExtensionTypeDeclarationReference '
+      'for ${node} (${node.runtimeType})',
+    );
   }
 
   @override
   R defaultConstantReference(Constant node) {
     throw new UnimplementedError(
-        'Unimplemented ${runtimeType}.defaultConstantReference for '
-        '${node} (${node.runtimeType})');
+      'Unimplemented ${runtimeType}.defaultConstantReference for '
+      '${node} (${node.runtimeType})',
+    );
   }
 
   @override
   R defaultMemberReference(Member node) {
     throw new UnimplementedError(
-        'Unimplemented ${runtimeType}.defaultMemberReference for '
-        '${node} (${node.runtimeType})');
+      'Unimplemented ${runtimeType}.defaultMemberReference for '
+      '${node} (${node.runtimeType})',
+    );
   }
 }
 
@@ -2247,7 +2209,8 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
   /// This is convenience method for calling [transformOrRemove] with removal
   /// sentinel for [VariableDeclaration] nodes.
   VariableDeclaration? transformOrRemoveVariableDeclaration(
-      VariableDeclaration node) {
+    VariableDeclaration node,
+  ) {
     return transformOrRemove(node, dummyVariableDeclaration);
   }
 
@@ -2321,7 +2284,9 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
   /// This is convenience method for calling [transformList] with removal
   /// sentinel for [LibraryDependency] nodes.
   void transformLibraryDependencyList(
-      List<LibraryDependency> nodes, TreeNode parent) {
+    List<LibraryDependency> nodes,
+    TreeNode parent,
+  ) {
     transformList(nodes, parent, dummyLibraryDependency);
   }
 
@@ -2366,7 +2331,9 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
   /// This is convenience method for calling [transformList] with removal
   /// sentinel for [ExtensionTypeDeclaration] nodes.
   void transformExtensionTypeDeclarationList(
-      List<ExtensionTypeDeclaration> nodes, TreeNode parent) {
+    List<ExtensionTypeDeclaration> nodes,
+    TreeNode parent,
+  ) {
     transformList(nodes, parent, dummyExtensionTypeDeclaration);
   }
 
@@ -2428,7 +2395,9 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
   /// This is convenience method for calling [transformList] with removal
   /// sentinel for [NamedExpression] nodes.
   void transformNamedExpressionList(
-      List<NamedExpression> nodes, TreeNode parent) {
+    List<NamedExpression> nodes,
+    TreeNode parent,
+  ) {
     transformList(nodes, parent, dummyNamedExpression);
   }
 
@@ -2482,7 +2451,9 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
   /// This is convenience method for calling [transformList] with removal
   /// sentinel for [VariableDeclaration] nodes.
   void transformVariableDeclarationList(
-      List<VariableDeclaration> nodes, TreeNode parent) {
+    List<VariableDeclaration> nodes,
+    TreeNode parent,
+  ) {
     transformList(nodes, parent, dummyVariableDeclaration);
   }
 
@@ -2492,7 +2463,9 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
   /// This is convenience method for calling [transformList] with removal
   /// sentinel for [VariableInitialization] nodes.
   void transformVariableInitializationList(
-      List<VariableInitialization> nodes, TreeNode parent) {
+    List<VariableInitialization> nodes,
+    TreeNode parent,
+  ) {
     transformList(nodes, parent, dummyVariableDeclaration);
   }
 
@@ -2500,7 +2473,10 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
   /// calling [transformOrRemove] using [removalSentinel] as the removal
   /// sentinel.
   void transformList<T extends TreeNode>(
-      List<T> nodes, TreeNode parent, T removalSentinel) {
+    List<T> nodes,
+    TreeNode parent,
+    T removalSentinel,
+  ) {
     int storeIndex = 0;
     for (int i = 0; i < nodes.length; ++i) {
       T? result = transformOrRemove(nodes[i], removalSentinel);
@@ -2559,7 +2535,9 @@ abstract class ExpressionVisitor1<R, A> {
   R visitEqualsNull(EqualsNull node, A arg);
   R visitEqualsCall(EqualsCall node, A arg);
   R visitAbstractSuperMethodInvocation(
-      AbstractSuperMethodInvocation node, A arg);
+    AbstractSuperMethodInvocation node,
+    A arg,
+  );
   R visitSuperMethodInvocation(SuperMethodInvocation node, A arg);
   R visitStaticInvocation(StaticInvocation node, A arg);
   R visitConstructorInvocation(ConstructorInvocation node, A arg);
@@ -2680,8 +2658,9 @@ mixin ExpressionVisitor1DefaultMixin<R, A> implements ExpressionVisitor1<R, A> {
   R visitEqualsCall(EqualsCall node, A arg) => defaultExpression(node, arg);
   @override
   R visitAbstractSuperMethodInvocation(
-          AbstractSuperMethodInvocation node, A arg) =>
-      defaultExpression(node, arg);
+    AbstractSuperMethodInvocation node,
+    A arg,
+  ) => defaultExpression(node, arg);
   @override
   R visitSuperMethodInvocation(SuperMethodInvocation node, A arg) =>
       defaultExpression(node, arg);
@@ -2693,8 +2672,9 @@ mixin ExpressionVisitor1DefaultMixin<R, A> implements ExpressionVisitor1<R, A> {
       defaultExpression(node, arg);
   @override
   R visitRedirectingFactoryInvocation(
-          RedirectingFactoryInvocation node, A arg) =>
-      defaultExpression(node, arg);
+    RedirectingFactoryInvocation node,
+    A arg,
+  ) => defaultExpression(node, arg);
   @override
   R visitNot(Not node, A arg) => defaultExpression(node, arg);
   @override
@@ -3049,51 +3029,37 @@ mixin DartTypeVisitor1ExperimentExclusionMixin<R, A>
 mixin ExpressionVisitorInternalNodeMixin<R> implements ExpressionVisitor<R> {
   @override
   R visitListConcatenation(ListConcatenation node) {
-    throw StateError(
-      "${runtimeType}.visitListConcatenation isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitListConcatenation isn't supported.");
   }
 
   @override
   R visitSetConcatenation(SetConcatenation node) {
-    throw StateError(
-      "${runtimeType}.visitSetConcatenation isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitSetConcatenation isn't supported.");
   }
 
   @override
   R visitMapConcatenation(MapConcatenation node) {
-    throw StateError(
-      "${runtimeType}.visitMapConcatenation isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitMapConcatenation isn't supported.");
   }
 
   @override
   R visitInstanceCreation(InstanceCreation node) {
-    throw StateError(
-      "${runtimeType}.visitInstanceCreation isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitInstanceCreation isn't supported.");
   }
 
   @override
   R visitPatternAssignment(PatternAssignment node) {
-    throw StateError(
-      "${runtimeType}.visitPatternAssignment isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitPatternAssignment isn't supported.");
   }
 
   @override
   R visitSwitchExpression(SwitchExpression node) {
-    throw StateError(
-      "${runtimeType}.visitSwitchExpression isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitSwitchExpression isn't supported.");
   }
 
   @override
   R visitFileUriExpression(FileUriExpression node) {
-    throw StateError(
-      "${runtimeType}.visitFileUriExpression isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitFileUriExpression isn't supported.");
   }
 
   @override
@@ -3115,56 +3081,44 @@ mixin ExpressionVisitor1InternalNodeMixin<R, A>
     implements ExpressionVisitor1<R, A> {
   @override
   R visitListConcatenation(ListConcatenation node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitListConcatenation isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitListConcatenation isn't supported.");
   }
 
   @override
   R visitSetConcatenation(SetConcatenation node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitSetConcatenation isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitSetConcatenation isn't supported.");
   }
 
   @override
   R visitMapConcatenation(MapConcatenation node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitMapConcatenation isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitMapConcatenation isn't supported.");
   }
 
   @override
   R visitInstanceCreation(InstanceCreation node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitInstanceCreation isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitInstanceCreation isn't supported.");
   }
 
   @override
   R visitPatternAssignment(PatternAssignment node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitPatternAssignment isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitPatternAssignment isn't supported.");
   }
 
   @override
   R visitSwitchExpression(SwitchExpression node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitSwitchExpression isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitSwitchExpression isn't supported.");
   }
 
   @override
   R visitFileUriExpression(FileUriExpression node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitFileUriExpression isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitFileUriExpression isn't supported.");
   }
 
   @override
   R visitRedirectingFactoryInvocation(
-      RedirectingFactoryInvocation node, A arg) {
+    RedirectingFactoryInvocation node,
+    A arg,
+  ) {
     throw StateError(
       "${runtimeType}.visitRedirectingFactoryInvocation isn't supported.",
     );
@@ -3181,16 +3135,12 @@ mixin ExpressionVisitorExperimentExclusionMixin<R>
     implements ExpressionVisitor<R> {
   @override
   R visitVariableRead(VariableRead node) {
-    throw StateError(
-      "${runtimeType}.visitVariableRead isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitVariableRead isn't supported.");
   }
 
   @override
   R visitVariableWrite(VariableWrite node) {
-    throw StateError(
-      "${runtimeType}.visitVariableWrite isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitVariableWrite isn't supported.");
   }
 }
 
@@ -3204,16 +3154,12 @@ mixin ExpressionVisitor1ExperimentExclusionMixin<R, A>
     implements ExpressionVisitor1<R, A> {
   @override
   R visitVariableRead(VariableRead node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitVariableRead isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitVariableRead isn't supported.");
   }
 
   @override
   R visitVariableWrite(VariableWrite node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitVariableWrite isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitVariableWrite isn't supported.");
   }
 }
 
@@ -3234,9 +3180,7 @@ mixin StatementVisitorInternalNodeMixin<R> implements StatementVisitor<R> {
 
   @override
   R visitIfCaseStatement(IfCaseStatement node) {
-    throw StateError(
-      "${runtimeType}.visitIfCaseStatement isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitIfCaseStatement isn't supported.");
   }
 
   @override
@@ -3265,9 +3209,7 @@ mixin StatementVisitor1InternalNodeMixin<R, A>
 
   @override
   R visitIfCaseStatement(IfCaseStatement node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitIfCaseStatement isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitIfCaseStatement isn't supported.");
   }
 
   @override
@@ -3318,9 +3260,7 @@ mixin StatementVisitorExperimentExclusionMixin<R>
 
   @override
   R visitNamedParameter(NamedParameter node) {
-    throw StateError(
-      "${runtimeType}.visitNamedParameter isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitNamedParameter isn't supported.");
   }
 }
 
@@ -3364,9 +3304,7 @@ mixin StatementVisitor1ExperimentExclusionMixin<R, A>
 
   @override
   R visitNamedParameter(NamedParameter node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitNamedParameter isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitNamedParameter isn't supported.");
   }
 }
 
@@ -3387,16 +3325,12 @@ mixin TreeVisitorInternalNodeMixin<R> implements TreeVisitor<R> {
 
   @override
   R visitPatternGuard(PatternGuard node) {
-    throw StateError(
-      "${runtimeType}.visitPatternGuard isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitPatternGuard isn't supported.");
   }
 
   @override
   R visitPatternSwitchCase(PatternSwitchCase node) {
-    throw StateError(
-      "${runtimeType}.visitPatternSwitchCase isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitPatternSwitchCase isn't supported.");
   }
 }
 
@@ -3417,16 +3351,12 @@ mixin TreeVisitor1InternalNodeMixin<R, A> implements TreeVisitor1<R, A> {
 
   @override
   R visitPatternGuard(PatternGuard node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitPatternGuard isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitPatternGuard isn't supported.");
   }
 
   @override
   R visitPatternSwitchCase(PatternSwitchCase node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitPatternSwitchCase isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitPatternSwitchCase isn't supported.");
   }
 }
 
@@ -3439,51 +3369,37 @@ mixin TreeVisitor1InternalNodeMixin<R, A> implements TreeVisitor1<R, A> {
 mixin TreeVisitorExperimentExclusionMixin<R> implements TreeVisitor<R> {
   @override
   R visitTypeVariable(TypeVariable node) {
-    throw StateError(
-      "${runtimeType}.visitTypeVariable isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitTypeVariable isn't supported.");
   }
 
   @override
   R visitLocalVariable(LocalVariable node) {
-    throw StateError(
-      "${runtimeType}.visitLocalVariable isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitLocalVariable isn't supported.");
   }
 
   @override
   R visitCatchVariable(CatchVariable node) {
-    throw StateError(
-      "${runtimeType}.visitCatchVariable isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitCatchVariable isn't supported.");
   }
 
   @override
   R visitThisVariable(ThisVariable node) {
-    throw StateError(
-      "${runtimeType}.visitThisVariable isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitThisVariable isn't supported.");
   }
 
   @override
   R visitSyntheticVariable(SyntheticVariable node) {
-    throw StateError(
-      "${runtimeType}.visitSyntheticVariable isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitSyntheticVariable isn't supported.");
   }
 
   @override
   R visitVariableContext(VariableContext node) {
-    throw StateError(
-      "${runtimeType}.visitVariableContext isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitVariableContext isn't supported.");
   }
 
   @override
   R visitScope(Scope node) {
-    throw StateError(
-      "${runtimeType}.visitScope isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitScope isn't supported.");
   }
 
   /// Since [TypeParameter] is abstract due to an experiment, it doesn't have
@@ -3511,51 +3427,37 @@ mixin TreeVisitorExperimentExclusionMixin<R> implements TreeVisitor<R> {
 mixin TreeVisitor1ExperimentExclusionMixin<R, A> implements TreeVisitor1<R, A> {
   @override
   R visitTypeVariable(TypeVariable node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitTypeVariable isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitTypeVariable isn't supported.");
   }
 
   @override
   R visitLocalVariable(LocalVariable node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitLocalVariable isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitLocalVariable isn't supported.");
   }
 
   @override
   R visitCatchVariable(CatchVariable node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitCatchVariable isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitCatchVariable isn't supported.");
   }
 
   @override
   R visitThisVariable(ThisVariable node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitThisVariable isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitThisVariable isn't supported.");
   }
 
   @override
   R visitSyntheticVariable(SyntheticVariable node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitSyntheticVariable isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitSyntheticVariable isn't supported.");
   }
 
   @override
   R visitVariableContext(VariableContext node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitVariableContext isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitVariableContext isn't supported.");
   }
 
   @override
   R visitScope(Scope node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitScope isn't supported.",
-    );
+    throw StateError("${runtimeType}.visitScope isn't supported.");
   }
 
   /// Since [TypeParameter] is abstract due to an experiment, it doesn't have

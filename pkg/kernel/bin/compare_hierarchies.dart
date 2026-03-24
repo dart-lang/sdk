@@ -13,8 +13,10 @@ import 'package:kernel/src/tool/command_line_util.dart';
 void usage() {
   print("Compares the hierarchies of two dill files.");
   print("");
-  print("Usage: dart <script> dillFile1.dill dillFile2.dill "
-      "[import:uri#classToIgnore|another:uri#andClassToIgnore]");
+  print(
+    "Usage: dart <script> dillFile1.dill dillFile2.dill "
+    "[import:uri#classToIgnore|another:uri#andClassToIgnore]",
+  );
   exit(1);
 }
 
@@ -30,8 +32,10 @@ void main(List<String> args) {
     for (String ignore in ignores) {
       List<String> uriClassName = ignore.split("#");
       if (uriClassName.length != 2) {
-        print("Ignoring '$ignore' as it doesn't conform to "
-            "'importUri#className'");
+        print(
+          "Ignoring '$ignore' as it doesn't conform to "
+          "'importUri#className'",
+        );
         continue;
       }
       Uri uri = Uri.parse(uriClassName[0]);
@@ -59,10 +63,14 @@ void main(List<String> args) {
   for (Uri uri in agreeingImportUris) {
     Library lib1 = libMap1[uri]!;
     Library lib2 = libMap2[uri]!;
-    Map<String, Class> libClass1 =
-        createPublicClassMap(lib1, ignored: ignoresMap[uri]);
-    Map<String, Class> libClass2 =
-        createPublicClassMap(lib2, ignored: ignoresMap[uri]);
+    Map<String, Class> libClass1 = createPublicClassMap(
+      lib1,
+      ignored: ignoresMap[uri],
+    );
+    Map<String, Class> libClass2 = createPublicClassMap(
+      lib2,
+      ignored: ignoresMap[uri],
+    );
     Set<String> agreeingClasses = new Set<String>.from(libClass1.keys)
       ..retainAll(libClass2.keys);
     if (agreeingClasses.length != libClass1.length ||
@@ -84,24 +92,30 @@ void main(List<String> args) {
       Class c1 = libClass1[className]!;
       Class c2 = libClass2[className]!;
       Set<ClassReference> c1Supertypes = createClassReferenceSet(
-          ch1.getAllSupertypeClassesForTesting(c1),
-          onlyPublic: true,
-          ignoresMap: ignoresMap);
+        ch1.getAllSupertypeClassesForTesting(c1),
+        onlyPublic: true,
+        ignoresMap: ignoresMap,
+      );
       Set<ClassReference> c2Supertypes = createClassReferenceSet(
-          ch2.getAllSupertypeClassesForTesting(c2),
-          onlyPublic: true,
-          ignoresMap: ignoresMap);
+        ch2.getAllSupertypeClassesForTesting(c2),
+        onlyPublic: true,
+        ignoresMap: ignoresMap,
+      );
       Set<ClassReference> missing = new Set<ClassReference>.from(c1Supertypes)
         ..removeAll(c2Supertypes);
       if (missing.isNotEmpty) {
-        print("$c1 in $lib1 from (1) has these extra supertypes: "
-            "${missing.toList()}");
+        print(
+          "$c1 in $lib1 from (1) has these extra supertypes: "
+          "${missing.toList()}",
+        );
       }
       missing = new Set<ClassReference>.from(c2Supertypes)
         ..removeAll(c1Supertypes);
       if (missing.isNotEmpty) {
-        print("$c2 in $lib2 from (2) has these extra supertypes: "
-            "${missing.toList()}");
+        print(
+          "$c2 in $lib2 from (2) has these extra supertypes: "
+          "${missing.toList()}",
+        );
       }
     }
   }
@@ -115,8 +129,10 @@ Map<Uri, Library> createLibMap(Component c) {
   return map;
 }
 
-Map<String, Class> createPublicClassMap(Library lib,
-    {required Set<String>? ignored}) {
+Map<String, Class> createPublicClassMap(
+  Library lib, {
+  required Set<String>? ignored,
+}) {
   Map<String, Class> map = {};
   for (Class c in lib.classes) {
     if (c.name.startsWith("_")) continue;
@@ -126,8 +142,11 @@ Map<String, Class> createPublicClassMap(Library lib,
   return map;
 }
 
-Set<ClassReference> createClassReferenceSet(List<Class> classes,
-    {required bool onlyPublic, required Map<Uri, Set<String>> ignoresMap}) {
+Set<ClassReference> createClassReferenceSet(
+  List<Class> classes, {
+  required bool onlyPublic,
+  required Map<Uri, Set<String>> ignoresMap,
+}) {
   Set<ClassReference> result = {};
   for (Class c in classes) {
     if (onlyPublic && c.name.startsWith("_")) continue;

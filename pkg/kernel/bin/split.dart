@@ -21,8 +21,11 @@ void usage() {
 }
 
 void main(args) async {
-  CommandLineHelper.requireExactlyOneArgument(args, usage,
-      requireFileExists: true);
+  CommandLineHelper.requireExactlyOneArgument(
+    args,
+    usage,
+    requireFileExists: true,
+  );
   Component binary = CommandLineHelper.tryLoadDill(args[0]);
 
   int part = 1;
@@ -40,12 +43,17 @@ void main(args) async {
 }
 
 Future<Null> writeComponentToFile(
-    Component component, String path, Library wantedLibrary) async {
+  Component component,
+  String path,
+  Library wantedLibrary,
+) async {
   File output = new File(path);
   IOSink sink = output.openWrite();
   try {
-    BinaryPrinter printer =
-        new BinaryPrinter(sink, libraryFilter: (lib) => lib == wantedLibrary);
+    BinaryPrinter printer = new BinaryPrinter(
+      sink,
+      libraryFilter: (lib) => lib == wantedLibrary,
+    );
     printer.writeComponentFile(component);
   } finally {
     await sink.close();

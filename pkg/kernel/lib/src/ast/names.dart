@@ -86,8 +86,8 @@ class _PrivateName extends Name {
   bool get isPrivate => true;
 
   _PrivateName(String text, Reference libraryReference)
-      : this.libraryReference = libraryReference,
-        super._internal(_computeHashCode(text, libraryReference), text);
+    : this.libraryReference = libraryReference,
+      super._internal(_computeHashCode(text, libraryReference), text);
 
   @override
   String toString() => toStringInternal();

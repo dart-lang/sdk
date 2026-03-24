@@ -119,7 +119,9 @@ class _ChildReplacer extends Transformer {
 ///
 /// Returns `null` if the member is `null`.
 Reference? getMemberReferenceBasedOnProcedureKind(
-    Member? member, ProcedureKind kind) {
+  Member? member,
+  ProcedureKind kind,
+) {
   if (member == null) return null;
   if (member is Field) {
     if (kind == ProcedureKind.Setter) return member.setterReference!;
@@ -222,9 +224,10 @@ class _Hash {
   static int combineMapHashUnordered(Map? map, [int hash = 2]) {
     if (map == null || map.isEmpty) return hash;
     List<int> entryHashes = List.filled(
-        map.length,
-        // `-1` is used as a dummy default value.
-        -1);
+      map.length,
+      // `-1` is used as a dummy default value.
+      -1,
+    );
     int i = 0;
     for (MapEntry entry in map.entries) {
       entryHashes[i++] = combine(entry.key.hashCode, entry.value.hashCode);
@@ -266,11 +269,18 @@ bool mapEquals(Map a, Map b) {
 /// static analysis and runtime behavior of the library are unaffected.
 const Null informative = null;
 
-Location? _getLocationInComponent(Component? component, Uri fileUri, int offset,
-    {required String viaForErrorMessage}) {
+Location? _getLocationInComponent(
+  Component? component,
+  Uri fileUri,
+  int offset, {
+  required String viaForErrorMessage,
+}) {
   if (component != null) {
-    return component.getLocation(fileUri, offset,
-        viaForErrorMessage: viaForErrorMessage);
+    return component.getLocation(
+      fileUri,
+      offset,
+      viaForErrorMessage: viaForErrorMessage,
+    );
   } else {
     return new Location(fileUri, TreeNode.noOffset, TreeNode.noOffset);
   }
@@ -291,13 +301,15 @@ String demangleMixinApplicationSubclassName(String name) {
 
 /// Computes a list of [typeParameters] taken as types.
 List<DartType> getAsTypeArguments(
-    List<TypeParameter> typeParameters, Library library) {
+  List<TypeParameter> typeParameters,
+  Library library,
+) {
   if (typeParameters.isEmpty) return const <DartType>[];
   return new List<DartType>.generate(
-      typeParameters.length,
-      (int i) =>
-          new TypeParameterType.withDefaultNullability(typeParameters[i]),
-      growable: false);
+    typeParameters.length,
+    (int i) => new TypeParameterType.withDefaultNullability(typeParameters[i]),
+    growable: false,
+  );
 }
 
 bool isThisExpression(Expression expression) {
