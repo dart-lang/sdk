@@ -92,6 +92,11 @@ LanguageFeatures/Extension-types/static_analysis_extension_types_A28_t02: SkipBy
 LanguageFeatures/Extension-types/superinterfaces_of_extension_type_A05_t07: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-types/syntax_A08_t02: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # dart:ffi is not supported
+LanguageFeatures/Primary-constructors/grammar_A02_t08: SkipByDesign # External constructors are not supported
+LanguageFeatures/Primary-constructors/grammar_A05_t02: SkipByDesign # External constructors are not supported
+LanguageFeatures/Primary-constructors/grammar_A05_t04: SkipByDesign # External constructors are not supported
+LanguageFeatures/Primary-constructors/grammar_A05_t06: SkipByDesign # External constructors are not supported
+LanguageFeatures/Primary-constructors/grammar_A05_t08: SkipByDesign # External constructors are not supported
 LanguageFeatures/Wildcards/other_declarations_A01_t09: SkipByDesign # External variables are not supported
 LanguageFeatures/Wildcards/other_declarations_A02_t07: SkipByDesign # External variables are not supported
 LanguageFeatures/Wildcards/other_declarations_A06_t03: SkipByDesign # External variables are not supported
