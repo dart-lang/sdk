@@ -38,7 +38,6 @@ class ObjectPointerVisitor;
   V(_BigIntImpl, "_BigIntImpl")                                                \
   V(Bool, "bool")                                                              \
   V(BooleanExpression, "boolean expression")                                   \
-  V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
   V(ByteData, "ByteData")                                                      \
   V(Bytecode, "Bytecode")                                                      \
   V(Capability, "Capability")                                                  \
@@ -460,6 +459,7 @@ class ObjectPointerVisitor;
   V(_initAsyncStar, "_initAsyncStar")                                          \
   V(_initSyncStar, "_initSyncStar")                                            \
   V(_instanceOf, "_instanceOf")                                                \
+  V(_instantiateClosure, "_instantiateClosure")                                \
   V(_listGetAt, "_listGetAt")                                                  \
   V(_listLength, "_listLength")                                                \
   V(_listSetAt, "_listSetAt")                                                  \
