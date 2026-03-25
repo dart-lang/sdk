@@ -274,14 +274,19 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   }
 
   SourceRange _forAssignmentExpression(AssignmentExpression node) {
-    // TODO(pq): consider node.parent is! ExpressionStatement to handle
-    // assignments in parens, etc.
     var parent = node.parent!;
     if (parent is ArgumentList) {
       return range.startStart(node, node.operator.next!);
-    } else {
-      return utils.getLinesRange(range.node(parent));
     }
+
+    if (node.rightHandSide.unParenthesized
+        case MethodInvocation() ||
+            FunctionExpressionInvocation() ||
+            AwaitExpression()) {
+      return range.startStart(node, node.rightHandSide);
+    }
+
+    return utils.getLinesRange(range.node(parent));
   }
 
   LocalVariableElement? _localVariableElement() {
