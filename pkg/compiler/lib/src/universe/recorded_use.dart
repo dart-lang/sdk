@@ -563,9 +563,8 @@ class RecordUseValueConverter {
       });
 
       final libraryUri = cls.library.canonicalUri.toString();
-      final definition = record_use.Definition(libraryUri, [
-        record_use.Name(cls.name, kind: record_use.DefinitionKind.enumKind),
-      ]);
+      final library = record_use.Library(libraryUri);
+      final definition = record_use.Enum(cls.name, library);
 
       return record_use.EnumConstant(
         definition: definition,
@@ -583,9 +582,8 @@ class RecordUseValueConverter {
     });
 
     final libraryUri = cls.library.canonicalUri.toString();
-    final definition = record_use.Definition(libraryUri, [
-      record_use.Name(cls.name, kind: record_use.DefinitionKind.classKind),
-    ]);
+    final library = record_use.Library(libraryUri);
+    final definition = record_use.Class(cls.name, library);
     return record_use.InstanceConstant(
       definition: definition,
       fields: fieldValues,
