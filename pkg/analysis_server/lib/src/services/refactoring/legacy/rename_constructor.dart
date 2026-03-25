@@ -61,7 +61,6 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         });
         continue;
       } else if (coveringParent is ConstructorDeclaration &&
-          // TODO(scheglov): support primary constructors
           coveringParent.typeName!.offset == reference.range.offset) {
         await builder.addDartFileEdit(reference.file, (builder) {
           _addSuperInvocationToConstructor(
