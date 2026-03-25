@@ -130,24 +130,18 @@ void main() async {
       expect(recordedUsages.existsSync(), true);
 
       final actualRecordedUsages = recordedUsages.readAsStringSync();
-      final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
+      final u = Recordings.fromJson(
+        jsonDecode(actualRecordedUsages) as Map<String, Object?>,
+      );
       printOnFailure(actualRecordedUsages);
       final constArguments = u.constArgumentsFor(
-        Definition(
-          'package:drop_data_asset/src/drop_data_asset.dart',
-          [
-            Name(
-              kind: DefinitionKind.classKind,
-              'MyMath',
-            ),
-            Name(
-              kind: DefinitionKind.methodKind,
-              'add',
-              disambiguators: {
-                DefinitionDisambiguator.staticDisambiguator,
-              },
-            ),
-          ],
+        Method(
+          'add',
+          Class(
+            'MyMath',
+            Library('package:drop_data_asset/src/drop_data_asset.dart'),
+          ),
+          isInstanceMember: false,
         ),
       );
       expect(constArguments.length, 1);
@@ -193,11 +187,13 @@ void main() async {
         expect(recordedUsages.existsSync(), true);
 
         final actualRecordedUsages = recordedUsages.readAsStringSync();
-        final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
+        final u = Recordings.fromJson(
+          jsonDecode(actualRecordedUsages) as Map<String, Object?>,
+        );
         final constantsOf = u.constantsOf(
-          Definition(
-            'package:drop_data_asset/src/drop_data_asset.dart',
-            [Name('RecordCallToC')],
+          Class(
+            'RecordCallToC',
+            Library('package:drop_data_asset/src/drop_data_asset.dart'),
           ),
         );
         expect(constantsOf.length, 0);
@@ -264,7 +260,9 @@ void main() async {
         expect(recordedUsages.existsSync(), true);
 
         final actualRecordedUsages = recordedUsages.readAsStringSync();
-        final u = Recordings.fromJson(jsonDecode(actualRecordedUsages));
+        final u = Recordings.fromJson(
+          jsonDecode(actualRecordedUsages) as Map<String, Object?>,
+        );
         expect(u.calls.isNotEmpty, true);
       });
     });
@@ -275,7 +273,6 @@ extension on Recordings {
   List<CallWithArguments> constArgumentsFor(Definition definition) {
     final result = <CallWithArguments>[];
     for (final entry in calls.entries) {
-      // ignore: invalid_use_of_visible_for_testing_member
       if (entry.key.semanticEquals(definition)) {
         for (final call in entry.value) {
           if (call is CallWithArguments) {
@@ -290,7 +287,6 @@ extension on Recordings {
   List<Constant> constantsOf(Definition definition) {
     final result = <Constant>[];
     for (final entry in instances.entries) {
-      // ignore: invalid_use_of_visible_for_testing_member
       if (entry.key.semanticEquals(definition)) {
         for (final instance in entry.value) {
           if (instance is InstanceConstantReference) {

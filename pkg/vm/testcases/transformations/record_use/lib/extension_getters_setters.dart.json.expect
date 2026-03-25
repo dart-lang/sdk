@@ -22,22 +22,6 @@
         },
         {
           "disambiguators": [
-            "instance"
-          ],
-          "kind": "getter",
-          "name": "instanceGetter"
-        }
-      ],
-      "uri": "package:record_use_test/extension_getters_setters.dart"
-    },
-    {
-      "path": [
-        {
-          "kind": "extension",
-          "name": "Ext"
-        },
-        {
-          "disambiguators": [
             "static"
           ],
           "kind": "getter",
@@ -56,7 +40,23 @@
           "disambiguators": [
             "instance"
           ],
-          "kind": "setter",
+          "kind": "method",
+          "name": "instanceGetter"
+        }
+      ],
+      "uri": "package:record_use_test/extension_getters_setters.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "extension",
+          "name": "Ext"
+        },
+        {
+          "disambiguators": [
+            "instance"
+          ],
+          "kind": "method",
           "name": "instanceSetter"
         }
       ],
@@ -84,10 +84,6 @@
       "name": "1"
     }
   ],
-  "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
-    "version": "0.4.0"
-  },
   "uses": {
     "static_calls": [
       {
@@ -95,7 +91,6 @@
         "uses": [
           {
             "loading_unit_index": 0,
-            "receiver": 2,
             "type": "with_arguments"
           }
         ]
@@ -105,6 +100,7 @@
         "uses": [
           {
             "loading_unit_index": 0,
+            "receiver": 2,
             "type": "with_arguments"
           }
         ]

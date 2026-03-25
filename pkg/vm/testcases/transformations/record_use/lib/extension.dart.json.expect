@@ -14,7 +14,7 @@
       "path": [
         {
           "kind": "extension",
-          "name": "<unnamed>"
+          "name": ""
         },
         {
           "disambiguators": [
@@ -32,10 +32,6 @@
       "name": "1"
     }
   ],
-  "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
-    "version": "0.4.0"
-  },
   "uses": {
     "static_calls": [
       {

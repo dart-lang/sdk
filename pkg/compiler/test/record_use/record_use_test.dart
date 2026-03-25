@@ -115,7 +115,6 @@ Future<void> main() async {
           final golden = Recordings.fromJson(jsonDecode(goldenContents));
           final semanticEquals = actual.semanticEquals(
             golden,
-            allowMetadataMismatch: true,
             allowMoreConstArguments: true,
             // Ensure test coverage of tear offs, add pragmas to prevent
             // optimiations if necessary.
