@@ -1059,11 +1059,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     '_prependTypeArguments',
   );
 
-  late Procedure boundsCheckForPartialInstantiation = libraryIndex
-      .getTopLevelProcedure(
-        'dart:_internal',
-        '_boundsCheckForPartialInstantiation',
-      );
+  late Procedure instantiateClosure = libraryIndex.getTopLevelProcedure(
+    'dart:_internal',
+    '_instantiateClosure',
+  );
 
   late Procedure throwLocalNotInitialized = libraryIndex.getProcedure(
     'dart:_internal',
@@ -3335,44 +3334,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitInstantiation(Instantiation node) {
-    final int oldClosure = locals.tempIndexInFrame(node, tempIndex: 0);
-    final int newClosure = locals.tempIndexInFrame(node, tempIndex: 1);
-    final int typeArguments = locals.tempIndexInFrame(node, tempIndex: 2);
-
     _generateNode(node.expression);
-    asm.emitStoreLocal(oldClosure);
-
     _genTypeArguments(node.typeArguments);
-    asm.emitStoreLocal(typeArguments);
-
-    _genDirectCall(
-      boundsCheckForPartialInstantiation,
-      objectTable.getArgDescHandle(2),
-      2,
-    );
-    asm.emitDrop1();
-
-    asm.emitPush(oldClosure);
-    asm.emitLoadFieldTOS(cp.addInstanceField(closureFunction));
-    asm.emitPush(oldClosure);
-    asm.emitLoadFieldTOS(cp.addInstanceField(closureContext));
-    asm.emitPush(oldClosure);
-    asm.emitLoadFieldTOS(cp.addInstanceField(closureInstantiatorTypeArguments));
-    asm.emitAllocateClosure();
-    asm.emitStoreLocal(newClosure);
-
-    asm.emitPush(typeArguments);
-    asm.emitStoreFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
-
-    asm.emitPush(newClosure);
-    asm.emitPush(oldClosure);
-    final closureFunctionTypeArgumentsCpIndex = cp.addInstanceField(
-      closureFunctionTypeArguments,
-    );
-    asm.emitLoadFieldTOS(closureFunctionTypeArgumentsCpIndex);
-    asm.emitStoreFieldTOS(closureFunctionTypeArgumentsCpIndex);
-
-    asm.emitPush(newClosure);
+    _genDirectCall(instantiateClosure, objectTable.getArgDescHandle(2), 2);
   }
 
   @override

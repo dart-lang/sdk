@@ -186,7 +186,7 @@ Function 'testPartialInstantiation', static, reflectable, debuggable
     return-type FunctionType (dart:core::int) -> void
 
 Bytecode {
-  Entry                7
+  Entry                5
   CheckStack           0
   PushConstant         CP#0
   Push                 r0
@@ -198,26 +198,8 @@ Bytecode {
   StoreFieldTOS        CP#3
   PopLocal             r2
   Push                 r2
-  StoreLocal           r3
   PushConstant         CP#14
-  StoreLocal           r6
   DirectCall           CP#15, 2
-  Drop1
-  Push                 r3
-  LoadFieldTOS         CP#17
-  Push                 r3
-  LoadFieldTOS         CP#1
-  Push                 r3
-  LoadFieldTOS         CP#19
-  AllocateClosure
-  StoreLocal           r5
-  Push                 r6
-  StoreFieldTOS        CP#3
-  Push                 r5
-  Push                 r3
-  LoadFieldTOS         CP#6
-  StoreFieldTOS        CP#6
-  Push                 r5
   PopLocal             r4
   Push                 r4
   ReturnTOS
@@ -238,12 +220,8 @@ ConstantPool {
   [12] = SubtypeTestCache
   [13] = EndClosureFunctionScope
   [14] = ObjectRef < dart:core::int >
-  [15] = DirectCall 'dart:_internal::_boundsCheckForPartialInstantiation', ArgDesc num-args 2, num-type-args 0, names []
+  [15] = DirectCall 'dart:_internal::_instantiateClosure', ArgDesc num-args 2, num-type-args 0, names []
   [16] = Reserved
-  [17] = InstanceField dart:core::_Closure::_function (field)
-  [18] = Reserved
-  [19] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
-  [20] = Reserved
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::testPartialInstantiation::'foo' type-params <'T' extends dart:core::Object? (default dynamic)> (DART_SDK/pkg/dart2bytecode/testcases/closures.dart::testPartialInstantiation::Closure/0::TypeParam/0 t) -> void
 ClosureCode {

@@ -1303,11 +1303,6 @@ class _Allocator extends RecursiveVisitor {
   }
 
   @override
-  void visitInstantiation(Instantiation node) {
-    _visit(node, temps: 3);
-  }
-
-  @override
   void visitNullCheck(NullCheck node) {
     _visit(node, temps: 1);
   }
