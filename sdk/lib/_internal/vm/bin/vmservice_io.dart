@@ -265,7 +265,10 @@ void _registerSignalHandler() {
   ).listen((_) => _toggleWebServer());
 }
 
-@pragma('vm:entry-point', !bool.fromEnvironment('dart.vm.product'))
+@pragma(
+  'vm:entry-point',
+  !bool.fromEnvironment('dart.vm.product') ? 'get' : false,
+)
 void main() {
   // Set embedder hooks.
   VMServiceEmbedderHooks.cleanup = cleanupCallback;

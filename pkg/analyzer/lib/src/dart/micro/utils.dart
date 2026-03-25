@@ -93,13 +93,11 @@ MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   }
   // prepare used element
   Element? usedElement;
-  if (parent is PrefixedIdentifier) {
-    var prefixed = parent;
+  if (parent case PrefixedIdentifier prefixed) {
     if (prefixed.prefix == prefixNode) {
       usedElement = prefixed.element;
     }
-  } else if (parent is MethodInvocation) {
-    var invocation = parent;
+  } else if (parent case MethodInvocation invocation) {
     if (invocation.target == prefixNode) {
       usedElement = invocation.methodName.element;
     }

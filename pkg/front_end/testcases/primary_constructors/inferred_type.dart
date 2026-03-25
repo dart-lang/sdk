@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C1(a, var b, final c) {
-  int d = a; // Error
+  int d = a; // Ok
   int e = b; // Error
   int f = c; // Error
 }
 
 class C2([a = null, var b = null, final c = null]) {
-  int d = a; // Error
+  int d = a; // Ok
   int e = b; // Error
   int f = c; // Error
 }
 
 class C3({a = null, var b = null, final c = null}) {
-  int d = a; // Error
+  int d = a; // Ok
   int e = b; // Error
   int f = c; // Error
 }

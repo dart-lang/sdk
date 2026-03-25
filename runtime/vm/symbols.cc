@@ -22,14 +22,13 @@ StringPtr Symbols::predefined_[Symbols::kNumberOfOneCharCodeSymbols];
 String* Symbols::symbol_handles_[Symbols::kMaxPredefinedId];
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+// clang-format off
 static const char* const names[] = {
-    // clang-format off
-  nullptr,
 #define DEFINE_SYMBOL_LITERAL(symbol, literal) literal,
   PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 #undef DEFINE_SYMBOL_LITERAL
-    // clang-format on
 };
+// clang-format on
 #endif
 
 StringPtr StringFrom(const uint8_t* data, intptr_t len, Heap::Space space) {
@@ -83,7 +82,7 @@ void Symbols::Init(IsolateGroup* vm_isolate_group) {
   // Create symbols for language keywords. Some keywords are equal to
   // symbols we already created, so use New() instead of Add() to ensure
   // that the symbols are canonicalized.
-  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
+  for (intptr_t i = 0; i < Symbols::kNullCharId; i++) {
     String* str = String::ReadOnlyHandle();
     *str = OneByteString::New(names[i], Heap::kOld);
     str->Hash();

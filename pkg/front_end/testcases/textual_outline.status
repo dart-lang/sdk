@@ -31,6 +31,7 @@ primary_constructors/field_initializers_order: FormatterCrash
 primary_constructors/fields: FormatterCrash
 primary_constructors/generic_primary_constructor: FormatterCrash
 primary_constructors/inferred_type: FormatterCrash
+primary_constructors/issue62935: FormatterCrash
 primary_constructors/mixin_class: FormatterCrash
 primary_constructors/parameter_assignment: FormatterCrash
 primary_constructors/parameter_scope: FormatterCrash

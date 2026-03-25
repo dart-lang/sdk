@@ -195,6 +195,7 @@ const List<String> _binaryenFlagsMultiModule = [
   '--no-inline=*<noInline>*',
   '--traps-never-happen',
   '-Os',
+  '-Os',
 ];
 
 /// Compile a Dart file into a Wasm module.

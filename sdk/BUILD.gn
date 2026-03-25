@@ -781,10 +781,8 @@ group("copy_libraries") {
 # This rule writes the version file.
 action("write_version_file") {
   visibility = [ ":create_common_sdk" ]
-  inputs = [
-    "../tools/VERSION",
-    "$default_git_folder/logs/HEAD",
-  ]
+  inputs = [ "../tools/VERSION" ]
+  deps = [ "../utils:git_version" ]
   output = "$root_out_dir/$dart_sdk_output/version"
   outputs = [ output ]
   script = "../tools/write_version_file.py"
@@ -800,7 +798,7 @@ action("write_version_file") {
 # This rule writes the revision file.
 action("write_revision_file") {
   visibility = [ ":create_common_sdk" ]
-  inputs = [ "$default_git_folder/logs/HEAD" ]
+  deps = [ "../utils:git_version" ]
   output = "$root_out_dir/$dart_sdk_output/revision"
   outputs = [ output ]
   script = "../tools/write_revision_file.py"
@@ -830,7 +828,7 @@ copy("copy_license") {
 # This rule generates a custom dartdoc_options.yaml file.
 action("write_dartdoc_options") {
   visibility = [ ":create_common_sdk" ]
-  inputs = [ "$default_git_folder/logs/HEAD" ]
+  deps = [ "../utils:git_version" ]
   output = "$root_out_dir/$dart_sdk_output/dartdoc_options.yaml"
   outputs = [ output ]
   script = "../tools/write_dartdoc_options_file.py"

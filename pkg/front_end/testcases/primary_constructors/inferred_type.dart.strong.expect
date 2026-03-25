@@ -2,11 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/primary_constructors/inferred_type.dart:6:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
-//  - 'Object' is from 'dart:core'.
-//   int d = a; // Error
-//           ^
-//
 // pkg/front_end/testcases/primary_constructors/inferred_type.dart:7:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
 //  - 'Object' is from 'dart:core'.
 //   int e = b; // Error
@@ -17,11 +12,6 @@ library;
 //   int f = c; // Error
 //           ^
 //
-// pkg/front_end/testcases/primary_constructors/inferred_type.dart:12:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
-//  - 'Object' is from 'dart:core'.
-//   int d = a; // Error
-//           ^
-//
 // pkg/front_end/testcases/primary_constructors/inferred_type.dart:13:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
 //  - 'Object' is from 'dart:core'.
 //   int e = b; // Error
@@ -30,11 +20,6 @@ library;
 // pkg/front_end/testcases/primary_constructors/inferred_type.dart:14:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
 //  - 'Object' is from 'dart:core'.
 //   int f = c; // Error
-//           ^
-//
-// pkg/front_end/testcases/primary_constructors/inferred_type.dart:18:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
-//  - 'Object' is from 'dart:core'.
-//   int d = a; // Error
 //           ^
 //
 // pkg/front_end/testcases/primary_constructors/inferred_type.dart:19:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
@@ -101,11 +86,8 @@ class C1 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •(final core::Object? a, core::Object? b, final core::Object? c) → self::C1
-    : self::C1::d = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:6:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
- - 'Object' is from 'dart:core'.
-  int d = a; // Error
-          ^" in a as{TypeError} core::int, self::C1::e = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:7:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+  constructor •(final dynamic a, core::Object? b, final core::Object? c) → self::C1
+    : self::C1::d = a as{TypeError,ForDynamic} core::int, self::C1::e = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:7:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
  - 'Object' is from 'dart:core'.
   int e = b; // Error
           ^" in b as{TypeError} core::int, self::C1::f = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:8:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
@@ -120,11 +102,8 @@ class C2 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •([final has-declared-initializer core::Object? a = #C1, has-declared-initializer core::Object? b = #C1, final has-declared-initializer core::Object? c = #C1]) → self::C2
-    : self::C2::d = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:12:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
- - 'Object' is from 'dart:core'.
-  int d = a; // Error
-          ^" in a as{TypeError} core::int, self::C2::e = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:13:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+  constructor •([final has-declared-initializer dynamic a = #C1, has-declared-initializer core::Object? b = #C1, final has-declared-initializer core::Object? c = #C1]) → self::C2
+    : self::C2::d = a as{TypeError,ForDynamic} core::int, self::C2::e = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:13:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
  - 'Object' is from 'dart:core'.
   int e = b; // Error
           ^" in b as{TypeError} core::int, self::C2::f = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:14:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
@@ -139,11 +118,8 @@ class C3 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •({final has-declared-initializer core::Object? a = #C1, has-declared-initializer core::Object? b = #C1, final has-declared-initializer core::Object? c = #C1}) → self::C3
-    : self::C3::d = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:18:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
- - 'Object' is from 'dart:core'.
-  int d = a; // Error
-          ^" in a as{TypeError} core::int, self::C3::e = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:19:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
+  constructor •({final has-declared-initializer dynamic a = #C1, has-declared-initializer core::Object? b = #C1, final has-declared-initializer core::Object? c = #C1}) → self::C3
+    : self::C3::d = a as{TypeError,ForDynamic} core::int, self::C3::e = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:19:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
  - 'Object' is from 'dart:core'.
   int e = b; // Error
           ^" in b as{TypeError} core::int, self::C3::f = invalid-expression "pkg/front_end/testcases/primary_constructors/inferred_type.dart:20:11: Error: A value of type 'Object?' can't be assigned to a variable of type 'int'.
