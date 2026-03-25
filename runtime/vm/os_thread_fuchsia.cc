@@ -96,26 +96,6 @@ int OSThread::TryStart(const char* name,
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
     static_cast<ThreadJoinId>(0);
 
-ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
-  pthread_key_t key = kUnsetThreadLocalKey;
-  int result = pthread_key_create(&key, destructor);
-  VALIDATE_PTHREAD_RESULT(result);
-  ASSERT(key != kUnsetThreadLocalKey);
-  return key;
-}
-
-void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
-  ASSERT(key != kUnsetThreadLocalKey);
-  int result = pthread_key_delete(key);
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
-  ASSERT(key != kUnsetThreadLocalKey);
-  int result = pthread_setspecific(key, reinterpret_cast<void*>(value));
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
 intptr_t OSThread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
