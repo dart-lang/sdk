@@ -14,6 +14,7 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
@@ -80,9 +81,12 @@ List<DiagnosticMessage> convertTypeNames(
       // context messages, remove the extra text added to the buffer.
       StringBuffer? buffer;
       for (var element in typeToConvert.allElements) {
-        var name = element.name;
-        name ??= element is ExtensionElement ? unnamedExtension : unnamed;
-        var sourcePath = element.firstFragment.libraryFragment!.source.fullName;
+        var nonSynthetic = element.nonSynthetic;
+        var name = nonSynthetic.name;
+        name ??= nonSynthetic is ExtensionElement ? unnamedExtension : unnamed;
+
+        var location = _DiagnosticLocation.forElement(nonSynthetic);
+        var sourcePath = location.sourcePath!;
         if (nameToElementMap[name]!.length > 1) {
           if (buffer == null) {
             buffer = StringBuffer();
@@ -95,9 +99,9 @@ List<DiagnosticMessage> convertTypeNames(
         messages.add(
           DiagnosticMessageImpl(
             filePath: sourcePath,
-            length: element.name?.length ?? 0,
             message: '$name is defined in $sourcePath',
-            offset: element.firstFragment.nameOffset ?? -1,
+            offset: location.offset,
+            length: location.length,
             url: null,
           ),
         );
@@ -203,10 +207,11 @@ class DiagnosticReporter {
     List<DiagnosticMessage>? contextMessages,
   }) {
     var nonSynthetic = element.nonSynthetic;
+    var location = _DiagnosticLocation.forElement(nonSynthetic);
     return atOffset(
       diagnosticCode: diagnosticCode,
-      offset: nonSynthetic.firstFragment.nameOffset ?? -1,
-      length: nonSynthetic.name?.length ?? 0,
+      offset: location.offset,
+      length: location.length,
       arguments: arguments,
       contextMessages: contextMessages,
     );
@@ -388,6 +393,49 @@ class DiagnosticReporter {
       arguments: arguments,
       contextMessages: contextMessages,
     );
+  }
+}
+
+/// The location to report a diagnostic at.
+class _DiagnosticLocation {
+  final int offset;
+  final int length;
+  final String? sourcePath;
+
+  _DiagnosticLocation(
+    this.sourcePath, {
+    required this.offset,
+    required this.length,
+  });
+
+  /// Computes the diagnostic location for a given element.
+  factory _DiagnosticLocation.forElement(Element element) {
+    var location = (element.nonSynthetic as ElementImpl).firstFragmentLocation;
+
+    var sourcePath = location.libraryFragment?.source.fullName;
+    var nameOffset = location.nameOffset;
+    var firstTokenOffset = location.firstTokenOffset;
+
+    int offset, length;
+    if (nameOffset != null) {
+      // Has name, use offset and length.
+      offset = nameOffset;
+      length = location.name?.length ?? 0;
+    } else if (firstTokenOffset != null) {
+      // No name, use zero-length offset at the first token,
+      offset = firstTokenOffset;
+      length = 0;
+    } else {
+      // We don't have any valid location to use. We currently use -1 as an
+      // indicator of this. We could consider using 0 (so the location is at
+      // least valid, even if not specific), but it might make it more difficult
+      // to track down bugs (for example the LSP mapping code has an assert that
+      // would flag this if it happened during a test/assert-enabled run).
+      offset = -1;
+      length = 0;
+    }
+
+    return _DiagnosticLocation(sourcePath, offset: offset, length: length);
   }
 }
 

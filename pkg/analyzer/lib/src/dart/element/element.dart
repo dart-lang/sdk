@@ -1767,6 +1767,7 @@ abstract class ElementImpl implements Element {
       libraryFragment: _firstFragment.libraryFragment,
       name: _firstFragment.name,
       nameOffset: _firstFragment.nameOffset,
+      firstTokenOffset: _firstFragment.firstTokenOffset,
     );
   }
 
@@ -3131,11 +3132,13 @@ class FirstFragmentLocation {
   final LibraryFragmentImpl? libraryFragment;
   final String? name;
   final int? nameOffset;
+  final int? firstTokenOffset;
 
   FirstFragmentLocation({
     required this.libraryFragment,
     required this.name,
     required this.nameOffset,
+    required this.firstTokenOffset,
   });
 }
 
