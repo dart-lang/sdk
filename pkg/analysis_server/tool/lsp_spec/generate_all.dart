@@ -383,6 +383,13 @@ List<LspEntity> getCustomClasses() {
               'preview is defined.',
         ),
         field(
+          'libraryUri',
+          type: 'Uri',
+          comment:
+              'The unresolved URI pointing to the library in which the '
+              'preview is defined. This is either a package: or dart: URI.',
+        ),
+        field(
           'position',
           type: 'Position',
           comment:

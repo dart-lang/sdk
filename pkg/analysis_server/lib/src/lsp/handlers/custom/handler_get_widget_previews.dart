@@ -87,7 +87,7 @@ class FlutterWidgetPreviewsHandler
     var node = graph[result.libraryElement.uri]!;
     return success(
       FlutterWidgetPreviews(
-        scriptUris: [result.uri],
+        scriptUris: node.previews.map((e) => e.scriptUri).toSet().toList(),
         previews: node.previews,
         namespaces: flutterWidgetPreviewDetector.namespaces,
       ),
