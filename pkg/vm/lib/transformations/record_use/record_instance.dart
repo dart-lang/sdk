@@ -6,6 +6,7 @@ import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use.dart';
+import 'package:vm/transformations/record_use/record_call.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
 
 import 'constant_collector.dart';
@@ -15,7 +16,8 @@ import 'constant_collector.dart';
 class InstanceRecorder {
   /// Keep track of the classes which are recorded, to easily add found
   /// instances.
-  final Map<Definition, List<InstanceReference>> instancesForClass = {};
+  final Map<DefinitionWithInstances, List<InstanceReference>>
+  instancesForClass = {};
 
   /// A function to look up the loading unit for a reference.
   final LoadingUnitLookup _loadingUnitLookup;
@@ -65,7 +67,7 @@ class InstanceRecorder {
       final effectiveTarget = getConstructorEffectiveTarget(constant.target);
       final cls = effectiveTarget.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
-        definition: _definitionFromMember(effectiveTarget),
+        definition: definitionFromMember(effectiveTarget),
         loadingUnit: _loadingUnitLookup(context),
       );
       _addToUsage(cls, instance);
@@ -79,7 +81,7 @@ class InstanceRecorder {
     final effectiveTarget = getConstructorEffectiveTarget(constant.target);
     final cls = effectiveTarget.enclosingClass!;
     final instance = ConstructorTearoffReference(
-      definition: _definitionFromMember(effectiveTarget),
+      definition: definitionFromMember(effectiveTarget),
       loadingUnit: _loadingUnitLookup(context),
     );
     _addToUsage(cls, instance);
@@ -92,7 +94,7 @@ class InstanceRecorder {
     final effectiveTarget = getConstructorEffectiveTarget(constant.target);
     final cls = effectiveTarget.enclosingClass as ast.Class;
     final instance = ConstructorTearoffReference(
-      definition: _definitionFromMember(effectiveTarget),
+      definition: definitionFromMember(effectiveTarget),
       loadingUnit: _loadingUnitLookup(context),
     );
     _addToUsage(cls, instance);
@@ -161,7 +163,7 @@ class InstanceRecorder {
     }
 
     final instance = InstanceCreationReference(
-      definition: _definitionFromMember(target),
+      definition: definitionFromMember(target),
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
       loadingUnit: _loadingUnitLookup(context),
@@ -175,7 +177,7 @@ class InstanceRecorder {
       final effectiveTarget = getConstructorEffectiveTarget(target);
       final cls = effectiveTarget.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
-        definition: _definitionFromMember(effectiveTarget),
+        definition: definitionFromMember(effectiveTarget),
         loadingUnit: _loadingUnitLookup(node),
       );
       _addToUsage(cls, instance);
@@ -188,7 +190,7 @@ class InstanceRecorder {
       final effectiveTarget = getConstructorEffectiveTarget(target);
       final cls = effectiveTarget.enclosingClass as ast.Class;
       final instance = ConstructorTearoffReference(
-        definition: _definitionFromMember(effectiveTarget),
+        definition: definitionFromMember(effectiveTarget),
         loadingUnit: _loadingUnitLookup(node),
       );
       _addToUsage(cls, instance);
@@ -201,7 +203,7 @@ class InstanceRecorder {
       final effectiveTarget = getConstructorEffectiveTarget(target);
       final cls = effectiveTarget.enclosingClass!;
       final instance = ConstructorTearoffReference(
-        definition: _definitionFromMember(effectiveTarget),
+        definition: definitionFromMember(effectiveTarget),
         loadingUnit: _loadingUnitLookup(node),
       );
       _addToUsage(cls, instance);
@@ -237,7 +239,7 @@ class InstanceRecorder {
   /// Collect the name and definition location of the invocation. This is
   /// shared across multiple calls to the same method.
   void _addToUsage(ast.Class cls, InstanceReference instance) {
-    final identifier = _definitionFromClass(cls);
+    final identifier = definitionFromClass(cls) as DefinitionWithInstances;
     // TODO: Merge loading units if an identical InstanceReference already
     // exists.
     instancesForClass.update(
@@ -254,31 +256,4 @@ class InstanceRecorder {
     instanceConstant: evaluateConstant(constant),
     loadingUnit: _loadingUnitLookup(expression),
   );
-
-  /// Returns a [Definition] for [cls].
-  ///
-  /// Currently only works for top-level classes and enums. If support for more
-  /// complex definition paths is needed (e.g. nested classes), it should be
-  /// added here.
-  Definition _definitionFromClass(ast.Class cls) {
-    final enclosingLibrary = cls.enclosingLibrary;
-    final importUri = enclosingLibrary.importUri.toString();
-
-    return Definition(importUri, [className(cls)]);
-  }
-
-  /// Returns a [Definition] for [target].
-  ///
-  /// Currently only works for constructors and factories in top-level classes
-  /// and enums. If support for more complex definition paths is needed, it
-  /// should be added here.
-  Definition _definitionFromMember(ast.Member target) {
-    final cls = target.enclosingClass!;
-    final importUri = cls.enclosingLibrary.importUri.toString();
-
-    return Definition(importUri, [
-      className(cls),
-      Name(target.name.text, kind: DefinitionKind.constructorKind),
-    ]);
-  }
 }

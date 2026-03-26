@@ -34,24 +34,38 @@ class InteropTransformer extends Transformer {
   final MethodCollector _methodCollector;
   final CoreTypesUtil _util;
 
-  InteropTransformer._(this._staticTypeContext, this._util,
-      this._methodCollector, extensionIndex)
-      : _callbackSpecializer =
-            CallbackSpecializer(_staticTypeContext, _util, _methodCollector),
-        _inlineExpander =
-            InlineExpander(_staticTypeContext, _util, _methodCollector),
-        _interopSpecializerFactory = InteropSpecializerFactory(
-            _staticTypeContext, _util, _methodCollector, extensionIndex);
+  InteropTransformer._(
+    this._staticTypeContext,
+    this._util,
+    this._methodCollector,
+    extensionIndex,
+  ) : _callbackSpecializer = CallbackSpecializer(
+        _staticTypeContext,
+        _util,
+        _methodCollector,
+      ),
+      _inlineExpander = InlineExpander(
+        _staticTypeContext,
+        _util,
+        _methodCollector,
+      ),
+      _interopSpecializerFactory = InteropSpecializerFactory(
+        _staticTypeContext,
+        _util,
+        _methodCollector,
+        extensionIndex,
+      );
 
   factory InteropTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
     final extensionIndex = ExtensionIndex(coreTypes, typeEnvironment);
     final util = CoreTypesUtil(coreTypes, extensionIndex);
     return InteropTransformer._(
-        StatefulStaticTypeContext.stacked(typeEnvironment),
-        util,
-        MethodCollector(util),
-        extensionIndex);
+      StatefulStaticTypeContext.stacked(typeEnvironment),
+      util,
+      MethodCollector(util),
+      extensionIndex,
+    );
   }
 
   @override
@@ -83,7 +97,9 @@ class InteropTransformer extends Transformer {
       return _inlineExpander.expand(node);
     } else {
       return _interopSpecializerFactory.maybeSpecializeInvocation(
-              target, node) ??
+            target,
+            node,
+          ) ??
           node;
     }
   }

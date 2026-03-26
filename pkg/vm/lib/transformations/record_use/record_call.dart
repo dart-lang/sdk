@@ -16,7 +16,7 @@ import 'package:vm/transformations/record_use/record_use.dart';
 class CallRecorder {
   /// Keep track of the calls which are recorded, to easily add newly found
   /// ones.
-  final Map<Definition, List<CallReference>> callsForMethod = {};
+  final Map<DefinitionWithStaticCalls, List<CallReference>> callsForMethod = {};
 
   /// A function to look up the loading unit for a reference.
   final LoadingUnitLookup _loadingUnitLookup;
@@ -58,7 +58,7 @@ class CallRecorder {
       _addToUsage(
         target,
         CallWithArguments(
-          positionalArguments: [_evaluateLiteral(node.value)],
+          positionalArguments: [evaluateExpression(node.value)],
           namedArguments: {},
           loadingUnit: _loadingUnitLookup(node),
         ),
@@ -93,7 +93,8 @@ class CallRecorder {
   /// Collect the name and definition location of the invocation. This is
   /// shared across multiple calls to the same method.
   void _addToUsage(ast.Procedure target, CallReference call) {
-    final identifier = _definitionFromMember(target);
+    final identifier =
+        definitionFromMember(target) as DefinitionWithStaticCalls;
     // TODO: Merge loading units if an identical CallReference already exists.
     callsForMethod.update(
       identifier,
@@ -117,7 +118,7 @@ class CallRecorder {
     // receiver.
     MaybeConstant? receiver =
         (hasReceiver && node.arguments.positional.isNotEmpty)
-        ? _evaluateLiteral(node.arguments.positional[0])
+        ? evaluateExpression(node.arguments.positional[0])
         : null;
 
     if (isTearOffLowering) {
@@ -131,12 +132,12 @@ class CallRecorder {
 
     final positionalArguments = node.arguments.positional
         .skip(argumentStart)
-        .map((argument) => _evaluateLiteral(argument))
+        .map((argument) => evaluateExpression(argument))
         .toList();
 
     final namedArguments = {
       for (final argument in node.arguments.named)
-        argument.name: _evaluateLiteral(argument.value),
+        argument.name: evaluateExpression(argument.value),
     };
 
     // Fill up with the default values
@@ -146,7 +147,7 @@ class CallRecorder {
       if (initializer != null &&
           name != null &&
           !namedArguments.containsKey(name)) {
-        namedArguments[name] = _evaluateLiteral(initializer);
+        namedArguments[name] = evaluateExpression(initializer);
       }
     }
     for (
@@ -157,7 +158,7 @@ class CallRecorder {
       final parameter = node.target.function.positionalParameters[i];
       final initializer = parameter.initializer;
       if (initializer != null) {
-        positionalArguments.add(_evaluateLiteral(initializer));
+        positionalArguments.add(evaluateExpression(initializer));
       }
     }
 
@@ -168,96 +169,102 @@ class CallRecorder {
       receiver: receiver,
     );
   }
+}
 
-  MaybeConstant _evaluateLiteral(ast.Expression expression) {
-    if (expression is ast.BasicLiteral) {
-      return evaluateLiteral(expression);
-    } else if (expression is ast.ConstantExpression) {
-      return evaluateConstant(expression.constant);
-    } else if (expression is ast.VariableGet &&
-        expression.variable.initializer != null) {
-      return _evaluateLiteral(expression.variable.initializer!);
-    } else {
-      return const NonConstant();
-    }
-  }
-
-  Definition _definitionFromMember(ast.Procedure target) {
-    final enclosingLibrary = target.enclosingLibrary;
-    final importUri = enclosingLibrary.importUri.toString();
-    final isExtensionMember =
-        target.isExtensionMember || target.isExtensionTypeMember;
-
-    final isTearOffLowering = isExtensionMemberTearOff(target);
-
-    DefinitionKind memberKind = switch (target.kind) {
-      ast.ProcedureKind.Method =>
-        isExtensionMember
-            ? _extensionMemberKind(target, isTearOffLowering)
-            : DefinitionKind.methodKind,
-      ast.ProcedureKind.Getter => DefinitionKind.getterKind,
-      ast.ProcedureKind.Setter => DefinitionKind.setterKind,
-      ast.ProcedureKind.Operator => DefinitionKind.operatorKind,
-      ast.ProcedureKind.Factory => DefinitionKind.constructorKind,
-    };
-
-    if (isExtensionMember) {
-      final String qualifiedExtensionName =
-          extractQualifiedNameFromExtensionMethodName(target.name.text)!;
-      final List<String> parts = qualifiedExtensionName.split('.');
-      final bool hasReceiver =
-          (target.function.positionalParameters.isNotEmpty &&
-              isExtensionThisName(
-                target.function.positionalParameters[0].name,
-              )) ||
-          isTearOffLowering;
-
-      return Definition(importUri, [
-        Name(
-          hasUnnamedExtensionNamePrefix(target.name.text)
-              ? '<unnamed>'
-              : parts[0],
-          kind: target.isExtensionMember
-              ? DefinitionKind.extensionKind
-              : DefinitionKind.extensionTypeKind,
-        ),
-        Name(
-          parts[1],
-          kind: memberKind,
-          disambiguators: {
-            hasReceiver
-                ? DefinitionDisambiguator.instanceDisambiguator
-                : DefinitionDisambiguator.staticDisambiguator,
-          },
-        ),
-      ]);
-    }
-
-    final parent = target.parent;
-
-    return Definition(importUri, [
-      if (parent is ast.Class) className(parent),
-      Name(
-        target.name.text,
-        kind: memberKind,
-        disambiguators: {
-          target.isStatic
-              ? DefinitionDisambiguator.staticDisambiguator
-              : DefinitionDisambiguator.instanceDisambiguator,
-        },
-      ),
-    ]);
-  }
-
-  DefinitionKind _extensionMemberKind(
-    ast.Procedure target,
-    bool isTearOffLowering,
-  ) {
-    if (isTearOffLowering) return DefinitionKind.methodKind;
-    if (isExtensionMemberGetter(target)) return DefinitionKind.getterKind;
-    if (isExtensionMemberSetter(target)) return DefinitionKind.setterKind;
-    if (isExtensionMemberOperator(target)) return DefinitionKind.operatorKind;
-
-    return DefinitionKind.methodKind;
+MaybeConstant evaluateExpression(ast.Expression expression) {
+  if (expression is ast.BasicLiteral) {
+    return evaluateLiteral(expression);
+  } else if (expression is ast.ConstantExpression) {
+    return evaluateConstant(expression.constant);
+  } else if (expression is ast.VariableGet &&
+      expression.variable.initializer != null) {
+    return evaluateExpression(expression.variable.initializer!);
+  } else {
+    return const NonConstant();
   }
 }
+
+DefinitionWithMembers definitionFromClass(ast.Class cls) {
+  final library = Library(cls.enclosingLibrary.importUri.toString());
+  if (cls.isEnum) return Enum(cls.name, library);
+  if (cls.isMixinDeclaration) return Mixin(cls.name, library);
+  return Class(cls.name, library);
+}
+
+Definition definitionFromMember(ast.Member target) {
+  final enclosingLibrary = target.enclosingLibrary;
+  final library = Library(enclosingLibrary.importUri.toString());
+  final isExtensionMember =
+      target is ast.Procedure &&
+      (target.isExtensionMember || target.isExtensionTypeMember);
+
+  if (isExtensionMember) {
+    final isTearOffLowering = isExtensionMemberTearOff(target);
+    final String qualifiedExtensionName =
+        extractQualifiedNameFromExtensionMethodName(target.name.text)!;
+    final List<String> parts = qualifiedExtensionName.split('.');
+    final bool hasReceiver =
+        (target.function.positionalParameters.isNotEmpty &&
+            isExtensionThisName(
+              target.function.positionalParameters[0].name,
+            )) ||
+        isTearOffLowering;
+
+    final DefinitionWithMembers parent = target.isExtensionMember
+        ? (hasUnnamedExtensionNamePrefix(target.name.text)
+              ? Extension.unnamed(library)
+              : Extension(parts[0], library))
+        : ExtensionType(parts[0], library);
+
+    final memberName = parts[1];
+    return _createMember(target, parent, memberName, isInstance: hasReceiver);
+  }
+
+  final parentNode = target.parent;
+  final ScopeWithMembers parent = parentNode is ast.Class
+      ? definitionFromClass(parentNode)
+      : library;
+
+  return _createMember(
+    target,
+    parent,
+    target.name.text,
+    isInstance: target is ast.Procedure ? !target.isStatic : false,
+  );
+}
+
+Definition _createMember(
+  ast.Member target,
+  ScopeWithMembers parent,
+  String name, {
+  required bool isInstance,
+}) => switch (target) {
+  ast.Procedure p
+      when p.kind == ast.ProcedureKind.Operator ||
+          isExtensionMemberOperator(p) =>
+    Operator(name, parent as DefinitionWithMembers),
+  ast.Procedure p when p.kind == ast.ProcedureKind.Method => Method(
+    name,
+    parent,
+    isInstanceMember: isInstance,
+  ),
+  ast.Procedure p when p.kind == ast.ProcedureKind.Getter => Getter(
+    name,
+    parent,
+    isInstanceMember: isInstance,
+  ),
+  ast.Procedure p when p.kind == ast.ProcedureKind.Setter => Setter(
+    name,
+    parent,
+    isInstanceMember: isInstance,
+  ),
+  ast.Procedure p when p.kind == ast.ProcedureKind.Factory =>
+    name.isEmpty
+        ? Constructor.unnamed(parent as DefinitionWithMembers)
+        : Constructor(name, parent as DefinitionWithMembers),
+  ast.Constructor _ =>
+    name.isEmpty
+        ? Constructor.unnamed(parent as DefinitionWithMembers)
+        : Constructor(name, parent as DefinitionWithMembers),
+  _ => throw UnsupportedError('Unsupported member type: $target'),
+};

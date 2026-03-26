@@ -246,13 +246,20 @@ class ExceptionHandlerStack {
 
   void _pushTryCatch(TryCatch node) {
     final catcher = _Catcher.fromTryCatch(
-        codeGen, node, codeGen.innerTargets[node.catches.first]!);
+      codeGen,
+      node,
+      codeGen.innerTargets[node.catches.first]!,
+    );
     _handlers.add(catcher);
   }
 
   Finalizer _pushTryFinally(TryFinally node) {
-    final finalizer =
-        Finalizer._(codeGen, node, _nextFinalizer, codeGen.innerTargets[node]!);
+    final finalizer = Finalizer._(
+      codeGen,
+      node,
+      _nextFinalizer,
+      codeGen.innerTargets[node]!,
+    );
     _handlers.add(finalizer);
     return finalizer;
   }
@@ -285,7 +292,8 @@ class ExceptionHandlerStack {
   }
 
   void forEachFinalizer(
-      void Function(Finalizer finalizer, bool lastFinalizer) f) {
+    void Function(Finalizer finalizer, bool lastFinalizer) f,
+  ) {
     Finalizer? finalizer = _nextFinalizer;
     while (finalizer != null) {
       Finalizer? next = finalizer.parentFinalizer;
@@ -322,8 +330,9 @@ class ExceptionHandlerStack {
 
       final previousException = b.addLocal(codeGen.translator.topType);
 
-      final previousStackTrace =
-          b.addLocal(codeGen.translator.stackTraceTypeNullable);
+      final previousStackTrace = b.addLocal(
+        codeGen.translator.stackTraceTypeNullable,
+      );
 
       _previousCatchLocals.add((previousException, previousStackTrace));
 
@@ -333,8 +342,10 @@ class ExceptionHandlerStack {
         for (int i = 0; i < nCoveredHandlers; i += 1) {
           final handler = _handlers[nextHandlerIdx - i];
           if (handler is Finalizer) {
-            handler.setContinuationRethrow(() => b.local_get(exceptionLocal),
-                () => b.local_get(stackTraceLocal));
+            handler.setContinuationRethrow(
+              () => b.local_get(exceptionLocal),
+              () => b.local_get(stackTraceLocal),
+            );
           }
         }
 
@@ -347,10 +358,12 @@ class ExceptionHandlerStack {
         // Set the untyped "current exception" variable. Catch blocks will do the
         // type tests as necessary using this variable and set their exception
         // and stack trace locals.
-        codeGen
-            .setSuspendStateCurrentException(() => b.local_get(exceptionLocal));
+        codeGen.setSuspendStateCurrentException(
+          () => b.local_get(exceptionLocal),
+        );
         codeGen.setSuspendStateCurrentStackTrace(
-            () => b.local_get(stackTraceLocal));
+          () => b.local_get(stackTraceLocal),
+        );
 
         codeGen._jumpToTarget(_handlers[nextHandlerIdx].target);
       }
@@ -364,9 +377,11 @@ class ExceptionHandlerStack {
       // Generate a `catch_all` to catch JS exceptions if any of the covered
       // handlers can catch JS exceptions.
       bool canHandleJSExceptions = false;
-      for (int handlerIdx = nextHandlerIdx;
-          handlerIdx > nextHandlerIdx - nCoveredHandlers;
-          handlerIdx -= 1) {
+      for (
+        int handlerIdx = nextHandlerIdx;
+        handlerIdx > nextHandlerIdx - nCoveredHandlers;
+        handlerIdx -= 1
+      ) {
         final handler = _handlers[handlerIdx];
         canHandleJSExceptions |= handler.canHandleJSExceptions;
       }
@@ -374,8 +389,9 @@ class ExceptionHandlerStack {
       if (canHandleJSExceptions) {
         b.catch_legacy(codeGen.translator.getJsExceptionTag(b.moduleBuilder));
 
-        final jsExceptionLocal =
-            codeGen.addLocal(w.RefType.extern(nullable: true));
+        final jsExceptionLocal = codeGen.addLocal(
+          w.RefType.extern(nullable: true),
+        );
         b.local_tee(jsExceptionLocal);
 
         codeGen.call(codeGen.translator.boxJsException.reference);
@@ -399,17 +415,19 @@ class ExceptionHandlerStack {
   void _finalizeCatchBlocks(Object? debug) {
     if (_previousCatchLocals.isEmpty) return;
 
-    final (previousException, previousStackTrace) =
-        _previousCatchLocals.removeLast();
+    final (previousException, previousStackTrace) = _previousCatchLocals
+        .removeLast();
 
     final b = codeGen.b;
 
     // Restore the exception and stacktrace from the enclosing try/catch
     // if there is one.
-    codeGen
-        .setSuspendStateCurrentException(() => b.local_get(previousException));
+    codeGen.setSuspendStateCurrentException(
+      () => b.local_get(previousException),
+    );
     codeGen.setSuspendStateCurrentStackTrace(
-        () => b.local_get(previousStackTrace));
+      () => b.local_get(previousStackTrace),
+    );
   }
 }
 
@@ -437,8 +455,10 @@ class _Catcher extends _ExceptionHandler {
     for (Catch catch_ in node.catches) {
       _exceptionVars.add(catch_.exception!);
       _stackTraceVars.add(catch_.stackTrace!);
-      _canHandleJSExceptions |=
-          guardCanMatchJSException(codeGen.translator, catch_.guard);
+      _canHandleJSExceptions |= guardCanMatchJSException(
+        codeGen.translator,
+        catch_.guard,
+      );
     }
   }
 
@@ -474,12 +494,12 @@ class Finalizer extends _ExceptionHandler {
   final StateMachineCodeGenerator codeGen;
 
   Finalizer._(this.codeGen, TryFinally node, this.parentFinalizer, super.target)
-      : _continuationVar =
-            (node.parent as Block).statements[0] as VariableDeclaration,
-        _exceptionVar =
-            (node.parent as Block).statements[1] as VariableDeclaration,
-        _stackTraceVar =
-            (node.parent as Block).statements[2] as VariableDeclaration;
+    : _continuationVar =
+          (node.parent as Block).statements[0] as VariableDeclaration,
+      _exceptionVar =
+          (node.parent as Block).statements[1] as VariableDeclaration,
+      _stackTraceVar =
+          (node.parent as Block).statements[2] as VariableDeclaration;
 
   @override
   bool get canHandleJSExceptions => true;
@@ -497,7 +517,9 @@ class Finalizer extends _ExceptionHandler {
   }
 
   void setContinuationRethrow(
-      void Function() pushException, void Function() pushStackTrace) {
+    void Function() pushException,
+    void Function() pushStackTrace,
+  ) {
     codeGen.setVariable(_continuationVar, () {
       codeGen.b.i64_const(continuationRethrow);
     });
@@ -572,9 +594,9 @@ class _IndirectLabelTarget implements LabelTarget {
       } else {
         // Finalizer will be run by the `break`. Each finalizer jumps to the
         // next, last finalizer jumps to the `break` target.
-        finalizer.setContinuationJump(i == 1
-            ? stateTarget.index
-            : finalizer.parentFinalizer!.target.index);
+        finalizer.setContinuationJump(
+          i == 1 ? stateTarget.index : finalizer.parentFinalizer!.target.index,
+        );
       }
       i -= 1;
     });
@@ -600,8 +622,10 @@ class CatchVariables {
 abstract class StateMachineEntryAstCodeGenerator extends AstCodeGenerator {
   final w.FunctionBuilder function;
   StateMachineEntryAstCodeGenerator(
-      Translator translator, Member enclosingMember, this.function)
-      : super(translator, function.type, enclosingMember);
+    Translator translator,
+    Member enclosingMember,
+    this.function,
+  ) : super(translator, function.type, enclosingMember);
 
   /// Generate the outer function.
   ///
@@ -612,7 +636,10 @@ abstract class StateMachineEntryAstCodeGenerator extends AstCodeGenerator {
   ///   In case of `sync*`, this function should return an iterable.
   ///
   void generateOuter(
-      FunctionNode functionNode, Context? context, Source functionSource);
+    FunctionNode functionNode,
+    Context? context,
+    Source functionSource,
+  );
 }
 
 abstract class ProcedureStateMachineEntryCodeGenerator
@@ -620,8 +647,10 @@ abstract class ProcedureStateMachineEntryCodeGenerator
   final Procedure member;
 
   ProcedureStateMachineEntryCodeGenerator(
-      Translator translator, w.FunctionBuilder function, this.member)
-      : super(translator, member, function);
+    Translator translator,
+    w.FunctionBuilder function,
+    this.member,
+  ) : super(translator, member, function);
 
   @override
   void generateInternal() {
@@ -647,9 +676,12 @@ abstract class LambdaStateMachineEntryCodeGenerator
     extends StateMachineEntryAstCodeGenerator {
   final Lambda lambda;
 
-  LambdaStateMachineEntryCodeGenerator(Translator translator,
-      Member enclosingMember, this.lambda, Closures closures)
-      : super(translator, enclosingMember, lambda.function) {
+  LambdaStateMachineEntryCodeGenerator(
+    Translator translator,
+    Member enclosingMember,
+    this.lambda,
+    Closures closures,
+  ) : super(translator, enclosingMember, lambda.function) {
     this.closures = closures;
   }
 
@@ -678,13 +710,13 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
   final Source functionSource;
 
   StateMachineCodeGenerator(
-      Translator translator,
-      this.function,
-      Member enclosingMember,
-      this.functionNode,
-      this.functionSource,
-      Closures closures)
-      : super(translator, function.type, enclosingMember) {
+    Translator translator,
+    this.function,
+    Member enclosingMember,
+    this.functionNode,
+    this.functionSource,
+    Closures closures,
+  ) : super(translator, function.type, enclosingMember) {
     this.closures = closures;
   }
 
@@ -785,18 +817,22 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
   void emitTargetLabel(StateTarget target) {
     currentTargetIndex++;
     assert(
-        target.index == currentTargetIndex,
-        'target.index = ${target.index}, '
-        'currentTargetIndex = $currentTargetIndex, '
-        'target.node.location = ${target.node.location}');
+      target.index == currentTargetIndex,
+      'target.index = ${target.index}, '
+      'currentTargetIndex = $currentTargetIndex, '
+      'target.node.location = ${target.node.location}',
+    );
     exceptionHandlers._terminateTryBlocks();
     b.end();
     b.comment(target.toString());
     exceptionHandlers._generateTryBlocks(b);
   }
 
-  void _jumpToTarget(StateTarget target,
-      {Expression? condition, bool negated = false}) {
+  void _jumpToTarget(
+    StateTarget target, {
+    Expression? condition,
+    bool negated = false,
+  }) {
     if (condition == null && negated) return;
     if (target.index > currentTargetIndex) {
       // Forward jump directly to the label.
@@ -869,8 +905,10 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
       labelTargets.remove(node);
       b.end();
     } else {
-      labelTargets[node] =
-          _IndirectLabelTarget(exceptionHandlers._numFinalizers, after);
+      labelTargets[node] = _IndirectLabelTarget(
+        exceptionHandlers._numFinalizers,
+        after,
+      );
       translateStatement(node.body);
       labelTargets.remove(node);
       emitTargetLabel(after);
@@ -898,22 +936,26 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     // When the type is nullable we use two variables: one for the nullable
     // value, one after the null check, with non-nullable type.
     w.Local switchValueNonNullableLocal = addLocal(switchInfo.nonNullableType);
-    w.Local? switchValueNullableLocal =
-        isNullable ? addLocal(switchInfo.nullableType) : null;
+    w.Local? switchValueNullableLocal = isNullable
+        ? addLocal(switchInfo.nullableType)
+        : null;
 
     // Initialize switch value local
-    translateExpression(node.expression,
-        isNullable ? switchInfo.nullableType : switchInfo.nonNullableType);
+    translateExpression(
+      node.expression,
+      isNullable ? switchInfo.nullableType : switchInfo.nonNullableType,
+    );
     b.local_set(
-        isNullable ? switchValueNullableLocal! : switchValueNonNullableLocal);
+      isNullable ? switchValueNullableLocal! : switchValueNonNullableLocal,
+    );
 
     // Compute value and handle null
     if (isNullable) {
       final StateTarget nullTarget = nullCase != null
           ? innerTargets[nullCase]!
           : defaultCase != null
-              ? innerTargets[defaultCase]!
-              : after;
+          ? innerTargets[defaultCase]!
+          : after;
 
       b.local_get(switchValueNullableLocal!);
       b.ref_is_null();
@@ -924,7 +966,10 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
       b.ref_as_non_null();
       // Unbox if necessary
       translator.convertType(
-          b, switchValueNullableLocal.type, switchValueNonNullableLocal.type);
+        b,
+        switchValueNullableLocal.type,
+        switchValueNonNullableLocal.type,
+      );
       b.local_set(switchValueNonNullableLocal);
     }
 
@@ -952,15 +997,18 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     if (node.isExplicitlyExhaustive) {
       b.unreachable();
     } else {
-      final StateTarget defaultLabel =
-          defaultCase != null ? innerTargets[defaultCase]! : after;
+      final StateTarget defaultLabel = defaultCase != null
+          ? innerTargets[defaultCase]!
+          : after;
       _jumpToTarget(defaultLabel);
     }
 
     // Add jump infos
     for (final SwitchCase case_ in node.cases) {
       labelTargets[case_] = _IndirectLabelTarget(
-          exceptionHandlers._numFinalizers, innerTargets[case_]!);
+        exceptionHandlers._numFinalizers,
+        innerTargets[case_]!,
+      );
     }
 
     // Emit case bodies
@@ -1018,8 +1066,12 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
       if (emitGuard) {
         getSuspendStateCurrentException();
         b.ref_as_non_null();
-        types.emitIsTest(this, catch_.guard,
-            translator.coreTypes.objectNonNullableRawType, catch_.location);
+        types.emitIsTest(
+          this,
+          catch_.guard,
+          translator.coreTypes.objectNonNullableRawType,
+          catch_.location,
+        );
         b.i32_eqz();
         // When generating guards we can't generate the catch body inside the
         // `if` block for the guard as the catch body can have suspension
@@ -1036,10 +1088,11 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
           // TODO (omersa): When there is a finalizer we can jump to it
           // directly, instead of via throw/catch. Would that be faster?
           exceptionHandlers.forEachFinalizer(
-              (finalizer, last) => finalizer.setContinuationRethrow(
-                    () => _getVariableBoxed(catch_.exception!),
-                    () => _getVariable(catch_.stackTrace!),
-                  ));
+            (finalizer, last) => finalizer.setContinuationRethrow(
+              () => _getVariableBoxed(catch_.exception!),
+              () => _getVariable(catch_.stackTrace!),
+            ),
+          );
           b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
         }
         b.end();
@@ -1049,13 +1102,17 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
       setVariable(catch_.exception!, () {
         getSuspendStateCurrentException();
         // Type test already passed, convert the exception.
-        translator.convertType(b, translator.topType,
-            translator.translateType(catch_.exception!.type));
+        translator.convertType(
+          b,
+          translator.topType,
+          translator.translateType(catch_.exception!.type),
+        );
       });
       setVariable(catch_.stackTrace!, () => getSuspendStateCurrentStackTrace());
 
-      catchVariableStack
-          .add(CatchVariables._(catch_.exception!, catch_.stackTrace!));
+      catchVariableStack.add(
+        CatchVariables._(catch_.exception!, catch_.stackTrace!),
+      );
 
       translateStatement(catch_.body);
 
@@ -1239,8 +1296,10 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     b.local_set(stackTraceLocal);
 
     exceptionHandlers.forEachFinalizer((finalizer, last) {
-      finalizer.setContinuationRethrow(() => b.local_get(exceptionLocal),
-          () => b.local_get(stackTraceLocal));
+      finalizer.setContinuationRethrow(
+        () => b.local_get(exceptionLocal),
+        () => b.local_get(stackTraceLocal),
+      );
     });
 
     // TODO (omersa): An alternative would be to directly jump to the parent

@@ -21,23 +21,30 @@ class DependenciesCollector {
   final Map<TreeNode, ProcedureAttributesMetadata> procedureAttributeMetadata;
 
   late final _checkLibraryIsLoadedFromLoadId = _coreTypes.index.getProcedure(
-      'dart:_internal',
-      LibraryIndex.topLevel,
-      'checkLibraryIsLoadedFromLoadId');
+    'dart:_internal',
+    LibraryIndex.topLevel,
+    'checkLibraryIsLoadedFromLoadId',
+  );
 
   late final _loadLibraryFromLoadId = _coreTypes.index.getProcedure(
-      'dart:_internal', LibraryIndex.topLevel, 'loadLibraryFromLoadId');
+    'dart:_internal',
+    LibraryIndex.topLevel,
+    'loadLibraryFromLoadId',
+  );
 
-  late final _exportWasmFunction = _coreTypes.index
-      .getTopLevelMember('dart:_internal', 'exportWasmFunction');
+  late final _exportWasmFunction = _coreTypes.index.getTopLevelMember(
+    'dart:_internal',
+    'exportWasmFunction',
+  );
 
   DependenciesCollector(
-      this.procedureAttributeMetadata,
-      this._coreTypes,
-      this._classHierarchy,
-      this._devirtualizionOracle,
-      this._loadingMap,
-      this._assertsEnabled);
+    this.procedureAttributeMetadata,
+    this._coreTypes,
+    this._classHierarchy,
+    this._devirtualizionOracle,
+    this._loadingMap,
+    this._assertsEnabled,
+  );
 
   /// Returns the set of constants referred to by the (possibly composed)
   /// [constant].
@@ -68,14 +75,15 @@ class DependenciesCollector {
     }
 
     final collector = _ReferenceDependenciesCollector._(
-        procedureAttributeMetadata,
-        _recognizeDeferredLoadingGuard,
-        _disableAllGuards,
-        _classHierarchy,
-        _devirtualizionOracle,
-        _assertsEnabled,
-        reference,
-        deps);
+      procedureAttributeMetadata,
+      _recognizeDeferredLoadingGuard,
+      _disableAllGuards,
+      _classHierarchy,
+      _devirtualizionOracle,
+      _assertsEnabled,
+      reference,
+      deps,
+    );
 
     // We collect dependencies of [node] and therefore only have to visit
     // AST elements that represent code (such as `FunctionNode`, `Initializer`).
@@ -102,8 +110,10 @@ class DependenciesCollector {
         // initializers are initialized at constructor invocation time not at
         // field access time. The field itself doesn't have a storage location
         // (like a static field).
-        assert(node.getterReference == reference ||
-            node.hasSetter && node.setterReference == reference);
+        assert(
+          node.getterReference == reference ||
+              node.hasSetter && node.setterReference == reference,
+        );
       } else {
         if (node.getterReference == reference) {
           // A static getter may invoke the initializer and accesses the storage
@@ -146,21 +156,24 @@ class DependenciesCollector {
     for (final m in klass.members) {
       if (m.isInstanceMember && !m.isAbstract) {
         if (m is Field) {
-          if (!_devirtualizionOracle
-              .isAlwaysStaticallyDispatchedTo(m.getterReference)) {
+          if (!_devirtualizionOracle.isAlwaysStaticallyDispatchedTo(
+            m.getterReference,
+          )) {
             deps.references.add(m.getterReference);
           }
           if (m.hasSetter) {
-            if (!_devirtualizionOracle
-                .isAlwaysStaticallyDispatchedTo(m.setterReference!)) {
+            if (!_devirtualizionOracle.isAlwaysStaticallyDispatchedTo(
+              m.setterReference!,
+            )) {
               deps.references.add(m.setterReference!);
             }
           }
           continue;
         }
         assert(m is Procedure);
-        if (!_devirtualizionOracle
-            .isAlwaysStaticallyDispatchedTo(m.reference)) {
+        if (!_devirtualizionOracle.isAlwaysStaticallyDispatchedTo(
+          m.reference,
+        )) {
           deps.references.add(m.reference);
         }
       }
@@ -180,10 +193,10 @@ class _ConstantDependenciesCollector extends RecursiveVisitor {
 
 class _ReferenceDependenciesCollector extends RecursiveVisitor {
   late final Map<TreeNode, ProcedureAttributesMetadata>
-      _procedureAttributeMetadata;
+  _procedureAttributeMetadata;
 
   final LibraryDependency? Function(StaticInvocation node)
-      _recognizeDeferredLoadingGuard;
+  _recognizeDeferredLoadingGuard;
   final bool Function(StaticInvocation node) _disableAllGuards;
   final DevirtualizionOracle _devirtualizionOracle;
   final ClosedWorldClassHierarchy _classHierarchy;
@@ -194,14 +207,15 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
   final List<LibraryDependency> _activeLoadGuards = [];
 
   _ReferenceDependenciesCollector._(
-      this._procedureAttributeMetadata,
-      this._recognizeDeferredLoadingGuard,
-      this._disableAllGuards,
-      this._classHierarchy,
-      this._devirtualizionOracle,
-      this._assertsEnabled,
-      this.reference,
-      this.deps);
+    this._procedureAttributeMetadata,
+    this._recognizeDeferredLoadingGuard,
+    this._disableAllGuards,
+    this._classHierarchy,
+    this._devirtualizionOracle,
+    this._assertsEnabled,
+    this.reference,
+    this.deps,
+  );
 
   // ---------------------------------------------------------------------------
   // Ensure all AST nodes are handled - in case future AST nodes are added, they
@@ -655,14 +669,19 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
     }
   }
 
-  void _addSuperTargetReference(Member interfaceTarget,
-      {required bool setter}) {
+  void _addSuperTargetReference(
+    Member interfaceTarget, {
+    required bool setter,
+  }) {
     final member = _classHierarchy.getDispatchTarget(
-        (reference.asMember).enclosingClass!.superclass!, interfaceTarget.name,
-        setter: setter)!;
+      (reference.asMember).enclosingClass!.superclass!,
+      interfaceTarget.name,
+      setter: setter,
+    )!;
     if (setter) {
       addReference(
-          member is Field ? member.setterReference! : member.reference);
+        member is Field ? member.setterReference! : member.reference,
+      );
     } else {
       addReference(member is Field ? member.getterReference : member.reference);
     }
@@ -682,8 +701,9 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
 
   void addSelectorUse(Member member, {required bool getter}) {
     final metadata = _procedureAttributeMetadata[member]!;
-    final selectorId =
-        getter ? metadata.getterSelectorId : metadata.methodOrSetterSelectorId;
+    final selectorId = getter
+        ? metadata.getterSelectorId
+        : metadata.methodOrSetterSelectorId;
     if (_activeLoadGuards.isEmpty) {
       if (deps.selectorIds.add(selectorId)) {
         deps.deferredSelectorIds.remove(selectorId);
@@ -864,9 +884,9 @@ ProgramPrefixUsages computePrefixRoots(
   directReferenceDependencies.forEach((_, deps) {
     deps.deferredReferences.forEach((reference, imports) {
       for (final import in imports) {
-        (prefixRoots[import] ??= PrefixUsages(import))
-            .references
-            .add(reference);
+        (prefixRoots[import] ??= PrefixUsages(
+          import,
+        )).references.add(reference);
       }
     });
     deps.deferredConstants.forEach((constant, imports) {
@@ -876,9 +896,9 @@ ProgramPrefixUsages computePrefixRoots(
     });
     deps.deferredSelectorIds.forEach((selectorId, imports) {
       for (final import in imports) {
-        (prefixRoots[import] ??= PrefixUsages(import))
-            .selectorIds
-            .add(selectorId);
+        (prefixRoots[import] ??= PrefixUsages(
+          import,
+        )).selectorIds.add(selectorId);
       }
     });
     deps.deferredDynamicSelectors.forEach((name, imports) {

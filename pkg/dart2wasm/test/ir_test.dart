@@ -52,8 +52,12 @@ void main(List<String> args) async {
       }
 
       final dartCode = File(dartFilename).readAsStringSync();
-      final wasmFile = File(path.join(
-          tempDir, path.setExtension(path.basename(dartFilename), '.wasm')));
+      final wasmFile = File(
+        path.join(
+          tempDir,
+          path.setExtension(path.basename(dartFilename), '.wasm'),
+        ),
+      );
 
       final (settings, compilerOptions) = parseSettings(dartCode);
 
@@ -69,7 +73,7 @@ void main(List<String> args) async {
         '--no-strip-wasm',
         '-o',
         wasmFile.path,
-        dartFilename
+        dartFilename,
       ]);
       if (result.exitCode != 0) {
         print('Compilation failed:');
@@ -84,16 +88,22 @@ void main(List<String> args) async {
       final deferredModuleWasmFiles = wasmFile.parent
           .listSync()
           .whereType<File>()
-          .where((fse) =>
-              fse.path.endsWith('.wasm') &&
-              fse.path.startsWith(deferredModulePrefix))
+          .where(
+            (fse) =>
+                fse.path.endsWith('.wasm') &&
+                fse.path.startsWith(deferredModulePrefix),
+          )
           .toList();
 
       for (final file in [wasmFile, ...deferredModuleWasmFiles]) {
         final module = parseModule(file.readAsBytesSync());
         final wat = module.printAsWat(settings: settings);
-        final watFile = File(path.join(path.dirname(dartFilename),
-            path.setExtension(path.basename(file.path), '.wat')));
+        final watFile = File(
+          path.join(
+            path.dirname(dartFilename),
+            path.setExtension(path.basename(file.path), '.wat'),
+          ),
+        );
 
         if (write) {
           print('-> Updated expectation file: ${watFile.path}');
@@ -121,13 +131,24 @@ void main(List<String> args) async {
 }
 
 final argParser = ArgParser()
-  ..addFlag('help',
-      abbr: 'h', defaultsTo: false, help: 'Prints available options.')
+  ..addFlag(
+    'help',
+    abbr: 'h',
+    defaultsTo: false,
+    help: 'Prints available options.',
+  )
   ..addFlag('src', defaultsTo: false, help: 'Runs the compiler from source.')
-  ..addOption('filter',
-      abbr: 'f', help: 'Runs only tests that match the filter.')
-  ..addFlag('write',
-      abbr: 'w', defaultsTo: false, help: 'Writes new expectation files.');
+  ..addOption(
+    'filter',
+    abbr: 'f',
+    help: 'Runs only tests that match the filter.',
+  )
+  ..addFlag(
+    'write',
+    abbr: 'w',
+    defaultsTo: false,
+    help: 'Writes new expectation files.',
+  );
 
 Iterable<String> listIrTests() {
   return Directory('pkg/dart2wasm/test/ir_tests')
@@ -169,9 +190,7 @@ Module parseModule(Uint8List wasmBytes) {
         }
       }
     }
-    for (final (prefix, list) in [
-      (compilerOption, compilerOptions),
-    ]) {
+    for (final (prefix, list) in [(compilerOption, compilerOptions)]) {
       if (line.startsWith(prefix)) {
         final value = line.substring(prefix.length).trim();
         if (value.isNotEmpty) {
@@ -182,13 +201,14 @@ Module parseModule(Uint8List wasmBytes) {
   }
   return (
     ModulePrintSettings(
-        functionFilters: functionFilters,
-        tableFilters: tableFilters,
-        globalFilters: globalFilters,
-        typeFilters: typeFilters,
-        preferMultiline: true,
-        scrubAbsoluteUris: true,
-        printInSortedOrder: true),
-    compilerOptions
+      functionFilters: functionFilters,
+      tableFilters: tableFilters,
+      globalFilters: globalFilters,
+      typeFilters: typeFilters,
+      preferMultiline: true,
+      scrubAbsoluteUris: true,
+      printInSortedOrder: true,
+    ),
+    compilerOptions,
   );
 }

@@ -96,6 +96,7 @@ class FlutterWidgetPreviewDetector {
             preview.dependencyHasErrors != dependencyHasErrors) {
           node.previews[i] = FlutterWidgetPreviewDetails(
             scriptUri: preview.scriptUri,
+            libraryUri: preview.libraryUri,
             position: preview.position,
             packageName: preview.packageName,
             functionName: preview.functionName,
@@ -149,7 +150,7 @@ final class LibraryPreviewNode {
   void addPreviews({required ResolvedUnitResult unit}) {
     // Iterate over the compilation unit's AST to find previews.
     var visitor = _PreviewVisitor(
-      lib: unit.libraryElement,
+      unit: unit,
       previewNode: this,
       namespaceAllocator: namespaceAllocator,
     );
@@ -243,21 +244,26 @@ class _PreviewVisitor extends RecursiveAstVisitor<void> {
 
   ConstructorDeclaration? _currentConstructor;
   MethodDeclaration? _currentMethod;
-  late Uri _currentScriptUri;
 
-  late CompilationUnit _currentUnit;
+  late ResolvedUnitResult _currentUnit;
+  final LineInfo _lineInfo;
+  final Uri _scriptUri;
+  final Uri _libraryUri;
+
   _PreviewVisitor({
-    required LibraryElement lib,
+    required ResolvedUnitResult unit,
     required this.previewNode,
     required this.namespaceAllocator,
-  }) : packageName = lib.uri.scheme == 'package'
-           ? lib.uri.pathSegments.first
-           : null;
+  }) : packageName = unit.libraryElement.uri.scheme == 'package'
+           ? unit.libraryElement.uri.pathSegments.first
+           : null,
+       _lineInfo = unit.lineInfo,
+       _scriptUri = Uri.file(unit.path),
+       _libraryUri = unit.libraryElement.uri;
 
   void findPreviewsInResolvedUnitResult(ResolvedUnitResult unit) {
-    _currentScriptUri = unit.uri;
-    _currentUnit = unit.unit;
-    _currentUnit.visitChildren(this);
+    _currentUnit = unit;
+    _currentUnit.unit.visitChildren(this);
   }
 
   bool hasRequiredParams(FormalParameterList? params) {
@@ -277,8 +283,7 @@ class _PreviewVisitor extends RecursiveAstVisitor<void> {
     if (preview == null) {
       return;
     }
-    LineInfo lineInfo = _currentUnit.lineInfo;
-    CharacterLocation location = lineInfo.getLocation(node.offset);
+    CharacterLocation location = _lineInfo.getLocation(node.offset);
     int line = location.lineNumber;
     int column = location.columnNumber;
     var hasError = previewNode.hasErrors;
@@ -289,7 +294,8 @@ class _PreviewVisitor extends RecursiveAstVisitor<void> {
       required bool isWidgetBuilder,
     }) {
       return FlutterWidgetPreviewDetails(
-        scriptUri: _currentScriptUri,
+        scriptUri: _scriptUri,
+        libraryUri: _libraryUri,
         position: Position(character: column, line: line),
         packageName: packageName,
         functionName: functionName,

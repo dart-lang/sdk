@@ -351,19 +351,19 @@ abstract class Listener implements UnescapeErrorListener {
   /// - constructor name (if [hasConstructorName] is `true`)
   /// - formals
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     logEvent('PrimaryConstructor');
   }
 
   /// Handle the omission of a primary constructor declaration.
   void handleNoPrimaryConstructor(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {}
 
   void beginPrimaryConstructorBody(Token token) {}

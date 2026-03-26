@@ -48,8 +48,10 @@ Future d0() async {
 
 void testAssertStatement() {
   assertStatementUnguarded1();
-  assert(D1.guardedBool ? assertStatementGuarded1() : assertStatementGuarded2(),
-      '${assertStatementGuarded3()}');
+  assert(
+    D1.guardedBool ? assertStatementGuarded1() : assertStatementGuarded2(),
+    '${assertStatementGuarded3()}',
+  );
   assertStatementGuarded4();
 }
 
@@ -61,8 +63,10 @@ dynamic assertStatementGuarded4() => opaque;
 
 void testAssertStatement2() {
   assertStatement2Unguarded1();
-  assert(unguardedBool ? D1.guardedFun() : assertStatement2Unguarded2(),
-      '${assertStatement2Unguarded3()}');
+  assert(
+    unguardedBool ? D1.guardedFun() : assertStatement2Unguarded2(),
+    '${assertStatement2Unguarded3()}',
+  );
   assertStatement2Unguarded4();
 }
 
@@ -252,9 +256,11 @@ dynamic forIn2Guarded1() => opaque;
 dynamic forIn2Unguarded2() => opaque;
 
 void testFor() {
-  for (var a = forUnguarded1(), b = D1.guardedFun(), c = forGuarded1();
-      b < 2;
-      ++b) {
+  for (
+    var a = forUnguarded1(), b = D1.guardedFun(), c = forGuarded1();
+    b < 2;
+    ++b
+  ) {
     forGuarded2();
     print(a);
     print(b);
@@ -283,9 +289,11 @@ dynamic for2Guarded2() => opaque;
 dynamic for2Guarded3() => opaque;
 
 void testFor3() {
-  for (dynamic x = for3Unguarded1();
-      x < for3Unguarded2();
-      x += for3Guarded2()) {
+  for (
+    dynamic x = for3Unguarded1();
+    x < for3Unguarded2();
+    x += for3Guarded2()
+  ) {
     D1.guardedFun();
     for3Guarded1();
     print(x);

@@ -21,13 +21,7 @@ void main() {
   print(memory.loadFloat64(0, align: 3).toDouble());
 
   print(memory.loadFloat32(0, offset: 1, align: 2).toDouble());
-  print(memory
-      .loadFloat32(
-        0,
-        align: 2,
-        offset: 1,
-      )
-      .toDouble());
+  print(memory.loadFloat32(0, align: 2, offset: 1).toDouble());
 
   memory.storeInt32(memory.size, WasmI32.fromInt(32), offset: 10);
 }

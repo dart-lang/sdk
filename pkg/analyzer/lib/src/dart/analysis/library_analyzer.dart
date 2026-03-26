@@ -86,6 +86,10 @@ class LibraryAnalyzer {
   final Map<FileState, FileAnalysis> _libraryFiles = {};
   late final LibraryVerificationContext _libraryVerificationContext;
 
+  /// One verifier per library so that state of elements can be shared across
+  /// fragments in all files of this library.
+  late final InheritanceOverrideVerifier _inheritanceOverrideVerifier;
+
   final TestingData? _testingData;
   final TypeSystemOperations _typeSystemOperations;
 
@@ -110,6 +114,10 @@ class LibraryAnalyzer {
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),
+    );
+    _inheritanceOverrideVerifier = InheritanceOverrideVerifier(
+      _typeSystem,
+      _inheritance,
     );
   }
 
@@ -463,11 +471,7 @@ class LibraryAnalyzer {
     _computeConstantErrors(fileAnalysis);
 
     // Compute inheritance and override errors.
-    InheritanceOverrideVerifier(
-      _typeSystem,
-      _inheritance,
-      diagnosticReporter,
-    ).verifyUnit(unit);
+    _inheritanceOverrideVerifier.verifyUnit(unit, diagnosticReporter);
 
     // Use the ErrorVerifier to compute errors.
     ErrorVerifier errorVerifier = ErrorVerifier(

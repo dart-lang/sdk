@@ -136,18 +136,31 @@ class CoreTypesUtil {
   ///
   /// Return values should be non-nullable.
   late final Map<Class, Procedure> _dartifyNonNullableMap = {
-    coreTypes.boolClass:
-        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartBool'),
-    coreTypes.intClass:
-        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartInt'),
-    coreTypes.doubleClass:
-        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartDouble'),
-    coreTypes.numClass:
-        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartDouble'),
-    coreTypes.stringClass:
-        coreTypes.index.getProcedure('dart:_string', 'JSStringImpl', 'fromRef'),
-    coreTypes.listClass:
-        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartList'),
+    coreTypes.boolClass: coreTypes.index.getTopLevelProcedure(
+      'dart:_js_helper',
+      'toDartBool',
+    ),
+    coreTypes.intClass: coreTypes.index.getTopLevelProcedure(
+      'dart:_js_helper',
+      'toDartInt',
+    ),
+    coreTypes.doubleClass: coreTypes.index.getTopLevelProcedure(
+      'dart:_js_helper',
+      'toDartDouble',
+    ),
+    coreTypes.numClass: coreTypes.index.getTopLevelProcedure(
+      'dart:_js_helper',
+      'toDartDouble',
+    ),
+    coreTypes.stringClass: coreTypes.index.getProcedure(
+      'dart:_string',
+      'JSStringImpl',
+      'fromRef',
+    ),
+    coreTypes.listClass: coreTypes.index.getTopLevelProcedure(
+      'dart:_js_helper',
+      'toDartList',
+    ),
     coreTypes.index.getClass('dart:typed_data', 'Int8List'): coreTypes.index
         .getProcedure('dart:_js_types', 'JSInt8ArrayImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'Uint8List'): coreTypes.index
@@ -178,25 +191,42 @@ class CoreTypesUtil {
   /// These shouldn't throw on `null` or `undefined` arguments and instead
   /// return Dart `null`.
   late final Map<Class, Procedure> _dartifyNullableMap = {
-    coreTypes.boolClass: coreTypes.index
-        .getTopLevelProcedure('dart:_js_helper', 'toDartNullableBool'),
-    coreTypes.intClass: coreTypes.index
-        .getTopLevelProcedure('dart:_js_helper', 'toDartNullableInt'),
-    coreTypes.doubleClass: coreTypes.index
-        .getTopLevelProcedure('dart:_js_helper', 'toDartNullableDouble'),
-    coreTypes.numClass: coreTypes.index
-        .getTopLevelProcedure('dart:_js_helper', 'toDartNullableDouble'),
-    coreTypes.stringClass: coreTypes.index
-        .getProcedure('dart:_string', 'JSStringImpl', 'fromRefNullable'),
-    coreTypes.listClass: coreTypes.index
-        .getTopLevelProcedure('dart:_js_helper', 'toDartNullableList'),
+    coreTypes.boolClass: coreTypes.index.getTopLevelProcedure(
+      'dart:_js_helper',
+      'toDartNullableBool',
+    ),
+    coreTypes.intClass: coreTypes.index.getTopLevelProcedure(
+      'dart:_js_helper',
+      'toDartNullableInt',
+    ),
+    coreTypes.doubleClass: coreTypes.index.getTopLevelProcedure(
+      'dart:_js_helper',
+      'toDartNullableDouble',
+    ),
+    coreTypes.numClass: coreTypes.index.getTopLevelProcedure(
+      'dart:_js_helper',
+      'toDartNullableDouble',
+    ),
+    coreTypes.stringClass: coreTypes.index.getProcedure(
+      'dart:_string',
+      'JSStringImpl',
+      'fromRefNullable',
+    ),
+    coreTypes.listClass: coreTypes.index.getTopLevelProcedure(
+      'dart:_js_helper',
+      'toDartNullableList',
+    ),
     coreTypes.index.getClass('dart:typed_data', 'Int8List'): coreTypes.index
         .getProcedure('dart:_js_types', 'JSInt8ArrayImpl', 'fromRefNullable'),
     coreTypes.index.getClass('dart:typed_data', 'Uint8List'): coreTypes.index
         .getProcedure('dart:_js_types', 'JSUint8ArrayImpl', 'fromRefNullable'),
-    coreTypes.index.getClass('dart:typed_data', 'Uint8ClampedList'):
-        coreTypes.index.getProcedure(
-            'dart:_js_types', 'JSUint8ClampedArrayImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'Uint8ClampedList'): coreTypes
+        .index
+        .getProcedure(
+          'dart:_js_types',
+          'JSUint8ClampedArrayImpl',
+          'fromRefNullable',
+        ),
     coreTypes.index.getClass('dart:typed_data', 'Int16List'): coreTypes.index
         .getProcedure('dart:_js_types', 'JSInt16ArrayImpl', 'fromRefNullable'),
     coreTypes.index.getClass('dart:typed_data', 'Uint16List'): coreTypes.index
@@ -207,10 +237,16 @@ class CoreTypesUtil {
         .getProcedure('dart:_js_types', 'JSUint32ArrayImpl', 'fromRefNullable'),
     coreTypes.index.getClass('dart:typed_data', 'Float32List'): coreTypes.index
         .getProcedure(
-            'dart:_js_types', 'JSFloat32ArrayImpl', 'fromRefNullable'),
+          'dart:_js_types',
+          'JSFloat32ArrayImpl',
+          'fromRefNullable',
+        ),
     coreTypes.index.getClass('dart:typed_data', 'Float64List'): coreTypes.index
         .getProcedure(
-            'dart:_js_types', 'JSFloat64ArrayImpl', 'fromRefNullable'),
+          'dart:_js_types',
+          'JSFloat64ArrayImpl',
+          'fromRefNullable',
+        ),
     coreTypes.index.getClass('dart:typed_data', 'ByteBuffer'): coreTypes.index
         .getProcedure('dart:_js_types', 'JSArrayBufferImpl', 'fromRefNullable'),
     coreTypes.index.getClass('dart:typed_data', 'ByteData'): coreTypes.index
@@ -218,155 +254,289 @@ class CoreTypesUtil {
   };
 
   CoreTypesUtil(this.coreTypes, this.extensionIndex)
-      : dartifyRawTarget = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'dartifyRaw'),
-        functionToJSTarget = coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
-        functionToJSCaptureThisTarget = coreTypes.index.getTopLevelProcedure(
-            'dart:js_interop',
-            'FunctionToJSExportedDartFunction|get#toJSCaptureThis'),
-        greaterThanOrEqualToTarget =
-            coreTypes.index.getProcedure('dart:core', 'num', '>='),
-        inlineJSTarget =
-            coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'JS'),
-        isDartFunctionWrappedTarget = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', '_isDartFunctionWrapped'),
-        numToIntTarget =
-            coreTypes.index.getProcedure('dart:core', 'num', 'toInt'),
-        jsifyRawTarget =
-            coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'jsifyRaw'),
-        jsObjectFromDartObjectTarget = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsObjectFromDartObject'),
-        jsValueBoxTarget =
-            coreTypes.index.getProcedure('dart:_js_helper', 'JSValue', 'box'),
-        jsValueClass = coreTypes.index.getClass('dart:_js_helper', 'JSValue'),
-        jsValueUnboxTarget =
-            coreTypes.index.getProcedure('dart:_js_helper', 'JSValue', 'unbox'),
-        wasmExternRefClass =
-            coreTypes.index.getClass('dart:_wasm', 'WasmExternRef'),
-        wasmExternRefNullRef = coreTypes.index
-            .getMember('dart:_wasm', 'WasmExternRef', 'get:nullRef'),
-        wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
-        wasmArrayRefClass =
-            coreTypes.index.getClass('dart:_wasm', 'WasmArrayRef'),
-        wasmI32Class = coreTypes.index.getClass('dart:_wasm', 'WasmI32'),
-        wasmI32ToIntSigned = coreTypes.index
-            .getProcedure('dart:_wasm', 'WasmI32', 'toIntSigned'),
-        wrapDartFunctionTarget = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
-        exportWasmFunctionTarget = coreTypes.index
-            .getTopLevelProcedure('dart:_internal', 'exportWasmFunction'),
-        toJSBoolean = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'toJSBoolean'),
-        jsifyInt =
-            coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'jsifyInt'),
-        toJSNumber = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'toJSNumber'),
-        jsifyNum =
-            coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'jsifyNum'),
-        jsifyJSValue = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSValue'),
-        jsifyString = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyString'),
-        jsifyJSInt8ArrayImpl = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSInt8ArrayImpl'),
-        jsifyJSUint8ArrayImpl = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSUint8ArrayImpl'),
-        jsifyJSUint8ClampedArrayImpl = coreTypes.index.getTopLevelProcedure(
-            'dart:_js_helper', 'jsifyJSUint8ClampedArrayImpl'),
-        jsifyJSInt16ArrayImpl = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSInt16ArrayImpl'),
-        jsifyJSUint16ArrayImpl = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSUint16ArrayImpl'),
-        jsifyJSInt32ArrayImpl = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSInt32ArrayImpl'),
-        jsifyJSUint32ArrayImpl = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSUint32ArrayImpl'),
-        jsifyJSFloat32ArrayImpl = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSFloat32ArrayImpl'),
-        jsifyJSFloat64ArrayImpl = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSFloat64ArrayImpl'),
-        jsInt8ArrayFromDartInt8List = coreTypes.index.getTopLevelProcedure(
-            'dart:_js_helper', 'jsInt8ArrayFromDartInt8List'),
-        jsUint8ArrayFromDartUint8List = coreTypes.index.getTopLevelProcedure(
-            'dart:_js_helper', 'jsUint8ArrayFromDartUint8List'),
-        jsUint8ClampedArrayFromDartUint8ClampedList = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper',
-                'jsUint8ClampedArrayFromDartUint8ClampedList'),
-        jsInt16ArrayFromDartInt16List = coreTypes.index.getTopLevelProcedure(
-            'dart:_js_helper', 'jsInt16ArrayFromDartInt16List'),
-        jsUint16ArrayFromDartUint16List = coreTypes.index.getTopLevelProcedure(
-            'dart:_js_helper', 'jsUint16ArrayFromDartUint16List'),
-        jsInt32ArrayFromDartInt32List = coreTypes.index.getTopLevelProcedure(
-            'dart:_js_helper', 'jsInt32ArrayFromDartInt32List'),
-        jsUint32ArrayFromDartUint32List = coreTypes.index.getTopLevelProcedure(
-            'dart:_js_helper', 'jsUint32ArrayFromDartUint32List'),
-        jsFloat32ArrayFromDartFloat32List = coreTypes.index
-            .getTopLevelProcedure(
-                'dart:_js_helper', 'jsFloat32ArrayFromDartFloat32List'),
-        jsFloat64ArrayFromDartFloat64List = coreTypes.index
-            .getTopLevelProcedure(
-                'dart:_js_helper', 'jsFloat64ArrayFromDartFloat64List'),
-        jsifyJSDataViewImpl = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSDataViewImpl'),
-        jsifyByteData = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyByteData'),
-        jsifyRawList = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', '_jsifyRawList'),
-        jsifyJSArrayBufferImpl = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyJSArrayBufferImpl'),
-        jsArrayBufferFromDartByteBuffer = coreTypes.index.getTopLevelProcedure(
-            'dart:_js_helper', 'jsArrayBufferFromDartByteBuffer'),
-        jsifyFunction = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'jsifyFunction'),
-        thisModuleGetter = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'get:thisModule'),
-        jsInt8ArrayImplClass =
-            coreTypes.index.getClass('dart:_js_types', 'JSInt8ArrayImpl'),
-        jsUint8ArrayImplClass =
-            coreTypes.index.getClass('dart:_js_types', 'JSUint8ArrayImpl'),
-        jsUint8ClampedArrayImplClass = coreTypes.index
-            .getClass('dart:_js_types', 'JSUint8ClampedArrayImpl'),
-        jsInt16ArrayImplClass =
-            coreTypes.index.getClass('dart:_js_types', 'JSInt16ArrayImpl'),
-        jsUint16ArrayImplClass =
-            coreTypes.index.getClass('dart:_js_types', 'JSUint16ArrayImpl'),
-        jsInt32ArrayImplClass =
-            coreTypes.index.getClass('dart:_js_types', 'JSInt32ArrayImpl'),
-        jsUint32ArrayImplClass =
-            coreTypes.index.getClass('dart:_js_types', 'JSUint32ArrayImpl'),
-        jsFloat32ArrayImplClass =
-            coreTypes.index.getClass('dart:_js_types', 'JSFloat32ArrayImpl'),
-        jsFloat64ArrayImplClass =
-            coreTypes.index.getClass('dart:_js_types', 'JSFloat64ArrayImpl'),
-        int8ListClass = coreTypes.index.getClass('dart:typed_data', 'Int8List'),
-        uint8ListClass =
-            coreTypes.index.getClass('dart:typed_data', 'Uint8List'),
-        uint8ClampedListClass =
-            coreTypes.index.getClass('dart:typed_data', 'Uint8ClampedList'),
-        int16ListClass =
-            coreTypes.index.getClass('dart:typed_data', 'Int16List'),
-        uint16ListClass =
-            coreTypes.index.getClass('dart:typed_data', 'Uint16List'),
-        int32ListClass =
-            coreTypes.index.getClass('dart:typed_data', 'Int32List'),
-        uint32ListClass =
-            coreTypes.index.getClass('dart:typed_data', 'Uint32List'),
-        float32ListClass =
-            coreTypes.index.getClass('dart:typed_data', 'Float32List'),
-        float64ListClass =
-            coreTypes.index.getClass('dart:typed_data', 'Float64List'),
-        jsDataViewImplClass =
-            coreTypes.index.getClass('dart:_js_types', 'JSDataViewImpl'),
-        byteDataClass = coreTypes.index.getClass('dart:typed_data', 'ByteData'),
-        byteBufferClass =
-            coreTypes.index.getClass('dart:typed_data', 'ByteBuffer'),
-        jsArrayBufferImplClass =
-            coreTypes.index.getClass('dart:_js_types', 'JSArrayBufferImpl'),
-        isDartNullTarget = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', 'isDartNull'),
-        throwArgumentNullErrorTarget = coreTypes.index.getTopLevelProcedure(
-            'dart:_error_utils', '_throwArgumentNullError');
+    : dartifyRawTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'dartifyRaw',
+      ),
+      functionToJSTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'FunctionToJSExportedDartFunction|get#toJS',
+      ),
+      functionToJSCaptureThisTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'FunctionToJSExportedDartFunction|get#toJSCaptureThis',
+      ),
+      greaterThanOrEqualToTarget = coreTypes.index.getProcedure(
+        'dart:core',
+        'num',
+        '>=',
+      ),
+      inlineJSTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'JS',
+      ),
+      isDartFunctionWrappedTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        '_isDartFunctionWrapped',
+      ),
+      numToIntTarget = coreTypes.index.getProcedure(
+        'dart:core',
+        'num',
+        'toInt',
+      ),
+      jsifyRawTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyRaw',
+      ),
+      jsObjectFromDartObjectTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsObjectFromDartObject',
+      ),
+      jsValueBoxTarget = coreTypes.index.getProcedure(
+        'dart:_js_helper',
+        'JSValue',
+        'box',
+      ),
+      jsValueClass = coreTypes.index.getClass('dart:_js_helper', 'JSValue'),
+      jsValueUnboxTarget = coreTypes.index.getProcedure(
+        'dart:_js_helper',
+        'JSValue',
+        'unbox',
+      ),
+      wasmExternRefClass = coreTypes.index.getClass(
+        'dart:_wasm',
+        'WasmExternRef',
+      ),
+      wasmExternRefNullRef = coreTypes.index.getMember(
+        'dart:_wasm',
+        'WasmExternRef',
+        'get:nullRef',
+      ),
+      wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
+      wasmArrayRefClass = coreTypes.index.getClass(
+        'dart:_wasm',
+        'WasmArrayRef',
+      ),
+      wasmI32Class = coreTypes.index.getClass('dart:_wasm', 'WasmI32'),
+      wasmI32ToIntSigned = coreTypes.index.getProcedure(
+        'dart:_wasm',
+        'WasmI32',
+        'toIntSigned',
+      ),
+      wrapDartFunctionTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        '_wrapDartFunction',
+      ),
+      exportWasmFunctionTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:_internal',
+        'exportWasmFunction',
+      ),
+      toJSBoolean = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'toJSBoolean',
+      ),
+      jsifyInt = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyInt',
+      ),
+      toJSNumber = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'toJSNumber',
+      ),
+      jsifyNum = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyNum',
+      ),
+      jsifyJSValue = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSValue',
+      ),
+      jsifyString = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyString',
+      ),
+      jsifyJSInt8ArrayImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSInt8ArrayImpl',
+      ),
+      jsifyJSUint8ArrayImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSUint8ArrayImpl',
+      ),
+      jsifyJSUint8ClampedArrayImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSUint8ClampedArrayImpl',
+      ),
+      jsifyJSInt16ArrayImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSInt16ArrayImpl',
+      ),
+      jsifyJSUint16ArrayImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSUint16ArrayImpl',
+      ),
+      jsifyJSInt32ArrayImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSInt32ArrayImpl',
+      ),
+      jsifyJSUint32ArrayImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSUint32ArrayImpl',
+      ),
+      jsifyJSFloat32ArrayImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSFloat32ArrayImpl',
+      ),
+      jsifyJSFloat64ArrayImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSFloat64ArrayImpl',
+      ),
+      jsInt8ArrayFromDartInt8List = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsInt8ArrayFromDartInt8List',
+      ),
+      jsUint8ArrayFromDartUint8List = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsUint8ArrayFromDartUint8List',
+      ),
+      jsUint8ClampedArrayFromDartUint8ClampedList = coreTypes.index
+          .getTopLevelProcedure(
+            'dart:_js_helper',
+            'jsUint8ClampedArrayFromDartUint8ClampedList',
+          ),
+      jsInt16ArrayFromDartInt16List = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsInt16ArrayFromDartInt16List',
+      ),
+      jsUint16ArrayFromDartUint16List = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsUint16ArrayFromDartUint16List',
+      ),
+      jsInt32ArrayFromDartInt32List = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsInt32ArrayFromDartInt32List',
+      ),
+      jsUint32ArrayFromDartUint32List = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsUint32ArrayFromDartUint32List',
+      ),
+      jsFloat32ArrayFromDartFloat32List = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsFloat32ArrayFromDartFloat32List',
+      ),
+      jsFloat64ArrayFromDartFloat64List = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsFloat64ArrayFromDartFloat64List',
+      ),
+      jsifyJSDataViewImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSDataViewImpl',
+      ),
+      jsifyByteData = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyByteData',
+      ),
+      jsifyRawList = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        '_jsifyRawList',
+      ),
+      jsifyJSArrayBufferImpl = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyJSArrayBufferImpl',
+      ),
+      jsArrayBufferFromDartByteBuffer = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsArrayBufferFromDartByteBuffer',
+      ),
+      jsifyFunction = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'jsifyFunction',
+      ),
+      thisModuleGetter = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'get:thisModule',
+      ),
+      jsInt8ArrayImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSInt8ArrayImpl',
+      ),
+      jsUint8ArrayImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSUint8ArrayImpl',
+      ),
+      jsUint8ClampedArrayImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSUint8ClampedArrayImpl',
+      ),
+      jsInt16ArrayImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSInt16ArrayImpl',
+      ),
+      jsUint16ArrayImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSUint16ArrayImpl',
+      ),
+      jsInt32ArrayImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSInt32ArrayImpl',
+      ),
+      jsUint32ArrayImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSUint32ArrayImpl',
+      ),
+      jsFloat32ArrayImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSFloat32ArrayImpl',
+      ),
+      jsFloat64ArrayImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSFloat64ArrayImpl',
+      ),
+      int8ListClass = coreTypes.index.getClass('dart:typed_data', 'Int8List'),
+      uint8ListClass = coreTypes.index.getClass('dart:typed_data', 'Uint8List'),
+      uint8ClampedListClass = coreTypes.index.getClass(
+        'dart:typed_data',
+        'Uint8ClampedList',
+      ),
+      int16ListClass = coreTypes.index.getClass('dart:typed_data', 'Int16List'),
+      uint16ListClass = coreTypes.index.getClass(
+        'dart:typed_data',
+        'Uint16List',
+      ),
+      int32ListClass = coreTypes.index.getClass('dart:typed_data', 'Int32List'),
+      uint32ListClass = coreTypes.index.getClass(
+        'dart:typed_data',
+        'Uint32List',
+      ),
+      float32ListClass = coreTypes.index.getClass(
+        'dart:typed_data',
+        'Float32List',
+      ),
+      float64ListClass = coreTypes.index.getClass(
+        'dart:typed_data',
+        'Float64List',
+      ),
+      jsDataViewImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSDataViewImpl',
+      ),
+      byteDataClass = coreTypes.index.getClass('dart:typed_data', 'ByteData'),
+      byteBufferClass = coreTypes.index.getClass(
+        'dart:typed_data',
+        'ByteBuffer',
+      ),
+      jsArrayBufferImplClass = coreTypes.index.getClass(
+        'dart:_js_types',
+        'JSArrayBufferImpl',
+      ),
+      isDartNullTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:_js_helper',
+        'isDartNull',
+      ),
+      throwArgumentNullErrorTarget = coreTypes.index.getTopLevelProcedure(
+        'dart:_error_utils',
+        '_throwArgumentNullError',
+      );
 
   DartType get nonNullableObjectType =>
       coreTypes.objectRawType(Nullability.nonNullable);
@@ -386,42 +556,57 @@ class CoreTypesUtil {
       extensionIndex.isExternalDartReferenceType(type);
 
   void annotateProcedure(
-      Procedure procedure, String pragmaOptionString, AnnotationType type) {
+    Procedure procedure,
+    String pragmaOptionString,
+    AnnotationType type,
+  ) {
     String pragmaNameType = switch (type) {
       AnnotationType.import => 'import',
       AnnotationType.export => 'export',
       AnnotationType.weakExport => 'weak-export',
     };
-    procedure.addAnnotation(ConstantExpression(
+    procedure.addAnnotation(
+      ConstantExpression(
         InstanceConstant(coreTypes.pragmaClass.reference, [], {
-      coreTypes.pragmaName.fieldReference:
-          StringConstant('wasm:$pragmaNameType'),
-      coreTypes.pragmaOptions.fieldReference: StringConstant(pragmaOptionString)
-    })));
+          coreTypes.pragmaName.fieldReference: StringConstant(
+            'wasm:$pragmaNameType',
+          ),
+          coreTypes.pragmaOptions.fieldReference: StringConstant(
+            pragmaOptionString,
+          ),
+        }),
+      ),
+    );
   }
 
   Expression variableCheckConstant(
-          VariableDeclaration variable, Constant constant) =>
-      StaticInvocation(coreTypes.identicalProcedure,
-          Arguments([VariableGet(variable), ConstantExpression(constant)]));
+    VariableDeclaration variable,
+    Constant constant,
+  ) => StaticInvocation(
+    coreTypes.identicalProcedure,
+    Arguments([VariableGet(variable), ConstantExpression(constant)]),
+  );
 
   Expression variableGreaterThanOrEqualToConstant(
-          VariableDeclaration variable, Constant constant) =>
-      InstanceInvocation(
-        InstanceAccessKind.Instance,
-        VariableGet(variable),
-        greaterThanOrEqualToTarget.name,
-        Arguments([ConstantExpression(constant)]),
-        interfaceTarget: greaterThanOrEqualToTarget,
-        functionType: greaterThanOrEqualToTarget.getterType as FunctionType,
-      );
+    VariableDeclaration variable,
+    Constant constant,
+  ) => InstanceInvocation(
+    InstanceAccessKind.Instance,
+    VariableGet(variable),
+    greaterThanOrEqualToTarget.name,
+    Arguments([ConstantExpression(constant)]),
+    interfaceTarget: greaterThanOrEqualToTarget,
+    functionType: greaterThanOrEqualToTarget.getterType as FunctionType,
+  );
 
   /// Cast the [invocation] if needed to conform to the expected [expectedType].
   ///
   /// [expectedType] is the return type of the interop function, as written by
   /// the user.
   Expression castInvocationForReturn(
-      Expression invocation, DartType expectedType) {
+    Expression invocation,
+    DartType expectedType,
+  ) {
     Expression expression;
     if (expectedType is VoidType) {
       // Technically a `void` return value can still be used, by casting the
@@ -430,7 +615,9 @@ class CoreTypesUtil {
       // never be used in practice is too much, so we avoid `dartifyRaw` on
       // `void` returns and always return `null`.
       return BlockExpression(
-          Block([ExpressionStatement(invocation)]), NullLiteral());
+        Block([ExpressionStatement(invocation)]),
+        NullLiteral(),
+      );
     }
 
     if (isJSValueType(expectedType)) {
@@ -446,14 +633,19 @@ class CoreTypesUtil {
     } else {
       final expectedTypeExtensionTypeErasure =
           expectedType.extensionTypeErasure;
-      final conversionProcedure =
-          _dartConversionProcedure(expectedTypeExtensionTypeErasure);
-      final invocationValueVar = VariableDeclaration('#jsInvocation',
-          initializer: invocation,
-          type: nullableWasmExternRefType,
-          isSynthesized: true);
-      expression = Let(invocationValueVar,
-          invokeOneArg(conversionProcedure, VariableGet(invocationValueVar)));
+      final conversionProcedure = _dartConversionProcedure(
+        expectedTypeExtensionTypeErasure,
+      );
+      final invocationValueVar = VariableDeclaration(
+        '#jsInvocation',
+        initializer: invocation,
+        type: nullableWasmExternRefType,
+        isSynthesized: true,
+      );
+      expression = Let(
+        invocationValueVar,
+        invokeOneArg(conversionProcedure, VariableGet(invocationValueVar)),
+      );
     }
 
     return expression;
@@ -476,30 +668,41 @@ class CoreTypesUtil {
       //      } else {
       //        throw;
       //      }
-      VariableDeclaration v = VariableDeclaration('#vardouble',
-          initializer:
-              AsExpression(expression, coreTypes.doubleNullableRawType),
-          type: coreTypes.doubleNullableRawType,
-          isSynthesized: true);
-      VariableDeclaration v2 = VariableDeclaration('#varint',
-          initializer: invokeMethod(v, numToIntTarget),
-          type: coreTypes.intNonNullableRawType,
-          isSynthesized: true);
+      VariableDeclaration v = VariableDeclaration(
+        '#vardouble',
+        initializer: AsExpression(expression, coreTypes.doubleNullableRawType),
+        type: coreTypes.doubleNullableRawType,
+        isSynthesized: true,
+      );
+      VariableDeclaration v2 = VariableDeclaration(
+        '#varint',
+        initializer: invokeMethod(v, numToIntTarget),
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true,
+      );
       expression = Let(
-          v,
-          ConditionalExpression(
-              variableCheckConstant(v, NullConstant()),
-              ConstantExpression(NullConstant()),
-              Let(
-                  v2,
-                  ConditionalExpression(
-                      invokeMethod(v, coreTypes.objectEquals,
-                          Arguments([VariableGet(v2)])),
-                      VariableGet(v2),
-                      Throw(StringLiteral(
-                          'Expected integer value, but was not integer.')),
-                      coreTypes.intNonNullableRawType)),
-              coreTypes.intNullableRawType));
+        v,
+        ConditionalExpression(
+          variableCheckConstant(v, NullConstant()),
+          ConstantExpression(NullConstant()),
+          Let(
+            v2,
+            ConditionalExpression(
+              invokeMethod(
+                v,
+                coreTypes.objectEquals,
+                Arguments([VariableGet(v2)]),
+              ),
+              VariableGet(v2),
+              Throw(
+                StringLiteral('Expected integer value, but was not integer.'),
+              ),
+              coreTypes.intNonNullableRawType,
+            ),
+          ),
+          coreTypes.intNullableRawType,
+        ),
+      );
     }
     return AsExpression(expression, staticType);
   }
@@ -517,14 +720,20 @@ class CoreTypesUtil {
   /// non-nullable. This function asserts that [valueType] is non-nullable
   /// so that the argument passed to the conversion function won't be `null`.
   Procedure? _jsConversionProcedure(
-      DartType valueType, DartType expectedType, TypeEnvironment typeEnv) {
+    DartType valueType,
+    DartType expectedType,
+    TypeEnvironment typeEnv,
+  ) {
     assert(
-        valueType is DynamicType ||
-            valueType.nullability == Nullability.nonNullable,
-        'valueType: $valueType');
+      valueType is DynamicType ||
+          valueType.nullability == Nullability.nonNullable,
+      'valueType: $valueType',
+    );
     if (expectedType == coreTypes.doubleNonNullableRawType) {
-      assert(valueType is InterfaceType &&
-          valueType.classNode == coreTypes.doubleClass);
+      assert(
+        valueType is InterfaceType &&
+            valueType.classNode == coreTypes.doubleClass,
+      );
       return null;
     }
 
@@ -532,12 +741,16 @@ class CoreTypesUtil {
       return null;
     }
 
-    assert(expectedType == nullableWasmExternRefType,
-        'Unexpected expected type: $expectedType');
+    assert(
+      expectedType == nullableWasmExternRefType,
+      'Unexpected expected type: $expectedType',
+    );
 
     for (final entry in _jsifyMap.entries) {
       if (typeEnv.isSubtypeOf(
-          valueType, InterfaceType(entry.key, Nullability.nonNullable))) {
+        valueType,
+        InterfaceType(entry.key, Nullability.nonNullable),
+      )) {
         return entry.value;
       }
     }
@@ -566,35 +779,48 @@ class CoreTypesUtil {
 StaticInvocation invokeOneArg(Procedure target, Expression arg) =>
     StaticInvocation(target, Arguments([arg]));
 
-InstanceInvocation invokeMethod(VariableDeclaration receiver, Procedure target,
-        [Arguments? arguments]) =>
-    InstanceInvocation(InstanceAccessKind.Instance, VariableGet(receiver),
-        target.name, arguments ?? Arguments([]),
-        interfaceTarget: target,
-        functionType:
-            target.function.computeFunctionType(Nullability.nonNullable));
+InstanceInvocation invokeMethod(
+  VariableDeclaration receiver,
+  Procedure target, [
+  Arguments? arguments,
+]) => InstanceInvocation(
+  InstanceAccessKind.Instance,
+  VariableGet(receiver),
+  target.name,
+  arguments ?? Arguments([]),
+  interfaceTarget: target,
+  functionType: target.function.computeFunctionType(Nullability.nonNullable),
+);
 
 bool parametersNeedParens(List<String> parameters) =>
     parameters.isEmpty || parameters.length > 1;
 
-Expression jsifyValue(VariableDeclaration variable, DartType expectedType,
-    CoreTypesUtil coreTypes, TypeEnvironment typeEnv) {
+Expression jsifyValue(
+  VariableDeclaration variable,
+  DartType expectedType,
+  CoreTypesUtil coreTypes,
+  TypeEnvironment typeEnv,
+) {
   Expression? conversion;
 
   if (coreTypes.extensionIndex.isStaticInteropType(variable.type) ||
       coreTypes.extensionIndex.isExternalDartReferenceType(variable.type)) {
-    conversion =
-        invokeOneArg(coreTypes.jsValueUnboxTarget, VariableGet(variable));
+    conversion = invokeOneArg(
+      coreTypes.jsValueUnboxTarget,
+      VariableGet(variable),
+    );
   } else if (variable.type is VoidType ||
       coreTypes.coreTypes.isNull(variable.type)) {
     conversion = StaticGet(coreTypes.wasmExternRefNullRef);
   } else {
     final conversionProcedure = coreTypes._jsConversionProcedure(
-        // We check for null before invoking the conversion procedure.
-        variable.type.extensionTypeErasure
-            .withDeclaredNullability(Nullability.nonNullable),
-        expectedType,
-        typeEnv);
+      // We check for null before invoking the conversion procedure.
+      variable.type.extensionTypeErasure.withDeclaredNullability(
+        Nullability.nonNullable,
+      ),
+      expectedType,
+      typeEnv,
+    );
     if (conversionProcedure != null) {
       conversion = invokeOneArg(conversionProcedure, VariableGet(variable));
     }
@@ -604,10 +830,11 @@ Expression jsifyValue(VariableDeclaration variable, DartType expectedType,
 
   if (variable.type.isPotentiallyNullable) {
     return ConditionalExpression(
-        EqualsNull(VariableGet(variable)),
-        StaticGet(coreTypes.wasmExternRefNullRef),
-        conversion,
-        InterfaceType(coreTypes.wasmExternRefClass, Nullability.nullable));
+      EqualsNull(VariableGet(variable)),
+      StaticGet(coreTypes.wasmExternRefNullRef),
+      conversion,
+      InterfaceType(coreTypes.wasmExternRefClass, Nullability.nullable),
+    );
   } else {
     return conversion;
   }

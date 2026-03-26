@@ -122,11 +122,11 @@ extension ReferenceAs on Member {
     Member member = this;
     return member is Field
         ? setter
-            ? member.setterReference!
-            : member.getterReference
+              ? member.setterReference!
+              : member.getterReference
         : getter && member is Procedure && member.kind == ProcedureKind.Method
-            ? member.tearOffReference
-            : member.reference;
+        ? member.tearOffReference
+        : member.reference;
   }
 }
 
@@ -138,8 +138,10 @@ bool _memberCanHaveMultipleEntryPoints(Member member) {
     return true;
   }
   if (member is Procedure &&
-      const [ProcedureKind.Method, ProcedureKind.Operator]
-          .contains(member.kind) &&
+      const [
+        ProcedureKind.Method,
+        ProcedureKind.Operator,
+      ].contains(member.kind) &&
       (member.function.positionalParameters.isNotEmpty ||
           member.function.namedParameters.isNotEmpty ||
           member.function.typeParameters.isNotEmpty)) {

@@ -16,12 +16,10 @@
 
 namespace dart {
 
-// The single thread local key which stores all the thread local data
-// for a thread.
-ThreadLocalKey OSThread::thread_key_ = kUnsetThreadLocalKey;
 OSThread* OSThread::thread_list_head_ = nullptr;
 Mutex* OSThread::thread_list_lock_ = nullptr;
 bool OSThread::creation_enabled_ = false;
+thread_local OSThreadPtr OSThread::current_os_thread_ = {};
 
 #if defined(SUPPORT_TIMELINE)
 inline void UpdateTimelineTrackMetadata(const OSThread& thread) {
@@ -85,6 +83,11 @@ OSThread* OSThread::CreateOSThread() {
   OSThread* os_thread = new OSThread();
   AddThreadToListLocked(os_thread);
   return os_thread;
+}
+
+OSThreadPtr::~OSThreadPtr() {
+  delete thread_;
+  thread_ = nullptr;
 }
 
 OSThread::~OSThread() {
@@ -169,23 +172,12 @@ bool OSThread::ThreadInterruptsEnabled() {
 }
 #endif  // defined(DART_INCLUDE_PROFILER)
 
-static void DeleteThread(void* thread) {
-  MSAN_UNPOISON(&thread, sizeof(thread));
-  delete reinterpret_cast<OSThread*>(thread);
-}
-
 void OSThread::Init() {
   // Allocate the global OSThread lock.
   if (thread_list_lock_ == nullptr) {
     thread_list_lock_ = new Mutex();
   }
   ASSERT(thread_list_lock_ != nullptr);
-
-  // Create the thread local key.
-  if (thread_key_ == kUnsetThreadLocalKey) {
-    thread_key_ = CreateThreadLocal(DeleteThread);
-  }
-  ASSERT(thread_key_ != kUnsetThreadLocalKey);
 
   // Enable creation of OSThread structures in the VM.
   EnableOSThreadCreation();
@@ -198,15 +190,10 @@ void OSThread::Init() {
 }
 
 void OSThread::Cleanup() {
-// We cannot delete the thread local key and thread list lock,  yet.
+// We cannot delete the thread list lock, yet.
 // See the note on thread_list_lock_ in os_thread.h.
 #if 0
   if (thread_list_lock_ != nullptr) {
-    // Delete the thread local key.
-    ASSERT(thread_key_ != kUnsetThreadLocalKey);
-    DeleteThreadLocal(thread_key_);
-    thread_key_ = kUnsetThreadLocalKey;
-
     // Delete the global OSThread lock.
     ASSERT(thread_list_lock_ != nullptr);
     delete thread_list_lock_;
@@ -331,7 +318,7 @@ void OSThread::RemoveThreadFromList(OSThread* thread) {
 DART_NOINLINE
 void OSThread::SetCurrentTLS(BaseThread* value) {
   // Provides thread-local destructors.
-  SetThreadLocal(thread_key_, reinterpret_cast<uword>(value));
+  current_os_thread_.set(static_cast<OSThread*>(value));
 
   // Allows the C compiler more freedom to optimize.
   if ((value != nullptr) && !value->is_os_thread()) {

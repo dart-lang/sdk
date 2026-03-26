@@ -27,14 +27,20 @@ class ModuleMetadataBuilder {
 
   ModuleMetadataBuilder(this.options);
 
-  ModuleMetadata buildModuleMetadata(
-      {bool emitAsMain = false, bool skipEmit = false}) {
+  ModuleMetadata buildModuleMetadata({
+    bool emitAsMain = false,
+    bool skipEmit = false,
+  }) {
     final id = _counter++;
-    final moduleImportName =
-        options.translatorOptions.minify ? intToMinString(id) : 'module$id';
-    return ModuleMetadata._(moduleImportName,
-        options.moduleNameForId(options.outputFile, id, emitAsMain: emitAsMain),
-        skipEmit: skipEmit, isMain: id == WasmCompilerOptions.mainModuleId);
+    final moduleImportName = options.translatorOptions.minify
+        ? intToMinString(id)
+        : 'module$id';
+    return ModuleMetadata._(
+      moduleImportName,
+      options.moduleNameForId(options.outputFile, id, emitAsMain: emitAsMain),
+      skipEmit: skipEmit,
+      isMain: id == WasmCompilerOptions.mainModuleId,
+    );
   }
 }
 
@@ -59,8 +65,12 @@ class ModuleMetadata {
   /// Whether or not a wasm file should be emitted for this module.
   final bool skipEmit;
 
-  ModuleMetadata._(this.moduleImportName, this.moduleName,
-      {this.skipEmit = false, this.isMain = false});
+  ModuleMetadata._(
+    this.moduleImportName,
+    this.moduleName, {
+    this.skipEmit = false,
+    this.isMain = false,
+  });
 
   @override
   String toString() => moduleImportName;
@@ -84,26 +94,28 @@ class ModuleOutputData {
   final ModuleMetadata? defaultModule;
 
   ModuleOutputData.fineGrainedSplit(
-      this.modules,
-      this.referenceToModuleMetadata,
-      this.constantToModuleMetadata,
-      this.defaultModule)
-      : libraryToModuleMetadata = null,
-        assert(modules[0].isMain);
+    this.modules,
+    this.referenceToModuleMetadata,
+    this.constantToModuleMetadata,
+    this.defaultModule,
+  ) : libraryToModuleMetadata = null,
+      assert(modules[0].isMain);
 
   ModuleOutputData.librarySplit(
-      this.modules, this.libraryToModuleMetadata, this.defaultModule)
-      : referenceToModuleMetadata = null,
-        constantToModuleMetadata = null,
-        assert(modules[0].isMain);
+    this.modules,
+    this.libraryToModuleMetadata,
+    this.defaultModule,
+  ) : referenceToModuleMetadata = null,
+      constantToModuleMetadata = null,
+      assert(modules[0].isMain);
 
   ModuleOutputData.monolithic(ModuleMetadata module)
-      : modules = [module],
-        libraryToModuleMetadata = null,
-        referenceToModuleMetadata = null,
-        constantToModuleMetadata = null,
-        defaultModule = module,
-        assert(module.isMain);
+    : modules = [module],
+      libraryToModuleMetadata = null,
+      referenceToModuleMetadata = null,
+      constantToModuleMetadata = null,
+      defaultModule = module,
+      assert(module.isMain);
 
   ModuleMetadata get mainModule => modules[0];
   Iterable<ModuleMetadata> get deferredModules => modules.skip(1);
@@ -188,15 +200,17 @@ class DefaultModuleStrategy extends ModuleStrategy {
 
   @override
   Future<void> processComponentAfterTfa(
-      DeferredModuleLoadingMap loadingMap) async {}
+    DeferredModuleLoadingMap loadingMap,
+  ) async {}
 }
 
 bool containsWasmExport(CoreTypes coreTypes, Library lib) {
   if (lib.members.any((m) => hasWasmExportPragma(coreTypes, m))) {
     return true;
   }
-  return lib.classes
-      .any((c) => c.members.any((m) => hasWasmExportPragma(coreTypes, m)));
+  return lib.classes.any(
+    (c) => c.members.any((m) => hasWasmExportPragma(coreTypes, m)),
+  );
 }
 
 abstract class ModuleStrategy {
@@ -207,7 +221,10 @@ abstract class ModuleStrategy {
 }
 
 Set<Library> getReachableLibraries(
-    Library entryPoint, CoreTypes coreTypes, WasmTarget kernelTarget) {
+  Library entryPoint,
+  CoreTypes coreTypes,
+  WasmTarget kernelTarget,
+) {
   final List<Library> queue = [entryPoint];
   final Set<Library> reachable = {entryPoint};
   while (queue.isNotEmpty) {
@@ -236,7 +253,10 @@ class DeferredModuleLoadingMap {
   final List<List<ModuleMetadata>> moduleMap;
 
   DeferredModuleLoadingMap._(
-      this.loadIds, this.moduleMap, this.loadIdToDeferredImport);
+    this.loadIds,
+    this.moduleMap,
+    this.loadIdToDeferredImport,
+  );
 
   factory DeferredModuleLoadingMap.fromComponent(Component c) {
     int nextLoadId = 0;
@@ -253,11 +273,17 @@ class DeferredModuleLoadingMap {
       }
     }
     return DeferredModuleLoadingMap._(
-        loadIds, moduleMap, loadIdToDeferredImport);
+      loadIds,
+      moduleMap,
+      loadIdToDeferredImport,
+    );
   }
 
   void addModuleToLibraryImport(
-      Library lib, String importName, List<ModuleMetadata> modules) {
+    Library lib,
+    String importName,
+    List<ModuleMetadata> modules,
+  ) {
     moduleMap[loadIds[(lib, importName)]!].addAll(modules);
   }
 }

@@ -23,13 +23,24 @@ class MethodCollector {
   // generate something short and unique.
   String generateMethodName() => '_${_methodN++}';
 
-  Procedure addInteropProcedure(String name, String pragmaOptionString,
-      FunctionNode function, Uri fileUri, AnnotationType type,
-      {required bool isExternal, Library? library}) {
+  Procedure addInteropProcedure(
+    String name,
+    String pragmaOptionString,
+    FunctionNode function,
+    Uri fileUri,
+    AnnotationType type, {
+    required bool isExternal,
+    Library? library,
+  }) {
     library ??= _library;
     final procedure = Procedure(
-        Name(name, library), ProcedureKind.Method, function,
-        isStatic: true, isExternal: isExternal, fileUri: fileUri);
+      Name(name, library),
+      ProcedureKind.Method,
+      function,
+      isStatic: true,
+      isExternal: isExternal,
+      fileUri: fileUri,
+    );
     _util.annotateProcedure(procedure, pragmaOptionString, type);
     library.addProcedure(procedure);
     return procedure;

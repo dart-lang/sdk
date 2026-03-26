@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
@@ -75,8 +74,12 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
     if (_categorizeWasmExtern(node) == ExternType.memory) {
       final parsed = MemoryLimits.readAnnotation(this, node);
       if (parsed == null) {
-        _diagnosticReporter.report(diag.wasmExternMemoryMissingAnnotation,
-            node.fileOffset, 1, node.fileUri);
+        _diagnosticReporter.report(
+          diag.wasmExternMemoryMissingAnnotation,
+          node.fileOffset,
+          1,
+          node.fileUri,
+        );
       }
     }
 
@@ -95,8 +98,12 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
       if (isTearOff) {
         // Reference to a getter generated to implement tear offs, e.g. in
         // memory.fill (as opposed to a direct memory.fill(a, b, c) call).
-        _diagnosticReporter.report(diag.wasmIntrinsicTearOff, node.fileOffset,
-            1, _currentMember!.fileUri);
+        _diagnosticReporter.report(
+          diag.wasmIntrinsicTearOff,
+          node.fileOffset,
+          1,
+          _currentMember!.fileUri,
+        );
       }
 
       if (_isWasmMemoryRef(memory)) {
@@ -112,19 +119,25 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
           if (named.name case 'align' || 'offset') {
             if (extractIntValue(named.value) == null) {
               _diagnosticReporter.report(
-                  diag.constEvalNonConstantVariableGet
-                      .withArguments(name: named.name),
-                  named.value.fileOffset,
-                  1,
-                  _currentMember!.fileUri);
+                diag.constEvalNonConstantVariableGet.withArguments(
+                  name: named.name,
+                ),
+                named.value.fileOffset,
+                1,
+                _currentMember!.fileUri,
+              );
             }
           }
         }
 
         return;
       } else {
-        _diagnosticReporter.report(diag.wasmExternInvalidTarget,
-            node.fileOffset, 0, _currentMember!.fileUri);
+        _diagnosticReporter.report(
+          diag.wasmExternInvalidTarget,
+          node.fileOffset,
+          0,
+          _currentMember!.fileUri,
+        );
       }
     }
 
@@ -137,8 +150,12 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
       // The only valid use of a wasm element is to call an intrinsic extension
       // method on it, in which case an outer visit method would have skipped
       // this node. This get is invalid.
-      _diagnosticReporter.report(diag.wasmExternInvalidLoad, node.fileOffset, 1,
-          _currentMember!.fileUri);
+      _diagnosticReporter.report(
+        diag.wasmExternInvalidLoad,
+        node.fileOffset,
+        1,
+        _currentMember!.fileUri,
+      );
     }
 
     super.visitStaticGet(node);

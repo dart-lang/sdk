@@ -153,11 +153,11 @@ external _prependTypeArguments(
   totalLen,
 );
 
-// Check that a set of type arguments satisfy the type parameter bounds on a
-// closure.
+// Instantiate generic closure with given type arguments.
+// Check type parameter bounds.
 @pragma("vm:entry-point", "call")
-@pragma("vm:external-name", "Internal_boundsCheckForPartialInstantiation")
-external _boundsCheckForPartialInstantiation(closure, typeArgs);
+@pragma("vm:external-name", "Internal_instantiateClosure")
+external _instantiateClosure(closure, typeArgs);
 
 @patch
 @pragma("vm:external-name", "Internal_unsafeCast")

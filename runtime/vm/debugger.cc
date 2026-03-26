@@ -578,7 +578,7 @@ intptr_t ActivationFrame::DeoptId() {
 
 intptr_t ActivationFrame::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
-  const TokenPosition& token_pos = TokenPos();
+  const TokenPosition& token_pos = TokenPos().ToRealIfSynthetic();
   if ((line_number_ < 0) && token_pos.IsReal()) {
     const Script& script = Script::Handle(SourceScript());
     script.GetTokenLocation(token_pos, &line_number_, &column_number_);
@@ -588,7 +588,7 @@ intptr_t ActivationFrame::LineNumber() {
 
 intptr_t ActivationFrame::ColumnNumber() {
   // Compute column number lazily since it causes scanning of the script.
-  const TokenPosition& token_pos = TokenPos();
+  const TokenPosition& token_pos = TokenPos().ToRealIfSynthetic();
   if ((column_number_ < 0) && token_pos.IsReal()) {
     const Script& script = Script::Handle(SourceScript());
     script.GetTokenLocation(token_pos, &line_number_, &column_number_);
@@ -2063,36 +2063,42 @@ DebuggerStackTrace* DebuggerStackTrace::From(const class StackTrace& ex_trace) {
     // pre-allocated trace (such as a stack overflow) or (b) because a stack has
     // fewer frames that the pre-allocated trace (such as memory exhaustion with
     // a shallow stack).
-    if (!code_object.IsNull()) {
-      code ^= code_object.ptr();
+    function = Function::null();
+    uword start = 0;
+    bool is_optimized_code = false;
+    if (code_object.IsCode()) {
+      const auto& code = Code::Cast(code_object);
       ASSERT(code.IsFunctionCode());
       function = code.function();
-      if (function.is_visible()) {
+      start = code.PayloadStart();
+      is_optimized_code = code.is_optimized();
+    } else if (code_object.IsBytecode()) {
+      const auto& bytecode = Bytecode::Cast(code_object);
+      function = bytecode.function();
+      start = bytecode.PayloadStart();
+    }
+    if (function.IsNull() || !function.is_visible()) continue;
+    const uword pc = start + ex_trace.PcOffsetAtFrame(i);
+    if (is_optimized_code && ex_trace.expand_inlined()) {
+      // Traverse inlined frames.
+      code ^= code_object.ptr();
+      for (InlinedFunctionsIterator it(code, pc); !it.Done(); it.Advance()) {
+        function = it.function();
+        code = it.code();
         ASSERT(function.ptr() == code.function());
-        uword pc = code.PayloadStart() + ex_trace.PcOffsetAtFrame(i);
-        if (code.is_optimized() && ex_trace.expand_inlined()) {
-          // Traverse inlined frames.
-          for (InlinedFunctionsIterator it(code, pc); !it.Done();
-               it.Advance()) {
-            function = it.function();
-            code = it.code();
-            ASSERT(function.ptr() == code.function());
-            uword pc = it.pc();
-            ASSERT(pc != 0);
-            ASSERT(code.PayloadStart() <= pc);
-            ASSERT(pc < (code.PayloadStart() + code.Size()));
+        uword pc = it.pc();
+        ASSERT(pc != 0);
+        ASSERT(code.PayloadStart() <= pc);
+        ASSERT(pc < (code.PayloadStart() + code.Size()));
 
-            ActivationFrame* activation = new ActivationFrame(
-                pc, fp, sp, function, code, deopt_frame, deopt_frame_offset);
-            stack_trace->AddActivation(activation);
-          }
-        } else {
-          ActivationFrame* activation = new ActivationFrame(
-              pc, fp, sp, function, code, deopt_frame, deopt_frame_offset);
-          stack_trace->AddActivation(activation);
-        }
+        auto* const activation = new ActivationFrame(
+            pc, fp, sp, function, code, deopt_frame, deopt_frame_offset);
+        stack_trace->AddActivation(activation);
       }
     }
+    auto* const activation = new ActivationFrame(
+        pc, fp, sp, function, code_object, deopt_frame, deopt_frame_offset);
+    stack_trace->AddActivation(activation);
   }
   return stack_trace;
 }

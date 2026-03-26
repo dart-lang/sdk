@@ -26,14 +26,15 @@ class ParameterInfo {
   late final List<String> names = named.keys.toList()..sort();
 
   late final Map<String, int> nameIndex = {
-    for (int i = 0; i < names.length; i++) names[i]: positional.length + i
+    for (int i = 0; i < names.length; i++) names[i]: positional.length + i,
   };
 
   /// A special marker value to use for default parameter values to indicate
   /// that different implementations within the same selector have different
   /// default values.
-  static final Constant defaultValueSentinel =
-      UnevaluatedConstant(InvalidExpression("Default value sentinel"));
+  static final Constant defaultValueSentinel = UnevaluatedConstant(
+    InvalidExpression("Default value sentinel"),
+  );
 
   int get paramCount => positional.length + named.length;
 
@@ -48,11 +49,17 @@ class ParameterInfo {
     }
   }
 
-  ParameterInfo._(this.takesContextOrReceiver, this.typeParamCount,
-      this.positional, this.named);
+  ParameterInfo._(
+    this.takesContextOrReceiver,
+    this.typeParamCount,
+    this.positional,
+    this.named,
+  );
 
   factory ParameterInfo.fromMember(
-      Reference target, bool useDefaultValueSentinel) {
+    Reference target,
+    bool useDefaultValueSentinel,
+  ) {
     final member = target.asMember; // Constructor, Field, or Procedure
     assert(!member.isAbstract || useDefaultValueSentinel);
     final function = member.function;
@@ -67,13 +74,15 @@ class ParameterInfo {
       // Constructor, or static or instance method.
       assert(member is Constructor || member is Procedure);
 
-      final typeParamCount = (member is Constructor
-              ? member.enclosingClass.typeParameters
-              : function.typeParameters)
-          .length;
+      final typeParamCount =
+          (member is Constructor
+                  ? member.enclosingClass.typeParameters
+                  : function.typeParameters)
+              .length;
 
-      final positional =
-          List.generate(function.positionalParameters.length, (i) {
+      final positional = List.generate(function.positionalParameters.length, (
+        i,
+      ) {
         // A required parameter has no default value.
         if (i < function.requiredParameterCount) return null;
         if (useDefaultValueSentinel) return defaultValueSentinel;
@@ -91,7 +100,11 @@ class ParameterInfo {
       };
 
       return ParameterInfo._(
-          member.isInstanceMember, typeParamCount, positional, named);
+        member.isInstanceMember,
+        typeParamCount,
+        positional,
+        named,
+      );
     }
 
     // A setter or getter. A setter parameter has no default value.
@@ -108,7 +121,7 @@ class ParameterInfo {
     });
     final named = {
       for (VariableDeclaration param in function.namedParameters)
-        param.name!: _defaultValue(param)
+        param.name!: _defaultValue(param),
     };
     return ParameterInfo._(true, typeParamCount, positional, named);
   }

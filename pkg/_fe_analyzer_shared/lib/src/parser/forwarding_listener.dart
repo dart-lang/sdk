@@ -2432,26 +2432,26 @@ class ForwardingListener implements Listener {
 
   @override
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     listener?.endPrimaryConstructor(
+      kind,
       beginToken,
       constKeyword,
       hasConstructorName,
-      forExtensionType,
     );
   }
 
   @override
   void handleNoPrimaryConstructor(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {
-    listener?.handleNoPrimaryConstructor(token, constKeyword, forExtensionType);
+    listener?.handleNoPrimaryConstructor(kind, token, constKeyword);
   }
 
   @override

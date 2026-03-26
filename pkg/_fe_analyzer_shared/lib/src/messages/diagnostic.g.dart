@@ -2752,6 +2752,13 @@ const MessageCode typeBeforeFactory = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode typedefAugmentation = const MessageCode(
+  "TypedefAugmentation",
+  sharedCode: SharedCode.typedefAugmentation,
+  problemMessage: """Type aliases can't be augmented.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode typedefInClass = const MessageCode(
   "TypedefInClass",
   sharedCode: SharedCode.typedefInClass,
@@ -3214,6 +3221,7 @@ enum SharedCode {
   typeBeforeFactory,
   typeParameterOnConstructor,
   typeParameterOnOperator,
+  typedefAugmentation,
   typedefInClass,
   unexpectedTokens,
   varAndType,

@@ -53,7 +53,8 @@ class WasmFfiNativeAddressTransformer extends FfiTransformer {
   visitStaticInvocation(StaticInvocation node) {
     if (node.target == nativeAddressOf) {
       return Throw(
-          StringLiteral('Native.addressOf is supported (yet) in dart2wasm.'));
+        StringLiteral('Native.addressOf is supported (yet) in dart2wasm.'),
+      );
     }
     return super.visitStaticInvocation(node);
   }

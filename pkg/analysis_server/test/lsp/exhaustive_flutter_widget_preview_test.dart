@@ -320,8 +320,10 @@ Widget partPreview() => Text('Part');
     expect(result!.previews, hasLength(2));
     expect(result.previews.any((p) => p.functionName == 'mainPreview'), isTrue);
     expect(result.previews.any((p) => p.functionName == 'partPreview'), isTrue);
-    // Use package: URI as observed in the Actual results.
-    expect(result.scriptUris.first.toString(), 'package:test/main.dart');
+    expect(result.previews.map((p) => p.libraryUri.toString()).toSet(), {
+      'package:test/main.dart',
+    });
+    expect(result.scriptUris, [toUri(mainPath), toUri(partPath)]);
   }
 
   Future<void> test_pubWorkspace() async {

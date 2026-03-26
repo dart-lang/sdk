@@ -17,10 +17,16 @@ class SetFactorySpecializer extends BaseSpecializer {
   final Constructor _internalLinkedHashSetConstructor;
 
   SetFactorySpecializer(CoreTypes coreTypes)
-      : _linkedHashSetDefaultFactory = coreTypes.index
-            .getProcedure('dart:collection', 'LinkedHashSet', ''),
-        _internalLinkedHashSetConstructor = coreTypes.index
-            .getConstructor('dart:_compact_hash', 'DefaultSet', '') {
+    : _linkedHashSetDefaultFactory = coreTypes.index.getProcedure(
+        'dart:collection',
+        'LinkedHashSet',
+        '',
+      ),
+      _internalLinkedHashSetConstructor = coreTypes.index.getConstructor(
+        'dart:_compact_hash',
+        'DefaultSet',
+        '',
+      ) {
     transformers.addAll({_linkedHashSetDefaultFactory: transformLinkedHashSet});
   }
 

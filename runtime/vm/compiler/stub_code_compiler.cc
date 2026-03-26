@@ -748,9 +748,9 @@ void StubCodeCompiler::GenerateInstanceOfStub() {
 
 // For use in GenerateTypeIsTopTypeForSubtyping and
 // GenerateNullIsAssignableToType.
-static void EnsureIsTypeOrFunctionTypeOrTypeParameter(Assembler* assembler,
-                                                      Register type_reg,
-                                                      Register scratch_reg) {
+static void EnsureIsSomeKindOfType(Assembler* assembler,
+                                   Register type_reg,
+                                   Register scratch_reg) {
 #if defined(DEBUG)
   compiler::Label is_type_param_or_type_or_function_type;
   __ LoadClassIdMayBeSmi(scratch_reg, type_reg);
@@ -763,7 +763,10 @@ static void EnsureIsTypeOrFunctionTypeOrTypeParameter(Assembler* assembler,
   __ CompareImmediate(scratch_reg, kFunctionTypeCid);
   __ BranchIf(EQUAL, &is_type_param_or_type_or_function_type,
               compiler::Assembler::kNearJump);
-  __ Stop("not a type or function type or type parameter");
+  __ CompareImmediate(scratch_reg, kRecordTypeCid);
+  __ BranchIf(EQUAL, &is_type_param_or_type_or_function_type,
+              compiler::Assembler::kNearJump);
+  __ Stop("not a type, function type, record type or type parameter");
   __ Bind(&is_type_param_or_type_or_function_type);
 #endif
 }
@@ -812,8 +815,7 @@ void StubCodeCompiler::GenerateTypeIsTopTypeForSubtypingStub() {
   __ MoveRegister(scratch1_reg, TypeTestABI::kDstTypeReg);
   __ Bind(&check_top_type);
   // scratch1_reg: Current type to check.
-  EnsureIsTypeOrFunctionTypeOrTypeParameter(assembler, scratch1_reg,
-                                            scratch2_reg);
+  EnsureIsSomeKindOfType(assembler, scratch1_reg, scratch2_reg);
   compiler::Label is_type_ref;
   __ CompareClassId(scratch1_reg, kTypeCid, scratch2_reg);
   // Type parameters can't be top types themselves, though a particular
@@ -912,8 +914,7 @@ void StubCodeCompiler::GenerateNullIsAssignableToTypeStub() {
   __ BranchIf(NOT_EQUAL, &done);
   __ Bind(&check_null_assignable);
   // scratch1_reg: Current type to check.
-  EnsureIsTypeOrFunctionTypeOrTypeParameter(assembler, kCurrentTypeReg,
-                                            kScratchReg);
+  EnsureIsSomeKindOfType(assembler, kCurrentTypeReg, kScratchReg);
   compiler::Label is_not_type;
   __ CompareClassId(kCurrentTypeReg, kTypeCid, kScratchReg);
   __ BranchIf(NOT_EQUAL, &is_not_type, compiler::Assembler::kNearJump);

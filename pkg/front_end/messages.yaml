@@ -4964,6 +4964,13 @@ ffiNotStatic:
   problemMessage: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context."
   external: test/ffi_test.dart
 
+ffiExpressionEvaluationNotSupported:
+  # Used by dart:ffi
+  parameters:
+    String operation: The unsupported operation name.
+  problemMessage: "Operation '#operation' is not supported in expression evaluation."
+  external: test/ffi_test.dart
+
 ffiFieldInitializer:
   # Used by dart:ffi
   parameters:

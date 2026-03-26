@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
+import 'package:analysis_server/src/services/refactoring/add_constructor_name.dart';
 import 'package:analysis_server/src/services/refactoring/convert_all_formal_parameters_to_named.dart';
 import 'package:analysis_server/src/services/refactoring/convert_selected_formal_parameters_to_named.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
@@ -19,6 +20,7 @@ typedef RefactoringProducerGenerator =
 class RefactoringProcessor {
   /// A list of the generators used to produce refactorings.
   static const Map<String, RefactoringProducerGenerator> generators = {
+    AddConstructorName.commandName: AddConstructorName.new,
     ConvertAllFormalParametersToNamed.commandName:
         ConvertAllFormalParametersToNamed.new,
     ConvertSelectedFormalParametersToNamed.commandName:

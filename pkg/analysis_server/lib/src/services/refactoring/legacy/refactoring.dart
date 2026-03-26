@@ -469,6 +469,7 @@ abstract class RenameRefactoring implements Refactoring {
       return RenameImportRefactoringImpl(
         workspace,
         sessionHelper,
+        resolvedUnit,
         element.import,
       );
     }

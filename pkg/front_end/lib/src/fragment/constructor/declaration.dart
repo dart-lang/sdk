@@ -985,7 +985,7 @@ class RegularConstructorDeclaration
       fileOffset: _fragment.fullNameOffset,
       endOffset: _fragment.endOffset,
       isSynthetic: false,
-      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrEnumOrMixin,
       formalsOffset: _fragment.formalsOffset,
       isConst: _fragment.modifiers.isConst,
       returnType: returnType,
@@ -1374,7 +1374,7 @@ class PrimaryConstructorDeclaration
       formalsOffset: _fragment.formalsOffset,
       // TODO(johnniwinther): Provide `endOffset`.
       endOffset: _fragment.formalsOffset,
-      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrEnumOrMixin,
       isConst: _fragment.modifiers.isConst,
       isSynthetic: false,
       returnType: returnType,

@@ -1059,11 +1059,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     '_prependTypeArguments',
   );
 
-  late Procedure boundsCheckForPartialInstantiation = libraryIndex
-      .getTopLevelProcedure(
-        'dart:_internal',
-        '_boundsCheckForPartialInstantiation',
-      );
+  late Procedure instantiateClosure = libraryIndex.getTopLevelProcedure(
+    'dart:_internal',
+    '_instantiateClosure',
+  );
 
   late Procedure throwLocalNotInitialized = libraryIndex.getProcedure(
     'dart:_internal',
@@ -2283,12 +2282,12 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
     }
 
-    // The CheckStack below is the instruction which should be used for function
-    // entry breakpoints.
-    _recordInitialSourcePositionForFunction(node, function);
     // CheckStack must see a properly initialized context when stress-testing
     // stack trace collection.
     asm.emitCheckStack(0);
+    // After checking the stack, the next instruction is safe for setting
+    // the entry breakpoint for a function.
+    _emitSourcePositionForFunctionEntryBreakpoint(node, function);
 
     if (locals.hasFunctionTypeArgsVar && isClosure) {
       if (function!.typeParameters.isNotEmpty) {
@@ -2387,26 +2386,25 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  int _initialSourcePositionForFunction(TreeNode node, FunctionNode? function) {
-    // The debugger expects the initial source position to correspond to the
-    // declaration position of the last parameter, if any, or of the function.
-    if (function?.namedParameters.isNotEmpty ?? false) {
-      return function!.namedParameters.last.fileOffset;
-    } else if (function?.positionalParameters.isNotEmpty ?? false) {
-      return function!.positionalParameters.last.fileOffset;
-    } else if (function != null) {
-      return function.fileOffset;
-    } else {
-      return node.fileOffset;
-    }
-  }
-
-  void _recordInitialSourcePositionForFunction(
+  void _emitSourcePositionForFunctionEntryBreakpoint(
     TreeNode node,
     FunctionNode? function,
   ) {
-    final position = _initialSourcePositionForFunction(node, function);
-    _recordSourcePosition(position, 0);
+    // The debugger expects the source position for function entry to correspond
+    // to the declaration position of the last parameter, if any, otherwise
+    // the file offset of the function.
+    final int startOffset;
+    if (function?.namedParameters.isNotEmpty ?? false) {
+      startOffset = function!.namedParameters.last.fileOffset;
+    } else if (function?.positionalParameters.isNotEmpty ?? false) {
+      startOffset = function!.positionalParameters.last.fileOffset;
+    } else if (function != null) {
+      startOffset = function.fileOffset;
+    } else {
+      startOffset = node.fileOffset;
+    }
+    _recordSourcePosition(startOffset, 0);
+    asm.emitSourcePosition();
   }
 
   void _copyParamIfCaptured(VariableDeclaration variable) {
@@ -3335,44 +3333,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitInstantiation(Instantiation node) {
-    final int oldClosure = locals.tempIndexInFrame(node, tempIndex: 0);
-    final int newClosure = locals.tempIndexInFrame(node, tempIndex: 1);
-    final int typeArguments = locals.tempIndexInFrame(node, tempIndex: 2);
-
     _generateNode(node.expression);
-    asm.emitStoreLocal(oldClosure);
-
     _genTypeArguments(node.typeArguments);
-    asm.emitStoreLocal(typeArguments);
-
-    _genDirectCall(
-      boundsCheckForPartialInstantiation,
-      objectTable.getArgDescHandle(2),
-      2,
-    );
-    asm.emitDrop1();
-
-    asm.emitPush(oldClosure);
-    asm.emitLoadFieldTOS(cp.addInstanceField(closureFunction));
-    asm.emitPush(oldClosure);
-    asm.emitLoadFieldTOS(cp.addInstanceField(closureContext));
-    asm.emitPush(oldClosure);
-    asm.emitLoadFieldTOS(cp.addInstanceField(closureInstantiatorTypeArguments));
-    asm.emitAllocateClosure();
-    asm.emitStoreLocal(newClosure);
-
-    asm.emitPush(typeArguments);
-    asm.emitStoreFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
-
-    asm.emitPush(newClosure);
-    asm.emitPush(oldClosure);
-    final closureFunctionTypeArgumentsCpIndex = cp.addInstanceField(
-      closureFunctionTypeArguments,
-    );
-    asm.emitLoadFieldTOS(closureFunctionTypeArgumentsCpIndex);
-    asm.emitStoreFieldTOS(closureFunctionTypeArgumentsCpIndex);
-
-    asm.emitPush(newClosure);
+    _genDirectCall(instantiateClosure, objectTable.getArgDescHandle(2), 2);
   }
 
   @override
