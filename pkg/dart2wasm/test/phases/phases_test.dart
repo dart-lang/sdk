@@ -183,7 +183,7 @@ Future<void> testFailureCases() async {
       '--platform=$platformDill',
       '--phases=cfe',
       tfaDill.path,
-      cfeDill.path
+      cfeDill.path,
     ], 'Input to cfe phase must be a .dart file');
 
     await expectFailedRun([
@@ -192,7 +192,7 @@ Future<void> testFailureCases() async {
       '--platform=$platformDill',
       '--phases=cfe',
       mainDart,
-      wasmOut.path
+      wasmOut.path,
     ], 'Output from cfe phase must be a .dill file');
 
     // TFA checks
@@ -202,7 +202,7 @@ Future<void> testFailureCases() async {
       '--platform=$platformDill',
       '--phases=tfa',
       mainDart,
-      tfaDill.path
+      tfaDill.path,
     ], 'Input to tfa phase must be a .dill file');
 
     await expectFailedRun([
@@ -211,7 +211,7 @@ Future<void> testFailureCases() async {
       '--platform=$platformDill',
       '--phases=tfa',
       cfeDill.path,
-      wasmOut.path
+      wasmOut.path,
     ], 'Output from tfa phase must be a .dill file');
 
     // Codegen checks
@@ -221,7 +221,7 @@ Future<void> testFailureCases() async {
       '--platform=$platformDill',
       '--phases=codegen',
       mainDart,
-      wasmOut.path
+      wasmOut.path,
     ], 'Input to codegen phase must be a .dill file');
 
     await expectFailedRun([
@@ -230,7 +230,7 @@ Future<void> testFailureCases() async {
       '--platform=$platformDill',
       '--phases=codegen',
       tfaDill.path,
-      cfeDill.path
+      cfeDill.path,
     ], 'Output from codegen phase must be a .wasm file');
 
     // Opt checks
@@ -240,7 +240,7 @@ Future<void> testFailureCases() async {
       '--platform=$platformDill',
       '--phases=opt',
       mainDart,
-      wasmOptOut.path
+      wasmOptOut.path,
     ], 'Input to opt phase must be a .wasm file');
 
     await expectFailedRun([
@@ -249,7 +249,7 @@ Future<void> testFailureCases() async {
       '--platform=$platformDill',
       '--phases=opt',
       wasmOut.path,
-      cfeDill.path
+      cfeDill.path,
     ], 'Output from opt phase must be a .wasm file');
 
     // Other checks
@@ -259,7 +259,7 @@ Future<void> testFailureCases() async {
       '--platform=$platformDill',
       '--phases=cfe,codegen',
       mainDart,
-      wasmOut.path
+      wasmOut.path,
     ], 'must contain consecutive phases');
 
     await expectFailedRun([
@@ -268,7 +268,7 @@ Future<void> testFailureCases() async {
       '--platform=$platformDill',
       '--phases=notReal',
       mainDart,
-      cfeDill.path
+      cfeDill.path,
     ], 'Invalid compiler phase name');
 
     await expectFailedRun([
@@ -278,13 +278,15 @@ Future<void> testFailureCases() async {
       '--phases=opt',
       '-O0',
       wasmOut.path,
-      wasmOptOut.path
+      wasmOptOut.path,
     ], 'Cannot specify "opt" phase with optimization level 0');
   });
 }
 
 Future<void> expectFailedRun(
-    List<String> command, String expectedSubstring) async {
+  List<String> command,
+  String expectedSubstring,
+) async {
   try {
     await run(command, throwOutputOnFailure: true);
     Expect.fail('Expected dart2wasm error.');

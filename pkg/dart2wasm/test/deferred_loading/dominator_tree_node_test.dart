@@ -48,8 +48,10 @@ void main() {
   // Test visitDFS
   final preOrder = <String>[];
   final postOrder = <String>[];
-  a.visitDFS((node) => preOrder.add(node.prefix),
-      (node) => postOrder.add(node.prefix));
+  a.visitDFS(
+    (node) => preOrder.add(node.prefix),
+    (node) => postOrder.add(node.prefix),
+  );
   Expect.listEquals(['A', 'B', 'D', 'E', 'F', 'C'], preOrder);
   Expect.listEquals(['D', 'F', 'E', 'B', 'C', 'A'], postOrder);
 
