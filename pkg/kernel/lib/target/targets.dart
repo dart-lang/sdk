@@ -380,6 +380,7 @@ abstract class Target {
     // transformations.
     Map<String, String>? environmentDefines, {
     void Function(String msg)? logger,
+    required DiagnosticReporter diagnosticReporter,
   }) {}
 
   /// Whether a platform library may define a restricted type, such as `bool`,
@@ -1047,6 +1048,7 @@ class TargetWrapper extends Target {
     Procedure procedure,
     Map<String, String>? environmentDefines, {
     void Function(String msg)? logger,
+    required DiagnosticReporter diagnosticReporter,
   }) {
     _target.performTransformationsOnProcedure(
       coreTypes,
@@ -1054,6 +1056,7 @@ class TargetWrapper extends Target {
       procedure,
       environmentDefines,
       logger: logger,
+      diagnosticReporter: diagnosticReporter,
     );
   }
 

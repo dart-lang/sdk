@@ -15,7 +15,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final NominalParameterNameSpace typeParameterNameSpace;
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
-  final bool forAbstractClassOrMixin;
+  final bool forAbstractClassOrEnumOrMixin;
   Token? _beginInitializers;
   final DeclarationFragment enclosingDeclaration;
   final LibraryFragment enclosingCompilationUnit;
@@ -43,7 +43,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     required this.typeParameterNameSpace,
     required this.typeParameterScope,
     required this.formals,
-    required this.forAbstractClassOrMixin,
+    required this.forAbstractClassOrEnumOrMixin,
     required Token? beginInitializers,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,

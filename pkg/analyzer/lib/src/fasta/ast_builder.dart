@@ -2773,10 +2773,10 @@ class AstBuilder extends StackListener {
 
   @override
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     var formalParameterList = pop() as FormalParameterListImpl?;
     if (formalParameterList == null) {
@@ -2784,7 +2784,7 @@ class AstBuilder extends StackListener {
       formalParameterList = _syntheticFormalParameterList(extensionTypeName);
     }
 
-    if (!forExtensionType) {
+    if (kind != DeclarationKind.ExtensionType) {
       if (!_featureSet.isEnabled(Feature.primary_constructors)) {
         _reportFeatureNotEnabled(
           feature: Feature.primary_constructors,
@@ -5134,9 +5134,9 @@ class AstBuilder extends StackListener {
 
   @override
   void handleNoPrimaryConstructor(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {
     push(constKeyword ?? const NullValue("Token"));
     push(NullValues.PrimaryConstructor);

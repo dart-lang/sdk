@@ -2611,7 +2611,7 @@ class Parser {
       enumKeyword,
       nameToken,
     );
-    token = parsePrimaryConstructorOpt(token, constToken, false);
+    token = parsePrimaryConstructorOpt(DeclarationKind.Enum, token, constToken);
     token = parseEnumHeaderOpt(token, enumKeyword);
     Token leftBrace = token.next!;
     int elementCount = 0;
@@ -3078,9 +3078,9 @@ class Parser {
   ) {
     Token start = token;
     token = parsePrimaryConstructorOpt(
+      DeclarationKind.Class,
       token,
       constToken,
-      /* forExtensionType = */ false,
     );
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
     if (token.next!.isA(TokenType.SEMICOLON)) {
@@ -3700,9 +3700,9 @@ class Parser {
   }
 
   Token parsePrimaryConstructorOpt(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {
     if (token.next!.isA(TokenType.OPEN_PAREN) ||
         token.next!.isA(TokenType.PERIOD)) {
@@ -3718,7 +3718,7 @@ class Parser {
       if (token.next!.isA(TokenType.OPEN_PAREN)) {
         token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
       } else {
-        if (forExtensionType) {
+        if (kind == DeclarationKind.ExtensionType) {
           reportRecoverableError(
             token,
             diag.missingPrimaryConstructorParameters,
@@ -3727,13 +3727,13 @@ class Parser {
         listener.handleNoFormalParameters(token, MemberKind.PrimaryConstructor);
       }
       listener.endPrimaryConstructor(
+        kind,
         beginPrimaryConstructor,
         constKeyword,
         hasConstructorName,
-        forExtensionType,
       );
     } else {
-      if (forExtensionType) {
+      if (kind == DeclarationKind.ExtensionType) {
         reportRecoverableError(token, diag.missingPrimaryConstructor);
       } else if (constKeyword != null) {
         // TODO(johnniwinther): It should be possible to report if the
@@ -3743,11 +3743,7 @@ class Parser {
           diag.constWithoutPrimaryConstructor,
         );
       }
-      listener.handleNoPrimaryConstructor(
-        token,
-        constKeyword,
-        forExtensionType,
-      );
+      listener.handleNoPrimaryConstructor(kind, token, constKeyword);
     }
     return token;
   }
@@ -3816,9 +3812,9 @@ class Parser {
       name,
     );
     token = parsePrimaryConstructorOpt(
+      DeclarationKind.ExtensionType,
       token,
       constKeyword,
-      /* forExtensionType = */ true,
     );
     Token start = token;
     token = parseClassOrMixinOrEnumImplementsOpt(token);
