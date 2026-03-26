@@ -2425,6 +2425,10 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   if (!cls.is_type_finalized()) {
     ClassFinalizer::FinalizeTypesInClass(cls);
   }
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  cls.SetUserVisibleNameInClassTable();
+#endif
 }
 
 void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
