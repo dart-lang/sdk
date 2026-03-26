@@ -1460,6 +1460,9 @@ class Parser {
   /// ```
   Token parseTypedef(Token? augmentToken, Token typedefKeyword) {
     assert(typedefKeyword.isA(Keyword.TYPEDEF));
+    if (augmentToken != null) {
+      reportRecoverableError(augmentToken, diag.typedefAugmentation);
+    }
     listener.beginUncategorizedTopLevelDeclaration(typedefKeyword);
     listener.beginTypedef(typedefKeyword);
     TypeInfo typeInfo = computeType(typedefKeyword, /* required = */ false);

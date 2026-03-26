@@ -368,7 +368,6 @@ void OS::Init() {
   init_once_called = true;
   // Do not pop up a message box when abort is called.
   _set_abort_behavior(0, _WRITE_ABORT_MSG);
-  ThreadLocalData::Init();
   LARGE_INTEGER ticks_per_sec;
   if (!QueryPerformanceFrequency(&ticks_per_sec)) {
     qpc_ticks_per_second = 0;
@@ -377,10 +376,7 @@ void OS::Init() {
   }
 }
 
-void OS::Cleanup() {
-  // TODO(zra): Enable once VM can shutdown cleanly.
-  // ThreadLocalData::Cleanup();
-}
+void OS::Cleanup() {}
 
 void OS::PrepareToAbort() {
   // TODO(zra): Remove once VM shuts down cleanly.

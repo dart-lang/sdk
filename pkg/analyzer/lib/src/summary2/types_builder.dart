@@ -19,16 +19,8 @@ import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
-/// Return `true` if [type] can be used as a class.
-bool _isInterfaceTypeClass(InterfaceType type) {
-  if (type.element is! ClassElement) {
-    return false;
-  }
-  return _isInterfaceTypeInterface(type);
-}
-
 /// Return `true` if [type] can be used as an interface or a mixin.
-bool _isInterfaceTypeInterface(InterfaceType type) {
+bool isInterfaceTypeInterface(InterfaceType type) {
   if (type.element is EnumElement) {
     return false;
   }
@@ -44,12 +36,20 @@ bool _isInterfaceTypeInterface(InterfaceType type) {
   return true;
 }
 
+/// Return `true` if [type] can be used as a class.
+bool _isInterfaceTypeClass(InterfaceType type) {
+  if (type.element is! ClassElement) {
+    return false;
+  }
+  return isInterfaceTypeInterface(type);
+}
+
 List<InterfaceTypeImpl> _toInterfaceTypeList(List<NamedType>? nodeList) {
   if (nodeList != null) {
     return nodeList
         .map((e) => e.type)
         .whereType<InterfaceTypeImpl>()
-        .where(_isInterfaceTypeInterface)
+        .where(isInterfaceTypeInterface)
         .toList();
   }
   return const [];
@@ -502,7 +502,7 @@ class _MixinInference {
     var result = <InterfaceTypeImpl>[];
     for (var mixinNode in withClause.mixinTypes) {
       var mixinType = _inferSingle(mixinNode);
-      if (mixinType != null && _isInterfaceTypeInterface(mixinType)) {
+      if (mixinType != null && isInterfaceTypeInterface(mixinType)) {
         result.add(mixinType);
         interfacesMerger.addWithSupertypes(mixinType);
       }
@@ -628,7 +628,7 @@ class _MixinInference {
   }
 
   InterfaceTypeImpl? _interfaceType(DartType type) {
-    if (type is InterfaceTypeImpl && _isInterfaceTypeInterface(type)) {
+    if (type is InterfaceTypeImpl && isInterfaceTypeInterface(type)) {
       return type;
     }
     return null;

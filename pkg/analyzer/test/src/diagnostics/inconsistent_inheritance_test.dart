@@ -15,7 +15,6 @@ main() {
 
 @reflectiveTest
 class InconsistentInheritanceTest extends PubPackageResolutionTest {
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentWithInterface_augmentWithMixin() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -45,11 +44,10 @@ augment abstract class C with A {}
 ''');
 
     await assertErrorsInFile2(a, [error(diag.inconsistentInheritance, 122, 1)]);
-    await assertErrorsInFile2(b, []);
-    await assertErrorsInFile2(c, []);
+    await assertErrorsInFile2(b, [error(diag.inconsistentInheritance, 42, 1)]);
+    await assertErrorsInFile2(c, [error(diag.inconsistentInheritance, 42, 1)]);
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentWithMixin_augmentWithInterface() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -79,8 +77,30 @@ augment abstract class C implements B {}
 ''');
 
     await assertErrorsInFile2(a, [error(diag.inconsistentInheritance, 122, 1)]);
-    await assertErrorsInFile2(b, []);
-    await assertErrorsInFile2(c, []);
+    await assertErrorsInFile2(b, [error(diag.inconsistentInheritance, 42, 1)]);
+    await assertErrorsInFile2(c, [error(diag.inconsistentInheritance, 42, 1)]);
+  }
+
+  test_class_augmentWithMixin_sameFile() async {
+    await assertErrorsInCode(
+      r'''
+abstract class I {
+  String foo();
+}
+
+mixin M {
+  int foo() => 0;
+}
+
+class A implements I {}
+
+augment class A with M {}
+''',
+      [
+        error(diag.inconsistentInheritance, 75, 1),
+        error(diag.inconsistentInheritance, 108, 1),
+      ],
+    );
   }
 
   /// https://github.com/dart-lang/sdk/issues/47026
@@ -275,7 +295,6 @@ enum E implements A, B {v}
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_returnType_augmentation() async {
     await assertErrorsInCode(
       r'''
@@ -293,7 +312,10 @@ augment enum E implements B {
   augment v;
 }
 ''',
-      [error(diag.inconsistentInheritance, 78, 1)],
+      [
+        error(diag.inconsistentInheritance, 78, 1),
+        error(diag.inconsistentInheritance, 111, 1),
+      ],
     );
   }
 

@@ -15406,6 +15406,16 @@ const DiagnosticWithoutArguments typeCheckIsNull =
     );
 
 /// No parameters.
+const DiagnosticWithoutArguments typedefAugmentation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'typedef_augmentation',
+      problemMessage: "Type aliases can't be augmented.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'typedef_augmentation',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments typedefInClass =
     DiagnosticWithoutArgumentsImpl(
       name: 'typedef_in_class',

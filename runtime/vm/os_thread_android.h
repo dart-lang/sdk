@@ -16,27 +16,7 @@
 
 namespace dart {
 
-typedef pthread_key_t ThreadLocalKey;
 typedef pthread_t ThreadJoinId;
-
-static const ThreadLocalKey kUnsetThreadLocalKey =
-    static_cast<pthread_key_t>(-1);
-
-class ThreadInlineImpl {
- private:
-  ThreadInlineImpl() {}
-  ~ThreadInlineImpl() {}
-
-  static uword GetThreadLocal(ThreadLocalKey key) {
-    ASSERT(key != kUnsetThreadLocalKey);
-    return reinterpret_cast<uword>(pthread_getspecific(key));
-  }
-
-  friend class OSThread;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
-};
 
 }  // namespace dart
 

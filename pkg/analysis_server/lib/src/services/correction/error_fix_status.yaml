@@ -3284,6 +3284,8 @@ type_parameter_on_operator:
   status: needsFix
   notes: |-
     Remove the type parameters.
+typedef_augmentation:
+  status: noFix
 typedef_in_class:
   status: needsFix
   notes: |-

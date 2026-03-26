@@ -383,6 +383,15 @@ multipleOnClauses:
   script: "mixin A on B on C, D {}"
   exampleAllowOtherCodes: true
 
+typedefAugmentation:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Type aliases can't be augmented."
+  analyzerCode: typedefAugmentation
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "augment typedef T = void Function();"
+
 mixinWithClause:
   type: syntacticError
   parameters: none
