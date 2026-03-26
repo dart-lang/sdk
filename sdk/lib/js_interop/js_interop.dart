@@ -236,14 +236,14 @@ extension type JSExportedDartFunction._(
 )
     implements JSFunction, JSExportedDartFunctionType {}
 
-/// An object that implements the synchronous [JS iterable protocol].
+/// The synchronous [JS iterable protocol].
 ///
 /// [JS iterable protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
 ///
-/// This interface represents the minimal protocol necessary to interact with JS
-/// features like `for`/`of`. In practice, all JS standard library types
-/// implement [JSIterable] as well, which returns a [JSIterator] object which
-/// supports many utility methods.
+/// This interface is the minimal protocol necessary to interact with JS
+/// features like `for`/`of`. All JS standard library types that implement the
+/// JS iterable protocol implement [JSIterable] as well, whose [iterator] is a
+/// [JSIterator] with more utility methods than [JSIteratorProtocol].
 @Since('3.12')
 extension type JSIterableProtocol<T extends JSAny?>._(JSAnyType _)
     implements JSAny {
@@ -251,9 +251,12 @@ extension type JSIterableProtocol<T extends JSAny?>._(JSAnyType _)
   JSIteratorProtocol<T> get iterator => _callMethod(JSSymbol.iterator);
 }
 
-/// An interface for built-in JS objects that not only implement the synchronous
-/// [JS iterable protocol] but return a full-fledged [Iterator] object with all
-/// its utility methods.
+/// A [JSIterableProtocol] whose [iterator] is a {JSIterator].
+///
+/// On its own, the synchronous [JS iterable protocol][] provides a
+/// [JSIteratorProtocol] that can only do simple iteration. Many JS iterables
+/// provide a JS [Iterator][] ([JSIterator]) with more utility methods,
+/// including all iterables provided by the JS standard library.
 ///
 /// [JS iterable protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
 /// [Iterator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator
@@ -265,20 +268,22 @@ extension type JSIterableProtocol<T extends JSAny?>._(JSAnyType _)
 extension type JSIterable<T extends JSAny?>._(JSAnyType _)
     implements JSIterableProtocol<T> {
   /// See [`[Symbol.iterator]()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#symbol.iterator).
-  /// Unlike [JSIterableProtocol.iterator], this always returns a full-fledged
-  /// [JSIterator].
   JSIterator<T> get iterator => _callMethod<JSIterator<T>>(JSSymbol.iterator);
 }
 
-/// An object that implements the synchronous [JS iterator protocol].
+/// The synchronous [JS iterator protocol].
 ///
 /// [JS iterator protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol
 ///
 /// This is the minimal interface that JS iterators are allowed to implement in
 /// order to work with core library APIs and language features like `for`/`of`.
-/// Iterators are strongly encouraged to also extend the [JSIterator] class
-/// which adds various utility methods, in which case they're referred to as
-/// "proper iterators". All iterators returned by the core library are proper.
+///
+/// Iterators are strongly encouraged to also extend the [JS `Iterator`
+/// class][], which adds various utility methods. If they do, they're referred
+/// to as "proper iterators" (see [JSIterator]). All iterators provided by the
+/// core library are proper iterators.
+///
+/// [JS `Iterator` class]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator#proper_iterators
 @Since('3.12')
 extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
     implements JSAny {
@@ -302,8 +307,8 @@ extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
   ///
   /// This is a nullable getter because not all iterators support this method.
   ///
-  /// This doesn't allow passing nulls, as it determines whether an argument is
-  /// passed based on whether it was null or not.
+  /// If the `value` is null or omitted, the callback is called with no value.
+  /// It's not possible to call the callback with a `null` value.
   JSIteratorResult<T> Function([T? value])? get returnValue =>
       // Make sure to pass along whether an argument was passed or not, because
       // that's observable from JavaScript.
@@ -320,9 +325,8 @@ extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
   ///
   /// This is a nullable getter because not all iterators support this method.
   ///
-  /// This doesn't allow passing nulls, as it determines whether an argument is
-  /// passed based on whether it was null or not.
-  @JS('throw')
+  /// If the `error` is null or omitted, the callback is called with no value.
+  /// It's not possible to call the callback with a `null` error.
   JSIteratorResult<T> Function([JSAny? error])? get throwError =>
       // Make sure to pass along whether an argument was passed or not, because
       // that's observable from JavaScript.
@@ -331,18 +335,17 @@ extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
       : ([error]) => error == null ? _throwError() : _throwError(error);
 }
 
-/// A subtype of the [JS Iterator class] that also implements the [Iterator
-/// protocol].
+/// A proper JS iterator.
 ///
-/// In JS terms, an object that meets both of these qualifications is called a
-/// "proper iterator". In Dart, we call it a `JSIterator` and we call an object
-/// that only implements the iterator protocol a [JSIteratorProtocol]. (There's
-/// no need to represent an instance of the `Iterator` class that doesn't also
-/// follow the Iterator protocol, because this isn't something that's ever
-/// expected to appear in well-behaved libraries.)
+/// In JS, a ["proper iterator"][] implements the [JS iterator protocol] and is an
+/// instance of the [JS `Iterator` class][].
 ///
-/// [JS Iterator class]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator#proper_iterators
-/// [Iterator protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol
+/// ["proper iterator"]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator#proper_iterators
+/// [JS iterator protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol
+/// [JS `Iterator` class]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator#proper_iterators
+///
+/// This library provides no type for the JS `Iterator` type without the JS
+/// iterator protocol members. Such an object is not useful.
 @JS('Iterator')
 @Since('3.12')
 extension type JSIterator<T extends JSAny?>._(JSObject _)
@@ -395,11 +398,9 @@ extension type JSIterator<T extends JSAny?>._(JSObject _)
   external JSIterator<T> take(int limit);
 }
 
-/// A custom type that exposes the JS [Iterator protocol]. This is never
-/// returned directly, only wrapped by [JSIterator.from] to produce a proper
-/// iterator.
+/// A [JSIteratorProtocol] with a settable `return` property.
 ///
-/// [Iterator protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterator_protocol
+/// This is used by [JSIterator.fromFunctions] to construct a proper iterator.
 extension type _CustomIteratorProtocol<T extends JSAny?>._(JSObject _)
     implements JSIteratorProtocol<T> {
   @JS('return')
@@ -408,17 +409,22 @@ extension type _CustomIteratorProtocol<T extends JSAny?>._(JSObject _)
   external _CustomIteratorProtocol({required JSFunction next});
 }
 
-/// An object that implements the synchronous [JS `IteratorResult` interface].
+/// A synchronous [JS `IteratorResult`].
 ///
-/// [JS `IteratorResult` interface]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#done
+/// [JS `IteratorResult`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#done
 @Since('3.12')
 extension type JSIteratorResult<T extends JSAny?>._(JSObject _)
     implements JSObject {
-  /// Creates a result that indicates the end of iteration. The value is the
-  /// "return value" of the iterator.
+  /// Creates a result that indicates the end of iteration.
   ///
-  /// This doesn't allow passing nulls, as it determines whether an argument is
-  /// passed based on whether it was null or not.
+  /// The value is the "return value" of the iterator. For example, [generator
+  /// functions] use this to represent the return value of the generator
+  /// function.
+  ///
+  /// [generator functions]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
+  ///
+  /// If the `value` is null or omitted, the result has no value. It's not
+  /// possible to create a result with a `null` value.
   factory JSIteratorResult.done([T? returnValue]) {
     final result = JSIteratorResult<T>._(JSObject());
     result._done = true;
@@ -435,16 +441,10 @@ extension type JSIteratorResult<T extends JSAny?>._(JSObject _)
   }
 
   // Wrap this to hide the distinction between undefined and false from users.
-  //
-  // This is a getter/setter pair to work around the bug described in
-  // https://dart-review.googlesource.com/c/sdk/+/478704/12..14/sdk/lib/js_interop/js_interop.dart#b585.
   @JS('done')
   external bool? _done;
 
-  /// Wrap this so that the setter is private.
-  //
-  // This is a getter/setter pair to work around the bug described in
-  // https://dart-review.googlesource.com/c/sdk/+/478704/12..14/sdk/lib/js_interop/js_interop.dart#b585.
+  // Wrap this so that the setter is private.
   @JS('value')
   external T? _value;
 
@@ -1844,7 +1844,7 @@ extension Float64ListToJSFloat64Array on Float64List {
 /// Conversion from [Iterable] to [JSIterable].
 @Since('3.12')
 extension IterableToJSIterable<T extends JSAny?> on Iterable<T> {
-  /// Returns a [JSIterable] wrapper that proxies to the Dart iterable API.
+  /// A [JSIterable] wrapper that proxies to the Dart iterable API.
   JSIterable<T> get toJSIterable {
     final object = JSObject();
     object.setProperty(
@@ -1858,7 +1858,7 @@ extension IterableToJSIterable<T extends JSAny?> on Iterable<T> {
 /// Conversion from [JSIterable] to [Iterable].
 @Since('3.12')
 extension JSIterableToIterable<T extends JSAny?> on JSIterable<T> {
-  /// Returns a Dart [Iterable] that iterates over the values in this.
+  /// A Dart [Iterable] that iterates over the values in this.
   Iterable<T> get toDartIterable => _JSIterableToIterable<T>(this);
 }
 
@@ -1876,7 +1876,7 @@ class _JSIterableToIterable<T extends JSAny?> extends Iterable<T> {
 /// Conversion from [Iterator] to [JSIterator].
 @Since('3.12')
 extension IteratorToJSIterator<T extends JSAny?> on Iterator<T> {
-  /// Returns a [JSIterator] wrapper that proxies to the Dart iterator API.
+  /// A [JSIterator] wrapper that proxies to the Dart iterator API.
   JSIterator<T> get toJSIterator => JSIterator.fromFunctions<T>(
     () => this.moveNext()
         ? JSIteratorResult<T>.value(this.current)
@@ -1887,7 +1887,7 @@ extension IteratorToJSIterator<T extends JSAny?> on Iterator<T> {
 /// Conversion from [JSIterator] to [Iterator].
 @Since('3.12')
 extension JSIteratorToIterator<T extends JSAny?> on JSIterator<T> {
-  /// Returns a Dart [Iterator] that iterates over the values in this.
+  /// A` Dart [Iterator] that iterates over the values in this.
   Iterator<T> get toDartIterator => _JSIteratorToIterator<T>(this);
 }
 
@@ -1903,14 +1903,12 @@ class _JSIteratorToIterator<T extends JSAny?> implements Iterator<T> {
   T get current {
     if (_lastResult case final result?) {
       if (result.isDone) {
-        throw StateError(
-          "current can't be called after the end of an iterator.",
-        );
+        throw StateError('No value');
       } else {
         return result.value as T;
       }
     } else {
-      throw StateError("moveNext must be called before current.");
+      throw StateError('No value');
     }
   }
 

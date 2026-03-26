@@ -229,13 +229,13 @@ void syncTests() {
   Expect.isNull(iterator.returnValue);
   Expect.isNull(iterator.throwError);
   final result1 = iterator.next();
-  Expect.equals(false, result1.isDone);
+  Expect.isFalse(result1.isDone);
   Expect.equals(1.toJS, result1.value);
   final result2 = iterator.next();
-  Expect.equals(false, result2.isDone);
+  Expect.isFalse(result2.isDone);
   Expect.equals(2.toJS, result2.value);
   final result3 = iterator.next();
-  Expect.equals(true, result3.isDone);
+  Expect.isTrue(result3.isDone);
   Expect.isNull(result3.value);
 
   Expect.equals(2.toJS, iterable.iterator.drop(1).next().value);
@@ -257,24 +257,21 @@ void syncTests() {
     }
   ''');
   Expect.equals(2.toJS, getGenerator().returnValue!(2.toJS).value);
-  final returnNoArg = getGenerator().returnValue!();
-  Expect.isTrue(returnNoArg.isUndefined);
-  Expect.isTrue(isJSBackend ? returnNoArg.isUndefined : returnNoArg.isUndefinedOrNull);
+  final returnNoArg = getGenerator().returnValue!().value;
+  Expect.isTrue(
+    isJSBackend ? returnNoArg.isUndefined : returnNoArg.isUndefinedOrNull,
+  );
   Expect.throws<JSString>(() => getGenerator().throwError!("oh no".toJS));
 
   // Nullish errors should be caught and converted to Dart wrappers.
-  try {
-    getGenerator().throwError!(null);
-    Expect.fail('Expected error to be thrown');
-  } catch (error) {
-    Expect.isTrue(!error.isA<JSAny?>());
-  }
-  try {
-    getGenerator().throwError!();
-    Expect.fail('Expected error to be thrown');
-  } catch (error) {
-    Expect.isTrue(!error.isA<JSAny?>());
-  }
+  Expect.throws(
+    () => getGenerator().throwError!(null),
+    (error) => !error.isA<JSAny?>(),
+  );
+  Expect.throws(
+    () => getGenerator().throwError!(),
+    (error) => !error.isA<JSAny?>(),
+  );
 
   // [JSIterable] <-> [Iterable]
   final listFromIter = [...iterable.toDartIterable];
@@ -283,7 +280,7 @@ void syncTests() {
   Expect.equals(2.toJS, listFromIter[1]);
   final iteratorFromDart = [1.toJS].toJSIterable.iterator;
   Expect.equals(1.toJS, iteratorFromDart.next().value);
-  Expect.equals(true, iteratorFromDart.next().isDone);
+  Expect.isTrue(iteratorFromDart.next().isDone);
 
   // [JSBoxedDartObject] <-> [Object]
   edo = DartObject().toJSBox;
