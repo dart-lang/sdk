@@ -630,7 +630,9 @@ Future<CompilationResult> _runTfaPhase(
       coreTypes,
       component,
       useRapidTypeAnalysis: true,
-      treeShakeProtobufs: options.translatorOptions.enableProtobufTreeShaker,
+      treeShakeProtobufs:
+          options.translatorOptions.enableProtobufTreeShaker ||
+          options.translatorOptions.enableProtobufMixinTreeShaker,
       treeShakeProtobufMixins:
           options.translatorOptions.enableProtobufMixinTreeShaker,
     );
