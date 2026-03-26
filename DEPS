@@ -153,7 +153,7 @@ vars = {
   "tools_rev": "8f62a7792e30b4b512caa05fb84ce45a57f8d401", # rolled manually to expedite analytics work
   "vector_math_rev": "5e717dfe507403747276b6565d71c8b3d610111c",
   "web_rev": "48b75126e511e2d3de65130f2e7aa21cca58f473",
-  "webdev_rev": "1e47b492c0d364020615128573d12fec928aac07",
+  "webdev_rev": "5b7299f5b85706536aeac1c9f470b869ddb39fef",
   "webdriver_rev": "bc92e4e9612a247c4388a7b437ad4e40a5fba1fd",
   "webkit_inspection_protocol_rev": "bb493f55cafb4118f29ebd7cdb995efeafa7f30c",
 
