@@ -536,32 +536,32 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     PrimaryConstructorEnd data = new PrimaryConstructorEnd(
       ParserAstType.END,
+      kind: kind,
       beginToken: beginToken,
       constKeyword: constKeyword,
       hasConstructorName: hasConstructorName,
-      forExtensionType: forExtensionType,
     );
     seen(data);
   }
 
   @override
   void handleNoPrimaryConstructor(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {
     NoPrimaryConstructorHandle data = new NoPrimaryConstructorHandle(
       ParserAstType.HANDLE,
+      kind: kind,
       token: token,
       constKeyword: constKeyword,
-      forExtensionType: forExtensionType,
     );
     seen(data);
   }
@@ -4883,25 +4883,25 @@ class PrimaryConstructorBegin extends ParserAstNode {
 }
 
 class PrimaryConstructorEnd extends ParserAstNode {
+  final DeclarationKind kind;
   final Token beginToken;
   final Token? constKeyword;
   final bool hasConstructorName;
-  final bool forExtensionType;
 
   PrimaryConstructorEnd(
     ParserAstType type, {
+    required this.kind,
     required this.beginToken,
     this.constKeyword,
     required this.hasConstructorName,
-    required this.forExtensionType,
   }) : super("PrimaryConstructor", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+    "kind": kind,
     "beginToken": beginToken,
     "constKeyword": constKeyword,
     "hasConstructorName": hasConstructorName,
-    "forExtensionType": forExtensionType,
   };
 
   @override
@@ -4909,22 +4909,22 @@ class PrimaryConstructorEnd extends ParserAstNode {
 }
 
 class NoPrimaryConstructorHandle extends ParserAstNode {
+  final DeclarationKind kind;
   final Token token;
   final Token? constKeyword;
-  final bool forExtensionType;
 
   NoPrimaryConstructorHandle(
     ParserAstType type, {
+    required this.kind,
     required this.token,
     this.constKeyword,
-    required this.forExtensionType,
   }) : super("NoPrimaryConstructor", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+    "kind": kind,
     "token": token,
     "constKeyword": constKeyword,
-    "forExtensionType": forExtensionType,
   };
 
   @override
