@@ -14,8 +14,10 @@ export 'package:dart2wasm/compiler_options.dart';
 
 typedef PrintError = void Function(String error);
 
-Future<int> generateWasm(WasmCompilerOptions options,
-    {PrintError errorPrinter = print}) async {
+Future<int> generateWasm(
+  WasmCompilerOptions options, {
+  PrintError errorPrinter = print,
+}) async {
   options.validate();
   final translatorOptions = options.translatorOptions;
   if (translatorOptions.verbose) {
@@ -28,7 +30,8 @@ Future<int> generateWasm(WasmCompilerOptions options,
     print('  - strip wasm = ${options.stripWasm}');
     print('  - wasm-opt path = ${options.wasmOptPath}');
     print(
-        '  - max active wasm-opt processes = ${options.maxActiveWasmOptProcesses}');
+      '  - max active wasm-opt processes = ${options.maxActiveWasmOptProcesses}',
+    );
     print('');
     print('Translator options:');
     print('  - enable asserts = ${translatorOptions.enableAsserts}');
@@ -36,37 +39,49 @@ Future<int> generateWasm(WasmCompilerOptions options,
     print('  - inlining = ${translatorOptions.inlining}');
     print('  - js compatibility = ${translatorOptions.jsCompatibility}');
     print(
-        '  - omit implicit type checks = ${translatorOptions.omitImplicitTypeChecks}');
+      '  - omit implicit type checks = ${translatorOptions.omitImplicitTypeChecks}',
+    );
     print(
-        '  - omit explicit type checks = ${translatorOptions.omitExplicitTypeChecks}');
+      '  - omit explicit type checks = ${translatorOptions.omitExplicitTypeChecks}',
+    );
     print('  - omit bounds checks = ${translatorOptions.omitBoundsChecks}');
     print(
-        '  - polymorphic specialization = ${translatorOptions.polymorphicSpecialization}');
+      '  - polymorphic specialization = ${translatorOptions.polymorphicSpecialization}',
+    );
     print('  - print kernel = ${translatorOptions.printKernel}');
     print('  - print wasm = ${translatorOptions.printWasm}');
     print('  - minify = ${translatorOptions.minify}');
     print('  - verity type checks = ${translatorOptions.verifyTypeChecks}');
     print(
-        '  - enable experimental ffi = ${translatorOptions.enableExperimentalFfi}');
+      '  - enable experimental ffi = ${translatorOptions.enableExperimentalFfi}',
+    );
     print(
-        '  - enable experimental wasm interop = ${translatorOptions.enableExperimentalWasmInterop}');
+      '  - enable experimental wasm interop = ${translatorOptions.enableExperimentalWasmInterop}',
+    );
     print('  - generate source maps = ${translatorOptions.generateSourceMaps}');
     print(
-        '  - enable deferred loading = ${translatorOptions.enableDeferredLoading}');
+      '  - enable deferred loading = ${translatorOptions.enableDeferredLoading}',
+    );
     print(
-        '  - enable multi module stress test mode = ${translatorOptions.enableMultiModuleStressTestMode}');
+      '  - enable multi module stress test mode = ${translatorOptions.enableMultiModuleStressTestMode}',
+    );
     print('  - inlining limit = ${translatorOptions.inliningLimit}');
     print(
-        '  - shared memory max pages = ${translatorOptions.sharedMemoryMaxPages}');
+      '  - shared memory max pages = ${translatorOptions.sharedMemoryMaxPages}',
+    );
     print(
-        '  - watch points = [${translatorOptions.watchPoints.map((p) => p.toString()).join(',')}]');
+      '  - watch points = [${translatorOptions.watchPoints.map((p) => p.toString()).join(',')}]',
+    );
   }
 
   final fileSystem = StandardFileSystem.instance;
   CompilationResult result = await compile(
-      options, CompilerPhaseInputOutputManager(fileSystem, options), (message) {
-    if (!options.dryRun) printDiagnosticMessage(message, errorPrinter);
-  });
+    options,
+    CompilerPhaseInputOutputManager(fileSystem, options),
+    (message) {
+      if (!options.dryRun) printDiagnosticMessage(message, errorPrinter);
+    },
+  );
 
   if (result is CompilationDryRunResult) {
     assert(options.dryRun);

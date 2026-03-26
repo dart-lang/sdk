@@ -669,7 +669,7 @@ class ContextManagerImpl implements ContextManager {
             index: i,
             packageRoots: {
               for (var package in packages.packages)
-                package.name: package.rootFolder.toUri().toString(),
+                package.name: package.rootFolder.toUri(),
             },
           );
         }

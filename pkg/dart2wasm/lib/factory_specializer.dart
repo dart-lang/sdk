@@ -22,9 +22,9 @@ class FactorySpecializer extends BaseSpecializer {
   final MapFactorySpecializer _mapFactorySpecializer;
 
   FactorySpecializer(CoreTypes coreTypes)
-      : _listFactorySpecializer = ListFactorySpecializer(coreTypes),
-        _setFactorySpecializer = SetFactorySpecializer(coreTypes),
-        _mapFactorySpecializer = MapFactorySpecializer(coreTypes) {
+    : _listFactorySpecializer = ListFactorySpecializer(coreTypes),
+      _setFactorySpecializer = SetFactorySpecializer(coreTypes),
+      _mapFactorySpecializer = MapFactorySpecializer(coreTypes) {
     transformers.addAll(_listFactorySpecializer.transformers);
     transformers.addAll(_setFactorySpecializer.transformers);
     transformers.addAll(_mapFactorySpecializer.transformers);

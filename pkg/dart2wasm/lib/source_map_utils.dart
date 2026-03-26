@@ -13,7 +13,9 @@ const String _sourceMapExtensionName = "x_org_dartlang_dart2js";
 /// The extension format is described in
 /// `pkg/compiler/doc/sourcemap_extensions.md`.
 void addMinifiedClassNames(
-    Map<String, Object?> sourceMapJson, List<String?> classNames) {
+  Map<String, Object?> sourceMapJson,
+  List<String?> classNames,
+) {
   final List<dynamic> names = sourceMapJson['names'] as List<dynamic>;
 
   // Some of the class names may already be in the names list. Create the
@@ -48,7 +50,7 @@ void addMinifiedClassNames(
           .map((entry) => "${entry.key},${entry.value}")
           .join(","),
       "instance": "",
-    }
+    },
   };
 }
 

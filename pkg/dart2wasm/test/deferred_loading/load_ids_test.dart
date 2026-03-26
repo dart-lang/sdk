@@ -72,7 +72,10 @@ Future<void> main(List<String> args) async {
     await helperFile.writeAsString(populatedHelperJs);
 
     // Load the helper JS and run the compiled code
-    await run(
-        ['pkg/dart2wasm/tool/run_benchmark', helperFile.path, outFilename]);
+    await run([
+      'pkg/dart2wasm/tool/run_benchmark',
+      helperFile.path,
+      outFilename,
+    ]);
   });
 }

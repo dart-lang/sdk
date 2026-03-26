@@ -28,8 +28,12 @@ bool hasPragma(CoreTypes coreTypes, Annotatable node, String name) {
   return getPragma(coreTypes, node, name, defaultValue: '') != null;
 }
 
-T? getPragma<T>(CoreTypes coreTypes, Annotatable node, String name,
-    {T? defaultValue}) {
+T? getPragma<T>(
+  CoreTypes coreTypes,
+  Annotatable node,
+  String name, {
+  T? defaultValue,
+}) {
   for (Expression annotation in node.annotations) {
     if (annotation is ConstantExpression) {
       Constant constant = annotation.constant;
@@ -47,8 +51,10 @@ T? getPragma<T>(CoreTypes coreTypes, Annotatable node, String name,
               return value.value;
             }
             if (value is! T) {
-              throw ArgumentError("$name pragma argument has unexpected type "
-                  "${value.runtimeType} (expected $T)");
+              throw ArgumentError(
+                "$name pragma argument has unexpected type "
+                "${value.runtimeType} (expected $T)",
+              );
             }
             return value as T;
           }
@@ -99,18 +105,30 @@ bool hasWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
 }
 
 String? getWasmExportPragma(CoreTypes coreTypes, Member member) {
-  return getPragma<String>(coreTypes, member, 'wasm:export',
-      defaultValue: member.name.text);
+  return getPragma<String>(
+    coreTypes,
+    member,
+    'wasm:export',
+    defaultValue: member.name.text,
+  );
 }
 
 String? getWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
-  return getPragma<String>(coreTypes, member, 'wasm:weak-export',
-      defaultValue: member.name.text);
+  return getPragma<String>(
+    coreTypes,
+    member,
+    'wasm:weak-export',
+    defaultValue: member.name.text,
+  );
 }
 
 bool hasWasmPureFunctionPragma(CoreTypes coreTypes, Member member) {
-  return getPragma<bool>(coreTypes, member, 'wasm:pure-function',
-          defaultValue: true) ==
+  return getPragma<bool>(
+        coreTypes,
+        member,
+        'wasm:pure-function',
+        defaultValue: true,
+      ) ==
       true;
 }
 
@@ -119,13 +137,19 @@ T addWasmEntryPointPragma<T extends Annotatable>(T node, CoreTypes coreTypes) =>
     addPragma(node, 'wasm:entry-point', coreTypes);
 
 T addPragma<T extends Annotatable>(
-        T node, String pragmaName, CoreTypes coreTypes, {Constant? value}) =>
-    node
-      ..addAnnotation(ConstantExpression(
-          InstanceConstant(coreTypes.pragmaClass.reference, [], {
+  T node,
+  String pragmaName,
+  CoreTypes coreTypes, {
+  Constant? value,
+}) => node
+  ..addAnnotation(
+    ConstantExpression(
+      InstanceConstant(coreTypes.pragmaClass.reference, [], {
         coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
         coreTypes.pragmaOptions.fieldReference: value ?? NullConstant(),
-      })));
+      }),
+    ),
+  );
 
 List<int> _intToLittleEndianBytes(int i) {
   List<int> bytes = [];

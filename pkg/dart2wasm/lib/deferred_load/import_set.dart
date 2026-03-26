@@ -91,10 +91,7 @@ class ImportSetLattice {
 
   /// Builds the [rootSet] which contains transitions for all other deferred
   /// imports as well as [rootImport].
-  void buildRootSet(
-    LibraryDependency rootImport,
-    Part rootPart,
-  ) {
+  void buildRootSet(LibraryDependency rootImport, Part rootPart) {
     _rootSet = setOfImportsToImportSet(rootPart.imports);
     _rootSet.part = rootPart;
     initialSets[rootImport] = _rootSet;
@@ -112,7 +109,8 @@ class ImportSetLattice {
   /// Builds a list of [ImportSetTransition]s which should be applied
   /// before finalizing [ImportSet]s.
   void buildSetTransitions(
-      List<SetTransition<LibraryDependency>> setTransitions) {
+    List<SetTransition<LibraryDependency>> setTransitions,
+  ) {
     for (var setTransition in setTransitions) {
       importSetTransitions.add(
         ImportSetTransition(

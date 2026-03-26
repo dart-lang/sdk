@@ -15,7 +15,10 @@ class TableBasedGlobals {
 
   TypeSpecificGlobalTable getTableForType(w.HeapType type) {
     return _tables[type] ??= TypeSpecificGlobalTable(
-        translator, type, 'global-table-${_tables.length}');
+      translator,
+      type,
+      'global-table-${_tables.length}',
+    );
   }
 
   void outputTables() {
@@ -37,8 +40,10 @@ class TypeSpecificGlobalTable {
   final WasmTableImporter _importedWasmTables;
 
   TypeSpecificGlobalTable(
-      this.translator, this._tableHeapType, String tableName)
-      : _importedWasmTables = WasmTableImporter(translator, tableName) {
+    this.translator,
+    this._tableHeapType,
+    String tableName,
+  ) : _importedWasmTables = WasmTableImporter(translator, tableName) {
     assert(_tableHeapType.isStructuralSubtypeOf(w.HeapType.any));
   }
 
@@ -53,18 +58,20 @@ class TypeSpecificGlobalTable {
   }
 
   /// Returns the index for [function] in the table allocating one if necessary.
-  int indexForObject(Object object,
-      [w.ModuleBuilder? initModule,
-      void Function(w.InstructionsBuilder)? init]) {
+  int indexForObject(
+    Object object, [
+    w.ModuleBuilder? initModule,
+    void Function(w.InstructionsBuilder)? init,
+  ]) {
     assert((initModule != null) == (init != null));
     final existing = _table[object];
     if (existing != null) return existing.$1;
 
     w.InstructionsBuilder? expression;
     if (initModule != null) {
-      expression = w.InstructionsBuilder(
-          initModule, [], [w.RefType(_tableHeapType, nullable: false)],
-          constantExpression: true);
+      expression = w.InstructionsBuilder(initModule, [], [
+        w.RefType(_tableHeapType, nullable: false),
+      ], constantExpression: true);
       init!(expression);
     }
 
