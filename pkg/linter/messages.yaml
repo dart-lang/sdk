@@ -694,6 +694,29 @@ LinterLintCode:
       stable: "2.0"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a parameter has an explicit
+      `dynamic` type annotation. Because `dynamic` is the default type for
+      parameters without a type annotation, the annotation is unnecessary.
+
+      #### Example
+
+      The following code produces this diagnostic because the parameter `p`
+      is explicitly annotated with `dynamic`:
+
+      ```dart
+      void f([!dynamic p!]) {}
+      ```
+
+      #### Common fixes
+
+      Remove the `dynamic` type annotation:
+
+      ```dart
+      void f(p) {}
+      ```
     deprecatedDetails: |-
       **AVOID** annotating with `dynamic` when not required.
 
