@@ -6010,7 +6010,9 @@ void Class::set_user_name(const String& value) const {
 #endif  // !defined(PRODUCT)
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-void Class::SetUserVisibleNameInClassTable() {
+void Class::SetUserVisibleNameInClassTable() const {
+  // Top level classes don't record a user visible name in the class table.
+  if (IsTopLevel()) return;
   IsolateGroup* isolate_group = IsolateGroup::Current();
   auto class_table = isolate_group->class_table();
   if (class_table->UserVisibleNameFor(id()) == nullptr) {

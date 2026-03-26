@@ -2098,7 +2098,7 @@ class Class : public Object {
                                   const Field& field) const;
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-  void SetUserVisibleNameInClassTable();
+  void SetUserVisibleNameInClassTable() const;
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
  private:

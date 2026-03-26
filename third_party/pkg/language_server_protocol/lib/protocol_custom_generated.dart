@@ -2192,6 +2192,10 @@ class FlutterWidgetPreviewDetails implements ToJsonable {
   /// Set to true if `previewAnnotation` represents a `MultiPreview`.
   final bool isMultiPreview;
 
+  /// The unresolved URI pointing to the library in which the preview is
+  /// defined. This is either a package: or dart: URI.
+  final Uri libraryUri;
+
   /// The name of the package in which this annotated preview function was
   /// defined.
   ///
@@ -2219,6 +2223,7 @@ class FlutterWidgetPreviewDetails implements ToJsonable {
     required this.hasError,
     required this.isBuilder,
     required this.isMultiPreview,
+    required this.libraryUri,
     this.packageName,
     required this.position,
     required this.previewAnnotation,
@@ -2231,6 +2236,7 @@ class FlutterWidgetPreviewDetails implements ToJsonable {
         hasError,
         isBuilder,
         isMultiPreview,
+        libraryUri,
         packageName,
         position,
         previewAnnotation,
@@ -2246,6 +2252,7 @@ class FlutterWidgetPreviewDetails implements ToJsonable {
         hasError == other.hasError &&
         isBuilder == other.isBuilder &&
         isMultiPreview == other.isMultiPreview &&
+        libraryUri == other.libraryUri &&
         packageName == other.packageName &&
         position == other.position &&
         previewAnnotation == other.previewAnnotation &&
@@ -2260,6 +2267,7 @@ class FlutterWidgetPreviewDetails implements ToJsonable {
     result['hasError'] = hasError;
     result['isBuilder'] = isBuilder;
     result['isMultiPreview'] = isMultiPreview;
+    result['libraryUri'] = libraryUri.toString();
     result['packageName'] = packageName;
     result['position'] = position.toJson();
     result['previewAnnotation'] = previewAnnotation;
@@ -2289,6 +2297,10 @@ class FlutterWidgetPreviewDetails implements ToJsonable {
         return false;
       }
       if (!_canParseBool(obj, reporter, 'isMultiPreview',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseUri(obj, reporter, 'libraryUri',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -2323,6 +2335,8 @@ class FlutterWidgetPreviewDetails implements ToJsonable {
     final isBuilder = isBuilderJson as bool;
     final isMultiPreviewJson = json['isMultiPreview'];
     final isMultiPreview = isMultiPreviewJson as bool;
+    final libraryUriJson = json['libraryUri'];
+    final libraryUri = Uri.parse(libraryUriJson as String);
     final packageNameJson = json['packageName'];
     final packageName = packageNameJson as String?;
     final positionJson = json['position'];
@@ -2337,6 +2351,7 @@ class FlutterWidgetPreviewDetails implements ToJsonable {
       hasError: hasError,
       isBuilder: isBuilder,
       isMultiPreview: isMultiPreview,
+      libraryUri: libraryUri,
       packageName: packageName,
       position: position,
       previewAnnotation: previewAnnotation,

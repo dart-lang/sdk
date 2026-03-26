@@ -91,6 +91,7 @@ cc/DeoptimizeFramesWhenSettingBreakpoint: SkipByDesign # JIT compilation is not 
 cc/DerivedInduction: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/Ffi_StructSinking: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/FlowGraph_PhiUnboxingHeuristic_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/FullSnapshot: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/IRTest_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/Inliner_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/IsolateReload_EnumWithSet: SkipByDesign # Bytecode doesn't support KernelProgramInfo.
@@ -103,6 +104,7 @@ cc/NotEqualCondition*: SkipByDesign # Building flow graph is not supported from 
 cc/OptimizeCompileFunctionOnHelperThread: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/PeriodicAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/RangeAnalysis_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/ReachabilityFence_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/SecondExit*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/StackMapGC: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/StreamingFlowGraphBuilder_*: SkipByDesign # Building flow graph is not supported from bytecode.
