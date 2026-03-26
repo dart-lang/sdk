@@ -389,7 +389,8 @@ class WasmTarget extends Target {
       ClassHierarchy hierarchy,
       Procedure procedure,
       Map<String, String>? environmentDefines,
-      {void Function(String msg)? logger}) {
+      {void Function(String msg)? logger,
+      required DiagnosticReporter diagnosticReporter}) {
     wasmTrans.transformProcedure(procedure, coreTypes, hierarchy);
   }
 

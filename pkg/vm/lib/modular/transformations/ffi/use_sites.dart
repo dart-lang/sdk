@@ -29,6 +29,8 @@ import 'finalizable.dart';
 import 'native.dart' as native;
 import 'native_type_cfe.dart';
 
+enum _FfiUseSiteTransformMode { libraries, expressionEvaluation }
+
 class _SilentErrorReporter extends SimpleErrorReporter {
   const _SilentErrorReporter();
 
@@ -51,6 +53,62 @@ void transformLibraries(
   ReferenceFromIndex? referenceFromIndex,
   Map<String, String>? environmentDefines,
 ) {
+  final index = _createIndexIfFfiLoaded(component);
+  if (index == null) {
+    return;
+  }
+  final transformer = _createFfiUseSiteTransformer(
+    target,
+    component,
+    coreTypes,
+    hierarchy,
+    diagnosticReporter,
+    referenceFromIndex,
+    environmentDefines,
+    index,
+    mode: _FfiUseSiteTransformMode.libraries,
+  );
+  libraries.forEach(transformer.visitLibrary);
+}
+
+/// Checks and replaces dart:ffi use-site APIs inside [procedure] only.
+///
+/// This is used for expression compilation where the enclosing libraries are
+/// already transformed and only the synthetic procedure should be processed.
+void transformProcedure(
+  Target target,
+  Component component,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
+  Procedure procedure,
+  DiagnosticReporter diagnosticReporter,
+  ReferenceFromIndex? referenceFromIndex,
+  Map<String, String>? environmentDefines,
+) {
+  final index = _createIndexIfFfiLoaded(component);
+  if (index == null) {
+    return;
+  }
+  final transformer = _createFfiUseSiteTransformer(
+    target,
+    component,
+    coreTypes,
+    hierarchy,
+    diagnosticReporter,
+    referenceFromIndex,
+    environmentDefines,
+    index,
+    mode: _FfiUseSiteTransformMode.expressionEvaluation,
+  );
+  // Procedure-only traversal starts at `visitProcedure`, so `visitLibrary` is not
+  // invoked and `currentLibrary` / `currentLibraryIndex` would otherwise be null.
+  // FFI rewrites depend on that library context (e.g. nullability, name binding,
+  // and reference lookups), so set it explicitly for this procedure.
+  transformer.initCurrentLibrary(procedure.enclosingLibrary);
+  procedure.accept(transformer);
+}
+
+LibraryIndex? _createIndexIfFfiLoaded(Component component) {
   final index = LibraryIndex(component, [
     "dart:ffi",
     "dart:_internal",
@@ -62,13 +120,27 @@ void transformLibraries(
     // TODO: This check doesn't make sense: "dart:ffi" is always loaded/created
     // for the VM target.
     // If dart:ffi is not loaded, do not do the transformation.
-    return;
+    return null;
   }
   if (index.tryGetClass('dart:ffi', 'NativeFunction') == null) {
     // If dart:ffi is not loaded (for real): do not do the transformation.
-    return;
+    return null;
   }
-  final transformer = new _FfiUseSiteTransformer2(
+  return index;
+}
+
+_FfiUseSiteTransformer2 _createFfiUseSiteTransformer(
+  Target target,
+  Component component,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
+  DiagnosticReporter diagnosticReporter,
+  ReferenceFromIndex? referenceFromIndex,
+  Map<String, String>? environmentDefines,
+  LibraryIndex index, {
+  required _FfiUseSiteTransformMode mode,
+}) {
+  return _FfiUseSiteTransformer2(
     index,
     coreTypes,
     hierarchy,
@@ -83,8 +155,8 @@ void transformLibraries(
       const _SilentErrorReporter(),
       errorOnUnevaluatedConstant: true,
     ),
+    mode: mode,
   );
-  libraries.forEach(transformer.visitLibrary);
 }
 
 /// Combines [_FfiUseSiteTransformer] and [FinalizableTransformer] into a single
@@ -96,20 +168,26 @@ void transformLibraries(
 class _FfiUseSiteTransformer2 extends FfiTransformer
     with _FfiUseSiteTransformer, FinalizableTransformer {
   final ConstantEvaluator _constantEvaluator;
+  final _FfiUseSiteTransformMode _mode;
   _FfiUseSiteTransformer2(
     LibraryIndex index,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     DiagnosticReporter diagnosticReporter,
     ReferenceFromIndex? referenceFromIndex,
-    this._constantEvaluator,
-  ) : super(
-        index,
-        coreTypes,
-        hierarchy,
-        diagnosticReporter,
-        referenceFromIndex,
-      );
+    this._constantEvaluator, {
+    required _FfiUseSiteTransformMode mode,
+  }) : _mode = mode,
+       super(
+         index,
+         coreTypes,
+         hierarchy,
+         diagnosticReporter,
+         referenceFromIndex,
+       );
+
+  bool get allowEnclosingMutation =>
+      _mode == _FfiUseSiteTransformMode.libraries;
 }
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
@@ -122,6 +200,7 @@ class _FfiUseSiteTransformer2 extends FfiTransformer
 /// respectively. This means one cannot do `visitX() { super.visitX() as X }`.
 mixin _FfiUseSiteTransformer on FfiTransformer {
   StaticTypeContext? get staticTypeContext;
+  bool get allowEnclosingMutation;
 
   bool _inFfiTearoff = false;
   ConstantEvaluator get _constantEvaluator;
@@ -135,6 +214,21 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   // Used to create private top-level trampoline methods with unique names
   // for each call.
   int callCount = 0;
+
+  Never _reportEnclosingMutationInProcedureMode(
+    TreeNode node,
+    String operation,
+  ) {
+    diagnosticReporter.report(
+      diag.ffiExpressionEvaluationNotSupported.withArguments(
+        operation: operation,
+      ),
+      node.fileOffset,
+      1,
+      node.location?.file,
+    );
+    throw FfiStaticTypeError();
+  }
 
   @override
   TreeNode visitLibrary(Library node) {
@@ -905,6 +999,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     StaticInvocation node,
     Expression exceptionalReturn,
   ) {
+    if (!allowEnclosingMutation) {
+      _reportEnclosingMutationInProcedureMode(node, 'Pointer.fromFunction');
+    }
     final nativeFunctionType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
@@ -2074,6 +2171,12 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     if (existingNewTarget != null) {
       newTarget = existingNewTarget;
     } else {
+      if (!allowEnclosingMutation) {
+        _reportEnclosingMutationInProcedureMode(
+          node,
+          '@Native(isLeaf: true) function invocation',
+        );
+      }
       final cloner = CloneProcedureWithoutBody();
       newTarget = cloner.cloneProcedure(target, null);
       newTarget.name = Name(newName);

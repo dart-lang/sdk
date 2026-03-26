@@ -1059,11 +1059,22 @@ class FfiTransformer extends Transformer {
   @override
   TreeNode visitLibrary(Library node) {
     assert(_currentLibrary == null);
-    _currentLibrary = node;
-    currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
+    initCurrentLibrary(node);
     final result = super.visitLibrary(node);
-    _currentLibrary = null;
+    cleanupCurrentLibrary();
     return result;
+  }
+
+  /// Initializes the current library context for transformations.
+  void initCurrentLibrary(Library library) {
+    _currentLibrary = library;
+    currentLibraryIndex = referenceFromIndex?.lookupLibrary(library);
+  }
+
+  /// Clears the current library context after transformations.
+  void cleanupCurrentLibrary() {
+    _currentLibrary = null;
+    currentLibraryIndex = null;
   }
 
   /// Computes the Dart type corresponding to a ffi.[NativeType], returns null

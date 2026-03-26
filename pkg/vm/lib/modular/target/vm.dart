@@ -29,7 +29,7 @@ import '../transformations/ffi/native.dart'
     show transformLibraries;
 import '../transformations/ffi/use_sites.dart'
     as transformFfiUseSites
-    show transformLibraries;
+    show transformLibraries, transformProcedure;
 
 class VmTarget extends Target {
   final TargetFlags flags;
@@ -267,7 +267,29 @@ class VmTarget extends Target {
     Procedure procedure,
     Map<String, String>? environmentDefines, {
     void Function(String msg)? logger,
+    required DiagnosticReporter diagnosticReporter,
   }) {
+    final TreeNode? component = procedure.enclosingLibrary.parent;
+    if (component is Component) {
+      final List<Library>? transitiveImportingDartFfi = ffiHelper
+          .calculateTransitiveImportsOfDartFfiIfUsed(component, [
+            procedure.enclosingLibrary,
+          ]);
+      if (transitiveImportingDartFfi != null) {
+        transformFfiUseSites.transformProcedure(
+          this,
+          component,
+          coreTypes,
+          hierarchy,
+          procedure,
+          diagnosticReporter,
+          null,
+          environmentDefines,
+        );
+        logger?.call("Transformed ffi use sites");
+      }
+    }
+
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     lowering.transformProcedure(
       procedure,
