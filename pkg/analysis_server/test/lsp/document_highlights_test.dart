@@ -63,6 +63,24 @@ class C {
 ''');
   }
 
+  Future<void> test_class_getterSetter() async {
+    await _testMarkedContent('''
+class A {
+  int /*[0*/a/*0]*/ = 1;
+}
+
+class B extends A {
+  int get /*[1*/a/*1]*/ => 1;
+  set /*[2*/a/*2]*/(int _) {}
+}
+
+void f(A a, B b) {
+  a./*[3*/a/*3]*/ = b./*[4*/a/*4]*/;
+  b./*[5*/a/*5]*/ = a./*[6*/a/*6]*/;
+}
+''');
+  }
+
   Future<void> test_constructor_secondary_className() async {
     await _testMarkedContent('''
 class Aaa {
@@ -562,6 +580,239 @@ class C {
 ''');
   }
 
+  Future<void> test_hierarchy_method_extends() async {
+    await _testMarkedContent('''
+abstract class A {
+  void /*[0*/a/*0]*/();
+}
+
+class B extends A {
+  @override
+  void /*[1*/a/*1]*/() {}
+}
+''');
+  }
+
+  Future<void> test_hierarchy_method_extends_implements_fromLeaf() async {
+    await _testMarkedContent('''
+abstract class A {
+  void /*[0*/a/*0]*/();
+}
+
+abstract class I {
+  void /*[1*/a/*1]*/(); // Included because we started at B.a
+}
+
+class B extends A implements I {
+  @override
+  void /*[2*/^a/*2]*/() {}
+}
+
+void f(A a, I i, B b) {
+  a./*[3*/a/*3]*/();
+  i./*[4*/a/*4]*/();
+  b./*[5*/a/*5]*/();
+}
+''');
+  }
+
+  Future<void> test_hierarchy_method_extends_implements_fromRoot() async {
+    await _testMarkedContent('''
+abstract class A {
+  void /*[0*/^a/*0]*/();
+}
+
+abstract class I {
+  void a(); // Not included because we started at A.a
+}
+
+class B extends A implements I {
+  @override
+  void /*[1*/a/*1]*/() {}
+}
+
+void f(A a, I i, B b) {
+  a./*[2*/a/*2]*/();
+  i.a();
+  b./*[3*/a/*3]*/();
+}
+''');
+  }
+
+  Future<void> test_hierarchy_method_extends_with_fromLeaf() async {
+    await _testMarkedContent('''
+abstract class A {
+  void /*[0*/a/*0]*/();
+}
+
+mixin M {
+  void /*[1*/a/*1]*/() {} // Included because we started at B.a
+}
+
+class B extends A with M {
+  @override
+  void /*[2*/^a/*2]*/() {}
+}
+
+void f(A a, M m, B b) {
+  a./*[3*/a/*3]*/();
+  m./*[4*/a/*4]*/();
+  b./*[5*/a/*5]*/();
+}
+''');
+  }
+
+  Future<void> test_hierarchy_method_extends_with_fromRoot() async {
+    await _testMarkedContent('''
+abstract class A {
+  void /*[0*/a^/*0]*/();
+}
+
+mixin M {
+  void a() {} // Not included because we started at A.a
+}
+
+class B extends A with M {
+  @override
+  void /*[1*/a/*1]*/() {}
+}
+
+void f(A a, M m, B b) {
+  a./*[2*/a/*2]*/();
+  m.a();
+  b./*[3*/a/*3]*/();
+}
+''');
+  }
+
+  Future<void> test_hierarchy_method_extends_with_implements_fromLeaf() async {
+    await _testMarkedContent('''
+abstract class A {
+  void /*[0*/a/*0]*/();
+}
+
+mixin M {
+  void /*[1*/a/*1]*/() {} // Included because we started from A.a
+}
+
+abstract class I {
+  void /*[2*/a/*2]*/(); // Included because we started from B.a
+}
+
+class B extends A with M implements I {
+  @override
+  void /*[3*/^a/*3]*/() {}
+}
+
+void f(A a, M m, I i, B b) {
+  a./*[4*/a/*4]*/();
+  m./*[5*/a/*5]*/();
+  i./*[6*/a/*6]*/();
+  b./*[7*/a/*7]*/();
+}
+''');
+  }
+
+  Future<void> test_hierarchy_method_extends_with_implements_fromRoot() async {
+    await _testMarkedContent('''
+abstract class A {
+  void /*[0*/^a/*0]*/();
+}
+
+mixin M {
+  void a() {} // Not included because we started from A.a
+}
+
+abstract class I {
+  void a(); // Not included because we started from A.a
+}
+
+class B extends A with M implements I {
+  @override
+  void /*[1*/a/*1]*/() {}
+}
+
+void f(A a, M m, I i, B b) {
+  a./*[2*/a/*2]*/();
+  m.a();
+  i.a();
+  b./*[3*/a/*3]*/();
+}
+''');
+  }
+
+  Future<void> test_hierarchy_method_implements() async {
+    await _testMarkedContent('''
+abstract class A {
+  void /*[0*/a/*0]*/();
+}
+
+class B implements A {
+  @override
+  void /*[1*/a/*1]*/() {}
+}
+''');
+  }
+
+  Future<void> test_hierarchy_method_with() async {
+    await _testMarkedContent('''
+mixin M {
+  void /*[0*/a/*0]*/() {}
+}
+
+class B with M {
+  @override
+  void /*[1*/a/*1]*/() {}
+}
+''');
+  }
+
+  Future<void> test_hierarchy_method_with_implements_fromLeaf() async {
+    await _testMarkedContent('''
+mixin M {
+  void /*[0*/a/*0]*/() {} // Included because we started at B.a
+}
+
+abstract class I {
+  void /*[1*/a/*1]*/(); // Included because we started at B.a
+}
+
+class B with M implements I {
+  @override
+  void /*[2*/^a/*2]*/() {}
+}
+
+void f(M m, I i, B b) {
+  m./*[3*/a/*3]*/();
+  i./*[4*/a/*4]*/();
+  b./*[5*/a/*5]*/();
+}
+''');
+  }
+
+  Future<void> test_hierarchy_method_with_implements_fromRoot() async {
+    await _testMarkedContent('''
+mixin M {
+  void /*[0*/^a/*0]*/() {}
+}
+
+abstract class I {
+  void a(); // Not included because we started at M.a
+}
+
+class B with M implements I {
+  @override
+  void /*[1*/a/*1]*/() {}
+}
+
+void f(M m, I i, B b) {
+  m./*[2*/a/*2]*/();
+  i.a();
+  b./*[3*/a/*3]*/();
+}
+''');
+  }
+
   Future<void> test_invalidLineByOne() async {
     // Test that requesting a line that's too high by one returns a valid
     // error response instead of throwing.
@@ -743,7 +994,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_memberField() async {
+  Future<void> test_member_field() async {
     await _testMarkedContent('''
 class A<T> {
   T /*[0*/fff/*0]*/;
@@ -758,7 +1009,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_memberMethod() async {
+  Future<void> test_member_method() async {
     await _testMarkedContent('''
 class A<T> {
   T /*[0*/mmm/*0]*/() => throw 0;
