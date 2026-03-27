@@ -10455,6 +10455,16 @@ mixedParameterGroups = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments mixinApplicationClassAugmentation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'mixin_application_class_augmentation',
+      problemMessage: "A mixin application class can't be augmented.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'mixin_application_class_augmentation',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String memberName: the name of the super-invoked member
 /// Type mixinMemberType: the display name of the type of the super-invoked

@@ -2981,6 +2981,12 @@ class Parser {
       if (constToken != null) {
         reportRecoverableError(constToken, diag.constWithoutPrimaryConstructor);
       }
+      if (augmentToken != null) {
+        reportRecoverableError(
+          augmentToken,
+          diag.mixinApplicationClassAugmentation,
+        );
+      }
       listener.beginNamedMixinApplication(
         beginToken,
         abstractToken,

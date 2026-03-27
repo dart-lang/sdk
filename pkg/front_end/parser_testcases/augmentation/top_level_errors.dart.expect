@@ -97,24 +97,40 @@ external augment int field;
          ^^^^^^^
 
 parser/augmentation/top_level_errors:33:9: The modifier 'augment' was already specified.
+augment augment mixin Mixin {}
+        ^^^^^^^
+
+parser/augmentation/top_level_errors:35:9: The modifier 'augment' was already specified.
 augment augment class Class {}
         ^^^^^^^
 
-parser/augmentation/top_level_errors:34:10: The modifier 'augment' should be before the modifier 'abstract'.
+parser/augmentation/top_level_errors:36:10: The modifier 'augment' should be before the modifier 'abstract'.
 abstract augment class Class {}
          ^^^^^^^
 
-parser/augmentation/top_level_errors:36:9: The modifier 'augment' was already specified.
+parser/augmentation/top_level_errors:38:9: The modifier 'augment' was already specified.
 augment augment class Class = Object with Mixin;
         ^^^^^^^
 
-parser/augmentation/top_level_errors:37:10: The modifier 'augment' should be before the modifier 'abstract'.
+parser/augmentation/top_level_errors:38:1: A mixin application class can't be augmented.
+augment augment class Class = Object with Mixin;
+^^^^^^^
+
+parser/augmentation/top_level_errors:39:10: The modifier 'augment' should be before the modifier 'abstract'.
 abstract augment class Class = Object with Mixin;
          ^^^^^^^
 
-parser/augmentation/top_level_errors:39:9: The modifier 'augment' was already specified.
-augment augment mixin Mixin {}
-        ^^^^^^^
+parser/augmentation/top_level_errors:39:10: A mixin application class can't be augmented.
+abstract augment class Class = Object with Mixin;
+         ^^^^^^^
+
+parser/augmentation/top_level_errors:41:1: A mixin application class can't be augmented.
+augment class Class = Object with Mixin;
+^^^^^^^
+
+parser/augmentation/top_level_errors:42:1: A mixin application class can't be augmented.
+augment abstract class Class = Object with Mixin;
+^^^^^^^
 
 beginCompilationUnit(augment)
   beginMetadataStar(augment)
@@ -488,6 +504,20 @@ beginCompilationUnit(augment)
   beginMetadataStar(augment)
   endMetadataStar(0)
   handleRecoverableError(Message[Template(DuplicatedModifier), The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(mixin)
+    handleIdentifier(Mixin, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginMixinDeclaration(augment, augment, null, mixin, Mixin)
+      handleMixinOn(null, 0)
+      handleImplements(null, 0)
+      handleMixinHeader(mixin)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Mixin, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Mixin, 0, {, })
+    endMixinDeclaration(augment, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  handleRecoverableError(Message[Template(DuplicatedModifier), The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
   beginClassOrMixinOrNamedMixinApplicationPrelude(augment)
     handleIdentifier(Class, classOrMixinDeclaration)
     handleNoTypeVariables({)
@@ -525,6 +555,7 @@ beginCompilationUnit(augment)
   beginClassOrMixinOrNamedMixinApplicationPrelude(augment)
     handleIdentifier(Class, classOrMixinDeclaration)
     handleNoTypeVariables(=)
+    handleRecoverableError(MixinApplicationClassAugmentation, augment, augment)
     beginNamedMixinApplication(augment, null, null, null, null, null, null, augment, null, Class)
       handleIdentifier(Object, typeReference)
       handleNoTypeArguments(with)
@@ -543,6 +574,7 @@ beginCompilationUnit(augment)
   beginClassOrMixinOrNamedMixinApplicationPrelude(abstract)
     handleIdentifier(Class, classOrMixinDeclaration)
     handleNoTypeVariables(=)
+    handleRecoverableError(MixinApplicationClassAugmentation, augment, augment)
     beginNamedMixinApplication(abstract, abstract, null, null, null, null, null, augment, null, Class)
       handleIdentifier(Object, typeReference)
       handleNoTypeArguments(with)
@@ -557,16 +589,38 @@ beginCompilationUnit(augment)
   endTopLevelDeclaration(;)
   beginMetadataStar(augment)
   endMetadataStar(0)
-  handleRecoverableError(Message[Template(DuplicatedModifier), The modifier 'augment' was already specified., Try removing all but one occurrence of the modifier., {lexeme: augment}], augment, augment)
-  beginClassOrMixinOrNamedMixinApplicationPrelude(mixin)
-    handleIdentifier(Mixin, classOrMixinDeclaration)
-    handleNoTypeVariables({)
-    beginMixinDeclaration(augment, augment, null, mixin, Mixin)
-      handleMixinOn(null, 0)
-      handleImplements(null, 0)
-      handleMixinHeader(mixin)
-      beginClassOrMixinOrExtensionBody(DeclarationKind.Mixin, {)
-      endClassOrMixinOrExtensionBody(DeclarationKind.Mixin, 0, {, })
-    endMixinDeclaration(augment, })
-  endTopLevelDeclaration(})
-endCompilationUnit(29, )
+  beginClassOrMixinOrNamedMixinApplicationPrelude(augment)
+    handleIdentifier(Class, classOrMixinDeclaration)
+    handleNoTypeVariables(=)
+    handleRecoverableError(MixinApplicationClassAugmentation, augment, augment)
+    beginNamedMixinApplication(augment, null, null, null, null, null, null, augment, null, Class)
+      handleIdentifier(Object, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Object, null)
+      beginTypeList(Mixin)
+        handleIdentifier(Mixin, typeReference)
+        handleNoTypeArguments(;)
+        handleType(Mixin, null)
+      endTypeList(1)
+      handleNamedMixinApplicationWithClause(with)
+    endNamedMixinApplication(augment, class, =, null, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(augment)
+    handleIdentifier(Class, classOrMixinDeclaration)
+    handleNoTypeVariables(=)
+    handleRecoverableError(MixinApplicationClassAugmentation, augment, augment)
+    beginNamedMixinApplication(augment, abstract, null, null, null, null, null, augment, null, Class)
+      handleIdentifier(Object, typeReference)
+      handleNoTypeArguments(with)
+      handleType(Object, null)
+      beginTypeList(Mixin)
+        handleIdentifier(Mixin, typeReference)
+        handleNoTypeArguments(;)
+        handleType(Mixin, null)
+      endTypeList(1)
+      handleNamedMixinApplicationWithClause(with)
+    endNamedMixinApplication(augment, class, =, null, ;)
+  endTopLevelDeclaration(;)
+endCompilationUnit(31, )

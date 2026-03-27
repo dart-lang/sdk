@@ -2118,6 +2118,13 @@ const MessageCode missingTypedefParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode mixinApplicationClassAugmentation = const MessageCode(
+  "MixinApplicationClassAugmentation",
+  sharedCode: SharedCode.mixinApplicationClassAugmentation,
+  problemMessage: """A mixin application class can't be augmented.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mixinDeclaresConstructor = const MessageCode(
   "MixinDeclaresConstructor",
   sharedCode: SharedCode.mixinDeclaresConstructor,
@@ -3180,6 +3187,7 @@ enum SharedCode {
   missingPrimaryConstructor,
   missingPrimaryConstructorParameters,
   missingStatement,
+  mixinApplicationClassAugmentation,
   mixinDeclaresConstructor,
   mixinWithClause,
   modifierOutOfOrder,
