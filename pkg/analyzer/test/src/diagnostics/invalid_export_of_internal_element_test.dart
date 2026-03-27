@@ -557,6 +557,20 @@ export 'src/foo.dart';
 ''');
   }
 
+  void test_noCombinators_topLevelVariable() async {
+    newFile(testPackageImplementationFilePath, r'''
+import 'package:meta/meta.dart';
+@internal int x = 0;
+''');
+
+    await assertErrorsInCode(
+      r'''
+export 'src/foo.dart';
+''',
+      [error(diag.invalidExportOfInternalElement, 0, 22)],
+    );
+  }
+
   void test_showCombinator_internalNotShown() async {
     newFile(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
