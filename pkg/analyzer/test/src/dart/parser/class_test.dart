@@ -188,12 +188,13 @@ ClassDeclaration
 ''');
   }
 
-  //TODO(fshcheglov): Mixin application classes can't be augmented.
   test_augment_namedMixinApplication() {
     var parseResult = parseStringWithErrors(r'''
 augment class A = B with M;
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([
+      error(diag.mixinApplicationClassAugmentation, 0, 7),
+    ]);
     assertParsedNodeText(parseResult.findNode.unit, r'''
 CompilationUnit
   declarations

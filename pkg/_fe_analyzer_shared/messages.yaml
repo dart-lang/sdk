@@ -392,6 +392,16 @@ typedefAugmentation:
   experiments: augmentations
   script: "augment typedef T = void Function();"
 
+mixinApplicationClassAugmentation:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin application class can't be augmented."
+  analyzerCode: mixinApplicationClassAugmentation
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "augment class A = B with M;"
+  exampleAllowOtherCodes: true
+
 mixinWithClause:
   type: syntacticError
   parameters: none

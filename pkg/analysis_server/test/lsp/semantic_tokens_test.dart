@@ -272,7 +272,6 @@ class A {
     await _initializeAndVerifyTokensInRange(content, expected);
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augmentations() async {
     var mainContent = '''
 part 'main_augmentation.dart';
@@ -288,9 +287,9 @@ part of 'main.dart';
 
 augment class A {
   augment void f() {
-    augmented();
+    0;
   }
-  augment get g => augmented;
+  augment get g => 'augmented';
 }
 ''';
 
@@ -339,14 +338,14 @@ augment class A {
         SemanticTokenModifiers.declaration,
         CustomSemanticTokenModifiers.instance,
       ]),
-      _Token('augmented', SemanticTokenTypes.keyword),
+      _Token('0', SemanticTokenTypes.number),
       _Token('augment', SemanticTokenTypes.keyword),
       _Token('get', SemanticTokenTypes.keyword),
       _Token('g', SemanticTokenTypes.property, [
         SemanticTokenModifiers.declaration,
         CustomSemanticTokenModifiers.instance,
       ]),
-      _Token('augmented', SemanticTokenTypes.keyword),
+      _Token("'augmented'", SemanticTokenTypes.string),
     ]);
   }
 
