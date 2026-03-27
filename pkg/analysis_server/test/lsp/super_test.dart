@@ -31,7 +31,6 @@ class B^ extends A {}
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augmentation_constructor() async {
     await verifyGoToSuper(
       TestCode.parse('''

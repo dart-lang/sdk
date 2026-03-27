@@ -227,7 +227,6 @@ import 'main.dart';
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augment_extends() async {
     var content = '''
 part 'other.dart';
@@ -393,20 +392,14 @@ class MyCla^ss2 extends MyClass1 {}
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augment_extends() async {
     var content = '''
-part 'other.dart';
-
 [!class /*[1*/MyClass1/*1]*/ {}!]
 class C^s {}
-''';
-    var augmentation = '''
-part of 'main.dart';
 
 augment class Cs extends MyClass1 {}
 ''';
-    await _fetchSupertypes(content, otherContent: augmentation);
+    await _fetchSupertypes(content);
     expect(
       supertypes,
       equals([
