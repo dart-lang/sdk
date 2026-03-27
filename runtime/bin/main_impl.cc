@@ -1236,11 +1236,12 @@ void main(int argc, char** argv) {
 
       // Parse DART_VM_OPTIONS options.
       int env_argc = 0;
-      char** env_argv = Options::GetEnvArguments(&env_argc);
+      char** env_argv = Options::GetEnvArguments(argv[0], &env_argc);
       if (env_argv != nullptr) {
         // Any Dart options that are generated based on parsing DART_VM_OPTIONS
         // are useless, so we'll throw them away rather than passing them along.
         CommandLineOptions tmp_options(env_argc + EXTRA_VM_ARGUMENTS);
+        vm_options.EnsureCapacity(env_argc + EXTRA_VM_ARGUMENTS);
         parse_arguments(env_argc, env_argv, &vm_options, &tmp_options,
                         /*parsing_dart_vm_options=*/true);
       }

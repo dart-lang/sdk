@@ -680,6 +680,70 @@ void main() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
+  test(
+    'Compile and run exe with DART_VM_OPTIONS - multiple options',
+    () async {
+      final p = project(
+        mainSrc: '''
+        import 'dart:io';
+
+        void main() {
+          print(Platform.executableArguments);
+        }''',
+      );
+      final inFile = path.canonicalize(
+        path.join(p.dirPath, p.relativeFilePath),
+      );
+      final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+      var result = await p.run(['compile', 'exe', '-o', outFile, inFile]);
+
+      expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(
+        File(outFile).existsSync(),
+        true,
+        reason: 'File not found: $outFile',
+      );
+
+      void testVmOptions(List<String> vmOptions) {
+        var result = Process.runSync(
+          outFile,
+          [],
+          environment: <String, String>{'DART_VM_OPTIONS': vmOptions.join(',')},
+        );
+
+        expect(result.stderr, isEmpty);
+        expect(result.stdout, contains(vmOptions.toString()));
+        expect(result.exitCode, 0);
+      }
+
+      testVmOptions([
+        '--use_compactor',
+        '--force_evacuation',
+        '--idle_duration_micros=0',
+        '--compactor_tasks=5',
+        '--marker_tasks=5',
+        '--scavenger_tasks=5',
+        '--old_gen_growth_time_ratio=50',
+        '--old_gen_growth_space_ratio=10',
+      ]);
+      testVmOptions([
+        '--use_compactor',
+        '--force_evacuation',
+        '--idle_duration_micros=0',
+        '--compactor_tasks=5',
+        '--marker_tasks=5',
+        '--scavenger_tasks=5',
+        '--mark_when_idle',
+        '--old_gen_growth_time_ratio=50',
+        '--old_gen_growth_space_ratio=10',
+      ]);
+    },
+    skip: isRunningOnIA32,
+  );
+
   test('Compile exe without info', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));

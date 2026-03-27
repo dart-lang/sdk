@@ -131,15 +131,8 @@ bool Options::ParseArguments(int argc,
                              char** script_name,
                              CommandLineOptions* dart_options,
                              bool* print_flags_seen) {
-  int i = 0;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // DART_VM_OPTIONS is only implemented for compiled executables.
-  ASSERT(!parsing_dart_vm_options);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  if (!parsing_dart_vm_options) {
-    // Start processing arguments after argv[0] which would be the executable.
-    i = 1;
-  }
+  // Start processing arguments after argv[0] which would be the executable.
+  int i = 1;
 
   CommandLineOptions temp_vm_options(vm_options->max_count());
   // Parse out the vm options.
@@ -332,7 +325,7 @@ void Options::DestroyEnvironment() {
 // with no spaces. Options that support providing multiple values as
 // comma-separated lists (e.g., --timeline-streams=Dart,GC,Compiler,Microtask)
 // are not supported and will cause argument parsing to fail.
-char** Options::GetEnvArguments(int* argc) {
+char** Options::GetEnvArguments(const char* executable_name, int* argc) {
   ASSERT(argc != nullptr);
   const char* env_args_str = std::getenv("DART_VM_OPTIONS");
   if (env_args_str == nullptr) {
@@ -359,19 +352,28 @@ char** Options::GetEnvArguments(int* argc) {
     }
   }
 
+  // Account for executable name.
+  ++arg_count;
+
   env_argv_ = new char*[arg_count];
   env_argc_ = arg_count;
   *argc = arg_count;
 
-  int current_arg = 0;
-  char* token;
-  char* rest = const_cast<char*>(env_args_str);
+  env_argv_[0] = Utils::StrDup(executable_name);
 
   // Split out the individual arguments.
-  while ((token = strtok_r(rest, ",", &rest)) != nullptr) {
+  const char* token = env_args_str;
+  for (int current_arg = 1; current_arg < arg_count; ++current_arg) {
     // TODO(bkonyi): consider stripping leading/trailing whitespace from
     // arguments.
-    env_argv_[current_arg++] = Utils::StrNDup(token, rest - token);
+    const char* end = strchr(token, ',');
+    if (end != nullptr) {
+      env_argv_[current_arg] = Utils::StrNDup(token, end - token);
+      token = end + 1;
+    } else {
+      env_argv_[current_arg] = Utils::StrDup(token);
+      break;
+    }
   }
 
   return env_argv_;

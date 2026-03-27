@@ -91,7 +91,7 @@ class Options {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Get the list of options in DART_VM_OPTIONS.
-  static char** GetEnvArguments(int* argc);
+  static char** GetEnvArguments(const char* executable_name, int* argc);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
  private:
