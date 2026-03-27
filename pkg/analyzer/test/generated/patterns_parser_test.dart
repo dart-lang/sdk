@@ -3218,7 +3218,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: x
       rightParenthesis: )
     body: ExpressionFunctionBody

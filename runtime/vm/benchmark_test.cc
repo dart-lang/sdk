@@ -272,18 +272,15 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);
     const int kNumIterations = 100;
-    Code& code = Code::Handle(thread->zone());
     for (int i = 0; i < kNumIterations; i++) {
       StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
                                 StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* frame = frames.NextFrame();
       while (frame != nullptr) {
         if (frame->IsStubFrame()) {
-          code = frame->LookupDartCode();
-          EXPECT(code.function() == Function::null());
+          EXPECT(frame->LookupDartFunction() == Function::null());
         } else if (frame->IsDartFrame()) {
-          code = frame->LookupDartCode();
-          EXPECT(code.function() != Function::null());
+          EXPECT(frame->LookupDartFunction() != Function::null());
         }
         frame = frames.NextFrame();
       }

@@ -101,7 +101,7 @@ abstract class ConstantPoolEntry {
 enum InvocationKind {
   method, // x.foo(...) or foo(...)
   getter, // x.foo
-  setter // x.foo = ...
+  setter, // x.foo = ...
 }
 
 class ConstantStaticField extends ConstantPoolEntry {
@@ -118,7 +118,7 @@ class ConstantStaticField extends ConstantPoolEntry {
   }
 
   ConstantStaticField.read(BufferedReader reader)
-      : field = reader.readPackedObject();
+    : field = reader.readPackedObject();
 
   @override
   String toString() => 'StaticField $field';
@@ -147,7 +147,7 @@ class ConstantInstanceField extends ConstantPoolEntry {
   }
 
   ConstantInstanceField.read(BufferedReader reader)
-      : field = reader.readPackedObject();
+    : field = reader.readPackedObject();
 
   @override
   String toString() => 'InstanceField $field';
@@ -174,7 +174,7 @@ class ConstantClass extends ConstantPoolEntry {
   }
 
   ConstantClass.read(BufferedReader reader)
-      : classHandle = reader.readPackedObject();
+    : classHandle = reader.readPackedObject();
 
   @override
   String toString() => 'Class $classHandle';
@@ -201,7 +201,7 @@ class ConstantTypeArgumentsField extends ConstantPoolEntry {
   }
 
   ConstantTypeArgumentsField.read(BufferedReader reader)
-      : classHandle = reader.readPackedObject();
+    : classHandle = reader.readPackedObject();
 
   @override
   String toString() => 'TypeArgumentsField $classHandle';
@@ -254,7 +254,7 @@ class ConstantClosureFunction extends ConstantPoolEntry {
   }
 
   ConstantClosureFunction.read(BufferedReader reader)
-      : closureIndex = reader.readPackedUInt30();
+    : closureIndex = reader.readPackedUInt30();
 
   @override
   String toString() {
@@ -349,7 +349,7 @@ class ConstantObjectRef extends ConstantPoolEntry {
   }
 
   ConstantObjectRef.read(BufferedReader reader)
-      : object = reader.readPackedObject();
+    : object = reader.readPackedObject();
 
   @override
   String toString() => 'ObjectRef $object';
@@ -381,8 +381,8 @@ class ConstantDirectCall extends ConstantPoolEntry {
   }
 
   ConstantDirectCall.read(BufferedReader reader)
-      : target = reader.readPackedObject(),
-        argDesc = reader.readPackedObject();
+    : target = reader.readPackedObject(),
+      argDesc = reader.readPackedObject();
 
   @override
   String toString() => "DirectCall '$target', $argDesc";
@@ -416,8 +416,8 @@ class ConstantInterfaceCall extends ConstantPoolEntry {
   }
 
   ConstantInterfaceCall.read(BufferedReader reader)
-      : target = reader.readPackedObject(),
-        argDesc = reader.readPackedObject();
+    : target = reader.readPackedObject(),
+      argDesc = reader.readPackedObject();
 
   @override
   String toString() => "InterfaceCall '$target', $argDesc";
@@ -438,7 +438,10 @@ class ConstantInstantiatedInterfaceCall extends ConstantPoolEntry {
   final ObjectHandle staticReceiverType;
 
   ConstantInstantiatedInterfaceCall(
-      this.target, this.argDesc, this.staticReceiverType);
+    this.target,
+    this.argDesc,
+    this.staticReceiverType,
+  );
 
   // Reserve 2 extra slots (3 slots total).
   int get numReservedEntries => 2;
@@ -454,9 +457,9 @@ class ConstantInstantiatedInterfaceCall extends ConstantPoolEntry {
   }
 
   ConstantInstantiatedInterfaceCall.read(BufferedReader reader)
-      : target = reader.readPackedObject(),
-        argDesc = reader.readPackedObject(),
-        staticReceiverType = reader.readPackedObject();
+    : target = reader.readPackedObject(),
+      argDesc = reader.readPackedObject(),
+      staticReceiverType = reader.readPackedObject();
 
   @override
   String toString() =>
@@ -464,8 +467,9 @@ class ConstantInstantiatedInterfaceCall extends ConstantPoolEntry {
 
   @override
   int get hashCode => _combineHashes(
-      _combineHashes(target.hashCode, argDesc.hashCode),
-      staticReceiverType.hashCode);
+    _combineHashes(target.hashCode, argDesc.hashCode),
+    staticReceiverType.hashCode,
+  );
 
   @override
   bool operator ==(other) =>
@@ -494,8 +498,8 @@ class ConstantDynamicCall extends ConstantPoolEntry {
   }
 
   ConstantDynamicCall.read(BufferedReader reader)
-      : selectorName = reader.readPackedObject(),
-        argDesc = reader.readPackedObject();
+    : selectorName = reader.readPackedObject(),
+      argDesc = reader.readPackedObject();
 
   @override
   String toString() => 'DynamicCall $selectorName, $argDesc';
@@ -565,7 +569,10 @@ class ConstantDeferredLibraryPrefix extends ConstantPoolEntry {
   final ObjectHandle targetLibrary;
 
   ConstantDeferredLibraryPrefix(
-      this.name, this.enclosingLibrary, this.targetLibrary);
+    this.name,
+    this.enclosingLibrary,
+    this.targetLibrary,
+  );
 
   @override
   ConstantTag get tag => ConstantTag.kDeferredLibraryPrefix;
@@ -578,17 +585,19 @@ class ConstantDeferredLibraryPrefix extends ConstantPoolEntry {
   }
 
   ConstantDeferredLibraryPrefix.read(BufferedReader reader)
-      : name = reader.readPackedObject(),
-        enclosingLibrary = reader.readPackedObject(),
-        targetLibrary = reader.readPackedObject();
+    : name = reader.readPackedObject(),
+      enclosingLibrary = reader.readPackedObject(),
+      targetLibrary = reader.readPackedObject();
 
   @override
   String toString() =>
       'DeferredLibraryPrefix $name, $enclosingLibrary -> $targetLibrary';
 
   @override
-  int get hashCode => _combineHashes(name.hashCode,
-      _combineHashes(enclosingLibrary.hashCode, targetLibrary.hashCode));
+  int get hashCode => _combineHashes(
+    name.hashCode,
+    _combineHashes(enclosingLibrary.hashCode, targetLibrary.hashCode),
+  );
 
   @override
   bool operator ==(other) =>
@@ -624,54 +633,98 @@ class ConstantPool {
   int addName(String name) =>
       _add(new ConstantObjectRef(objectTable.getPublicNameHandle(name)));
 
-  int addArgDesc(int numArguments,
-          {int numTypeArgs = 0, List<String> argNames = const <String>[]}) =>
-      _add(new ConstantObjectRef(
-          objectTable.getArgDescHandle(numArguments, numTypeArgs, argNames)));
+  int addArgDesc(
+    int numArguments, {
+    int numTypeArgs = 0,
+    List<String> argNames = const <String>[],
+  }) => _add(
+    new ConstantObjectRef(
+      objectTable.getArgDescHandle(numArguments, numTypeArgs, argNames),
+    ),
+  );
 
-  int addArgDescByArguments(Arguments args,
-          {bool hasReceiver = false, bool isFactory = false}) =>
-      _add(new ConstantObjectRef(objectTable.getArgDescHandleByArguments(args,
-          hasReceiver: hasReceiver, isFactory: isFactory)));
+  int addArgDescByArguments(
+    Arguments args, {
+    bool hasReceiver = false,
+    bool isFactory = false,
+  }) => _add(
+    new ConstantObjectRef(
+      objectTable.getArgDescHandleByArguments(
+        args,
+        hasReceiver: hasReceiver,
+        isFactory: isFactory,
+      ),
+    ),
+  );
 
   int addDirectCall(
-      InvocationKind invocationKind, Member target, ObjectHandle argDesc) {
-    final targetHandle = objectTable.getMemberHandle(target,
-        isGetter: invocationKind == InvocationKind.getter,
-        isSetter: invocationKind == InvocationKind.setter);
+    InvocationKind invocationKind,
+    Member target,
+    ObjectHandle argDesc,
+  ) {
+    final targetHandle = objectTable.getMemberHandle(
+      target,
+      isGetter: invocationKind == InvocationKind.getter,
+      isSetter: invocationKind == InvocationKind.setter,
+    );
     return _add(new ConstantDirectCall(targetHandle, argDesc));
   }
 
   int addInterfaceCall(
-          InvocationKind invocationKind, Member target, ObjectHandle argDesc) =>
-      _add(new ConstantInterfaceCall(
-          objectTable.getMemberHandle(target,
-              isGetter: invocationKind == InvocationKind.getter,
-              isSetter: invocationKind == InvocationKind.setter),
-          argDesc));
+    InvocationKind invocationKind,
+    Member target,
+    ObjectHandle argDesc,
+  ) => _add(
+    new ConstantInterfaceCall(
+      objectTable.getMemberHandle(
+        target,
+        isGetter: invocationKind == InvocationKind.getter,
+        isSetter: invocationKind == InvocationKind.setter,
+      ),
+      argDesc,
+    ),
+  );
 
-  int addInstantiatedInterfaceCall(InvocationKind invocationKind, Member target,
-          ObjectHandle argDesc, DartType staticReceiverType) =>
-      _add(new ConstantInstantiatedInterfaceCall(
-          objectTable.getMemberHandle(target,
-              isGetter: invocationKind == InvocationKind.getter,
-              isSetter: invocationKind == InvocationKind.setter),
-          argDesc,
-          objectTable.getHandle(staticReceiverType)!));
+  int addInstantiatedInterfaceCall(
+    InvocationKind invocationKind,
+    Member target,
+    ObjectHandle argDesc,
+    DartType staticReceiverType,
+  ) => _add(
+    new ConstantInstantiatedInterfaceCall(
+      objectTable.getMemberHandle(
+        target,
+        isGetter: invocationKind == InvocationKind.getter,
+        isSetter: invocationKind == InvocationKind.setter,
+      ),
+      argDesc,
+      objectTable.getHandle(staticReceiverType)!,
+    ),
+  );
 
   int addDynamicCall(
-          InvocationKind invocationKind, Name selector, ObjectHandle argDesc) =>
-      _add(new ConstantDynamicCall(
-          objectTable.getSelectorNameHandle(selector,
-              isGetter: invocationKind == InvocationKind.getter,
-              isSetter: invocationKind == InvocationKind.setter),
-          argDesc));
+    InvocationKind invocationKind,
+    Name selector,
+    ObjectHandle argDesc,
+  ) => _add(
+    new ConstantDynamicCall(
+      objectTable.getSelectorNameHandle(
+        selector,
+        isGetter: invocationKind == InvocationKind.getter,
+        isSetter: invocationKind == InvocationKind.setter,
+      ),
+      argDesc,
+    ),
+  );
 
-  int addInstanceCall(InvocationKind invocationKind, Member? target,
-          Name targetName, ObjectHandle argDesc) =>
-      (target == null)
-          ? addDynamicCall(invocationKind, targetName, argDesc)
-          : addInterfaceCall(invocationKind, target, argDesc);
+  int addInstanceCall(
+    InvocationKind invocationKind,
+    Member? target,
+    Name targetName,
+    ObjectHandle argDesc,
+  ) => (target == null)
+      ? addDynamicCall(invocationKind, targetName, argDesc)
+      : addInterfaceCall(invocationKind, target, argDesc);
 
   int addExternalCall() => _add(ConstantExternalCall());
 
@@ -706,24 +759,34 @@ class ConstantPool {
   int addEmptyTypeArguments() => _add(const ConstantEmptyTypeArguments());
 
   int addDeferredLibraryPrefix(
-          String name, Library enclosingLibrary, Library targetLibrary) =>
-      _add(ConstantDeferredLibraryPrefix(
-        objectTable.getConstStringHandle(name),
-        objectTable.getHandle(enclosingLibrary)!,
-        objectTable.getHandle(targetLibrary)!,
-      ));
+    String name,
+    Library enclosingLibrary,
+    Library targetLibrary,
+  ) => _add(
+    ConstantDeferredLibraryPrefix(
+      objectTable.getConstStringHandle(name),
+      objectTable.getHandle(enclosingLibrary)!,
+      objectTable.getHandle(targetLibrary)!,
+    ),
+  );
 
   int addObjectRef(Node? node) {
     // Constant objects should not depend on the type parameters of
     // the enclosing function.
     return objectTable.withoutEnclosingFunctionTypeParameters(
-        () => _add(new ConstantObjectRef(objectTable.getHandle(node))));
+      () => _add(new ConstantObjectRef(objectTable.getHandle(node))),
+    );
   }
 
-  int addSelectorName(Name name, InvocationKind invocationKind) =>
-      _add(new ConstantObjectRef(objectTable.getSelectorNameHandle(name,
-          isGetter: invocationKind == InvocationKind.getter,
-          isSetter: invocationKind == InvocationKind.setter)));
+  int addSelectorName(Name name, InvocationKind invocationKind) => _add(
+    new ConstantObjectRef(
+      objectTable.getSelectorNameHandle(
+        name,
+        isGetter: invocationKind == InvocationKind.getter,
+        isSetter: invocationKind == InvocationKind.setter,
+      ),
+    ),
+  );
 
   int _add(ConstantPoolEntry entry) {
     int? index = _canonicalizationCache[entry];
@@ -749,8 +812,9 @@ class ConstantPool {
     final start = writer.offset;
     if (BytecodeSizeStatistics.constantPoolStats.isEmpty) {
       for (var tag in ConstantTag.values) {
-        BytecodeSizeStatistics.constantPoolStats
-            .add(new NamedEntryStatistics(constantTagToString(tag)));
+        BytecodeSizeStatistics.constantPoolStats.add(
+          new NamedEntryStatistics(constantTagToString(tag)),
+        );
       }
     }
     writer.writePackedUInt30(entries.length);
@@ -771,8 +835,8 @@ class ConstantPool {
   }
 
   ConstantPool.read(BufferedReader reader)
-      : stringTable = reader.stringReader as StringTable,
-        objectTable = reader.objectReader as ObjectTable {
+    : stringTable = reader.stringReader as StringTable,
+      objectTable = reader.objectReader as ObjectTable {
     int len = reader.readPackedUInt30();
     for (int i = 0; i < len; i++) {
       final e = new ConstantPoolEntry.read(reader);

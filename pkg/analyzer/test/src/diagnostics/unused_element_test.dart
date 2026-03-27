@@ -372,6 +372,26 @@ A f() => A._constructor();
 ''');
   }
 
+  test_constructor_isUsed_mixinApplicationRedirect() async {
+    await assertNoErrorsInCode(r'''
+abstract class Foo {
+  factory Foo({required String thing}) = _Foo._;
+  Foo._({required this.thing});
+
+  final String thing;
+
+  void bar();
+}
+
+mixin _$Foo on Foo {
+  @override
+  void bar() {}
+}
+
+class _Foo = Foo with _$Foo;
+''');
+  }
+
   test_constructor_notUsed_multiple() async {
     await assertErrorsInCode(
       r'''

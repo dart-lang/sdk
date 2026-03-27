@@ -976,7 +976,6 @@ class FragmentFactoryImpl implements FragmentFactory {
               _augmentationRoot
             : null,
         accessor: _compilationUnit,
-        isAugmentation: isAugmentationImport,
         referencesFromIndex: isAugmentationImport
             ?
               // Coverage-ignore(suite): Not run.
@@ -1401,6 +1400,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int? nameOffset,
     required int formalsOffset,
     required bool isConst,
+    required bool forAbstractClassOrEnumOrMixin,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1481,7 +1481,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       typeParameterNameSpace: typeParameterNameSpace,
       typeParameterScope: typeParameterScope.lookupScope,
       formals: formals,
-      forAbstractClassOrMixin: false,
+      forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
       beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
@@ -1517,7 +1517,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required String? nativeMethodName,
     required Token? beginInitializers,
     required bool hasNewKeyword,
-    required bool forAbstractClassOrMixin,
+    required bool forAbstractClassOrEnumOrMixin,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1570,7 +1570,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       typeParameterScope: typeParameterScope.lookupScope,
       formals: formals,
       nativeMethodName: nativeMethodName,
-      forAbstractClassOrMixin: forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
       beginInitializers:

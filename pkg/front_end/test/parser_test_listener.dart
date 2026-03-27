@@ -581,36 +581,36 @@ class ParserTestListener implements Listener {
 
   @override
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     indent--;
     seen(beginToken);
     seen(constKeyword);
     doPrint(
       'endPrimaryConstructor('
+      '$kind, '
       '$beginToken, '
       '$constKeyword, '
-      '$hasConstructorName, '
-      '$forExtensionType)',
+      '$hasConstructorName)',
     );
   }
 
   @override
   void handleNoPrimaryConstructor(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {
     seen(token);
     seen(constKeyword);
     doPrint(
       'handleNoPrimaryConstructor('
+      '$kind, '
       '$token, '
-      '$constKeyword, '
-      '$forExtensionType)',
+      '$constKeyword)',
     );
   }
 

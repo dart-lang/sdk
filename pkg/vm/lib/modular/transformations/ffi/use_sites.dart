@@ -29,6 +29,8 @@ import 'finalizable.dart';
 import 'native.dart' as native;
 import 'native_type_cfe.dart';
 
+enum _FfiUseSiteTransformMode { libraries, expressionEvaluation }
+
 class _SilentErrorReporter extends SimpleErrorReporter {
   const _SilentErrorReporter();
 
@@ -51,6 +53,62 @@ void transformLibraries(
   ReferenceFromIndex? referenceFromIndex,
   Map<String, String>? environmentDefines,
 ) {
+  final index = _createIndexIfFfiLoaded(component);
+  if (index == null) {
+    return;
+  }
+  final transformer = _createFfiUseSiteTransformer(
+    target,
+    component,
+    coreTypes,
+    hierarchy,
+    diagnosticReporter,
+    referenceFromIndex,
+    environmentDefines,
+    index,
+    mode: _FfiUseSiteTransformMode.libraries,
+  );
+  libraries.forEach(transformer.visitLibrary);
+}
+
+/// Checks and replaces dart:ffi use-site APIs inside [procedure] only.
+///
+/// This is used for expression compilation where the enclosing libraries are
+/// already transformed and only the synthetic procedure should be processed.
+void transformProcedure(
+  Target target,
+  Component component,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
+  Procedure procedure,
+  DiagnosticReporter diagnosticReporter,
+  ReferenceFromIndex? referenceFromIndex,
+  Map<String, String>? environmentDefines,
+) {
+  final index = _createIndexIfFfiLoaded(component);
+  if (index == null) {
+    return;
+  }
+  final transformer = _createFfiUseSiteTransformer(
+    target,
+    component,
+    coreTypes,
+    hierarchy,
+    diagnosticReporter,
+    referenceFromIndex,
+    environmentDefines,
+    index,
+    mode: _FfiUseSiteTransformMode.expressionEvaluation,
+  );
+  // Procedure-only traversal starts at `visitProcedure`, so `visitLibrary` is not
+  // invoked and `currentLibrary` / `currentLibraryIndex` would otherwise be null.
+  // FFI rewrites depend on that library context (e.g. nullability, name binding,
+  // and reference lookups), so set it explicitly for this procedure.
+  transformer.initCurrentLibrary(procedure.enclosingLibrary);
+  procedure.accept(transformer);
+}
+
+LibraryIndex? _createIndexIfFfiLoaded(Component component) {
   final index = LibraryIndex(component, [
     "dart:ffi",
     "dart:_internal",
@@ -62,13 +120,27 @@ void transformLibraries(
     // TODO: This check doesn't make sense: "dart:ffi" is always loaded/created
     // for the VM target.
     // If dart:ffi is not loaded, do not do the transformation.
-    return;
+    return null;
   }
   if (index.tryGetClass('dart:ffi', 'NativeFunction') == null) {
     // If dart:ffi is not loaded (for real): do not do the transformation.
-    return;
+    return null;
   }
-  final transformer = new _FfiUseSiteTransformer2(
+  return index;
+}
+
+_FfiUseSiteTransformer2 _createFfiUseSiteTransformer(
+  Target target,
+  Component component,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
+  DiagnosticReporter diagnosticReporter,
+  ReferenceFromIndex? referenceFromIndex,
+  Map<String, String>? environmentDefines,
+  LibraryIndex index, {
+  required _FfiUseSiteTransformMode mode,
+}) {
+  return _FfiUseSiteTransformer2(
     index,
     coreTypes,
     hierarchy,
@@ -83,8 +155,8 @@ void transformLibraries(
       const _SilentErrorReporter(),
       errorOnUnevaluatedConstant: true,
     ),
+    mode: mode,
   );
-  libraries.forEach(transformer.visitLibrary);
 }
 
 /// Combines [_FfiUseSiteTransformer] and [FinalizableTransformer] into a single
@@ -96,20 +168,26 @@ void transformLibraries(
 class _FfiUseSiteTransformer2 extends FfiTransformer
     with _FfiUseSiteTransformer, FinalizableTransformer {
   final ConstantEvaluator _constantEvaluator;
+  final _FfiUseSiteTransformMode _mode;
   _FfiUseSiteTransformer2(
     LibraryIndex index,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     DiagnosticReporter diagnosticReporter,
     ReferenceFromIndex? referenceFromIndex,
-    this._constantEvaluator,
-  ) : super(
-        index,
-        coreTypes,
-        hierarchy,
-        diagnosticReporter,
-        referenceFromIndex,
-      );
+    this._constantEvaluator, {
+    required _FfiUseSiteTransformMode mode,
+  }) : _mode = mode,
+       super(
+         index,
+         coreTypes,
+         hierarchy,
+         diagnosticReporter,
+         referenceFromIndex,
+       );
+
+  bool get allowEnclosingMutation =>
+      _mode == _FfiUseSiteTransformMode.libraries;
 }
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
@@ -122,6 +200,7 @@ class _FfiUseSiteTransformer2 extends FfiTransformer
 /// respectively. This means one cannot do `visitX() { super.visitX() as X }`.
 mixin _FfiUseSiteTransformer on FfiTransformer {
   StaticTypeContext? get staticTypeContext;
+  bool get allowEnclosingMutation;
 
   bool _inFfiTearoff = false;
   ConstantEvaluator get _constantEvaluator;
@@ -135,6 +214,21 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   // Used to create private top-level trampoline methods with unique names
   // for each call.
   int callCount = 0;
+
+  Never _reportEnclosingMutationInProcedureMode(
+    TreeNode node,
+    String operation,
+  ) {
+    diagnosticReporter.report(
+      diag.ffiExpressionEvaluationNotSupported.withArguments(
+        operation: operation,
+      ),
+      node.fileOffset,
+      1,
+      node.location?.file,
+    );
+    throw FfiStaticTypeError();
+  }
 
   @override
   TreeNode visitLibrary(Library node) {
@@ -317,10 +411,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               node.fileOffset,
             ),
             index: VariableGet(indexVar),
-            value:
-                target == abiSpecificIntegerArraySetElemAt
-                    ? node.arguments.positional.last
-                    : null,
+            value: target == abiSpecificIntegerArraySetElemAt
+                ? node.arguments.positional.last
+                : null,
             fileOffset: node.fileOffset,
           ),
         );
@@ -348,14 +441,14 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           typedDataBase: node.arguments.positional[0],
           index:
               (target == abiSpecificIntegerPointerElemAt ||
-                      target == abiSpecificIntegerPointerSetElemAt)
-                  ? node.arguments.positional[1]
-                  : null,
+                  target == abiSpecificIntegerPointerSetElemAt)
+              ? node.arguments.positional[1]
+              : null,
           value:
               (target == abiSpecificIntegerPointerSetValue ||
-                      target == abiSpecificIntegerPointerSetElemAt)
-                  ? node.arguments.positional.last
-                  : null,
+                  target == abiSpecificIntegerPointerSetElemAt)
+              ? node.arguments.positional.last
+              : null,
           fileOffset: node.fileOffset,
         );
       }
@@ -651,15 +744,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         final replacement = _replaceNativeCallableListenerConstructor(node);
 
-        final compoundClasses =
-            funcType.positionalParameters
-                .whereType<InterfaceType>()
-                .map((t) => t.classNode)
-                .where(
-                  (c) =>
-                      c.superclass == structClass || c.superclass == unionClass,
-                )
-                .toList();
+        final compoundClasses = funcType.positionalParameters
+            .whereType<InterfaceType>()
+            .map((t) => t.classNode)
+            .where(
+              (c) => c.superclass == structClass || c.superclass == unionClass,
+            )
+            .toList();
         return invokeCompoundConstructors(replacement, compoundClasses);
       } else if (target == allocateMethod) {
         if (_isMissingArguments(node)) {
@@ -908,6 +999,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     StaticInvocation node,
     Expression exceptionalReturn,
   ) {
+    if (!allowEnclosingMutation) {
+      _reportEnclosingMutationInProcedureMode(node, 'Pointer.fromFunction');
+    }
     final nativeFunctionType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
@@ -1322,14 +1416,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       );
     }
 
-    final compoundClasses =
-        funcType.positionalParameters
-            .whereType<InterfaceType>()
-            .map((t) => t.classNode)
-            .where(
-              (c) => c.superclass == structClass || c.superclass == unionClass,
-            )
-            .toList();
+    final compoundClasses = funcType.positionalParameters
+        .whereType<InterfaceType>()
+        .map((t) => t.classNode)
+        .where((c) => c.superclass == structClass || c.superclass == unionClass)
+        .toList();
     return invokeCompoundConstructors(
       replacement(node, exceptionalReturn, isStaticFunction),
       compoundClasses,
@@ -1343,11 +1434,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return _verifyAndReplaceNativeCallable(
       node,
       fromFunction: fromFunction,
-      replacement:
-          fromFunction
-              ? (node, exceptionalReturn, _) =>
-                  _replaceFromFunction(node, exceptionalReturn)
-              : _replaceNativeCallableIsolateLocalConstructor,
+      replacement: fromFunction
+          ? (node, exceptionalReturn, _) =>
+                _replaceFromFunction(node, exceptionalReturn)
+          : _replaceNativeCallableIsolateLocalConstructor,
     );
   }
 
@@ -1548,9 +1638,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           ConstantExpression(
             dartType.typeArguments.isNotEmpty
                 ? InstantiationConstant(
-                  ConstructorTearOffConstant(constructor),
-                  dartType.typeArguments,
-                )
+                    ConstructorTearOffConstant(constructor),
+                    dartType.typeArguments,
+                  )
                 : ConstructorTearOffConstant(constructor),
           ),
         ],
@@ -2074,14 +2164,19 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       _ => throw UnimplementedError('Unexpected parent: ${parent}'),
     };
 
-    final existingNewTarget =
-        members
-            .whereType<Procedure>()
-            .where((element) => element.name.text == newName)
-            .firstOrNull;
+    final existingNewTarget = members
+        .whereType<Procedure>()
+        .where((element) => element.name.text == newName)
+        .firstOrNull;
     if (existingNewTarget != null) {
       newTarget = existingNewTarget;
     } else {
+      if (!allowEnclosingMutation) {
+        _reportEnclosingMutationInProcedureMode(
+          node,
+          '@Native(isLeaf: true) function invocation',
+        );
+      }
       final cloner = CloneProcedureWithoutBody();
       newTarget = cloner.cloneProcedure(target, null);
       newTarget.name = Name(newName);
@@ -2230,8 +2325,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         } else {
           arrayElementType = firstParamType.typeArguments.single;
         }
-        final arrayElementSize =
-            inlineSizeOf(arrayElementType as InterfaceType)!;
+        final arrayElementSize = inlineSizeOf(
+          arrayElementType as InterfaceType,
+        )!;
         // Array element. Pass in a newly constructed `_Compound`, with
         // adjusted offset.
         return (
@@ -2253,13 +2349,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final receiverType = staticTypeContext!.getExpressionType(
           subExpression.receiver,
         );
-        final implementsTypedData = TypeEnvironment(
-          coreTypes,
-          hierarchy,
-        ).isSubtypeOf(
-          receiverType,
-          InterfaceType(typedDataClass, Nullability.nonNullable),
-        );
+        final implementsTypedData = TypeEnvironment(coreTypes, hierarchy)
+            .isSubtypeOf(
+              receiverType,
+              InterfaceType(typedDataClass, Nullability.nonNullable),
+            );
         if (!implementsTypedData) break;
         if (receiverType is! InterfaceType) break;
         final classNode = receiverType.classNode;

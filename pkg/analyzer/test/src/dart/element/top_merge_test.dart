@@ -32,30 +32,7 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(dynamicType, dynamicType, dynamicType);
   }
 
-  test_function() {
-    _check(
-      functionTypeNone(returnType: voidNone),
-      functionTypeNone(returnType: objectQuestion),
-      functionTypeNone(returnType: objectQuestion),
-    );
-
-    _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: objectQuestion, name: 'a')],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: dynamicType, name: 'a')],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: objectQuestion, name: 'a')],
-      ),
-    );
-  }
-
-  test_function_covariant() {
+  test_function_parameters_covariant() {
     _check(
       functionTypeNone(
         returnType: voidNone,
@@ -91,22 +68,37 @@ class TopMergeTest extends AbstractTypeSystemTest {
     );
   }
 
-  test_function_parameters_mismatch() {
+  test_function_parameters_kind_optionalPositional_optionalPositional() {
     _check(
       functionTypeNone(
         returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone, name: 'a')],
+        formalParameters: [positionalParameter(type: intNone)],
       ),
       functionTypeNone(
         returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone, name: 'b')],
+        formalParameters: [positionalParameter(type: intNone)],
       ),
       functionTypeNone(
         returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone, name: 'a')],
+        formalParameters: [positionalParameter(type: intNone)],
       ),
     );
+  }
 
+  test_function_parameters_kind_requiredNamed_optionalNamed() {
+    _checkThrows(
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [namedRequiredParameter(type: intNone, name: 'a')],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [namedParameter(type: intNone, name: 'a')],
+      ),
+    );
+  }
+
+  test_function_parameters_kind_requiredPositional_optionalPositional() {
     _checkThrows(
       functionTypeNone(
         returnType: voidNone,
@@ -127,6 +119,48 @@ class TopMergeTest extends AbstractTypeSystemTest {
         returnType: voidNone,
         formalParameters: [namedParameter(type: intNone, name: 'b')],
       ),
+    );
+  }
+
+  test_function_parameters_mismatch() {
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [requiredParameter(type: intNone, name: 'a')],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [requiredParameter(type: intNone, name: 'b')],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [requiredParameter(type: intNone, name: 'a')],
+      ),
+    );
+  }
+
+  test_function_parameters_type() {
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [requiredParameter(type: objectQuestion, name: 'a')],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [requiredParameter(type: dynamicType, name: 'a')],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [requiredParameter(type: objectQuestion, name: 'a')],
+      ),
+    );
+  }
+
+  test_function_returnType() {
+    _check(
+      functionTypeNone(returnType: voidNone),
+      functionTypeNone(returnType: objectQuestion),
+      functionTypeNone(returnType: objectQuestion),
     );
   }
 

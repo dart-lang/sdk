@@ -119,7 +119,7 @@ class FieldInitializer extends Initializer {
   bool isSynthetic = false;
 
   FieldInitializer(Field field, Expression value)
-      : this.byReference(field.fieldReference, value);
+    : this.byReference(field.fieldReference, value);
 
   FieldInitializer.byReference(this.fieldReference, this.value) {
     value.parent = this;
@@ -185,10 +185,11 @@ class SuperInitializer extends Initializer {
   bool isSynthetic = false;
 
   SuperInitializer(Constructor target, Arguments arguments)
-      : this.byReference(
-            // Getter vs setter doesn't matter for constructors.
-            getNonNullableMemberReferenceGetter(target),
-            arguments);
+    : this.byReference(
+        // Getter vs setter doesn't matter for constructors.
+        getNonNullableMemberReferenceGetter(target),
+        arguments,
+      );
 
   SuperInitializer.byReference(this.targetReference, this.arguments) {
     arguments.parent = this;
@@ -256,10 +257,11 @@ class RedirectingInitializer extends Initializer {
   Arguments arguments;
 
   RedirectingInitializer(Constructor target, Arguments arguments)
-      : this.byReference(
-            // Getter vs setter doesn't matter for constructors.
-            getNonNullableMemberReferenceGetter(target),
-            arguments);
+    : this.byReference(
+        // Getter vs setter doesn't matter for constructors.
+        getNonNullableMemberReferenceGetter(target),
+        arguments,
+      );
 
   RedirectingInitializer.byReference(this.targetReference, this.arguments) {
     arguments.parent = this;

@@ -21,7 +21,7 @@ abstract class TypeEnvironment extends Types {
   final CoreTypes coreTypes;
 
   TypeEnvironment.fromSubclass(this.coreTypes, ClassHierarchyBase base)
-      : super(base);
+    : super(base);
 
   factory TypeEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     return new HierarchyBasedTypeEnvironment(coreTypes, hierarchy);
@@ -40,36 +40,42 @@ abstract class TypeEnvironment extends Types {
   /// Returns the type `List<E>` with the given [nullability] and [elementType]
   /// as `E`.
   InterfaceType listType(DartType elementType, Nullability nullability) {
-    return new InterfaceType(
-        coreTypes.listClass, nullability, <DartType>[elementType]);
+    return new InterfaceType(coreTypes.listClass, nullability, <DartType>[
+      elementType,
+    ]);
   }
 
   /// Returns the type `Set<E>` with the given [nullability] and [elementType]
   /// as `E`.
   InterfaceType setType(DartType elementType, Nullability nullability) {
-    return new InterfaceType(
-        coreTypes.setClass, nullability, <DartType>[elementType]);
+    return new InterfaceType(coreTypes.setClass, nullability, <DartType>[
+      elementType,
+    ]);
   }
 
   /// Returns the type `Map<K,V>` with the given [nullability], [key] as `K`
   /// and [value] is `V`.
   InterfaceType mapType(DartType key, DartType value, Nullability nullability) {
-    return new InterfaceType(
-        coreTypes.mapClass, nullability, <DartType>[key, value]);
+    return new InterfaceType(coreTypes.mapClass, nullability, <DartType>[
+      key,
+      value,
+    ]);
   }
 
   /// Returns the type `Iterable<E>` with the given [nullability] and [type]
   /// as `E`.
   InterfaceType iterableType(DartType type, Nullability nullability) {
-    return new InterfaceType(
-        coreTypes.iterableClass, nullability, <DartType>[type]);
+    return new InterfaceType(coreTypes.iterableClass, nullability, <DartType>[
+      type,
+    ]);
   }
 
   /// Returns the type `Future<E>` with the given [nullability] and [type]
   /// as `E`.
   InterfaceType futureType(DartType type, Nullability nullability) {
-    return new InterfaceType(
-        coreTypes.futureClass, nullability, <DartType>[type]);
+    return new InterfaceType(coreTypes.futureClass, nullability, <DartType>[
+      type,
+    ]);
   }
 
   DartType? _futureTypeOf(DartType t) {
@@ -84,8 +90,11 @@ abstract class TypeEnvironment extends Types {
     // future type.
     DartType resolved = t.nonTypeParameterBound;
     if (resolved is TypeDeclarationType) {
-      DartType? futureType =
-          getTypeAsInstanceOf(resolved, coreTypes.futureClass, coreTypes);
+      DartType? futureType = getTypeAsInstanceOf(
+        resolved,
+        coreTypes.futureClass,
+        coreTypes,
+      );
       if (futureType != null) {
         return futureType.withDeclaredNullability(resolved.declaredNullability);
       }
@@ -120,19 +129,25 @@ abstract class TypeEnvironment extends Types {
         assert(futureType.classNode == coreTypes.futureClass);
         DartType typeArgument = futureType.typeArguments.single;
         return typeArgument.withDeclaredNullability(
-            combineNullabilitiesForSubstitution(
-                inner: combineNullabilitiesForSubstitution(
-                    inner: typeArgument.declaredNullability,
-                    outer: futureType.declaredNullability),
-                outer: t.declaredNullability));
+          combineNullabilitiesForSubstitution(
+            inner: combineNullabilitiesForSubstitution(
+              inner: typeArgument.declaredNullability,
+              outer: futureType.declaredNullability,
+            ),
+            outer: t.declaredNullability,
+          ),
+        );
       } else if (futureType is FutureOrType) {
         DartType typeArgument = futureType.typeArgument;
         return typeArgument.withDeclaredNullability(
-            combineNullabilitiesForSubstitution(
-                inner: combineNullabilitiesForSubstitution(
-                    inner: typeArgument.declaredNullability,
-                    outer: futureType.declaredNullability),
-                outer: t.declaredNullability));
+          combineNullabilitiesForSubstitution(
+            inner: combineNullabilitiesForSubstitution(
+              inner: typeArgument.declaredNullability,
+              outer: futureType.declaredNullability,
+            ),
+            outer: t.declaredNullability,
+          ),
+        );
       } else {
         return t;
       }
@@ -238,14 +253,17 @@ abstract class TypeEnvironment extends Types {
   }
 
   DartType getTypeOfSpecialCasedTernaryOperator(
-      DartType type1, DartType type2, DartType type3) {
+    DartType type1,
+    DartType type2,
+    DartType type3,
+  ) {
     // Let e be a normal invocation of the form e1.clamp(e2, e3), where the
     // static types of e1, e2 and e3 are T1, T2 and T3 respectively, and where
     // T1, T2, and T3 are all non-Never subtypes of num. Then:
     if (type1 is! NeverType && type2 is! NeverType && type3 is! NeverType
-        /* We skip the check that all types are subtypes of num because, if
+    /* We skip the check that all types are subtypes of num because, if
           not, we'll compute the static type to be num, anyway.*/
-        ) {
+    ) {
       if (isSubtypeOf(type1, coreTypes.intNonNullableRawType) &&
           isSubtypeOf(type2, coreTypes.intNonNullableRawType) &&
           isSubtypeOf(type3, coreTypes.intNonNullableRawType)) {
@@ -265,9 +283,12 @@ abstract class TypeEnvironment extends Types {
   }
 
   bool _isRawTypeArgumentEquivalent(
-      TypeDeclarationType type, int typeArgumentIndex) {
-    assert(0 <= typeArgumentIndex &&
-        typeArgumentIndex < type.typeArguments.length);
+    TypeDeclarationType type,
+    int typeArgumentIndex,
+  ) {
+    assert(
+      0 <= typeArgumentIndex && typeArgumentIndex < type.typeArguments.length,
+    );
     DartType typeArgument = type.typeArguments[typeArgumentIndex];
     DartType defaultType =
         type.typeDeclaration.typeParameters[typeArgumentIndex].defaultType;
@@ -279,9 +300,10 @@ abstract class TypeEnvironment extends Types {
   /// In expressions of the form `e is T` and `e as T` the static type of the
   /// expression `e` is [expressionStaticType], and the type `T` is
   /// [checkTargetType].
-  TypeShapeCheckSufficiency computeTypeShapeCheckSufficiency(
-      {required DartType expressionStaticType,
-      required DartType checkTargetType}) {
+  TypeShapeCheckSufficiency computeTypeShapeCheckSufficiency({
+    required DartType expressionStaticType,
+    required DartType checkTargetType,
+  }) {
     if (checkTargetType is InterfaceType &&
         expressionStaticType is InterfaceType) {
       // Analyze if an interface shape check is sufficient.
@@ -302,16 +324,22 @@ abstract class TypeEnvironment extends Types {
       bool targetTypeArgumentsAreDefaultTypes = true;
       List<TypeParameter> checkTargetTypeOwnTypeParameters =
           checkTargetType.classNode.typeParameters;
-      assert(checkTargetType.typeArguments.length ==
-          checkTargetTypeOwnTypeParameters.length);
-      for (int typeParameterIndex = 0;
-          typeParameterIndex < checkTargetTypeOwnTypeParameters.length;
-          typeParameterIndex++) {
+      assert(
+        checkTargetType.typeArguments.length ==
+            checkTargetTypeOwnTypeParameters.length,
+      );
+      for (
+        int typeParameterIndex = 0;
+        typeParameterIndex < checkTargetTypeOwnTypeParameters.length;
+        typeParameterIndex++
+      ) {
         // TODO(cstefantsova): Investigate if super-bounded types can appear as
         // [checkTargetType]s. In that case a subtype check should be done
         // instead of the mutual subtype check.
         if (!_isRawTypeArgumentEquivalent(
-            checkTargetType, typeParameterIndex)) {
+          checkTargetType,
+          typeParameterIndex,
+        )) {
           targetTypeArgumentsAreDefaultTypes = false;
           break;
         }
@@ -402,7 +430,9 @@ abstract class TypeEnvironment extends Types {
       // is the static type of `e`.
       InterfaceType? testedAgainstTypeAsOperandClass = hierarchy
           .getInterfaceTypeAsInstanceOfClass(
-              checkTargetType, expressionStaticType.classNode)
+            checkTargetType,
+            expressionStaticType.classNode,
+          )
           ?.withDeclaredNullability(checkTargetType.declaredNullability);
 
       // If `A<T1, ..., Tn>` isn't an instance of `B`, the full type check
@@ -415,15 +445,19 @@ abstract class TypeEnvironment extends Types {
         // of `B`, where `X1`, ..., `Xn` are the type variables declared by
         // `A`.  The resulting type is `B<R1, ..., Rk>`, where `R1`, ..., `Rk`
         // may contain occurrences of `X1`, ..., `Xn`.
-        InterfaceType unsubstitutedTestedAgainstTypeAsOperandClass =
-            hierarchy.getInterfaceTypeAsInstanceOfClass(
-                new InterfaceType(checkTargetType.classNode,
-                    checkTargetType.declaredNullability, [
+        InterfaceType unsubstitutedTestedAgainstTypeAsOperandClass = hierarchy
+            .getInterfaceTypeAsInstanceOfClass(
+              new InterfaceType(
+                checkTargetType.classNode,
+                checkTargetType.declaredNullability,
+                [
                   for (TypeParameter typeParameter
                       in checkTargetTypeOwnTypeParameters)
-                    new TypeParameterType.withDefaultNullability(typeParameter)
-                ]),
-                expressionStaticType.classNode)!;
+                    new TypeParameterType.withDefaultNullability(typeParameter),
+                ],
+              ),
+              expressionStaticType.classNode,
+            )!;
         // Now we search for the occurrences of `X1`, ..., `Xn` in `B<R1,
         // ..., Rk>`. Those that are found indicate the positions in `A<T1,
         // ..., Tn>` that are fixed and supposed to be the same for every
@@ -434,21 +468,28 @@ abstract class TypeEnvironment extends Types {
         // to satisfy condition (2*).
         OccurrenceCollectorVisitor occurrenceCollectorVisitor =
             new OccurrenceCollectorVisitor(
-                checkTargetTypeOwnTypeParameters.toSet());
-        occurrenceCollectorVisitor
-            .visit(unsubstitutedTestedAgainstTypeAsOperandClass);
+              checkTargetTypeOwnTypeParameters.toSet(),
+            );
+        occurrenceCollectorVisitor.visit(
+          unsubstitutedTestedAgainstTypeAsOperandClass,
+        );
 
         // Check that those of `Xi` that don't occur in `B<R1, ..., Rk>`
         // indicate the positions of type arguments in `A<T1, ..., Tn>`
         // that are equivalent to default types.
         bool allNonOccurringAreDefaultTypes = true;
-        for (int typeParameterIndex = 0;
-            typeParameterIndex < checkTargetTypeOwnTypeParameters.length;
-            typeParameterIndex++) {
+        for (
+          int typeParameterIndex = 0;
+          typeParameterIndex < checkTargetTypeOwnTypeParameters.length;
+          typeParameterIndex++
+        ) {
           if (!occurrenceCollectorVisitor.occurred.contains(
-                  checkTargetTypeOwnTypeParameters[typeParameterIndex]) &&
+                checkTargetTypeOwnTypeParameters[typeParameterIndex],
+              ) &&
               !_isRawTypeArgumentEquivalent(
-                  checkTargetType, typeParameterIndex)) {
+                checkTargetType,
+                typeParameterIndex,
+              )) {
             allNonOccurringAreDefaultTypes = false;
             break;
           }
@@ -457,9 +498,11 @@ abstract class TypeEnvironment extends Types {
         if (allNonOccurringAreDefaultTypes) {
           // Condition (2*) is satisfied. We need to check condition (1).
           return isSubtypeOf(
-                  expressionStaticType,
-                  testedAgainstTypeAsOperandClass
-                      .withDeclaredNullability(Nullability.nullable))
+                expressionStaticType,
+                testedAgainstTypeAsOperandClass.withDeclaredNullability(
+                  Nullability.nullable,
+                ),
+              )
               ? TypeShapeCheckSufficiency.interfaceShape
               : TypeShapeCheckSufficiency.insufficient;
         } else {
@@ -531,7 +574,9 @@ abstract class TypeEnvironment extends Types {
         // any kind for the following sufficiency check to work.
         return TypeShapeCheckSufficiency.futureOrShape;
       } else if (isSubtypeOf(
-          expressionStaticType.typeArgument, checkTargetType.typeArgument)) {
+        expressionStaticType.typeArgument,
+        checkTargetType.typeArgument,
+      )) {
         return TypeShapeCheckSufficiency.futureOrShape;
       } else {
         return TypeShapeCheckSufficiency.insufficient;
@@ -552,7 +597,7 @@ class IsSubtypeOf {
   final DartType? supertype;
 
   const IsSubtypeOf._internal(bool isSuccess, this.subtype, this.supertype)
-      : _isSuccess = isSuccess;
+    : _isSuccess = isSuccess;
 
   /// Subtype check succeeds.
   const IsSubtypeOf.success() : this._internal(true, null, null);
@@ -571,7 +616,9 @@ class IsSubtypeOf {
   /// `Rn` is the result of [IsSubtypeOf.basedSolelyOnNullabilities] on the
   /// types `List<int>?` and `List<num>*`.
   factory IsSubtypeOf.basedSolelyOnNullabilities(
-      DartType subtype, DartType supertype) {
+    DartType subtype,
+    DartType supertype,
+  ) {
     if (subtype is InvalidType) {
       if (supertype is InvalidType) {
         return const IsSubtypeOf.success();
@@ -588,13 +635,17 @@ class IsSubtypeOf {
   /// Checks if two types are in relation based solely on their nullabilities
   /// and where the caller knows that neither type is a `InvalidType`.
   factory IsSubtypeOf.basedSolelyOnNullabilitiesNotInvalidType(
-      DartType subtype, DartType supertype) {
+    DartType subtype,
+    DartType supertype,
+  ) {
     return _basedSolelyOnNullabilitiesNotInvalidType(subtype, supertype);
   }
 
   @pragma("vm:prefer-inline")
   static IsSubtypeOf _basedSolelyOnNullabilitiesNotInvalidType(
-      DartType subtype, DartType supertype) {
+    DartType subtype,
+    DartType supertype,
+  ) {
     if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
       // It's a special case to test X% <: X%, FutureOr<X%> <: FutureOr<X%>,
       // FutureOr<FutureOr<X%>> <: FutureOr<FutureOr<X%>>, etc, where X is a
@@ -643,7 +694,10 @@ class IsSubtypeOf {
   /// [IsSubtypeOf.failure] because the right-hand side will not change the
   /// overall result anyway.
   IsSubtypeOf andSubtypeCheckFor(
-      DartType subtype, DartType supertype, Types tester) {
+    DartType subtype,
+    DartType supertype,
+    Types tester,
+  ) {
     if (!_isSuccess) {
       return this;
     } else {
@@ -673,7 +727,10 @@ class IsSubtypeOf {
   /// as [IsSubtypeOf.success] because the right-hand side will not change the
   /// overall result anyway.
   IsSubtypeOf orSubtypeCheckFor(
-      DartType subtype, DartType supertype, Types tester) {
+    DartType subtype,
+    DartType supertype,
+    Types tester,
+  ) {
     if (_isSuccess) {
       return this;
     } else {
@@ -715,7 +772,9 @@ class StaticTypeCacheImpl implements StaticTypeCache {
 
   @override
   DartType getForInIteratorType(
-      ForInStatement node, StaticTypeContext context) {
+    ForInStatement node,
+    StaticTypeContext context,
+  ) {
     return _forInIteratorTypes[node] ??= node.getIteratorTypeInternal(context);
   }
 
@@ -744,14 +803,19 @@ abstract class StaticTypeContext {
 
   /// Creates a static type context for computing static types in the body
   /// of [member].
-  factory StaticTypeContext(Member member, TypeEnvironment typeEnvironment,
-      {StaticTypeCache cache}) = StaticTypeContextImpl;
+  factory StaticTypeContext(
+    Member member,
+    TypeEnvironment typeEnvironment, {
+    StaticTypeCache cache,
+  }) = StaticTypeContextImpl;
 
   /// Creates a static type context for computing static types of annotations
   /// in [library].
   factory StaticTypeContext.forAnnotations(
-      Library library, TypeEnvironment typeEnvironment,
-      {StaticTypeCache cache}) = StaticTypeContextImpl.forAnnotations;
+    Library library,
+    TypeEnvironment typeEnvironment, {
+    StaticTypeCache cache,
+  }) = StaticTypeContextImpl.forAnnotations;
 
   /// The [Nullability] used for non-nullable types.
   ///
@@ -791,25 +855,36 @@ class StaticTypeContextImpl implements StaticTypeContext {
 
   /// Creates a static type context for computing static types in the body
   /// of [member].
-  StaticTypeContextImpl(Member member, TypeEnvironment typeEnvironment,
-      {StaticTypeCache? cache})
-      : this.direct(member.enclosingLibrary, typeEnvironment,
-            thisType: member.enclosingClass?.getThisType(
-                typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable),
-            cache: cache);
+  StaticTypeContextImpl(
+    Member member,
+    TypeEnvironment typeEnvironment, {
+    StaticTypeCache? cache,
+  }) : this.direct(
+         member.enclosingLibrary,
+         typeEnvironment,
+         thisType: member.enclosingClass?.getThisType(
+           typeEnvironment.coreTypes,
+           member.enclosingLibrary.nonNullable,
+         ),
+         cache: cache,
+       );
 
   /// Creates a static type context for computing static types in the body of
   /// a member, provided the enclosing [_library] and [thisType].
-  StaticTypeContextImpl.direct(this._library, this.typeEnvironment,
-      {this.thisType, StaticTypeCache? cache})
-      : _cache = cache;
+  StaticTypeContextImpl.direct(
+    this._library,
+    this.typeEnvironment, {
+    this.thisType,
+    StaticTypeCache? cache,
+  }) : _cache = cache;
 
   /// Creates a static type context for computing static types of annotations
   /// in [library].
   StaticTypeContextImpl.forAnnotations(
-      Library library, TypeEnvironment typeEnvironment,
-      {StaticTypeCache? cache})
-      : this.direct(library, typeEnvironment, cache: cache);
+    Library library,
+    TypeEnvironment typeEnvironment, {
+    StaticTypeCache? cache,
+  }) : this.direct(library, typeEnvironment, cache: cache);
 
   @override
   Library get enclosingLibrary => _library;
@@ -906,25 +981,30 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   Member? _currentMember;
 
   _FlatStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
-      : super._internal(typeEnvironment);
+    : super._internal(typeEnvironment);
 
   @override
   Library get enclosingLibrary => _library;
 
   Library get _library {
     Library? library = _currentLibrary ?? _currentMember?.enclosingLibrary;
-    assert(library != null,
-        "No library currently associated with StaticTypeContext.");
+    assert(
+      library != null,
+      "No library currently associated with StaticTypeContext.",
+    );
     return library!;
   }
 
   @override
   InterfaceType? get thisType {
-    assert(_currentMember != null,
-        "No member currently associated with StaticTypeContext.");
+    assert(
+      _currentMember != null,
+      "No member currently associated with StaticTypeContext.",
+    );
     return _currentMember?.enclosingClass?.getThisType(
-        typeEnvironment.coreTypes,
-        _currentMember!.enclosingLibrary.nonNullable);
+      typeEnvironment.coreTypes,
+      _currentMember!.enclosingLibrary.nonNullable,
+    );
   }
 
   @override
@@ -953,9 +1033,10 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   @override
   void leaveMember(Member node) {
     assert(
-        _currentMember == node,
-        "Inconsistent static type context stack: "
-        "Trying to leave $node but current is ${_currentMember}.");
+      _currentMember == node,
+      "Inconsistent static type context stack: "
+      "Trying to leave $node but current is ${_currentMember}.",
+    );
     _currentMember = null;
   }
 
@@ -981,9 +1062,10 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   @override
   void leaveLibrary(Library node) {
     assert(
-        _currentLibrary == node,
-        "Inconsistent static type context stack: "
-        "Trying to leave $node but current is ${_currentLibrary}.");
+      _currentLibrary == node,
+      "Inconsistent static type context stack: "
+      "Trying to leave $node but current is ${_currentLibrary}.",
+    );
     _currentLibrary = null;
   }
 
@@ -1007,21 +1089,25 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
       <_StaticTypeContextState>[];
 
   _StackedStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
-      : super._internal(typeEnvironment);
+    : super._internal(typeEnvironment);
 
   @override
   Library get enclosingLibrary => _library;
 
   Library get _library {
-    assert(_contextStack.isNotEmpty,
-        "No library currently associated with StaticTypeContext.");
+    assert(
+      _contextStack.isNotEmpty,
+      "No library currently associated with StaticTypeContext.",
+    );
     return _contextStack.last._library;
   }
 
   @override
   InterfaceType? get thisType {
-    assert(_contextStack.isNotEmpty,
-        "No this type currently associated with StaticTypeContext.");
+    assert(
+      _contextStack.isNotEmpty,
+      "No this type currently associated with StaticTypeContext.",
+    );
     return _contextStack.last._thisType;
   }
 
@@ -1038,11 +1124,16 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
   /// [node].
   @override
   void enterMember(Member node) {
-    _contextStack.add(new _StaticTypeContextState(
+    _contextStack.add(
+      new _StaticTypeContextState(
         node,
         node.enclosingLibrary,
         node.enclosingClass?.getThisType(
-            typeEnvironment.coreTypes, node.enclosingLibrary.nonNullable)));
+          typeEnvironment.coreTypes,
+          node.enclosingLibrary.nonNullable,
+        ),
+      ),
+    );
   }
 
   /// Reverts the [library] and [thisType] values to the previous state.
@@ -1053,9 +1144,10 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
   void leaveMember(Member node) {
     _StaticTypeContextState state = _contextStack.removeLast();
     assert(
-        state._node == node,
-        "Inconsistent static type context stack: "
-        "Trying to leave $node but current is ${state._node}.");
+      state._node == node,
+      "Inconsistent static type context stack: "
+      "Trying to leave $node but current is ${state._node}.",
+    );
   }
 
   /// Updates the [library] and [thisType] to match static type context for
@@ -1076,9 +1168,10 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
   void leaveLibrary(Library node) {
     _StaticTypeContextState state = _contextStack.removeLast();
     assert(
-        state._node == node,
-        "Inconsistent static type context stack: "
-        "Trying to leave $node but current is ${state._node}.");
+      state._node == node,
+      "Inconsistent static type context stack: "
+      "Trying to leave $node but current is ${state._node}.",
+    );
   }
 
   @override
@@ -1132,5 +1225,5 @@ enum TypeShapeCheckSufficiency {
 
   /// Indicates that a shape check is insufficient, and the full check is
   /// required.
-  insufficient;
+  insufficient,
 }

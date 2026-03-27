@@ -26,8 +26,10 @@ enum ParsedNullability {
   omitted,
 }
 
-Nullability interpretParsedNullability(ParsedNullability parsedNullability,
-    {Nullability ifOmitted = Nullability.nonNullable}) {
+Nullability interpretParsedNullability(
+  ParsedNullability parsedNullability, {
+  Nullability ifOmitted = Nullability.nonNullable,
+}) {
   switch (parsedNullability) {
     case ParsedNullability.nullable:
       return Nullability.nullable;
@@ -90,9 +92,14 @@ class ParsedClass extends ParsedDeclaration {
   final List<ParsedType> interfaces;
   final ParsedFunctionType? callableType;
 
-  ParsedClass(String name, this.typeVariables, this.supertype, this.mixedInType,
-      this.interfaces, this.callableType)
-      : super(name);
+  ParsedClass(
+    String name,
+    this.typeVariables,
+    this.supertype,
+    this.mixedInType,
+    this.interfaces,
+    this.callableType,
+  ) : super(name);
 
   @override
   String toString() {
@@ -191,9 +198,12 @@ class ParsedExtensionTypeDeclaration extends ParsedDeclaration {
 
   final List<ParsedType> interfaces;
 
-  ParsedExtensionTypeDeclaration(String name, this.typeVariables,
-      this.declaredRepresentationType, this.interfaces)
-      : super(name);
+  ParsedExtensionTypeDeclaration(
+    String name,
+    this.typeVariables,
+    this.declaredRepresentationType,
+    this.interfaces,
+  ) : super(name);
 
   @override
   String toString() {
@@ -230,8 +240,12 @@ class ParsedFunctionType extends ParsedType {
 
   final ParsedNullability parsedNullability;
 
-  ParsedFunctionType(this.typeVariables, this.returnType, this.arguments,
-      this.parsedNullability);
+  ParsedFunctionType(
+    this.typeVariables,
+    this.returnType,
+    this.arguments,
+    this.parsedNullability,
+  );
 
   @override
   String toString() {
@@ -350,7 +364,7 @@ class ParsedArguments {
   final List<ParsedNamedArgument> named;
 
   ParsedArguments(this.required, this.positional, this.named)
-      : assert(positional.isEmpty || named.isEmpty);
+    : assert(positional.isEmpty || named.isEmpty);
 
   @override
   String toString() {
@@ -477,11 +491,17 @@ class Parser {
         type = parseFunctionOrRecordType();
       } else if (optionalAdvance("void")) {
         type = new ParsedNamedType(
-            "void", <ParsedType>[], ParsedNullability.nullable);
+          "void",
+          <ParsedType>[],
+          ParsedNullability.nullable,
+        );
         optionalAdvance("?");
       } else if (optionalAdvance("invalid")) {
         type = new ParsedNamedType(
-            "invalid", <ParsedType>[], ParsedNullability.nullable);
+          "invalid",
+          <ParsedType>[],
+          ParsedNullability.nullable,
+        );
       } else {
         String name = parseName();
         List<ParsedType> arguments = <ParsedType>[];
@@ -517,7 +537,7 @@ class Parser {
   }
 
   ParsedType /* ParsedFunctionType|ParsedRecordType */
-      parseFunctionOrRecordType() {
+  parseFunctionOrRecordType() {
     List<ParsedTypeVariable> typeVariables = parseTypeVariablesOpt();
     ParsedArguments arguments = parseArguments();
     if (optional("-")) {
@@ -527,7 +547,11 @@ class Parser {
       ParsedNullability parsedNullability = parseNullability();
       ParsedType returnType = parseReturnType();
       return new ParsedFunctionType(
-          typeVariables, returnType, arguments, parsedNullability);
+        typeVariables,
+        returnType,
+        arguments,
+        parsedNullability,
+      );
     } else {
       // RecordType.
       if (typeVariables.isNotEmpty) {
@@ -538,7 +562,10 @@ class Parser {
       }
       ParsedNullability parsedNullability = parseNullability();
       return new ParsedRecordType(
-          arguments.required, arguments.named, parsedNullability);
+        arguments.required,
+        arguments.named,
+        parsedNullability,
+      );
     }
   }
 
@@ -580,7 +607,10 @@ class Parser {
     } while (optionalAdvance(","));
     expect(")");
     return new ParsedArguments(
-        requiredArguments, positionalArguments, namedArguments);
+      requiredArguments,
+      positionalArguments,
+      namedArguments,
+    );
   }
 
   List<ParsedTypeVariable> parseTypeVariablesOpt() {
@@ -629,7 +659,13 @@ class Parser {
       expect(";");
     }
     return new ParsedClass(
-        name, typeVariables, supertype, mixedInType, interfaces, callableType);
+      name,
+      typeVariables,
+      supertype,
+      mixedInType,
+      interfaces,
+      callableType,
+    );
   }
 
   ParsedExtension parseExtension() {
@@ -657,7 +693,11 @@ class Parser {
     }
     expect(";");
     return new ParsedExtensionTypeDeclaration(
-        name, typeVariables, declaredRepresentationType, interfaces);
+      name,
+      typeVariables,
+      declaredRepresentationType,
+      interfaces,
+    );
   }
 
   /// This parses a general typedef on this form:
@@ -734,8 +774,11 @@ Token scanString(String text) {
           break;
         }
       }
-      token = new Token(startOffset, text.substring(startOffset, offset),
-          isIdentifier: true);
+      token = new Token(
+        startOffset,
+        text.substring(startOffset, offset),
+        isIdentifier: true,
+      );
     } else {
       token = new Token(offset, text.substring(offset, offset + 1));
       offset += 1;

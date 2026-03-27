@@ -42,15 +42,15 @@ void main() {
   assertEquals("y".indexOf(new RegExp(r"(x)?\1y")), 0);
   assertEquals("y".replaceAll(new RegExp(r"(x)?\1y"), "z"), "z");
   assertEquals(
-    "y".replaceAllMapped(new RegExp(r"(x)?y"), (m) => m.group(1) ?? "null"),
+    "y".replaceAllMapped(new RegExp(r"(x)?y"), (m) => m[1] ?? "null"),
     "null",
   );
   assertEquals(
-    "y".replaceAllMapped(new RegExp(r"(x)?\1y"), (m) => m.group(1) ?? "null"),
+    "y".replaceAllMapped(new RegExp(r"(x)?\1y"), (m) => m[1] ?? "null"),
     "null",
   );
   assertEquals(
-    "y".replaceAllMapped(new RegExp(r"(x)?y"), (m) => m.group(1) ?? "null"),
+    "y".replaceAllMapped(new RegExp(r"(x)?y"), (m) => m[1] ?? "null"),
     "null",
   );
 }

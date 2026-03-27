@@ -135,7 +135,7 @@ Map<Architecture?, List<String>> parseOtoolArchitectureSections(String output) {
           'Expected a single architecture section in otool output: $output',
         );
       }
-      final String? architectureString = architectureHeader.group(2);
+      final String? architectureString = architectureHeader[2];
       if (architectureString != null) {
         currentArchitecture = outputArchitectures[architectureString];
         if (currentArchitecture == null) {

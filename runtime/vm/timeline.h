@@ -1342,8 +1342,10 @@ class TimelineEventMacosRecorder : public TimelineEventPlatformRecorder {
 
 class TimelineEventFileRecorderBase : public TimelineEventRecorder {
  public:
-  explicit TimelineEventFileRecorderBase(const char* path);
+  explicit TimelineEventFileRecorderBase(void* file);
   virtual ~TimelineEventFileRecorderBase();
+
+  static void* OpenTimelineFileForWriting(const char* path, const char** error);
 
   intptr_t Size() { return block_count_ * sizeof(TimelineEventBlock); }
   void Drain();
@@ -1404,7 +1406,7 @@ class TimelineEventFileRecorderBase : public TimelineEventRecorder {
 
 class TimelineEventFileRecorder : public TimelineEventFileRecorderBase {
  public:
-  explicit TimelineEventFileRecorder(const char* path);
+  explicit TimelineEventFileRecorder(void* file);
   virtual ~TimelineEventFileRecorder();
 
   const char* name() const final { return FILE_RECORDER_NAME; }

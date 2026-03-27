@@ -148,9 +148,7 @@ void matchIL$testCSE3(FlowGraph graph) {
       'b_bar' << match.AllocateClosure(match.any, 'b', 'b_type_args'),
       match.MoveArgument('b_bar'),
       match.MoveArgument(match.any),
-      match.StaticCall(), // _boundsCheckForPartialInstantiation
-      'b_bar_int' << match.AllocateClosure(match.any, 'b', 'b_type_args'),
-      match.StoreField('b_bar_int', match.any),
+      'b_bar_int' << match.StaticCall(), // _instantiateClosure
       match.MoveArgument('b_bar_int'),
       match.StaticCall(),
       'cond' << match.LoadStaticField(),
@@ -164,9 +162,7 @@ void matchIL$testCSE3(FlowGraph graph) {
         match.block('Target', [
           match.MoveArgument('b_bar'),
           match.MoveArgument(match.any),
-          match.StaticCall(), // _boundsCheckForPartialInstantiation
-          'b_bar_num' << match.AllocateClosure(match.any, 'b', 'b_type_args'),
-          match.StoreField('b_bar_num', match.any),
+          'b_bar_num' << match.StaticCall(), // _instantiateClosure
           match.MoveArgument('b_bar_num'),
           match.StaticCall(),
           match.Goto('B5'),

@@ -343,6 +343,34 @@ bool _canParseListFlutterOutlineAttribute(
   return true;
 }
 
+bool _canParseListFlutterWidgetPreviewDetails(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) =>
+                !FlutterWidgetPreviewDetails.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<FlutterWidgetPreviewDetails>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseListOutline(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -388,6 +416,34 @@ bool _canParseListString(
     if ((!nullCheck || value != null) &&
         (value is! List<Object?> || value.any((item) => item is! String))) {
       reporter.reportError('must be of type List<String>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListUri(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any(
+                (item) => (item is! String || Uri.tryParse(item) == null)))) {
+      reporter.reportError('must be of type List<Uri>');
       return false;
     }
   } finally {
@@ -446,6 +502,35 @@ bool _canParseMapStringListString(
                     item is! List<Object?> ||
                     item.any((item) => item is! String)))))) {
       reporter.reportError('must be of type Map<String, List<String>>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseMapStringString(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! Map ||
+            (value.keys.any((item) =>
+                item is! String ||
+                value.values.any((item) => item is! String))))) {
+      reporter.reportError('must be of type Map<String, String>');
       return false;
     }
   } finally {
@@ -2077,6 +2162,289 @@ class FlutterOutlineAttribute implements ToJsonable {
       label: label,
       name: name,
       valueRange: valueRange,
+    );
+  }
+}
+
+/// A representation of a widget preview declaration containing all information
+/// needed to import the preview into the widget previewer.
+class FlutterWidgetPreviewDetails implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FlutterWidgetPreviewDetails.canParse,
+    FlutterWidgetPreviewDetails.fromJson,
+  );
+
+  /// Set to true if there is an error in a dependency that will prevent this
+  /// preview from being rendered.
+  final bool dependencyHasErrors;
+
+  /// The name of the function returning the preview.
+  final String functionName;
+
+  /// Set to true if there is an error that will prevent this preview from being
+  /// rendered.
+  final bool hasError;
+
+  /// Set to true if the preview function is returning a `WidgetBuilder` instead
+  /// of a `Widget`.
+  final bool isBuilder;
+
+  /// Set to true if `previewAnnotation` represents a `MultiPreview`.
+  final bool isMultiPreview;
+
+  /// The unresolved URI pointing to the library in which the preview is
+  /// defined. This is either a package: or dart: URI.
+  final Uri libraryUri;
+
+  /// The name of the package in which this annotated preview function was
+  /// defined.
+  ///
+  ///  For example, if this preview is defined in "package:foo/src/bar.dart",
+  /// this will have the value "foo".
+  ///
+  /// This should only be null if the preview is defined in a file that's not
+  /// part of a Flutter package (e.g., is defined in a test).
+  final String? packageName;
+
+  /// The source location at which the Preview annotation was applied.
+  final Position position;
+
+  /// An equivalent Dart expression to the applied preview annotation, with
+  /// namespaces applied to individual types and constant values evaluated.
+  ///
+  /// This can be any object which extends `Preview` or `MultiPreview`.
+  final String previewAnnotation;
+
+  /// The file:// URI pointing to the script in which the preview is defined.
+  final Uri scriptUri;
+  FlutterWidgetPreviewDetails({
+    required this.dependencyHasErrors,
+    required this.functionName,
+    required this.hasError,
+    required this.isBuilder,
+    required this.isMultiPreview,
+    required this.libraryUri,
+    this.packageName,
+    required this.position,
+    required this.previewAnnotation,
+    required this.scriptUri,
+  });
+  @override
+  int get hashCode => Object.hash(
+        dependencyHasErrors,
+        functionName,
+        hasError,
+        isBuilder,
+        isMultiPreview,
+        libraryUri,
+        packageName,
+        position,
+        previewAnnotation,
+        scriptUri,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is FlutterWidgetPreviewDetails &&
+        other.runtimeType == FlutterWidgetPreviewDetails &&
+        dependencyHasErrors == other.dependencyHasErrors &&
+        functionName == other.functionName &&
+        hasError == other.hasError &&
+        isBuilder == other.isBuilder &&
+        isMultiPreview == other.isMultiPreview &&
+        libraryUri == other.libraryUri &&
+        packageName == other.packageName &&
+        position == other.position &&
+        previewAnnotation == other.previewAnnotation &&
+        scriptUri == other.scriptUri;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['dependencyHasErrors'] = dependencyHasErrors;
+    result['functionName'] = functionName;
+    result['hasError'] = hasError;
+    result['isBuilder'] = isBuilder;
+    result['isMultiPreview'] = isMultiPreview;
+    result['libraryUri'] = libraryUri.toString();
+    result['packageName'] = packageName;
+    result['position'] = position.toJson();
+    result['previewAnnotation'] = previewAnnotation;
+    result['scriptUri'] = scriptUri.toString();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseBool(obj, reporter, 'dependencyHasErrors',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'functionName',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'hasError',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'isBuilder',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'isMultiPreview',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseUri(obj, reporter, 'libraryUri',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'packageName',
+          allowsUndefined: false, allowsNull: true)) {
+        return false;
+      }
+      if (!_canParsePosition(obj, reporter, 'position',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'previewAnnotation',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseUri(obj, reporter, 'scriptUri',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type FlutterWidgetPreviewDetails');
+      return false;
+    }
+  }
+
+  static FlutterWidgetPreviewDetails fromJson(Map<String, Object?> json) {
+    final dependencyHasErrorsJson = json['dependencyHasErrors'];
+    final dependencyHasErrors = dependencyHasErrorsJson as bool;
+    final functionNameJson = json['functionName'];
+    final functionName = functionNameJson as String;
+    final hasErrorJson = json['hasError'];
+    final hasError = hasErrorJson as bool;
+    final isBuilderJson = json['isBuilder'];
+    final isBuilder = isBuilderJson as bool;
+    final isMultiPreviewJson = json['isMultiPreview'];
+    final isMultiPreview = isMultiPreviewJson as bool;
+    final libraryUriJson = json['libraryUri'];
+    final libraryUri = Uri.parse(libraryUriJson as String);
+    final packageNameJson = json['packageName'];
+    final packageName = packageNameJson as String?;
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final previewAnnotationJson = json['previewAnnotation'];
+    final previewAnnotation = previewAnnotationJson as String;
+    final scriptUriJson = json['scriptUri'];
+    final scriptUri = Uri.parse(scriptUriJson as String);
+    return FlutterWidgetPreviewDetails(
+      dependencyHasErrors: dependencyHasErrors,
+      functionName: functionName,
+      hasError: hasError,
+      isBuilder: isBuilder,
+      isMultiPreview: isMultiPreview,
+      libraryUri: libraryUri,
+      packageName: packageName,
+      position: position,
+      previewAnnotation: previewAnnotation,
+      scriptUri: scriptUri,
+    );
+  }
+}
+
+/// The set of widget previews defined in a script of an analyzed Flutter
+/// project.
+class FlutterWidgetPreviews implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FlutterWidgetPreviews.canParse,
+    FlutterWidgetPreviews.fromJson,
+  );
+
+  /// A set of library URIs and the prefixes used for types in
+  /// "previewAnnotation" sources.
+  final Map<String, String> namespaces;
+
+  /// The current set of previews in the script.
+  final List<FlutterWidgetPreviewDetails> previews;
+
+  /// The URIs for the updated scripts.
+  final List<Uri> scriptUris;
+  FlutterWidgetPreviews({
+    required this.namespaces,
+    required this.previews,
+    required this.scriptUris,
+  });
+  @override
+  int get hashCode => Object.hash(
+        lspHashCode(namespaces),
+        lspHashCode(previews),
+        lspHashCode(scriptUris),
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is FlutterWidgetPreviews &&
+        other.runtimeType == FlutterWidgetPreviews &&
+        const DeepCollectionEquality().equals(namespaces, other.namespaces) &&
+        const DeepCollectionEquality().equals(previews, other.previews) &&
+        const DeepCollectionEquality().equals(scriptUris, other.scriptUris);
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['namespaces'] = namespaces;
+    result['previews'] = previews.map((item) => item.toJson()).toList();
+    result['scriptUris'] = scriptUris.map((uri) => uri.toString()).toList();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseMapStringString(obj, reporter, 'namespaces',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseListFlutterWidgetPreviewDetails(obj, reporter, 'previews',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseListUri(obj, reporter, 'scriptUris',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type FlutterWidgetPreviews');
+      return false;
+    }
+  }
+
+  static FlutterWidgetPreviews fromJson(Map<String, Object?> json) {
+    final namespacesJson = json['namespaces'];
+    final namespaces = (namespacesJson as Map<Object, Object?>)
+        .map((key, value) => MapEntry(key as String, value as String));
+    final previewsJson = json['previews'];
+    final previews = (previewsJson as List<Object?>)
+        .map((item) =>
+            FlutterWidgetPreviewDetails.fromJson(item as Map<String, Object?>))
+        .toList();
+    final scriptUrisJson = json['scriptUris'];
+    final scriptUris = (scriptUrisJson as List<Object?>)
+        .map((item) => Uri.parse(item as String))
+        .toList();
+    return FlutterWidgetPreviews(
+      namespaces: namespaces,
+      previews: previews,
+      scriptUris: scriptUris,
     );
   }
 }

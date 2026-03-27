@@ -247,8 +247,7 @@ class ContextBuilderImpl {
     );
 
     {
-      // TODO(scheglov): We already had partial SourceFactory in ContextLocatorImpl.
-      var partialSourceFactory = workspace.createSourceFactory(null, null);
+      var partialSourceFactory = workspace.partialSourceFactory;
       var embedderYamlSource = partialSourceFactory.forUri(
         'package:sky_engine/_embedder.yaml',
       );

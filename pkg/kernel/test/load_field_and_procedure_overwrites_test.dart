@@ -14,8 +14,10 @@ void main() {
   Uint8List writtenBytesField;
   {
     Library lib = new Library(libUri, fileUri: libUri);
-    final Field field =
-        new Field.immutable(new Name("myGetter"), fileUri: libUri);
+    final Field field = new Field.immutable(
+      new Name("myGetter"),
+      fileUri: libUri,
+    );
     lib.addField(field);
 
     writtenBytesField = serialize(lib);
@@ -25,10 +27,11 @@ void main() {
     Library lib = new Library(libUri, fileUri: libUri);
     final Block libProcedureBody = new Block([]);
     final Procedure procedure = new Procedure(
-        new Name("myGetter"),
-        ProcedureKind.Getter,
-        new FunctionNode(libProcedureBody, returnType: new DynamicType()),
-        fileUri: libUri);
+      new Name("myGetter"),
+      ProcedureKind.Getter,
+      new FunctionNode(libProcedureBody, returnType: new DynamicType()),
+      fileUri: libUri,
+    );
     lib.addProcedure(procedure);
     writtenBytesProcedure = serialize(lib);
   }
@@ -38,18 +41,24 @@ void main() {
   for (int i = 0; i < 4; i++) {
     // Load field version "on top of" (meant to replace old one if any).
     Component componentWithField = new Component(nameRoot: nameRoot);
-    new BinaryBuilder(writtenBytesField,
-            disableLazyReading: false, alwaysCreateNewNamedNodes: true)
-        .readComponent(componentWithField);
+    new BinaryBuilder(
+      writtenBytesField,
+      disableLazyReading: false,
+      alwaysCreateNewNamedNodes: true,
+    ).readComponent(componentWithField);
     expect(componentWithField.libraries.single.members.single is Field, true);
 
     // Load procedure version "on top of" (meant to replace old one if any).
     Component componentWithProcedure = new Component(nameRoot: nameRoot);
-    new BinaryBuilder(writtenBytesProcedure,
-            disableLazyReading: false, alwaysCreateNewNamedNodes: true)
-        .readComponent(componentWithProcedure);
-    expect(componentWithProcedure.libraries.single.members.single is Procedure,
-        true);
+    new BinaryBuilder(
+      writtenBytesProcedure,
+      disableLazyReading: false,
+      alwaysCreateNewNamedNodes: true,
+    ).readComponent(componentWithProcedure);
+    expect(
+      componentWithProcedure.libraries.single.members.single is Procedure,
+      true,
+    );
   }
 }
 

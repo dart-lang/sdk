@@ -4577,7 +4577,7 @@ class ConstantEvaluator
 
   @override
   Constant visitInstanceGet(InstanceGet node) {
-    if (node.receiver is ThisExpression) {
+    if (isThisExpression(node.receiver)) {
       // Coverage-ignore: Probably unreachable unless trying to evaluate
       // non-const stuff as const.
       // Access "this" during instance creation.
@@ -6778,7 +6778,9 @@ class HasUninstantiatedVisitor extends FindTypeVisitor {
 
 bool _isFormalParameter(Variable variable) {
   final TreeNode? parent = variable.parent;
-  if (parent is FunctionNode) {
+  if (variable is FunctionParameter) {
+    return true;
+  } else if (parent is FunctionNode) {
     return parent.positionalParameters.contains(variable) ||
         parent.namedParameters.contains(variable);
   }

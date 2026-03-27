@@ -30,8 +30,8 @@ void main() {
   }
 
   {
-    List<MapEntry<String, int>> unfilteredCountsList =
-        afterFilterCounts.entries.toList();
+    List<MapEntry<String, int>> unfilteredCountsList = afterFilterCounts.entries
+        .toList();
     unfilteredCountsList.sort((a, b) => b.value - a.value);
     print("");
     print("Small counts came from here:");
@@ -97,13 +97,17 @@ void testDill(File dill) {
   ScopeTestingBinaryPrinter binaryPrinter = new ScopeTestingBinaryPrinter();
   binaryPrinter.writeComponentFile(component);
 
-  print("${binaryPrinter.exact} out of ${binaryPrinter.total} "
-      "(${binaryPrinter.moreButAgree}/${binaryPrinter.total - binaryPrinter.exact})");
+  print(
+    "${binaryPrinter.exact} out of ${binaryPrinter.total} "
+    "(${binaryPrinter.moreButAgree}/${binaryPrinter.total - binaryPrinter.exact})",
+  );
   int totalAgree = binaryPrinter.exact + binaryPrinter.moreButAgree;
   print(" => ${totalAgree * 100 / binaryPrinter.total}%");
-  print(" =====> Also notice more than 1: "
-      "${binaryPrinter.countMoreThanOneAfterFilter}; "
-      "== 1: ${binaryPrinter.countExactlyOneAfterFilter}");
+  print(
+    " =====> Also notice more than 1: "
+    "${binaryPrinter.countMoreThanOneAfterFilter}; "
+    "== 1: ${binaryPrinter.countExactlyOneAfterFilter}",
+  );
 }
 
 class DevNullSink<T> implements Sink<T> {
@@ -220,8 +224,10 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   int countExactlyOneAfterFilter = 0;
 
   ScopeTestingBinaryPrinter()
-      : super(const DevNullSink(),
-            newVariableIndexerForTesting: VariableIndexer2.new);
+    : super(
+        const DevNullSink(),
+        newVariableIndexerForTesting: VariableIndexer2.new,
+      );
 
   @override
   void visitClass(Class node) {
@@ -346,18 +352,25 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
         askedOffsets.add(offset)) {
       List<DartScope2> nodesAtPoint =
           DartScopeBuilder2.findScopeFromOffsetAndClassRawForTesting(
-              currentLibrary!, currentUri!, currentClass, offset);
+            currentLibrary!,
+            currentUri!,
+            currentClass,
+            offset,
+          );
 
-      List<Object> expectedTypeParameters =
-          getTypeParameterIndexerForTesting().index.keys.toList();
+      List<Object> expectedTypeParameters = getTypeParameterIndexerForTesting()
+          .index
+          .keys
+          .toList();
       if (currentMember != null &&
           !currentMember!.isInstanceMember &&
           currentMember is! Constructor &&
           currentClass != null &&
           currentClass!.typeParameters.isNotEmpty) {
-        expectedTypeParameters = (expectedTypeParameters.toSet()
-              ..removeAll(currentClass!.typeParameters))
-            .toList();
+        expectedTypeParameters =
+            (expectedTypeParameters.toSet()
+                  ..removeAll(currentClass!.typeParameters))
+                .toList();
       }
 
       VariableIndexer2? varIndexer =
@@ -380,17 +393,24 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
 
       total++;
       if (nodesAtPoint.length == 0) {
-        String msg = "Didn't find any scope for "
+        String msg =
+            "Didn't find any scope for "
             "${currentLibrary!.fileUri} $currentUri and $offset";
         errors.add(msg);
         print(msg);
       } else if (nodesAtPoint.length == 1) {
         exact++;
-        if (!compareScopes(expectedTypeParameters, expectedVariablesMap,
-            nodesAtPoint.single, offset,
-            doPrint: true)) {
-          errors.add("Found 1 scope, but it didn't match for "
-              "${currentLibrary!.fileUri} $currentUri and $offset");
+        if (!compareScopes(
+          expectedTypeParameters,
+          expectedVariablesMap,
+          nodesAtPoint.single,
+          offset,
+          doPrint: true,
+        )) {
+          errors.add(
+            "Found 1 scope, but it didn't match for "
+            "${currentLibrary!.fileUri} $currentUri and $offset",
+          );
         }
       } else {
         // Does one that agree exist?
@@ -398,8 +418,12 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
         bool allMatch = true;
         for (DartScope2 compareMe in nodesAtPoint) {
           if (compareScopes(
-              expectedTypeParameters, expectedVariablesMap, compareMe, offset,
-              doPrint: false)) {
+            expectedTypeParameters,
+            expectedVariablesMap,
+            compareMe,
+            offset,
+            doPrint: false,
+          )) {
             foundMatch = true;
           } else {
             allMatch = false;
@@ -417,7 +441,10 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
         }
 
         List<DartScope2> filteredScopes = DartScopeBuilder2.filterAllForTesting(
-            nodesAtPoint, currentLibrary!, offset);
+          nodesAtPoint,
+          currentLibrary!,
+          offset,
+        );
 
         if (filteredScopes.length == 1) {
           countExactlyOneAfterFilter++;
@@ -468,8 +495,13 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
             if (wrappedBoolForDebugging.value) {
               // Go in here to debug by setting
               // wrappedBoolForDebugging.value = true in the debugger.
-              print(DartScopeBuilder2.filterAllForTesting(
-                  nodesAtPoint, currentLibrary!, offset));
+              print(
+                DartScopeBuilder2.filterAllForTesting(
+                  nodesAtPoint,
+                  currentLibrary!,
+                  offset,
+                ),
+              );
             }
           }
         }
@@ -479,19 +511,22 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   }
 
   bool compareScopes(
-      List<Object> expectedTypeParameters,
-      Map<String, DartType> expectedVariablesMap,
-      DartScope2 compareWith,
-      int offsetForErrorMessage,
-      {required bool doPrint}) {
+    List<Object> expectedTypeParameters,
+    Map<String, DartType> expectedVariablesMap,
+    DartScope2 compareWith,
+    int offsetForErrorMessage, {
+    required bool doPrint,
+  }) {
     bool compareOk = true;
     if (expectedTypeParameters.length != compareWith.typeParameters.length) {
       compareOk = false;
       if (doPrint) {
-        print("Failure on type parameters for "
-            "${currentLibrary!.fileUri} $currentUri and "
-            "$offsetForErrorMessage -- "
-            "${compareWith.typeParameters} vs $expectedTypeParameters");
+        print(
+          "Failure on type parameters for "
+          "${currentLibrary!.fileUri} $currentUri and "
+          "$offsetForErrorMessage -- "
+          "${compareWith.typeParameters} vs $expectedTypeParameters",
+        );
       }
     } else {
       // Do they agree?
@@ -509,20 +544,24 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
     if (compareWith.cls != currentClass) {
       compareOk = false;
       if (doPrint) {
-        print("Failure on class for "
-            "${currentLibrary!.fileUri} $currentUri and "
-            "$offsetForErrorMessage -- "
-            "${compareWith.cls} vs $currentClass");
+        print(
+          "Failure on class for "
+          "${currentLibrary!.fileUri} $currentUri and "
+          "$offsetForErrorMessage -- "
+          "${compareWith.cls} vs $currentClass",
+        );
       }
     }
 
     if (expectedVariablesMap.length != compareWith.variables.length) {
       compareOk = false;
       if (doPrint) {
-        print("Failure on definitions for "
-            "${currentLibrary!.fileUri} $currentUri and "
-            "$offsetForErrorMessage -- "
-            "${compareWith.variables} vs $expectedVariablesMap");
+        print(
+          "Failure on definitions for "
+          "${currentLibrary!.fileUri} $currentUri and "
+          "$offsetForErrorMessage -- "
+          "${compareWith.variables} vs $expectedVariablesMap",
+        );
       }
     } else {
       // Do they agree?
@@ -601,8 +640,10 @@ extension on TreeNode {
     for (DartScope2 scope in scopes) {
       mark.add(scope.node);
     }
-    MarkingAstPrinter markingAstPrinter =
-        new MarkingAstPrinter(defaultAstTextStrategy, mark);
+    MarkingAstPrinter markingAstPrinter = new MarkingAstPrinter(
+      defaultAstTextStrategy,
+      mark,
+    );
     this.toTextInternal(markingAstPrinter);
     return markingAstPrinter.getText();
   }

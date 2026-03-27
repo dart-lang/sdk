@@ -63,13 +63,16 @@ extension type ET6<T>(T? it);
     DartType inputType = env.parseType(input);
     DartType expectedOutputType = env.parseType(output);
     DartType actualOutputType = inputType.extensionTypeErasure;
-    print('extensionTypeErasure($inputType) = '
-        '$actualOutputType: $expectedOutputType');
+    print(
+      'extensionTypeErasure($inputType) = '
+      '$actualOutputType: $expectedOutputType',
+    );
     Expect.equals(
-        expectedOutputType,
-        actualOutputType,
-        "Unexpected extension type erasure of $inputType ('$input'):\n"
-        "Expected: ${expectedOutputType} ('$output')\n"
-        "Actual: ${actualOutputType}");
+      expectedOutputType,
+      actualOutputType,
+      "Unexpected extension type erasure of $inputType ('$input'):\n"
+      "Expected: ${expectedOutputType} ('$output')\n"
+      "Actual: ${actualOutputType}",
+    );
   });
 }

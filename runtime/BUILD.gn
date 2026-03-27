@@ -447,9 +447,7 @@ action("generate_version_cc_file") {
     "vm/symbols.cc",
     "vm/symbols.h",
   ]
-  if (dart_version_git_info) {
-    inputs += [ "$default_git_folder/logs/HEAD" ]
-  }
+  deps = [ "../utils:git_version" ]
   output = "$target_gen_dir/version.cc"
   outputs = [ output ]
 

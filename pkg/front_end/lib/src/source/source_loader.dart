@@ -410,7 +410,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     SourceCompilationUnit? origin,
     IndexedLibrary? referencesFromIndex,
     bool? referenceIsPartOwner,
-    bool isAugmentation = false,
     bool isPatch = false,
     required bool mayImplementRestrictedTypes,
   }) {
@@ -435,7 +434,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
               ? target.uriTranslator.isLibraryImportable(importUri.path)
               : Importability.always),
       isAugmenting: origin != null,
-      forAugmentationLibrary: isAugmentation,
       forPatchLibrary: isPatch,
       mayImplementRestrictedTypes: mayImplementRestrictedTypes,
     );
@@ -484,7 +482,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     required SourceCompilationUnit? origin,
     required IndexedLibrary? referencesFromIndex,
     required bool? referenceIsPartOwner,
-    required bool isAugmentation,
     required bool isPatch,
     required bool addAsRoot,
   }) {
@@ -606,7 +603,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       origin: origin,
       referencesFromIndex: referencesFromIndex,
       referenceIsPartOwner: referenceIsPartOwner,
-      isAugmentation: isAugmentation,
       isPatch: isPatch,
       mayImplementRestrictedTypes: target.backendTarget.mayDefineRestrictedType(
         originImportUri,
@@ -694,7 +690,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     SourceCompilationUnit? origin,
     IndexedLibrary? referencesFromIndex,
     bool? referenceIsPartOwner,
-    bool isAugmentation = false,
     bool isPatch = false,
   }) {
     CompilationUnit libraryBuilder = _read(
@@ -704,7 +699,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       origin: origin,
       referencesFromIndex: referencesFromIndex,
       referenceIsPartOwner: referenceIsPartOwner,
-      isAugmentation: isAugmentation,
       isPatch: isPatch,
       addAsRoot: false,
     );
@@ -806,7 +800,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       fileUri: fileUri,
       referencesFromIndex: referencesFromIndex,
       addAsRoot: true,
-      isAugmentation: false,
       isPatch: false,
     );
     // TODO(johnniwinther): Avoid using the first library, if present, as the
@@ -869,7 +862,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     SourceCompilationUnit? origin,
     required IndexedLibrary? referencesFromIndex,
     bool? referenceIsPartOwner,
-    required bool isAugmentation,
     required bool isPatch,
     required bool addAsRoot,
   }) {
@@ -886,7 +878,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
           origin: origin,
           referencesFromIndex: referencesFromIndex,
           referenceIsPartOwner: referenceIsPartOwner,
-          isAugmentation: isAugmentation,
           isPatch: isPatch,
           addAsRoot: addAsRoot,
         );
@@ -1191,7 +1182,11 @@ severity: $severity
           compilationUnit.importUri,
           compilationUnit.packageLanguageVersion.version,
         ),
-        forAugmentationLibrary: compilationUnit.forAugmentationLibrary,
+        forAugmentationLibrary: target.isExperimentEnabledInLibraryByVersion(
+          ExperimentalFlag.augmentations,
+          compilationUnit.importUri,
+          compilationUnit.packageLanguageVersion.version,
+        ),
       ),
       languageVersionChanged: (Scanner scanner, LanguageVersionToken version) {
         if (!suppressLexicalErrors) {
@@ -1204,6 +1199,8 @@ severity: $severity
         scanner.configuration = new ScannerConfiguration(
           enableTripleShift:
               compilationUnit.libraryFeatures.tripleShift.isEnabled,
+          forAugmentationLibrary:
+              compilationUnit.libraryFeatures.augmentations.isEnabled,
         );
       },
       allowLazyStrings: allowLazyStrings,

@@ -83,22 +83,31 @@ const String dynamicModulesRecordsLibraryUri = 'dart:_dyn_mod_records';
 /// }
 /// ```
 Map<RecordShape, Class> generateRecordClasses(
-    Component component, CoreTypes coreTypes,
-    {bool isDynamicMainModule = false, bool isDynamicSubmodule = false}) {
+  Component component,
+  CoreTypes coreTypes, {
+  bool isDynamicMainModule = false,
+  bool isDynamicSubmodule = false,
+}) {
   final Map<RecordShape, Class> recordClasses = {};
   Library library;
   if (isDynamicSubmodule) {
     // Put new record classes in their own library so downstream we know to load
     // them as new classes.
-    library = Library(Uri.parse(dynamicModulesRecordsLibraryUri),
-        fileUri: coreTypes.coreLibrary.fileUri);
+    library = Library(
+      Uri.parse(dynamicModulesRecordsLibraryUri),
+      fileUri: coreTypes.coreLibrary.fileUri,
+    );
     component.libraries.add(library);
     library.parent = component;
   } else {
     library = coreTypes.coreLibrary;
   }
-  final recordClassGenerator = _RecordClassGenerator(recordClasses, library,
-      coreTypes, isDynamicMainModule || isDynamicSubmodule);
+  final recordClassGenerator = _RecordClassGenerator(
+    recordClasses,
+    library,
+    coreTypes,
+    isDynamicMainModule || isDynamicSubmodule,
+  );
   final visitor = _RecordVisitor(recordClassGenerator);
   component.libraries.forEach(visitor.visitLibrary);
   return recordClasses;
@@ -110,77 +119,123 @@ class _RecordClassGenerator {
   final Library library;
   final bool isDynamicModuleEnabled;
 
-  late final Class typeRuntimetypeTypeClass =
-      coreTypes.index.getClass("dart:core", "_Type");
-  late final Class recordRuntimeTypeClass =
-      coreTypes.index.getClass('dart:core', '_RecordType');
+  late final Class typeRuntimetypeTypeClass = coreTypes.index.getClass(
+    "dart:core",
+    "_Type",
+  );
+  late final Class recordRuntimeTypeClass = coreTypes.index.getClass(
+    'dart:core',
+    '_RecordType',
+  );
 
   late final Constructor recordRuntimeTypeConstructor =
       recordRuntimeTypeClass.constructors.single;
 
-  late final Procedure objectHashProcedure =
-      coreTypes.index.getProcedure('dart:core', 'Object', 'hash');
+  late final Procedure objectHashProcedure = coreTypes.index.getProcedure(
+    'dart:core',
+    'Object',
+    'hash',
+  );
 
-  late final Procedure objectHashAllProcedure =
-      coreTypes.index.getProcedure('dart:core', 'Object', 'hashAll');
+  late final Procedure objectHashAllProcedure = coreTypes.index.getProcedure(
+    'dart:core',
+    'Object',
+    'hashAll',
+  );
 
-  late final Procedure objectToStringProcedure =
-      coreTypes.index.getProcedure('dart:core', 'Object', 'toString');
+  late final Procedure objectToStringProcedure = coreTypes.index.getProcedure(
+    'dart:core',
+    'Object',
+    'toString',
+  );
 
-  late final Procedure identical =
-      coreTypes.index.getTopLevelProcedure('dart:core', 'identical');
+  late final Procedure identical = coreTypes.index.getTopLevelProcedure(
+    'dart:core',
+    'identical',
+  );
 
   late final Procedure objectEqualsProcedure = coreTypes.objectEquals;
 
-  late final FunctionType integerEqualsFunctionType =
-      FunctionType([intType, intType], boolType, Nullability.nonNullable);
+  late final FunctionType integerEqualsFunctionType = FunctionType(
+    [intType, intType],
+    boolType,
+    Nullability.nonNullable,
+  );
 
-  late final Procedure stringPlusProcedure =
-      coreTypes.index.getProcedure('dart:core', 'String', '+');
+  late final Procedure stringPlusProcedure = coreTypes.index.getProcedure(
+    'dart:core',
+    'String',
+    '+',
+  );
 
-  late final Procedure isSubtype =
-      coreTypes.index.getTopLevelProcedure('dart:core', '_isSubtype');
+  late final Procedure isSubtype = coreTypes.index.getTopLevelProcedure(
+    'dart:core',
+    '_isSubtype',
+  );
 
-  late final Class wasmArrayClass =
-      coreTypes.index.getClass('dart:_wasm', 'WasmArray');
+  late final Class wasmArrayClass = coreTypes.index.getClass(
+    'dart:_wasm',
+    'WasmArray',
+  );
 
-  late final Class immutableWasmArrayClass =
-      coreTypes.index.getClass('dart:_wasm', 'ImmutableWasmArray');
+  late final Class immutableWasmArrayClass = coreTypes.index.getClass(
+    'dart:_wasm',
+    'ImmutableWasmArray',
+  );
 
-  late final Procedure wasmArrayRefLength =
-      coreTypes.index.getProcedure('dart:_wasm', 'WasmArrayRef', 'get:length');
+  late final Procedure wasmArrayRefLength = coreTypes.index.getProcedure(
+    'dart:_wasm',
+    'WasmArrayRef',
+    'get:length',
+  );
 
-  late final Procedure wasmArrayIndex = coreTypes.index
-      .getLibrary('dart:_wasm')
-      .extensions
-      .singleWhere((e) => e.name == 'WasmArrayExt')
-      .memberDescriptors
-      .singleWhere((member) => member.name.text == '[]')
-      .memberReference!
-      .node as Procedure;
+  late final Procedure wasmArrayIndex =
+      coreTypes.index
+              .getLibrary('dart:_wasm')
+              .extensions
+              .singleWhere((e) => e.name == 'WasmArrayExt')
+              .memberDescriptors
+              .singleWhere((member) => member.name.text == '[]')
+              .memberReference!
+              .node
+          as Procedure;
 
-  late final Constructor wasmArrayLiteralConstructor =
-      coreTypes.index.getConstructor('dart:_wasm', 'WasmArray', 'literal');
+  late final Constructor wasmArrayLiteralConstructor = coreTypes.index
+      .getConstructor('dart:_wasm', 'WasmArray', 'literal');
 
-  late final Field wasmArrayValueField =
-      coreTypes.index.getField("dart:_wasm", "WasmArray", "_value");
+  late final Field wasmArrayValueField = coreTypes.index.getField(
+    "dart:_wasm",
+    "WasmArray",
+    "_value",
+  );
 
-  late final Field immutableWasmArrayValueField =
-      coreTypes.index.getField("dart:_wasm", "ImmutableWasmArray", "_value");
+  late final Field immutableWasmArrayValueField = coreTypes.index.getField(
+    "dart:_wasm",
+    "ImmutableWasmArray",
+    "_value",
+  );
 
   late final InterfaceType wasmArrayOfType = InterfaceType(
-      wasmArrayClass, Nullability.nonNullable, [nonNullableTypeType]);
+    wasmArrayClass,
+    Nullability.nonNullable,
+    [nonNullableTypeType],
+  );
 
   late final InterfaceType immutableWasmArrayOfString = InterfaceType(
-      immutableWasmArrayClass,
-      Nullability.nonNullable,
-      [nonNullableStringType]);
+    immutableWasmArrayClass,
+    Nullability.nonNullable,
+    [nonNullableStringType],
+  );
 
-  late final InterfaceType runtimeTypeType =
-      InterfaceType(typeRuntimetypeTypeClass, Nullability.nonNullable);
+  late final InterfaceType runtimeTypeType = InterfaceType(
+    typeRuntimetypeTypeClass,
+    Nullability.nonNullable,
+  );
 
-  late final InterfaceType nonNullableTypeType =
-      InterfaceType(typeRuntimetypeTypeClass, Nullability.nonNullable);
+  late final InterfaceType nonNullableTypeType = InterfaceType(
+    typeRuntimetypeTypeClass,
+    Nullability.nonNullable,
+  );
 
   late final Procedure getActualRuntimeTypeNullable = coreTypes.index
       .getTopLevelProcedure('dart:core', '_getActualRuntimeTypeNullable');
@@ -206,7 +261,11 @@ class _RecordClassGenerator {
   })();
 
   _RecordClassGenerator(
-      this.classes, this.library, this.coreTypes, this.isDynamicModuleEnabled);
+    this.classes,
+    this.library,
+    this.coreTypes,
+    this.isDynamicModuleEnabled,
+  );
 
   void generateClassForRecordType(RecordType recordType) {
     final shape = RecordShape.fromType(recordType);
@@ -228,20 +287,21 @@ class _RecordClassGenerator {
     if (existingClass != null) return existingClass;
 
     final cls = addWasmEntryPointPragma(
-        Class(
-          name: className,
-          isAbstract: false,
-          isAnonymousMixin: false,
-          supertype: Supertype(coreTypes.recordClass, []),
-          constructors: [_generateConstructor(shape, fields)],
-          procedures: [
-            _generateHashCode(fields, id),
-            _generateToString(shape, fields),
-          ],
-          fields: fields,
-          fileUri: library.fileUri,
-        ),
-        coreTypes);
+      Class(
+        name: className,
+        isAbstract: false,
+        isAnonymousMixin: false,
+        supertype: Supertype(coreTypes.recordClass, []),
+        constructors: [_generateConstructor(shape, fields)],
+        procedures: [
+          _generateHashCode(fields, id),
+          _generateToString(shape, fields),
+        ],
+        fields: fields,
+        fileUri: library.fileUri,
+      ),
+      coreTypes,
+    );
 
     library.addClass(cls);
     final getRti = _generateRecordRuntimeType(shape, fields);
@@ -256,23 +316,29 @@ class _RecordClassGenerator {
     final List<Field> fields = [];
 
     for (int i = 0; i < shape.positionals; i += 1) {
-      fields.add(addWasmEntryPointPragma(
+      fields.add(
+        addWasmEntryPointPragma(
           Field.immutable(
             Name('\$${i + 1}', library),
             isFinal: true,
             fileUri: library.fileUri,
           ),
-          coreTypes));
+          coreTypes,
+        ),
+      );
     }
 
     for (String name in shape.names) {
-      fields.add(addWasmEntryPointPragma(
+      fields.add(
+        addWasmEntryPointPragma(
           Field.immutable(
             Name(name, library),
             isFinal: true,
             fileUri: library.fileUri,
           ),
-          coreTypes));
+          coreTypes,
+        ),
+      );
     }
 
     return fields;
@@ -282,24 +348,30 @@ class _RecordClassGenerator {
   /// order.
   Constructor _generateConstructor(RecordShape shape, List<Field> fields) {
     final List<VariableDeclaration> positionalParameters = List.generate(
-        fields.length,
-        (i) => VariableDeclaration('field$i', isSynthesized: true));
+      fields.length,
+      (i) => VariableDeclaration('field$i', isSynthesized: true),
+    );
 
     final List<Initializer> initializers = List.generate(
-        fields.length,
-        (i) =>
-            FieldInitializer(fields[i], VariableGet(positionalParameters[i])));
+      fields.length,
+      (i) => FieldInitializer(fields[i], VariableGet(positionalParameters[i])),
+    );
 
-    final function =
-        FunctionNode(null, positionalParameters: positionalParameters);
+    final function = FunctionNode(
+      null,
+      positionalParameters: positionalParameters,
+    );
 
     return addWasmEntryPointPragma(
-        Constructor(function,
-            name: Name('_', library),
-            isConst: true,
-            initializers: initializers,
-            fileUri: library.fileUri),
-        coreTypes);
+      Constructor(
+        function,
+        name: Name('_', library),
+        isConst: true,
+        initializers: initializers,
+        fileUri: library.fileUri,
+      ),
+      coreTypes,
+    );
   }
 
   /// Generate `int get hashCode` member.
@@ -312,29 +384,40 @@ class _RecordClassGenerator {
       final List<Expression> arguments = [];
       arguments.add(IntLiteral(shapeId));
       for (Field field in fields) {
-        arguments.add(InstanceGet(
-            InstanceAccessKind.Instance, ThisExpression(), field.name,
-            interfaceTarget: field, resultType: nullableObjectType));
+        arguments.add(
+          InstanceGet(
+            InstanceAccessKind.Instance,
+            ThisExpression(),
+            field.name,
+            interfaceTarget: field,
+            resultType: nullableObjectType,
+          ),
+        );
       }
       if (fields.length <= 20) {
         // Object.hash(field1, field2, ...)
-        returnValue =
-            StaticInvocation(objectHashProcedure, Arguments(arguments));
+        returnValue = StaticInvocation(
+          objectHashProcedure,
+          Arguments(arguments),
+        );
       } else {
         // Object.hashAll([field1, field2, ...])
         returnValue = StaticInvocation(
-            objectHashAllProcedure, Arguments([ListLiteral(arguments)]));
+          objectHashAllProcedure,
+          Arguments([ListLiteral(arguments)]),
+        );
       }
     }
 
     return addWasmEntryPointPragma(
-        Procedure(
-          Name('hashCode', library),
-          ProcedureKind.Getter,
-          FunctionNode(ReturnStatement(returnValue), returnType: intType),
-          fileUri: library.fileUri,
-        ),
-        coreTypes);
+      Procedure(
+        Name('hashCode', library),
+        ProcedureKind.Getter,
+        FunctionNode(ReturnStatement(returnValue), returnType: intType),
+        fileUri: library.fileUri,
+      ),
+      coreTypes,
+    );
   }
 
   /// Generate `String toString()` member.
@@ -342,17 +425,23 @@ class _RecordClassGenerator {
     final List<Expression> stringExprs = [];
 
     Expression fieldToStringExpression(Field field) => InstanceInvocation(
-        InstanceAccessKind.Object,
-        InstanceGet(InstanceAccessKind.Instance, ThisExpression(), field.name,
-            interfaceTarget: field, resultType: nullableObjectType),
-        Name('toString'),
-        Arguments([]),
-        interfaceTarget: objectToStringProcedure,
-        functionType: FunctionType(
-          [],
-          nonNullableStringType,
-          Nullability.nonNullable,
-        ));
+      InstanceAccessKind.Object,
+      InstanceGet(
+        InstanceAccessKind.Instance,
+        ThisExpression(),
+        field.name,
+        interfaceTarget: field,
+        resultType: nullableObjectType,
+      ),
+      Name('toString'),
+      Arguments([]),
+      interfaceTarget: objectToStringProcedure,
+      functionType: FunctionType(
+        [],
+        nonNullableStringType,
+        Nullability.nonNullable,
+      ),
+    );
 
     int fieldIdx = 0;
 
@@ -377,88 +466,130 @@ class _RecordClassGenerator {
     stringExprs.add(StringLiteral(')'));
 
     final Expression stringExpression = stringExprs.fold(
-        StringLiteral('('),
-        (string, next) => InstanceInvocation(
-              InstanceAccessKind.Instance,
-              string,
-              Name('+'),
-              Arguments([next]),
-              interfaceTarget: stringPlusProcedure,
-              functionType: FunctionType(
-                [nonNullableStringType],
-                nonNullableStringType,
-                Nullability.nonNullable,
-              ),
-            ));
+      StringLiteral('('),
+      (string, next) => InstanceInvocation(
+        InstanceAccessKind.Instance,
+        string,
+        Name('+'),
+        Arguments([next]),
+        interfaceTarget: stringPlusProcedure,
+        functionType: FunctionType(
+          [nonNullableStringType],
+          nonNullableStringType,
+          Nullability.nonNullable,
+        ),
+      ),
+    );
 
     return addWasmEntryPointPragma(
-        Procedure(
-          Name('toString', library),
-          ProcedureKind.Method,
-          FunctionNode(ReturnStatement(stringExpression),
-              returnType: coreTypes.stringNonNullableRawType),
-          fileUri: library.fileUri,
+      Procedure(
+        Name('toString', library),
+        ProcedureKind.Method,
+        FunctionNode(
+          ReturnStatement(stringExpression),
+          returnType: coreTypes.stringNonNullableRawType,
         ),
-        coreTypes);
+        fileUri: library.fileUri,
+      ),
+      coreTypes,
+    );
   }
 
   /// Generate `bool operator ==` member.
   Procedure _generateEquals(
-      RecordShape shape, List<Field> fields, Class cls, Procedure getRti) {
+    RecordShape shape,
+    List<Field> fields,
+    Class cls,
+    Procedure getRti,
+  ) {
     final equalsFunctionType = FunctionType(
       [nullableObjectType],
       boolType,
       Nullability.nonNullable,
     );
 
-    final VariableDeclaration parameter = VariableDeclaration('other',
-        type: nullableObjectType, isSynthesized: true);
+    final VariableDeclaration parameter = VariableDeclaration(
+      'other',
+      type: nullableObjectType,
+      isSynthesized: true,
+    );
 
     final List<Statement> statements = [];
 
     if (isDynamicModuleEnabled) {
-      final checkInstance = coreTypes.index
-          .getProcedure('dart:core', '_RecordType', '_checkInstance');
-      statements.add(IfStatement(
-        Not(InstanceInvocation(
-          InstanceAccessKind.Instance,
-          (InstanceGet(
-              InstanceAccessKind.Instance, ThisExpression(), getRti.name,
-              interfaceTarget: getRti,
-              resultType: InterfaceType(
-                  recordRuntimeTypeClass, Nullability.nonNullable))),
-          checkInstance.name,
-          Arguments([VariableGet(parameter)]),
-          interfaceTarget: checkInstance,
-          functionType: checkInstance.computeSignatureOrFunctionType(),
-        )),
-        ReturnStatement(BoolLiteral(false)),
-        null,
-      ));
+      final checkInstance = coreTypes.index.getProcedure(
+        'dart:core',
+        '_RecordType',
+        '_checkInstance',
+      );
+      statements.add(
+        IfStatement(
+          Not(
+            InstanceInvocation(
+              InstanceAccessKind.Instance,
+              (InstanceGet(
+                InstanceAccessKind.Instance,
+                ThisExpression(),
+                getRti.name,
+                interfaceTarget: getRti,
+                resultType: InterfaceType(
+                  recordRuntimeTypeClass,
+                  Nullability.nonNullable,
+                ),
+              )),
+              checkInstance.name,
+              Arguments([VariableGet(parameter)]),
+              interfaceTarget: checkInstance,
+              functionType: checkInstance.computeSignatureOrFunctionType(),
+            ),
+          ),
+          ReturnStatement(BoolLiteral(false)),
+          null,
+        ),
+      );
     } else {
-      statements.add(IfStatement(
-        Not(IsExpression(VariableGet(parameter),
-            InterfaceType(cls, Nullability.nonNullable))),
-        ReturnStatement(BoolLiteral(false)),
-        null,
-      ));
+      statements.add(
+        IfStatement(
+          Not(
+            IsExpression(
+              VariableGet(parameter),
+              InterfaceType(cls, Nullability.nonNullable),
+            ),
+          ),
+          ReturnStatement(BoolLiteral(false)),
+          null,
+        ),
+      );
     }
 
     // Compare fields.
     for (Field field in fields) {
-      statements.add(IfStatement(
-        Not(EqualsCall(
-          InstanceGet(InstanceAccessKind.Instance, ThisExpression(), field.name,
-              interfaceTarget: field, resultType: nullableObjectType),
-          InstanceGet(
-              InstanceAccessKind.Instance, VariableGet(parameter), field.name,
-              interfaceTarget: field, resultType: nullableObjectType),
-          interfaceTarget: objectEqualsProcedure,
-          functionType: equalsFunctionType,
-        )),
-        ReturnStatement(BoolLiteral(false)),
-        null,
-      ));
+      statements.add(
+        IfStatement(
+          Not(
+            EqualsCall(
+              InstanceGet(
+                InstanceAccessKind.Instance,
+                ThisExpression(),
+                field.name,
+                interfaceTarget: field,
+                resultType: nullableObjectType,
+              ),
+              InstanceGet(
+                InstanceAccessKind.Instance,
+                VariableGet(parameter),
+                field.name,
+                interfaceTarget: field,
+                resultType: nullableObjectType,
+              ),
+              interfaceTarget: objectEqualsProcedure,
+              functionType: equalsFunctionType,
+            ),
+          ),
+          ReturnStatement(BoolLiteral(false)),
+          null,
+        ),
+      );
     }
 
     statements.add(ReturnStatement(BoolLiteral(true)));
@@ -470,26 +601,31 @@ class _RecordClassGenerator {
     );
 
     return addWasmEntryPointPragma(
-        Procedure(
-          Name('==', library),
-          ProcedureKind.Operator,
-          function,
-          fileUri: library.fileUri,
-        ),
-        coreTypes);
+      Procedure(
+        Name('==', library),
+        ProcedureKind.Operator,
+        function,
+        fileUri: library.fileUri,
+      ),
+      coreTypes,
+    );
   }
 
   /// Generate `_checkRecordType` member.
   Procedure _generateCheckRecordType(RecordShape shape, List<Field> fields) {
     final typesParameter = VariableDeclaration('types', type: wasmArrayOfType);
-    final namesParameter =
-        VariableDeclaration('names', type: immutableWasmArrayOfString);
+    final namesParameter = VariableDeclaration(
+      'names',
+      type: immutableWasmArrayOfString,
+    );
 
     final List<Statement> statements = [];
 
     // if (types.length != shape.numFields) return false;
-    statements.add(IfStatement(
-        Not(EqualsCall(
+    statements.add(
+      IfStatement(
+        Not(
+          EqualsCall(
             InstanceGet(
               InstanceAccessKind.Instance,
               VariableGet(typesParameter),
@@ -499,42 +635,61 @@ class _RecordClassGenerator {
             ),
             IntLiteral(shape.numFields),
             functionType: integerEqualsFunctionType,
-            interfaceTarget: objectEqualsProcedure)),
+            interfaceTarget: objectEqualsProcedure,
+          ),
+        ),
         ReturnStatement(BoolLiteral(false)),
-        null));
+        null,
+      ),
+    );
 
     // if (!identical(names, _fieldNamesConstant(shape))) return false;
-    statements.add(IfStatement(
-        Not(StaticInvocation(
+    statements.add(
+      IfStatement(
+        Not(
+          StaticInvocation(
             identical,
             Arguments([
               VariableGet(namesParameter),
               ConstantExpression(_fieldNamesConstant(shape)),
-            ]))),
+            ]),
+          ),
+        ),
         ReturnStatement(BoolLiteral(false)),
-        null));
+        null,
+      ),
+    );
 
     // if (!_isSubtype($..., types[...])) return false;
     for (int i = 0; i < shape.numFields; ++i) {
       final field = fields[i];
-      statements.add(IfStatement(
-          Not(StaticInvocation(
+      statements.add(
+        IfStatement(
+          Not(
+            StaticInvocation(
               isSubtype,
               Arguments([
                 InstanceGet(
-                    InstanceAccessKind.Instance, ThisExpression(), field.name,
-                    interfaceTarget: field, resultType: nullableObjectType),
+                  InstanceAccessKind.Instance,
+                  ThisExpression(),
+                  field.name,
+                  interfaceTarget: field,
+                  resultType: nullableObjectType,
+                ),
                 StaticInvocation(
-                    wasmArrayIndex,
-                    Arguments([
-                      VariableGet(typesParameter),
-                      IntLiteral(i),
-                    ], types: [
-                      nonNullableTypeType
-                    ])),
-              ]))),
+                  wasmArrayIndex,
+                  Arguments(
+                    [VariableGet(typesParameter), IntLiteral(i)],
+                    types: [nonNullableTypeType],
+                  ),
+                ),
+              ]),
+            ),
+          ),
           ReturnStatement(BoolLiteral(false)),
-          null));
+          null,
+        ),
+      );
     }
 
     // return true
@@ -547,87 +702,121 @@ class _RecordClassGenerator {
     );
 
     return addWasmEntryPointPragma(
-        Procedure(
-          Name('_checkRecordType', coreTypes.coreLibrary),
-          ProcedureKind.Method,
-          function,
-          fileUri: library.fileUri,
-        ),
-        coreTypes);
+      Procedure(
+        Name('_checkRecordType', coreTypes.coreLibrary),
+        ProcedureKind.Method,
+        function,
+        fileUri: library.fileUri,
+      ),
+      coreTypes,
+    );
   }
 
   /// Generate `_Type get _recordRuntimeType` member.
   Procedure _generateRecordRuntimeType(RecordShape shape, List<Field> fields) {
     return _generateRecordRuntimeTypeHelper(
-        '_recordRuntimeType', getActualRuntimeTypeNullable, shape, fields);
+      '_recordRuntimeType',
+      getActualRuntimeTypeNullable,
+      shape,
+      fields,
+    );
   }
 
   /// Generate `_Type get _masqueradedRecordRuntimeType ` member.
   Procedure _generateMasqueradedRecordRuntimeType(
-      RecordShape shape, List<Field> fields) {
-    return _generateRecordRuntimeTypeHelper('_masqueradedRecordRuntimeType',
-        getMasqueradedRuntimeTypeNullableProcedure, shape, fields);
+    RecordShape shape,
+    List<Field> fields,
+  ) {
+    return _generateRecordRuntimeTypeHelper(
+      '_masqueradedRecordRuntimeType',
+      getMasqueradedRuntimeTypeNullableProcedure,
+      shape,
+      fields,
+    );
   }
 
   Procedure _generateRecordRuntimeTypeHelper(
-      String name, Procedure target, RecordShape shape, List<Field> fields) {
+    String name,
+    Procedure target,
+    RecordShape shape,
+    List<Field> fields,
+  ) {
     final List<Statement> statements = [];
 
     // const ImmutableWasmArray(["name1", "name2", ...])
     final fieldNamesList = ConstantExpression(_fieldNamesConstant(shape));
 
     Expression fieldRuntimeTypeExpr(Field field) => StaticInvocation(
-        target,
-        Arguments([
-          InstanceGet(InstanceAccessKind.Instance, ThisExpression(), field.name,
-              interfaceTarget: field, resultType: nullableObjectType)
-        ]));
+      target,
+      Arguments([
+        InstanceGet(
+          InstanceAccessKind.Instance,
+          ThisExpression(),
+          field.name,
+          interfaceTarget: field,
+          resultType: nullableObjectType,
+        ),
+      ]),
+    );
 
     // WasmArray.literal([_get*RuntimeTypeNullable(this.$1), ...])
     final fieldTypesList = ConstructorInvocation(
-        wasmArrayLiteralConstructor,
-        Arguments([
+      wasmArrayLiteralConstructor,
+      Arguments(
+        [
           ListLiteral(
             fields.map(fieldRuntimeTypeExpr).toList(),
             typeArgument: runtimeTypeType,
-          )
-        ], types: [
-          runtimeTypeType
-        ]));
+          ),
+        ],
+        types: [runtimeTypeType],
+      ),
+    );
 
-    statements.add(ReturnStatement(ConstructorInvocation(
-        recordRuntimeTypeConstructor,
-        Arguments([
-          fieldNamesList,
-          fieldTypesList,
-          BoolLiteral(false), // declared nullable
-        ]))));
+    statements.add(
+      ReturnStatement(
+        ConstructorInvocation(
+          recordRuntimeTypeConstructor,
+          Arguments([
+            fieldNamesList,
+            fieldTypesList,
+            BoolLiteral(false), // declared nullable
+          ]),
+        ),
+      ),
+    );
 
     final FunctionNode function = FunctionNode(
       Block(statements),
       positionalParameters: [],
-      returnType:
-          InterfaceType(recordRuntimeTypeClass, Nullability.nonNullable),
+      returnType: InterfaceType(
+        recordRuntimeTypeClass,
+        Nullability.nonNullable,
+      ),
     );
 
     return addWasmEntryPointPragma(
-        Procedure(
-          Name(name, library),
-          ProcedureKind.Getter,
-          function,
-          fileUri: library.fileUri,
-        ),
-        coreTypes);
+      Procedure(
+        Name(name, library),
+        ProcedureKind.Getter,
+        function,
+        fileUri: library.fileUri,
+      ),
+      coreTypes,
+    );
   }
 
   Constant _fieldNamesConstant(RecordShape shape) {
-    return InstanceConstant(immutableWasmArrayClass.reference, [
-      nonNullableStringType
-    ], {
-      immutableWasmArrayValueField.fieldReference: ListConstant(
+    return InstanceConstant(
+      immutableWasmArrayClass.reference,
+      [nonNullableStringType],
+      {
+        immutableWasmArrayValueField.fieldReference: ListConstant(
           nonNullableStringType,
-          shape.names.map((name) => StringConstant(name)).toList())
-    });
+          shape.names.map((name) => StringConstant(name)).toList(),
+        ),
+      },
+    );
   }
 }
 

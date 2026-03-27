@@ -8,6 +8,9 @@ import 'dart:io' as io;
 import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
+import 'package:perf_witness/recorder.dart';
+import 'package:perf_witness/src/common.dart';
+import 'package:perf_witness/src/json_rpc.dart';
 import 'package:test/test.dart';
 
 import 'common/test_utils.dart';
@@ -31,6 +34,7 @@ Future<io.Process> runProcess(
   Map<String, String>? environment,
   bool includeParentEnvironment = true,
   List<String>? stdout,
+  io.Directory? workingDirectory,
 }) async {
   final ready = Completer();
 
@@ -39,6 +43,7 @@ Future<io.Process> runProcess(
     arguments,
     environment: environment,
     includeParentEnvironment: includeParentEnvironment,
+    workingDirectory: workingDirectory?.path,
   );
   process.exitCode.whenComplete(() {
     if (!ready.isCompleted) {
@@ -188,6 +193,7 @@ class RecorderProcess {
     bool enableAsyncSpans = false,
     bool enableProfiler = true,
     List<String> streams = const ['dart', 'gc'],
+    io.Directory? workingDirectory,
   }) async {
     final stdout = <String>[];
     return RecorderProcess._(
@@ -213,6 +219,7 @@ class RecorderProcess {
         environment: {'DART_DATA_HOME': tempDir.path},
         waitFor: pressKeyPattern,
         stdout: stdout,
+        workingDirectory: workingDirectory,
       ),
       stdout,
     );
@@ -248,6 +255,48 @@ void main() {
       final recorder = await RecorderProcess.start(tempDir, outputDir);
       await Future.delayed(const Duration(seconds: 2));
       await recorder.stop();
+
+      final timelineFiles = outputDir
+          .listSync()
+          .whereType<io.File>()
+          .where((file) => file.path.endsWith('.timeline'))
+          .toList();
+
+      final timelines = timelineFiles.map((e) => p.basename(e.path)).toList();
+      expect(
+        timelines,
+        equals(['${busyLoopProcess.pid}.timeline']),
+        reason: 'Expected timeline file to be created',
+      );
+
+      final traceData = TraceData.fromBytes(
+        timelineFiles.first.readAsBytesSync(),
+      );
+      expect(
+        traceData.hasSeenStack([
+          'busyLoop',
+          'AsyncSpan.run',
+          'busyLoop.<anonymous closure>',
+        ]),
+        isTrue,
+      );
+      // Dart track should be enabled by default.
+      expect(traceData.seenEvents, containsAll(['sleep']));
+    });
+
+    test('relative paths are converted to absolute', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      // Run the recorder in a separate process.
+      final recorder = await RecorderProcess.start(
+        tempDir,
+        io.Directory('output'),
+        workingDirectory: tempDir,
+      );
+      await Future.delayed(const Duration(seconds: 2));
+      print('waiting for recorder to stop');
+      await recorder.stop();
+      print('recorder stopped');
 
       final timelineFiles = outputDir
           .listSync()
@@ -752,13 +801,37 @@ void main() {
       tempDir.deleteSync(recursive: true);
     });
 
-    test('error to start server due no HOME is ignored gracefully', () async {
+    test('error to start server due to no HOME', () async {
       final busyLoopProcess = await BusyLoopProcess.start(
         'busy-loop-tag',
         tempDir,
         overrideDartDataHome: false,
         environment: {},
       );
+      await busyLoopProcess.process.askToExit();
+      expect(await busyLoopProcess.process.exitCode, 0);
+    });
+
+    test('error to open timeline file', () async {
+      final busyLoopProcess = await BusyLoopProcess.start(
+        'busy-loop-tag',
+        tempDir,
+      );
+
+      final conn = await Connection.connectTo(
+        controlSocketPathForPid(
+          busyLoopProcess.process.pid,
+          controlSocketDirectory: p.join(tempDir.path, 'perf'),
+        )!,
+      );
+      await expectLater(
+        conn.startRecording(
+          p.join(tempDir.path, 'non-existent-output-dir'),
+          config: PerfWitnessRecorderConfig(),
+        ),
+        throwsA(isA<JsonRpcException>()),
+      );
+      conn.disconnect();
       await busyLoopProcess.process.askToExit();
       expect(await busyLoopProcess.process.exitCode, 0);
     });

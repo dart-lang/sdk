@@ -1211,13 +1211,13 @@ class InheritanceManager3 {
     InterfaceElementImpl targetClass,
     List<InternalExecutableElement> validOverrides,
   ) {
-    var first = validOverrides[0];
+    var firstElement = validOverrides[0];
 
     if (validOverrides.length == 1) {
-      return first;
+      return firstElement;
     }
 
-    var firstType = first.type;
+    var firstType = firstElement.type;
     var allFirstType = true;
     for (var e in validOverrides) {
       if (e.type != firstType) {
@@ -1226,7 +1226,7 @@ class InheritanceManager3 {
       }
     }
     if (allFirstType) {
-      return first;
+      return firstElement;
     }
 
     var resultType = _topMergeSignatureTypes(
@@ -1240,8 +1240,7 @@ class InheritanceManager3 {
       }
     }
 
-    if (first is InternalMethodElement) {
-      var firstElement = first;
+    if (firstElement is InternalMethodElement) {
       var fragmentName = firstElement.firstFragment.name!;
 
       var elementReference = targetClass.reference!
@@ -1274,8 +1273,8 @@ class InheritanceManager3 {
 
       return resultElement;
     } else {
-      var firstElement = first as InternalPropertyAccessorElement;
-      var fragmentName = first.name!;
+      firstElement as InternalPropertyAccessorElement;
+      var fragmentName = firstElement.name!;
       var field = FieldFragmentImpl(name: fragmentName);
       field.isOriginGetterSetter = true;
       field.isSynthetic = true;
@@ -1322,7 +1321,7 @@ class InheritanceManager3 {
 
       field.enclosingFragment = targetClass.firstFragment;
 
-      var elementName = first.name!;
+      var elementName = firstElement.name!;
       var elementReference = targetClass.reference!
           .getChild('@field')
           .getChild(elementName);

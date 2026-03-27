@@ -764,10 +764,10 @@ class GitSshUrl {
     }
 
     return GitSshUrl(
-      user: match.group(1)!,
-      host: match.group(2)!,
-      owner: match.group(3)!,
-      repository: match.group(4)!,
+      user: match[1]!,
+      host: match[2]!,
+      owner: match[3]!,
+      repository: match[4]!,
       fullUrl: url,
     );
   }

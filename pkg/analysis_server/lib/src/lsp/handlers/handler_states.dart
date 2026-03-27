@@ -15,6 +15,7 @@ import 'package:analysis_server/src/lsp/handlers/custom/handler_augmented.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_connect_to_dtd.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_experimental_echo.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_get_widget_previews.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_imports.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_summary.dart';
@@ -133,6 +134,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         EditArgumentHandler.new,
         ExecuteCommandHandler.new,
         ExperimentalEchoHandler.new,
+        FlutterWidgetPreviewsHandler.new,
         FormatOnTypeHandler.new,
         FormatRangeHandler.new,
         FormattingHandler.new,
@@ -152,6 +154,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         TypeHierarchySupertypesHandler.new,
         UpdateDiagnosticInformationHandler.new,
         WillRenameFilesHandler.new,
+        WorkspaceFlutterWidgetPreviewsHandler.new,
         WorkspaceSymbolHandler.new,
       ];
 

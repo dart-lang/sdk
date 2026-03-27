@@ -16,18 +16,11 @@ main() {
 @reflectiveTest
 class ConstructorFieldInitializerResolutionTest
     extends PubPackageResolutionTest {
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_fieldOfAugmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
+    await assertNoErrorsInCode(r'''
 class A {
   int get foo;
 }
-''');
-
-    await assertNoErrorsInCode(r'''
-part of 'a.dart';
 
 augment class A {
   final int _foo;
@@ -43,8 +36,7 @@ augment class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: _foo
-    staticElement: package:test/a.dart::@fragment::package:test/test.dart::@classAugmentation::A::@field::_foo
-    element: package:test/a.dart::@fragment::package:test/test.dart::@classAugmentation::A::@field::_foo#element
+    element: <testLibrary>::@class::A::@field::_foo
     staticType: null
   equals: =
   expression: IntegerLiteral

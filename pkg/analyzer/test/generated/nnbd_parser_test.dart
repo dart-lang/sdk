@@ -1269,7 +1269,7 @@ CompilationUnit
               token: Foo
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: Object
                   question: ?
@@ -1343,7 +1343,7 @@ CompilationUnit
               token: Foo
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: Object
                   question: ?
@@ -1428,7 +1428,7 @@ CompilationUnit
               token: Foo
             parameters: FormalParameterList
               leftParenthesis: (
-              parameter: SimpleFormalParameter
+              parameter: RegularFormalParameter
                 type: NamedType
                   name: Object
                   question: ?

@@ -123,14 +123,14 @@ class A extends core::Object {
       this-variable this-variable;
     ]),
   ] */ {
-    let final self::A #t1 = this-variable in #t1.{self::A::n} = #t1.{self::A::n}{core::int}.{core::num::+}(1){(core::num) → core::int};
+    this-variable.{self::A::n} = this-variable.{self::A::n}{core::int}.{core::num::+}(1){(core::num) → core::int};
   }
   method notCapturedPropertyPostfix() → dynamic/* scope=[
     #ctx18: not-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
-    let final self::A #t2 = this-variable in #t2.{self::A::n} = #t2.{self::A::n}{core::int}.{core::num::+}(1){(core::num) → core::int};
+    this-variable.{self::A::n} = this-variable.{self::A::n}{core::int}.{core::num::+}(1){(core::num) → core::int};
   }
   method notCapturedPropertyIndexGet() → dynamic/* scope=[
     #ctx19: not-captured VariableContext([
@@ -239,14 +239,14 @@ class A extends core::Object {
       this-variable this-variable;
     ]),
   ] */ {
-    return () /* #ctx33 */ → core::int => let final self::A #t3 = this-variable in #t3.{self::A::n} = #t3.{self::A::n}{core::int}.{core::num::+}(1){(core::num) → core::int};
+    return () /* #ctx33 */ → core::int => this-variable.{self::A::n} = this-variable.{self::A::n}{core::int}.{core::num::+}(1){(core::num) → core::int};
   }
   method capturedPropertyPostfix() → dynamic/* scope=[
     #ctx34: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
-    return () /* #ctx34 */ → core::int => let final self::A #t4 = this-variable in let final core::int #t5 = #t4.{self::A::n}{core::int} in let final void #t6 = #t4.{self::A::n} = #t5.{core::num::+}(1){(core::num) → core::int} in #t5;
+    return () /* #ctx34 */ → core::int => let final core::int #t1 = this-variable.{self::A::n}{core::int} in let final void #t2 = this-variable.{self::A::n} = #t1.{core::num::+}(1){(core::num) → core::int} in #t1;
   }
   method capturedPropertyIndexGet() → dynamic/* scope=[
     #ctx35: direct-captured VariableContext([
@@ -260,14 +260,14 @@ class A extends core::Object {
       this-variable this-variable;
     ]),
   ] */ {
-    return () /* #ctx36 */ → Null => let final self::A #t7 = this-variable.{self::A::a}{self::A} in let final core::int #t8 = 0 in let final has-declared-initializer Null #t9 = null in let final void #t10 = #t7.{self::A::[]=}(#t8, #t9){(core::int, core::Object?) → void} in #t9;
+    return () /* #ctx36 */ → Null => let final self::A #t3 = this-variable.{self::A::a}{self::A} in let final core::int #t4 = 0 in let final has-declared-initializer Null #t5 = null in let final void #t6 = #t3.{self::A::[]=}(#t4, #t5){(core::int, core::Object?) → void} in #t5;
   }
   method capturedPropertyIfNullAssignment() → dynamic/* scope=[
     #ctx37: direct-captured VariableContext([
       this-variable this-variable;
     ]),
   ] */ {
-    return () /* #ctx37 */ → self::A => let final self::A? #t11 = this-variable.{self::A::aNull}{self::A?} in #t11 == null ?{self::A} this-variable.{self::A::aNull} = new self::A::•() : #t11{self::A};
+    return () /* #ctx37 */ → self::A => let final self::A? #t7 = this-variable.{self::A::aNull}{self::A?} in #t7 == null ?{self::A} this-variable.{self::A::aNull} = new self::A::•() : #t7{self::A};
   }
   method capturedPropertyCompoundAssignment() → dynamic/* scope=[
     #ctx38: direct-captured VariableContext([
@@ -491,7 +491,7 @@ class B extends self::A {
       this-variable this-variable;
     ]),
   ] */ {
-    return () /* #ctx64 */ → core::int => let final core::int #t12 = super{this-variable}.{self::A::n} in let final void #t13 = super{this-variable}.{self::A::n} = #t12.{core::num::+}(1){(core::num) → core::int} in #t12;
+    return () /* #ctx64 */ → core::int => let final core::int #t8 = super{this-variable}.{self::A::n} in let final void #t9 = super{this-variable}.{self::A::n} = #t8.{core::num::+}(1){(core::num) → core::int} in #t8;
   }
   @#C1
   method capturedPropertyIndexGet() → dynamic/* scope=[
@@ -507,7 +507,7 @@ class B extends self::A {
       this-variable this-variable;
     ]),
   ] */ {
-    return () /* #ctx66 */ → Null => let final self::A #t14 = super{this-variable}.{self::A::a} in let final core::int #t15 = 0 in let final has-declared-initializer Null #t16 = null in let final void #t17 = #t14.{self::A::[]=}(#t15, #t16){(core::int, core::Object?) → void} in #t16;
+    return () /* #ctx66 */ → Null => let final self::A #t10 = super{this-variable}.{self::A::a} in let final core::int #t11 = 0 in let final has-declared-initializer Null #t12 = null in let final void #t13 = #t10.{self::A::[]=}(#t11, #t12){(core::int, core::Object?) → void} in #t12;
   }
   @#C1
   method capturedPropertyIfNullAssignment() → dynamic/* scope=[
@@ -515,7 +515,7 @@ class B extends self::A {
       this-variable this-variable;
     ]),
   ] */ {
-    return () /* #ctx67 */ → self::A => let final self::A? #t18 = super{this-variable}.{self::A::aNull} in #t18 == null ?{self::A} super{this-variable}.{self::A::aNull} = new self::A::•() : #t18{self::A};
+    return () /* #ctx67 */ → self::A => let final self::A? #t14 = super{this-variable}.{self::A::aNull} in #t14 == null ?{self::A} super{this-variable}.{self::A::aNull} = new self::A::•() : #t14{self::A};
   }
   @#C1
   method capturedPropertyCompoundAssignment() → dynamic/* scope=[

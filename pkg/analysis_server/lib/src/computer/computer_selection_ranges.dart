@@ -42,6 +42,11 @@ class DartSelectionRangeComputer {
       }
     }
 
+    // Ignore certain kinds of nodes.
+    if (node is NameWithTypeParameters) {
+      return;
+    }
+
     _selectionRanges.add(SelectionRange(node.offset, node.length));
   }
 }

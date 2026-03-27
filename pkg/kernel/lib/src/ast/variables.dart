@@ -357,8 +357,10 @@ class LocalVariable extends Variable {
   @override
   void set initializer(Expression? value) {
     if (value != null && variableInitialization == null) {
-      throw new StateError("Attempt to assign initializer to variable "
-          "without an initialization node.");
+      throw new StateError(
+        "Attempt to assign initializer to variable "
+        "without an initialization node.",
+      );
     }
     variableInitialization!.initializer = value;
   }
@@ -432,8 +434,8 @@ class CatchVariable extends Variable {
     required String name,
     required DartType? type,
     bool isWildcard = false,
-  })  : catchVariableName = name,
-        type = type ?? const DynamicType() {
+  }) : catchVariableName = name,
+       type = type ?? const DynamicType() {
     this.isWildcard = isWildcard;
   }
 
@@ -583,7 +585,8 @@ class CatchVariable extends Variable {
   @override
   void set isSuperInitializingFormal(bool value) {
     throw new UnsupportedError(
-        "${this.runtimeType}.isSuperInitializingFormal=");
+      "${this.runtimeType}.isSuperInitializingFormal=",
+    );
   }
 
   @override
@@ -682,17 +685,18 @@ class CatchVariable extends Variable {
 sealed class FunctionParameter extends Variable implements VariableDeclaration {
   Expression? defaultValue;
 
-  FunctionParameter(
-      {required Expression? defaultValue,
-      required bool isCovariantByDeclaration,
-      required bool isRequired,
-      required bool isInitializingFormal,
-      required bool isSuperInitializingFormal,
-      required bool isFinal,
-      required bool hasDeclaredDefaultType,
-      required bool isLowered,
-      required bool isSynthesized,
-      required bool isWildcard}) {
+  FunctionParameter({
+    required Expression? defaultValue,
+    required bool isCovariantByDeclaration,
+    required bool isRequired,
+    required bool isInitializingFormal,
+    required bool isSuperInitializingFormal,
+    required bool isFinal,
+    required bool hasDeclaredDefaultType,
+    required bool isLowered,
+    required bool isSynthesized,
+    required bool isWildcard,
+  }) {
     this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isRequired = isRequired;
     this.isInitializingFormal = isInitializingFormal;
@@ -1037,19 +1041,20 @@ class NamedParameter extends FunctionParameter {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  NamedParameter(
-      {required this.parameterName,
-      required this.type,
-      super.defaultValue,
-      super.isCovariantByDeclaration = false,
-      super.isRequired = false,
-      super.isInitializingFormal = false,
-      super.isSuperInitializingFormal = false,
-      super.isFinal = false,
-      super.hasDeclaredDefaultType = false,
-      super.isLowered = false,
-      super.isSynthesized = false,
-      super.isWildcard = false});
+  NamedParameter({
+    required this.parameterName,
+    required this.type,
+    super.defaultValue,
+    super.isCovariantByDeclaration = false,
+    super.isRequired = false,
+    super.isInitializingFormal = false,
+    super.isSuperInitializingFormal = false,
+    super.isFinal = false,
+    super.hasDeclaredDefaultType = false,
+    super.isLowered = false,
+    super.isSynthesized = false,
+    super.isWildcard = false,
+  });
 
   @override
   // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
@@ -1217,7 +1222,7 @@ class ThisVariable extends Variable {
   }
 
   @override
-  bool get isFinal => false;
+  bool get isFinal => true;
 
   @override
   void set isFinal(bool value) {
@@ -1602,8 +1607,10 @@ class SyntheticVariable extends Variable {
   @override
   void set initializer(Expression? value) {
     if (value != null && variableInitialization == null) {
-      throw new StateError("Attempt to assign initializer to variable "
-          "without an initialization node.");
+      throw new StateError(
+        "Attempt to assign initializer to variable "
+        "without an initialization node.",
+      );
     }
     variableInitialization!.initializer = value;
   }
@@ -1656,11 +1663,7 @@ class SyntheticVariable extends Variable {
 /// The enum reflecting the kind of a variable context. A context is
 /// [assertCaptured] if it contains the variables captured in a closure within
 /// an `assert` and not captured anywhere outside of `assert`s.
-enum CaptureKind {
-  notCaptured,
-  directCaptured,
-  assertCaptured;
-}
+enum CaptureKind { notCaptured, directCaptured, assertCaptured }
 
 /// The box storing some of the variables in the scope it's associated with. It
 /// serves as the "declaration" of the variables it contains for the runtime

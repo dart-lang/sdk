@@ -93,7 +93,7 @@ void main() {
       assertTrue(m1 != null);
       assertEquals(m1!.groupCount, m2.groupCount);
       for (int i = 0; i < m1.groupCount; i++) {
-        assertEquals(m1.group(i), m2.group(i));
+        assertEquals(m1[i], m2[i]);
       }
     }
   }

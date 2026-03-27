@@ -149,7 +149,10 @@ class StrongComponentGraph<T> implements Graph<List<T>> {
 const int cyclicMarker = -1;
 
 int _topologicalSortInternal<T>(
-    Graph<T> graph, TopologicalSortResult<T> result, T vertex) {
+  Graph<T> graph,
+  TopologicalSortResult<T> result,
+  T vertex,
+) {
   int? index = result.indexMap[vertex];
   if (index == null) {
     result.indexMap[vertex] = cyclicMarker;

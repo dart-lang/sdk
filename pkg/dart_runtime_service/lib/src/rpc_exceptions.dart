@@ -8,6 +8,7 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 enum RpcException {
   // These error codes must be kept in sync with those in vm/json_stream.h and
   // vmservice.dart.
+  invalidParams(code: INVALID_PARAMS, message: 'Invalid parameter.'),
   serverError(code: SERVER_ERROR, message: 'Server error.'),
   methodNotFound(code: METHOD_NOT_FOUND, message: 'Method not found.'),
   internalError(code: INTERNAL_ERROR, message: 'Internal error.'),
@@ -20,12 +21,20 @@ enum RpcException {
   expressionCompilationError(
     code: 113,
     message: 'Expression compilation error.',
-  );
+  ),
+  fileSystemAlreadyExists(code: 1001, message: 'File system already exists.'),
+  fileSystemDoesNotExist(code: 1002, message: 'File system does not exist.'),
+  fileDoesNotExist(code: 1003, message: 'File does not exist.');
 
   const RpcException({required this.code, required this.message});
 
   /// Throws a [json_rpc.RpcException] with [code] and [message].
   Never throwException({Object? data}) => throw toException(data: data);
+
+  /// Throws a [json_rpc.RpcException] with [code] and [message], with [details]
+  /// included in the exception's `data` field.
+  Never throwExceptionWithDetails({required String details}) =>
+      throw toException(data: <String, String>{'details': details});
 
   /// Builds a [json_rpc.RpcException] with [code] and [message] without
   /// throwing.

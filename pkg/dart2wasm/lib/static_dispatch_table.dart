@@ -20,8 +20,10 @@ class CrossModuleFunctionTable {
   final WasmTableImporter _importedWasmTables;
 
   CrossModuleFunctionTable(this.translator)
-      : _importedWasmTables =
-            WasmTableImporter(translator, 'cross-module-funcs-');
+    : _importedWasmTables = WasmTableImporter(
+        translator,
+        'cross-module-funcs-',
+      );
 
   /// Gets the wasm table used to reference this table in [module].
   ///

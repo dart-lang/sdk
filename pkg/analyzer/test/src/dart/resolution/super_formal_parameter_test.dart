@@ -71,26 +71,27 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  typeParameters: TypeParameterList
-    leftBracket: <
-    typeParameters
-      TypeParameter
-        name: T
-        declaredFragment: <testLibraryFragment> T@62
-          defaultType: null
-    rightBracket: >
-  parameters: FormalParameterList
-    leftParenthesis: (
-    parameter: SimpleFormalParameter
-      type: NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-      name: b
-      declaredFragment: <testLibraryFragment> b@69
-        element: isPublic
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@62
+            defaultType: null
+      rightBracket: >
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
           type: int
-    rightParenthesis: )
+        name: b
+        declaredFragment: <testLibraryFragment> b@69
+          element: isPublic
+            type: int
+      rightParenthesis: )
   declaredFragment: <testLibraryFragment> a@60
     element: isFinal isPublic
       type: T Function<T>(int)

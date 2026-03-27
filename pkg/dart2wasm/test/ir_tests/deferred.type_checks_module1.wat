@@ -17,7 +17,6 @@
   (elem $$.$ <...>)
   (func $"Foo.takeT (body) <noInline>" (param $var0 (ref $Foo)) (param $var1 (ref $#Top))
     (local $var2 (ref $_InterfaceType))
-    (local $var3 (ref null $Foo))
     global.get $"\"Foo<\""
     local.get $var0
     struct.get $Foo $field2
@@ -35,7 +34,6 @@
     block $label0 (result i32)
       i32.const 0
       local.get $var0
-      local.tee $var3
       struct.get $Foo $field0
       i32.const 118
       i32.ne
@@ -68,37 +66,37 @@
       unreachable
     end
     local.get $var0
-    ref.as_non_null
     i32.const 20
     call_indirect $$.& (param (ref null $#Top)) (result (ref null $#Top))
     drop
   )
   (func $"Foo.takeT (checked entry)" (param $var0 (ref $Foo)) (param $var1 (ref $#Top))
-    (local $var2 (ref null $_Type))
-    (local $var3 i32)
+    (local $var2 i32)
+    (local $var3 (ref null $_Type))
+    (local $var4 (ref $_Type))
     block $label0 (result i32)
       block $label1
         local.get $var0
         struct.get $Foo $field2
-        local.tee $var2
-        struct.get $_Type $field0
         local.tee $var3
+        struct.get $_Type $field0
+        local.tee $var2
         i32.const 9
         i32.le_u
         if
-          local.get $var3
+          local.get $var2
           i32.const 5
           i32.le_u
           if
-            local.get $var3
+            local.get $var2
             i32.const 4
             i32.le_u
             if
-              local.get $var3
+              local.get $var2
               i32.const 4
               i32.eq
               if
-                local.get $var2
+                local.get $var3
                 ref.as_non_null
                 local.get $var1
                 i32.const 4
@@ -107,18 +105,18 @@
               end
               br $label1
             end
-            local.get $var2
+            local.get $var3
             ref.as_non_null
             local.get $var1
             i32.const 5
             call_indirect $$.& (param (ref $_Type) (ref $#Top)) (result i32)
             br $label0
           end
-          local.get $var3
+          local.get $var2
           i32.const 9
           i32.eq
           if
-            local.get $var2
+            local.get $var3
             ref.as_non_null
             local.get $var1
             i32.const 6
@@ -127,15 +125,15 @@
           end
           br $label1
         end
-        local.get $var3
+        local.get $var2
         i32.const 11
         i32.le_u
         if
-          local.get $var3
+          local.get $var2
           i32.const 11
           i32.eq
           if
-            local.get $var2
+            local.get $var3
             ref.as_non_null
             local.get $var1
             i32.const 7
@@ -144,11 +142,11 @@
           end
           br $label1
         end
-        local.get $var3
+        local.get $var2
         i32.const 13
         i32.eq
         if
-          local.get $var2
+          local.get $var3
           ref.as_non_null
           local.get $var1
           i32.const 8
@@ -156,10 +154,11 @@
           br $label0
         end
       end $label1
-      local.get $var2
+      local.get $var3
       ref.as_non_null
+      local.tee $var4
       local.get $var1
-      local.get $var2
+      local.get $var4
       struct.get $_Type $field0
       i32.const 498
       i32.add

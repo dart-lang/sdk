@@ -1926,6 +1926,7 @@ class KernelTarget {
       procedure,
       environmentDefines,
       logger: (String msg) => ticker.logMs(msg),
+      diagnosticReporter: new KernelDiagnosticReporter(loader),
     );
   }
 

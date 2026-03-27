@@ -9,9 +9,9 @@ import "package:expect/expect.dart";
 class RegExpGroupTest {
   static testMain() {
     var match = new RegExp("(a(b)((c|de)+))").firstMatch("abcde")!;
-    Expect.equals('abcde', match.group(0));
-    Expect.equals('abcde', match.group(1));
-    Expect.equals('b', match.group(2));
+    Expect.equals('abcde', match[0]);
+    Expect.equals('abcde', match[1]);
+    Expect.equals('b', match[2]);
     Expect.equals('cde', match[3]);
     Expect.equals('de', match[4]);
   }

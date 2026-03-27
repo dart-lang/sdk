@@ -136,7 +136,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: int
         name: _
@@ -162,7 +162,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: ( @8 <synthetic>
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: <empty> @8 <synthetic>
       rightParenthesis: ) @8 <synthetic>
     body: BlockFunctionBody
@@ -188,7 +188,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: ( @7
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: a @9
       rightParenthesis: ) @11
     body: BlockFunctionBody
@@ -214,7 +214,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: ( @7
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: a @9
       rightParenthesis: ) @11
     body: BlockFunctionBody
@@ -240,7 +240,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: ( @7
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: a @8
       rightParenthesis: ) @15
     body: BlockFunctionBody
@@ -266,7 +266,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: ( @7
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         name: <empty> @8 <synthetic>
       rightParenthesis: ) @8
     body: BlockFunctionBody

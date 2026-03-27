@@ -26,10 +26,11 @@ import 'package:vm/metadata/unreachable.dart'
 import 'package:vm/modular/metadata/call_site_attributes.dart'
     show CallSiteAttributesMetadataRepository;
 
-final ArgParser _argParser =
-    ArgParser()..addFlag('show-offsets', help: 'Print file offsets');
+final ArgParser _argParser = ArgParser()
+  ..addFlag('show-offsets', help: 'Print file offsets');
 
-final String _usage = '''
+final String _usage =
+    '''
 Usage: dump_kernel [options] input.dill output.txt
 Dumps kernel binary file with VM-specific metadata.
 

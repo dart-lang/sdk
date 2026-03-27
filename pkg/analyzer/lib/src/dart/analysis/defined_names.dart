@@ -4,9 +4,10 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 /// Compute the [DefinedNames] for the given [unit].
-DefinedNames computeDefinedNames(CompilationUnit unit) {
+DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
   DefinedNames names = DefinedNames();
 
   void appendName(Set<String> names, Token? token) {
@@ -16,43 +17,74 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
     }
   }
 
-  void appendClassMemberName(ClassMember member) {
-    if (member is MethodDeclaration) {
+  void appendClassMemberName(ClassMemberImpl member) {
+    if (member is MethodDeclarationImpl) {
       appendName(names.classMemberNames, member.name);
-    } else if (member is FieldDeclaration) {
-      for (VariableDeclaration field in member.fields.variables) {
+    } else if (member is FieldDeclarationImpl) {
+      for (var field in member.fields.variables) {
         appendName(names.classMemberNames, field.name);
       }
     }
   }
 
-  void appendTopLevelName(CompilationUnitMember member) {
+  void appendDeclaringFormalParameterNames(
+    PrimaryConstructorDeclarationImpl constructor, {
+    bool isExtensionType = false,
+  }) {
+    var parameters = constructor.formalParameters.parameters;
+    for (var i = 0; i < parameters.length; i++) {
+      var parameter = parameters[i];
+      var notDefault = parameter.notDefault;
+      var isRepresentation =
+          isExtensionType &&
+          i == 0 &&
+          (notDefault is SimpleFormalParameterImpl ||
+              notDefault is FunctionTypedFormalParameterImpl);
+      if (parameter.finalOrVarKeyword != null || isRepresentation) {
+        appendName(names.classMemberNames, parameter.name);
+      }
+    }
+  }
+
+  void appendTopLevelName(CompilationUnitMemberImpl member) {
     switch (member) {
-      case ClassDeclaration():
+      case ClassDeclarationImpl():
         appendName(names.topLevelNames, member.namePart.typeName);
+        if (member.namePart
+            case PrimaryConstructorDeclarationImpl constructor) {
+          appendDeclaringFormalParameterNames(constructor);
+        }
         member.body.members.forEach(appendClassMemberName);
-      case EnumDeclaration():
+      case EnumDeclarationImpl():
         appendName(names.topLevelNames, member.namePart.typeName);
+        if (member.namePart
+            case PrimaryConstructorDeclarationImpl constructor) {
+          appendDeclaringFormalParameterNames(constructor);
+        }
         for (var constant in member.body.constants) {
           appendName(names.classMemberNames, constant.name);
         }
         member.body.members.forEach(appendClassMemberName);
-      case ExtensionDeclaration():
+      case ExtensionDeclarationImpl():
         appendName(names.topLevelNames, member.name);
         member.body.members.forEach(appendClassMemberName);
-      case ExtensionTypeDeclaration():
+      case ExtensionTypeDeclarationImpl():
         appendName(names.topLevelNames, member.primaryConstructor.typeName);
+        appendDeclaringFormalParameterNames(
+          member.primaryConstructor,
+          isExtensionType: true,
+        );
         member.body.members.forEach(appendClassMemberName);
-      case FunctionDeclaration():
+      case FunctionDeclarationImpl():
         appendName(names.topLevelNames, member.name);
-      case MixinDeclaration():
+      case MixinDeclarationImpl():
         appendName(names.topLevelNames, member.name);
         member.body.members.forEach(appendClassMemberName);
-      case TopLevelVariableDeclaration():
-        for (VariableDeclaration variable in member.variables.variables) {
+      case TopLevelVariableDeclarationImpl():
+        for (var variable in member.variables.variables) {
           appendName(names.topLevelNames, variable.name);
         }
-      case TypeAlias():
+      case TypeAliasImpl():
         appendName(names.topLevelNames, member.name);
     }
   }

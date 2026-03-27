@@ -58,6 +58,14 @@ Statement assert_(ProtoExpression condition, [ProtoExpression? message]) {
   );
 }
 
+Expression await_(ProtoExpression operand) {
+  var location = computeLocation();
+  return new AwaitExpression._(
+    operand.asExpression(location: location),
+    location: location,
+  );
+}
+
 Statement block(List<ProtoStatement> statements) =>
     new Block._(statements, location: computeLocation());
 
@@ -144,7 +152,7 @@ String computeLocation() {
       '_locationRegExp failed to match $stackLine in $callStack',
     );
   }
-  return match.group(0)!;
+  return match[0]!;
 }
 
 Statement continue_([Label? target]) =>
@@ -339,12 +347,8 @@ CollectionElement ifElement(
   );
 }
 
-ConstExpression intLiteral(int value, {bool? expectConversionToDouble}) =>
-    new IntLiteral(
-      value,
-      expectConversionToDouble: expectConversionToDouble,
-      location: computeLocation(),
-    );
+ConstExpression intLiteral(int value) =>
+    new IntLiteral(value, location: computeLocation());
 
 /// Creates a list literal containing the given [elements].
 ///
@@ -717,6 +721,32 @@ class Assert extends Statement {
       Kind.statement,
       location: location,
     );
+  }
+}
+
+class AwaitExpression extends Expression {
+  final Expression operand;
+
+  AwaitExpression._(this.operand, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    operand.preVisit(visitor);
+  }
+
+  @override
+  String toString() => 'await $operand';
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    var result = h.typeAnalyzer.analyzeAwaitExpression(operand, schema);
+    h.irBuilder.apply(
+      'awaitExpr',
+      [Kind.expression],
+      Kind.expression,
+      location: location,
+    );
+    return result;
   }
 }
 
@@ -1479,6 +1509,12 @@ abstract class Expression extends Node
         ProtoStatement<Expression>,
         ProtoCollectionElement<Expression>,
         ProtoExpression {
+  /// If non-null, an auxiliary checker function that will be invoked, and
+  /// passed the return value from [TypeAnalyzer.dispatchExpression], when this
+  /// expression is analyzed.
+  void Function(ExpressionTypeAnalysisResult)?
+  _checkExpressionTypeAnalysisResult;
+
   /// If non-null, the expected IR that should be produced when this expression
   /// is analyzed.
   String? _expectedIR;
@@ -2342,15 +2378,7 @@ class IfNull extends Expression {
 class IntLiteral extends ConstExpression {
   final int value;
 
-  /// `true` or `false` if we should assert that int->double conversion either
-  /// does, or does not, happen.  `null` if no assertion should be done.
-  final bool? expectConversionToDouble;
-
-  IntLiteral(
-    this.value, {
-    this.expectConversionToDouble,
-    required super.location,
-  }) : super._();
+  IntLiteral(this.value, {required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -2361,9 +2389,6 @@ class IntLiteral extends ConstExpression {
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     var result = h.typeAnalyzer.analyzeIntLiteral(schema);
-    if (expectConversionToDouble != null) {
-      expect(result.convertedToDouble, expectConversionToDouble);
-    }
     h.irBuilder.atom(
       result.convertedToDouble ? '${value.toDouble()}f' : '$value',
       Kind.expression,
@@ -3268,6 +3293,54 @@ class MiniAstOperations
         what.unwrapTypeView<Type>(),
       ),
     );
+  }
+
+  @override
+  SharedTypeView flatten(SharedTypeView type) {
+    // (Note: comments below are pulled from the definition of the "flatten"
+    // function in the "Function Expressions" section of the language  spec.)
+
+    // We define the auxiliary function flatten(T) as follows, using the first
+    // applicable case:
+    var t = type.unwrapTypeView<Type>();
+
+    // - If T is X & S for some type variable X and type S then
+    if (t case TypeParameterType(:var typeParameter, promotion: var s?)) {
+      //   - If S derives a future type U then flatten(T) ≜ flatten(U).
+      if (_typeSystem.derivedFutureType(s) case var u?) {
+        return flatten(u.wrapSharedTypeView());
+      }
+
+      //   - otherwise, flatten(T) ≜ flatten(X)
+      return flatten(TypeParameterType(typeParameter).wrapSharedTypeView());
+    }
+
+    // - If T derives a future type Future<S> or FutureOr<S> then
+    //   flatten(T) ≜ S.
+    // - If T derives a future type Future<S>? or FutureOr<S>? then
+    //   flatten(T) ≜ S?.
+    if (_typeSystem.derivedFutureType(t) case var f?) {
+      var s = switch (f) {
+        PrimaryType(nameInfo: TypeNameInfo(name: 'Future'), args: [var s]) ||
+        FutureOrType(typeArgument: var s) => s,
+        _ => fail(
+          'Derived future type should always be Future<...> or FutureOr<...>',
+        ),
+      };
+      if (f.isQuestionType) {
+        return s.asQuestionType(true).wrapSharedTypeView();
+      } else {
+        return s.wrapSharedTypeView();
+      }
+    }
+
+    // - Otherwise, flatten(T) ≜ T.
+    return t.wrapSharedTypeView();
+  }
+
+  @override
+  Type futureOrTypeInternal(Type argumentType) {
+    return FutureOrType(argumentType);
   }
 
   @override
@@ -4770,6 +4843,17 @@ mixin ProtoExpression
       isNullAware: isNullAware,
       location: location,
     );
+  }
+
+  /// Wraps `this` in such a way that, when the test is run, it will call
+  /// [checker], passing it the [ExpressionTypeAnalysisResult] returned by
+  /// [TypeAnalyzer.dispatchExpression].
+  Expression checkExpressionTypeAnalysisResult(
+    void Function(ExpressionTypeAnalysisResult) checker,
+  ) {
+    var location = computeLocation();
+    return asExpression(location: location)
+      .._checkExpressionTypeAnalysisResult = checker;
   }
 
   /// Wraps `this` in such a way that, when the test is run, it will verify that
@@ -7118,8 +7202,9 @@ class _MiniAstTypeAnalyzer
   @override
   ExpressionTypeAnalysisResult dispatchExpression(
     Expression expression,
-    SharedTypeSchemaView schema,
-  ) {
+    SharedTypeSchemaView schema, {
+    bool isVoidAllowed = false,
+  }) {
     if (expression._expectedSchema case var expectedSchema?) {
       expect(schema.unwrapTypeSchemaView<Type>().type, expectedSchema);
     }
@@ -7127,6 +7212,7 @@ class _MiniAstTypeAnalyzer
       expression,
       () => expression.visit(_harness, schema),
     );
+    expression._checkExpressionTypeAnalysisResult?.call(result);
     if (expression._expectedType case var expectedType?) {
       expect(
         result.type.unwrapTypeView<Type>().type,

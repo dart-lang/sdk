@@ -112,6 +112,7 @@ void _populateResidentCompilerInfoFile(
   // TODO(bkonyi): implement
 }
 
+@pragma('vm:entry-point', 'get')
 Future<void> main([List<String> args = const []]) async {
   if (args case ['--help']) {
     return;
@@ -121,6 +122,7 @@ Future<void> main([List<String> args = const []]) async {
       enableLogging: true,
       port: _port,
       disableAuthCodes: _authCodesDisabled,
+      disableOriginCheck: _originCheckDisabled,
       autoStart: _autoStart,
     ),
     backendBuilder: (frontend) => DartRuntimeServiceVMBackend(

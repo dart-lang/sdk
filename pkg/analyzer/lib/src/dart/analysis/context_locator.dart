@@ -138,6 +138,9 @@ class _ContextLocator {
 
   final List<Folder> _excludedFolders;
 
+  /// The list of context roots ultimately returned by [_locateRoots].
+  final _roots = <ContextRootImpl>[];
+
   /// Initialize a newly created context locator. If a [resourceProvider] is
   /// supplied, it will be used to access the file system. Otherwise the default
   /// resource provider will be used.
@@ -235,14 +238,15 @@ class _ContextLocator {
     );
   }
 
-  ContextRootImpl _createContextRoot(
-    List<ContextRootImpl> roots, {
+  ContextRootImpl _createContextRoot({
     required Folder rootFolder,
     required File? optionsFile,
     required _RootLocation location,
   }) {
     if (location.workspace is WorkspaceWithDefaultAnalysisOptions) {
-      optionsFile ??= _findDefaultOptionsFile(location.sourceFactory);
+      optionsFile ??= _findDefaultOptionsFile(
+        location.workspace.partialSourceFactory,
+      );
     }
 
     var root = ContextRootImpl(
@@ -257,35 +261,33 @@ class _ContextLocator {
     }
 
     root.excludedGlobs.addAll(
-      _getExcludedGlobs(optionsFile, location.sourceFactory),
+      _getExcludedGlobs(optionsFile, location.workspace.partialSourceFactory),
     );
-    roots.add(root);
+    _roots.add(root);
     return root;
   }
 
   /// If the given [folder] should be the root of a new analysis context, then
-  /// create a new context root for it and add it to the list of context
-  /// [roots]. The [containingRoot] is the context root from an enclosing
+  /// creates a new context root for it and add it to the list of context
+  /// [_roots]. The [containingRoot] is the context root from an enclosing
   /// directory and is used to inherit configuration information that isn't
   /// overridden.
   ///
   /// If either the [_defaultOptionsFile] or [_defaultPackageConfigFile] is
-  /// non-`null`, then the given file will be used even if there is a local
-  /// version of the file.
+  /// non-`null`, then the given file is used even if there is a local version
+  /// of the file.
   ///
   /// For each directory within the given [folder] that is neither in the list
-  /// of [_excludedFolders] nor excluded by the [excludedGlobs], recursively
-  /// search for nested context roots.
+  /// of [_excludedFolders] nor excluded by the `containingRoot.excludedGlobs`,
+  /// recursively searches for nested context roots.
   ///
   /// Returns true if the folder was contained in the root and did not create a
   /// new root, false if it did create a new root.
   bool _createContextRoots(
-    List<ContextRootImpl> roots,
     Set<String> visited,
     Folder folder,
     ContextRootImpl containingRoot,
-    Set<String> containingRootEnabledLegacyPlugins,
-    List<LocatedGlob> excludedGlobs, {
+    Set<String> containingRootEnabledLegacyPlugins, {
     File? optionsFileFromParentInSameRoot,
   }) {
     var packageConfigFileToUse =
@@ -346,10 +348,10 @@ class _ContextLocator {
       );
       root.included.add(folder);
       containingRoot.excluded.add(folder);
-      roots.add(root);
+      _roots.add(root);
       containingRoot = root;
       containingRootEnabledLegacyPlugins = localEnabledPlugins;
-      excludedGlobs = _getExcludedGlobs(
+      var excludedGlobs = _getExcludedGlobs(
         root.optionsFile,
         workspace.partialSourceFactory,
       );
@@ -370,12 +372,10 @@ class _ContextLocator {
       containingRoot.excludedGlobs.addAll(excludes);
     }
     _createContextRootsIn(
-      roots,
       visited,
       folder,
       containingRoot,
       containingRootEnabledLegacyPlugins,
-      excludedGlobs,
       optionsFileToUseForFolder: usedThisRoot ? optionsFileToUse : null,
     );
 
@@ -383,19 +383,18 @@ class _ContextLocator {
   }
 
   /// For each directory within the given [folder] that is neither in the list
-  /// of [_excludedFolders] nor excluded by the [excludedGlobs], recursively
-  /// search for nested context roots and add them to the list of [roots].
+  /// of [_excludedFolders] nor excluded by the `containingRoot.excludedGlobs`,
+  /// recursively searches for nested context roots and add them to the list of
+  /// [_roots].
   ///
   /// If either the [_defaultOptionsFile] or [_defaultPackageConfigFile] is
   /// non-`null`, then the given file will be used even if there is a local
   /// version of the file.
   void _createContextRootsIn(
-    List<ContextRootImpl> roots,
     Set<String> visited,
     Folder folder,
     ContextRootImpl containingRoot,
-    Set<String> containingRootEnabledLegacyPlugins,
-    List<LocatedGlob> excludedGlobs, {
+    Set<String> containingRootEnabledLegacyPlugins, {
     File? optionsFileToUseForFolder,
   }) {
     bool isExcluded(Folder folder) {
@@ -403,8 +402,7 @@ class _ContextLocator {
           folder.shortName.startsWith('.')) {
         return true;
       }
-      // TODO(scheglov): Why not take it from `containingRoot`?
-      for (var pattern in excludedGlobs) {
+      for (var pattern in containingRoot.excludedGlobs) {
         if (pattern.matches(folder.path)) {
           return true;
         }
@@ -412,20 +410,15 @@ class _ContextLocator {
       return false;
     }
 
-    // Stop infinite recursion via links.
+    List<Resource> children;
     try {
+      // Stop infinite recursion via links.
       var canonicalFolderPath = folder.resolveSymbolicLinksSync().path;
       if (!visited.add(canonicalFolderPath)) {
         return;
       }
-    } on FileSystemException {
-      return;
-    }
-
-    // Check each of the subdirectories to see whether a context root needs to
-    // be added for it.
-    List<Resource> children;
-    try {
+      // Check each of the subdirectories to see whether a context root needs to
+      // be added for it.
       children = folder.getChildren();
     } on FileSystemException {
       // The directory either doesn't exist or cannot be read. Either way, there
@@ -439,12 +432,10 @@ class _ContextLocator {
           containingRoot.excluded.add(child);
         } else if (!isExcluded(child)) {
           _createContextRoots(
-            roots,
             visited,
             child,
             containingRoot,
             containingRootEnabledLegacyPlugins,
-            excludedGlobs,
             optionsFileFromParentInSameRoot: optionsFileToUseForFolder,
           );
         }
@@ -558,35 +549,37 @@ class _ContextLocator {
   ) {
     if (optionsFile == null) return const [];
 
-    List<LocatedGlob> patterns = [];
+    YamlMap options;
     try {
-      var doc = AnalysisOptionsProvider(
+      options = AnalysisOptionsProvider(
         sourceFactory,
       ).getOptionsFromFile(optionsFile);
-
-      var analyzerOptions = doc.valueAt(AnalysisOptionsFile.analyzer);
-      if (analyzerOptions is! YamlMap) return const [];
-      var excludeOptions = analyzerOptions.valueAt(AnalysisOptionsFile.exclude);
-      if (excludeOptions is! YamlList) return const [];
-      var pathContext = _resourceProvider.pathContext;
-
-      void addGlob(List<String> components) {
-        var pattern = posix.joinAll(components);
-        patterns.add(
-          LocatedGlob(optionsFile.parent, Glob(pattern, context: pathContext)),
-        );
-      }
-
-      for (String excludedPath in excludeOptions.whereType<String>()) {
-        var excludedComponents = posix.split(excludedPath);
-        addGlob(excludedComponents);
-        if (excludedComponents.last == '**') {
-          addGlob(excludedComponents..removeLast());
-        }
-      }
     } catch (exception) {
       // If we can't read and parse the analysis options file, then there
       // aren't any excluded files that need to be read.
+      return const [];
+    }
+
+    var analyzerOptions = options.valueAt(AnalysisOptionsFile.analyzer);
+    if (analyzerOptions is! YamlMap) return const [];
+    var excludeOptions = analyzerOptions.valueAt(AnalysisOptionsFile.exclude);
+    if (excludeOptions is! YamlList) return const [];
+    var pathContext = _resourceProvider.pathContext;
+    List<LocatedGlob> patterns = [];
+
+    void addGlob(List<String> components) {
+      var pattern = posix.joinAll(components);
+      patterns.add(
+        LocatedGlob(optionsFile.parent, Glob(pattern, context: pathContext)),
+      );
+    }
+
+    for (String excludedPath in excludeOptions.whereType<String>()) {
+      var excludedComponents = posix.split(excludedPath);
+      addGlob(excludedComponents);
+      if (excludedComponents.length > 1 && excludedComponents.last == '**') {
+        addGlob(excludedComponents..removeLast());
+      }
     }
 
     return patterns;
@@ -658,7 +651,6 @@ class _ContextLocator {
     var (workspaceResolutionRootMap, nonWorkspaceResolutionFolders) =
         _sortIncludedFoldersIntoWorkspaceResolutions(includedFolders);
 
-    var roots = <ContextRootImpl>[];
     for (var MapEntry(key: workspaceRoot, value: workspaceFolders)
         in workspaceResolutionRootMap.entries) {
       var workspaceRootFolder = _resourceProvider.getFolder(workspaceRoot);
@@ -668,7 +660,6 @@ class _ContextLocator {
       );
 
       ContextRootImpl root = _createContextRoot(
-        roots,
         rootFolder: workspaceRootFolder,
         optionsFile: location.optionsFile,
         location: location,
@@ -688,18 +679,16 @@ class _ContextLocator {
         }
 
         usedRoot |= _createContextRoots(
-          roots,
           visited,
           folder,
           root,
           rootEnabledLegacyPlugins,
-          root.excludedGlobs,
         );
       }
       if (!usedRoot) {
         // If all included folders under this workspace resolution ended up
         // creating new contexts remove the (not used) root.
-        roots.remove(root);
+        _roots.remove(root);
       }
     }
 
@@ -711,7 +700,7 @@ class _ContextLocator {
 
       ContextRootImpl? root;
       // Check whether there are existing roots that overlap with this one.
-      for (var existingRoot in roots) {
+      for (var existingRoot in _roots) {
         if (existingRoot.root.isOrContains(folder.path)) {
           if (_matchRootWithLocation(existingRoot, location)) {
             // This root is covered exactly by the existing root (with the same
@@ -734,7 +723,6 @@ class _ContextLocator {
       }
 
       root ??= _createContextRoot(
-        roots,
         rootFolder: folder,
         optionsFile: location.optionsFile,
         location: location,
@@ -749,14 +737,7 @@ class _ContextLocator {
         location.optionsFile,
       );
 
-      _createContextRootsIn(
-        roots,
-        {},
-        folder,
-        root,
-        rootEnabledLegacyPlugins,
-        root.excludedGlobs,
-      );
+      _createContextRootsIn({}, folder, root, rootEnabledLegacyPlugins);
     }
 
     for (File file in includedFiles) {
@@ -768,7 +749,7 @@ class _ContextLocator {
       );
 
       ContextRootImpl? root;
-      for (var existingRoot in roots) {
+      for (var existingRoot in _roots) {
         if (existingRoot.root.isOrContains(file.path) &&
             _matchRootWithLocation(existingRoot, location)) {
           root = existingRoot;
@@ -777,7 +758,6 @@ class _ContextLocator {
       }
 
       root ??= _createContextRoot(
-        roots,
         rootFolder: location.rootFolder,
         optionsFile: location.optionsFile,
         location: location,
@@ -787,7 +767,7 @@ class _ContextLocator {
         root.included.add(file);
       }
     }
-    return roots;
+    return _roots;
   }
 
   /// Sorts [includedFolders] into either pub workspace resolution or not.
@@ -917,9 +897,6 @@ class _RootLocation {
   final Workspace workspace;
   final File? optionsFile;
   final File? packageConfigFile;
-
-  /// A single source factory for [workspace].
-  late final sourceFactory = workspace.createSourceFactory(null, null);
 
   _RootLocation({
     required this.rootFolder,

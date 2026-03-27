@@ -12,20 +12,23 @@ import 'dependencies.dart';
 /// If a deferred import A dominates deferred import B it means that A is
 /// guaranteed to be loaded before B.
 Dominators computeDominators(
-    LibraryDependency rootImport,
-    Set<Reference> roots,
-    Map<Reference, DirectReferenceDependencies> directReferenceDependencies,
-    Map<Constant, DirectConstantDependencies> directConstantDependencies) {
+  LibraryDependency rootImport,
+  Set<Reference> roots,
+  Map<Reference, DirectReferenceDependencies> directReferenceDependencies,
+  Map<Constant, DirectConstantDependencies> directConstantDependencies,
+) {
   // Step 1) Create nodes of the graph
   final root = Vertex(rootImport);
   final veritices = <Object, Vertex>{rootImport: root};
   final allDeferredImports = <LibraryDependency>{rootImport};
   directReferenceDependencies.forEach((reference, deps) {
     veritices[reference] = Vertex(reference);
-    deps.deferredReferences
-        .forEach((_, imports) => allDeferredImports.addAll(imports));
-    deps.deferredConstants
-        .forEach((_, imports) => allDeferredImports.addAll(imports));
+    deps.deferredReferences.forEach(
+      (_, imports) => allDeferredImports.addAll(imports),
+    );
+    deps.deferredConstants.forEach(
+      (_, imports) => allDeferredImports.addAll(imports),
+    );
   });
   directConstantDependencies.forEach((constant, deps) {
     veritices[constant] = Vertex(constant);
@@ -113,7 +116,9 @@ Dominators computeDominators(
 
     final dom = dominatorOf(prefix);
     return doms[prefix] = DominatorNode<LibraryDependency>(
-        prefix, dom != null ? dominatorNodeOf(dom) : null);
+      prefix,
+      dom != null ? dominatorNodeOf(dom) : null,
+    );
   }
 
   allDeferredImports.forEach(dominatorNodeOf);
@@ -121,20 +126,24 @@ Dominators computeDominators(
 }
 
 SelectorDominators computeSelectorDominators(
-    Dominators dominators, ProgramPrefixUsages prefixDominatorUsages) {
+  Dominators dominators,
+  ProgramPrefixUsages prefixDominatorUsages,
+) {
   final selectorIdDominator = <int, DominatorNode<LibraryDependency>>{};
   final selectorNameDominator = <Name, DominatorNode<LibraryDependency>>{};
   dominators.root.visitDFS((_) {}, (node) {
     final usages = prefixDominatorUsages.usages[node.prefix]!;
     for (final selectorId in usages.selectorIds) {
       final existing = selectorIdDominator[selectorId];
-      selectorIdDominator[selectorId] =
-          existing == null ? node : existing.commonDominator(node);
+      selectorIdDominator[selectorId] = existing == null
+          ? node
+          : existing.commonDominator(node);
     }
     for (final name in usages.selectorNames) {
       final existing = selectorNameDominator[name];
-      selectorNameDominator[name] =
-          existing == null ? node : existing.commonDominator(node);
+      selectorNameDominator[name] = existing == null
+          ? node
+          : existing.commonDominator(node);
     }
   });
   return SelectorDominators(selectorIdDominator, selectorNameDominator);
@@ -161,15 +170,18 @@ class SelectorDominators {
 }
 
 ClassDominators computeClassDominators(
-    Dominators dominators, ProgramPrefixUsages prefixDominatorUsages) {
+  Dominators dominators,
+  ProgramPrefixUsages prefixDominatorUsages,
+) {
   final classDominators = <Reference, DominatorNode<LibraryDependency>>{};
   dominators.root.visitDFS((_) {}, (node) {
     final usages = prefixDominatorUsages.usages[node.prefix]!;
     for (final reference in usages.references) {
       if (reference.node is! Class) continue;
       final existing = classDominators[reference];
-      classDominators[reference] =
-          existing == null ? node : existing.commonDominator(node);
+      classDominators[reference] = existing == null
+          ? node
+          : existing.commonDominator(node);
     }
   });
   return ClassDominators(classDominators);
@@ -218,15 +230,22 @@ ProgramPrefixUsages computeTransitiveDominatorUsages(
 ) {
   final parentStack = <PrefixUsages>[];
   final transitiveUsages = <LibraryDependency, PrefixUsages>{};
-  dominators.root.visitDFS((node) {
-    final prefixRoots = programRoots.usages[node.prefix]!;
-    final usages = scanTransitiveDepsExcludingParents(parentStack, prefixRoots,
-        directReferenceDependencies, directConstantDependencies);
-    transitiveUsages[node.prefix] = usages;
-    parentStack.add(usages);
-  }, (node) {
-    parentStack.removeLast();
-  });
+  dominators.root.visitDFS(
+    (node) {
+      final prefixRoots = programRoots.usages[node.prefix]!;
+      final usages = scanTransitiveDepsExcludingParents(
+        parentStack,
+        prefixRoots,
+        directReferenceDependencies,
+        directConstantDependencies,
+      );
+      transitiveUsages[node.prefix] = usages;
+      parentStack.add(usages);
+    },
+    (node) {
+      parentStack.removeLast();
+    },
+  );
   return ProgramPrefixUsages(transitiveUsages);
 }
 
@@ -327,8 +346,8 @@ class Dominators {
 
   Dominators(this.root, this._nodes);
 
-  late final List<DominatorNode<LibraryDependency>> allNodes =
-      _nodes.values.toList();
+  late final List<DominatorNode<LibraryDependency>> allNodes = _nodes.values
+      .toList();
 }
 
 class DominatorNode<T> {
@@ -338,12 +357,14 @@ class DominatorNode<T> {
   final int depth;
 
   DominatorNode(this.prefix, this.dominator)
-      : depth = dominator == null ? 0 : 1 + dominator.depth {
+    : depth = dominator == null ? 0 : 1 + dominator.depth {
     dominator?.children.add(this);
   }
 
-  void visitDFS(void Function(DominatorNode<T>) pre,
-      [void Function(DominatorNode<T>)? post]) {
+  void visitDFS(
+    void Function(DominatorNode<T>) pre, [
+    void Function(DominatorNode<T>)? post,
+  ]) {
     pre(this);
     for (final child in children) {
       child.visitDFS(pre, post);

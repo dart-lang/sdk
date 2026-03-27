@@ -1169,10 +1169,10 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     assert(
       checkState(beginToken, [
@@ -1209,9 +1209,9 @@ class DietListener extends StackListenerImpl {
 
   @override
   void handleNoPrimaryConstructor(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {
     // The [memberScope] is set in [beginClassOrMixinOrExtensionBody] and
     // [beginEnumBody], assuming that it is currently the

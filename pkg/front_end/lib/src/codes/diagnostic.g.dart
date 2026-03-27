@@ -3784,6 +3784,26 @@ Message _withArgumentsFfiExpectedNoExceptionalReturn({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String operation})>
+ffiExpressionEvaluationNotSupported = const Template(
+  "FfiExpressionEvaluationNotSupported",
+  withArguments: _withArgumentsFfiExpressionEvaluationNotSupported,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiExpressionEvaluationNotSupported({
+  required String operation,
+}) {
+  var operation_0 = conversions.validateString(operation);
+  return new Message(
+    ffiExpressionEvaluationNotSupported,
+    problemMessage:
+        """Operation '${operation_0}' is not supported in expression evaluation.""",
+    arguments: {'operation': operation},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String sealedClassName})>
 ffiExtendsOrImplementsSealedClass = const Template(
   "FfiExtendsOrImplementsSealedClass",

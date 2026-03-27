@@ -3476,9 +3476,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<VariableDeclaration>? hoistedExpressions,
   ) {
     if (hoistedExpressions != null &&
-        !(expression is ThisExpression ||
-            expression is VariableGet &&
-                expression.expressionVariable is ThisVariable) &&
+        !isThisExpression(expression) &&
         expression is! FunctionExpression) {
       VariableDeclaration variable = createVariable(expression, type);
       hoistedExpressions.add(variable);
@@ -4035,7 +4033,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       result.applyResult(
         createSuperMethodInvocation(
           isClosureContextLoweringEnabled
-              ? (new VariableGet(internalThisVariable)..fileOffset = fileOffset)
+              ?
+                // Coverage-ignore(suite): Not run.
+                (new VariableGet(internalThisVariable)..fileOffset = fileOffset)
               : (new ThisExpression()..fileOffset = fileOffset),
           name,
           procedure,
@@ -4079,7 +4079,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         //  supported by backends.
         new SuperPropertyGet(
           isClosureContextLoweringEnabled
-              ? (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
+              ?
+                // Coverage-ignore(suite): Not run.
+                (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
               : (new ThisExpression()..fileOffset = nameOffset),
           name,
           member,
@@ -4151,7 +4153,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       assert(node == null, "Unexpected node for super property set $node.");
       node = new SuperPropertySet(
         isClosureContextLoweringEnabled
-            ? (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
+            ?
+              // Coverage-ignore(suite): Not run.
+              (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
             : (new ThisExpression()..fileOffset = nameOffset),
         name,
         rhs,

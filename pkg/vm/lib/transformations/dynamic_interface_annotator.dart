@@ -35,8 +35,8 @@ void annotateComponent(
 
   final _DetailedDynamicInterfaceLogger? logger =
       detailedDynamicInterfaceJson != null
-          ? _DetailedDynamicInterfaceLogger(detailedDynamicInterfaceJson)
-          : null;
+      ? _DetailedDynamicInterfaceLogger(detailedDynamicInterfaceJson)
+      : null;
 
   logger?.setActiveSection('extendable');
   final extendableAnnotator = annotateNodes(
@@ -364,10 +364,9 @@ class _ImplicitOverridesAnnotator {
         memberName,
       );
       if (member != null) {
-        final implicitlyOverridden =
-            setter
-                ? implicitlyOverriddenSetters
-                : implicitlyOverriddenNonSetters;
+        final implicitlyOverridden = setter
+            ? implicitlyOverriddenSetters
+            : implicitlyOverriddenNonSetters;
         if (implicitlyOverridden.add(member) &&
             !overriddenMembers.contains(member)) {
           member.addAnnotation(ConstantExpression(pragma));
@@ -539,15 +538,16 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
 
   _ClassInfo _createClassInfo(Class cls) {
     final superclass = cls.superclass;
-    final superclassInfo =
-        superclass != null ? _getClassInfo(superclass) : null;
+    final superclassInfo = superclass != null
+        ? _getClassInfo(superclass)
+        : null;
     final mixedInClass = cls.mixedInClass;
-    final mixedInClassInfo =
-        mixedInClass != null ? _getClassInfo(mixedInClass) : null;
-    final implementedClassInfos =
-        cls.implementedTypes
-            .map((sup) => _getClassInfo(sup.classNode))
-            .toList();
+    final mixedInClassInfo = mixedInClass != null
+        ? _getClassInfo(mixedInClass)
+        : null;
+    final implementedClassInfos = cls.implementedTypes
+        .map((sup) => _getClassInfo(sup.classNode))
+        .toList();
     return _ClassInfo(
       cls,
       superclassInfo,

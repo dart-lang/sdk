@@ -244,13 +244,13 @@ void checkDebugMaps(List<TestCase> testCases) {
   for (int i = 0; i < expected.length; i++) {
     final expectedLine = expected[i];
     final isSymbol = _symbolLineRegExp.hasMatch(expectedLine);
-    final expectedTriple = _tripleLineRegExp.firstMatch(expectedLine)?.group(1);
+    final expectedTriple = _tripleLineRegExp.firstMatch(expectedLine)?[1];
 
     final expectedTimestampMatch = _timestampLineRegExp.firstMatch(
       expectedLine,
     );
     if (expectedTimestampMatch != null) {
-      final expectedTimestamp = int.tryParse(expectedTimestampMatch.group(1)!);
+      final expectedTimestamp = int.tryParse(expectedTimestampMatch[1]!);
       // The timestamp (value of the N_OSO symbol) in our snapshots is always 0.
       Expect.equals(0, expectedTimestamp);
     }
@@ -265,7 +265,7 @@ void checkDebugMaps(List<TestCase> testCases) {
     for (final c in got) {
       final gotLine = c[i];
       if (expectedTriple != null) {
-        final gotTriple = _tripleLineRegExp.firstMatch(gotLine)?.group(1);
+        final gotTriple = _tripleLineRegExp.firstMatch(gotLine)?[1];
         Expect.equals(expectedTriple, gotTriple);
       } else if (isSymbol) {
         Expect.isTrue(_symbolLineRegExp.hasMatch(gotLine));

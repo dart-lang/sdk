@@ -63,8 +63,6 @@
   )
   (func $"foo1 <noInline>" (result (ref null $#Top))
     (local $var0 (ref $Object))
-    (local $var1 (ref $Object))
-    (local $var2 (ref $Object))
     block $label0
       block $label1 (result (ref $Object))
         global.get $baseObj
@@ -92,17 +90,15 @@
         br_on_non_null $label3
         br $label0
       end $label3
-      local.set $var1
-      call $Foo1.doitDevirt
       drop
+      call $Foo1.doitDevirt
       block $label4 (result (ref $Object))
         global.get $foo1Obj
         br_on_non_null $label4
         br $label0
       end $label4
-      local.set $var2
-      call $Foo1.doitDevirt
       drop
+      call $Foo1.doitDevirt
       ref.null none
       return
     end $label0
@@ -125,7 +121,7 @@
     ref.null none
   )
   (func $Foo1 (result (ref $Object)) <...>)
-  (func $Foo1.doitDevirt (result nullref)
+  (func $Foo1.doitDevirt
     global.get $"\"Foo1.doitDevirt(\""
     global.get $1
     global.get $"\")\""
@@ -142,7 +138,6 @@
     i32.const 6
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
-    ref.null none
   )
   (func $Foo1.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     global.get $"\"Foo1.doitDispatch(\""

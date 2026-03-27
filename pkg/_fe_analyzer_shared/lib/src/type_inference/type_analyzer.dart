@@ -380,6 +380,65 @@ mixin TypeAnalyzer<
     flow.promotedType(variable) ?? operations.variableType(variable),
   );
 
+  /// Analyzes an expression of the form `await operand`.
+  ///
+  /// Returns an [AwaitExpressionResult] containing the static type of the await
+  /// expression and its operand.
+  ///
+  /// Stack effect: pushes the operand expression.
+  AwaitExpressionResult analyzeAwaitExpression(
+    Expression operand,
+    SharedTypeSchemaView schema,
+  ) {
+    // Stack: ()
+
+    // (Note: comments pulled from
+    // https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md)
+
+    // Expression inference of an await expression await e_1, in context K,
+    // produces an elaborated expression m with static type T, where m and T are
+    // determined as follows:
+    SharedTypeSchemaView k = schema;
+
+    // Define K_1 as follows:
+    // - If K is FutureOr<S> or FutureOr<S>? for some type schema S, then let
+    //   K_1 be K.
+    // - Otherwise, if K is dynamic, then let K_1 be FutureOr<_>.
+    // - Otherwise, let K_1 be FutureOr<K>.
+    assert(
+      schema is! SharedDynamicTypeSchemaView,
+      'Caller should convert dynamic context to _',
+    );
+    SharedTypeSchemaView k1 = operations.matchTypeSchemaFutureOr(k) != null
+        ? k
+        : operations.futureOrTypeSchema(k);
+
+    // Let m_1 be the result of performing expression inference on e_1, in
+    // context K_1.
+    ExpressionTypeAnalysisResult m1 = analyzeExpression(
+      operand,
+      k1,
+      isVoidAllowed: false,
+    );
+    // Stack: (operand)
+
+    // Let T_1 be the static type of m_1.
+    SharedTypeView t1 = m1.type;
+
+    // If T_1 is incompatible with await (as defined in the extension types
+    // specification), then there is a compile-time error.
+    // (Currently this error is detected by the analyzer and front_end clients,
+    // not by shared code. TODO(paulberry): share this logic.)
+
+    // Let T_2 be flatten(T_1).
+    SharedTypeView t2 = operations.flatten(t1);
+
+    // Let m_2 be @AWAIT_WITH_TYPE_CHECK(m_1), with static type Future<T_2>.
+
+    // Let T be T_2, and let m be `await m_2`.
+    return new AwaitExpressionResult(type: t2, operandType: t1);
+  }
+
   /// Analyzes a cast pattern.  [innerPattern] is the sub-pattern] and
   /// [requiredType] is the type to cast to.
   ///
@@ -453,6 +512,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.typeToSchema(matchedValueType),
+      isVoidAllowed: true,
     );
     SharedTypeView expressionType = expressionAnalysisResult.type;
     flow.constantPattern_end(
@@ -586,6 +646,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult analysisResult = dispatchExpression(
       node,
       context,
+      isVoidAllowed: true,
     );
     popDotShorthandContext();
     return analysisResult.type;
@@ -602,11 +663,15 @@ mixin TypeAnalyzer<
   /// If [continueNullShorting] is `true`, then null shorting that starts inside
   /// [node] will be allowed to continue into the containing expression.
   ///
+  /// If [isVoidAllowed] is `false` (the default), and the static type of the
+  /// expression is void, an error will be reported.
+  ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult analyzeExpression(
     Expression node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
+    bool isVoidAllowed = false,
   }) {
     int? nullShortingTargetDepth;
     if (!continueNullShorting) nullShortingTargetDepth = nullShortingDepth;
@@ -614,7 +679,11 @@ mixin TypeAnalyzer<
     if (schema is SharedDynamicTypeSchemaView) {
       schema = operations.unknownType;
     }
-    ExpressionTypeAnalysisResult result = dispatchExpression(node, schema);
+    ExpressionTypeAnalysisResult result = dispatchExpression(
+      node,
+      schema,
+      isVoidAllowed: isVoidAllowed,
+    );
     // Stack: (Expression)
     if (operations.isBottomType(result.type)) {
       flow.handleExit();
@@ -665,6 +734,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.unknownType,
+      isVoidAllowed: true,
     );
     SharedTypeView expressionType = expressionAnalysisResult.type;
     flow.ifCaseStatement_afterExpression(
@@ -697,6 +767,7 @@ mixin TypeAnalyzer<
       ExpressionTypeAnalysisResult guardAnalysisResult = analyzeExpression(
         guard,
         operations.typeToSchema(operations.boolType),
+        isVoidAllowed: true,
       );
       guardType = guardAnalysisResult.type;
       nonBooleanGuardError = _checkGuardType(guard, guardType);
@@ -744,6 +815,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.unknownType,
+      isVoidAllowed: true,
     );
     SharedTypeView expressionType = expressionAnalysisResult.type;
     flow.ifCaseStatement_afterExpression(
@@ -779,6 +851,7 @@ mixin TypeAnalyzer<
       ExpressionTypeAnalysisResult guardAnalysisResult = analyzeExpression(
         guard,
         operations.typeToSchema(operations.boolType),
+        isVoidAllowed: true,
       );
       guardType = guardAnalysisResult.type;
       nonBooleanGuardError = _checkGuardType(guard, guardType);
@@ -820,6 +893,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult conditionAnalysisResult = analyzeExpression(
       condition,
       operations.typeToSchema(operations.boolType),
+      isVoidAllowed: true,
     );
     handle_ifElement_conditionEnd(node);
     // Stack: (Expression condition)
@@ -848,6 +922,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult conditionAnalysisResult = analyzeExpression(
       condition,
       operations.typeToSchema(operations.boolType),
+      isVoidAllowed: true,
     );
     handle_ifStatement_conditionEnd(node);
     // Stack: (Expression condition)
@@ -1232,7 +1307,11 @@ mixin TypeAnalyzer<
       Node element = elements[i];
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
-        SharedTypeView keyType = analyzeExpression(entry.key, keySchema).type;
+        SharedTypeView keyType = analyzeExpression(
+          entry.key,
+          keySchema,
+          isVoidAllowed: true,
+        ).type;
         flow.pushSubpattern(valueType);
         dispatchPattern(context.withUnnecessaryWildcardKind(null), entry.value);
         handleMapPatternEntry(node, element, keyType);
@@ -1502,6 +1581,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult rhsAnalysisResult = analyzeExpression(
       rhs,
       patternSchema,
+      isVoidAllowed: true,
     );
     SharedTypeView rhsType = rhsAnalysisResult.type;
     // Stack: (Expression)
@@ -1563,6 +1643,7 @@ mixin TypeAnalyzer<
     SharedTypeView expressionType = analyzeExpression(
       expression,
       expressionTypeSchema,
+      isVoidAllowed: true,
     ).type;
     // Stack: (Expression)
 
@@ -1635,6 +1716,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult initializerAnalysisResult = analyzeExpression(
       initializer,
       patternSchema,
+      isVoidAllowed: true,
     );
     SharedTypeView initializerType = initializerAnalysisResult.type;
     // Stack: (Expression)
@@ -1862,6 +1944,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult operandAnalysisResult = analyzeExpression(
       operand,
       operandSchema,
+      isVoidAllowed: true,
     );
     SharedTypeView operandType = operandAnalysisResult.type;
     if (isEquality) {
@@ -1943,6 +2026,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult scrutineeAnalysisResult = analyzeExpression(
       scrutinee,
       operations.unknownType,
+      isVoidAllowed: true,
     );
     SharedTypeView expressionType = scrutineeAnalysisResult.type;
     // Stack: (Expression)
@@ -2009,6 +2093,7 @@ mixin TypeAnalyzer<
                 analyzeExpression(
                   guard,
                   operations.typeToSchema(operations.boolType),
+                  isVoidAllowed: true,
                 );
             SharedTypeView guardType = guardAnalysisResult.type;
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
@@ -2034,6 +2119,7 @@ mixin TypeAnalyzer<
         SharedTypeView ti = analyzeExpression(
           memberInfo.expression,
           schema,
+          isVoidAllowed: true,
         ).type;
         if (allCasesSatisfyContext && !operations.isSubtypeOf(ti, s)) {
           allCasesSatisfyContext = false;
@@ -2087,6 +2173,7 @@ mixin TypeAnalyzer<
     ExpressionTypeAnalysisResult scrutineeAnalysisResult = analyzeExpression(
       scrutinee,
       operations.unknownType,
+      isVoidAllowed: true,
     );
     SharedTypeView scrutineeType = scrutineeAnalysisResult.type;
     // Stack: (Expression)
@@ -2147,6 +2234,7 @@ mixin TypeAnalyzer<
                 analyzeExpression(
                   guard,
                   operations.typeToSchema(operations.boolType),
+                  isVoidAllowed: true,
                 );
             SharedTypeView guardType = guardAnalysisResult.type;
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
@@ -2338,11 +2426,15 @@ mixin TypeAnalyzer<
   /// For example, if [node] is a switch expression, calls
   /// [analyzeSwitchExpression].
   ///
+  /// If [isVoidAllowed] is `false` (the default), and the static type of the
+  /// expression is void, an error will be reported.
+  ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult dispatchExpression(
     Expression node,
-    SharedTypeSchemaView schema,
-  );
+    SharedTypeSchemaView schema, {
+    bool isVoidAllowed = false,
+  });
 
   /// Calls the appropriate `analyze` method according to the form of [pattern].
   ///

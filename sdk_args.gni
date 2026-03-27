@@ -5,13 +5,6 @@
 _dart_root = get_path_info(".", "abspath")
 
 declare_args() {
-  # Absolute path to the .git folder.
-  #
-  # This variable is potentially no longer needed as an gn arg. It was first
-  # exposed to allow adjusting the location for `git-worktrees`, but now the
-  # `get_dot_git_folder.py` script below properly accounts for that.
-  default_git_folder = ""
-
   # Whether to enable the SDK hash check that will prevent loading a kernel
   # into a VM which was built with a different SDK.
   verify_sdk_hash = true
@@ -37,15 +30,6 @@ declare_args() {
   include_experimental_vm_service = false
 }
 
-if (default_git_folder == "") {
-  default_git_folder = exec_script("$_dart_root/tools/get_dot_git_folder.py",
-                                   [
-                                     rebase_path("$_dart_root/.git"),
-                                     "$_dart_root/.git",
-                                   ],
-                                   "trim string")
-}
-
 # The SDK hash to build into VM and kernels.
 # The value 0000000000 signifies no hash is set, which will disable the check.
 if (verify_sdk_hash) {
@@ -53,12 +37,7 @@ if (verify_sdk_hash) {
   if (sdk_hash == "") {
     sdk_hash = exec_script("$_dart_root/tools/make_version.py",
                            [ "--format={{GIT_HASH}}" ],
-                           "trim string",
-                           [
-                             "$_dart_root/tools/VERSION",
-                             "$_dart_root/tools/utils.py",
-                             "$default_git_folder/logs/HEAD",
-                           ])
+                           "trim string")
   }
 } else {
   sdk_hash = "0000000000"

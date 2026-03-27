@@ -213,26 +213,20 @@ SimpleIdentifier
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_explicitThis_inDeclaration_augmentationAugments() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo;
+
+  void f() {
+    this.foo;
+  }
+}
 
 augment class A {
   augment int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
-part 'a.dart';
-
-class A {
-  int get foo => 0;
-
-  void f() {
-    this.foo;
-  }
-}
-''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -243,25 +237,14 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_explicitThis_inDeclaration_augmentationDeclares() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
-
-augment class A {
-  int get foo => 0;
-}
-''');
     await assertNoErrorsInCode(r'''
-part 'a.dart';
-
 int get foo => 0;
 
 class A {
@@ -269,6 +252,10 @@ class A {
     this.foo;
   }
 }
+
+augment class A {
+  int get foo => 0;
+}
 ''');
 
     var node = findNode.singlePropertyAccess;
@@ -280,33 +267,26 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_explicitThis_inDeclaration_augmentationDeclares_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
+    await assertNoErrorsInCode(r'''
+int get foo => 0;
+
+class A {
+  void f() {
+    this.foo;
+  }
+}
 
 augment class A {
   void foo() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
-part 'a.dart';
-
-int get foo => 0;
-
-class A {
-  void f() {
-    this.foo;
-  }
-}
-''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -317,8 +297,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo
-    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo#element
+    element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
   staticType: void Function()
 ''');
@@ -729,27 +708,24 @@ void f({a = b?..foo}) {}
 
     var node = findNode.defaultParameter('a =');
     assertResolvedNodeText(node, r'''
-DefaultFormalParameter
-  parameter: SimpleFormalParameter
-    name: a
-    declaredFragment: <testLibraryFragment> a@8
-      element: hasImplicitType isPublic
-        type: dynamic
-  separator: =
-  defaultValue: CascadeExpression
-    target: SimpleIdentifier
-      token: b
-      element: <null>
-      staticType: InvalidType
-    cascadeSections
-      PropertyAccess
-        operator: ?..
-        propertyName: SimpleIdentifier
-          token: foo
-          element: <null>
-          staticType: InvalidType
+RegularFormalParameter
+  name: a
+  defaultClause: FormalParameterDefaultClause
+    separator: =
+    value: CascadeExpression
+      target: SimpleIdentifier
+        token: b
+        element: <null>
         staticType: InvalidType
-    staticType: InvalidType
+      cascadeSections
+        PropertyAccess
+          operator: ?..
+          propertyName: SimpleIdentifier
+            token: foo
+            element: <null>
+            staticType: InvalidType
+          staticType: InvalidType
+      staticType: InvalidType
   declaredFragment: <testLibraryFragment> a@8
     element: hasImplicitType isPublic
       type: dynamic
@@ -941,26 +917,20 @@ CascadeExpression
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClass_augmentationAugments() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo;
+}
+
+void f(A a) {
+  (a).foo;
+}
 
 augment class A {
   augment int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
-part 'a.dart';
-
-class A {
-  int get foo => 0;
-}
-
-void f(A a) {
-  (a).foo;
-}
-''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -969,37 +939,29 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClass_augmentationDeclares() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
-
-augment class A {
-  int get foo => 0;
-}
-''');
     await assertNoErrorsInCode(r'''
-part 'a.dart';
-
 class A {}
 
 void f(A a) {
   (a).foo;
+}
+
+augment class A {
+  int get foo => 0;
 }
 ''');
 
@@ -1010,16 +972,14 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -1312,25 +1272,18 @@ AssignmentExpression
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofExtension_augmentation_read() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment extension E {
-  int get foo => 0;
-}
-''');
-
     await assertNoErrorsInCode('''
-part 'a.dart';
-
 class A {}
 
 extension E on A {}
 
 void f(A a) {
   (a).foo;
+}
+
+augment extension E {
+  int get foo => 0;
 }
 ''');
 
@@ -1341,40 +1294,31 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@getter::foo
-    element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@getter::foo#element
+    element: <testLibrary>::@extension::E::@getter::foo
     staticType: int
   staticType: int
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofExtension_augmentation_write() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment extension E {
-  set foo(int _) {}
-}
-''');
-
     await assertNoErrorsInCode('''
-part 'a.dart';
-
 class A {}
 
 extension E on A {}
 
 void f(A a) {
   (a).foo = 0;
+}
+
+augment extension E {
+  set foo(int _) {}
 }
 ''');
 
@@ -1386,54 +1330,42 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        staticElement: <testLibraryFragment>::@function::f::@parameter::a
-        element: <testLibraryFragment>::@function::f::@parameter::a#element
+        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
       rightParenthesis: )
       staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: <null>
       element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@setter::foo::@parameter::_
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
   readElement: <null>
-  readElement2: <null>
   readType: null
-  writeElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@setter::foo
-  writeElement2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@setter::foo#element
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofExtension_augmentationGeneric_read() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment extension E<U2> {
-  U2 get foo => throw 0;
-}
-''');
-
     await assertNoErrorsInCode('''
-part 'a.dart';
-
 class A<T> {}
 
-extension E<U1> on A<U1> {}
+extension E<U> on A<U> {}
 
 void f(A<int> a) {
   (a).foo;
+}
+
+augment extension E<U> {
+  U get foo => throw 0;
 }
 ''');
 
@@ -1444,19 +1376,16 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A<int>
     rightParenthesis: )
     staticType: A<int>
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: GetterMember
-      base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@getter::foo
-      augmentationSubstitution: {U2: U1}
-      substitution: {U1: int}
-    element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@getter::foo#element
+    element: GetterMember
+      baseElement: <testLibrary>::@extension::E::@getter::foo
+      substitution: {U: int}
     staticType: int
   staticType: int
 ''');
@@ -1815,26 +1744,20 @@ AssignmentExpression
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofMixin_augmentationAugments() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
+    await assertNoErrorsInCode(r'''
+mixin A {
+  int get foo;
+}
+
+void f(A a) {
+  (a).foo;
+}
 
 augment mixin A {
   augment int get foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
-part 'a.dart';
-
-mixin A {
-  int get foo => 0;
-}
-
-void f(A a) {
-  (a).foo;
-}
-''');
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -1843,37 +1766,29 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
-    element: <testLibraryFragment>::@mixin::A::@getter::foo#element
+    element: <testLibrary>::@mixin::A::@getter::foo
     staticType: int
   staticType: int
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofMixin_augmentationDeclares() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
-
-augment mixin A {
-  int get foo => 0;
-}
-''');
     await assertNoErrorsInCode(r'''
-part 'a.dart';
-
 mixin A {}
 
 void f(A a) {
   (a).foo;
+}
+
+augment mixin A {
+  int get foo => 0;
 }
 ''');
 
@@ -1884,16 +1799,14 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo
-    element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo#element
+    element: <testLibrary>::@mixin::A::@getter::foo
     staticType: int
   staticType: int
 ''');

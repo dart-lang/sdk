@@ -129,7 +129,7 @@ class DartdocDirectiveInfo {
       } else {
         var match = macroRegExp.firstMatch(line);
         if (match != null) {
-          var name = match.group(1)!;
+          var name = match[1]!;
           var value = templateMap[name];
           if (value != null) {
             lines[i] = value;
@@ -139,7 +139,7 @@ class DartdocDirectiveInfo {
 
         match = videoRegExp.firstMatch(line);
         if (match != null) {
-          var uri = match.group(2);
+          var uri = match[2];
           if (uri != null && uri.isNotEmpty) {
             String label = uri;
             if (label.startsWith('https://')) {

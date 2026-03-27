@@ -499,6 +499,9 @@ abstract class Stack {
   /// Returns `null` if a [ParserRecovery] value is found, or [list] otherwise.
   List<T>? popNonNullableList<T>(int count, List<T> list);
 
+  /// Pops [count] elements from the stack and puts it into the returned list.
+  List<T> popNonNullableNewList<T>(int count);
+
   void push(Object value);
 
   /// Will return `null` instead of [NullValue].
@@ -629,6 +632,22 @@ class StackImpl implements Stack {
   }
 
   @override
+  List<T> popNonNullableNewList<T>(int count) {
+    assert(arrayLength >= count);
+    final List<Object?> array = this.array;
+    final int length = arrayLength;
+    final int startIndex = length - count;
+    List<T> result = new List.generate(count, ((index) {
+      int arrayIndex = startIndex + index;
+      final Object? value = array[arrayIndex];
+      array[arrayIndex] = null;
+      return value as T;
+    }));
+    arrayLength -= count;
+    return result;
+  }
+
+  @override
   List<Object?> get values {
     final int length = arrayLength;
     final List<Object?> list = new List<Object?>.filled(
@@ -702,6 +721,14 @@ class DebugStack implements Stack {
   @override
   List<T>? popNonNullableList<T>(int count, List<T> list) {
     List<T>? result = realStack.popNonNullableList(count, list);
+    latestStacktraces.length = count;
+    stackTraceStack.popList(count, latestStacktraces, /* nullValue = */ null);
+    return result;
+  }
+
+  @override
+  List<T> popNonNullableNewList<T>(int count) {
+    List<T> result = realStack.popNonNullableNewList(count);
     latestStacktraces.length = count;
     stackTraceStack.popList(count, latestStacktraces, /* nullValue = */ null);
     return result;

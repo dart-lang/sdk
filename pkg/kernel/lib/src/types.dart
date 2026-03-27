@@ -109,11 +109,11 @@ class Types with StandardBounds {
         if (sInterfaceType.classReference == tInterfaceType.classReference) {
           asSupertypeArguments = sInterfaceType.typeArguments;
         } else {
-          asSupertypeArguments =
-              hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
-            sInterfaceType,
-            tInterfaceType.classNode,
-          );
+          asSupertypeArguments = hierarchy
+              .getInterfaceTypeArgumentsAsInstanceOfClass(
+                sInterfaceType,
+                tInterfaceType.classNode,
+              );
         }
         if (asSupertypeArguments == null) {
           return const IsSubtypeOf.failure();
@@ -157,9 +157,9 @@ class Types with StandardBounds {
         );
 
       case (
-          StructuralParameterType sStructuralParameterType,
-          InterfaceType tInterfaceType,
-        ):
+        StructuralParameterType sStructuralParameterType,
+        InterfaceType tInterfaceType,
+      ):
         return performSubtypeCheck(
           sStructuralParameterType.parameter.bound,
           tInterfaceType,
@@ -171,16 +171,10 @@ class Types with StandardBounds {
         );
 
       case (IntersectionType sIntersectionType, InterfaceType tInterfaceType):
-        return performSubtypeCheck(
-          sIntersectionType.right,
-          tInterfaceType,
-        );
+        return performSubtypeCheck(sIntersectionType.right, tInterfaceType);
 
       case (TypedefType sTypedefType, InterfaceType tInterfaceType):
-        return performSubtypeCheck(
-          sTypedefType.unalias,
-          tInterfaceType,
-        ).and(
+        return performSubtypeCheck(sTypedefType.unalias, tInterfaceType).and(
           new IsSubtypeOf.basedSolelyOnNullabilities(
             sTypedefType,
             tInterfaceType,
@@ -189,13 +183,13 @@ class Types with StandardBounds {
 
       case (FutureOrType sFutureOrType, InterfaceType tInterfaceType):
         return performSubtypeCheck(
-          new InterfaceType(
-            hierarchy.coreTypes.futureClass,
-            Nullability.nonNullable,
-            [sFutureOrType.typeArgument],
-          ),
-          tInterfaceType,
-        )
+              new InterfaceType(
+                hierarchy.coreTypes.futureClass,
+                Nullability.nonNullable,
+                [sFutureOrType.typeArgument],
+              ),
+              tInterfaceType,
+            )
             .andSubtypeCheckFor(
               sFutureOrType.typeArgument,
               tInterfaceType,
@@ -217,11 +211,11 @@ class Types with StandardBounds {
             : const IsSubtypeOf.failure();
 
       case (ExtensionType sExtensionType, InterfaceType tInterfaceType):
-        List<DartType>? asSupertypeArguments =
-            hierarchy.getExtensionTypeArgumentsAsInstanceOfClass(
-          sExtensionType,
-          tInterfaceType.classNode,
-        );
+        List<DartType>? asSupertypeArguments = hierarchy
+            .getExtensionTypeArgumentsAsInstanceOfClass(
+              sExtensionType,
+              tInterfaceType.classNode,
+            );
         if (asSupertypeArguments == null) {
           return const IsSubtypeOf.failure();
         }
@@ -280,9 +274,9 @@ class Types with StandardBounds {
           }
           FunctionTypeInstantiator instantiator =
               FunctionTypeInstantiator.fromIterables(
-            sTypeVariables,
-            typeVariableSubstitution,
-          );
+                sTypeVariables,
+                typeVariableSubstitution,
+              );
           // If the bounds aren't the same, we need to try again after computing
           // the substitution of type variables.
           if (!result.isSuccess()) {
@@ -301,8 +295,9 @@ class Types with StandardBounds {
               }
             }
           }
-          sFunctionType = instantiator
-              .substitute(sFunctionType.withoutTypeParameters) as FunctionType;
+          sFunctionType =
+              instantiator.substitute(sFunctionType.withoutTypeParameters)
+                  as FunctionType;
         }
         result = result.and(
           performSubtypeCheck(
@@ -372,10 +367,7 @@ class Types with StandardBounds {
             // parameter.
             sCount++;
             result = result.and(
-              performSubtypeCheck(
-                tNamedParameter.type,
-                sNamedParameter!.type,
-              ),
+              performSubtypeCheck(tNamedParameter.type, sNamedParameter!.type),
             );
             if (!result.isSuccess()) {
               return const IsSubtypeOf.failure();
@@ -417,9 +409,9 @@ class Types with StandardBounds {
         );
 
       case (
-          StructuralParameterType sStructuralParameterType,
-          FunctionType tFunctionType,
-        ):
+        StructuralParameterType sStructuralParameterType,
+        FunctionType tFunctionType,
+      ):
         return performSubtypeCheck(
           sStructuralParameterType.parameter.bound,
           tFunctionType,
@@ -431,16 +423,10 @@ class Types with StandardBounds {
         );
 
       case (IntersectionType sIntersectionType, FunctionType tFunctionType):
-        return performSubtypeCheck(
-          sIntersectionType.right,
-          tFunctionType,
-        );
+        return performSubtypeCheck(sIntersectionType.right, tFunctionType);
 
       case (TypedefType sTypedefType, FunctionType tFunctionType):
-        return performSubtypeCheck(
-          sTypedefType.unalias,
-          tFunctionType,
-        );
+        return performSubtypeCheck(sTypedefType.unalias, tFunctionType);
 
       case (FutureOrType(), FunctionType()):
         return const IsSubtypeOf.failure();
@@ -464,15 +450,12 @@ class Types with StandardBounds {
         return const IsSubtypeOf.failure();
 
       case (
-          TypeParameterType sTypeParameterType,
-          TypeParameterType tTypeParameterType,
-        ):
+        TypeParameterType sTypeParameterType,
+        TypeParameterType tTypeParameterType,
+      ):
         IsSubtypeOf result = const IsSubtypeOf.success();
         if (sTypeParameterType.parameter != tTypeParameterType.parameter) {
-          result = performSubtypeCheck(
-            sTypeParameterType.bound,
-            t,
-          );
+          result = performSubtypeCheck(sTypeParameterType.bound, t);
         }
         if (sTypeParameterType.nullability == Nullability.undetermined &&
             tTypeParameterType.nullability == Nullability.undetermined) {
@@ -488,9 +471,9 @@ class Types with StandardBounds {
         );
 
       case (
-          StructuralParameterType sStructuralParameterType,
-          TypeParameterType tTypeParameterType,
-        ):
+        StructuralParameterType sStructuralParameterType,
+        TypeParameterType tTypeParameterType,
+      ):
         IsSubtypeOf result = performSubtypeCheck(
           sStructuralParameterType.bound,
           t,
@@ -509,9 +492,9 @@ class Types with StandardBounds {
         );
 
       case (
-          IntersectionType sIntersectionType,
-          TypeParameterType tTypeParameterType,
-        ):
+        IntersectionType sIntersectionType,
+        TypeParameterType tTypeParameterType,
+      ):
         // Nullable types aren't promoted to intersection types.
         // TODO(cstefantsova): Uncomment the following when the inference is
         // updated.
@@ -542,10 +525,7 @@ class Types with StandardBounds {
         );
 
       case (TypedefType sTypedefType, TypeParameterType tTypeParameterType):
-        return performSubtypeCheck(
-          sTypedefType.unalias,
-          tTypeParameterType,
-        );
+        return performSubtypeCheck(sTypedefType.unalias, tTypeParameterType);
 
       case (FutureOrType(), TypeParameterType()):
         return const IsSubtypeOf.failure();
@@ -572,16 +552,13 @@ class Types with StandardBounds {
         return const IsSubtypeOf.failure();
 
       case (
-          StructuralParameterType sStructuralParameterType,
-          StructuralParameterType tStructuralParameterType,
-        ):
+        StructuralParameterType sStructuralParameterType,
+        StructuralParameterType tStructuralParameterType,
+      ):
         IsSubtypeOf result = const IsSubtypeOf.success();
         if (sStructuralParameterType.parameter !=
             tStructuralParameterType.parameter) {
-          result = performSubtypeCheck(
-            sStructuralParameterType.bound,
-            t,
-          );
+          result = performSubtypeCheck(sStructuralParameterType.bound, t);
         }
         if (sStructuralParameterType.nullability == Nullability.undetermined &&
             tStructuralParameterType.nullability == Nullability.undetermined) {
@@ -600,9 +577,9 @@ class Types with StandardBounds {
         return const IsSubtypeOf.failure();
 
       case (
-          TypedefType sTypedefType,
-          StructuralParameterType tStructuralParameterType,
-        ):
+        TypedefType sTypedefType,
+        StructuralParameterType tStructuralParameterType,
+      ):
         return performSubtypeCheck(
           sTypedefType.unalias,
           tStructuralParameterType,
@@ -630,15 +607,12 @@ class Types with StandardBounds {
         return const IsSubtypeOf.failure();
 
       case (
-          TypeParameterType sTypeParameterType,
-          IntersectionType tIntersectionType,
-        ):
+        TypeParameterType sTypeParameterType,
+        IntersectionType tIntersectionType,
+      ):
         IsSubtypeOf result = const IsSubtypeOf.success();
         if (sTypeParameterType.parameter != tIntersectionType.left.parameter) {
-          result = performSubtypeCheck(
-            sTypeParameterType.bound,
-            t,
-          );
+          result = performSubtypeCheck(sTypeParameterType.bound, t);
         }
         if (sTypeParameterType.nullability == Nullability.undetermined &&
             tIntersectionType.left.nullability == Nullability.undetermined) {
@@ -667,9 +641,9 @@ class Types with StandardBounds {
         return const IsSubtypeOf.failure();
 
       case (
-          IntersectionType sIntersectionType,
-          IntersectionType tIntersectionType,
-        ):
+        IntersectionType sIntersectionType,
+        IntersectionType tIntersectionType,
+      ):
         // Nullable types aren't promoted to intersection types.
         // TODO(cstefantsova): Uncomment the following when the inference is
         // updated.
@@ -708,10 +682,7 @@ class Types with StandardBounds {
         );
 
       case (TypedefType sTypedefType, IntersectionType tIntersectionType):
-        return performSubtypeCheck(
-          sTypedefType.unalias,
-          tIntersectionType,
-        );
+        return performSubtypeCheck(sTypedefType.unalias, tIntersectionType);
 
       case (FutureOrType(), IntersectionType()):
         return const IsSubtypeOf.failure();
@@ -723,73 +694,43 @@ class Types with StandardBounds {
         return const IsSubtypeOf.failure();
 
       case (DynamicType sDynamicType, TypedefType tTypedefType):
-        return performSubtypeCheck(
-          sDynamicType,
-          tTypedefType.unalias,
-        );
+        return performSubtypeCheck(sDynamicType, tTypedefType.unalias);
 
       case (VoidType sVoidType, TypedefType tTypedefType):
-        return performSubtypeCheck(
-          sVoidType,
-          tTypedefType.unalias,
-        );
+        return performSubtypeCheck(sVoidType, tTypedefType.unalias);
 
       case (InterfaceType sInterfaceType, TypedefType tTypedefType):
-        return performSubtypeCheck(
-          sInterfaceType,
-          tTypedefType.unalias,
-        );
+        return performSubtypeCheck(sInterfaceType, tTypedefType.unalias);
 
       case (FunctionType sFunctionType, TypedefType tTypedefType):
-        return performSubtypeCheck(
-          sFunctionType,
-          tTypedefType.unalias,
-        );
+        return performSubtypeCheck(sFunctionType, tTypedefType.unalias);
 
       case (TypeParameterType sTypeParameterType, TypedefType tTypedefType):
-        return performSubtypeCheck(
-          sTypeParameterType,
-          tTypedefType.unalias,
-        );
+        return performSubtypeCheck(sTypeParameterType, tTypedefType.unalias);
 
       case (
-          StructuralParameterType sStructuralParameterType,
-          TypedefType tTypedefType,
-        ):
+        StructuralParameterType sStructuralParameterType,
+        TypedefType tTypedefType,
+      ):
         return performSubtypeCheck(
           sStructuralParameterType,
           tTypedefType.unalias,
         );
 
       case (IntersectionType sIntersectionType, TypedefType tTypedefType):
-        return performSubtypeCheck(
-          sIntersectionType,
-          tTypedefType.unalias,
-        );
+        return performSubtypeCheck(sIntersectionType, tTypedefType.unalias);
 
       case (TypedefType sTypedefType, TypedefType tTypedefType):
-        return performSubtypeCheck(
-          sTypedefType.unalias,
-          tTypedefType.unalias,
-        );
+        return performSubtypeCheck(sTypedefType.unalias, tTypedefType.unalias);
 
       case (FutureOrType sFutureOrType, TypedefType tTypedefType):
-        return performSubtypeCheck(
-          sFutureOrType,
-          tTypedefType.unalias,
-        );
+        return performSubtypeCheck(sFutureOrType, tTypedefType.unalias);
 
       case (RecordType sRecordType, TypedefType tTypedefType):
-        return performMutualSubtypesCheck(
-          sRecordType,
-          tTypedefType.unalias,
-        );
+        return performMutualSubtypesCheck(sRecordType, tTypedefType.unalias);
 
       case (ExtensionType sExtensionType, TypedefType tTypedefType):
-        return performSubtypeCheck(
-          sExtensionType,
-          tTypedefType.unalias,
-        );
+        return performSubtypeCheck(sExtensionType, tTypedefType.unalias);
 
       case (DynamicType sDynamicType, FutureOrType tFutureOr):
         return performSubtypeCheck(
@@ -806,13 +747,13 @@ class Types with StandardBounds {
       case (InterfaceType sInterfaceType, FutureOrType tFutureOr):
         Nullability tFutureOrNullability = tFutureOr.nullability;
         return
-            // Rule 11.
-            performSubtypeCheck(
+        // Rule 11.
+        performSubtypeCheck(
           sInterfaceType,
           tFutureOr.typeArgument.withDeclaredNullability(tFutureOrNullability),
         )
-                // Rule 10.
-                .orSubtypeCheckFor(
+        // Rule 10.
+        .orSubtypeCheckFor(
           sInterfaceType,
           new InterfaceType(
             this.hierarchy.coreTypes.futureClass,
@@ -830,118 +771,114 @@ class Types with StandardBounds {
 
       case (TypeParameterType sTypeParameterType, FutureOrType tFutureOr):
         return
-            // Rule 11.
-            performSubtypeCheck(
-          sTypeParameterType,
-          tFutureOr.typeArgument.withDeclaredNullability(
-            combineNullabilitiesForSubstitution(
-              inner: tFutureOr.typeArgument.declaredNullability,
-              outer: tFutureOr.declaredNullability,
-            ),
-          ),
-        )
-                // Rule 13.
-                .orSubtypeCheckFor(
-                  sTypeParameterType.parameter.bound.withDeclaredNullability(
-                    combineNullabilitiesForSubstitution(
-                      inner: sTypeParameterType
-                          .parameter.bound.declaredNullability,
-                      outer: sTypeParameterType.declaredNullability,
-                    ),
-                  ),
-                  tFutureOr,
-                  this,
-                )
-                // Rule 10.
-                .orSubtypeCheckFor(
-                  sTypeParameterType,
-                  new InterfaceType(
-                    this.hierarchy.coreTypes.futureClass,
-                    tFutureOr.nullability,
-                    [tFutureOr.typeArgument],
-                  ),
-                  this,
-                );
+        // Rule 11.
+        performSubtypeCheck(
+              sTypeParameterType,
+              tFutureOr.typeArgument.withDeclaredNullability(
+                combineNullabilitiesForSubstitution(
+                  inner: tFutureOr.typeArgument.declaredNullability,
+                  outer: tFutureOr.declaredNullability,
+                ),
+              ),
+            )
+            // Rule 13.
+            .orSubtypeCheckFor(
+              sTypeParameterType.parameter.bound.withDeclaredNullability(
+                combineNullabilitiesForSubstitution(
+                  inner: sTypeParameterType.parameter.bound.declaredNullability,
+                  outer: sTypeParameterType.declaredNullability,
+                ),
+              ),
+              tFutureOr,
+              this,
+            )
+            // Rule 10.
+            .orSubtypeCheckFor(
+              sTypeParameterType,
+              new InterfaceType(
+                this.hierarchy.coreTypes.futureClass,
+                tFutureOr.nullability,
+                [tFutureOr.typeArgument],
+              ),
+              this,
+            );
 
       case (
-          StructuralParameterType sStructuralParameterType,
-          FutureOrType tFutureOr,
-        ):
+        StructuralParameterType sStructuralParameterType,
+        FutureOrType tFutureOr,
+      ):
         Nullability tFutureOrNullability = tFutureOr.nullability;
         return
-            // Rule 11.
-            performSubtypeCheck(
-          sStructuralParameterType,
-          tFutureOr.typeArgument.withDeclaredNullability(
-            tFutureOrNullability,
-          ),
-        )
-                // Rule 13.
-                .orSubtypeCheckFor(
-                  sStructuralParameterType.parameter.bound
-                      .withDeclaredNullability(
-                    combineNullabilitiesForSubstitution(
-                      inner:
-                          sStructuralParameterType.parameter.bound.nullability,
-                      outer: sStructuralParameterType.nullability,
-                    ),
-                  ),
-                  tFutureOr,
-                  this,
-                )
-                // Rule 10.
-                .orSubtypeCheckFor(
-                  sStructuralParameterType,
-                  new InterfaceType(
-                    this.hierarchy.coreTypes.futureClass,
-                    tFutureOrNullability,
-                    [tFutureOr.typeArgument],
-                  ),
-                  this,
-                );
+        // Rule 11.
+        performSubtypeCheck(
+              sStructuralParameterType,
+              tFutureOr.typeArgument.withDeclaredNullability(
+                tFutureOrNullability,
+              ),
+            )
+            // Rule 13.
+            .orSubtypeCheckFor(
+              sStructuralParameterType.parameter.bound.withDeclaredNullability(
+                combineNullabilitiesForSubstitution(
+                  inner: sStructuralParameterType.parameter.bound.nullability,
+                  outer: sStructuralParameterType.nullability,
+                ),
+              ),
+              tFutureOr,
+              this,
+            )
+            // Rule 10.
+            .orSubtypeCheckFor(
+              sStructuralParameterType,
+              new InterfaceType(
+                this.hierarchy.coreTypes.futureClass,
+                tFutureOrNullability,
+                [tFutureOr.typeArgument],
+              ),
+              this,
+            );
 
       case (IntersectionType sIntersectionType, FutureOrType tFutureOr):
         return
-            // Rule 11.
-            performSubtypeCheck(
-          sIntersectionType.left,
-          tFutureOr.typeArgument.withDeclaredNullability(
-            combineNullabilitiesForSubstitution(
-              inner: tFutureOr.typeArgument.declaredNullability,
-              outer: tFutureOr.declaredNullability,
-            ),
-          ),
-        )
-                // Rule 13.
-                .orSubtypeCheckFor(
-                  sIntersectionType.left.parameter.bound
-                      .withDeclaredNullability(
-                    combineNullabilitiesForSubstitution(
-                      inner: sIntersectionType
-                          .left.parameter.bound.declaredNullability,
-                      outer: sIntersectionType.left.declaredNullability,
-                    ),
-                  ),
-                  tFutureOr,
-                  this,
-                )
-                // Rule 10.
-                .orSubtypeCheckFor(
-                  sIntersectionType.left,
-                  new InterfaceType(
-                    this.hierarchy.coreTypes.futureClass,
-                    tFutureOr.nullability,
-                    [tFutureOr.typeArgument],
-                  ),
-                  this,
-                ) // Rule 8.
-                .orSubtypeCheckFor(sIntersectionType.right, tFutureOr, this);
+        // Rule 11.
+        performSubtypeCheck(
+              sIntersectionType.left,
+              tFutureOr.typeArgument.withDeclaredNullability(
+                combineNullabilitiesForSubstitution(
+                  inner: tFutureOr.typeArgument.declaredNullability,
+                  outer: tFutureOr.declaredNullability,
+                ),
+              ),
+            )
+            // Rule 13.
+            .orSubtypeCheckFor(
+              sIntersectionType.left.parameter.bound.withDeclaredNullability(
+                combineNullabilitiesForSubstitution(
+                  inner: sIntersectionType
+                      .left
+                      .parameter
+                      .bound
+                      .declaredNullability,
+                  outer: sIntersectionType.left.declaredNullability,
+                ),
+              ),
+              tFutureOr,
+              this,
+            )
+            // Rule 10.
+            .orSubtypeCheckFor(
+              sIntersectionType.left,
+              new InterfaceType(
+                this.hierarchy.coreTypes.futureClass,
+                tFutureOr.nullability,
+                [tFutureOr.typeArgument],
+              ),
+              this,
+            ) // Rule 8.
+            .orSubtypeCheckFor(sIntersectionType.right, tFutureOr, this);
 
       case (TypedefType sTypedefType, FutureOrType tFutureOr):
-        return performSubtypeCheck(
-          sTypedefType.unalias,
-          tFutureOr,
-        );
+        return performSubtypeCheck(sTypedefType.unalias, tFutureOr);
 
       case (FutureOrType sFutureOrType, FutureOrType tFutureOrType):
         // This follows from combining rules 7, 10, and 11.
@@ -1012,13 +949,13 @@ class Types with StandardBounds {
       case (ExtensionType sExtensionType, FutureOrType tFutureOr):
         Nullability tFutureOrNullability = tFutureOr.nullability;
         return
-            // Rule 11.
-            performSubtypeCheck(
+        // Rule 11.
+        performSubtypeCheck(
           sExtensionType,
           tFutureOr.typeArgument.withDeclaredNullability(tFutureOrNullability),
         )
-                // Rule 10.
-                .orSubtypeCheckFor(
+        // Rule 10.
+        .orSubtypeCheckFor(
           sExtensionType,
           new InterfaceType(
             this.hierarchy.coreTypes.futureClass,
@@ -1041,31 +978,19 @@ class Types with StandardBounds {
         return const IsSubtypeOf.failure();
 
       case (TypeParameterType sTypeParameterType, NullType tNullType):
-        return performSubtypeCheck(
-          sTypeParameterType.bound,
-          tNullType,
-        );
+        return performSubtypeCheck(sTypeParameterType.bound, tNullType);
 
       case (
-          StructuralParameterType sStructuralParameterType,
-          NullType tNullType,
-        ):
-        return performSubtypeCheck(
-          sStructuralParameterType.bound,
-          tNullType,
-        );
+        StructuralParameterType sStructuralParameterType,
+        NullType tNullType,
+      ):
+        return performSubtypeCheck(sStructuralParameterType.bound, tNullType);
 
       case (IntersectionType sIntersectionType, NullType tNullType):
-        return performMutualSubtypesCheck(
-          sIntersectionType.right,
-          tNullType,
-        );
+        return performMutualSubtypesCheck(sIntersectionType.right, tNullType);
 
       case (TypedefType sTypedefType, NullType tNullType):
-        return performSubtypeCheck(
-          sTypedefType.unalias,
-          tNullType,
-        );
+        return performSubtypeCheck(sTypedefType.unalias, tNullType);
 
       case (FutureOrType(), NullType()):
         return const IsSubtypeOf.failure();
@@ -1089,10 +1014,7 @@ class Types with StandardBounds {
         return const IsSubtypeOf.failure();
 
       case (TypeParameterType sTypeParameterType, NeverType tNeverType):
-        return performSubtypeCheck(
-          sTypeParameterType.bound,
-          tNeverType,
-        ).and(
+        return performSubtypeCheck(sTypeParameterType.bound, tNeverType).and(
           new IsSubtypeOf.basedSolelyOnNullabilities(
             sTypeParameterType,
             tNeverType,
@@ -1100,9 +1022,9 @@ class Types with StandardBounds {
         );
 
       case (
-          StructuralParameterType sStructuralParameterType,
-          NeverType tNeverType,
-        ):
+        StructuralParameterType sStructuralParameterType,
+        NeverType tNeverType,
+      ):
         return performSubtypeCheck(
           sStructuralParameterType.bound,
           tNeverType,
@@ -1114,16 +1036,10 @@ class Types with StandardBounds {
         );
 
       case (IntersectionType sIntersectionType, NeverType tNeverType):
-        return performSubtypeCheck(
-          sIntersectionType.right,
-          tNeverType,
-        );
+        return performSubtypeCheck(sIntersectionType.right, tNeverType);
 
       case (TypedefType sTypedefType, NeverType tNeverType):
-        return performSubtypeCheck(
-          sTypedefType.unalias,
-          tNeverType,
-        );
+        return performSubtypeCheck(sTypedefType.unalias, tNeverType);
 
       case (FutureOrType(), NeverType()):
         return const IsSubtypeOf.failure();
@@ -1147,9 +1063,9 @@ class Types with StandardBounds {
         return const IsSubtypeOf.failure();
 
       case (
-          StructuralParameterType sStructuralParameterType,
-          RecordType tRecordType,
-        ):
+        StructuralParameterType sStructuralParameterType,
+        RecordType tRecordType,
+      ):
         return performSubtypeCheck(
           sStructuralParameterType.parameter.bound,
           tRecordType,
@@ -1161,10 +1077,7 @@ class Types with StandardBounds {
         );
 
       case (IntersectionType sIntersectionType, RecordType tRecordType):
-        return performSubtypeCheck(
-          sIntersectionType.right,
-          tRecordType,
-        );
+        return performSubtypeCheck(sIntersectionType.right, tRecordType);
 
       case (TypeParameterType sTypeParameterType, RecordType tRecordType):
         return performSubtypeCheck(
@@ -1178,10 +1091,7 @@ class Types with StandardBounds {
         );
 
       case (TypedefType sTypedefType, RecordType tRecordType):
-        return performSubtypeCheck(
-          sTypedefType.unalias,
-          tRecordType,
-        );
+        return performSubtypeCheck(sTypedefType.unalias, tRecordType);
 
       case (FutureOrType(), RecordType()):
         return const IsSubtypeOf.failure();
@@ -1240,31 +1150,22 @@ class Types with StandardBounds {
         return const IsSubtypeOf.failure();
 
       case (TypeParameterType sTypeParameterType, ExtensionType tExtensionType):
-        return performSubtypeCheck(
-          sTypeParameterType.bound,
-          tExtensionType,
-        );
+        return performSubtypeCheck(sTypeParameterType.bound, tExtensionType);
 
       case (
-          StructuralParameterType sStructuralParameterType,
-          ExtensionType tExtensionType,
-        ):
+        StructuralParameterType sStructuralParameterType,
+        ExtensionType tExtensionType,
+      ):
         return performSubtypeCheck(
           sStructuralParameterType.bound,
           tExtensionType,
         );
 
       case (IntersectionType sIntersectionType, ExtensionType tExtensionType):
-        return performSubtypeCheck(
-          sIntersectionType.right,
-          tExtensionType,
-        );
+        return performSubtypeCheck(sIntersectionType.right, tExtensionType);
 
       case (TypedefType sTypedefType, ExtensionType tExtensionType):
-        return performSubtypeCheck(
-          sTypedefType.unalias,
-          tExtensionType,
-        );
+        return performSubtypeCheck(sTypedefType.unalias, tExtensionType);
 
       case (FutureOrType(), ExtensionType()):
         return const IsSubtypeOf.failure();
@@ -1275,9 +1176,9 @@ class Types with StandardBounds {
       case (ExtensionType sExtensionType, ExtensionType tExtensionType):
         List<DartType>? typeArguments = hierarchy
             .getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
-          sExtensionType,
-          tExtensionType.extensionTypeDeclaration,
-        );
+              sExtensionType,
+              tExtensionType.extensionTypeDeclaration,
+            );
         if (typeArguments == null) {
           return const IsSubtypeOf.failure();
         }
@@ -1328,9 +1229,7 @@ class Types with StandardBounds {
           return const IsSubtypeOf.failure();
         }
       } else if (variance == Variance.invariant) {
-        result = result.and(
-          performMutualSubtypesCheck(s[i], t[i]),
-        );
+        result = result.and(performMutualSubtypesCheck(s[i], t[i]));
         if (!result.isSuccess()) {
           return const IsSubtypeOf.failure();
         }
@@ -1367,10 +1266,7 @@ class Types with StandardBounds {
         type == hierarchy.coreTypes.objectNullableRawType;
   }
 
-  IsSubtypeOf performMutualSubtypesCheck(
-    DartType type1,
-    DartType type2,
-  ) {
+  IsSubtypeOf performMutualSubtypesCheck(DartType type1, DartType type2) {
     return performSubtypeCheck(
       type1,
       type2,

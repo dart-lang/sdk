@@ -451,6 +451,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     ExpressionImpl node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
+    bool isVoidAllowed = false,
   }) {
     inferenceLogWriter?.setExpressionVisitCodePath(
       node,
@@ -460,6 +461,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node,
       schema,
       continueNullShorting: continueNullShorting,
+      isVoidAllowed: isVoidAllowed,
     );
   }
 
@@ -744,8 +746,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   ExpressionTypeAnalysisResult dispatchExpression(
     covariant ExpressionImpl expression,
-    SharedTypeSchemaView context,
-  ) {
+    SharedTypeSchemaView context, {
+    bool isVoidAllowed = false,
+  }) {
+    // Note: the analyzer doesn't use the `isVoidAllowed` boolean; it detects
+    // invalid use of void through more ad hoc mechanisms. See
+    // https://github.com/dart-lang/sdk/issues/62942.
+    // TODO(paulberry): address this.
+
     int? stackDepth;
     assert(() {
       stackDepth = rewriteStackDepth;
@@ -2138,12 +2146,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    analyzeExpression(
+    var analysisResult = analyzeAwaitExpression(
       node.expression,
-      SharedTypeSchemaView(_createFutureOr(contextType)),
+      contextType.wrapSharedTypeSchemaView(),
     );
-    popRewrite();
-    typeAnalyzer.visitAwaitExpression(node);
+    node.expression = popRewrite()!;
+    node.recordStaticType(
+      analysisResult.type.unwrapTypeView<TypeImpl>(),
+      resolver: this,
+    );
     _insertImplicitCallReference(
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
@@ -4531,15 +4542,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             .at(node.name),
       );
     }
-  }
-
-  /// Creates a union of `T | Future<T>`, unless `T` is already a
-  /// future-union, in which case it simply returns `T`.
-  TypeImpl _createFutureOr(TypeImpl type) {
-    if (type.isDartAsyncFutureOr) {
-      return type;
-    }
-    return typeProvider.futureOrType(type);
   }
 
   /// Helper function used to print information to the console in debug mode.

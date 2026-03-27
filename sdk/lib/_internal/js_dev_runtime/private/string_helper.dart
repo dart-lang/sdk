@@ -28,20 +28,22 @@ class StringMatch implements Match {
   const StringMatch(int this.start, String this.input, String this.pattern);
 
   int get end => start + pattern.length;
-  String operator [](int g) => group(g);
-  int get groupCount => 0;
 
-  String group(int group_) {
-    if (group_ != 0) {
-      throw RangeError.value(group_);
+  String operator [](int group) {
+    if (group != 0) {
+      throw RangeError.value(group);
     }
     return pattern;
   }
 
-  List<String> groups(List<int> groups_) {
+  int get groupCount => 0;
+
+  String group(int group) => this[group];
+
+  List<String> groups(List<int> groupIndices) {
     List<String> result = <String>[];
-    for (int g in groups_) {
-      result.add(group(g));
+    for (int g in groupIndices) {
+      result.add(this[g]);
     }
     return result;
   }

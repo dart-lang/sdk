@@ -15,7 +15,6 @@ import 'native_bindings.dart';
 final class DartRuntimeServiceVmRpcs {
   final _logger = Logger('$DartRuntimeServiceVmRpcs');
   final _nativeBindings = NativeBindings();
-
   late final rpcs = UnmodifiableListView<ServiceRpcHandler>([
     ('getSupportedProtocols', getSupportedProtocols),
   ]);

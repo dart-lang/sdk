@@ -36,7 +36,7 @@ Future main() async {
       '--no-minify',
       benchmarkFile,
       '-o',
-      selfCompiler
+      selfCompiler,
     ]);
     await run(['pkg/dart2wasm/tool/run_benchmark', selfCompiler, outFilename]);
     final wasmBytes = outFile.readAsBytesSync();

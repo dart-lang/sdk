@@ -16,7 +16,7 @@ class _BenchmarkIOManager extends CompilerPhaseInputOutputManager {
   Uint8List? moduleBytes;
 
   _BenchmarkIOManager(this.benchmarkFileSystem, WasmCompilerOptions options)
-      : super(benchmarkFileSystem, options);
+    : super(benchmarkFileSystem, options);
 
   @override
   Future<void> writeWasmModule(Uint8List wasmModule, String moduleName) async {
@@ -46,8 +46,9 @@ Future main(List<String> args) async {
   final options = WasmCompilerOptions(mainUri: main, outputFile: 'out.wasm');
   final ioManager = _BenchmarkIOManager(fileSystem, options);
 
-  options.librariesSpecPath =
-      Uri.file('${fileSystem.sdkRoot}/sdk/lib/libraries.json');
+  options.librariesSpecPath = Uri.file(
+    '${fileSystem.sdkRoot}/sdk/lib/libraries.json',
+  );
 
   await compileBenchmark(options, ioManager);
   print('Dart2WasmSelfCompile(RunTimeRaw): ${sw.elapsed.inMilliseconds} ms.');
@@ -58,8 +59,10 @@ Future main(List<String> args) async {
   }
 }
 
-Future<CodegenResult> compileBenchmark(WasmCompilerOptions options,
-    CompilerPhaseInputOutputManager ioManager) async {
+Future<CodegenResult> compileBenchmark(
+  WasmCompilerOptions options,
+  CompilerPhaseInputOutputManager ioManager,
+) async {
   // Avoid CFE self-detecting whether `stdout`/`stderr` is terminal and supports
   // colors (as we don't have `dart:io` available when we run dart2wasm in a
   // wasm runtime).

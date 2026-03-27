@@ -1,0 +1,24 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///deferred_siblings_lib1.dart" deferred as d;
+import "org-dartlang-testcase:///deferred_siblings_lib2.dart" deferred as d#1;
+
+part deferred_siblings_part1.dart;
+part deferred_siblings_part2.dart;
+static method /* from org-dartlang-testcase:///deferred_siblings_part1.dart */ method1() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///deferred_siblings_part2.dart */ method2() → dynamic
+  ;
+
+library;
+import self as self2;
+
+static method method1() → dynamic
+  ;
+
+library;
+import self as self3;
+
+static method method2() → dynamic
+  ;

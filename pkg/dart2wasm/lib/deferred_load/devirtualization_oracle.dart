@@ -15,8 +15,11 @@ class DevirtualizionOracle {
   final Map<TreeNode, ProcedureAttributesMetadata> _procedureAttributeMetadata;
   final List<TableSelectorInfo> _selectorMetadata;
 
-  DevirtualizionOracle(this._directCallMetadata,
-      this._procedureAttributeMetadata, this._selectorMetadata);
+  DevirtualizionOracle(
+    this._directCallMetadata,
+    this._procedureAttributeMetadata,
+    this._selectorMetadata,
+  );
 
   /// Whether all call sites are guaranteed to be devirtualized.
   bool isAlwaysStaticallyDispatchedTo(Reference reference) {
@@ -26,7 +29,7 @@ class DevirtualizionOracle {
 
     final bool isGetter =
         member is Field && reference == member.getterReference ||
-            member is Procedure && member.isGetter;
+        member is Procedure && member.isGetter;
 
     if (isGetter) {
       if (metadata.getterCalledDynamically) return false;

@@ -13,12 +13,13 @@ class UnicodeTextVerifier {
   UnicodeTextVerifier(this._diagnosticReporter);
 
   void verify(CompilationUnit unit, String source) {
+    // Optimization: We assume that we won't find any of these. Doing the loop
+    // in a method that isn't inlined currently reduces the instruction cost per
+    // character from 22 to 12.
+    if (!_hasMatch(source)) return;
     for (var offset = 0; offset < source.length; ++offset) {
       var codeUnit = source.codeUnitAt(offset);
-      // U+202A, U+202B, U+202C, U+202D, U+202E, U+2066, U+2067, U+2068, U+2069.
-      if (0x202a <= codeUnit &&
-          codeUnit <= 0x2069 &&
-          (codeUnit <= 0x202e || 0x2066 <= codeUnit)) {
+      if (_isCodeUnitMatch(codeUnit)) {
         var node = unit.nodeCovering(offset: offset);
         // If it's not in a string literal, we assume we're in a comment.
         // This can potentially over-report on syntactically incorrect sources
@@ -35,5 +36,31 @@ class UnicodeTextVerifier {
         );
       }
     }
+  }
+
+  // Optimization: Specifically never inline this to make sure not to introduce
+  // extra instructions into the right loop.
+  @pragma("vm:never-inline")
+  bool _hasMatch(String source) {
+    for (int offset = 0; offset < source.length; ++offset) {
+      var codeUnit = source.codeUnitAt(offset);
+      if (_isCodeUnitMatch(codeUnit)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Optimization: We want this inlined to avoid the overhead of doing a call,
+  // and we do this to avoid duplicating the code.
+  @pragma("vm:prefer-inline")
+  bool _isCodeUnitMatch(int codeUnit) {
+    // U+202A, U+202B, U+202C, U+202D, U+202E, U+2066, U+2067, U+2068, U+2069.
+    if (0x202a <= codeUnit &&
+        codeUnit <= 0x2069 &&
+        (codeUnit <= 0x202e || 0x2066 <= codeUnit)) {
+      return true;
+    }
+    return false;
   }
 }

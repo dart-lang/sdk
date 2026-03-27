@@ -1551,11 +1551,17 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
     }
   } else {
-    const Object& msg_handler = Object::Handle(
+    Object& msg_handler = Object::Handle(
         zone, DartLibraryCalls::HandleMessage(message->dest_port(), msg));
-    if (msg_handler.IsError()) {
+    while (msg_handler.IsError()) {
       status = ProcessUnhandledException(Error::Cast(msg_handler));
-    } else if (msg_handler.IsNull()) {
+      if (status == kOK) {
+        msg_handler = DartLibraryCalls::DrainMicrotaskQueue();
+      } else {
+        break;
+      }
+    }
+    if (msg_handler.IsNull()) {
       // If the port has been closed then the message will be dropped at this
       // point. Make sure to post to the delivery failure port in that case.
     } else {

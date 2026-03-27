@@ -1059,11 +1059,22 @@ class FfiTransformer extends Transformer {
   @override
   TreeNode visitLibrary(Library node) {
     assert(_currentLibrary == null);
-    _currentLibrary = node;
-    currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
+    initCurrentLibrary(node);
     final result = super.visitLibrary(node);
-    _currentLibrary = null;
+    cleanupCurrentLibrary();
     return result;
+  }
+
+  /// Initializes the current library context for transformations.
+  void initCurrentLibrary(Library library) {
+    _currentLibrary = library;
+    currentLibraryIndex = referenceFromIndex?.lookupLibrary(library);
+  }
+
+  /// Clears the current library context after transformations.
+  void cleanupCurrentLibrary() {
+    _currentLibrary = null;
+    currentLibraryIndex = null;
   }
 
   /// Computes the Dart type corresponding to a ffi.[NativeType], returns null
@@ -1266,8 +1277,9 @@ class FfiTransformer extends Transformer {
       if (returnType == null) return null;
 
       final argumentTypes = <DartType>[];
-      for (final paramDartType
-          in flattenVarargs(dartType).positionalParameters) {
+      for (final paramDartType in flattenVarargs(
+        dartType,
+      ).positionalParameters) {
         argumentTypes.add(
           convertDartTypeToNativeType(paramDartType) ?? dummyDartType,
         );
@@ -1350,8 +1362,9 @@ class FfiTransformer extends Transformer {
   /// Expression that queries VM internals at runtime to figure out on which ABI
   /// we are.
   Expression runtimeBranchOnLayout(Map<Abi, int?> values) {
-    final elementNullability =
-        values.isPartial ? Nullability.nullable : Nullability.nonNullable;
+    final elementNullability = values.isPartial
+        ? Nullability.nullable
+        : Nullability.nonNullable;
     final result = InstanceInvocation(
       InstanceAccessKind.Instance,
       intListConstantExpression([
@@ -1561,12 +1574,11 @@ class FfiTransformer extends Transformer {
       arraySizeDimension4Field,
       arraySizeDimension5Field,
     ];
-    final result =
-        dimensionFields
-            .map((f) => constant.fieldValues[f.fieldReference])
-            .whereType<IntConstant>()
-            .map((c) => c.value)
-            .toList();
+    final result = dimensionFields
+        .map((f) => constant.fieldValues[f.fieldReference])
+        .whereType<IntConstant>()
+        .map((c) => c.value)
+        .toList();
     return (result, variableLength);
   }
 
@@ -1673,17 +1685,16 @@ class FfiTransformer extends Transformer {
   }
 
   MapConstant? getAbiSpecificIntegerMappingAnnotation(Class node) {
-    final annotations =
-        node.annotations
-            .whereType<ConstantExpression>()
-            .map((e) => e.constant)
-            .whereType<InstanceConstant>()
-            .where((e) => e.classNode == abiSpecificIntegerMappingClass)
-            .map(
-              (instanceConstant) =>
-                  instanceConstant.fieldValues.values.single as MapConstant,
-            )
-            .toList();
+    final annotations = node.annotations
+        .whereType<ConstantExpression>()
+        .map((e) => e.constant)
+        .whereType<InstanceConstant>()
+        .where((e) => e.classNode == abiSpecificIntegerMappingClass)
+        .map(
+          (instanceConstant) =>
+              instanceConstant.fieldValues.values.single as MapConstant,
+        )
+        .toList();
 
     // There can be at most one annotation (checked by `_FfiDefinitionTransformer`)
     if (annotations.length == 1) {
@@ -1898,18 +1909,15 @@ class FfiTransformer extends Transformer {
     final DartType correspondingDartType;
     switch (direction) {
       case FfiTypeCheckDirection.nativeToDart:
-        correspondingDartType =
-            convertNativeTypeToDartType(
-              nativeType,
-              allowStructAndUnion: true,
-              allowHandle: allowHandle,
-              allowInlineArray: allowArray,
-              allowVoid: allowVoid,
-              mode:
-                  HandleToDartTypeConversionMode
-                      .varianceBasedBehaviorForSubtype,
-              variance: Variance.covariant,
-            )!;
+        correspondingDartType = convertNativeTypeToDartType(
+          nativeType,
+          allowStructAndUnion: true,
+          allowHandle: allowHandle,
+          allowInlineArray: allowArray,
+          allowVoid: allowVoid,
+          mode: HandleToDartTypeConversionMode.varianceBasedBehaviorForSubtype,
+          variance: Variance.covariant,
+        )!;
         if (env.isSubtypeOf(correspondingDartType, dartType)) {
           // If subtype, manually check the return type is not void.
           if (correspondingDartType is FunctionType) {
@@ -1927,18 +1935,16 @@ class FfiTransformer extends Transformer {
           }
         }
       case FfiTypeCheckDirection.dartToNative:
-        correspondingDartType =
-            convertNativeTypeToDartType(
-              nativeType,
-              allowStructAndUnion: true,
-              allowHandle: allowHandle,
-              allowInlineArray: allowArray,
-              allowVoid: allowVoid,
-              mode:
-                  HandleToDartTypeConversionMode
-                      .varianceBasedBehaviorForSupertype,
-              variance: Variance.covariant,
-            )!;
+        correspondingDartType = convertNativeTypeToDartType(
+          nativeType,
+          allowStructAndUnion: true,
+          allowHandle: allowHandle,
+          allowInlineArray: allowArray,
+          allowVoid: allowVoid,
+          mode:
+              HandleToDartTypeConversionMode.varianceBasedBehaviorForSupertype,
+          variance: Variance.covariant,
+        )!;
         if (env.isSubtypeOf(dartType, correspondingDartType)) {
           return correspondingDartType;
         }

@@ -2773,10 +2773,10 @@ class AstBuilder extends StackListener {
 
   @override
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     var formalParameterList = pop() as FormalParameterListImpl?;
     if (formalParameterList == null) {
@@ -2784,7 +2784,7 @@ class AstBuilder extends StackListener {
       formalParameterList = _syntheticFormalParameterList(extensionTypeName);
     }
 
-    if (!forExtensionType) {
+    if (kind != DeclarationKind.ExtensionType) {
       if (!_featureSet.isEnabled(Feature.primary_constructors)) {
         _reportFeatureNotEnabled(
           feature: Feature.primary_constructors,
@@ -5134,9 +5134,9 @@ class AstBuilder extends StackListener {
 
   @override
   void handleNoPrimaryConstructor(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {
     push(constKeyword ?? const NullValue("Token"));
     push(NullValues.PrimaryConstructor);
@@ -5817,14 +5817,8 @@ class AstBuilder extends StackListener {
     return tailList.nonNulls.toList();
   }
 
-  // TODO(scheglov): This is probably not optimal.
   List<T> popTypedList2<T>(int count) {
-    var result = <T>[];
-    for (var i = 0; i < count; i++) {
-      var element = stack.pop(null) as T;
-      result.add(element);
-    }
-    return result.reversed.toList();
+    return stack.popNonNullableNewList<T>(count);
   }
 
   void reportErrorIfNullableType(Token? questionMark) {
@@ -6146,7 +6140,6 @@ class AstBuilder extends StackListener {
       type: type,
       variables: variables,
     );
-    var covariantKeyword = covariantToken;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     _classLikeBuilder?.members.add(
@@ -6155,7 +6148,7 @@ class AstBuilder extends StackListener {
         metadata: metadata,
         abstractKeyword: abstractToken,
         augmentKeyword: augmentToken,
-        covariantKeyword: covariantKeyword,
+        covariantKeyword: covariantToken,
         externalKeyword: externalToken,
         staticKeyword: staticToken,
         fields: variableList,

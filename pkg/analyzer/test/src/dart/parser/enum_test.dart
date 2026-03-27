@@ -6,10 +6,12 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EnumDeclarationParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -97,6 +99,28 @@ EnumDeclaration
 ''');
   }
 
+  test_augment_implementsClause() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E implements B {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: B
+  body: BlockEnumBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_augment_noConstants_semicolon_method() {
     var parseResult = parseStringWithErrors(r'''
 augment enum E {;
@@ -127,6 +151,54 @@ EnumDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_augment_typeParameters_withBound() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E<T extends int> {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: int
+      rightBracket: >
+  body: BlockEnumBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_withClause() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E with M {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: BlockEnumBody
+    leftBracket: {
     rightBracket: }
 ''');
   }
@@ -524,6 +596,263 @@ EnumDeclaration
 ''');
   }
 
+  test_field_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {;
+  augment int x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_field_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {;
+  augment static int x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_field_augment_static_final() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {;
+  augment static final int x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: final
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_getter_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {;
+  augment int get foo => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        propertyKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_getter_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {;
+  augment static int get foo => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        returnType: NamedType
+          name: int
+        propertyKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_method_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {;
+  augment void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_method_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {;
+  augment static void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_nameWithTypeParameters_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E<T> {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+      rightBracket: >
+  body: BlockEnumBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_nameWithTypeParameters_hasTypeParameters() {
     var parseResult = parseStringWithErrors(r'''
 enum E<T, U> {v}
@@ -570,6 +899,45 @@ EnumDeclaration
     constants
       EnumConstantDeclaration
         name: v
+    rightBracket: }
+''');
+  }
+
+  test_operator_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {;
+  augment int operator+(int other) => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        operatorKeyword: operator
+        name: +
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: other
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
     rightBracket: }
 ''');
   }
@@ -735,16 +1103,16 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          requiredKeyword: required
-          keyword: final
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockEnumBody
@@ -775,19 +1143,19 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
-      parameter: DefaultFormalParameter
-        parameter: SimpleFormalParameter
-          documentationComment: Comment
-            tokens
-              /// aaa
-          requiredKeyword: required
-          keyword: final
-          type: NamedType
-            name: int
-          name: a
-        separator: =
-        defaultValue: IntegerLiteral
-          literal: 0
+      parameter: RegularFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
       rightDelimiter: }
       rightParenthesis: )
   body: BlockEnumBody
@@ -817,21 +1185,22 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: FunctionTypedFormalParameter
+      parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
             /// aaa
-        keyword: final
-        returnType: NamedType
+        constFinalOrVarKeyword: final
+        type: NamedType
           name: int
         name: a
-        parameters: FormalParameterList
-          leftParenthesis: (
-          parameter: SimpleFormalParameter
-            type: NamedType
-              name: String
-            name: x
-          rightParenthesis: )
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: String
+              name: x
+            rightParenthesis: )
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
@@ -857,8 +1226,8 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
-        keyword: final
+      parameter: RegularFormalParameter
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: a
@@ -890,11 +1259,11 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
             /// aaa
-        keyword: final
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: a
@@ -924,7 +1293,7 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
         type: NamedType
           name: int
@@ -962,9 +1331,9 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
-        keyword: final
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: it
@@ -999,9 +1368,9 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         covariantKeyword: covariant
-        keyword: var
+        constFinalOrVarKeyword: var
         type: NamedType
           name: int
         name: it
@@ -1155,6 +1524,79 @@ PrimaryConstructorBody
   thisKeyword: this
   body: EmptyFunctionBody
     semicolon: ;
+''');
+  }
+
+  test_setter_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {;
+  augment set foo(int x) {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_setter_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment enum E {;
+  augment static set foo(int x) {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
 ''');
   }
 }

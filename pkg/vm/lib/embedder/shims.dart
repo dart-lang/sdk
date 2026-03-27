@@ -446,9 +446,9 @@ class EntryPointClassShim extends EntryPointFunctionShim {
 
   @override
   void _writeReturnBody(StringBuffer buffer) =>
-  // Don't use _writeTarget, since we want the default type arguments for
-  // generic classes.
-  buffer.write('PackageState::instance()->TypeWithDefaults("$baseName")');
+      // Don't use _writeTarget, since we want the default type arguments for
+      // generic classes.
+      buffer.write('PackageState::instance()->TypeWithDefaults("$baseName")');
 }
 
 class EntryPointNullableTypeShim extends EntryPointFunctionShim {
@@ -654,10 +654,9 @@ class EntryPointCallShim extends EntryPointFunctionShim {
   static bool _isGetter(Member node) =>
       node is Field || (node is Procedure && node.isGetter);
 
-  static FunctionType functionType(Member node) =>
-      _isGetter(node)
-          ? node.getterType as FunctionType
-          : (node as Procedure).computeSignatureOrFunctionType();
+  static FunctionType functionType(Member node) => _isGetter(node)
+      ? node.getterType as FunctionType
+      : (node as Procedure).computeSignatureOrFunctionType();
 
   @override
   String get functionName => 'Call_$prefixedName';

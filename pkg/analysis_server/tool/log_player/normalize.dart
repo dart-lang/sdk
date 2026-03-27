@@ -72,7 +72,7 @@ Future<void> main(List<String> args) async {
     print('found ${absFileMatches.length} absolute file paths remaining:');
   }
   for (var match in absFileMatches.take(5)) {
-    print('- ${match.group(0)}');
+    print('- ${match[0]}');
   }
 }
 

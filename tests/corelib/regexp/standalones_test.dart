@@ -40,45 +40,45 @@ void main() {
   var pattern = new RegExp(r"^\d", multiLine: true);
   var resultList = pattern.allMatches(string).toList();
   assertEquals(2, resultList.length, "1");
-  assertEquals('7', resultList[0].group(0), "2");
-  assertEquals('3', resultList[1].group(0), "3");
+  assertEquals('7', resultList[0][0], "2");
+  assertEquals('3', resultList[1][0], "3");
 
   pattern = new RegExp(r"\d$", multiLine: true);
   resultList = pattern.allMatches(string).toList();
   assertEquals(2, resultList.length, "4");
-  assertEquals('9', resultList[0].group(0), "5");
-  assertEquals('5', resultList[1].group(0), "6");
+  assertEquals('9', resultList[0][0], "5");
+  assertEquals('5', resultList[1][0], "6");
 
   string = 'aaa\n789\r\nccc\r\nddd';
   pattern = new RegExp(r"^\d", multiLine: true);
   resultList = pattern.allMatches(string).toList();
   assertEquals(1, resultList.length, "7");
-  assertEquals('7', resultList[0].group(0), "8");
+  assertEquals('7', resultList[0][0], "8");
 
   pattern = new RegExp(r"\d$", multiLine: true);
   resultList = pattern.allMatches(string).toList();
   assertEquals(1, resultList.length, "9");
-  assertEquals('9', resultList[0].group(0), "10");
+  assertEquals('9', resultList[0][0], "10");
 
   // Tests from ecma_3/RegExp/regress-72964.js
   pattern = new RegExp(r"[\S]+");
   string = '\u00BF\u00CD\u00BB\u00A7';
   var resultMatch = pattern.firstMatch(string)!;
   assertEquals(1, resultMatch.groupCount + 1, "11");
-  assertEquals(string, resultMatch.group(0), "12");
+  assertEquals(string, resultMatch[0], "12");
 
   string = '\u00BF\u00CD \u00BB\u00A7';
   resultMatch = pattern.firstMatch(string)!;
   assertEquals(1, resultMatch.groupCount + 1, "13");
-  assertEquals('\u00BF\u00CD', resultMatch.group(0), "14");
+  assertEquals('\u00BF\u00CD', resultMatch[0], "14");
 
   string = '\u4e00\uac00\u4e03\u4e00';
   resultMatch = pattern.firstMatch(string)!;
   assertEquals(1, resultMatch.groupCount + 1, "15");
-  assertEquals(string, resultMatch.group(0), "16");
+  assertEquals(string, resultMatch[0], "16");
 
   string = '\u4e00\uac00 \u4e03\u4e00';
   resultMatch = pattern.firstMatch(string)!;
   assertEquals(1, resultMatch.groupCount + 1, "17");
-  assertEquals('\u4e00\uac00', resultMatch.group(0), "18");
+  assertEquals('\u4e00\uac00', resultMatch[0], "18");
 }

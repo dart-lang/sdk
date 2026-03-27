@@ -458,10 +458,9 @@ class SingleShotCompilerWrapper extends Compiler {
 
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
-    final fe.CompilerResult? compilerResult =
-        requireMain
-            ? await kernelForProgram(script, options)
-            : await kernelForModule([script], options);
+    final fe.CompilerResult? compilerResult = requireMain
+        ? await kernelForProgram(script, options)
+        : await kernelForModule([script], options);
     if (compilerResult == null) {
       return CompilerResult(null, const {}, null, null);
     }
@@ -596,8 +595,9 @@ Future _processExpressionCompilationRequest(request) async {
   final List<Uint8List> dillData = request[16].cast<Uint8List>();
   final int blobLoadCount = request[17];
   final bool enableAsserts = request[18];
-  final List<String>? experimentalFlags =
-      request[19] != null ? request[19].cast<String>() : null;
+  final List<String>? experimentalFlags = request[19] != null
+      ? request[19].cast<String>()
+      : null;
   final bool enableMirrors = request[20];
   final bool generateBytecode = request[21];
 
@@ -889,15 +889,17 @@ Future _processLoadRequest(request) async {
   }
 
   final String? inputFileUri = request[2];
-  final Uri? script =
-      inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
+  final Uri? script = inputFileUri != null
+      ? Uri.base.resolve(inputFileUri)
+      : null;
   final bool incremental = request[4];
   final bool forSnapshot = request[5];
   final bool embedSources = request[6];
   final List sourceFiles = request[8];
   final bool enableAsserts = request[9];
-  final List<String>? experimentalFlags =
-      request[10] != null ? request[10].cast<String>() : null;
+  final List<String>? experimentalFlags = request[10] != null
+      ? request[10].cast<String>()
+      : null;
   final String? packageConfig = request[11];
   final String? multirootFilepaths = request[12];
   final String? multirootScheme = request[13];
@@ -1025,8 +1027,9 @@ Future _processLoadRequest(request) async {
     Set<Library> loadedLibraries = compilerResult.loadedLibraries;
 
     final String? nativeAssets = await findNativeAssets(
-      packagesFileUri:
-          packageConfig != null ? resolveInputUri(packageConfig) : null,
+      packagesFileUri: packageConfig != null
+          ? resolveInputUri(packageConfig)
+          : null,
       script: script,
       fileSystem: fileSystem,
     );
@@ -1034,10 +1037,8 @@ Future _processLoadRequest(request) async {
     final nativeAssetsErrors = <NativeAssetsDiagnosticMessage>[];
     if (nativeAssets != null) {
       final errorDetector = ErrorDetector(
-        previousErrorHandler:
-            (message) => nativeAssetsErrors.add(
-              message as NativeAssetsDiagnosticMessage,
-            ),
+        previousErrorHandler: (message) =>
+            nativeAssetsErrors.add(message as NativeAssetsDiagnosticMessage),
       );
       final nativeAssetsLibrary =
           await NativeAssetsSynthesizer.synthesizeLibraryFromYamlString(
@@ -1220,11 +1221,10 @@ FileSystem _buildFileSystem(
   }
 
   if (multirootFilepaths != null) {
-    List<Uri> list =
-        multirootFilepaths
-            .split(',')
-            .map((String s) => Uri.base.resolveUri(new Uri.file(s)))
-            .toList();
+    List<Uri> list = multirootFilepaths
+        .split(',')
+        .map((String s) => Uri.base.resolveUri(new Uri.file(s)))
+        .toList();
     fileSystem = new MultiRootFileSystem(
       multirootScheme ?? "org-dartlang-root",
       list,

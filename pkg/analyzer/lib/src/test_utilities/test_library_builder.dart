@@ -532,7 +532,7 @@ class _TokenStream {
   int _index = 0;
 
   factory _TokenStream.fromString(String input) {
-    var tokens = _tokenizer.allMatches(input).map((m) => m.group(0)!).toList();
+    var tokens = _tokenizer.allMatches(input).map((m) => m[0]!).toList();
     return _TokenStream._(tokens);
   }
 

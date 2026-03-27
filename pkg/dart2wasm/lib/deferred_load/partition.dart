@@ -24,19 +24,20 @@ import 'import_set.dart';
 export 'import_set.dart' show Part;
 
 Partitioning partitionAppplication(
-    CoreTypes coreTypes,
-    Component component,
-    bool assertsEnabled,
-    DeferredModuleLoadingMap loadingMap,
-    Set<Reference> roots,
-    {ConstraintData? constraints}) {
+  CoreTypes coreTypes,
+  Component component,
+  bool assertsEnabled,
+  DeferredModuleLoadingMap loadingMap,
+  Set<Reference> roots, {
+  ConstraintData? constraints,
+}) {
   final Map<TreeNode, DirectCallMetadata> directCallMetadata =
       (component.metadata[DirectCallMetadataRepository.repositoryTag]
               as DirectCallMetadataRepository)
           .mapping;
 
   late final Map<TreeNode, ProcedureAttributesMetadata>
-      procedureAttributeMetadata =
+  procedureAttributeMetadata =
       (component.metadata[ProcedureAttributesMetadataRepository.repositoryTag]
               as ProcedureAttributesMetadataRepository)
           .mapping;
@@ -68,14 +69,18 @@ Partitioning partitionAppplication(
   final classHierarchy =
       ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   final devirtualizionOracle = DevirtualizionOracle(
-      directCallMetadata, procedureAttributeMetadata, selectorMetadata);
+    directCallMetadata,
+    procedureAttributeMetadata,
+    selectorMetadata,
+  );
   final depsCollector = DependenciesCollector(
-      procedureAttributeMetadata,
-      coreTypes,
-      classHierarchy,
-      devirtualizionOracle,
-      loadingMap,
-      assertsEnabled);
+    procedureAttributeMetadata,
+    coreTypes,
+    classHierarchy,
+    devirtualizionOracle,
+    loadingMap,
+    assertsEnabled,
+  );
   final algorithm = _Algorithm(component, depsCollector, constraints);
   return algorithm.run(roots, selectorRoots);
 }
@@ -87,41 +92,51 @@ class Partitioning {
   final Map<Constant, Part> constantToPart;
   final Map<LibraryDependency, Set<Part>> deferredImportToParts;
 
-  Partitioning(this.root, this.parts, this.referenceToPart, this.constantToPart,
-      this.deferredImportToParts);
+  Partitioning(
+    this.root,
+    this.parts,
+    this.referenceToPart,
+    this.constantToPart,
+    this.deferredImportToParts,
+  );
 
   String toText(Uri baseUri, {bool includeRoot = false}) {
     final output = StringBuffer();
     int partId = 0;
     final partContents = computePartContents();
 
-    final sortedParts = parts
-        .toList()
-        .where((p) =>
-            (!p.isRoot || includeRoot) &&
-            (partContents[p]!.references.isNotEmpty ||
-                partContents[p]!.constants.isNotEmpty))
-        .toList()
-      ..sort((a, b) {
-        final contentsA = partContents[a]!;
-        final contentsB = partContents[b]!;
-        return (contentsB.references.length + contentsA.constants.length) -
-            (contentsA.references.length + contentsB.constants.length);
-      });
+    final sortedParts =
+        parts
+            .toList()
+            .where(
+              (p) =>
+                  (!p.isRoot || includeRoot) &&
+                  (partContents[p]!.references.isNotEmpty ||
+                      partContents[p]!.constants.isNotEmpty),
+            )
+            .toList()
+          ..sort((a, b) {
+            final contentsA = partContents[a]!;
+            final contentsB = partContents[b]!;
+            return (contentsB.references.length + contentsA.constants.length) -
+                (contentsA.references.length + contentsB.constants.length);
+          });
 
     for (int i = 0; i < sortedParts.length; ++i) {
       final part = sortedParts[i];
       final isLast = i == (sortedParts.length - 1);
       final contents = partContents[part]!;
 
-      final sortedImports = part.imports
-          .map((dep) => _stringifyDeferredImport(baseUri, dep))
-          .toList()
-        ..sort();
-      final sortedRefs = contents.references
-          .map((ref) => _stringifyReference(baseUri, ref))
-          .toList()
-        ..sort();
+      final sortedImports =
+          part.imports
+              .map((dep) => _stringifyDeferredImport(baseUri, dep))
+              .toList()
+            ..sort();
+      final sortedRefs =
+          contents.references
+              .map((ref) => _stringifyReference(baseUri, ref))
+              .toList()
+            ..sort();
       final sortedConsts = contents.constants.map(_stringifyConstant).toList()
         ..sort();
 
@@ -144,7 +159,7 @@ class Partitioning {
   }
 
   Map<Part, ({Set<Reference> references, Set<Constant> constants})>
-      computePartContents() {
+  computePartContents() {
     final partRefs = <Part, Set<Reference>>{};
     final partConstants = <Part, Set<Constant>>{};
     referenceToPart.forEach((reference, part) {
@@ -157,15 +172,16 @@ class Partitioning {
       for (final part in parts)
         part: (
           references: partRefs[part] ?? {},
-          constants: partConstants[part] ?? {}
+          constants: partConstants[part] ?? {},
         ),
     };
   }
 
   static String _stringifyDeferredImport(
-          Uri baseUri, LibraryDependency dependency) =>
-      '${(dependency.parent as Library).importUri} prefix: ${dependency.name!}'
-          .replaceAll('$baseUri', '');
+    Uri baseUri,
+    LibraryDependency dependency,
+  ) => '${(dependency.parent as Library).importUri} prefix: ${dependency.name!}'
+      .replaceAll('$baseUri', '');
 
   static String _stringifyReference(Uri baseUri, Reference reference) =>
       reference.canonicalName!.toStringInternal().replaceAll('$baseUri', '');
@@ -187,7 +203,7 @@ class _Algorithm {
 
   // Caches of direct dependencies of [Reference]s/[Constants]s.
   final Map<Reference, DirectReferenceDependencies>
-      directReferenceDependencies = {};
+  directReferenceDependencies = {};
   final Map<Constant, DirectConstantDependencies> directConstantDependencies =
       {};
 
@@ -202,21 +218,26 @@ class _Algorithm {
 
     // Sentinel used to represent the artificial import of all roots.
     final rootLibrary = Library(Uri.parse(r'root'), fileUri: Uri());
-    final rootImport =
-        LibraryDependency.import(Library(Uri(), fileUri: Uri()), name: r'$root')
-          ..parent = rootLibrary;
+    final rootImport = LibraryDependency.import(
+      Library(Uri(), fileUri: Uri()),
+      name: r'$root',
+    )..parent = rootLibrary;
 
     deferSelectors(rootImport, roots, selectorRoots);
 
     final dominators = deferSelectors(rootImport, roots, selectorRoots);
 
-    final allDeferredImportsIncludingRoot =
-        dominators.allNodes.map((n) => n.prefix).toSet();
+    final allDeferredImportsIncludingRoot = dominators.allNodes
+        .map((n) => n.prefix)
+        .toSet();
     final rootPart = Part(true, allDeferredImportsIncludingRoot);
     importSets.buildRootSet(rootImport, rootPart);
 
     final transitions = computeConstraints(
-        rootImport, dominators, allDeferredImportsIncludingRoot);
+      rootImport,
+      dominators,
+      allDeferredImportsIncludingRoot,
+    );
     importSets.buildInitialSets(transitions.singletonTransitions);
     importSets.buildSetTransitions(transitions.setTransitions);
 
@@ -227,9 +248,10 @@ class _Algorithm {
   }
 
   psc.ProgramSplitConstraints<LibraryDependency> computeConstraints(
-      LibraryDependency root,
-      Dominators dominators,
-      Set<LibraryDependency> allDeferredImportsIncludingRoot) {
+    LibraryDependency root,
+    Dominators dominators,
+    Set<LibraryDependency> allDeferredImportsIncludingRoot,
+  ) {
     final namedNodes = ProgramSplitBuilder();
     final orderNodes = <OrderNode>[];
 
@@ -261,15 +283,19 @@ class _Algorithm {
       final dominator = node.dominator?.prefix;
       if (dominator != null) {
         orderNodes.add(
-            namedNodes.orderNode(dominator.uriPrefix, node.prefix.uriPrefix));
+          namedNodes.orderNode(dominator.uriPrefix, node.prefix.uriPrefix),
+        );
       }
     });
 
     // Now we can build the transitions.
-    final allConstraints =
-        ConstraintData(namedNodes.namedNodes.values.toList(), orderNodes);
-    return psc.KernelBuilder(allConstraints)
-        .build(allDeferredImportsIncludingRoot);
+    final allConstraints = ConstraintData(
+      namedNodes.namedNodes.values.toList(),
+      orderNodes,
+    );
+    return psc.KernelBuilder(
+      allConstraints,
+    ).build(allDeferredImportsIncludingRoot);
   }
 
   void collectDependencies(Set<Reference> roots) {
@@ -278,21 +304,41 @@ class _Algorithm {
     }
   }
 
-  Dominators deferSelectors(LibraryDependency rootImport, Set<Reference> roots,
-      Set<int> selectorRoots) {
-    final dominators = computeDominators(rootImport, roots,
-        directReferenceDependencies, directConstantDependencies);
+  Dominators deferSelectors(
+    LibraryDependency rootImport,
+    Set<Reference> roots,
+    Set<int> selectorRoots,
+  ) {
+    final dominators = computeDominators(
+      rootImport,
+      roots,
+      directReferenceDependencies,
+      directConstantDependencies,
+    );
 
-    final prefixRoots = computePrefixRoots(rootImport, roots, selectorRoots,
-        directReferenceDependencies, directConstantDependencies);
-    final prefixDominatorUsages = computeTransitiveDominatorUsages(dominators,
-        prefixRoots, directReferenceDependencies, directConstantDependencies);
+    final prefixRoots = computePrefixRoots(
+      rootImport,
+      roots,
+      selectorRoots,
+      directReferenceDependencies,
+      directConstantDependencies,
+    );
+    final prefixDominatorUsages = computeTransitiveDominatorUsages(
+      dominators,
+      prefixRoots,
+      directReferenceDependencies,
+      directConstantDependencies,
+    );
 
-    final classDominators =
-        computeClassDominators(dominators, prefixDominatorUsages);
+    final classDominators = computeClassDominators(
+      dominators,
+      prefixDominatorUsages,
+    );
 
-    final selectorDominators =
-        computeSelectorDominators(dominators, prefixDominatorUsages);
+    final selectorDominators = computeSelectorDominators(
+      dominators,
+      prefixDominatorUsages,
+    );
 
     // Defer instance methods.
     dominators.root.visitDFS((dominatorNode) {
@@ -330,7 +376,11 @@ class _Algorithm {
 
         final deps = directReferenceDependencies[reference]!;
         final (deletions, moves) = _collectMethodsToMove(
-            selectorDominators, usages, dominatorNode, deps);
+          selectorDominators,
+          usages,
+          dominatorNode,
+          deps,
+        );
 
         // Remove all unused methods.
         deps.references.removeAll(deletions);
@@ -341,8 +391,13 @@ class _Algorithm {
           deps.references.remove(reference);
           final deferredUses = deps.deferredReferences[reference] ??= {};
           final before = deferredUses.length;
-          addDeferredMethodDependencyRecursive(prefixDominatorUsages,
-              selectorDominator, selectorId, selectorName, deferredUses);
+          addDeferredMethodDependencyRecursive(
+            prefixDominatorUsages,
+            selectorDominator,
+            selectorId,
+            selectorName,
+            deferredUses,
+          );
           final after = deferredUses.length;
           assert((after - before) > 0);
         }
@@ -354,8 +409,9 @@ class _Algorithm {
 
   (
     List<Reference>,
-    List<(Reference, DominatorNode<LibraryDependency>, int, Name)>
-  ) _collectMethodsToMove(
+    List<(Reference, DominatorNode<LibraryDependency>, int, Name)>,
+  )
+  _collectMethodsToMove(
     SelectorDominators selectorDominators,
     PrefixUsages classDominatorUsages,
     DominatorNode<LibraryDependency> classDominator,
@@ -397,8 +453,8 @@ class _Algorithm {
       final destination = selectorCallDominator == null
           ? dynamicCallDominator!
           : (dynamicCallDominator == null
-              ? selectorCallDominator
-              : selectorCallDominator.commonDominator(dynamicCallDominator));
+                ? selectorCallDominator
+                : selectorCallDominator.commonDominator(dynamicCallDominator));
       if (classDominator.dominates(destination)) {
         // The class is defined but the selector is only used in deferred units.
         // Let's defer loading the method to deferred units.
@@ -428,16 +484,17 @@ class _Algorithm {
       ((member.kind == ProcedureKind.Getter)
           ? metadata.getterSelectorId
           : metadata.methodOrSetterSelectorId),
-      member.name
+      member.name,
     );
   }
 
   void addDeferredMethodDependencyRecursive(
-      ProgramPrefixUsages prefixDominatorUsages,
-      DominatorNode<LibraryDependency> destination,
-      int selectorId,
-      Name selectorName,
-      Set<LibraryDependency> deferredUses) {
+    ProgramPrefixUsages prefixDominatorUsages,
+    DominatorNode<LibraryDependency> destination,
+    int selectorId,
+    Name selectorName,
+    Set<LibraryDependency> deferredUses,
+  ) {
     // If [destination] has calls to the selector, that's where we stop.
     final destinationUsages = prefixDominatorUsages.usages[destination.prefix]!;
     if (destinationUsages.selectorIds.contains(selectorId) ||
@@ -449,7 +506,12 @@ class _Algorithm {
     // Otherwise we defer to the [destination]s children.
     for (final child in destination.children) {
       addDeferredMethodDependencyRecursive(
-          prefixDominatorUsages, child, selectorId, selectorName, deferredUses);
+        prefixDominatorUsages,
+        child,
+        selectorId,
+        selectorName,
+        deferredUses,
+      );
     }
   }
 
@@ -489,7 +551,10 @@ class _Algorithm {
   /// Creates a [Partitioning] that maps [Reference]s/[Constant]s to the [Part]
   /// they were assigned to.
   Partitioning createParitition(
-      Part rootPart, LibraryDependency rootImport, Dominators dominators) {
+    Part rootPart,
+    LibraryDependency rootImport,
+    Dominators dominators,
+  ) {
     // Map [Reference]s/[Constant]s to the [Part] they were assigned to.
     final referenceToPart = <Reference, Part>{};
     final constantToPart = <Constant, Part>{};
@@ -532,8 +597,13 @@ class _Algorithm {
 
     deferredInputLoadingList.remove(rootImport);
 
-    return Partitioning(rootPart, parts, referenceToPart, constantToPart,
-        deferredInputLoadingList);
+    return Partitioning(
+      rootPart,
+      parts,
+      referenceToPart,
+      constantToPart,
+      deferredInputLoadingList,
+    );
   }
 
   /// Ensures we have all transitive direct dependencies of [reference]
@@ -576,10 +646,12 @@ class _Algorithm {
       ...constantToImportSet.values,
     };
     final finalTransitions = importSets.computeFinalTransitions(imports);
-    referenceToImportSet
-        .updateAll((reference, importSet) => finalTransitions[importSet]!);
-    constantToImportSet
-        .updateAll((reference, importSet) => finalTransitions[importSet]!);
+    referenceToImportSet.updateAll(
+      (reference, importSet) => finalTransitions[importSet]!,
+    );
+    constantToImportSet.updateAll(
+      (reference, importSet) => finalTransitions[importSet]!,
+    );
   }
 
   /// Given an [Reference], an [oldSet] and a [newSet], either ignore the
@@ -589,7 +661,10 @@ class _Algorithm {
   ///
   /// [dart2js] pkg/compiler/lib/src/deferred_load/deferred_load.dart
   void updateReference(
-      Reference reference, ImportSet oldSet, ImportSet newSet) {
+    Reference reference,
+    ImportSet oldSet,
+    ImportSet newSet,
+  ) {
     final currentSet = referenceToImportSet[reference] ?? importSets.emptySet;
 
     // If [currentSet] == [newSet], then currentSet must include all of newSet.
@@ -650,7 +725,10 @@ class _Algorithm {
   /// Updates the dependencies of a given [Reference] from [oldSet] to
   /// [newSet].
   void _updateReferenceDependencies(
-      Reference reference, ImportSet oldSet, ImportSet newSet) {
+    Reference reference,
+    ImportSet oldSet,
+    ImportSet newSet,
+  ) {
     final deps = directReferenceDependencies[reference]!;
     for (final reference in deps.references) {
       updateReference(reference, oldSet, newSet);
@@ -661,7 +739,10 @@ class _Algorithm {
   }
 
   void _updateConstantDependencies(
-      Constant constant, ImportSet oldSet, ImportSet newSet) {
+    Constant constant,
+    ImportSet oldSet,
+    ImportSet newSet,
+  ) {
     final deps = directConstantDependencies[constant]!;
     final reference = deps.reference;
     if (reference != null) {

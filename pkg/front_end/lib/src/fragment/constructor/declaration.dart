@@ -475,6 +475,7 @@ mixin _ConstructorDeclarationMixin
     } else if (lastInitializer is InternalSuperInitializer) {
       superTarget = lastInitializer.target;
     } else if (lastInitializer is InvalidInitializer &&
+        // Coverage-ignore(suite): Not run.
         lastInitializer.isSuperInitializer) {
       // Erroneous super initializer.
       return null;
@@ -529,6 +530,8 @@ mixin _ConstructorDeclarationMixin
     DeclarationBuilder declarationBuilder,
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
+    if (!_hasSuperInitializingFormals) return;
+
     if (_beginInitializers != null && initializers.isNotEmpty) {
       // If the initializers aren't built yet, we can't compute the super
       // target. The synthetic initializers should be excluded, since they can
@@ -982,7 +985,7 @@ class RegularConstructorDeclaration
       fileOffset: _fragment.fullNameOffset,
       endOffset: _fragment.endOffset,
       isSynthetic: false,
-      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrEnumOrMixin,
       formalsOffset: _fragment.formalsOffset,
       isConst: _fragment.modifiers.isConst,
       returnType: returnType,
@@ -1371,7 +1374,7 @@ class PrimaryConstructorDeclaration
       formalsOffset: _fragment.formalsOffset,
       // TODO(johnniwinther): Provide `endOffset`.
       endOffset: _fragment.formalsOffset,
-      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrEnumOrMixin,
       isConst: _fragment.modifiers.isConst,
       isSynthetic: false,
       returnType: returnType,

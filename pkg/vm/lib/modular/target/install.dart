@@ -14,8 +14,8 @@ void installAdditionalTargets() {
   if (!_installed) {
     targets["dart_runner"] = (TargetFlags flags) => DartRunnerTarget(flags);
     targets["flutter"] = (TargetFlags flags) => FlutterTarget(flags);
-    targets["flutter_runner"] =
-        (TargetFlags flags) => FlutterRunnerTarget(flags);
+    targets["flutter_runner"] = (TargetFlags flags) =>
+        FlutterRunnerTarget(flags);
     targets["vm"] = (TargetFlags flags) => VmTarget(flags);
     _installed = true;
   }

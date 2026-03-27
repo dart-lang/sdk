@@ -16,7 +16,7 @@ class ExceptionTags {
   final WasmTagImporter _importedTags;
 
   ExceptionTags(this.translator)
-      : _importedTags = WasmTagImporter(translator, 'exception');
+    : _importedTags = WasmTagImporter(translator, 'exception');
 
   /// Get the Dart exception tag for [module].
   ///
@@ -35,14 +35,18 @@ class ExceptionTags {
   /// [stackTraceInfo.nonNullableType] to hold a stack trace. This single
   /// exception tag is used to throw and catch all Dart exceptions.
   w.Tag _defineDartExceptionTag() {
-    final w.FunctionType tagType = translator.typesBuilder.defineFunction(
-        [translator.topTypeNonNullable, translator.stackTraceType], const []);
+    final w.FunctionType tagType = translator.typesBuilder.defineFunction([
+      translator.topTypeNonNullable,
+      translator.stackTraceType,
+    ], const []);
     return translator.mainModule.tags.define(tagType);
   }
 
   w.Tag _importJsExceptionTag() {
-    final w.FunctionType tagType = translator.typesBuilder
-        .defineFunction(const [w.RefType.extern(nullable: true)], const []);
+    final w.FunctionType tagType = translator.typesBuilder.defineFunction(
+      const [w.RefType.extern(nullable: true)],
+      const [],
+    );
     return translator.mainModule.tags.import('WebAssembly', 'JSTag', tagType);
   }
 }

@@ -71,6 +71,10 @@ abstract class AbstractLspAnalysisServerTest
   /// resetContextBuildCounter() was called.
   int _previousContextBuilds = 0;
 
+  /// The set of reverse-requests received from the server that have not
+  /// yet been responded to.
+  final Set<RequestMessage> _pendingReverseRequests = {};
+
   @override
   AnalyticsManager get analyticsManager => server.analyticsManager;
 
@@ -262,6 +266,8 @@ abstract class AbstractLspAnalysisServerTest
 
   @override
   void sendResponseToServer(ResponseMessage response) {
+    _pendingReverseRequests.removeWhere((request) => request.id == response.id);
+
     channel.sendResponseToServer(response);
   }
 
@@ -273,6 +279,7 @@ abstract class AbstractLspAnalysisServerTest
     httpClient = MockHttpClient();
     processRunner = MockProcessRunner();
     channel = MockLspServerChannel(debugPrintCommunication);
+    _monitorReverseRequests();
 
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
@@ -348,6 +355,36 @@ $experiments
   Uri withTrailingSlashUri(Uri uri) {
     expect(uri.path, isNot(endsWith('/')));
     return uri.replace(path: '${uri.path}/');
+  }
+
+  /// Listens for server-to-client requests ("reverse requests") and responds
+  /// with an error if they are not responded to within a timeout period.
+  ///
+  /// This helps debug tests where the server is waiting for a response that the
+  /// test was not set up to provide (instead of the test just hanging).
+  void _monitorReverseRequests() {
+    requestsFromServer.listen((request) {
+      // Record the request as pending.
+      _pendingReverseRequests.add(request);
+
+      // Check in 5s whether this request was responded to and if not, fail
+      // the test.
+      Timer(const Duration(seconds: 5), () {
+        if (_pendingReverseRequests.remove(request)) {
+          sendResponseToServer(
+            ResponseMessage(
+              id: request.id,
+              error: ResponseError(
+                code: ErrorCodes.RequestFailed,
+                message: 'The test did not respond',
+              ),
+              jsonrpc: jsonRpcVersion,
+            ),
+          );
+          // fail('Server sent ${request.method} but the test did not respond');
+        }
+      });
+    }, onDone: _pendingReverseRequests.clear);
   }
 }
 
@@ -1452,6 +1489,26 @@ mixin LspAnalysisServerTestMixin
     return provideConfig(sendDidChangeConfiguration, config);
   }
 
+  /// Returns a [Future] that completes when the next analysis completion status
+  /// is received.
+  ///
+  /// To avoid races, this method should be called synchronously in the test
+  /// after the code that triggers the analysis and not after an `await` (or
+  /// it should be called before, but awaited after).
+  ///
+  /// Good:
+  /// ```
+  ///     await Future.wait([
+  ///       doSomething(),
+  ///       waitForAnalysisComplete(),
+  ///     ]);
+  /// ```
+  ///
+  /// Bad:
+  /// ```
+  ///     await doSomething();
+  ///     await waitForAnalysisComplete();
+  /// ```
   Future<void> waitForAnalysisComplete() => waitForAnalysisStatus(false);
 
   Future<void> waitForAnalysisStart() => waitForAnalysisStatus(true);

@@ -312,6 +312,41 @@ abstract class FileKind {
 
   List<UnlinkedLibraryImportDirective> get _unlinkedDocImports;
 
+  void addDirectivesSignature(ApiSignature signature) {
+    void appendDirectiveUri(DirectiveUri selectedUri) {
+      switch (selectedUri) {
+        case DirectiveUriWithFile(:var file):
+          signature.addInt(0);
+          signature.addBool(file.exists);
+          signature.addBool(file.kind is PartFileKind);
+          signature.addString(file.uriStr);
+        case DirectiveUriWithInSummarySource(:var source):
+          signature.addInt(1);
+          signature.addString(source.uri.toString());
+        case DirectiveUriWithUri(:var relativeUri):
+          signature.addInt(2);
+          signature.addString(relativeUri.toString());
+        case DirectiveUriWithString(:var relativeUriStr):
+          signature.addInt(3);
+          signature.addString(relativeUriStr);
+        case DirectiveUriWithoutString():
+          signature.addInt(4);
+      }
+    }
+
+    signature.addList(libraryExports, (directive) {
+      appendDirectiveUri(directive.selectedUri);
+    });
+
+    signature.addList(libraryImports, (directive) {
+      appendDirectiveUri(directive.selectedUri);
+    });
+
+    signature.addList(docLibraryImports, (directive) {
+      appendDirectiveUri(directive.selectedUri);
+    });
+  }
+
   /// Collect files that are transitively referenced by this file.
   @mustCallSuper
   void collectTransitive(Set<FileState> files) {

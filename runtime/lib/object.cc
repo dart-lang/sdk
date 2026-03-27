@@ -490,44 +490,52 @@ DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 0, 4) {
       zone, parent_type_arguments, smi_parent_len.Value(), smi_len.Value());
 }
 
-// Check that a set of type arguments satisfy the type parameter bounds on a
-// closure.
+// Instantiate generic closure with given type arguments.
+// Check type parameter bounds.
 // Arg0: Closure object
 // Arg1: Type arguments to function
-DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
-  const Closure& closure =
+// Result: Instantiated closure
+DEFINE_NATIVE_ENTRY(Internal_instantiateClosure, 0, 2) {
+  const auto& old_closure =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const Function& target = Function::Handle(zone, closure.function());
-  ASSERT(target.IsGeneric());  // No need to check bounds for non-generics.
-  const TypeParameters& type_params =
+  const auto& delayed_type_args =
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const Function& target = Function::Handle(zone, old_closure.function());
+  ASSERT(target.IsGeneric());  // Can only instantiate generic closures.
+
+  const auto& instantiator_type_args =
+      TypeArguments::Handle(zone, old_closure.instantiator_type_arguments());
+  const auto& parent_function_type_args =
+      TypeArguments::Handle(zone, old_closure.function_type_arguments());
+  const auto& context = Object::Handle(zone, old_closure.RawContext());
+
+  const auto& closure = Closure::Handle(
+      zone, Closure::New(instantiator_type_args, parent_function_type_args,
+                         delayed_type_args, target, context));
+
+  const auto& type_params =
       TypeParameters::Handle(zone, target.type_parameters());
-  if (type_params.IsNull() || type_params.AllDynamicBounds()) {
-    // The function is not generic or the bounds are all dynamic.
-    return Object::null();
+  ASSERT(!type_params.IsNull());
+  if (type_params.AllDynamicBounds()) {
+    // The bounds are all dynamic.
+    return closure.ptr();
   }
 
-  const TypeArguments& type_args_to_check =
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
-
   // This should be guaranteed by the front-end.
-  ASSERT(type_args_to_check.IsNull() ||
-         type_params.Length() <= type_args_to_check.Length());
+  ASSERT(delayed_type_args.IsNull() ||
+         type_params.Length() <= delayed_type_args.Length());
 
   // The bounds on the closure may need instantiation.
-  const TypeArguments& instantiator_type_args =
-      TypeArguments::Handle(zone, closure.instantiator_type_arguments());
-  const TypeArguments& function_type_args = TypeArguments::Handle(
-      zone,
-      type_args_to_check.Prepend(
-          zone, TypeArguments::Handle(zone, closure.function_type_arguments()),
-          target.NumParentTypeArguments(), target.NumTypeArguments()));
+  const auto& function_type_args = TypeArguments::Handle(
+      zone, delayed_type_args.Prepend(zone, parent_function_type_args,
+                                      target.NumParentTypeArguments(),
+                                      target.NumTypeArguments()));
 
   AbstractType& supertype = AbstractType::Handle(zone);
   AbstractType& subtype = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < type_params.Length(); ++i) {
     supertype = type_params.BoundAt(i);
-    subtype = type_args_to_check.IsNull() ? Object::dynamic_type().ptr()
-                                          : type_args_to_check.TypeAt(i);
+    subtype = delayed_type_args.TypeAtNullSafe(i);
 
     ASSERT(!subtype.IsNull());
     ASSERT(!supertype.IsNull());
@@ -551,7 +559,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
     }
   }
 
-  return Object::null();
+  return closure.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Internal_loadDynamicModule, 0, 1) {

@@ -310,9 +310,6 @@ class Api : AllStatic {
 
   static StringPtr CallEnvironmentCallback(Thread* thread, const String& name);
 
-  // Thread local key used by the API. Currently holds the current
-  // ApiNativeScope if any.
-  static ThreadLocalKey api_native_key_;
   static Dart_Handle true_handle_;
   static Dart_Handle false_handle_;
   static Dart_Handle null_handle_;

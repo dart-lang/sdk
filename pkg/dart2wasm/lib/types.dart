@@ -54,20 +54,28 @@ class Types {
       translator.classInfo[translator.listBaseClass]!.nonNullableType;
 
   /// Wasm array type of `WasmArray<_Type>`
-  late final w.ArrayType typeArrayArrayType =
-      translator.arrayTypeForDartType(typeType, mutable: true);
+  late final w.ArrayType typeArrayArrayType = translator.arrayTypeForDartType(
+    typeType,
+    mutable: true,
+  );
 
   /// Wasm value type of `WasmArray<_Type>`
-  late final w.ValueType typeArrayExpectedType =
-      w.RefType.def(typeArrayArrayType, nullable: false);
+  late final w.ValueType typeArrayExpectedType = w.RefType.def(
+    typeArrayArrayType,
+    nullable: false,
+  );
 
   /// Wasm value type of `WasmArray<_NamedParameter>`
   late final w.ValueType namedParametersExpectedType = classAndFieldToType(
-      translator.functionTypeClass, FieldIndex.functionTypeNamedParameters);
+    translator.functionTypeClass,
+    FieldIndex.functionTypeNamedParameters,
+  );
 
   /// Wasm value type of `_RecordType.names` field.
   late final w.ValueType recordTypeNamesFieldExpectedType = classAndFieldToType(
-      translator.recordTypeClass, FieldIndex.recordTypeNames);
+    translator.recordTypeClass,
+    FieldIndex.recordTypeNames,
+  );
 
   late final RuntimeTypeInformation rtt = RuntimeTypeInformation(translator);
 
@@ -176,16 +184,19 @@ class Types {
     return type is VoidType
         ? TopTypeKind.voidKind
         : type is DynamicType
-            ? TopTypeKind.dynamicKind
-            : TopTypeKind.objectKind;
+        ? TopTypeKind.dynamicKind
+        : TopTypeKind.objectKind;
   }
 
   /// Allocates a `WasmArray<_Type>` from [types] and pushes it to the
   /// stack.
   void _makeTypeArray(AstCodeGenerator codeGen, Iterable<DartType> types) {
     if (types.every(isTypeConstant)) {
-      translator.constants.instantiateConstant(codeGen.b,
-          translator.constants.makeTypeArray(types), typeArrayExpectedType);
+      translator.constants.instantiateConstant(
+        codeGen.b,
+        translator.constants.makeTypeArray(types),
+        typeArrayExpectedType,
+      );
     } else {
       for (DartType type in types) {
         makeType(codeGen, type);
@@ -206,14 +217,20 @@ class Types {
     codeGen.b.i32_const(encodedNullability(type));
 
     final names = translator.constants.makeArrayOf(
-        translator.coreTypes.stringNonNullableRawType,
-        type.named.map((t) => StringConstant(t.name)).toList(),
-        mutable: false);
+      translator.coreTypes.stringNonNullableRawType,
+      type.named.map((t) => StringConstant(t.name)).toList(),
+      mutable: false,
+    );
 
     translator.constants.instantiateConstant(
-        codeGen.b, names, recordTypeNamesFieldExpectedType);
+      codeGen.b,
+      names,
+      recordTypeNamesFieldExpectedType,
+    );
     _makeTypeArray(
-        codeGen, type.positional.followedBy(type.named.map((t) => t.type)));
+      codeGen,
+      type.positional.followedBy(type.named.map((t) => t.type)),
+    );
   }
 
   /// Normalizes a Dart type. Many rules are already applied for us, but we
@@ -234,11 +251,15 @@ class Types {
           ? s.withDeclaredNullability(Nullability.nullable)
           : s;
     } else if (s is NeverType) {
-      return InterfaceType(coreTypes.futureClass, Nullability.nonNullable,
-          const [NeverType.nonNullable()]);
-    } else if (s is NullType) {
       return InterfaceType(
-          coreTypes.futureClass, Nullability.nullable, const [NullType()]);
+        coreTypes.futureClass,
+        Nullability.nonNullable,
+        const [NeverType.nonNullable()],
+      );
+    } else if (s is NullType) {
+      return InterfaceType(coreTypes.futureClass, Nullability.nullable, const [
+        NullType(),
+      ]);
     }
 
     // The type is normalized, and remains a `FutureOr` so now we normalize its
@@ -284,32 +305,43 @@ class Types {
     // WasmArray<_NamedParameter> namedParameters
     if (type.namedParameters.every((n) => isTypeConstant(n.type))) {
       translator.constants.instantiateConstant(
-          b,
-          translator.constants.makeNamedParametersArray(type),
-          namedParametersExpectedType);
+        b,
+        translator.constants.makeNamedParametersArray(type),
+        namedParametersExpectedType,
+      );
     } else {
       Class namedParameterClass = translator.namedParameterClass;
       Constructor namedParameterConstructor =
           namedParameterClass.constructors.single;
       List<Expression> expressions = [];
       for (NamedType n in type.namedParameters) {
-        expressions.add(isTypeConstant(n.type)
-            ? ConstantExpression(
-                translator.constants.makeNamedParameterConstant(n),
-                namedParameterType)
-            : ConstructorInvocation(
-                namedParameterConstructor,
-                Arguments([
-                  ConstantExpression(
-                      translator.symbols.symbolForNamedParameter(n.name)),
-                  TypeLiteral(n.type),
-                  BoolLiteral(n.isRequired)
-                ])));
+        expressions.add(
+          isTypeConstant(n.type)
+              ? ConstantExpression(
+                  translator.constants.makeNamedParameterConstant(n),
+                  namedParameterType,
+                )
+              : ConstructorInvocation(
+                  namedParameterConstructor,
+                  Arguments([
+                    ConstantExpression(
+                      translator.symbols.symbolForNamedParameter(n.name),
+                    ),
+                    TypeLiteral(n.type),
+                    BoolLiteral(n.isRequired),
+                  ]),
+                ),
+        );
       }
-      w.ValueType namedParametersListType =
-          codeGen.makeArrayFromExpressions(expressions, namedParameterType);
+      w.ValueType namedParametersListType = codeGen.makeArrayFromExpressions(
+        expressions,
+        namedParameterType,
+      );
       translator.convertType(
-          b, namedParametersListType, namedParametersExpectedType);
+        b,
+        namedParametersListType,
+        namedParametersExpectedType,
+      );
     }
   }
 
@@ -322,17 +354,22 @@ class Types {
     final b = codeGen.b;
     if (isTypeConstant(type)) {
       translator.constants.instantiateConstant(
-          b, TypeLiteralConstant(type), nonNullableTypeType);
+        b,
+        TypeLiteralConstant(type),
+        nonNullableTypeType,
+      );
       return nonNullableTypeType;
     }
     // All of the singleton types represented by canonical objects should be
     // created const.
-    assert(type is TypeParameterType ||
-        type is ExtensionType ||
-        type is InterfaceType ||
-        type is FutureOrType ||
-        type is FunctionType ||
-        type is RecordType);
+    assert(
+      type is TypeParameterType ||
+          type is ExtensionType ||
+          type is InterfaceType ||
+          type is FutureOrType ||
+          type is FunctionType ||
+          type is RecordType,
+    );
     if (type is TypeParameterType) {
       codeGen.instantiateTypeParameter(type.parameter);
       if (type.declaredNullability == Nullability.nullable) {
@@ -386,17 +423,22 @@ class Types {
   /// Get the index value for a function type parameter, indexing into the
   /// type parameter index range of its corresponding function type.
   int getFunctionTypeParameterIndex(StructuralParameter type) {
-    assert(functionTypeParameterIndex.containsKey(type),
-        "Type parameter offset has not been computed for function type");
+    assert(
+      functionTypeParameterIndex.containsKey(type),
+      "Type parameter offset has not been computed for function type",
+    );
     return functionTypeParameterIndex[type]!;
   }
 
   /// Emit code for testing a value against a Dart type. Expects the value on
   /// the stack as a (ref null #Top) and leaves the result on the stack as an
   /// i32.
-  void emitIsTest(AstCodeGenerator codeGen, DartType testedAgainstType,
-      DartType operandType,
-      [Location? location]) {
+  void emitIsTest(
+    AstCodeGenerator codeGen,
+    DartType testedAgainstType,
+    DartType operandType, [
+    Location? location,
+  ]) {
     final b = codeGen.b;
     b.comment("type check against $testedAgainstType");
     w.Local? operandTemp;
@@ -404,19 +446,28 @@ class Types {
       operandTemp = b.addLocal(translator.topType);
       b.local_tee(operandTemp);
     }
-    final checkOnlyNullAssignability =
-        _requiresOnlyNullAssignabilityCheck(operandType, testedAgainstType);
+    final checkOnlyNullAssignability = _requiresOnlyNullAssignabilityCheck(
+      operandType,
+      testedAgainstType,
+    );
     final isCheckers = isCheckersForModule(b.moduleBuilder);
-    final (typeToCheck, :checkArguments) =
-        isCheckers.canUseTypeCheckHelper(testedAgainstType, operandType);
+    final (typeToCheck, :checkArguments) = isCheckers.canUseTypeCheckHelper(
+      testedAgainstType,
+      operandType,
+    );
     if (!checkOnlyNullAssignability && typeToCheck != null) {
       if (checkArguments) {
         for (final typeArgument in typeToCheck.typeArguments) {
           makeType(codeGen, typeArgument);
         }
       }
-      b.invoke(isCheckers.generateIsChecker(
-          typeToCheck, checkArguments, operandType.isPotentiallyNullable));
+      b.invoke(
+        isCheckers.generateIsChecker(
+          typeToCheck,
+          checkArguments,
+          operandType.isPotentiallyNullable,
+        ),
+      );
     } else {
       if (testedAgainstType is InterfaceType &&
           classForType(testedAgainstType) == translator.interfaceTypeClass) {
@@ -446,8 +497,10 @@ class Types {
       } else {
         makeType(codeGen, testedAgainstType);
         if (checkOnlyNullAssignability) {
-          b.struct_get(typeClassInfo.struct,
-              translator.fieldIndex[translator.typeIsDeclaredNullableField]!);
+          b.struct_get(
+            typeClassInfo.struct,
+            translator.fieldIndex[translator.typeIsDeclaredNullableField]!,
+          );
           codeGen.call(translator.isNullabilityCheck.reference);
         } else {
           codeGen.call(translator.isSubtype.reference);
@@ -459,9 +512,13 @@ class Types {
       makeType(codeGen, testedAgainstType);
       if (location != null) {
         w.FunctionType verifyFunctionType = translator.signatureForDirectCall(
-            translator.verifyOptimizedTypeCheck.reference);
+          translator.verifyOptimizedTypeCheck.reference,
+        );
         translator.constants.instantiateConstant(
-            b, StringConstant('$location'), verifyFunctionType.inputs.last);
+          b,
+          StringConstant('$location'),
+          verifyFunctionType.inputs.last,
+        );
       } else {
         b.ref_null(w.HeapType.none);
       }
@@ -470,29 +527,38 @@ class Types {
   }
 
   w.ValueType emitAsCheck(
-      AstCodeGenerator codeGen,
-      bool isCovarianceCheck,
-      DartType testedAgainstType,
-      DartType operandType,
-      w.RefType boxedOperandType,
-      [Location? location]) {
+    AstCodeGenerator codeGen,
+    bool isCovarianceCheck,
+    DartType testedAgainstType,
+    DartType operandType,
+    w.RefType boxedOperandType, [
+    Location? location,
+  ]) {
     final b = codeGen.b;
 
     // Keep casts inserted by the CFE to ensure soundness of covariant types.
-    final checkOnlyNullAssignability = !isCovarianceCheck &&
+    final checkOnlyNullAssignability =
+        !isCovarianceCheck &&
         _requiresOnlyNullAssignabilityCheck(operandType, testedAgainstType);
 
     final asCheckers = asCheckersForModule(b.moduleBuilder);
-    final (typeToCheck, :checkArguments) =
-        asCheckers.canUseTypeCheckHelper(testedAgainstType, operandType);
+    final (typeToCheck, :checkArguments) = asCheckers.canUseTypeCheckHelper(
+      testedAgainstType,
+      operandType,
+    );
     if (!checkOnlyNullAssignability && typeToCheck != null) {
       if (checkArguments) {
         for (final typeArgument in typeToCheck.typeArguments) {
           makeType(codeGen, typeArgument);
         }
       }
-      b.invoke(asCheckers.generateAsChecker(
-          typeToCheck, checkArguments, operandType.isPotentiallyNullable));
+      b.invoke(
+        asCheckers.generateAsChecker(
+          typeToCheck,
+          checkArguments,
+          operandType.isPotentiallyNullable,
+        ),
+      );
       return translator.translateType(testedAgainstType);
     }
 
@@ -532,12 +598,16 @@ class Types {
   }
 
   bool _requiresOnlyNullAssignabilityCheck(
-      DartType operandType, DartType testedAgainstType) {
+    DartType operandType,
+    DartType testedAgainstType,
+  ) {
     // We may only need to check that either of these hold:
     //   * value is non-null
     //   * value is null and the type is nullable.
-    return translator.typeEnvironment.isSubtypeOf(operandType,
-        testedAgainstType.withDeclaredNullability(Nullability.nullable));
+    return translator.typeEnvironment.isSubtypeOf(
+      operandType,
+      testedAgainstType.withDeclaredNullability(Nullability.nullable),
+    );
   }
 }
 
@@ -550,13 +620,16 @@ abstract class _TypeCheckers {
   // If a type check helper can be used, returns the type the caller has to
   // check and whether arguments of the type have to be checked or not.
   (InterfaceType?, {bool checkArguments}) canUseTypeCheckHelper(
-      DartType testedAgainstType, DartType operandType) {
+    DartType testedAgainstType,
+    DartType operandType,
+  ) {
     // The is/as check helpers are for cid-range checks of interface types.
     if (testedAgainstType is! InterfaceType) {
       return (null, checkArguments: false);
     }
-    if (testedAgainstType.classNode
-        .isDynamicSubmoduleExtendable(rtt.translator.coreTypes)) {
+    if (testedAgainstType.classNode.isDynamicSubmoduleExtendable(
+      rtt.translator.coreTypes,
+    )) {
       return (null, checkArguments: false);
     }
 
@@ -568,7 +641,7 @@ abstract class _TypeCheckers {
         _staticTypesEnsureTypeArgumentsMatch(testedAgainstType, operandType)) {
       return (
         _getTypeWithDefaultsToBounds(testedAgainstType),
-        checkArguments: false
+        checkArguments: false,
       );
     }
 
@@ -580,7 +653,9 @@ abstract class _TypeCheckers {
   }
 
   bool _staticTypesEnsureTypeArgumentsMatch(
-      InterfaceType testedAgainstType, InterfaceType operandType) {
+    InterfaceType testedAgainstType,
+    InterfaceType operandType,
+  ) {
     assert(testedAgainstType.typeArguments.isNotEmpty);
 
     // If the operand type doesn't have any type arguments it will not be able
@@ -588,9 +663,11 @@ abstract class _TypeCheckers {
     if (operandType.typeArguments.isEmpty) return false;
 
     final sufficiency = typeEnvironment.computeTypeShapeCheckSufficiency(
-        expressionStaticType: operandType,
-        checkTargetType:
-            testedAgainstType.withDeclaredNullability(Nullability.nullable));
+      expressionStaticType: operandType,
+      checkTargetType: testedAgainstType.withDeclaredNullability(
+        Nullability.nullable,
+      ),
+    );
 
     // If `true` the caller only needs to check nullabillity and the actual
     // concrete class, no need to check [testedAgainstType] arguments.
@@ -625,18 +702,21 @@ class IsCheckers extends _TypeCheckers {
   final w.ModuleBuilder callingModule;
 
   IsCheckers(this.translator, RuntimeTypeInformation rtt, this.callingModule)
-      : super(translator.typeEnvironment, rtt);
+    : super(translator.typeEnvironment, rtt);
 
   final Map<DartType, IsCheckerCallTarget> _nullableIsCheckers = {};
   final Map<DartType, IsCheckerCallTarget> _isCheckers = {};
   final Map<DartType, IsCheckerCallTarget>
-      _nullableIsCheckersWithArgumentsCheck = {};
+  _nullableIsCheckersWithArgumentsCheck = {};
   final Map<DartType, IsCheckerCallTarget> _isCheckersWithArgumentsCheck = {};
 
   // Currently the is-checker helper functions only check nullability and the
   // concrete class (the arguments do not have to be checked).
-  CallTarget generateIsChecker(InterfaceType testedAgainstType,
-      bool checkArguments, bool operandIsNullable) {
+  CallTarget generateIsChecker(
+    InterfaceType testedAgainstType,
+    bool checkArguments,
+    bool operandIsNullable,
+  ) {
     assert(_hasOnlyDefaultTypeArguments(testedAgainstType) || checkArguments);
 
     final interfaceClass = testedAgainstType.classNode;
@@ -659,10 +739,18 @@ class IsCheckers extends _TypeCheckers {
           ? translator.topType
           : translator.topTypeNonNullable;
       final signature = w.FunctionType(
-          [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
-          [w.NumType.i32]);
-      return IsCheckerCallTarget(translator, callingModule, signature,
-          testedAgainstType, operandIsNullable, checkArguments, argumentCount);
+        [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
+        [w.NumType.i32],
+      );
+      return IsCheckerCallTarget(
+        translator,
+        callingModule,
+        signature,
+        testedAgainstType,
+        operandIsNullable,
+        checkArguments,
+        argumentCount,
+      );
     });
   }
 }
@@ -672,16 +760,19 @@ class AsCheckers extends _TypeCheckers {
   final w.ModuleBuilder callingModule;
 
   AsCheckers(this.translator, RuntimeTypeInformation rtt, this.callingModule)
-      : super(translator.typeEnvironment, rtt);
+    : super(translator.typeEnvironment, rtt);
 
   final Map<DartType, AsCheckerCallTarget> _nullableAsCheckers = {};
   final Map<DartType, AsCheckerCallTarget> _asCheckers = {};
   final Map<DartType, AsCheckerCallTarget> _asCheckersWithArgumentsCheck = {};
   final Map<DartType, AsCheckerCallTarget>
-      _nullableAsCheckersWithArgumentsCheck = {};
+  _nullableAsCheckersWithArgumentsCheck = {};
 
-  CallTarget generateAsChecker(InterfaceType testedAgainstType,
-      bool checkArguments, bool operandIsNullable) {
+  CallTarget generateAsChecker(
+    InterfaceType testedAgainstType,
+    bool checkArguments,
+    bool operandIsNullable,
+  ) {
     assert(_hasOnlyDefaultTypeArguments(testedAgainstType) || checkArguments);
 
     final Map<DartType, AsCheckerCallTarget> cache;
@@ -703,11 +794,19 @@ class AsCheckers extends _TypeCheckers {
           : translator.topTypeNonNullable;
       final typeType = translator.translateType(translator.typeType);
       final signature = w.FunctionType(
-          [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
-          [returnType]);
+        [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
+        [returnType],
+      );
 
-      return AsCheckerCallTarget(translator, callingModule, signature,
-          testedAgainstType, operandIsNullable, checkArguments, argumentCount);
+      return AsCheckerCallTarget(
+        translator,
+        callingModule,
+        signature,
+        testedAgainstType,
+        operandIsNullable,
+        checkArguments,
+        argumentCount,
+      );
     });
   }
 }
@@ -727,15 +826,18 @@ class IsCheckerCallTarget extends CallTarget {
   final int argumentCount;
 
   IsCheckerCallTarget(
-      this.translator,
-      this.callingModule,
-      super.signature,
-      this.testedAgainstType,
-      this.operandIsNullable,
-      this.checkArguments,
-      this.argumentCount)
-      : assert(!testedAgainstType.classNode
-            .isDynamicSubmoduleExtendable(translator.coreTypes));
+    this.translator,
+    this.callingModule,
+    super.signature,
+    this.testedAgainstType,
+    this.operandIsNullable,
+    this.checkArguments,
+    this.argumentCount,
+  ) : assert(
+        !testedAgainstType.classNode.isDynamicSubmoduleExtendable(
+          translator.coreTypes,
+        ),
+      );
 
   @override
   String get name {
@@ -764,24 +866,30 @@ class IsCheckerCallTarget extends CallTarget {
 
     // Always inline single class-id range checks (no branching, simply loads,
     // arithmetic and unsigned compare).
-    final ranges = translator.classIdNumbering
-        .getConcreteClassIdRangeForClass(interfaceClass);
+    final ranges = translator.classIdNumbering.getConcreteClassIdRangeForClass(
+      interfaceClass,
+    );
     return ranges.length <= 1;
   }
 
   @override
-  CodeGenerator get inliningCodeGen => IsCheckerCodeGenerator(translator,
-      testedAgainstType, operandIsNullable, checkArguments, argumentCount);
+  CodeGenerator get inliningCodeGen => IsCheckerCodeGenerator(
+    translator,
+    testedAgainstType,
+    operandIsNullable,
+    checkArguments,
+    argumentCount,
+  );
 
   @override
   late final w.BaseFunction function = (() {
     final function = callingModule.functions.define(
-        translator.typesBuilder.defineFunction(
-          signature.inputs,
-          signature.outputs,
-        ),
-        name)
-      ..isPure = true;
+      translator.typesBuilder.defineFunction(
+        signature.inputs,
+        signature.outputs,
+      ),
+      name,
+    )..isPure = true;
     translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
     return function;
   })();
@@ -795,12 +903,20 @@ class IsCheckerCodeGenerator implements CodeGenerator {
   final bool checkArguments;
   final int argumentCount;
 
-  IsCheckerCodeGenerator(this.translator, this.testedAgainstType,
-      this.operandIsNullable, this.checkArguments, this.argumentCount);
+  IsCheckerCodeGenerator(
+    this.translator,
+    this.testedAgainstType,
+    this.operandIsNullable,
+    this.checkArguments,
+    this.argumentCount,
+  );
 
   @override
-  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
-      w.Label? returnLabel) {
+  void generate(
+    w.InstructionsBuilder b,
+    List<w.Local> paramLocals,
+    w.Label? returnLabel,
+  ) {
     final interfaceClass = testedAgainstType.classNode;
 
     w.Local operand = paramLocals[0];
@@ -827,10 +943,11 @@ class IsCheckerCodeGenerator implements CodeGenerator {
       // performance.
       const bool forceInline = true;
       b.invoke(
-          translator.types
-              .isCheckersForModule(b.moduleBuilder)
-              .generateIsChecker(testedAgainstType, false, false),
-          forceInline: forceInline);
+        translator.types
+            .isCheckersForModule(b.moduleBuilder)
+            .generateIsChecker(testedAgainstType, false, false),
+        forceInline: forceInline,
+      );
       b.local_set(boolTemp);
 
       // If cid ranges fail, we fail
@@ -848,8 +965,9 @@ class IsCheckerCodeGenerator implements CodeGenerator {
       // Otherwise we have to check each argument.
 
       // Call Object._getArguments()
-      w.Local typeArguments =
-          b.addLocal(translator.types.typeArrayExpectedType);
+      w.Local typeArguments = b.addLocal(
+        translator.types.typeArrayExpectedType,
+      );
       b.local_get(operand);
       translator.callReference(translator.objectGetTypeArguments.reference, b);
       b.local_set(typeArguments);
@@ -942,15 +1060,18 @@ class AsCheckerCallTarget extends CallTarget {
   final int argumentCount;
 
   AsCheckerCallTarget(
-      this.translator,
-      this.callingModule,
-      super.signature,
-      this.testedAgainstType,
-      this.operandIsNullable,
-      this.checkArguments,
-      this.argumentCount)
-      : assert(!testedAgainstType.classNode
-            .isDynamicSubmoduleExtendable(translator.coreTypes));
+    this.translator,
+    this.callingModule,
+    super.signature,
+    this.testedAgainstType,
+    this.operandIsNullable,
+    this.checkArguments,
+    this.argumentCount,
+  ) : assert(
+        !testedAgainstType.classNode.isDynamicSubmoduleExtendable(
+          translator.coreTypes,
+        ),
+      );
 
   @override
   String get name {
@@ -963,16 +1084,26 @@ class AsCheckerCallTarget extends CallTarget {
   @override
   late final w.BaseFunction function = (() {
     final function = callingModule.functions.define(
-        translator.typesBuilder.defineFunction(
-          signature.inputs,
-          signature.outputs,
-        ),
-        name);
+      translator.typesBuilder.defineFunction(
+        signature.inputs,
+        signature.outputs,
+      ),
+      name,
+    );
 
-    translator.compilationQueue.add(CompilationTask(
+    translator.compilationQueue.add(
+      CompilationTask(
         function,
-        AsCheckerCodeGenerator(translator, signature, testedAgainstType,
-            operandIsNullable, checkArguments, argumentCount)));
+        AsCheckerCodeGenerator(
+          translator,
+          signature,
+          testedAgainstType,
+          operandIsNullable,
+          checkArguments,
+          argumentCount,
+        ),
+      ),
+    );
 
     return function;
   })();
@@ -989,18 +1120,24 @@ class AsCheckerCodeGenerator implements CodeGenerator {
   final int argumentCount;
 
   AsCheckerCodeGenerator(
-      this.translator,
-      this.signature,
-      this.testedAgainstType,
-      this.operandIsNullable,
-      this.checkArguments,
-      this.argumentCount)
-      : assert(!testedAgainstType.classNode
-            .isDynamicSubmoduleExtendable(translator.coreTypes));
+    this.translator,
+    this.signature,
+    this.testedAgainstType,
+    this.operandIsNullable,
+    this.checkArguments,
+    this.argumentCount,
+  ) : assert(
+        !testedAgainstType.classNode.isDynamicSubmoduleExtendable(
+          translator.coreTypes,
+        ),
+      );
 
   @override
-  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
-      w.Label? returnLabel) {
+  void generate(
+    w.InstructionsBuilder b,
+    List<w.Local> paramLocals,
+    w.Label? returnLabel,
+  ) {
     assert(returnLabel == null);
 
     w.Label asCheckBlock = b.block();
@@ -1015,13 +1152,21 @@ class AsCheckerCodeGenerator implements CodeGenerator {
     // performance.
     const bool forceInline = true;
     b.invoke(
-        translator.types.isCheckersForModule(b.moduleBuilder).generateIsChecker(
-            testedAgainstType, checkArguments, operandIsNullable),
-        forceInline: forceInline);
+      translator.types
+          .isCheckersForModule(b.moduleBuilder)
+          .generateIsChecker(
+            testedAgainstType,
+            checkArguments,
+            operandIsNullable,
+          ),
+      forceInline: forceInline,
+    );
     b.br_if(asCheckBlock);
     if (translator.options.minify) {
       translator.callReference(
-          translator.throwErrorWithoutDetails.reference, b);
+        translator.throwErrorWithoutDetails.reference,
+        b,
+      );
     } else {
       if (checkArguments) {
         final testedAgainstClassId =
@@ -1032,26 +1177,33 @@ class AsCheckerCodeGenerator implements CodeGenerator {
         if (argumentCount == 1) {
           b.local_get(b.locals[1]);
           translator.callReference(
-              translator.throwInterfaceTypeAsCheckError1.reference, b);
+            translator.throwInterfaceTypeAsCheckError1.reference,
+            b,
+          );
         } else if (argumentCount == 2) {
           b.local_get(b.locals[1]);
           b.local_get(b.locals[2]);
           translator.callReference(
-              translator.throwInterfaceTypeAsCheckError2.reference, b);
+            translator.throwInterfaceTypeAsCheckError2.reference,
+            b,
+          );
         } else {
           for (int i = 0; i < argumentCount; ++i) {
             b.local_get(b.locals[1 + i]);
           }
           b.array_new_fixed(translator.types.typeArrayArrayType, argumentCount);
           translator.callReference(
-              translator.throwInterfaceTypeAsCheckError.reference, b);
+            translator.throwInterfaceTypeAsCheckError.reference,
+            b,
+          );
         }
       } else {
         b.local_get(b.locals[0]);
         translator.constants.instantiateConstant(
-            b,
-            TypeLiteralConstant(testedAgainstType),
-            translator.types.nonNullableTypeType);
+          b,
+          TypeLiteralConstant(testedAgainstType),
+          translator.types.nonNullableTypeType,
+        );
         translator.callReference(translator.throwAsCheckError.reference, b);
       }
     }
@@ -1155,7 +1307,8 @@ class RuntimeTypeInformation {
           .getSubtypesOf(superclass)
           .where((cls) => cls != superclass);
       Iterable<InterfaceType> subtypes = subclasses.map(
-          (Class cls) => cls.getThisType(coreTypes, Nullability.nonNullable));
+        (Class cls) => cls.getThisType(coreTypes, Nullability.nonNullable),
+      );
       for (InterfaceType subtype in subtypes) {
         if (subtype.classNode.isAnonymousMixin) continue;
 
@@ -1170,12 +1323,14 @@ class RuntimeTypeInformation {
         if (_isIdentitySubstitution(typeArguments)) {
           substitutionIndex = noSubstitutionIndex;
         } else {
-          final substitution =
-              translator.constants.makeTypeArray(typeArguments!);
+          final substitution = translator.constants.makeTypeArray(
+            typeArguments!,
+          );
           int? index = _substitutionTable[substitution];
           if (index == null) {
             assert(
-                _substitutionTableByIndex.length == _substitutionTable.length);
+              _substitutionTableByIndex.length == _substitutionTable.length,
+            );
             index = _substitutionTableByIndex.length;
             _substitutionTableByIndex.add(substitution);
             _substitutionTable[substitution] = index;
@@ -1223,8 +1378,9 @@ class RuntimeTypeInformation {
       if (typeArgument.declaredNullability == Nullability.nullable) {
         return false;
       }
-      final int environmentIndex =
-          types.interfaceTypeEnvironment.lookup(typeArgument.parameter);
+      final int environmentIndex = types.interfaceTypeEnvironment.lookup(
+        typeArgument.parameter,
+      );
       if (i != environmentIndex) {
         return false;
       }
@@ -1250,14 +1406,23 @@ class RuntimeTypeInformation {
       rowForSuperclass[superId] = row;
     });
 
-    final typeType =
-        InterfaceType(translator.typeClass, Nullability.nonNullable);
+    final typeType = InterfaceType(
+      translator.typeClass,
+      Nullability.nonNullable,
+    );
     final arrayOfType = InterfaceType(
-        translator.wasmArrayClass, Nullability.nonNullable, [typeType]);
-    final wasmI16 =
-        InterfaceType(translator.wasmI16Class, Nullability.nonNullable);
-    final wasmI32 =
-        InterfaceType(translator.wasmI32Class, Nullability.nonNullable);
+      translator.wasmArrayClass,
+      Nullability.nonNullable,
+      [typeType],
+    );
+    final wasmI16 = InterfaceType(
+      translator.wasmI16Class,
+      Nullability.nonNullable,
+    );
+    final wasmI32 = InterfaceType(
+      translator.wasmI32Class,
+      Nullability.nonNullable,
+    );
 
     final maxId = translator.classIdNumbering.maxClassId;
     int normalize(int value) => (100 * value) ~/ maxId;
@@ -1270,26 +1435,29 @@ class RuntimeTypeInformation {
     const invalidClassId = 0;
     final typeRowDisplacementTable = translator.constants.makeArrayOf(wasmI32, [
       for (final entry in table)
-        translator.constants
-            .makeWasmI32(entry == null ? invalidClassId : entry.$1),
+        translator.constants.makeWasmI32(
+          entry == null ? invalidClassId : entry.$1,
+        ),
     ]);
-    final typeRowDisplacementSubstTable =
-        translator.constants.makeArrayOf(wasmI16, [
-      for (final entry in table)
-        translator.constants
-            .makeWasmI32(entry == null ? noSubstitutionIndex : entry.$2),
-    ]);
-    final canonicalSubstitutionTable =
-        translator.constants.makeArrayOf(arrayOfType, [
-      for (final sustitution in _substitutionTableByIndex) sustitution,
-    ]);
+    final typeRowDisplacementSubstTable = translator.constants
+        .makeArrayOf(wasmI16, [
+          for (final entry in table)
+            translator.constants.makeWasmI32(
+              entry == null ? noSubstitutionIndex : entry.$2,
+            ),
+        ]);
+    final canonicalSubstitutionTable = translator.constants.makeArrayOf(
+      arrayOfType,
+      [for (final sustitution in _substitutionTableByIndex) sustitution],
+    );
 
-    final typeRowDisplacementOffsets =
-        translator.constants.makeArrayOf(wasmI32, [
-      for (int classId = 0; classId < translator.classes.length; ++classId)
-        translator.constants
-            .makeWasmI32(rowForSuperclass[classId]?.offset ?? -1),
-    ]);
+    final typeRowDisplacementOffsets = translator.constants
+        .makeArrayOf(wasmI32, [
+          for (int classId = 0; classId < translator.classes.length; ++classId)
+            translator.constants.makeWasmI32(
+              rowForSuperclass[classId]?.offset ?? -1,
+            ),
+        ]);
 
     final typeNames = translator.options.minify
         ? NullConstant()
@@ -1307,8 +1475,9 @@ class RuntimeTypeInformation {
   }
 
   InstanceConstant _getTypeNames(bool isMainModule) {
-    final stringType =
-        translator.coreTypes.stringRawType(Nullability.nonNullable);
+    final stringType = translator.coreTypes.stringRawType(
+      Nullability.nonNullable,
+    );
 
     final emptyString = StringConstant('');
     List<StringConstant> nameConstants = [];
@@ -1324,8 +1493,10 @@ class RuntimeTypeInformation {
         constantList.add(StringConstant(cls.name));
       }
     }
-    return translator.constants.makeArrayOf(stringType,
-        isMainModule ? nameConstants : dynamicSubmoduleNameConstants);
+    return translator.constants.makeArrayOf(
+      stringType,
+      isMainModule ? nameConstants : dynamicSubmoduleNameConstants,
+    );
   }
 
   Map<int, List<(Range, int)>> _buildRanges(Map<int, Map<int, int>> map) {
@@ -1341,8 +1512,10 @@ class RuntimeTypeInformation {
         final current = entries[writeIndex];
         final next = entries[readIndex];
         if (current.$2 == next.$2 && (current.$1.end + 1) == next.$1.start) {
-          entries[writeIndex] =
-              (Range(current.$1.start, next.$1.end), current.$2);
+          entries[writeIndex] = (
+            Range(current.$1.start, next.$1.end),
+            current.$2,
+          );
           continue;
         }
         entries[++writeIndex] = next;
@@ -1394,9 +1567,9 @@ class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
     int offset = 0;
     for (FunctionType inner in _functionsContainingParameters.last) {
       offset = max(
-          offset,
-          types.functionTypeParameterOffset[inner]! +
-              inner.typeParameters.length);
+        offset,
+        types.functionTypeParameterOffset[inner]! + inner.typeParameters.length,
+      );
     }
     types.functionTypeParameterOffset[node] = offset;
 

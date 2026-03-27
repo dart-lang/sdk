@@ -10,6 +10,7 @@ class DartRuntimeServiceOptions {
     this.enableLogging = false,
     this.port = 0,
     this.disableAuthCodes = false,
+    this.disableOriginCheck = false,
     this.sseHandlerPath,
     this.autoStart = true,
   });
@@ -28,6 +29,11 @@ class DartRuntimeServiceOptions {
   /// Defaults to false.
   final bool disableAuthCodes;
 
+  /// If true, CORS requests to the service will be accepted.
+  ///
+  /// Defaults to false.
+  final bool disableOriginCheck;
+
   /// If non-null, allow for SSE connections to be established at
   /// [sseHandlerPath].
   ///
@@ -41,6 +47,7 @@ class DartRuntimeServiceOptions {
     bool? enableLogging,
     int? port,
     bool? disableAuthCodes,
+    bool? disableOriginCheck,
     String? sseHandlerPath,
     bool? autoStart,
   }) {
@@ -48,6 +55,7 @@ class DartRuntimeServiceOptions {
       enableLogging: enableLogging ?? this.enableLogging,
       port: port ?? this.port,
       disableAuthCodes: disableAuthCodes ?? this.disableAuthCodes,
+      disableOriginCheck: disableOriginCheck ?? this.disableOriginCheck,
       sseHandlerPath: sseHandlerPath ?? this.sseHandlerPath,
       autoStart: autoStart ?? this.autoStart,
     );

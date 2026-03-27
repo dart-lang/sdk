@@ -38,7 +38,12 @@ class LibraryDeclaration extends BytecodeDeclaration {
   final List<ClassDeclaration> classes;
 
   LibraryDeclaration(
-      this.importUri, this.flags, this.name, this.script, this.classes);
+    this.importUri,
+    this.flags,
+    this.name,
+    this.script,
+    this.classes,
+  );
 
   void write(BufferedWriter writer) {
     final start = writer.offset;
@@ -57,8 +62,9 @@ class LibraryDeclaration extends BytecodeDeclaration {
     final flags = reader.readPackedUInt30();
     final ObjectHandle name = reader.readPackedObject();
     final ObjectHandle script = reader.readPackedObject();
-    final classes =
-        List<ClassDeclaration>.generate(reader.readPackedUInt30(), (_) {
+    final classes = List<ClassDeclaration>.generate(reader.readPackedUInt30(), (
+      _,
+    ) {
       final ObjectHandle className = reader.readPackedObject();
       return reader.readLinkOffset<ClassDeclaration>()..name = className;
     });
@@ -115,17 +121,18 @@ class ClassDeclaration extends BytecodeDeclaration {
   final AnnotationsDeclaration? annotations;
 
   ClassDeclaration(
-      this.name,
-      this.flags,
-      this.script,
-      this.position,
-      this.endPosition,
-      this.typeParameters,
-      this.numTypeArguments,
-      this.superType,
-      this.interfaces,
-      this.members,
-      this.annotations);
+    this.name,
+    this.flags,
+    this.script,
+    this.position,
+    this.endPosition,
+    this.typeParameters,
+    this.numTypeArguments,
+    this.superType,
+    this.interfaces,
+    this.members,
+    this.annotations,
+  );
 
   void write(BufferedWriter writer) {
     final start = writer.offset;
@@ -160,8 +167,9 @@ class ClassDeclaration extends BytecodeDeclaration {
     final endPosition = ((flags & hasSourcePositionsFlag) != 0)
         ? reader.readPackedUInt30() - 1
         : TreeNode.noOffset;
-    final numTypeArguments =
-        ((flags & hasTypeArgumentsFlag) != 0) ? reader.readPackedUInt30() : 0;
+    final numTypeArguments = ((flags & hasTypeArgumentsFlag) != 0)
+        ? reader.readPackedUInt30()
+        : 0;
     final typeParameters = ((flags & hasTypeParamsFlag) != 0)
         ? new TypeParametersDeclaration.read(reader)
         : null;
@@ -172,17 +180,18 @@ class ClassDeclaration extends BytecodeDeclaration {
         : null;
     final members = reader.readLinkOffset<Members>();
     return new ClassDeclaration(
-        null,
-        flags,
-        script,
-        position,
-        endPosition,
-        typeParameters,
-        numTypeArguments,
-        superType,
-        interfaces,
-        members,
-        annotations);
+      null,
+      flags,
+      script,
+      position,
+      endPosition,
+      typeParameters,
+      numTypeArguments,
+      superType,
+      interfaces,
+      members,
+      annotations,
+    );
   }
 
   @override
@@ -236,8 +245,12 @@ class SourceFile extends BytecodeDeclaration {
   String? source;
   List<ObjectHandle>? coveredConstConstructors;
 
-  SourceFile(this.importUri,
-      [this.coveredConstConstructors, this.lineStarts, this.source]);
+  SourceFile(
+    this.importUri, [
+    this.coveredConstConstructors,
+    this.lineStarts,
+    this.source,
+  ]);
 
   void write(BufferedWriter writer) {
     int flags = 0;
@@ -274,10 +287,14 @@ class SourceFile extends BytecodeDeclaration {
         : null;
     final coveredConstConstructors =
         ((flags & hasConstConstructorCoverageFlag) != 0)
-            ? reader.readPackedList<ObjectHandle>()
-            : null;
+        ? reader.readPackedList<ObjectHandle>()
+        : null;
     return new SourceFile(
-        importUri, coveredConstConstructors, lineStarts, source);
+      importUri,
+      coveredConstConstructors,
+      lineStarts,
+      source,
+    );
   }
 
   @override
@@ -335,14 +352,19 @@ class Members extends BytecodeDeclaration {
   factory Members.read(BufferedReader reader) {
     reader.readPackedUInt30(); // numFunctions
     final fields = new List<FieldDeclaration>.generate(
-        reader.readPackedUInt30(), (_) => new FieldDeclaration.read(reader));
+      reader.readPackedUInt30(),
+      (_) => new FieldDeclaration.read(reader),
+    );
     final functions = new List<FunctionDeclaration>.generate(
-        reader.readPackedUInt30(), (_) => new FunctionDeclaration.read(reader));
+      reader.readPackedUInt30(),
+      (_) => new FunctionDeclaration.read(reader),
+    );
     return new Members(fields, functions);
   }
 
   @override
-  String toString() => "${fields.join('\n')}\n"
+  String toString() =>
+      "${fields.join('\n')}\n"
       "${functions.join('\n')}";
 }
 
@@ -380,17 +402,18 @@ class FieldDeclaration {
   final AnnotationsDeclaration? annotations;
 
   FieldDeclaration(
-      this.flags,
-      this.name,
-      this.type,
-      this.value,
-      this.script,
-      this.position,
-      this.endPosition,
-      this.getterName,
-      this.setterName,
-      this.initializerCode,
-      this.annotations);
+    this.flags,
+    this.name,
+    this.type,
+    this.value,
+    this.script,
+    this.position,
+    this.endPosition,
+    this.getterName,
+    this.setterName,
+    this.initializerCode,
+    this.annotations,
+  );
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -449,8 +472,19 @@ class FieldDeclaration {
     final annotations = ((flags & hasAnnotationsFlag) != 0)
         ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
-    return new FieldDeclaration(flags, name, type, value, script, position,
-        endPosition, getterName, setterName, initializerCode, annotations);
+    return new FieldDeclaration(
+      flags,
+      name,
+      type,
+      value,
+      script,
+      position,
+      endPosition,
+      getterName,
+      setterName,
+      initializerCode,
+      annotations,
+    );
   }
 
   @override
@@ -557,19 +591,20 @@ class FunctionDeclaration {
   final AnnotationsDeclaration? annotations;
 
   FunctionDeclaration(
-      this.flags,
-      this.name,
-      this.script,
-      this.position,
-      this.endPosition,
-      this.typeParameters,
-      this.numRequiredParameters,
-      this.parameters,
-      this.parameterFlags,
-      this.returnType,
-      this.nativeName,
-      this.code,
-      this.annotations);
+    this.flags,
+    this.name,
+    this.script,
+    this.position,
+    this.endPosition,
+    this.typeParameters,
+    this.numRequiredParameters,
+    this.parameters,
+    this.parameterFlags,
+    this.returnType,
+    this.nativeName,
+    this.code,
+    this.annotations,
+  );
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -629,39 +664,45 @@ class FunctionDeclaration {
     final numParameters = reader.readPackedUInt30();
     final numRequiredParameters =
         ((flags & hasOptionalPositionalParamsFlag) != 0 ||
-                (flags & hasOptionalNamedParamsFlag) != 0)
-            ? reader.readPackedUInt30()
-            : numParameters;
+            (flags & hasOptionalNamedParamsFlag) != 0)
+        ? reader.readPackedUInt30()
+        : numParameters;
 
     final parameters = new List<ParameterDeclaration>.generate(
-        numParameters, (_) => new ParameterDeclaration.read(reader));
+      numParameters,
+      (_) => new ParameterDeclaration.read(reader),
+    );
     final parameterFlags = ((flags & hasParameterFlagsFlag) != 0)
         ? List<int>.generate(
-            reader.readPackedUInt30(), (_) => reader.readPackedUInt30())
+            reader.readPackedUInt30(),
+            (_) => reader.readPackedUInt30(),
+          )
         : null;
     final ObjectHandle returnType = reader.readPackedObject();
     final nativeName = ((flags & isNativeFlag) != 0)
         ? reader.readPackedObject<ObjectHandle>()
         : null;
-    final code =
-        ((flags & isAbstractFlag) == 0) ? reader.readLinkOffset<Code>() : null;
+    final code = ((flags & isAbstractFlag) == 0)
+        ? reader.readLinkOffset<Code>()
+        : null;
     final annotations = ((flags & hasAnnotationsFlag) != 0)
         ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
     return new FunctionDeclaration(
-        flags,
-        name,
-        script,
-        position,
-        endPosition,
-        typeParameters,
-        numRequiredParameters,
-        parameters,
-        parameterFlags,
-        returnType,
-        nativeName,
-        code,
-        annotations);
+      flags,
+      name,
+      script,
+      position,
+      endPosition,
+      typeParameters,
+      numRequiredParameters,
+      parameters,
+      parameterFlags,
+      returnType,
+      nativeName,
+      code,
+      annotations,
+    );
   }
 
   @override
@@ -775,11 +816,19 @@ class TypeParametersDeclaration {
   factory TypeParametersDeclaration.read(BufferedReader reader) {
     final int numTypeParams = reader.readPackedUInt30();
     final names = List<ObjectHandle>.generate(
-        numTypeParams, (_) => reader.readPackedObject());
-    return TypeParametersDeclaration(List<TypeParameterDeclaration>.generate(
+      numTypeParams,
+      (_) => reader.readPackedObject(),
+    );
+    return TypeParametersDeclaration(
+      List<TypeParameterDeclaration>.generate(
         numTypeParams,
         (int i) => TypeParameterDeclaration(
-            names[i], reader.readPackedObject(), reader.readPackedObject())));
+          names[i],
+          reader.readPackedObject(),
+          reader.readPackedObject(),
+        ),
+      ),
+    );
   }
 
   @override
@@ -856,16 +905,17 @@ class Code extends BytecodeDeclaration {
       (hasLocalVariables ? hasLocalVariablesFlag : 0);
 
   Code(
-      this.constantPool,
-      this.bytecodes,
-      this.exceptionsTable,
-      this.sourcePositions,
-      this.localVariables,
-      this.nullableFields,
-      this.closures,
-      this.parameterFlags,
-      this.forwardingStubTargetCpIndex,
-      this.defaultFunctionTypeArgsCpIndex);
+    this.constantPool,
+    this.bytecodes,
+    this.exceptionsTable,
+    this.sourcePositions,
+    this.localVariables,
+    this.nullableFields,
+    this.closures,
+    this.parameterFlags,
+    this.forwardingStubTargetCpIndex,
+    this.defaultFunctionTypeArgsCpIndex,
+  );
 
   void write(BufferedWriter writer) {
     final start = writer.offset;
@@ -911,19 +961,23 @@ class Code extends BytecodeDeclaration {
     int flags = reader.readPackedUInt30();
     final parameterFlags = ((flags & hasParameterFlagsFlag) != 0)
         ? new List<int>.generate(
-            reader.readPackedUInt30(), (_) => reader.readPackedUInt30())
+            reader.readPackedUInt30(),
+            (_) => reader.readPackedUInt30(),
+          )
         : null;
     final forwardingStubTargetCpIndex =
         ((flags & hasForwardingStubTargetFlag) != 0)
-            ? reader.readPackedUInt30()
-            : null;
+        ? reader.readPackedUInt30()
+        : null;
     final defaultFunctionTypeArgsCpIndex =
         ((flags & hasDefaultFunctionTypeArgsFlag) != 0)
-            ? reader.readPackedUInt30()
-            : null;
+        ? reader.readPackedUInt30()
+        : null;
     final List<ClosureDeclaration> closures = ((flags & hasClosuresFlag) != 0)
-        ? new List<ClosureDeclaration>.generate(reader.readPackedUInt30(),
-            (_) => new ClosureDeclaration.read(reader))
+        ? new List<ClosureDeclaration>.generate(
+            reader.readPackedUInt30(),
+            (_) => new ClosureDeclaration.read(reader),
+          )
         : const <ClosureDeclaration>[];
     final ConstantPool constantPool = new ConstantPool.read(reader);
     final Uint8List bytecodes = _readBytecodeInstructions(reader);
@@ -938,35 +992,30 @@ class Code extends BytecodeDeclaration {
         : null;
     final List<ObjectHandle> nullableFields =
         ((flags & hasNullableFieldsFlag) != 0)
-            ? reader.readPackedList<ObjectHandle>()
-            : const <ObjectHandle>[];
+        ? reader.readPackedList<ObjectHandle>()
+        : const <ObjectHandle>[];
     for (var c in closures) {
       c.code = new ClosureCode.read(reader);
     }
     return new Code(
-        constantPool,
-        bytecodes,
-        exceptionsTable,
-        sourcePositions,
-        localVariables,
-        nullableFields,
-        closures,
-        parameterFlags,
-        forwardingStubTargetCpIndex,
-        defaultFunctionTypeArgsCpIndex);
+      constantPool,
+      bytecodes,
+      exceptionsTable,
+      sourcePositions,
+      localVariables,
+      nullableFields,
+      closures,
+      parameterFlags,
+      forwardingStubTargetCpIndex,
+      defaultFunctionTypeArgsCpIndex,
+    );
   }
 
   // TODO(alexmarkov): Consider printing constant pool before bytecode.
   @override
-  String toString() => "Bytecode {\n"
-      "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable, annotations: [
-            hasSourcePositions
-                ? sourcePositions!.getBytecodeAnnotations()
-                : const <int, String>{},
-            hasLocalVariables
-                ? localVariables!.getBytecodeAnnotations()
-                : const <int, String>{}
-          ])}}\n"
+  String toString() =>
+      "Bytecode {\n"
+      "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable, annotations: [hasSourcePositions ? sourcePositions!.getBytecodeAnnotations() : const <int, String>{}, hasLocalVariables ? localVariables!.getBytecodeAnnotations() : const <int, String>{}])}}\n"
       "$exceptionsTable"
       "${nullableFields.isEmpty ? '' : 'Nullable fields: $nullableFields\n'}"
       "${parameterFlags == null ? '' : 'Parameter flags: $parameterFlags\n'}"
@@ -1006,18 +1055,19 @@ class ClosureDeclaration {
   ClosureCode? code;
 
   ClosureDeclaration(
-      this.flags,
-      this.parent,
-      this.name,
-      this.position,
-      this.endPosition,
-      this.typeParameters,
-      this.numRequiredParams,
-      this.numNamedParams,
-      this.parameters,
-      this.parameterFlags,
-      this.returnType,
-      this.annotations);
+    this.flags,
+    this.parent,
+    this.name,
+    this.position,
+    this.endPosition,
+    this.typeParameters,
+    this.numRequiredParams,
+    this.numNamedParams,
+    this.parameters,
+    this.parameterFlags,
+    this.returnType,
+    this.annotations,
+  );
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -1067,10 +1117,11 @@ class ClosureDeclaration {
         : TreeNode.noOffset;
     final TypeParametersDeclaration? typeParameters =
         ((flags & hasTypeParamsFlag) != 0)
-            ? TypeParametersDeclaration.read(reader)
-            : null;
+        ? TypeParametersDeclaration.read(reader)
+        : null;
     final numParams = reader.readPackedUInt30();
-    final numRequiredParams = (flags &
+    final numRequiredParams =
+        (flags &
                 (hasOptionalPositionalParamsFlag |
                     hasOptionalNamedParamsFlag) !=
             0)
@@ -1080,36 +1131,43 @@ class ClosureDeclaration {
         ? (numParams - numRequiredParams)
         : 0;
     final List<NameAndType> parameters = new List<NameAndType>.generate(
-        numParams,
-        (_) => new NameAndType(
-            reader.readPackedObject(), reader.readPackedObject()));
+      numParams,
+      (_) =>
+          new NameAndType(reader.readPackedObject(), reader.readPackedObject()),
+    );
     List<int>? parameterFlags;
     if ((flags & hasParameterFlagsFlag) != 0) {
       final int numParameterFlags = reader.readPackedUInt30();
       parameterFlags = List<int>.generate(
-          numParameterFlags, (_) => reader.readPackedUInt30());
+        numParameterFlags,
+        (_) => reader.readPackedUInt30(),
+      );
     }
     final ObjectHandle returnType = reader.readPackedObject();
     final annotations = ((flags & hasAnnotationsFlag) != 0)
         ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
     return new ClosureDeclaration(
-        flags,
-        parent,
-        name,
-        position,
-        endPosition,
-        typeParameters,
-        numRequiredParams,
-        numNamedParams,
-        parameters,
-        parameterFlags,
-        returnType,
-        annotations);
+      flags,
+      parent,
+      name,
+      position,
+      endPosition,
+      typeParameters,
+      numRequiredParams,
+      numNamedParams,
+      parameters,
+      parameterFlags,
+      returnType,
+      annotations,
+    );
   }
 
   void _writeParamsToBuffer(
-      StringBuffer sb, List<NameAndType> params, List<int>? flags) {
+    StringBuffer sb,
+    List<NameAndType> params,
+    List<int>? flags,
+  ) {
     assert(flags == null || (params.length == flags.length));
     for (int i = 0; i < params.length; i++) {
       if (i != 0) {
@@ -1156,7 +1214,10 @@ class ClosureDeclaration {
       }
       sb.write(numNamedParams > 0 ? '{ ' : '[ ');
       _writeParamsToBuffer(
-          sb, parameters.sublist(numRequiredParams), parameterFlags);
+        sb,
+        parameters.sublist(numRequiredParams),
+        parameterFlags,
+      );
       sb.write(numNamedParams > 0 ? ' }' : ' ]');
     }
     sb.write(') -> ');
@@ -1197,12 +1258,13 @@ class ClosureCode {
       (hasLocalFunctionId ? hasLocalFunctionIdFlag : 0);
 
   ClosureCode(
-      this.bytecodes,
-      this.exceptionsTable,
-      this.sourcePositions,
-      this.localVariables,
-      this.capturesOnlyFinalNotLateVars,
-      this.localFunctionId);
+    this.bytecodes,
+    this.exceptionsTable,
+    this.sourcePositions,
+    this.localVariables,
+    this.capturesOnlyFinalNotLateVars,
+    this.localFunctionId,
+  );
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -1239,23 +1301,34 @@ class ClosureCode {
     final capturesOnlyFinalNotLateVars =
         (flags & capturesOnlyFinalNotLateVarsFlag) != 0;
 
-    return new ClosureCode(bytecodes, exceptionsTable, sourcePositions,
-        localVariables, capturesOnlyFinalNotLateVars, localFunctionId);
+    return new ClosureCode(
+      bytecodes,
+      exceptionsTable,
+      sourcePositions,
+      localVariables,
+      capturesOnlyFinalNotLateVars,
+      localFunctionId,
+    );
   }
 
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.writeln('ClosureCode {');
-    sb.write(new BytecodeDisassembler()
-        .disassemble(bytecodes, exceptionsTable, annotations: [
-      hasSourcePositions
-          ? sourcePositions!.getBytecodeAnnotations()
-          : const <int, String>{},
-      hasLocalVariables
-          ? localVariables!.getBytecodeAnnotations()
-          : const <int, String>{}
-    ]));
+    sb.write(
+      new BytecodeDisassembler().disassemble(
+        bytecodes,
+        exceptionsTable,
+        annotations: [
+          hasSourcePositions
+              ? sourcePositions!.getBytecodeAnnotations()
+              : const <int, String>{},
+          hasLocalVariables
+              ? localVariables!.getBytecodeAnnotations()
+              : const <int, String>{},
+        ],
+      ),
+    );
     sb.writeln('}');
     return sb.toString();
   }
@@ -1311,8 +1384,8 @@ class Component {
   ObjectHandle? dynModuleEntryPoint;
 
   Component(CoreTypes coreTypes)
-      : stringTable = new StringTable(),
-        objectTable = new ObjectTable(coreTypes);
+    : stringTable = new StringTable(),
+      objectTable = new ObjectTable(coreTypes);
 
   void write(BufferedWriter writer) {
     objectTable.allocateIndexTable();

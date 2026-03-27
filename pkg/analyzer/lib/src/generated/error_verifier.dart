@@ -2504,6 +2504,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.report(
         code.withArguments(name: token.lexeme).at(token),
       );
+      return;
+    }
+
+    if (_featureSet.isEnabled(Feature.variance)) {
+      if (token.keyword == Keyword.INOUT || token.keyword == Keyword.OUT) {
+        diagnosticReporter.report(
+          code.withArguments(name: token.lexeme).at(token),
+        );
+      }
     }
   }
 
@@ -2961,14 +2970,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var superInitializerCount = 0;
     late SuperConstructorInvocation superInitializer;
     for (ConstructorInitializer initializer in declaration.initializers) {
-      if (initializer is RedirectingConstructorInvocation) {
+      if (initializer case RedirectingConstructorInvocation invocation) {
         if (redirectingInitializerCount > 0) {
           diagnosticReporter.report(
-            diag.multipleRedirectingConstructorInvocations.at(initializer),
+            diag.multipleRedirectingConstructorInvocations.at(invocation),
           );
         }
         if (declaration.factoryKeyword == null) {
-          RedirectingConstructorInvocation invocation = initializer;
           var redirectingElement = invocation.element;
           if (redirectingElement == null) {
             String enclosingNamedType = enclosingClass.displayName;
@@ -2988,7 +2996,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (redirectingElement.isFactory) {
               diagnosticReporter.report(
                 diag.redirectGenerativeToNonGenerativeConstructor.at(
-                  initializer,
+                  invocation,
                 ),
               );
             }
@@ -2998,8 +3006,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // initializer.
         _checkForRedirectToNonConstConstructor(
           declaration.declaredFragment!.element,
-          initializer.element,
-          initializer.constructorName ?? initializer.thisKeyword,
+          invocation.element,
+          invocation.constructorName ?? invocation.thisKeyword,
         );
         redirectingInitializerCount++;
       } else if (initializer is SuperConstructorInvocation) {

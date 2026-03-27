@@ -11,18 +11,19 @@ class StringMatch implements Match {
   const StringMatch(this.start, this.input, this.pattern);
 
   int get end => start + pattern.length;
-  String operator [](int g) => group(g);
-  int get groupCount => 0;
-
-  String group(int group) {
-    IndexErrorUtils.checkIndex(group, 1);
+  String operator [](int g) {
+    IndexErrorUtils.checkIndex(g, 1);
     return pattern;
   }
+
+  int get groupCount => 0;
+
+  String group(int group) => this[group];
 
   List<String> groups(List<int> groups) {
     List<String> result = <String>[];
     for (int g in groups) {
-      result.add(group(g));
+      result.add(this[g]);
     }
     return result;
   }

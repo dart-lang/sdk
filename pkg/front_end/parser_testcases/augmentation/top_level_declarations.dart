@@ -13,6 +13,4 @@ augment late final field;
 augment late int field;
 augment class Class {}
 augment abstract class Class {}
-augment class Class = Object with Mixin;
-augment abstract class Class = Object with Mixin;
 augment mixin Mixin {}

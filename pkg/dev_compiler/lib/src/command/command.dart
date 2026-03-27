@@ -1186,7 +1186,7 @@ Map<String, Object?> placeSourceMap(
         // The source location is part of a different package.
         var match = _crossPackageLib.matchAsPrefix(relativeUriPath);
         if (match != null) {
-          var crossPackageName = match.group(1);
+          var crossPackageName = match[1];
           return relativeUriPath.replaceFirst(
             '../../$crossPackageName/lib/',
             '../$crossPackageName/',

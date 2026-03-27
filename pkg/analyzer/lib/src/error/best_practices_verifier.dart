@@ -1000,7 +1000,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       libraryExport,
     );
     exportNamespace.definedNames2.forEach((String name, Element element) {
-      if (element.metadata.hasInternal) {
+      if (element.isInternal) {
         _diagnosticReporter.report(
           diag.invalidExportOfInternalElement
               .withArguments(name: element.displayName)

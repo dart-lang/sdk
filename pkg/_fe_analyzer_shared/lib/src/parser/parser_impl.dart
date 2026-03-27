@@ -1460,6 +1460,9 @@ class Parser {
   /// ```
   Token parseTypedef(Token? augmentToken, Token typedefKeyword) {
     assert(typedefKeyword.isA(Keyword.TYPEDEF));
+    if (augmentToken != null) {
+      reportRecoverableError(augmentToken, diag.typedefAugmentation);
+    }
     listener.beginUncategorizedTopLevelDeclaration(typedefKeyword);
     listener.beginTypedef(typedefKeyword);
     TypeInfo typeInfo = computeType(typedefKeyword, /* required = */ false);
@@ -2608,7 +2611,7 @@ class Parser {
       enumKeyword,
       nameToken,
     );
-    token = parsePrimaryConstructorOpt(token, constToken, false);
+    token = parsePrimaryConstructorOpt(DeclarationKind.Enum, token, constToken);
     token = parseEnumHeaderOpt(token, enumKeyword);
     Token leftBrace = token.next!;
     int elementCount = 0;
@@ -2978,6 +2981,12 @@ class Parser {
       if (constToken != null) {
         reportRecoverableError(constToken, diag.constWithoutPrimaryConstructor);
       }
+      if (augmentToken != null) {
+        reportRecoverableError(
+          augmentToken,
+          diag.mixinApplicationClassAugmentation,
+        );
+      }
       listener.beginNamedMixinApplication(
         beginToken,
         abstractToken,
@@ -3075,9 +3084,9 @@ class Parser {
   ) {
     Token start = token;
     token = parsePrimaryConstructorOpt(
+      DeclarationKind.Class,
       token,
       constToken,
-      /* forExtensionType = */ false,
     );
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
     if (token.next!.isA(TokenType.SEMICOLON)) {
@@ -3697,9 +3706,9 @@ class Parser {
   }
 
   Token parsePrimaryConstructorOpt(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {
     if (token.next!.isA(TokenType.OPEN_PAREN) ||
         token.next!.isA(TokenType.PERIOD)) {
@@ -3715,7 +3724,7 @@ class Parser {
       if (token.next!.isA(TokenType.OPEN_PAREN)) {
         token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
       } else {
-        if (forExtensionType) {
+        if (kind == DeclarationKind.ExtensionType) {
           reportRecoverableError(
             token,
             diag.missingPrimaryConstructorParameters,
@@ -3724,13 +3733,13 @@ class Parser {
         listener.handleNoFormalParameters(token, MemberKind.PrimaryConstructor);
       }
       listener.endPrimaryConstructor(
+        kind,
         beginPrimaryConstructor,
         constKeyword,
         hasConstructorName,
-        forExtensionType,
       );
     } else {
-      if (forExtensionType) {
+      if (kind == DeclarationKind.ExtensionType) {
         reportRecoverableError(token, diag.missingPrimaryConstructor);
       } else if (constKeyword != null) {
         // TODO(johnniwinther): It should be possible to report if the
@@ -3740,11 +3749,7 @@ class Parser {
           diag.constWithoutPrimaryConstructor,
         );
       }
-      listener.handleNoPrimaryConstructor(
-        token,
-        constKeyword,
-        forExtensionType,
-      );
+      listener.handleNoPrimaryConstructor(kind, token, constKeyword);
     }
     return token;
   }
@@ -3813,9 +3818,9 @@ class Parser {
       name,
     );
     token = parsePrimaryConstructorOpt(
+      DeclarationKind.ExtensionType,
       token,
       constKeyword,
-      /* forExtensionType = */ true,
     );
     Token start = token;
     token = parseClassOrMixinOrEnumImplementsOpt(token);

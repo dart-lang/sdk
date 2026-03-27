@@ -210,6 +210,37 @@ void f() {
     expect(diagnostic.relatedInformation, hasLength(1));
   }
 
+  Future<void> test_contextMessage_unnamedElement_issue62955() async {
+    var code = TestCode.parseNormalized('''
+void main() {
+  [].named;
+}
+
+/*[0*//*0]*/extension<T> on List<T> {
+  Iterable<T> get named => throw 0;
+}
+
+/*[1*//*1]*/extension<T> on List<T> {
+  T? named(String? name) => throw 0;
+}
+''');
+    newFile(mainFilePath, code.code);
+
+    var diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize();
+    var diagnostics = await diagnosticsUpdate;
+    var diagnostic = diagnostics!.singleWhere(
+      (diagnostic) => diagnostic.code == 'ambiguous_extension_member_access',
+    );
+
+    expect(diagnostic.relatedInformation, hasLength(2));
+    var [related1, related2] = diagnostic.relatedInformation!;
+    expect(related1.message, contains('<unnamed extension> is defined in'));
+    expect(related1.location.range, code.ranges[0].range);
+    expect(related2.message, contains('<unnamed extension> is defined in'));
+    expect(related2.location.range, code.ranges[1].range);
+  }
+
   Future<void> test_correction() async {
     newFile(mainFilePath, '''
 void f() {
@@ -820,8 +851,10 @@ analyzer:
     await initialAnalysis;
     expect(diagnostics[mainFileUri], isNull);
 
-    await updateConfig({'showTodos': true});
-    await waitForAnalysisComplete();
+    await Future.wait([
+      updateConfig({'showTodos': true}),
+      waitForAnalysisComplete(),
+    ]);
     expect(diagnostics[mainFileUri], hasLength(1));
   }
 

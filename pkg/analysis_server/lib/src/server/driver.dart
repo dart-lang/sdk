@@ -344,7 +344,10 @@ class Driver implements ServerStarter {
     // Initialize the session logging service.
     var sessionLogFilePath = results.option(sessionLogOption);
     _sessionLogger = SessionLogger(filePath: sessionLogFilePath);
-    _sessionLogger.normalizer.addReplacement(defaultSdkPath, '{{dartSdkRoot}}');
+    _sessionLogger.normalizer.addPathReplacement(
+      defaultSdkPath,
+      '{{dartSdkRoot}}',
+    );
     _sessionLogger.logCommandLine(arguments: arguments);
 
     int? diagnosticServerPort;

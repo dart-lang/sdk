@@ -549,6 +549,7 @@ downloaded
 downloading
 dq
 dquote
+draft
 drawn
 ds
 dsdk
@@ -579,6 +580,7 @@ efficiently
 ei
 eight
 eighth
+elaborated
 elected
 elem
 eliminating
@@ -781,6 +783,7 @@ glyph
 gn
 gobble
 goldens
+googleapis
 googlesource
 goto
 gotos

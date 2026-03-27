@@ -30,8 +30,8 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: const
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: const
       name: a
     rightParenthesis: )
   body: EmptyFunctionBody
@@ -54,8 +54,8 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: final
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: final
       name: a
     rightParenthesis: )
   body: EmptyFunctionBody
@@ -79,8 +79,8 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: final
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: final
       name: a
     rightParenthesis: )
   body: EmptyFunctionBody
@@ -103,8 +103,8 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: var
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
       name: a
     rightParenthesis: )
   body: EmptyFunctionBody
@@ -128,8 +128,8 @@ ConstructorDeclaration
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: var
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
       name: a
     rightParenthesis: )
   body: EmptyFunctionBody
@@ -153,7 +153,7 @@ ConstructorDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SuperFormalParameter
-      keyword: const
+      constFinalOrVarKeyword: const
       superKeyword: super
       period: .
       name: a
@@ -179,7 +179,7 @@ ConstructorDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SuperFormalParameter
-      keyword: final
+      constFinalOrVarKeyword: final
       superKeyword: super
       period: .
       name: a
@@ -205,7 +205,7 @@ ConstructorDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SuperFormalParameter
-      keyword: var
+      constFinalOrVarKeyword: var
       superKeyword: super
       period: .
       name: a
@@ -232,12 +232,11 @@ MethodDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        keyword: final
-        type: NamedType
-          name: int
-        name: a
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: final
+      type: NamedType
+        name: int
+      name: a
     rightDelimiter: }
     rightParenthesis: )
   body: BlockFunctionBody
@@ -267,12 +266,11 @@ MethodDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        keyword: var
-        type: NamedType
-          name: int
-        name: a
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
+      type: NamedType
+        name: int
+      name: a
     rightDelimiter: }
     rightParenthesis: )
   body: BlockFunctionBody
@@ -299,10 +297,9 @@ MethodDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        keyword: var
-        name: a
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
+      name: a
     rightDelimiter: }
     rightParenthesis: )
   body: BlockFunctionBody
@@ -329,12 +326,11 @@ MethodDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        keyword: final
-        type: NamedType
-          name: int
-        name: a
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: final
+      type: NamedType
+        name: int
+      name: a
     rightDelimiter: ]
     rightParenthesis: )
   body: BlockFunctionBody
@@ -364,12 +360,11 @@ MethodDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        keyword: var
-        type: NamedType
-          name: int
-        name: a
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
+      type: NamedType
+        name: int
+      name: a
     rightDelimiter: ]
     rightParenthesis: )
   body: BlockFunctionBody
@@ -396,10 +391,9 @@ MethodDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        keyword: var
-        name: a
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
+      name: a
     rightDelimiter: ]
     rightParenthesis: )
   body: BlockFunctionBody
@@ -426,13 +420,12 @@ MethodDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        requiredKeyword: required
-        keyword: final
-        type: NamedType
-          name: int
-        name: a
+    parameter: RegularFormalParameter
+      requiredKeyword: required
+      constFinalOrVarKeyword: final
+      type: NamedType
+        name: int
+      name: a
     rightDelimiter: }
     rightParenthesis: )
   body: BlockFunctionBody
@@ -462,13 +455,12 @@ MethodDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        requiredKeyword: required
-        keyword: var
-        type: NamedType
-          name: int
-        name: a
+    parameter: RegularFormalParameter
+      requiredKeyword: required
+      constFinalOrVarKeyword: var
+      type: NamedType
+        name: int
+      name: a
     rightDelimiter: }
     rightParenthesis: )
   body: BlockFunctionBody
@@ -495,11 +487,10 @@ MethodDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
-    parameter: DefaultFormalParameter
-      parameter: SimpleFormalParameter
-        requiredKeyword: required
-        keyword: var
-        name: a
+    parameter: RegularFormalParameter
+      requiredKeyword: required
+      constFinalOrVarKeyword: var
+      name: a
     rightDelimiter: }
     rightParenthesis: )
   body: BlockFunctionBody
@@ -525,8 +516,8 @@ MethodDeclaration
   name: foo
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: final
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: final
       type: NamedType
         name: int
       name: a
@@ -557,8 +548,8 @@ MethodDeclaration
   name: foo
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: var
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
       type: NamedType
         name: int
       name: a
@@ -586,8 +577,8 @@ MethodDeclaration
   name: foo
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: var
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
       name: a
     rightParenthesis: )
   body: BlockFunctionBody
@@ -610,8 +601,8 @@ void f() {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: final
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: final
       name: value
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -634,8 +625,8 @@ void f() {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
-      keyword: var
+    parameter: RegularFormalParameter
+      constFinalOrVarKeyword: var
       name: value
     rightParenthesis: )
   body: ExpressionFunctionBody

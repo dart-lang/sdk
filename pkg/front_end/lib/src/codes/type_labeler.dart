@@ -269,8 +269,12 @@ class TypeLabeler
           // Coverage-ignore-block(suite): Not run.
           result.add(", ");
         }
-        node.namedParameters[i].type.accept(this);
-        result.add(" ${node.namedParameters[i].name}");
+        NamedType namedParameter = node.namedParameters[i];
+        if (namedParameter.isRequired) {
+          result.add("required ");
+        }
+        namedParameter.type.accept(this);
+        result.add(" ${namedParameter.name}");
         first = false;
       }
       result.add("}");

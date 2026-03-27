@@ -17,7 +17,7 @@ library kernel.text_reader;
 //
 // We use an iterator to read S-expressions.  The iterator produces a stream
 // of atoms (strings) and nested iterators (S-lists).
-class TextIterator implements Iterator<Object? /* String? | TextIterator? */ > {
+class TextIterator implements Iterator<Object? /* String? | TextIterator? */> {
   static final int space = ' '.codeUnitAt(0);
   static final int lparen = '('.codeUnitAt(0);
   static final int rparen = ')'.codeUnitAt(0);

@@ -1082,6 +1082,8 @@ missing_required_argument:
   status: hasFix
 missing_variable_pattern:
   status: noFix
+mixin_application_class_augmentation:
+  status: noFix
 mixin_application_concrete_super_invoked_member_type:
   status: needsFix
   notes: |-
@@ -3284,6 +3286,8 @@ type_parameter_on_operator:
   status: needsFix
   notes: |-
     Remove the type parameters.
+typedef_augmentation:
+  status: noFix
 typedef_in_class:
   status: needsFix
   notes: |-

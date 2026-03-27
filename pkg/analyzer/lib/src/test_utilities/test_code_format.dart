@@ -87,7 +87,7 @@ class TestCode {
     var rangeEndOffsets = <int, int>{};
     late int start;
 
-    int scannedNumber() => int.parse(scanner.lastMatch!.group(1)!);
+    int scannedNumber() => int.parse(scanner.lastMatch![1]!);
 
     void recordPosition(int number) {
       if (positionOffsets.containsKey(number)) {

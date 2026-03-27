@@ -11,6 +11,7 @@ import 'dart:core' hide Type;
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:collection/collection.dart';
+import 'package:test/test.dart';
 
 /// Surrounds [s] with parentheses if [condition] is `true`, otherwise returns
 /// [s] unchanged.
@@ -962,15 +963,15 @@ class TypeParameter extends TypeNameInfo implements SharedTypeParameter {
   }
 
   @override
-  String toString() => name;
-
-  @override
   // TODO(paulberry): Implement isLegacyCovariant.
   bool get isLegacyCovariant => true;
 
   @override
   // TODO(paulberry): Implement variance.
   Variance get variance => Variance.covariant;
+
+  @override
+  String toString() => name;
 }
 
 /// Representation of a type parameter type suitable for unit testing of code in
@@ -1244,6 +1245,50 @@ class TypeSystem {
     List<Type> Function(List<Type>) template,
   ) {
     _superInterfaceTemplates[className] = template;
+  }
+
+  /// If [t] derives a future type `F` (as defined in the "Function Expressions"
+  /// section of the language spec), returns `F`. Otherwise returns `null`.
+  Type? derivedFutureType(Type t) {
+    // (Note: comments below are pulled from the definition of "derives a future
+    // type" in the "Function Expressions" section of the language spec.)
+
+    // We say that a type T derives a future type F in the following cases,
+    // using the first applicable case:
+    // - If T is a type which is introduced by a class, mixin, or enum
+    //   declaration, and if T or a direct or indirect superinterface of T is
+    //   Future<U> for some U, then T derives the future type Future<U>.
+    if (t case PrimaryType(isInterfaceType: true, isQuestionType: false)) {
+      for (var f in [t, ..._getSuperInterfaces(t)]) {
+        if (f case PrimaryType(nameInfo: TypeNameInfo(name: 'Future'))) {
+          return f;
+        }
+      }
+    }
+
+    // - If T is the type FutureOr<U> for some U, then T derives the future type
+    //   FutureOr<U>.
+    if (t is FutureOrType) {
+      return t;
+    }
+
+    // - If T is S? for some S, and S derives the future type F, then T derives
+    //   the future type F?.
+    if (t.isQuestionType) {
+      if (derivedFutureType(t.asQuestionType(false)) case var f?) {
+        return f.asQuestionType(true);
+      }
+    }
+
+    // - If T is a type variable with bound B, and B derives the future type F,
+    //   then T derives the future type F.
+    if (t case TypeParameterType(bound: var b)) {
+      if (derivedFutureType(b) case var f?) {
+        return f;
+      }
+    }
+
+    return null;
   }
 
   Type factor(Type t, Type s) {
@@ -1551,12 +1596,7 @@ class TypeSystem {
     // Super-Interface: T0 is an interface type with super-interfaces S0,...Sn
     bool isSuperInterfaceSubtype() {
       if (t0 is! PrimaryType) return false;
-      var superInterfaceTemplate = _superInterfaceTemplates[t0.name];
-      if (superInterfaceTemplate == null) {
-        assert(false, 'Superinterfaces for $t0 not known');
-        return false;
-      }
-      var superInterfaces = superInterfaceTemplate(t0.args);
+      var superInterfaces = _getSuperInterfaces(t0);
 
       // - and Si <: T1 for some i
       for (var superInterface in superInterfaces) {
@@ -1726,6 +1766,14 @@ class TypeSystem {
     if (isRecordSubtype()) return true;
 
     return false;
+  }
+
+  List<Type> _getSuperInterfaces(PrimaryType t) {
+    var superInterfaceTemplate = _superInterfaceTemplates[t.name];
+    if (superInterfaceTemplate == null) {
+      fail('Superinterfaces for $t not known');
+    }
+    return superInterfaceTemplate(t.args);
   }
 
   bool _isTop(Type t) {

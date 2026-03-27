@@ -348,9 +348,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertTypeDynamic(Object? typeOrExpression) {
     DartType? actual;
-    if (typeOrExpression is DartType?) {
+    if (typeOrExpression case DartType? type) {
       actual = typeOrExpression;
-      var type = typeOrExpression;
       expect(type, isDynamicType);
     } else {
       actual = (typeOrExpression as Expression).staticType;

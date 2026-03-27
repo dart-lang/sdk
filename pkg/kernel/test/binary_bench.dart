@@ -13,7 +13,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-final usage = '''
+final usage =
+    '''
 Usage: binary_bench.dart [--golem|--raw] <Benchmark> <SourceDill>
 
 Benchmark can be one of: ${benchmarks.keys.join(', ')}
@@ -62,8 +63,10 @@ void _benchmarkAstFromBinary(Uint8List bytes, {bool eager = true}) {
   }
   final warmupUs = sw.elapsedMicroseconds / warmupIterations;
 
-  final runsUs =
-      new List<int>.filled(benchmarkIterations, /* dummy value = */ 0);
+  final runsUs = new List<int>.filled(
+    benchmarkIterations,
+    /* dummy value = */ 0,
+  );
   for (var i = 0; i < benchmarkIterations; i++) {
     sw.reset();
     _fromBinary(bytes, eager: eager);
@@ -71,8 +74,12 @@ void _benchmarkAstFromBinary(Uint8List bytes, {bool eager = true}) {
   }
 
   final nameSuffix = eager ? 'Eager' : 'Lazy';
-  new BenchmarkResult('AstFromBinary${nameSuffix}', coldRunUs, warmupUs, runsUs)
-      .report();
+  new BenchmarkResult(
+    'AstFromBinary${nameSuffix}',
+    coldRunUs,
+    warmupUs,
+    runsUs,
+  ).report();
 }
 
 void _benchmarkAstToBinary(Uint8List bytes) {
@@ -87,8 +94,10 @@ void _benchmarkAstToBinary(Uint8List bytes) {
   }
   final warmupUs = sw.elapsedMicroseconds / warmupIterations;
 
-  final runsUs =
-      new List<int>.filled(benchmarkIterations, /* dummy value = */ 0);
+  final runsUs = new List<int>.filled(
+    benchmarkIterations,
+    /* dummy value = */ 0,
+  );
   for (var i = 0; i < benchmarkIterations; i++) {
     sw.reset();
     _toBinary(p);
@@ -117,8 +126,9 @@ class BenchmarkResult {
     final avg = sum / runsUs.length;
     final min = runsUs.first;
     final max = runsUs.last;
-    final std =
-        sqrt(runsUs.map((v) => pow(v - avg, 2)).reduce(add) / runsUs.length);
+    final std = sqrt(
+      runsUs.map((v) => pow(v - avg, 2)).reduce(add) / runsUs.length,
+    );
 
     if (forGolem) {
       print('${name}(RunTimeRaw): ${avg} us.');
@@ -173,8 +183,11 @@ bool _parseArgs(List<String> args) {
 
 Component _fromBinary(Uint8List bytes, {eager = true}) {
   var component = new Component();
-  new BinaryBuilder(bytes, filename: 'filename', disableLazyReading: eager)
-      .readSingleFileComponent(component);
+  new BinaryBuilder(
+    bytes,
+    filename: 'filename',
+    disableLazyReading: eager,
+  ).readSingleFileComponent(component);
   return component;
 }
 

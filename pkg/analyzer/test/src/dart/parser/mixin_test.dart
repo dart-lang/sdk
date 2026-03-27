@@ -6,15 +6,63 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinDeclarationParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MixinDeclarationParserTest extends ParserDiagnosticsTest {
+  test_augment_implementsClause() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M implements B {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: B
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_typeParameters_withBound() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M<T extends int> {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: int
+    rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_blockBody_constructor_named() {
     var parseResult = parseStringWithErrors(r'''
 mixin A {
@@ -171,7 +219,7 @@ MixinDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
-          parameter: SimpleFormalParameter
+          parameter: RegularFormalParameter
             type: NamedType
               name: int
             name: _
@@ -216,6 +264,354 @@ MixinDeclaration
   name: M
   body: EmptyClassBody
     semicolon: ;
+''');
+  }
+
+  test_field_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M {
+  augment int x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_field_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M {
+  augment static int x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_field_augment_static_final() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M {
+  augment static final int x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: final
+          type: NamedType
+            name: int
+          variables
+            VariableDeclaration
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_getter_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M {
+  augment int get foo => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        propertyKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_getter_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M {
+  augment static int get foo => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        returnType: NamedType
+          name: int
+        propertyKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_method_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M {
+  augment void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_method_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M {
+  augment static void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_nameWithTypeParameters_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M<T> {}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_operator_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M {
+  augment int operator+(int other) => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        operatorKeyword: operator
+        name: +
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: other
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_setter_augment() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M {
+  augment set foo(int x) {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_setter_augment_static() {
+    var parseResult = parseStringWithErrors(r'''
+augment mixin M {
+  augment static set foo(int x) {}
+}
+''');
+    parseResult.assertNoErrors();
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+            name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
 ''');
   }
 }

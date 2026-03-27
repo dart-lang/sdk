@@ -50,7 +50,7 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: T
             element: #E0 T
@@ -59,7 +59,7 @@ FunctionDeclarationStatement
           declaredFragment: <testLibraryFragment> a@25
             element: isPublic
               type: T
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: U
             element: #E1 U
@@ -134,7 +134,7 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: T
             element: #E1 T
@@ -143,7 +143,7 @@ FunctionDeclarationStatement
           declaredFragment: <testLibraryFragment> x@51
             element: isPublic
               type: T
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: U
             element: #E0 U
@@ -152,7 +152,7 @@ FunctionDeclarationStatement
           declaredFragment: <testLibraryFragment> y@56
             element: isPublic
               type: U
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: V
             element: #E2 V
@@ -207,17 +207,13 @@ FunctionDeclarationStatement
       parameters: FormalParameterList
         leftParenthesis: (
         leftDelimiter: {
-        parameter: DefaultFormalParameter
-          parameter: SimpleFormalParameter
-            type: NamedType
-              name: T
-              question: ?
-              element: #E0 T
-              type: T?
-            name: a
-            declaredFragment: <testLibraryFragment> a@27
-              element: isPublic
-                type: T?
+        parameter: RegularFormalParameter
+          type: NamedType
+            name: T
+            question: ?
+            element: #E0 T
+            type: T?
+          name: a
           declaredFragment: <testLibraryFragment> a@27
             element: isPublic
               type: T?
@@ -268,17 +264,13 @@ FunctionDeclarationStatement
       parameters: FormalParameterList
         leftParenthesis: (
         leftDelimiter: [
-        parameter: DefaultFormalParameter
-          parameter: SimpleFormalParameter
-            type: NamedType
-              name: T
-              question: ?
-              element: #E0 T
-              type: T?
-            name: a
-            declaredFragment: <testLibraryFragment> a@27
-              element: isPublic
-                type: T?
+        parameter: RegularFormalParameter
+          type: NamedType
+            name: T
+            question: ?
+            element: #E0 T
+            type: T?
+          name: a
           declaredFragment: <testLibraryFragment> a@27
             element: isPublic
               type: T?
@@ -329,18 +321,14 @@ FunctionDeclarationStatement
       parameters: FormalParameterList
         leftParenthesis: (
         leftDelimiter: {
-        parameter: DefaultFormalParameter
-          parameter: SimpleFormalParameter
-            requiredKeyword: required
-            type: NamedType
-              name: T
-              question: ?
-              element: #E0 T
-              type: T?
-            name: a
-            declaredFragment: <testLibraryFragment> a@36
-              element: isPublic
-                type: T?
+        parameter: RegularFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: T
+            question: ?
+            element: #E0 T
+            type: T?
+          name: a
           declaredFragment: <testLibraryFragment> a@36
             element: isPublic
               type: T?
@@ -390,7 +378,7 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: T
             element: #E0 T
