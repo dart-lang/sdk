@@ -64,8 +64,8 @@ class CommandLineOptions {
  public:
   explicit CommandLineOptions(int max_count)
       : count_(0), max_count_(max_count), arguments_(nullptr) {
-    const int kWordSize = sizeof(intptr_t);
-    arguments_ = reinterpret_cast<const char**>(malloc(max_count * kWordSize));
+    arguments_ =
+        reinterpret_cast<const char**>(malloc(max_count * sizeof(const char*)));
     if (arguments_ == nullptr) {
       max_count_ = 0;
     }
@@ -101,6 +101,17 @@ class CommandLineOptions {
     }
     for (int i = 0; i < argc; ++i) {
       arguments_[count_++] = argv[i];
+    }
+  }
+
+  void EnsureCapacity(int max_count) {
+    if (max_count > max_count_) {
+      max_count_ = max_count;
+      arguments_ = reinterpret_cast<const char**>(
+          realloc(arguments_, max_count * sizeof(const char*)));
+      if (arguments_ == nullptr) {
+        max_count_ = 0;
+      }
     }
   }
 

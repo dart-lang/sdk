@@ -369,7 +369,7 @@ void Options::DestroyEnvironment() {
   }
 }
 
-char** Options::GetEnvArguments(int* argc) {
+char** Options::GetEnvArguments(const char* executable_name, int* argc) {
   return nullptr;
 }
 
