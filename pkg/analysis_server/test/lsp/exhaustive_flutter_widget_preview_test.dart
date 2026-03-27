@@ -323,10 +323,7 @@ Widget partPreview() => Text('Part');
     expect(result.previews.map((p) => p.libraryUri.toString()).toSet(), {
       'package:test/main.dart',
     });
-    expect(result.scriptUris.map((e) => e.toString()), [
-      'file:///home/my_project/lib/main.dart',
-      'file:///home/my_project/lib/part.dart',
-    ]);
+    expect(result.scriptUris, [toUri(mainPath), toUri(partPath)]);
   }
 
   Future<void> test_pubWorkspace() async {

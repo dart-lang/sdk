@@ -201,6 +201,22 @@ void f() async {
 ''');
   }
 
+  Future<void> test_assigned_inAssignment_functionCall() async {
+    await resolveTestCode(r'''
+void f() {
+  var v = 1;
+  v = (v = g());
+}
+int g() => 1;
+''');
+    await assertHasFix(r'''
+void f() {
+  g();
+}
+int g() => 1;
+''');
+  }
+
   Future<void> test_assigned_inAssignment_functionExpressionInvocation() async {
     await resolveTestCode(r'''
 void f() {
@@ -229,11 +245,62 @@ void f() {
 ''');
   }
 
+  Future<void> test_assigned_inAssignment_otherVariable() async {
+    await resolveTestCode(r'''
+void f() {
+  var v = 1;
+  var x = 0;
+  v = (x = g());
+  print(x);
+}
+int g() => 1;
+''');
+    await assertHasFix(r'''
+void f() {
+  var x = 0;
+  x = g();
+  print(x);
+}
+int g() => 1;
+''');
+  }
+
+  Future<void> test_assigned_inAssignment_withAs() async {
+    await resolveTestCode(r'''
+List<String> l = [];
+void f(str) {
+  Object v;
+  v = l.remove(str) as Object;
+}
+''');
+    await assertHasFix(r'''
+List<String> l = [];
+void f(str) {
+  l.remove(str);
+}
+''');
+  }
+
   Future<void> test_assigned_inDeclaration() async {
     await resolveTestCode(r'''
 List<String> l = [];
 void f(str) {
   final removed = l.remove(str);
+}
+''');
+    await assertHasFix(r'''
+List<String> l = [];
+void f(str) {
+  l.remove(str);
+}
+''');
+  }
+
+  Future<void> test_assigned_inDeclaration_withAs() async {
+    await resolveTestCode(r'''
+List<String> l = [];
+void f(str) {
+  final removed = l.remove(str) as Object;
 }
 ''');
     await assertHasFix(r'''
