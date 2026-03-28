@@ -312,7 +312,10 @@ class SearchMatchImpl implements SearchMatch {
   }
 
   static SearchMatchImpl forElement(Element element) {
-    var firstFragment = element.firstFragment;
+    // Although we use the element for the result, we use nonSynthetic for
+    // everything related to the location.
+    var nonSynthetic = element.nonSynthetic;
+    var firstFragment = nonSynthetic.firstFragment;
     var libraryFragment = firstFragment.libraryFragment!;
     return SearchMatchImpl(
       libraryFragment.source.fullName,
