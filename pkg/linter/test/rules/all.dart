@@ -233,6 +233,7 @@ import 'remove_deprecations_in_breaking_test.dart'
     as remove_deprecations_in_breaking;
 import 'require_trailing_commas_test.dart' as require_trailing_commas;
 import 'secure_pubspec_urls_test.dart' as secure_pubspec_urls;
+import 'simple_directive_paths_test.dart' as simple_directive_paths;
 import 'simplify_variable_pattern_test.dart' as simplify_variable_pattern;
 import 'sized_box_for_whitespace_test.dart' as sized_box_for_whitespace;
 import 'sized_box_shrink_expand_test.dart' as sized_box_shrink_expand;
@@ -501,6 +502,7 @@ void main() {
   remove_deprecations_in_breaking.main();
   require_trailing_commas.main();
   secure_pubspec_urls.main();
+  simple_directive_paths.main();
   simplify_variable_pattern.main();
   sized_box_for_whitespace.main();
   sized_box_shrink_expand.main();

@@ -11642,6 +11642,66 @@ LinterLintCode:
       ```yaml
       repository: https://github.com/dart-lang/example
       ```
+  simpleDirectivePaths:
+    type: lint
+    parameters: none
+    problemMessage: "Use simple directive paths."
+    correctionMessage: "Try simplifying the directive path."
+    state:
+      stable: "3.12"
+    categories: [style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a directive uses a path that is
+      not simple (for example, a path containing redundant `./` or backtracking
+      `../` segments).
+
+      #### Example
+
+      Given a file named `bar.dart` in the `lib/src` directory:
+
+      ```dart
+      %uri="lib/src/bar.dart"
+      class Bar {}
+      ```
+
+      The following code produces this diagnostic because it uses an
+      unnecessarily complex relative URI:
+
+      ```dart
+      import [!'./src/bar.dart'!];
+
+      void f(Bar b) {}
+      ```
+
+      #### Common fixes
+
+      Use a minimal relative URI:
+
+      ```dart
+      import 'src/bar.dart';
+
+      void f(Bar b) {}
+      ```
+    deprecatedDetails: |-
+      **PREFER** simple directive paths.
+
+      Using simple directive paths (avoiding redundant `./` or backtracking `../`
+      segments) makes the code cleaner, more consistent, and easier to read. It
+      also reduces the risk of confusion when resolving paths relative to the
+      source file.
+
+      **BAD:**
+      ```dart
+      import '../src/bar.dart';
+      ```
+
+      **GOOD:**
+      ```dart
+      import 'bar.dart';
+      ```
   simplifyVariablePattern:
     type: lint
     parameters:
