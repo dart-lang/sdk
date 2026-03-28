@@ -350,7 +350,11 @@ class Search {
     void addElements(InterfaceElement element) {
       element.getters.where((e) => e.isOriginDeclaration).forEach(addElement);
       element.setters.where((e) => e.isOriginDeclaration).forEach(addElement);
-      element.fields.where((e) => e.isOriginDeclaration).forEach(addElement);
+      element.fields
+          .where(
+            (e) => e.isOriginDeclaration || e.isOriginDeclaringFormalParameter,
+          )
+          .forEach(addElement);
       element.methods.forEach(addElement);
     }
 
