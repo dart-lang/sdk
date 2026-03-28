@@ -2761,6 +2761,16 @@ securePubspecUrls = LinterLintTemplate(
   expectedTypes: [ExpectedType.object],
 );
 
+/// No parameters.
+const LinterLintWithoutArguments simpleDirectivePaths =
+    LinterLintWithoutArguments(
+      name: 'simple_directive_paths',
+      problemMessage: "Use simple directive paths.",
+      correctionMessage: "Try simplifying the directive path.",
+      uniqueName: 'simple_directive_paths',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String memberName: The redundant member name.
 /// String memberType: The type of the matched object. Whether a field,

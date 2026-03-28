@@ -2216,6 +2216,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     "Replace with '_' everywhere in file",
   );
+  static const simplifyDirectivePath = FixKind(
+    'dart.fix.simplify.directivePath',
+    DartFixKindPriority.standard,
+    'Simplify the directive path',
+  );
+  static const simplifyDirectivePathMulti = FixKind(
+    'dart.fix.simplify.directivePath.multi',
+    DartFixKindPriority.inFile,
+    'Simplify the directive paths everywhere in file',
+  );
   static const sortChildPropertyLast = FixKind(
     'dart.fix.sort.childPropertyLast',
     DartFixKindPriority.standard,

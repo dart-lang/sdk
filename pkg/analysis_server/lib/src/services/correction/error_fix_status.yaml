@@ -2373,6 +2373,8 @@ remove_deprecations_in_breaking_versions:
     We can implement the fixes indicated in the messages.yaml.
 require_trailing_commas:
   status: hasFix
+simple_directive_paths:
+  status: hasFix
 secure_pubspec_urls:
   status: noFix
 simplify_variable_pattern:

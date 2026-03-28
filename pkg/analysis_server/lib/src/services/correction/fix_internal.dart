@@ -242,6 +242,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_tear_o
 import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_wildcard.dart';
+import 'package:analysis_server/src/services/correction/dart/simplify_directive_path.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
@@ -415,6 +416,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.preferVoidToNull: [ReplaceNullWithVoid.new],
   diag.requireTrailingCommas: [AddTrailingComma.new],
+  diag.simpleDirectivePaths: [SimplifyDirectivePath.new],
   diag.simplifyVariablePattern: [RemoveUnnecessaryName.new],
   diag.sizedBoxForWhitespace: [ReplaceContainerWithSizedBox.new],
   diag.slashForDocComments: [ConvertDocumentationIntoLine.new],
