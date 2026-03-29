@@ -37,6 +37,8 @@ class PreferFinalFields extends AnalysisRule {
 class _DeclarationsCollector extends RecursiveAstVisitor<void> {
   final fields = <FieldElement, VariableDeclaration>{};
 
+  final fieldsFromParameters = <FieldElement, FormalParameter>{};
+
   bool overridesField(FieldElement field) {
     var enclosingElement = field.enclosingElement;
     if (enclosingElement is! InterfaceElement) return false;
@@ -65,15 +67,43 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
       }
     }
   }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    var declaration = node.parent;
+    if (declaration is EnumDeclaration ||
+        declaration is ExtensionTypeDeclaration) {
+      return;
+    }
+
+    for (var parameter in node.formalParameters.parameters) {
+      var element = parameter.declaredFragment?.element;
+      if (element is FieldFormalParameterElement &&
+          element.isDeclaring &&
+          element.name != null &&
+          element.isPrivate) {
+        var field = element.field;
+        if (field != null && !field.isFinal && !overridesField(field)) {
+          fieldsFromParameters[field] = parameter;
+        }
+      }
+    }
+  }
 }
 
 class _FieldMutationFinder extends RecursiveAstVisitor<void> {
-  /// The collection of fields declared in this library.
+  /// The collection of fields explicitly declared in this library.
   ///
   /// This visitor removes a field when it finds that it is assigned anywhere.
   final Map<FieldElement, VariableDeclaration> _fields;
 
-  _FieldMutationFinder(this._fields);
+  /// The collection of fields declared via a declaring parameter in this
+  /// library.
+  ///
+  /// This visitor removes a field when it finds that it is assigned anywhere.
+  final Map<FieldElement, FormalParameter> _fieldsFromParameters;
+
+  _FieldMutationFinder(this._fields, this._fieldsFromParameters);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -103,6 +133,7 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
 
     if (element is FieldElement) {
       _fields.remove(element);
+      _fieldsFromParameters.remove(element);
     }
   }
 }
@@ -119,8 +150,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     var declarationsCollector = _DeclarationsCollector();
     node.accept(declarationsCollector);
     var fields = declarationsCollector.fields;
+    var fieldsFromParameters = declarationsCollector.fieldsFromParameters;
 
-    var fieldMutationFinder = _FieldMutationFinder(fields);
+    var fieldMutationFinder = _FieldMutationFinder(
+      fields,
+      fieldsFromParameters,
+    );
     for (var unit in context.allUnits) {
       unit.unit.accept(fieldMutationFinder);
     }
@@ -152,6 +187,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (field.hasInitializer) {
         rule.reportAtNode(variable, arguments: [variable.name.lexeme]);
       }
+    }
+    for (var MapEntry(value: variable) in fieldsFromParameters.entries) {
+      rule.reportAtNode(variable, arguments: [variable.name!.lexeme]);
     }
   }
 }
