@@ -5049,14 +5049,52 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, result);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
+@override
   ExpressionInferenceResult visitRecordLiteral(
-    RecordLiteral node,
-    DartType typeContext,
-  ) {
-    // TODO(cstefantsova): Implement this method.
-    return new ExpressionInferenceResult(node.recordType, node);
+      RecordLiteral node, DartType typeContext) {
+    // 1. Unpack FutureOr and other wrappers to see if we have a RecordType context
+    DartType schema = typeSchemaEnvironment.unTypeSchema(typeContext);
+    
+    RecordType? recordSchema;
+    if (schema is RecordType) {
+      recordSchema = schema;
+    }
+
+    List<ExpressionInferenceResult> positionalResults = [];
+    for (int i = 0; i < node.positional.length; i++) {
+      // Get the expected type for this specific positional field
+      DartType fieldSchema = (recordSchema != null && i < recordSchema.positional.length)
+          ? recordSchema.positional[i]
+          : const UnknownType();
+      
+      // Recursively infer the expression with that context
+      positionalResults.add(inferExpression(node.positional[i], fieldSchema));
+    }
+
+    List<ExpressionInferenceResult> namedResults = [];
+    for (int i = 0; i < node.named.length; i++) {
+      NamedExpression namedExpr = node.named[i];
+      // Get the expected type for this specific named field
+      DartType fieldSchema = const UnknownType();
+      if (recordSchema != null) {
+        for (var namedField in recordSchema.named) {
+          if (namedField.name == namedExpr.name.label) {
+            fieldSchema = namedField.type;
+            break;
+          }
+        }
+      }
+      
+      // Recursively infer the expression with that context
+      namedResults.add(inferExpression(namedExpr.value, fieldSchema));
+    }
+
+    // 2. Determine the final static type of the record based on inferred fields
+    RecordType inferredType = node.computeStaticType(
+        new TargetType(typeContext, node.fileOffset, helper.uri));
+    
+    node.staticType = inferredType;
+    return new ExpressionInferenceResult(inferredType, node);
   }
 
   @override
