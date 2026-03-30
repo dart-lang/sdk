@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_c
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/services/refactoring/move_selected_formal_parameters_left.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
+import 'package:analysis_server/src/services/refactoring/remove_constructor_name.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
 /// A function that can be executed to create a refactoring producer.
@@ -28,6 +29,7 @@ class RefactoringProcessor {
     MoveSelectedFormalParametersLeft.commandName:
         MoveSelectedFormalParametersLeft.new,
     MoveTopLevelToFile.commandName: MoveTopLevelToFile.new,
+    RemoveConstructorName.commandName: RemoveConstructorName.new,
   };
 
   /// The context in which the refactorings could be applied.
