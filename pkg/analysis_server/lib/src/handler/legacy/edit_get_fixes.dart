@@ -203,7 +203,7 @@ class EditGetFixesHandler extends LegacyHandler
 
           List<Fix> fixes;
           try {
-            var performanceTracker = FixPerformance();
+            var performanceTracker = FixPerformance(performance);
             fixes = await computeFixes(
               context,
               performance: performanceTracker,
