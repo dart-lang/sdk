@@ -45,7 +45,7 @@ class YieldStatementResolver {
   // TODO(scheglov): This is duplicate
   // TODO(scheglov): Also in [BoolExpressionVerifier]
   bool _checkForUseOfVoidResult(Expression expression) {
-    if (!identical(expression.staticType, VoidTypeImpl.instance)) {
+    if (expression.staticType is! VoidTypeImpl) {
       return false;
     }
 

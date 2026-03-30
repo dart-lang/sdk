@@ -184,7 +184,7 @@ class AssignmentExpressionResolver {
   /// See [diag.useOfVoidResult].
   // TODO(scheglov): this is duplicate
   bool _checkForUseOfVoidResult(Expression expression) {
-    if (!identical(expression.staticType, VoidTypeImpl.instance)) {
+    if (expression.staticType is! VoidTypeImpl) {
       return false;
     }
 

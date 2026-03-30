@@ -10130,6 +10130,31 @@ class TypeAliasElementImpl extends ElementImpl
           nullabilitySuffix: nullabilitySuffix,
         ),
       );
+    } else if (type is DynamicTypeImpl) {
+      return DynamicTypeImpl(
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+          nullabilitySuffix: nullabilitySuffix,
+        ),
+      );
+    } else if (type is NeverTypeImpl) {
+      return NeverTypeImpl(
+        nullabilitySuffix: resultNullability,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+          nullabilitySuffix: nullabilitySuffix,
+        ),
+      );
+    } else if (type is VoidTypeImpl) {
+      return VoidTypeImpl(
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+          nullabilitySuffix: nullabilitySuffix,
+        ),
+      );
     } else {
       return type.withNullability(resultNullability);
     }

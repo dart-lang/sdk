@@ -148,7 +148,7 @@ class FunctionExpressionInvocationResolver {
   ///
   // TODO(scheglov): this is duplicate
   bool _checkForUseOfVoidResult(Expression expression, DartType type) {
-    if (!identical(type, VoidTypeImpl.instance)) {
+    if (type is! VoidTypeImpl) {
       return false;
     }
 

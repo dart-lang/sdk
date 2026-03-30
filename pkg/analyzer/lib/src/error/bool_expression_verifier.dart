@@ -93,7 +93,7 @@ class BoolExpressionVerifier {
   /// are void, such as identifiers.
   // TODO(scheglov): Move this in a separate verifier.
   bool _checkForUseOfVoidResult(Expression expression) {
-    if (!identical(expression.staticType, VoidTypeImpl.instance)) {
+    if (expression.staticType is! VoidTypeImpl) {
       return false;
     }
 

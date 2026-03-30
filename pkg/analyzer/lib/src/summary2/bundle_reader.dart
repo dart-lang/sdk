@@ -1712,8 +1712,13 @@ class ResolutionReader {
       var aliasArguments = _readTypeList();
       var aliasNullability = _readNullability();
       if (type is DynamicTypeImpl) {
-        // TODO(scheglov): add support for `dynamic` aliasing
-        return type;
+        return DynamicTypeImpl(
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+            nullabilitySuffix: aliasNullability,
+          ),
+        );
       } else if (type is FunctionTypeImpl) {
         return FunctionTypeImpl(
           typeParameters: type.typeParameters,
@@ -1730,6 +1735,15 @@ class ResolutionReader {
         return InterfaceTypeImpl(
           element: type.element,
           typeArguments: type.typeArguments,
+          nullabilitySuffix: type.nullabilitySuffix,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+            nullabilitySuffix: aliasNullability,
+          ),
+        );
+      } else if (type is NeverTypeImpl) {
+        return NeverTypeImpl(
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,
@@ -1759,8 +1773,13 @@ class ResolutionReader {
           ),
         );
       } else if (type is VoidTypeImpl) {
-        // TODO(scheglov): add support for `void` aliasing
-        return type;
+        return VoidTypeImpl(
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+            nullabilitySuffix: aliasNullability,
+          ),
+        );
       } else {
         throw UnimplementedError('${type.runtimeType}');
       }

@@ -484,12 +484,12 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // futureValueType(`dynamic`) = `dynamic`.
-    if (identical(T, DynamicTypeImpl.instance)) {
+    if (T is DynamicTypeImpl) {
       return T;
     }
 
     // futureValueType(`void`) = `void`.
-    if (identical(T, VoidTypeImpl.instance)) {
+    if (T is VoidTypeImpl) {
       return T;
     }
 
@@ -897,7 +897,7 @@ class TypeSystemImpl implements TypeSystem {
   /// whose bound is dynamic bounded, or an intersection (promoted type
   /// parameter type) whose second operand is dynamic bounded.
   bool isDynamicBounded(DartType type) {
-    if (identical(type, DynamicTypeImpl.instance)) {
+    if (type is DynamicTypeImpl) {
       return true;
     }
 
@@ -986,7 +986,7 @@ class TypeSystemImpl implements TypeSystem {
 
   /// Either [InvalidType] itself, or an intersection with it.
   bool isInvalidBounded(DartType type) {
-    if (identical(type, InvalidTypeImpl.instance)) {
+    if (type is InvalidTypeImpl) {
       return true;
     }
 
@@ -1013,12 +1013,12 @@ class TypeSystemImpl implements TypeSystem {
     var S_nullability = S.nullabilitySuffix;
 
     // MOREBOTTOM(Never, T) = true
-    if (identical(T, NeverTypeImpl.instance)) {
+    if (T is NeverTypeImpl && T.nullabilitySuffix == NullabilitySuffix.none) {
       return true;
     }
 
     // MOREBOTTOM(T, Never) = false
-    if (identical(S, NeverTypeImpl.instance)) {
+    if (S is NeverTypeImpl && S.nullabilitySuffix == NullabilitySuffix.none) {
       return false;
     }
 
@@ -1095,24 +1095,22 @@ class TypeSystemImpl implements TypeSystem {
     var S_nullability = S.nullabilitySuffix;
 
     // MORETOP(void, S) = true
-    if (identical(T, VoidTypeImpl.instance)) {
+    if (T is VoidTypeImpl) {
       return true;
     }
 
     // MORETOP(T, void) = false
-    if (identical(S, VoidTypeImpl.instance)) {
+    if (S is VoidTypeImpl) {
       return false;
     }
 
     // MORETOP(dynamic, S) = true
-    if (identical(T, DynamicTypeImpl.instance) ||
-        identical(T, InvalidTypeImpl.instance)) {
+    if (T is DynamicTypeImpl || T is InvalidTypeImpl) {
       return true;
     }
 
     // MORETOP(T, dynamic) = false
-    if (identical(S, DynamicTypeImpl.instance) ||
-        identical(S, InvalidTypeImpl.instance)) {
+    if (S is DynamicTypeImpl || S is InvalidTypeImpl) {
       return false;
     }
 
@@ -1294,13 +1292,12 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // TOP(dynamic) is true
-    if (identical(type, DynamicTypeImpl.instance) ||
-        identical(type, InvalidTypeImpl.instance)) {
+    if (type is DynamicTypeImpl || type is InvalidTypeImpl) {
       return true;
     }
 
     // TOP(void) is true
-    if (identical(type, VoidTypeImpl.instance)) {
+    if (type is VoidTypeImpl) {
       return true;
     }
 
