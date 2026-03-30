@@ -6,15 +6,14 @@ library;
 
 import 'dart:async' show Future;
 import 'dart:typed_data';
-export 'dart:io' show Platform;
 
 import 'package:compiler/compiler_api.dart' as api;
-
 import 'package:compiler/src/io/source_file.dart'
     show Binary, StringSourceFile, Utf8BytesSourceFile;
-
 import 'package:compiler/src/source_file_provider.dart'
     show CompilerSourceFileProvider;
+
+export 'dart:io' show Platform;
 
 export 'package:compiler/src/source_file_provider.dart'
     show SourceFileProvider, FormattingDiagnosticHandler;

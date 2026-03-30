@@ -25,8 +25,8 @@ import '../ir/element_map.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/types.dart';
-import '../ir/visitors.dart';
 import '../ir/util.dart';
+import '../ir/visitors.dart';
 import '../js/js.dart' as js;
 import '../js_backend/annotations.dart';
 import '../js_backend/backend_impact.dart';
@@ -37,12 +37,6 @@ import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/elements.dart';
 import '../js_model/locals.dart';
-import '../kernel/dart2js_target.dart';
-import '../kernel/transformations/modular/late_lowering.dart'
-    as late_lowering
-    show
-        isBackingFieldForLateInstanceField,
-        isBackingFieldForLateFinalInstanceField;
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
@@ -50,9 +44,15 @@ import '../ordered_typeset.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/world_impact.dart';
+import 'dart2js_target.dart';
 import 'element_map.dart';
 import 'env.dart';
 import 'kernel_impact.dart';
+import 'transformations/modular/late_lowering.dart'
+    as late_lowering
+    show
+        isBackingFieldForLateInstanceField,
+        isBackingFieldForLateFinalInstanceField;
 
 /// Implementation of [IrToElementMap] that only supports world
 /// impact computation.

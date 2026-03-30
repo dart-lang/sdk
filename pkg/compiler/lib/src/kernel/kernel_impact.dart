@@ -6,8 +6,8 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
-import '../common/names.dart';
 import '../common/elements.dart';
+import '../common/names.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';

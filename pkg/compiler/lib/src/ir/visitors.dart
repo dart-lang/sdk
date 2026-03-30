@@ -8,7 +8,7 @@ import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../ir/element_map.dart';
+import 'element_map.dart';
 import 'util.dart' show recordShapeOfRecordType;
 
 /// Visitor that converts string literals and concatenations of string literals

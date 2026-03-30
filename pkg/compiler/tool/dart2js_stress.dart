@@ -4,8 +4,9 @@
 
 library;
 
-import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'dart:io' show Platform;
+
+import 'package:compiler/src/dart2js.dart' as dart2js;
 
 const iterationsFlagPrefix = "--iterations=";
 void main(List<String> args) {

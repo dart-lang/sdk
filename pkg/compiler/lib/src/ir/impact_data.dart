@@ -10,8 +10,8 @@ import 'package:front_end/src/api_prototype/static_weak_references.dart'
 import 'package:front_end/src/api_unstable/dart2js.dart' show Operator;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../common/elements.dart';

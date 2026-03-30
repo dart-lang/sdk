@@ -19,10 +19,11 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../ir/util.dart';
+import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
-import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
+import '../js_backend/specialized_checks.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart'
     show
@@ -30,7 +31,6 @@ import '../js_model/type_recipe.dart'
         TypeExpressionRecipe,
         TypeRecipeDomain,
         TypeRecipeDomainImpl;
-import '../js_backend/specialized_checks.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/call_structure.dart';
@@ -39,12 +39,12 @@ import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show StaticUse;
 import '../util/bitset.dart';
 import '../util/util.dart';
-import 'interceptor_simplifier.dart';
 import 'interceptor_finalizer.dart';
+import 'interceptor_simplifier.dart';
 import 'late_field_optimizer.dart';
 import 'logging.dart';
-import 'nodes.dart';
 import 'metrics.dart';
+import 'nodes.dart';
 import 'types.dart';
 import 'types_propagation.dart';
 import 'validate.dart' show NoUnusedPhiValidator;

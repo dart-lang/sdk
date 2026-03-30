@@ -16,11 +16,11 @@ import '../js_backend/interceptor_data.dart' show OneShotInterceptorData;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/elements.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
-import '../universe/class_hierarchy.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart';
 import 'call_structure.dart';
+import 'class_hierarchy.dart';
 import 'member_usage.dart';
 import 'selector.dart' show Selector;
 import 'use.dart'
