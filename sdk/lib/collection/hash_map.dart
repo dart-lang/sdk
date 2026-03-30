@@ -37,6 +37,7 @@ typedef _Hasher<K> = int Function(K object);
 /// is being performed on that map, for example in functions
 /// called during a [forEach] or [putIfAbsent] call,
 /// or while iterating the map ([keys], [values] or [entries]).
+/// Changing the value associated with an existing key is allowed.
 ///
 /// Do not modify keys in any way which changes their equality (and thus their
 /// hash code) while they are in the map. If a map key's [Object.hashCode]
