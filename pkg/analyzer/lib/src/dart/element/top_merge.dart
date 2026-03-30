@@ -272,7 +272,7 @@ class TopMergeHelper {
   RecordTypeImpl _recordTypes(RecordTypeImpl T1, RecordTypeImpl T2) {
     var positional1 = T1.positionalFields;
     var positional2 = T2.positionalFields;
-    if (positional1.length != positional1.length) {
+    if (positional1.length != positional2.length) {
       throw _TopMergeStateError(T1, T2, 'Different number of position fields');
     }
 
