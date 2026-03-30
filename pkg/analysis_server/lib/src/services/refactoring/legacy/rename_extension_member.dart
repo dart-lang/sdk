@@ -12,15 +12,22 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// A [Refactoring] for renaming extension member [Element]s.
 class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
+  final ResolvedUnitResult resolvedUnit;
+
+  final CorrectionUtils utils;
+
   final ExtensionElement extensionElement;
 
   late _ExtensionMemberValidator _validator;
@@ -28,9 +35,10 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   RenameExtensionMemberRefactoringImpl(
     super.workspace,
     super.sessionHelper,
+    this.resolvedUnit,
     this.extensionElement,
     super.element,
-  ) : super();
+  ) : utils = CorrectionUtils(resolvedUnit);
 
   @override
   String get refactoringName {
@@ -40,6 +48,26 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
       return 'Rename Field';
     }
     return 'Rename Method';
+  }
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    var processor = RenameProcessor2(
+      workspace,
+      sessionHelper,
+      builder,
+      newName,
+    );
+    // Update the declaration.
+    var renameElement = element;
+    if (renameElement is FieldElement && renameElement.isOriginGetterSetter) {
+      await processor.addDeclarationEdit(renameElement.getter);
+      await processor.addDeclarationEdit(renameElement.setter);
+    } else {
+      await processor.addDeclarationEdit(renameElement);
+    }
+
+    // Update references.
+    await processor.addReferenceEdits(_validator.references);
   }
 
   @override
@@ -75,20 +103,20 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<void> fillChange() async {
-    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
+    );
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = "$refactoringName '$oldName' to '$newName'";
+    return sourceChange;
+  }
 
-    // Update the declaration.
-    var renameElement = element;
-    if (renameElement is FieldElement && renameElement.isOriginGetterSetter) {
-      processor.addDeclarationEdit(renameElement.getter);
-      processor.addDeclarationEdit(renameElement.setter);
-    } else {
-      processor.addDeclarationEdit(renameElement);
-    }
-
-    // Update references.
-    processor.addReferenceEdits(_validator.references);
+  @override
+  Future<void> fillChange() {
+    throw UnsupportedError('This method should never be called.');
   }
 }
 

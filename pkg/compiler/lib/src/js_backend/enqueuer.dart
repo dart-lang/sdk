@@ -13,7 +13,6 @@ import '../common/work.dart' show WorkItem;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
-import '../js_backend/annotations.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/member_usage.dart';
 import '../universe/use.dart'
@@ -27,6 +26,7 @@ import '../universe/use.dart'
         TypeUseKind;
 import '../util/enumset.dart';
 import '../util/util.dart' show Setlet;
+import 'annotations.dart';
 
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends Enqueuer {

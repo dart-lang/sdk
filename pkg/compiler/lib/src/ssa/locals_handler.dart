@@ -11,12 +11,11 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
-import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
+import '../js_backend/native_data.dart';
 import '../js_model/closure.dart' show JContextField, JClosureField;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JLocal;
-
 import 'builder.dart';
 import 'nodes.dart';
 import 'types.dart';

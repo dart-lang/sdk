@@ -4,10 +4,10 @@
 
 library;
 
-import '../elements/entities.dart' show ClassEntity;
-import '../elements/types.dart';
 import '../diagnostics/invariant.dart';
 import '../diagnostics/spannable.dart' show currentElementSpannable;
+import '../elements/entities.dart' show ClassEntity;
+import '../elements/types.dart';
 import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 

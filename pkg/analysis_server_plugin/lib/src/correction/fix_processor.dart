@@ -9,8 +9,10 @@ import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_in_file_processor.dart';
 import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
@@ -34,8 +36,11 @@ Future<List<Fix>> computeFixes(
 
 /// A callback for recording fix request timings.
 class FixPerformance {
+  final OperationPerformanceImpl? operationPerformance;
   Duration? computeTime;
   List<ProducerTiming> producerTimings = [];
+
+  FixPerformance([this.operationPerformance]);
 }
 
 /// The computer for Dart fixes.
@@ -82,16 +87,7 @@ class FixProcessor {
     try {
       var fixKind = producer.fixKind;
 
-      if (_performance != null) {
-        var startTime = _timer.elapsedMilliseconds;
-        await producer.compute(builder);
-        _performance.producerTimings.add((
-          className: producer.runtimeType.toString(),
-          elapsedTime: _timer.elapsedMilliseconds - startTime,
-        ));
-      } else {
-        await producer.compute(builder);
-      }
+      await producer.compute(builder);
 
       assert(
         !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
@@ -125,6 +121,26 @@ class FixProcessor {
       selectionLength: _fixContext.diagnostic.length,
     );
 
+    Future<void> callProducer(
+      CorrectionProducer<ParsedUnitResult> producer,
+      int startTime,
+    ) async {
+      if (_performance?.operationPerformance != null) {
+        await _performance!.operationPerformance!.runAsync(
+          producer.runtimeType.toString(),
+          (_) async => await _addFromProducer(producer),
+        );
+      } else {
+        await _addFromProducer(producer);
+      }
+      if (_performance != null) {
+        _performance.producerTimings.add((
+          className: producer.runtimeType.toString(),
+          elapsedTime: _timer.elapsedMilliseconds - startTime,
+        ));
+      }
+    }
+
     var diagnosticCode = diagnostic.diagnosticCode;
     List<ProducerGenerator>? generators;
     List<MultiProducerGenerator>? multiGenerators;
@@ -140,14 +156,27 @@ class FixProcessor {
 
     if (generators != null) {
       for (var generator in generators) {
-        await _addFromProducer(generator(context: context));
+        var startTime = _performance != null ? _timer.elapsedMilliseconds : 0;
+        var producer = generator(context: context);
+        await callProducer(producer, startTime);
       }
     }
     if (multiGenerators != null) {
       for (var multiGenerator in multiGenerators) {
+        var startTime = _performance != null ? _timer.elapsedMilliseconds : 0;
         var multiProducer = multiGenerator(context: context);
-        for (var producer in await multiProducer.producers) {
-          await _addFromProducer(producer);
+        var producers = await multiProducer.producers;
+        if (_performance != null) {
+          _performance.producerTimings.add((
+            className: multiProducer.runtimeType.toString(),
+            elapsedTime: _timer.elapsedMilliseconds - startTime,
+          ));
+        }
+        for (var producer in producers) {
+          var startTime2 = _performance != null
+              ? _timer.elapsedMilliseconds
+              : 0;
+          await callProducer(producer, startTime2);
         }
       }
     }
@@ -156,6 +185,7 @@ class FixProcessor {
         diagnosticCode.type == DiagnosticType.HINT ||
         diagnosticCode.type == DiagnosticType.STATIC_WARNING) {
       for (var generator in registeredFixGenerators.ignoreProducerGenerators) {
+        var startTime = _performance != null ? _timer.elapsedMilliseconds : 0;
         var producer = generator(context: context);
         if (producer.fixKind == ignoreErrorAnalysisFileKind) {
           if (alreadyCalculated?.add(
@@ -168,7 +198,7 @@ class FixProcessor {
             continue;
           }
         }
-        await _addFromProducer(generator(context: context));
+        await callProducer(producer, startTime);
       }
     }
   }

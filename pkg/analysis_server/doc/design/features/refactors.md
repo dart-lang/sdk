@@ -9,18 +9,27 @@ Refactors are actions that users can select that make changes to their code.
 ## Kinds
 
 While users tend to think of all refactors as essentially being the same,
-internally we divide them into three kinds. This is in part due to
+internally we divide them into three kinds. This is partially due to
 implementation considerations, but more importantly because there are
 implications in terms of the UX.
 
 The kinds are based on two characteristics of the refactor:
 
 <dl>
-  <dt>scope</dt>
+  <dt>edit creation time</dt>
   <dd>
-  A local refactor is limited to making changes within the library in which the
-  refactor is invoked. A global refactor can make changes in any of the
-  libraries that are in the IDE's workspace.
+  <p>
+  An _eager refactor_ is one in which the code changes are computed before the
+  code action is returned. If code edits can't be computed, then the code action
+  isn't returned. This ensures that if the user selects the action it will
+  successfully apply the edits.
+  </p><p>
+  A _lazy refactor_ is one in which the code action is returned without
+  computing the code edits. Typically some minimal set of checks will be
+  performed so that the code action is only shown when the refactor makes sense,
+  but it's still possible for the refactor to fail after the user has selected
+  it. In those cases we display a message telling the user why it failed.
+  </p>
   </dd>
   <dt>availability</dt>
   <dd>
@@ -35,28 +44,29 @@ The three kinds are described below.
 ### Fixes
 
 Fixes are code changes that are designed to resolve a problem in the code that
-is indicated by a diagnostic. The changes are always local in scope.
+is indicated by a diagnostic. The changes are always computed eagerly.
 
 Fixes can be initiated to
-- fix a single diagnostic at a single location
-- fix all of the locations of a single diagnostic in a single file
-- fix all of the locations of all diagnostics (via `dart fix` and in LSP-based
-  IDEs)
+- fix a single diagnostic at a single location in a single file
+- fix all of the locations in a single file where a single diagnostic is
+  reported
+- fix all of the locations of all diagnostics in all files in the workspace
+  (via `dart fix` and in LSP-based IDEs)
 
 ### Assists
 
 Assists are code changes that are available even when there is no diagnostic.
-The changes are always local in scope.
+The changes are always computed eagerly.
 
-Assists can only be initiated at a single location.
+Assists can only be initiated at a single location in a single file.
 
 ### Global Refactors
 
 Global refactors are code changes that might involve changes to multiple
 libraries and possibly across multiple packages, when those packages are all
-open in the IDE's workspace.
+open in the IDE's workspace. Global refactors are always computed lazily.
 
-Global refactors can only be initiated at a single location.
+Global refactors can only be initiated at a single location in a single file.
 
 Note that in many contexts (such as the issue tracker) we use the term
 'refactor' to sometimes mean any kind of refactor and sometimes to mean a global
@@ -100,9 +110,15 @@ might not be open.
 ## Producing broken code
 
 There are few, if any, valid reasons for a refactor to produce code that doesn't
-compile. Some refactors will work on code that is already broken, in which case
-it's reasonable for the result to also be broken, as long as it isn't broken
-worse. But it usually isn't reasonable for a refactor to introduce new
-diagnostics into the code.
+compile. There are a couple of known exceptions:
+
+- Some refactors will work on code that is already broken, in which case
+  it's reasonable for the result to also be broken, as long as it isn't broken
+  worse. But it usually isn't reasonable for a refactor to introduce new
+  diagnostics into the code.
+
+- If the client allows the server to notify the user of the situation and the
+  user indicates that they want to proceed, then it makes sense to proceed with
+  the refactor.
 
 [textDocument_codeActions]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_codeActions

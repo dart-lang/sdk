@@ -4,8 +4,6 @@
 
 import 'dart:collection' show Queue;
 
-import 'package:kernel/ast.dart' as ir;
-
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/lowering_predicates.dart'
     show
@@ -16,6 +14,7 @@ import 'package:front_end/src/api_prototype/lowering_predicates.dart'
         getConstructorTearOffLoweringTarget;
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
+import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;

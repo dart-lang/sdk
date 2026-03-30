@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'output_unit.dart';
-
-import 'program_split_constraints/builder.dart' as psc show SetTransition;
-
 import '../elements/entities.dart';
 import '../util/maplet.dart';
+import 'output_unit.dart';
+import 'program_split_constraints/builder.dart' as psc show SetTransition;
 
 /// An [ImportSetTransition] is similar to a [SetTransition]
 /// except its source and transitions are represented as a single [ImportSet].

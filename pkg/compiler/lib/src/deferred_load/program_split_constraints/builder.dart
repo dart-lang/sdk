@@ -6,8 +6,8 @@ import 'dart:collection';
 
 import 'package:kernel/ast.dart' show Library, LibraryDependency;
 
-import 'nodes.dart';
 import '../../elements/entities.dart';
+import 'nodes.dart';
 
 /// A [Constraint] is a node in a constraint graph which wraps a
 /// [T] (which is either a [ImportEntity] or a [LibraryDependency]).

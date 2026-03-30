@@ -535,6 +535,7 @@ abstract class RenameRefactoring implements Refactoring {
       return RenameExtensionMemberRefactoringImpl(
         workspace,
         sessionHelper,
+        resolvedUnit,
         enclosingElement,
         element,
       );

@@ -8,8 +8,8 @@ import '../common/names.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/backend_usage.dart';
+import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -20,7 +20,6 @@ import '../universe/class_hierarchy.dart';
 import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 import '../world.dart';
-
 import 'element_map.dart';
 
 /// The immutable result of the [ResolutionWorldBuilder].
