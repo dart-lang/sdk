@@ -713,7 +713,7 @@ class Assert extends Statement {
       'assert($condition${message == null ? '' : ', $message'});';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeAssertStatement(this, condition, message);
     h.irBuilder.apply(
       'assert',
@@ -721,6 +721,7 @@ class Assert extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -770,7 +771,7 @@ class Block extends Statement {
       statements.isEmpty ? '{}' : '{ ${statements.join(' ')} }';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeBlock(statements);
     h.irBuilder.apply(
       'block',
@@ -778,6 +779,7 @@ class Block extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -842,7 +844,7 @@ class Break extends Statement {
   String toString() => 'break;';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     var target = this.target;
     h.typeAnalyzer.analyzeBreakStatement(
       target == null
@@ -850,6 +852,7 @@ class Break extends Statement {
           : target._getBinding(),
     );
     h.irBuilder.apply('break', [], Kind.statement, location: location);
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1386,7 +1389,7 @@ class Continue extends Statement {
   String toString() => 'continue;';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     var target = this.target;
     h.typeAnalyzer.analyzeContinueStatement(
       target == null
@@ -1394,6 +1397,7 @@ class Continue extends Statement {
           : target._getBinding(),
     );
     h.irBuilder.apply('continue', [], Kind.statement, location: location);
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1415,7 +1419,7 @@ class Do extends Statement {
   String toString() => 'do $body while ($condition);';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeDoLoop(this, body, condition);
     h.irBuilder.apply(
       'do',
@@ -1423,6 +1427,7 @@ class Do extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1621,7 +1626,7 @@ class ExpressionInTypeSchema extends Statement {
   String toString() => '$expr (in type schema $typeSchema);';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeExpression(expr, typeSchema);
     h.irBuilder.apply(
       'stmt',
@@ -1629,6 +1634,7 @@ class ExpressionInTypeSchema extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1646,7 +1652,7 @@ class ExpressionStatement extends Statement {
   String toString() => '$expr;';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeExpressionStatement(expr);
     h.irBuilder.apply(
       'stmt',
@@ -1654,6 +1660,7 @@ class ExpressionStatement extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1704,7 +1711,7 @@ class For extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     if (initializer != null) {
       h.typeAnalyzer.dispatchStatement(initializer!);
     } else {
@@ -1738,6 +1745,7 @@ class For extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1784,7 +1792,7 @@ class ForEach extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     var iteratedType = h._getIteratedType(
       h.typeAnalyzer
           .analyzeExpression(iterable, h.operations.unknownType)
@@ -1804,6 +1812,7 @@ class ForEach extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -2136,7 +2145,7 @@ class If extends IfBase {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeIfStatement(this, condition, ifTrue, ifFalse);
     h.irBuilder.apply(
       'if',
@@ -2144,6 +2153,7 @@ class If extends IfBase {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -2204,7 +2214,7 @@ class IfCase extends IfBase {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeIfCaseStatement(
       this,
       expression,
@@ -2227,6 +2237,7 @@ class IfCase extends IfBase {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -2566,8 +2577,9 @@ class LabeledStatement extends Statement {
   String toString() => [...labels, body].join(': ');
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeLabeledStatement(this, body);
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -4252,7 +4264,7 @@ class PatternForIn extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzePatternForIn(
       node: this,
       hasAwait: hasAwait,
@@ -4268,6 +4280,7 @@ class PatternForIn extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -4353,7 +4366,7 @@ class PatternVariableDeclaration extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzePatternVariableDeclaration(
       this,
       pattern,
@@ -4366,6 +4379,7 @@ class PatternVariableDeclaration extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -5055,6 +5069,17 @@ mixin ProtoStatement<Self extends ProtoStatement<dynamic>> {
   /// Wraps `this` in such a way that, when the test is run, it will verify that
   /// the IR produced matches [expectedIR].
   Self checkIR(String expectedIR);
+
+  /// Wraps `this` in such a way that, when the test is run, it will call
+  /// [checker], passing it the [StatementTypeAnalysisResult] returned by the
+  /// [TypeAnalyzer] `analyze` method.
+  Statement checkStatementTypeAnalysisResult(
+    void Function(StatementTypeAnalysisResult) checker,
+  ) {
+    var location = computeLocation();
+    return asStatement(location: location)
+      .._checkStatementTypeAnalysisResult = checker;
+  }
 }
 
 /// Common interface shared by constructs that can be used where a switch head
@@ -5230,9 +5255,10 @@ class Return extends Statement {
   String toString() => 'return;';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeReturnStatement();
     h.irBuilder.apply('return', [], Kind.statement, location: location);
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -5271,6 +5297,11 @@ class Second extends Expression {
 /// Representation of a statement in the pseudo-Dart language used for flow
 /// analysis testing.
 abstract class Statement extends Node with ProtoStatement<Statement> {
+  /// If non-null, an auxiliary checker function that will be invoked, and
+  /// passed the return value from the [TypeAnalyzer] analyze method when this
+  /// statement is analyzed.
+  void Function(StatementTypeAnalysisResult)? _checkStatementTypeAnalysisResult;
+
   /// If non-null, the expected IR that should be produced when this statement
   /// is analyzed.
   String? _expectedIR;
@@ -5288,7 +5319,7 @@ abstract class Statement extends Node with ProtoStatement<Statement> {
 
   void preVisit(PreVisitor visitor);
 
-  void visit(Harness h);
+  StatementTypeAnalysisResult visit(Harness h);
 }
 
 class SwitchExpression extends Expression {
@@ -5429,7 +5460,7 @@ class SwitchStatement extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     bool needsLegacyExhaustive = !h.patternsEnabled;
     if (!needsLegacyExhaustive && isLegacyExhaustive != null) {
       fail('isLegacyExhaustive should not be specified at $location');
@@ -5467,6 +5498,7 @@ class SwitchStatement extends Statement {
     );
     h.typeAnalyzer._currentBreakTarget = previousBreakTarget;
     h.typeAnalyzer._currentContinueTarget = previousContinueTarget;
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -5733,7 +5765,7 @@ class TryStatementImpl extends TryStatement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeTryStatement(this, body, catches, finallyStatement);
     h.irBuilder.apply(
       'try',
@@ -5745,6 +5777,7 @@ class TryStatementImpl extends TryStatement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -5926,7 +5959,7 @@ class VariableDeclaration extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     String irName;
     List<Kind> argKinds;
     List<String> names = const [];
@@ -5994,6 +6027,7 @@ class VariableDeclaration extends Statement {
       location: location,
       names: names,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -6164,7 +6198,7 @@ class While extends Statement {
   String toString() => 'while ($condition) $body';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeWhileLoop(this, condition, body);
     h.irBuilder.apply(
       'while',
@@ -6172,6 +6206,7 @@ class While extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -7244,8 +7279,9 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void dispatchStatement(Statement statement) {
-    _irBuilder.guard(statement, () => statement.visit(_harness));
+  StatementTypeAnalysisResult dispatchStatement(Statement statement) {
+    var result = _irBuilder.guard(statement, () => statement.visit(_harness));
+    statement._checkStatementTypeAnalysisResult?.call(result);
     if (statement._expectedIR case var expectedIR?) {
       _irBuilder.check(
         expectedIR,
@@ -7253,6 +7289,7 @@ class _MiniAstTypeAnalyzer
         location: statement.location,
       );
     }
+    return result;
   }
 
   @override

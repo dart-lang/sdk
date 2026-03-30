@@ -416,6 +416,18 @@ class RelationalPatternResult<Error> extends PatternResult {
   });
 }
 
+/// Container for the result of running type analysis on a statement.
+///
+/// Currently there is no information tracked for all statement kinds; this
+/// class serves merely as:
+/// - A base class; derived classes expose results that are specific to certain
+///   statement types.
+/// - A placeholder for statement types that don't need to expose any results
+///   (use the const constructor to avoid unnecessary allocations).
+final class StatementTypeAnalysisResult {
+  const StatementTypeAnalysisResult();
+}
+
 /// Result for analyzing a switch expression in
 /// [TypeAnalyzer.analyzeSwitchExpression].
 class SwitchExpressionResult<Error> extends ExpressionTypeAnalysisResult {
