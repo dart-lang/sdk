@@ -325,6 +325,15 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
                     FfiCallbackMetadata::RuntimeFunctionOffset(function_index));
 }
 
+static const RegisterSet kArgumentRegisterSet(
+    CallingConventions::kArgumentRegisters,
+    CallingConventions::kFpuArgumentRegisters);
+static const RegisterSet kReturnRegisterSet(
+    (1 << CallingConventions::kReturnReg) |
+        (1 << CallingConventions::kSecondReturnReg),
+    (1 << CallingConventions::kReturnFpuReg) |
+        (1 << CallingConventions::kSecondReturnFpuReg));
+
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_INCLUDE_SIMULATOR) && !defined(DART_PRECOMPILER)
   // TODO(37299): FFI is not supported in SIMRISCV32/64.
@@ -350,10 +359,13 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ Bind(&body);
 
-  // Save THR (callee-saved) and RA. Keeps stack aligned.
   COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
-  __ PushRegisterPair(RA, THR);
-  __ PushRegisterPair(S2, S3);
+  __ subi(SP, SP, 4 * target::kWordSize);
+  __ sx(RA, Address(SP, 3 * target::kWordSize));
+  __ sx(FP, Address(SP, 2 * target::kWordSize));
+  __ sx(THR, Address(SP, 1 * target::kWordSize));
+  __ sx(S2, Address(SP, 0 * target::kWordSize));
+  __ addi(FP, SP, 4 * target::kWordSize);
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
   // Load the thread, verify the callback ID and exit the safepoint.
@@ -361,21 +373,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
-    // Push arguments and callback id.
-    __ subi(SP, SP, 12 * target::kWordSize);
-    __ sx(A7, Address(SP, 11 * target::kWordSize));
-    __ sx(A6, Address(SP, 10 * target::kWordSize));
-    __ sx(A5, Address(SP, 9 * target::kWordSize));
-    __ sx(A4, Address(SP, 8 * target::kWordSize));
-    __ sx(A3, Address(SP, 7 * target::kWordSize));
-    __ sx(A2, Address(SP, 6 * target::kWordSize));
-    __ sx(A1, Address(SP, 5 * target::kWordSize));
-    __ sx(A0, Address(SP, 4 * target::kWordSize));
-    // 3 - alignment gap
-    // 2 - Out.epilogue
-    // 1 - Out.is_tail
-    // 0 - Out.entry_point
-
+    __ PushRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
     __ mv(A0, T1);
     __ mv(A1, SP);
 
@@ -411,42 +409,29 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ jalr(T1);
     __ mv(THR, A0);
     __ lx(T2, Address(SP, 0 * target::kWordSize));  // entry_point
-    __ lx(S2, Address(SP, 1 * target::kWordSize));  // is_tail
-    __ lx(S3, Address(SP, 2 * target::kWordSize));  // epilogue
+    __ lx(T3, Address(SP, 1 * target::kWordSize));  // is_tail
+    __ lx(S2, Address(SP, 2 * target::kWordSize));  // epilogue
 
-    __ lx(A0, Address(SP, 4 * target::kWordSize));
-    __ lx(A1, Address(SP, 5 * target::kWordSize));
-    __ lx(A2, Address(SP, 6 * target::kWordSize));
-    __ lx(A3, Address(SP, 7 * target::kWordSize));
-    __ lx(A4, Address(SP, 8 * target::kWordSize));
-    __ lx(A5, Address(SP, 9 * target::kWordSize));
-    __ lx(A6, Address(SP, 10 * target::kWordSize));
-    __ lx(A7, Address(SP, 11 * target::kWordSize));
-    __ addi(SP, SP, 12 * target::kWordSize);
+    __ PopRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
   }
 
   Label tail;
-  __ bnez(S2, &tail, Assembler::kNearJump);
+  __ bnez(T3, &tail, Assembler::kNearJump);
 
   {
-    __ jalr(T2);          // entry_point
-    __ subi(SP, SP, 32);  // Not using word size to keep RV32 stack aligned.
-    __ sx(A0, Address(SP, 24));
-    __ sx(A1, Address(SP, 16));
-    __ fsd(FA0, Address(SP, 8));
-    __ fsd(FA1, Address(SP, 0));
+    __ jalr(T2);  // entry_point
+    __ PushRegistersAligned(kReturnRegisterSet, 0);
     __ mv(A0, THR);
-    __ jalr(S3);  // DLRT_ExitSyncCallback, etc
+    __ jalr(S2);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ jalr(A0);  // dart_msan_unpoison_retval
     }
-    __ fld(FA1, Address(SP, 0));
-    __ fld(FA0, Address(SP, 8));
-    __ lx(A1, Address(SP, 16));
-    __ lx(A0, Address(SP, 24));
-    __ addi(SP, SP, 32);
-    __ PopRegisterPair(S2, S3);
-    __ PopRegisterPair(RA, THR);
+    __ PopRegistersAligned(kReturnRegisterSet, 0);
+    __ lx(S2, Address(SP, 0 * target::kWordSize));
+    __ lx(THR, Address(SP, 1 * target::kWordSize));
+    __ lx(FP, Address(SP, 2 * target::kWordSize));
+    __ lx(RA, Address(SP, 3 * target::kWordSize));
+    __ addi(SP, SP, 4 * target::kWordSize);
     __ ret();
   }
 
@@ -454,9 +439,12 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ Bind(&tail);
     __ jalr(T2);  // entry_point
     __ mv(A0, THR);
-    __ mv(A1, S3);
-    __ PopRegisterPair(S2, S3);
-    __ PopRegisterPair(RA, THR);
+    __ mv(A1, S2);
+    __ lx(S2, Address(SP, 0 * target::kWordSize));
+    __ lx(THR, Address(SP, 1 * target::kWordSize));
+    __ lx(FP, Address(SP, 2 * target::kWordSize));
+    __ lx(RA, Address(SP, 3 * target::kWordSize));
+    __ addi(SP, SP, 4 * target::kWordSize);
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.

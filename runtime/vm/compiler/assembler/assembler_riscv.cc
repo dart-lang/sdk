@@ -3147,6 +3147,27 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   addi(SP, SP, size);
 }
 
+void Assembler::PushRegistersAligned(const RegisterSet& register_set,
+                                     intptr_t space) {
+  PushRegisters(register_set);
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    subi(SP, SP, aligned_space);
+  }
+}
+void Assembler::PopRegistersAligned(const RegisterSet& register_set,
+                                    intptr_t space) {
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    addi(SP, SP, aligned_space);
+  }
+  PopRegisters(register_set);
+}
+
 void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
   intptr_t offset = regs.size() * target::kWordSize;
   subi(SP, SP, offset);

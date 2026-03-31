@@ -2445,6 +2445,27 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   }
 }
 
+void Assembler::PushRegistersAligned(const RegisterSet& register_set,
+                                     intptr_t space) {
+  PushRegisters(register_set);
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    sub(SP, SP, Operand(aligned_space));
+  }
+}
+void Assembler::PopRegistersAligned(const RegisterSet& register_set,
+                                    intptr_t space) {
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    add(SP, SP, Operand(aligned_space));
+  }
+  PopRegisters(register_set);
+}
+
 void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
   // Collect the longest descending sequences of registers and
   // push them with a single STMDB instruction.
