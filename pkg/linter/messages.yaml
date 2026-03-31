@@ -794,6 +794,46 @@ LinterLintCode:
       stable: "2.0"
     categories: [brevity]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a conditional expression has
+      `true` or `false` as either the then or else expression, when both
+      branches have a type of `bool`. Such expressions can always be simplified
+      using `&&` or `||`.
+
+      #### Examples
+
+      The following code produces this diagnostic because the then expression
+      is the `bool` literal `true`:
+
+      ```dart
+      bool f(bool a, bool b) => [!a ? true : b!];
+      ```
+
+      The following code produces this diagnostic because the else expression
+      is the `bool` literal `false`:
+
+      ```dart
+      bool f(bool a, bool b) => [!a ? b : false!];
+      ```
+
+      #### Common fixes
+
+      Replace the conditional expression with the equivalent logical expression.
+      If the then expression is a literal, replace it with one of the following:
+
+      ```dart
+      bool f(bool a, bool b) => a || b;  // replaces: a ? true : b
+      bool g(bool a, bool b) => !a && b; // replaces: a ? false : b
+      ```
+
+      If the else expression is a literal, replace it with one of the following:
+
+      ```dart
+      bool f(bool a, bool b) => !a || b; // replaces: a ? b : true
+      bool g(bool a, bool b) => a && b;  // replaces: a ? b : false
+      ```
     deprecatedDetails: |-
       **AVOID** `bool` literals in conditional expressions.
 
@@ -812,6 +852,7 @@ LinterLintCode:
       !condition || boolExpression
       condition && boolExpression
       ```
+      
   avoidCatchesWithoutOnClauses:
     type: lint
     parameters: none
