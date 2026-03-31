@@ -178,17 +178,25 @@ class DartUnitHoverComputer {
     var analysisSession = _unit.declaredFragment?.element.session;
 
     String? libraryName, libraryPath;
+    // for 'file:' URIs, use the path after the package root
     if (uri.isScheme('file') && analysisSession != null) {
-      // for 'file:' URIs, use the path after the project root
-      var context = analysisSession.resourceProvider.pathContext;
-      var projectRootDir =
-          analysisSession.analysisContext.contextRoot.root.path;
-      var relativePath = context.relative(
-        context.fromUri(uri),
-        from: projectRootDir,
+      var pathContext = analysisSession.resourceProvider.pathContext;
+      var libraryFilePath = pathContext.fromUri(uri);
+      var contextRoot = analysisSession.analysisContext.contextRoot;
+      var workspace = contextRoot.workspace;
+
+      // Prefer using the root of the package that contains this library, since
+      // the context root could now be a Pub Workspace. If we don't find one,
+      // fall back to the context root.
+      var package = workspace.packages.packageForPath(libraryFilePath);
+      var packageRootDir = package?.rootFolder.path ?? contextRoot.root.path;
+
+      var relativePath = pathContext.relative(
+        libraryFilePath,
+        from: packageRootDir,
       );
-      if (context.style == path.Style.windows) {
-        var pathList = context.split(relativePath);
+      if (pathContext.style == path.Style.windows) {
+        var pathList = pathContext.split(relativePath);
         libraryName = pathList.join('/');
       } else {
         libraryName = relativePath;
