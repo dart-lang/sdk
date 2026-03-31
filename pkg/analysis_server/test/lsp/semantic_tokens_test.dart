@@ -3317,21 +3317,27 @@ void f() {
 
   /// Initializes the server with [content] in [uri] and then calls
   /// [_verifyTokens] to check the semantic tokens match [expected].
+  ///
+  /// [content] will be normalized for the line endings being used for the test
+  /// run.
   Future<void> _initializeAndVerifyTokens(
     String content,
     List<_Token> expected, {
     Uri? uri,
   }) async {
     uri ??= mainFileUri;
-    var code = TestCode.parseNormalized(content);
-    newFile(fromUri(uri), code.code);
+    content = normalizeNewlinesForPlatform(content);
+    newFile(fromUri(uri), content);
     await initialize();
 
-    await _verifyTokens(uri, code.code, expected);
+    await _verifyTokens(uri, content, expected);
   }
 
   /// Initializes the server with [content] in [uri] and then checks the
   ///  semantic tokens for the marked range match [expected].
+  ///
+  /// [content] will be normalized for the line endings being used for the test
+  /// run.
   Future<void> _initializeAndVerifyTokensInRange(
     String content,
     List<_Token> expected, {
@@ -3352,11 +3358,16 @@ void f() {
   /// [content] is used to map the offsets in the response to the tokens and
   /// is not sent to the server, so it must already match what the server
   /// believes [uri] to contain.
+  ///
+  /// [content] will be normalized for the line endings being used for the test
+  /// run.
   Future<void> _verifyTokens(
     Uri uri,
     String content,
     List<_Token> expected,
   ) async {
+    content = normalizeNewlinesForPlatform(content);
+
     var tokens = await getSemanticTokens(uri);
     var decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));

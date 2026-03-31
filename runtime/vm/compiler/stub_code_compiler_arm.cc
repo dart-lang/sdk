@@ -326,9 +326,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
        ++i) {
     // The FfiCallbackMetadata table is keyed by the trampoline entry point. So
-    // look up the current PC, then jump to the shared section. The PC is offset
-    // by Instr::kPCReadOffset, which is subtracted below.
-    __ mov(TMP, Operand(PC));
+    // look up the current PC, then jump to the shared section.
+    __ sub(TMP, PC, Operand(Instr::kPCReadOffset));
     __ b(&body);
   }
 
@@ -340,30 +339,24 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save THR (callee-saved), R4 & R5 (temporaries, callee-saved), and LR.
+  // Save LR, FP, THR (callee-saved) & R4 (temporaries, callee-saved).
   COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
-  SPILLS_LR_TO_FRAME(
-      __ PushList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5)));
-
-  // The PC is in TMP, but is offset by kPCReadOffset. To get the actual
-  // trampoline entry point we need to subtract that.
-  __ sub(R4, TMP, Operand(Instr::kPCReadOffset));
+  SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
+  __ PushList((1 << THR) | (1 << R4));
 
   COMPILE_ASSERT(IsCalleeSavedRegister(R4));
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
   RegisterSet argument_registers;
   argument_registers.AddAllArgumentRegisters();
-  __ PushRegisters(argument_registers);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
-    __ EnterFrame(1 << FP, 0);
-    __ ReserveAlignedFrameSpace(3 * target::kWordSize);
-    __ mov(R0, Operand(R4));
+    __ PushRegistersAligned(argument_registers, 3 * target::kWordSize);
+    __ mov(R0, Operand(TMP));
     __ mov(R1, Operand(SP));
 
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
@@ -372,37 +365,35 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ blx(R4);
     __ mov(THR, Operand(R0));
 
-    __ ldr(TMP, Address(SP, 0 * target::kWordSize));  // entry_point
-    __ ldr(R4, Address(SP, 1 * target::kWordSize));   // is_tail
-    __ ldr(R5, Address(SP, 2 * target::kWordSize));   // epilogue
+    __ ldr(TMP, Address(SP, 0 * target::kWordSize));              // entry_point
+    CLOBBERS_LR(__ ldr(LR, Address(SP, 1 * target::kWordSize)));  // is_tail
+    __ ldr(R4, Address(SP, 2 * target::kWordSize));               // epilogue
 
-    __ LeaveFrame(1 << FP);
+    __ PopRegistersAligned(argument_registers, 3 * target::kWordSize);
   }
 
-  __ PopRegisters(argument_registers);
-
   Label tail;
-  __ cmp(R4, Operand(0));
+  CLOBBERS_LR(__ cmp(LR, Operand(0)));
   __ b(&tail, NOT_ZERO);
 
   const RegisterSet return_registers(
       (1 << CallingConventions::kReturnReg) |
           (1 << CallingConventions::kSecondReturnReg),
       1 << CallingConventions::kReturnFpuReg);
-  ASSERT(Utils::IsAligned(return_registers.SpillSize(), 8));
 
   {
     __ blx(TMP);  // entry_point
-    __ PushRegisters(return_registers);
+    __ PushRegistersAligned(return_registers, 0);
     __ mov(R0, Operand(THR));
-    __ blx(R5);  // DLRT_ExitSyncCallback, etc
+    __ blx(R4);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ blx(R0);  // dart_msan_unpoison_retval
     }
-    __ PopRegisters(return_registers);
+    __ PopRegistersAligned(return_registers, 0);
+    __ PopList((1 << THR) | (1 << R4));
     // Returns.
-    RESTORES_LR_FROM_FRAME(
-        __ PopList((1 << PC) | (1 << THR) | (1 << R4) | (1 << R5)));
+    RESTORES_LR_FROM_FRAME(__ PopList((1 << PC) | (1 << FP)));
+    __ Breakpoint();
   }
 
   {
@@ -410,9 +401,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ Bind(&tail);
     __ blx(TMP);  // entry_point
     __ mov(R0, Operand(THR));
-    __ mov(R1, Operand(R5));
-    RESTORES_LR_FROM_FRAME(
-        __ PopList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5)));
+    __ mov(R1, Operand(R4));
+    __ PopList((1 << THR) | (1 << R4));
+    RESTORES_LR_FROM_FRAME(__ PopList((1 << LR) | (1 << FP)));
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
