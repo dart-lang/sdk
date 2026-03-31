@@ -1,6 +1,7 @@
 ## 12.1.0-dev
 
-* Internal changes only
+* Support type aliases for `dynamic`, `Never`, and `void`. As a result, it is no longer safe to assume that
+  there is a single instance of `DynamicType`, `NeverType`, or `VoidType`. Use type checks (`is DynamicType`) instead of `identical()`.
 
 ## 12.0.0
 

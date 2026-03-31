@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -683,7 +684,8 @@ class MethodInvocationResolver with ScopeHelpers {
   }) {
     _setExplicitTypeArgumentTypes();
 
-    if (receiverType == NeverTypeImpl.instanceNullable) {
+    if (receiverType is NeverTypeImpl &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.question) {
       var methodName = node.methodName;
       var objectElement = _resolver.typeProvider.objectElement;
       var objectMember = objectElement.getMethod(methodName.name);
@@ -711,7 +713,8 @@ class MethodInvocationResolver with ScopeHelpers {
       }
     }
 
-    if (receiverType == NeverTypeImpl.instance) {
+    if (receiverType is NeverTypeImpl &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       MethodInvocationInferrer(
         resolver: _resolver,
         node: node,

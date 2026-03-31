@@ -138,6 +138,9 @@ class _ContextLocator {
 
   final List<Folder> _excludedFolders;
 
+  /// A cache of options file contents for each [SourceFactory].
+  final Map<SourceFactory, Map<Uri, YamlMap>> _optionsCaches = {};
+
   /// The list of context roots ultimately returned by [_locateRoots].
   final _roots = <ContextRootImpl>[];
 
@@ -525,9 +528,15 @@ class _ContextLocator {
     }
     try {
       var provider = AnalysisOptionsProvider(workspace.partialSourceFactory);
-
+      var optionsCache = _optionsCaches.putIfAbsent(
+        workspace.partialSourceFactory,
+        () => {},
+      );
       var options = AnalysisOptionsImpl.fromYaml(
-        optionsMap: provider.getOptionsFromFile(optionsFile),
+        optionsMap: provider.getOptionsFromFile(
+          optionsFile,
+          optionsCache: optionsCache,
+        ),
         file: optionsFile,
         resourceProvider: _resourceProvider,
       );
@@ -551,9 +560,10 @@ class _ContextLocator {
 
     YamlMap options;
     try {
+      var optionsCache = _optionsCaches.putIfAbsent(sourceFactory, () => {});
       options = AnalysisOptionsProvider(
         sourceFactory,
-      ).getOptionsFromFile(optionsFile);
+      ).getOptionsFromFile(optionsFile, optionsCache: optionsCache);
     } catch (exception) {
       // If we can't read and parse the analysis options file, then there
       // aren't any excluded files that need to be read.

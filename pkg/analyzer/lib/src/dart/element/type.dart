@@ -32,11 +32,18 @@ List<TypeImpl> fixedTypeList(TypeImpl e1, [TypeImpl? e2]) {
 /// The [Type] representing the type `dynamic`.
 class DynamicTypeImpl extends TypeImpl
     implements DynamicType, SharedDynamicType {
-  /// The unique instance of this class.
+  /// The instance of this class without an alias.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
+  factory DynamicTypeImpl({InstantiatedTypeAliasElementImpl? alias}) {
+    if (alias == null) {
+      return instance;
+    }
+    return DynamicTypeImpl._(alias: alias);
+  }
+
   /// Prevent the creation of instances of this class.
-  DynamicTypeImpl._();
+  DynamicTypeImpl._({super.alias});
 
   @override
   DynamicElementImpl get element => DynamicElementImpl.instance;
@@ -52,7 +59,12 @@ class DynamicTypeImpl extends TypeImpl
   NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
 
   @override
-  bool operator ==(Object other) => identical(other, this);
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
+      return true;
+    }
+    return other is DynamicTypeImpl;
+  }
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
@@ -1124,13 +1136,15 @@ class InvalidTypeImpl extends TypeImpl
 
 /// The type `Never` represents the uninhabited bottom type.
 class NeverTypeImpl extends TypeImpl implements NeverType {
-  /// The unique instance of this class, nullable.
+  /// The instance of this class without an alias, nullable.
   static final NeverTypeImpl instanceNullable = NeverTypeImpl._(
-    NullabilitySuffix.question,
+    nullabilitySuffix: NullabilitySuffix.question,
   );
 
-  /// The unique instance of this class, non-nullable.
-  static final NeverTypeImpl instance = NeverTypeImpl._(NullabilitySuffix.none);
+  /// The instance of this class without an alias, non-nullable.
+  static final NeverTypeImpl instance = NeverTypeImpl._(
+    nullabilitySuffix: NullabilitySuffix.none,
+  );
 
   @override
   final NeverElementImpl element = NeverElementImpl.instance;
@@ -1138,8 +1152,22 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
+  factory NeverTypeImpl({
+    required NullabilitySuffix nullabilitySuffix,
+    InstantiatedTypeAliasElementImpl? alias,
+  }) {
+    if (alias == null) {
+      if (nullabilitySuffix == NullabilitySuffix.none) {
+        return instance;
+      } else if (nullabilitySuffix == NullabilitySuffix.question) {
+        return instanceNullable;
+      }
+    }
+    return NeverTypeImpl._(nullabilitySuffix: nullabilitySuffix, alias: alias);
+  }
+
   /// Prevent the creation of instances of this class.
-  NeverTypeImpl._(this.nullabilitySuffix);
+  NeverTypeImpl._({required this.nullabilitySuffix, super.alias});
 
   @override
   int get hashCode => 0;
@@ -1158,7 +1186,15 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   String get name => 'Never';
 
   @override
-  bool operator ==(Object other) => identical(other, this);
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
+      return true;
+    }
+    if (other is NeverTypeImpl) {
+      return other.nullabilitySuffix == nullabilitySuffix;
+    }
+    return false;
+  }
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
@@ -1656,11 +1692,18 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
 /// A concrete implementation of a [VoidType].
 class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
-  /// The unique instance of this class, with indeterminate nullability.
+  /// The instance of this class without an alias.
   static final VoidTypeImpl instance = VoidTypeImpl._();
 
+  factory VoidTypeImpl({InstantiatedTypeAliasElementImpl? alias}) {
+    if (alias == null) {
+      return instance;
+    }
+    return VoidTypeImpl._(alias: alias);
+  }
+
   /// Prevent the creation of instances of this class.
-  VoidTypeImpl._();
+  VoidTypeImpl._({super.alias});
 
   @override
   Null get element => null;
@@ -1676,7 +1719,12 @@ class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
   NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
 
   @override
-  bool operator ==(Object other) => identical(other, this);
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
+      return true;
+    }
+    return other is VoidTypeImpl;
+  }
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
