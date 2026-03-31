@@ -69,7 +69,7 @@ class StubCode : public AllStatic {
 
 // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static const Code& name() { return *handles_[k##name##Index]; }              \
+  static const Code& name() { return Roots::stub_handle(k##name##Index); }     \
   static intptr_t name##Size() { return name().Size(); }
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
@@ -110,11 +110,11 @@ class StubCode : public AllStatic {
 
   static const char* NameAt(intptr_t index) { return StubNames[index]; }
 
-  static const Code& EntryAt(intptr_t index) { return *(handles_[index]); }
-  static void EntryAtPut(intptr_t index, Code* entry) {
-    DEBUG_ASSERT(entry->IsReadOnlyHandle());
-    ASSERT(handles_[index] == nullptr);
-    handles_[index] = entry;
+  static const Code& EntryAt(intptr_t index) {
+    return Roots::stub_handle(index);
+  }
+  static void EntryAtPut(intptr_t index, CodePtr code) {
+    Roots::stub_handle(index).initRO(code);
   }
   static intptr_t NumEntries() { return kNumStubEntries; }
 
@@ -140,7 +140,6 @@ class StubCode : public AllStatic {
         kNumStubEntries
   };
 
-  static Code* handles_[kNumStubEntries];
   static AcqRelAtomic<bool> initialized_;
 };
 

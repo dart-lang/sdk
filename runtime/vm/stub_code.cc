@@ -31,7 +31,6 @@ DEFINE_FLAG(bool,
             "Generate probe points for installation of user space probes");
 #endif
 
-Code* StubCode::handles_[kNumStubEntries] = {nullptr};
 AcqRelAtomic<bool> StubCode::initialized_ = {false};
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -54,16 +53,15 @@ void StubCode::Init() {
   };
 
   for (intptr_t i = 0; i < kNumStubEntries; i++) {
-    handles_[i] = Code::ReadOnlyHandle();
-    *(handles_[i]) =
-        Generate(StubNames[i], &object_pool_builder, generators[i]);
+    Roots::stub_handle(i).initRO(
+        Generate(StubNames[i], &object_pool_builder, generators[i]));
   }
 
   const ObjectPool& object_pool =
       ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
 
   for (intptr_t i = 0; i < kNumStubEntries; i++) {
-    handles_[i]->set_object_pool(object_pool.ptr());
+    Roots::stub_handle(i).set_object_pool(object_pool.ptr());
   }
 
   InitializationDone();
@@ -128,10 +126,6 @@ CodePtr StubCode::Generate(const char* name,
 
 void StubCode::Cleanup() {
   initialized_.store(false, std::memory_order_release);
-
-  for (intptr_t i = 0; i < kNumStubEntries; i++) {
-    handles_[i] = nullptr;
-  }
 }
 
 bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
@@ -348,8 +342,8 @@ const Code& StubCode::UnoptimizedStaticCallEntry(intptr_t num_args_tested) {
 void StubCode::ForEachStub(
     const std::function<bool(const char*, uword)>& callback) {
   for (intptr_t i = 0; i < kNumStubEntries; i++) {
-    if (handles_[i] != nullptr && !handles_[i]->IsNull()) {
-      if (!callback(StubNames[i], handles_[i]->EntryPoint())) {
+    if (Roots::stub_handle(i).ptr() != nullptr) {
+      if (!callback(StubNames[i], Roots::stub_handle(i).EntryPoint())) {
         return;
       }
     }

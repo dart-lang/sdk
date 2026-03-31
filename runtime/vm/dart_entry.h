@@ -196,9 +196,6 @@ class ArgumentsDescriptor : public ValueObject {
 
   const Array& array_;
 
-  // A cache of VM heap allocated arguments descriptors.
-  static ArrayPtr cached_args_descriptors_[kCachedDescriptorCount];
-
   friend class Interpreter;
   friend class InterpreterHelpers;
   friend class VMSerializationRoots;

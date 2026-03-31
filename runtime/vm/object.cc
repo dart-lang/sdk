@@ -122,17 +122,7 @@ static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
 static const char* const kInitPrefix = "init:";
 static const intptr_t kInitPrefixLength = strlen(kInitPrefix);
 
-// A cache of VM heap allocated preinitialized empty ic data entry arrays.
-ArrayPtr ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
-
 cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = {};
-
-// These are initialized to a value that will force an illegal memory access if
-// they are being used.
-#if defined(RAW_NULL)
-#error RAW_NULL should not be defined.
-#endif
-#define RAW_NULL static_cast<uword>(kHeapObjectTag)
 
 #define CHECK_ERROR(error)                                                     \
   {                                                                            \
@@ -141,58 +131,6 @@ cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = {};
       return err;                                                              \
     }                                                                          \
   }
-
-#define DEFINE_SHARED_READONLY_HANDLE(Type, name)                              \
-  Type* Object::name##_ = nullptr;
-SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE)
-#undef DEFINE_SHARED_READONLY_HANDLE
-
-ObjectPtr Object::null_ = static_cast<ObjectPtr>(RAW_NULL);
-BoolPtr Object::true_ = static_cast<BoolPtr>(RAW_NULL);
-BoolPtr Object::false_ = static_cast<BoolPtr>(RAW_NULL);
-ClassPtr Object::class_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::dynamic_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::void_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::type_parameters_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::type_arguments_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::patch_class_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::function_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::closure_data_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::ffi_trampoline_data_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::field_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::script_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::library_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::namespace_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::kernel_program_info_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::code_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::instructions_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::instructions_section_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::instructions_table_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::object_pool_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::pc_descriptors_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::code_source_map_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::compressed_stackmaps_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::var_descriptors_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::exception_handlers_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::context_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::context_scope_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::bytecode_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::sentinel_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::singletargetcache_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::unlinkedcall_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::monomorphicsmiablecall_class_ =
-    static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::icdata_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::megamorphic_cache_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::subtypetestcache_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::loadingunit_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::api_error_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::language_error_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::unhandled_exception_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::unwind_error_class_ = static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::weak_serialization_reference_class_ =
-    static_cast<ClassPtr>(RAW_NULL);
-ClassPtr Object::weak_array_class_ = static_cast<ClassPtr>(RAW_NULL);
 
 static void AppendSubString(BaseTextBuffer* buffer,
                             const char* name,
@@ -558,7 +496,7 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   auto heap = isolate_group->heap();
 
   // TODO(iposva): NoSafepointScope needs to be added here.
-  ASSERT(class_class() == null_);
+  ASSERT(class_class() == Roots::null_obj());
 
   // Allocate and initialize the null instance.
   // 'null_' must be the first object allocated as it is used in allocation to
@@ -566,9 +504,9 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   {
     uword address =
         heap->Allocate(thread, Instance::InstanceSize(), Heap::kOld);
-    null_ = static_cast<InstancePtr>(address + kHeapObjectTag);
+    Roots::set_null_obj(static_cast<InstancePtr>(address + kHeapObjectTag));
     InitializeObjectVariant<Instance>(address, kNullCid);
-    null_->untag()->SetCanonical();
+    Roots::null_obj()->untag()->SetCanonical();
   }
 
   // Allocate and initialize the bool instances.
@@ -584,32 +522,32 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   {
     // Allocate true.
     uword address = heap->Allocate(thread, Bool::InstanceSize(), Heap::kOld);
-    true_ = static_cast<BoolPtr>(address + kHeapObjectTag);
+    Roots::set_true_obj(static_cast<BoolPtr>(address + kHeapObjectTag));
     InitializeObject<Bool>(address);
-    true_->untag()->value_ = true;
-    true_->untag()->SetCanonical();
+    Roots::true_obj()->untag()->value_ = true;
+    Roots::true_obj()->untag()->SetCanonical();
   }
   {
     // Allocate false.
     uword address = heap->Allocate(thread, Bool::InstanceSize(), Heap::kOld);
-    false_ = static_cast<BoolPtr>(address + kHeapObjectTag);
+    Roots::set_false_obj(static_cast<BoolPtr>(address + kHeapObjectTag));
     InitializeObject<Bool>(address);
-    false_->untag()->value_ = false;
-    false_->untag()->SetCanonical();
+    Roots::false_obj()->untag()->value_ = false;
+    Roots::false_obj()->untag()->SetCanonical();
   }
 
   // Check that the objects have been allocated at appropriate addresses.
-  ASSERT(static_cast<uword>(true_) ==
-         static_cast<uword>(null_) + kTrueOffsetFromNull);
-  ASSERT(static_cast<uword>(false_) ==
-         static_cast<uword>(null_) + kFalseOffsetFromNull);
-  ASSERT((static_cast<uword>(true_) & kBoolValueMask) == 0);
-  ASSERT((static_cast<uword>(false_) & kBoolValueMask) != 0);
-  ASSERT(static_cast<uword>(false_) ==
-         (static_cast<uword>(true_) | kBoolValueMask));
-  ASSERT((static_cast<uword>(null_) & kBoolVsNullMask) == 0);
-  ASSERT((static_cast<uword>(true_) & kBoolVsNullMask) != 0);
-  ASSERT((static_cast<uword>(false_) & kBoolVsNullMask) != 0);
+  uword null_ = static_cast<uword>(Roots::null_obj());
+  uword true_ = static_cast<uword>(Roots::true_obj());
+  uword false_ = static_cast<uword>(Roots::false_obj());
+  ASSERT(true_ == null_ + kTrueOffsetFromNull);
+  ASSERT(false_ == null_ + kFalseOffsetFromNull);
+  ASSERT((true_ & kBoolValueMask) == 0);
+  ASSERT((false_ & kBoolValueMask) != 0);
+  ASSERT(false_ == (true_ | kBoolValueMask));
+  ASSERT((null_ & kBoolVsNullMask) == 0);
+  ASSERT((true_ & kBoolVsNullMask) != 0);
+  ASSERT((false_ & kBoolVsNullMask) != 0);
 }
 
 void Object::InitVtables() {
@@ -729,35 +667,30 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   InitVtables();
 
-// Allocate the read only object handles here.
-#define INITIALIZE_SHARED_READONLY_HANDLE(Type, name)                          \
-  name##_ = Type::ReadOnlyHandle();
-  SHARED_READONLY_HANDLES_LIST(INITIALIZE_SHARED_READONLY_HANDLE)
-#undef INITIALIZE_SHARED_READONLY_HANDLE
-
-  *null_object_ = Object::null();
-  *null_class_ = Class::null();
-  *null_array_ = Array::null();
-  *null_string_ = String::null();
-  *null_instance_ = Instance::null();
-  *null_function_ = Function::null();
-  *null_function_type_ = FunctionType::null();
-  *null_record_type_ = RecordType::null();
-  *null_type_arguments_ = TypeArguments::null();
-  *null_closure_ = Closure::null();
-  *empty_type_arguments_ = TypeArguments::null();
-  *null_abstract_type_ = AbstractType::null();
-  *null_compressed_stackmaps_ = CompressedStackMaps::null();
-  *bool_true_ = true_;
-  *bool_false_ = false_;
+  // Allocate the read only object handles here.
+  Roots::null_object().initRO(Object::null());
+  Roots::null_class().initRO(Class::null());
+  Roots::null_array().initRO(Array::null());
+  Roots::null_string().initRO(String::null());
+  Roots::null_instance().initRO(Instance::null());
+  Roots::null_function().initRO(Function::null());
+  Roots::null_function_type().initRO(FunctionType::null());
+  Roots::null_record_type().initRO(RecordType::null());
+  Roots::null_type_arguments().initRO(TypeArguments::null());
+  Roots::null_closure().initRO(Closure::null());
+  Roots::empty_type_arguments().initRO(TypeArguments::null());
+  Roots::null_abstract_type().initRO(AbstractType::null());
+  Roots::null_compressed_stackmaps().initRO(CompressedStackMaps::null());
+  Roots::bool_true().initRO(Roots::true_obj());
+  Roots::bool_false().initRO(Roots::false_obj());
 
   // Initialize the empty array and empty instantiations cache array handles to
   // null_ in order to be able to check if the empty and zero arrays were
   // allocated (RAW_NULL is not available).
-  *empty_array_ = Array::null();
-  *empty_instantiations_cache_array_ = Array::null();
-  *empty_subtype_test_cache_array_ = Array::null();
-  *mutable_empty_array_ = Array::null();
+  Roots::empty_array().initRO(Array::null());
+  Roots::empty_instantiations_cache_array().initRO(Array::null());
+  Roots::empty_subtype_test_cache_array().initRO(Array::null());
+  Roots::mutable_empty_array().initRO(Array::null());
 
   Class& cls = Class::Handle();
 
@@ -765,14 +698,14 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     intptr_t size = Class::InstanceSize();
     uword address = heap->Allocate(thread, size, Heap::kOld);
-    class_class_ = static_cast<ClassPtr>(address + kHeapObjectTag);
+    Roots::set_class_class(static_cast<ClassPtr>(address + kHeapObjectTag));
     InitializeObject<Class>(address);
 
     Class fake;
     // Initialization from Class::New<Class>.
     // Directly set ptr_ to break a circular dependency: SetRaw will attempt
     // to lookup class class in the class table where it is not registered yet.
-    cls.ptr_ = class_class_;
+    cls.ptr_ = Roots::class_class();
     ASSERT(builtin_vtables_[kClassCid] == fake.vtable());
     cls.set_instance_size(
         Class::InstanceSize(),
@@ -826,138 +759,138 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize Sentinel class.
   cls = Class::New<Sentinel, RTN::Sentinel>(isolate_group);
-  sentinel_class_ = cls.ptr();
+  Roots::set_sentinel_class(cls.ptr());
 
   // Allocate and initialize the sentinel values.
   {
-    *sentinel_ ^= Sentinel::New();
+    Roots::sentinel().initRO(Sentinel::New());
   }
 
   // Allocate and initialize optimizing compiler constants.
   {
-    *unknown_constant_ ^= Sentinel::New();
-    *non_constant_ ^= Sentinel::New();
-    *optimized_out_ ^= Sentinel::New();
+    Roots::unknown_constant().initRO(Sentinel::New());
+    Roots::non_constant().initRO(Sentinel::New());
+    Roots::optimized_out().initRO(Sentinel::New());
   }
 
   // Allocate the remaining VM internal classes.
   cls = Class::New<TypeParameters, RTN::TypeParameters>(isolate_group);
-  type_parameters_class_ = cls.ptr();
+  Roots::set_type_parameters_class(cls.ptr());
 
   cls = Class::New<TypeArguments, RTN::TypeArguments>(isolate_group);
-  type_arguments_class_ = cls.ptr();
+  Roots::set_type_arguments_class(cls.ptr());
 
   cls = Class::New<PatchClass, RTN::PatchClass>(isolate_group);
-  patch_class_class_ = cls.ptr();
+  Roots::set_patch_class_class(cls.ptr());
 
   cls = Class::New<Function, RTN::Function>(isolate_group);
-  function_class_ = cls.ptr();
+  Roots::set_function_class(cls.ptr());
 
   cls = Class::New<ClosureData, RTN::ClosureData>(isolate_group);
-  closure_data_class_ = cls.ptr();
+  Roots::set_closure_data_class(cls.ptr());
 
   cls = Class::New<FfiTrampolineData, RTN::FfiTrampolineData>(isolate_group);
-  ffi_trampoline_data_class_ = cls.ptr();
+  Roots::set_ffi_trampoline_data_class(cls.ptr());
 
   cls = Class::New<Field, RTN::Field>(isolate_group);
-  field_class_ = cls.ptr();
+  Roots::set_field_class(cls.ptr());
 
   cls = Class::New<Script, RTN::Script>(isolate_group);
-  script_class_ = cls.ptr();
+  Roots::set_script_class(cls.ptr());
 
   cls = Class::New<Library, RTN::Library>(isolate_group);
-  library_class_ = cls.ptr();
+  Roots::set_library_class(cls.ptr());
 
   cls = Class::New<Namespace, RTN::Namespace>(isolate_group);
-  namespace_class_ = cls.ptr();
+  Roots::set_namespace_class(cls.ptr());
 
   cls = Class::New<KernelProgramInfo, RTN::KernelProgramInfo>(isolate_group);
-  kernel_program_info_class_ = cls.ptr();
+  Roots::set_kernel_program_info_class(cls.ptr());
 
   cls = Class::New<Code, RTN::Code>(isolate_group);
-  code_class_ = cls.ptr();
+  Roots::set_code_class(cls.ptr());
 
   cls = Class::New<Instructions, RTN::Instructions>(isolate_group);
-  instructions_class_ = cls.ptr();
+  Roots::set_instructions_class(cls.ptr());
 
   cls =
       Class::New<InstructionsSection, RTN::InstructionsSection>(isolate_group);
-  instructions_section_class_ = cls.ptr();
+  Roots::set_instructions_section_class(cls.ptr());
 
   cls = Class::New<InstructionsTable, RTN::InstructionsTable>(isolate_group);
-  instructions_table_class_ = cls.ptr();
+  Roots::set_instructions_table_class(cls.ptr());
 
   cls = Class::New<ObjectPool, RTN::ObjectPool>(isolate_group);
-  object_pool_class_ = cls.ptr();
+  Roots::set_object_pool_class(cls.ptr());
 
   cls = Class::New<PcDescriptors, RTN::PcDescriptors>(isolate_group);
-  pc_descriptors_class_ = cls.ptr();
+  Roots::set_pc_descriptors_class(cls.ptr());
 
   cls = Class::New<CodeSourceMap, RTN::CodeSourceMap>(isolate_group);
-  code_source_map_class_ = cls.ptr();
+  Roots::set_code_source_map_class(cls.ptr());
 
   cls =
       Class::New<CompressedStackMaps, RTN::CompressedStackMaps>(isolate_group);
-  compressed_stackmaps_class_ = cls.ptr();
+  Roots::set_compressed_stackmaps_class(cls.ptr());
 
   cls =
       Class::New<LocalVarDescriptors, RTN::LocalVarDescriptors>(isolate_group);
-  var_descriptors_class_ = cls.ptr();
+  Roots::set_var_descriptors_class(cls.ptr());
 
   cls = Class::New<ExceptionHandlers, RTN::ExceptionHandlers>(isolate_group);
-  exception_handlers_class_ = cls.ptr();
+  Roots::set_exception_handlers_class(cls.ptr());
 
   cls = Class::New<Context, RTN::Context>(isolate_group);
-  context_class_ = cls.ptr();
+  Roots::set_context_class(cls.ptr());
 
   cls = Class::New<ContextScope, RTN::ContextScope>(isolate_group);
-  context_scope_class_ = cls.ptr();
+  Roots::set_context_scope_class(cls.ptr());
 
   cls = Class::New<Bytecode, RTN::Bytecode>(isolate_group);
-  bytecode_class_ = cls.ptr();
+  Roots::set_bytecode_class(cls.ptr());
 
   cls = Class::New<SingleTargetCache, RTN::SingleTargetCache>(isolate_group);
-  singletargetcache_class_ = cls.ptr();
+  Roots::set_singletargetcache_class(cls.ptr());
 
   cls = Class::New<UnlinkedCall, RTN::UnlinkedCall>(isolate_group);
-  unlinkedcall_class_ = cls.ptr();
+  Roots::set_unlinkedcall_class(cls.ptr());
 
   cls = Class::New<MonomorphicSmiableCall, RTN::MonomorphicSmiableCall>(
       isolate_group);
-  monomorphicsmiablecall_class_ = cls.ptr();
+  Roots::set_monomorphicsmiablecall_class(cls.ptr());
 
   cls = Class::New<ICData, RTN::ICData>(isolate_group);
-  icdata_class_ = cls.ptr();
+  Roots::set_icdata_class(cls.ptr());
 
   cls = Class::New<MegamorphicCache, RTN::MegamorphicCache>(isolate_group);
-  megamorphic_cache_class_ = cls.ptr();
+  Roots::set_megamorphic_cache_class(cls.ptr());
 
   cls = Class::New<SubtypeTestCache, RTN::SubtypeTestCache>(isolate_group);
-  subtypetestcache_class_ = cls.ptr();
+  Roots::set_subtypetestcache_class(cls.ptr());
 
   cls = Class::New<LoadingUnit, RTN::LoadingUnit>(isolate_group);
-  loadingunit_class_ = cls.ptr();
+  Roots::set_loadingunit_class(cls.ptr());
 
   cls = Class::New<ApiError, RTN::ApiError>(isolate_group);
-  api_error_class_ = cls.ptr();
+  Roots::set_api_error_class(cls.ptr());
 
   cls = Class::New<LanguageError, RTN::LanguageError>(isolate_group);
-  language_error_class_ = cls.ptr();
+  Roots::set_language_error_class(cls.ptr());
 
   cls = Class::New<UnhandledException, RTN::UnhandledException>(isolate_group);
-  unhandled_exception_class_ = cls.ptr();
+  Roots::set_unhandled_exception_class(cls.ptr());
 
   cls = Class::New<UnwindError, RTN::UnwindError>(isolate_group);
-  unwind_error_class_ = cls.ptr();
+  Roots::set_unwind_error_class(cls.ptr());
 
   cls = Class::New<WeakSerializationReference, RTN::WeakSerializationReference>(
       isolate_group);
-  weak_serialization_reference_class_ = cls.ptr();
+  Roots::set_weak_serialization_reference_class(cls.ptr());
 
   cls = Class::New<WeakArray, RTN::WeakArray>(isolate_group);
-  weak_array_class_ = cls.ptr();
+  Roots::set_weak_array_class(cls.ptr());
 
-  ASSERT(class_class() != null_);
+  ASSERT(class_class() != Roots::null_obj());
 
   // Pre-allocate classes in the vm isolate so that we can for example create a
   // symbol table and populate it with some frequently used strings as symbols.
@@ -1008,20 +941,20 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     uword address = heap->Allocate(thread, Array::InstanceSize(0), Heap::kOld);
     InitializeObjectVariant<Array>(address, kImmutableArrayCid, 0);
-    Array::initializeHandle(empty_array_,
-                            static_cast<ArrayPtr>(address + kHeapObjectTag));
-    empty_array_->untag()->set_length(Smi::New(0));
-    empty_array_->SetCanonical();
-    empty_array_->SetDeeplyImmutable();
+    Roots::empty_array().initRO(
+        static_cast<ArrayPtr>(address + kHeapObjectTag));
+    Roots::empty_array().untag()->set_length(Smi::New(0));
+    Roots::empty_array().SetCanonical();
+    Roots::empty_array().SetDeeplyImmutable();
   }
   {
     uword address = heap->Allocate(thread, Array::InstanceSize(0), Heap::kOld);
     InitializeObjectVariant<Array>(address, kArrayCid, 0);
-    Array::initializeHandle(mutable_empty_array_,
-                            static_cast<ArrayPtr>(address + kHeapObjectTag));
-    mutable_empty_array_->untag()->set_length(Smi::New(0));
-    mutable_empty_array_->SetCanonical();
-    mutable_empty_array_->SetDeeplyImmutable();
+    Roots::mutable_empty_array().initRO(
+        static_cast<ArrayPtr>(address + kHeapObjectTag));
+    Roots::mutable_empty_array().untag()->set_length(Smi::New(0));
+    Roots::mutable_empty_array().SetCanonical();
+    Roots::mutable_empty_array().SetDeeplyImmutable();
   }
 
   Smi& smi = Smi::Handle();
@@ -1035,21 +968,21 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address =
         heap->Allocate(thread, Array::InstanceSize(array_size), Heap::kOld);
     InitializeObjectVariant<Array>(address, kImmutableArrayCid, array_size);
-    Array::initializeHandle(empty_instantiations_cache_array_,
-                            static_cast<ArrayPtr>(address + kHeapObjectTag));
-    empty_instantiations_cache_array_->untag()->set_length(
+    Roots::empty_instantiations_cache_array().initRO(
+        static_cast<ArrayPtr>(address + kHeapObjectTag));
+    Roots::empty_instantiations_cache_array().untag()->set_length(
         Smi::New(array_size));
     // The empty cache has no occupied entries and is not a hash-based cache.
     smi = Smi::New(0);
-    empty_instantiations_cache_array_->SetAt(
+    Roots::empty_instantiations_cache_array().SetAt(
         TypeArguments::Cache::kMetadataIndex, smi);
     // Make the first (and only) entry unoccupied by setting its first element
     // to the sentinel value.
     smi = TypeArguments::Cache::Sentinel();
-    InstantiationsCacheTable table(*empty_instantiations_cache_array_);
+    InstantiationsCacheTable table(Roots::empty_instantiations_cache_array());
     table.At(0).Set<TypeArguments::Cache::kSentinelIndex>(smi);
     // The other contents of the array are immaterial.
-    empty_instantiations_cache_array_->SetCanonical();
+    Roots::empty_instantiations_cache_array().SetCanonical();
   }
 
   // Allocate and initialize the empty subtype test cache array instance,
@@ -1059,19 +992,20 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address =
         heap->Allocate(thread, Array::InstanceSize(array_size), Heap::kOld);
     InitializeObjectVariant<Array>(address, kImmutableArrayCid, array_size);
-    Array::initializeHandle(empty_subtype_test_cache_array_,
-                            static_cast<ArrayPtr>(address + kHeapObjectTag));
-    empty_subtype_test_cache_array_->untag()->set_length(Smi::New(array_size));
+    Roots::empty_subtype_test_cache_array().initRO(
+        static_cast<ArrayPtr>(address + kHeapObjectTag));
+    Roots::empty_subtype_test_cache_array().untag()->set_length(
+        Smi::New(array_size));
     // Make the first (and only) entry unoccupied by setting its first element
     // to the null value.
-    empty_subtype_test_cache_array_->SetAt(
+    Roots::empty_subtype_test_cache_array().SetAt(
         SubtypeTestCache::kInstanceCidOrSignature, Object::null_object());
     smi = TypeArguments::Cache::Sentinel();
-    SubtypeTestCacheTable table(*empty_subtype_test_cache_array_);
+    SubtypeTestCacheTable table(Roots::empty_subtype_test_cache_array());
     table.At(0).Set<SubtypeTestCache::kInstanceCidOrSignature>(
         Object::null_object());
     // The other contents of the array are immaterial.
-    empty_subtype_test_cache_array_->SetCanonical();
+    Roots::empty_subtype_test_cache_array().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty context scope object.
@@ -1079,14 +1013,13 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address =
         heap->Allocate(thread, ContextScope::InstanceSize(0), Heap::kOld);
     InitializeObject<ContextScope>(address, 0);
-    ContextScope::initializeHandle(
-        empty_context_scope_,
+    Roots::empty_context_scope().initRO(
         static_cast<ContextScopePtr>(address + kHeapObjectTag));
-    empty_context_scope_->StoreNonPointer(
-        &empty_context_scope_->untag()->num_variables_, 0);
-    empty_context_scope_->StoreNonPointer(
-        &empty_context_scope_->untag()->is_implicit_, true);
-    empty_context_scope_->SetCanonical();
+    Roots::empty_context_scope().StoreNonPointer(
+        &Roots::empty_context_scope().untag()->num_variables_, 0);
+    Roots::empty_context_scope().StoreNonPointer(
+        &Roots::empty_context_scope().untag()->is_implicit_, true);
+    Roots::empty_context_scope().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty object pool object.
@@ -1094,12 +1027,11 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address =
         heap->Allocate(thread, ObjectPool::InstanceSize(0), Heap::kOld);
     InitializeObject<ObjectPool>(address, 0);
-    ObjectPool::initializeHandle(
-        empty_object_pool_,
+    Roots::empty_object_pool().initRO(
         static_cast<ObjectPoolPtr>(address + kHeapObjectTag));
-    empty_object_pool_->StoreNonPointer(&empty_object_pool_->untag()->length_,
-                                        0);
-    empty_object_pool_->SetCanonical();
+    Roots::empty_object_pool().StoreNonPointer(
+        &Roots::empty_object_pool().untag()->length_, 0);
+    Roots::empty_object_pool().SetCanonical();
   }
 
   // Allocate and initialize the empty_compressed_stackmaps instance.
@@ -1107,11 +1039,11 @@ void Object::Init(IsolateGroup* isolate_group) {
     const intptr_t instance_size = CompressedStackMaps::InstanceSize(0);
     uword address = heap->Allocate(thread, instance_size, Heap::kOld);
     InitializeObject<CompressedStackMaps>(address, 0);
-    CompressedStackMaps::initializeHandle(
-        empty_compressed_stackmaps_,
+    Roots::empty_compressed_stackmaps().initRO(
         static_cast<CompressedStackMapsPtr>(address + kHeapObjectTag));
-    empty_compressed_stackmaps_->untag()->payload()->set_flags_and_size(0);
-    empty_compressed_stackmaps_->SetCanonical();
+    Roots::empty_compressed_stackmaps().untag()->payload()->set_flags_and_size(
+        0);
+    Roots::empty_compressed_stackmaps().SetCanonical();
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -1119,12 +1051,11 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address =
         heap->Allocate(thread, PcDescriptors::InstanceSize(0), Heap::kOld);
     InitializeObject<PcDescriptors>(address, 0);
-    PcDescriptors::initializeHandle(
-        empty_descriptors_,
+    Roots::empty_descriptors().initRO(
         static_cast<PcDescriptorsPtr>(address + kHeapObjectTag));
-    empty_descriptors_->StoreNonPointer(&empty_descriptors_->untag()->length_,
-                                        0);
-    empty_descriptors_->SetCanonical();
+    Roots::empty_descriptors().StoreNonPointer(
+        &Roots::empty_descriptors().untag()->length_, 0);
+    Roots::empty_descriptors().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty variable descriptor object.
@@ -1132,12 +1063,11 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address = heap->Allocate(thread, LocalVarDescriptors::InstanceSize(0),
                                    Heap::kOld);
     InitializeObject<LocalVarDescriptors>(address, 0);
-    LocalVarDescriptors::initializeHandle(
-        empty_var_descriptors_,
+    Roots::empty_var_descriptors().initRO(
         static_cast<LocalVarDescriptorsPtr>(address + kHeapObjectTag));
-    empty_var_descriptors_->StoreNonPointer(
-        &empty_var_descriptors_->untag()->num_entries_, 0);
-    empty_var_descriptors_->SetCanonical();
+    Roots::empty_var_descriptors().StoreNonPointer(
+        &Roots::empty_var_descriptors().untag()->num_entries_, 0);
+    Roots::empty_var_descriptors().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty exception handler info object.
@@ -1147,12 +1077,11 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address =
         heap->Allocate(thread, ExceptionHandlers::InstanceSize(0), Heap::kOld);
     InitializeObject<ExceptionHandlers>(address, 0);
-    ExceptionHandlers::initializeHandle(
-        empty_exception_handlers_,
+    Roots::empty_exception_handlers().initRO(
         static_cast<ExceptionHandlersPtr>(address + kHeapObjectTag));
-    empty_exception_handlers_->StoreNonPointer(
-        &empty_exception_handlers_->untag()->packed_fields_, 0);
-    empty_exception_handlers_->SetCanonical();
+    Roots::empty_exception_handlers().StoreNonPointer(
+        &Roots::empty_exception_handlers().untag()->packed_fields_, 0);
+    Roots::empty_exception_handlers().SetCanonical();
   }
 
   // Empty exception handlers for async/async* functions.
@@ -1160,13 +1089,12 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address =
         heap->Allocate(thread, ExceptionHandlers::InstanceSize(0), Heap::kOld);
     InitializeObject<ExceptionHandlers>(address, 0);
-    ExceptionHandlers::initializeHandle(
-        empty_async_exception_handlers_,
+    Roots::empty_async_exception_handlers().initRO(
         static_cast<ExceptionHandlersPtr>(address + kHeapObjectTag));
-    empty_async_exception_handlers_->StoreNonPointer(
-        &empty_async_exception_handlers_->untag()->packed_fields_,
+    Roots::empty_async_exception_handlers().StoreNonPointer(
+        &Roots::empty_async_exception_handlers().untag()->packed_fields_,
         UntaggedExceptionHandlers::AsyncHandlerBit::update(true, 0));
-    empty_async_exception_handlers_->SetCanonical();
+    Roots::empty_async_exception_handlers().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty type arguments object.
@@ -1174,18 +1102,17 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address =
         heap->Allocate(thread, TypeArguments::InstanceSize(0), Heap::kOld);
     InitializeObject<TypeArguments>(address, 0);
-    TypeArguments::initializeHandle(
-        empty_type_arguments_,
+    Roots::empty_type_arguments().initRO(
         static_cast<TypeArgumentsPtr>(address + kHeapObjectTag));
-    empty_type_arguments_->untag()->set_length(Smi::New(0));
-    empty_type_arguments_->untag()->set_hash(Smi::New(0));
-    empty_type_arguments_->ComputeHash();
-    empty_type_arguments_->SetCanonical();
+    Roots::empty_type_arguments().untag()->set_length(Smi::New(0));
+    Roots::empty_type_arguments().untag()->set_hash(Smi::New(0));
+    Roots::empty_type_arguments().ComputeHash();
+    Roots::empty_type_arguments().SetCanonical();
   }
 
   // The VM isolate snapshot object table is initialized to an empty array
   // as we do not have any VM isolate snapshot at this time.
-  *vm_isolate_snapshot_object_table_ = Object::empty_array().ptr();
+  Roots::vm_isolate_snapshot_object_table().initRO(Object::empty_array().ptr());
 
   cls = Class::New<Instance, RTN::Instance>(kDynamicCid, isolate_group);
   cls.set_is_abstract();
@@ -1193,14 +1120,14 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
-  dynamic_class_ = cls.ptr();
+  Roots::set_dynamic_class(cls.ptr());
 
   cls = Class::New<Instance, RTN::Instance>(kVoidCid, isolate_group);
   cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
-  void_class_ = cls.ptr();
+  Roots::set_void_class(cls.ptr());
 
   cls = Class::New<Type, RTN::Type>(isolate_group);
   cls.set_is_allocate_finalized();
@@ -1217,25 +1144,25 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
-  cls = dynamic_class_;
-  *dynamic_type_ =
-      Type::New(cls, Object::null_type_arguments(), Nullability::kNullable);
-  dynamic_type_->SetIsFinalized();
-  dynamic_type_->ComputeHash();
-  dynamic_type_->SetCanonical();
+  cls = Roots::dynamic_class();
+  Roots::dynamic_type().initRO(
+      Type::New(cls, Object::null_type_arguments(), Nullability::kNullable));
+  Roots::dynamic_type().SetIsFinalized();
+  Roots::dynamic_type().ComputeHash();
+  Roots::dynamic_type().SetCanonical();
 
-  cls = void_class_;
-  *void_type_ =
-      Type::New(cls, Object::null_type_arguments(), Nullability::kNullable);
-  void_type_->SetIsFinalized();
-  void_type_->ComputeHash();
-  void_type_->SetCanonical();
+  cls = Roots::void_class();
+  Roots::void_type().initRO(
+      Type::New(cls, Object::null_type_arguments(), Nullability::kNullable));
+  Roots::void_type().SetIsFinalized();
+  Roots::void_type().ComputeHash();
+  Roots::void_type().SetCanonical();
 
   // Since TypeArguments objects are passed as function arguments, make them
   // behave as Dart instances, although they are just VM objects.
   // Note that we cannot set the super type to ObjectType, which does not live
   // in the vm isolate. See special handling in Class::SuperClass().
-  cls = type_arguments_class_;
+  cls = Roots::type_arguments_class();
   cls.set_interfaces(Object::empty_array());
   cls.SetFields(Object::empty_array());
   cls.SetFunctions(Object::empty_array());
@@ -1243,8 +1170,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls = Class::New<Bool, RTN::Bool>(isolate_group);
   isolate_group->object_store()->set_bool_class(cls);
 
-  *smi_illegal_cid_ = Smi::New(kIllegalCid);
-  *smi_zero_ = Smi::New(0);
+  Roots::smi_illegal_cid().initRO(Smi::New(kIllegalCid));
+  Roots::smi_zero().initRO(Smi::New(0));
 
   String& error_str = String::Handle();
   error_str = String::New(
@@ -1252,196 +1179,203 @@ void Object::Init(IsolateGroup* isolate_group) {
       "outstanding pointers from Dart_TypedDataAcquireData that have not been "
       "released with Dart_TypedDataReleaseData, or a finalizer is running.",
       Heap::kOld);
-  *no_callbacks_error_ = ApiError::New(error_str, Heap::kOld);
+  Roots::no_callbacks_error().initRO(ApiError::New(error_str, Heap::kOld));
   error_str = String::New("isolate is exiting", Heap::kOld);
-  *unwind_error_ = UnwindError::New(error_str, Heap::kOld);
+  Roots::unwind_error().initRO(UnwindError::New(error_str, Heap::kOld));
   error_str = String::New(
       "No api calls are allowed while unwind is in progress", Heap::kOld);
-  *unwind_in_progress_error_ = UnwindError::New(error_str, Heap::kOld);
+  Roots::unwind_in_progress_error().initRO(
+      UnwindError::New(error_str, Heap::kOld));
   error_str = String::New("SnapshotWriter Error", Heap::kOld);
-  *snapshot_writer_error_ =
-      LanguageError::New(error_str, Report::kError, Heap::kOld);
+  Roots::snapshot_writer_error().initRO(
+      LanguageError::New(error_str, Report::kError, Heap::kOld));
   error_str = String::New("Branch offset overflow", Heap::kOld);
-  *branch_offset_error_ =
-      LanguageError::New(error_str, Report::kBailout, Heap::kOld);
+  Roots::branch_offset_error().initRO(
+      LanguageError::New(error_str, Report::kBailout, Heap::kOld));
   error_str = String::New("Background Compilation Failed", Heap::kOld);
-  *background_compilation_error_ =
-      LanguageError::New(error_str, Report::kBailout, Heap::kOld);
+  Roots::background_compilation_error().initRO(
+      LanguageError::New(error_str, Report::kBailout, Heap::kOld));
   error_str = String::New("No debuggable code where breakpoint was requested",
                           Heap::kOld);
-  *no_debuggable_code_error_ =
-      LanguageError::New(error_str, Report::kError, Heap::kOld);
+  Roots::no_debuggable_code_error().initRO(
+      LanguageError::New(error_str, Report::kError, Heap::kOld));
   error_str = String::New("Out of memory", Heap::kOld);
-  *out_of_memory_error_ =
-      LanguageError::New(error_str, Report::kError, Heap::kOld);
-  *unhandled_oom_exception_ =
-      UnhandledException::New(error_str, StackTrace::Handle(), Heap::kOld);
+  Roots::out_of_memory_error().initRO(
+      LanguageError::New(error_str, Report::kError, Heap::kOld));
+  Roots::unhandled_oom_exception().initRO(
+      UnhandledException::New(error_str, StackTrace::Handle(), Heap::kOld));
 
   // Allocate the parameter types and names for synthetic getters.
-  *synthetic_getter_parameter_types_ = Array::New(1, Heap::kOld);
-  synthetic_getter_parameter_types_->SetAt(0, Object::dynamic_type());
-  *synthetic_getter_parameter_names_ = Array::New(1, Heap::kOld);
+  Roots::synthetic_getter_parameter_types().initRO(Array::New(1, Heap::kOld));
+  Roots::synthetic_getter_parameter_types().SetAt(0, Object::dynamic_type());
+  Roots::synthetic_getter_parameter_names().initRO(Array::New(1, Heap::kOld));
   // Fill in synthetic_getter_parameter_names_ later, after symbols are
   // initialized (in Object::FinalizeVMIsolate).
   // synthetic_getter_parameter_names_ object needs to be created earlier as
   // VM isolate snapshot reader references it before Object::FinalizeVMIsolate.
 
 #if defined(DART_DYNAMIC_MODULES)
-  *implicit_getter_bytecode_ =
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitGetter);
-
-  *implicit_setter_bytecode_ =
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitSetter);
-
-  *implicit_static_getter_bytecode_ = CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitStaticGetter);
-
-  *implicit_shared_static_getter_bytecode_ = CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitSharedStaticGetter);
-
-  *implicit_static_setter_bytecode_ = CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitStaticSetter);
-
-  *implicit_shared_static_setter_bytecode_ = CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitSharedStaticSetter);
-
-  *method_extractor_bytecode_ =
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor);
-
-  *invoke_closure_bytecode_ =
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeClosure);
-
-  *invoke_field_bytecode_ =
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeField);
-
-  *nsm_dispatcher_bytecode_ = CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_NoSuchMethodDispatcher);
-
-  *dynamic_invocation_forwarder_bytecode_ = CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ForwardDynamicInvocation);
-
-  *implicit_static_closure_bytecode_ = CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitStaticClosure);
-
-  *implicit_instance_closure_bytecode_ = CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitInstanceClosure);
-
-  *implicit_constructor_closure_bytecode_ = CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitConstructorClosure);
+  Roots::implicit_getter_bytecode().initRO(
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitGetter));
+  Roots::implicit_setter_bytecode().initRO(
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitSetter));
+  Roots::implicit_static_getter_bytecode().initRO(CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticGetter));
+  Roots::implicit_shared_static_getter_bytecode().initRO(
+      CreateVMInternalBytecode(
+          KernelBytecode::kVMInternal_ImplicitSharedStaticGetter));
+  Roots::implicit_static_setter_bytecode().initRO(CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticSetter));
+  Roots::implicit_shared_static_setter_bytecode().initRO(
+      CreateVMInternalBytecode(
+          KernelBytecode::kVMInternal_ImplicitSharedStaticSetter));
+  Roots::method_extractor_bytecode().initRO(
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor));
+  Roots::invoke_closure_bytecode().initRO(
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeClosure));
+  Roots::invoke_field_bytecode().initRO(
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeField));
+  Roots::nsm_dispatcher_bytecode().initRO(CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_NoSuchMethodDispatcher));
+  Roots::dynamic_invocation_forwarder_bytecode().initRO(
+      CreateVMInternalBytecode(
+          KernelBytecode::kVMInternal_ForwardDynamicInvocation));
+  Roots::implicit_static_closure_bytecode().initRO(CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticClosure));
+  Roots::implicit_instance_closure_bytecode().initRO(CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitInstanceClosure));
+  Roots::implicit_constructor_closure_bytecode().initRO(
+      CreateVMInternalBytecode(
+          KernelBytecode::kVMInternal_ImplicitConstructorClosure));
+#else
+  Roots::implicit_getter_bytecode().initRO(Bytecode::null());
+  Roots::implicit_setter_bytecode().initRO(Bytecode::null());
+  Roots::implicit_static_getter_bytecode().initRO(Bytecode::null());
+  Roots::implicit_shared_static_getter_bytecode().initRO(Bytecode::null());
+  Roots::implicit_static_setter_bytecode().initRO(Bytecode::null());
+  Roots::implicit_shared_static_setter_bytecode().initRO(Bytecode::null());
+  Roots::method_extractor_bytecode().initRO(Bytecode::null());
+  Roots::invoke_closure_bytecode().initRO(Bytecode::null());
+  Roots::invoke_field_bytecode().initRO(Bytecode::null());
+  Roots::nsm_dispatcher_bytecode().initRO(Bytecode::null());
+  Roots::dynamic_invocation_forwarder_bytecode().initRO(Bytecode::null());
+  Roots::implicit_static_closure_bytecode().initRO(Bytecode::null());
+  Roots::implicit_instance_closure_bytecode().initRO(Bytecode::null());
+  Roots::implicit_constructor_closure_bytecode().initRO(Bytecode::null());
 #endif  // defined(DART_DYNAMIC_MODULES)
 
-  *uninitialized_index_ =
+  Roots::uninitialized_index().initRO(
       TypedData::New(kTypedDataUint32ArrayCid,
-                     LinkedHashBase::kUninitializedIndexSize, Heap::kOld);
-  *uninitialized_data_ = Array::New(0, Heap::kOld);
+                     LinkedHashBase::kUninitializedIndexSize, Heap::kOld));
+  Roots::uninitialized_data().initRO(Array::New(0, Heap::kOld));
 
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   thread->ClearStickyError();
 
-  ASSERT(!null_object_->IsSmi());
-  ASSERT(!null_class_->IsSmi());
-  ASSERT(null_class_->IsClass());
-  ASSERT(!null_array_->IsSmi());
-  ASSERT(null_array_->IsArray());
-  ASSERT(!null_string_->IsSmi());
-  ASSERT(null_string_->IsString());
-  ASSERT(!null_instance_->IsSmi());
-  ASSERT(null_instance_->IsInstance());
-  ASSERT(!null_function_->IsSmi());
-  ASSERT(null_function_->IsFunction());
-  ASSERT(!null_function_type_->IsSmi());
-  ASSERT(null_function_type_->IsFunctionType());
-  ASSERT(!null_record_type_->IsSmi());
-  ASSERT(null_record_type_->IsRecordType());
-  ASSERT(!null_type_arguments_->IsSmi());
-  ASSERT(null_type_arguments_->IsTypeArguments());
-  ASSERT(!null_compressed_stackmaps_->IsSmi());
-  ASSERT(null_compressed_stackmaps_->IsCompressedStackMaps());
-  ASSERT(!empty_array_->IsSmi());
-  ASSERT(empty_array_->IsArray());
-  ASSERT(!empty_instantiations_cache_array_->IsSmi());
-  ASSERT(empty_instantiations_cache_array_->IsArray());
-  ASSERT(!empty_subtype_test_cache_array_->IsSmi());
-  ASSERT(empty_subtype_test_cache_array_->IsArray());
-  ASSERT(!empty_type_arguments_->IsSmi());
-  ASSERT(empty_type_arguments_->IsTypeArguments());
-  ASSERT(!empty_context_scope_->IsSmi());
-  ASSERT(empty_context_scope_->IsContextScope());
-  ASSERT(!empty_compressed_stackmaps_->IsSmi());
-  ASSERT(empty_compressed_stackmaps_->IsCompressedStackMaps());
-  ASSERT(!empty_descriptors_->IsSmi());
-  ASSERT(empty_descriptors_->IsPcDescriptors());
-  ASSERT(!empty_var_descriptors_->IsSmi());
-  ASSERT(empty_var_descriptors_->IsLocalVarDescriptors());
-  ASSERT(!empty_exception_handlers_->IsSmi());
-  ASSERT(empty_exception_handlers_->IsExceptionHandlers());
-  ASSERT(!empty_async_exception_handlers_->IsSmi());
-  ASSERT(empty_async_exception_handlers_->IsExceptionHandlers());
-  ASSERT(!sentinel_->IsSmi());
-  ASSERT(sentinel_->IsSentinel());
-  ASSERT(!unknown_constant_->IsSmi());
-  ASSERT(unknown_constant_->IsSentinel());
-  ASSERT(!non_constant_->IsSmi());
-  ASSERT(non_constant_->IsSentinel());
-  ASSERT(!optimized_out_->IsSmi());
-  ASSERT(optimized_out_->IsSentinel());
-  ASSERT(!bool_true_->IsSmi());
-  ASSERT(bool_true_->IsBool());
-  ASSERT(!bool_false_->IsSmi());
-  ASSERT(bool_false_->IsBool());
-  ASSERT(smi_illegal_cid_->IsSmi());
-  ASSERT(smi_zero_->IsSmi());
-  ASSERT(!no_callbacks_error_->IsSmi());
-  ASSERT(no_callbacks_error_->IsApiError());
-  ASSERT(!unwind_error_->IsSmi());
-  ASSERT(unwind_error_->IsUnwindError());
-  ASSERT(!unwind_in_progress_error_->IsSmi());
-  ASSERT(unwind_in_progress_error_->IsUnwindError());
-  ASSERT(!snapshot_writer_error_->IsSmi());
-  ASSERT(snapshot_writer_error_->IsLanguageError());
-  ASSERT(!branch_offset_error_->IsSmi());
-  ASSERT(branch_offset_error_->IsLanguageError());
-  ASSERT(!background_compilation_error_->IsSmi());
-  ASSERT(background_compilation_error_->IsLanguageError());
-  ASSERT(!out_of_memory_error_->IsSmi());
-  ASSERT(out_of_memory_error_->IsLanguageError());
-  ASSERT(!unhandled_oom_exception_->IsSmi());
-  ASSERT(unhandled_oom_exception_->IsUnhandledException());
-  ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
-  ASSERT(vm_isolate_snapshot_object_table_->IsArray());
-  ASSERT(!synthetic_getter_parameter_types_->IsSmi());
-  ASSERT(synthetic_getter_parameter_types_->IsArray());
-  ASSERT(!synthetic_getter_parameter_names_->IsSmi());
-  ASSERT(synthetic_getter_parameter_names_->IsArray());
-  ASSERT(!implicit_getter_bytecode_->IsSmi());
-  ASSERT(implicit_getter_bytecode_->IsBytecode());
-  ASSERT(!implicit_setter_bytecode_->IsSmi());
-  ASSERT(implicit_setter_bytecode_->IsBytecode());
-  ASSERT(!implicit_static_getter_bytecode_->IsSmi());
-  ASSERT(implicit_static_getter_bytecode_->IsBytecode());
-  ASSERT(!implicit_static_setter_bytecode_->IsSmi());
-  ASSERT(implicit_static_setter_bytecode_->IsBytecode());
-  ASSERT(!method_extractor_bytecode_->IsSmi());
-  ASSERT(method_extractor_bytecode_->IsBytecode());
-  ASSERT(!invoke_closure_bytecode_->IsSmi());
-  ASSERT(invoke_closure_bytecode_->IsBytecode());
-  ASSERT(!invoke_field_bytecode_->IsSmi());
-  ASSERT(invoke_field_bytecode_->IsBytecode());
-  ASSERT(!nsm_dispatcher_bytecode_->IsSmi());
-  ASSERT(nsm_dispatcher_bytecode_->IsBytecode());
-  ASSERT(!dynamic_invocation_forwarder_bytecode_->IsSmi());
-  ASSERT(dynamic_invocation_forwarder_bytecode_->IsBytecode());
-  ASSERT(!implicit_static_closure_bytecode_->IsSmi());
-  ASSERT(implicit_static_closure_bytecode_->IsBytecode());
-  ASSERT(!implicit_instance_closure_bytecode_->IsSmi());
-  ASSERT(implicit_instance_closure_bytecode_->IsBytecode());
-  ASSERT(!implicit_constructor_closure_bytecode_->IsSmi());
-  ASSERT(implicit_constructor_closure_bytecode_->IsBytecode());
-  ASSERT(!uninitialized_index_->IsSmi());
-  ASSERT(uninitialized_index_->IsTypedData());
-  ASSERT(!uninitialized_data_->IsSmi());
-  ASSERT(uninitialized_data_->IsArray());
+  ASSERT(!Roots::null_object().IsSmi());
+  ASSERT(!Roots::null_class().IsSmi());
+  ASSERT(Roots::null_class().IsClass());
+  ASSERT(!Roots::null_array().IsSmi());
+  ASSERT(Roots::null_array().IsArray());
+  ASSERT(!Roots::null_string().IsSmi());
+  ASSERT(Roots::null_string().IsString());
+  ASSERT(!Roots::null_instance().IsSmi());
+  ASSERT(Roots::null_instance().IsInstance());
+  ASSERT(!Roots::null_function().IsSmi());
+  ASSERT(Roots::null_function().IsFunction());
+  ASSERT(!Roots::null_function_type().IsSmi());
+  ASSERT(Roots::null_function_type().IsFunctionType());
+  ASSERT(!Roots::null_record_type().IsSmi());
+  ASSERT(Roots::null_record_type().IsRecordType());
+  ASSERT(!Roots::null_type_arguments().IsSmi());
+  ASSERT(Roots::null_type_arguments().IsTypeArguments());
+  ASSERT(!Roots::null_compressed_stackmaps().IsSmi());
+  ASSERT(Roots::null_compressed_stackmaps().IsCompressedStackMaps());
+  ASSERT(!Roots::empty_array().IsSmi());
+  ASSERT(Roots::empty_array().IsArray());
+  ASSERT(!Roots::empty_instantiations_cache_array().IsSmi());
+  ASSERT(Roots::empty_instantiations_cache_array().IsArray());
+  ASSERT(!Roots::empty_subtype_test_cache_array().IsSmi());
+  ASSERT(Roots::empty_subtype_test_cache_array().IsArray());
+  ASSERT(!Roots::empty_type_arguments().IsSmi());
+  ASSERT(Roots::empty_type_arguments().IsTypeArguments());
+  ASSERT(!Roots::empty_context_scope().IsSmi());
+  ASSERT(Roots::empty_context_scope().IsContextScope());
+  ASSERT(!Roots::empty_compressed_stackmaps().IsSmi());
+  ASSERT(Roots::empty_compressed_stackmaps().IsCompressedStackMaps());
+  ASSERT(!Roots::empty_descriptors().IsSmi());
+  ASSERT(Roots::empty_descriptors().IsPcDescriptors());
+  ASSERT(!Roots::empty_var_descriptors().IsSmi());
+  ASSERT(Roots::empty_var_descriptors().IsLocalVarDescriptors());
+  ASSERT(!Roots::empty_exception_handlers().IsSmi());
+  ASSERT(Roots::empty_exception_handlers().IsExceptionHandlers());
+  ASSERT(!Roots::empty_async_exception_handlers().IsSmi());
+  ASSERT(Roots::empty_async_exception_handlers().IsExceptionHandlers());
+  ASSERT(!Roots::sentinel().IsSmi());
+  ASSERT(Roots::sentinel().IsSentinel());
+  ASSERT(!Roots::unknown_constant().IsSmi());
+  ASSERT(Roots::unknown_constant().IsSentinel());
+  ASSERT(!Roots::non_constant().IsSmi());
+  ASSERT(Roots::non_constant().IsSentinel());
+  ASSERT(!Roots::optimized_out().IsSmi());
+  ASSERT(Roots::optimized_out().IsSentinel());
+  ASSERT(!Roots::bool_true().IsSmi());
+  ASSERT(Roots::bool_true().IsBool());
+  ASSERT(!Roots::bool_false().IsSmi());
+  ASSERT(Roots::bool_false().IsBool());
+  ASSERT(Roots::smi_illegal_cid().IsSmi());
+  ASSERT(Roots::smi_zero().IsSmi());
+  ASSERT(!Roots::no_callbacks_error().IsSmi());
+  ASSERT(Roots::no_callbacks_error().IsApiError());
+  ASSERT(!Roots::unwind_error().IsSmi());
+  ASSERT(Roots::unwind_error().IsUnwindError());
+  ASSERT(!Roots::unwind_in_progress_error().IsSmi());
+  ASSERT(Roots::unwind_in_progress_error().IsUnwindError());
+  ASSERT(!Roots::snapshot_writer_error().IsSmi());
+  ASSERT(Roots::snapshot_writer_error().IsLanguageError());
+  ASSERT(!Roots::branch_offset_error().IsSmi());
+  ASSERT(Roots::branch_offset_error().IsLanguageError());
+  ASSERT(!Roots::background_compilation_error().IsSmi());
+  ASSERT(Roots::background_compilation_error().IsLanguageError());
+  ASSERT(!Roots::out_of_memory_error().IsSmi());
+  ASSERT(Roots::out_of_memory_error().IsLanguageError());
+  ASSERT(!Roots::unhandled_oom_exception().IsSmi());
+  ASSERT(Roots::unhandled_oom_exception().IsUnhandledException());
+  ASSERT(!Roots::vm_isolate_snapshot_object_table().IsSmi());
+  ASSERT(Roots::vm_isolate_snapshot_object_table().IsArray());
+  ASSERT(!Roots::synthetic_getter_parameter_types().IsSmi());
+  ASSERT(Roots::synthetic_getter_parameter_types().IsArray());
+  ASSERT(!Roots::synthetic_getter_parameter_names().IsSmi());
+  ASSERT(Roots::synthetic_getter_parameter_names().IsArray());
+  ASSERT(!Roots::implicit_getter_bytecode().IsSmi());
+  ASSERT(Roots::implicit_getter_bytecode().IsBytecode());
+  ASSERT(!Roots::implicit_setter_bytecode().IsSmi());
+  ASSERT(Roots::implicit_setter_bytecode().IsBytecode());
+  ASSERT(!Roots::implicit_static_getter_bytecode().IsSmi());
+  ASSERT(Roots::implicit_static_getter_bytecode().IsBytecode());
+  ASSERT(!Roots::implicit_static_setter_bytecode().IsSmi());
+  ASSERT(Roots::implicit_static_setter_bytecode().IsBytecode());
+  ASSERT(!Roots::method_extractor_bytecode().IsSmi());
+  ASSERT(Roots::method_extractor_bytecode().IsBytecode());
+  ASSERT(!Roots::invoke_closure_bytecode().IsSmi());
+  ASSERT(Roots::invoke_closure_bytecode().IsBytecode());
+  ASSERT(!Roots::invoke_field_bytecode().IsSmi());
+  ASSERT(Roots::invoke_field_bytecode().IsBytecode());
+  ASSERT(!Roots::nsm_dispatcher_bytecode().IsSmi());
+  ASSERT(Roots::nsm_dispatcher_bytecode().IsBytecode());
+  ASSERT(!Roots::dynamic_invocation_forwarder_bytecode().IsSmi());
+  ASSERT(Roots::dynamic_invocation_forwarder_bytecode().IsBytecode());
+  ASSERT(!Roots::implicit_static_closure_bytecode().IsSmi());
+  ASSERT(Roots::implicit_static_closure_bytecode().IsBytecode());
+  ASSERT(!Roots::implicit_instance_closure_bytecode().IsSmi());
+  ASSERT(Roots::implicit_instance_closure_bytecode().IsBytecode());
+  ASSERT(!Roots::implicit_constructor_closure_bytecode().IsSmi());
+  ASSERT(Roots::implicit_constructor_closure_bytecode().IsBytecode());
+  ASSERT(!Roots::uninitialized_index().IsSmi());
+  ASSERT(Roots::uninitialized_index().IsTypedData());
+  ASSERT(!Roots::uninitialized_data().IsSmi());
+  ASSERT(Roots::uninitialized_data().IsArray());
 }
 
 void Object::FinishInit(IsolateGroup* isolate_group) {
@@ -1450,55 +1384,15 @@ void Object::FinishInit(IsolateGroup* isolate_group) {
   // method, which is called after StubCode::InitOnce().
   Code& code = Code::Handle();
 
-  code = TypeTestingStubGenerator::DefaultCodeForType(*dynamic_type_);
-  dynamic_type_->InitializeTypeTestingStubNonAtomic(code);
+  code = TypeTestingStubGenerator::DefaultCodeForType(Roots::dynamic_type());
+  Roots::dynamic_type().InitializeTypeTestingStubNonAtomic(code);
 
-  code = TypeTestingStubGenerator::DefaultCodeForType(*void_type_);
-  void_type_->InitializeTypeTestingStubNonAtomic(code);
+  code = TypeTestingStubGenerator::DefaultCodeForType(Roots::void_type());
+  Roots::void_type().InitializeTypeTestingStubNonAtomic(code);
 }
 
 void Object::Cleanup() {
-  null_ = static_cast<ObjectPtr>(RAW_NULL);
-  true_ = static_cast<BoolPtr>(RAW_NULL);
-  false_ = static_cast<BoolPtr>(RAW_NULL);
-  class_class_ = static_cast<ClassPtr>(RAW_NULL);
-  dynamic_class_ = static_cast<ClassPtr>(RAW_NULL);
-  void_class_ = static_cast<ClassPtr>(RAW_NULL);
-  type_parameters_class_ = static_cast<ClassPtr>(RAW_NULL);
-  type_arguments_class_ = static_cast<ClassPtr>(RAW_NULL);
-  patch_class_class_ = static_cast<ClassPtr>(RAW_NULL);
-  function_class_ = static_cast<ClassPtr>(RAW_NULL);
-  closure_data_class_ = static_cast<ClassPtr>(RAW_NULL);
-  ffi_trampoline_data_class_ = static_cast<ClassPtr>(RAW_NULL);
-  field_class_ = static_cast<ClassPtr>(RAW_NULL);
-  script_class_ = static_cast<ClassPtr>(RAW_NULL);
-  library_class_ = static_cast<ClassPtr>(RAW_NULL);
-  namespace_class_ = static_cast<ClassPtr>(RAW_NULL);
-  kernel_program_info_class_ = static_cast<ClassPtr>(RAW_NULL);
-  code_class_ = static_cast<ClassPtr>(RAW_NULL);
-  instructions_class_ = static_cast<ClassPtr>(RAW_NULL);
-  instructions_section_class_ = static_cast<ClassPtr>(RAW_NULL);
-  instructions_table_class_ = static_cast<ClassPtr>(RAW_NULL);
-  object_pool_class_ = static_cast<ClassPtr>(RAW_NULL);
-  pc_descriptors_class_ = static_cast<ClassPtr>(RAW_NULL);
-  code_source_map_class_ = static_cast<ClassPtr>(RAW_NULL);
-  compressed_stackmaps_class_ = static_cast<ClassPtr>(RAW_NULL);
-  var_descriptors_class_ = static_cast<ClassPtr>(RAW_NULL);
-  exception_handlers_class_ = static_cast<ClassPtr>(RAW_NULL);
-  context_class_ = static_cast<ClassPtr>(RAW_NULL);
-  context_scope_class_ = static_cast<ClassPtr>(RAW_NULL);
-  bytecode_class_ = static_cast<ClassPtr>(RAW_NULL);
-  singletargetcache_class_ = static_cast<ClassPtr>(RAW_NULL);
-  unlinkedcall_class_ = static_cast<ClassPtr>(RAW_NULL);
-  monomorphicsmiablecall_class_ = static_cast<ClassPtr>(RAW_NULL);
-  icdata_class_ = static_cast<ClassPtr>(RAW_NULL);
-  megamorphic_cache_class_ = static_cast<ClassPtr>(RAW_NULL);
-  subtypetestcache_class_ = static_cast<ClassPtr>(RAW_NULL);
-  loadingunit_class_ = static_cast<ClassPtr>(RAW_NULL);
-  api_error_class_ = static_cast<ClassPtr>(RAW_NULL);
-  language_error_class_ = static_cast<ClassPtr>(RAW_NULL);
-  unhandled_exception_class_ = static_cast<ClassPtr>(RAW_NULL);
-  unwind_error_class_ = static_cast<ClassPtr>(RAW_NULL);
+  Roots::Current().Reset();
 }
 
 // An object visitor which will mark all visited objects. This is used to
@@ -1572,7 +1466,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
 
   // Finish initialization of synthetic_getter_parameter_names_ which was
   // Started in Object::InitOnce()
-  synthetic_getter_parameter_names_->SetAt(0, Symbols::This());
+  Roots::synthetic_getter_parameter_names().SetAt(0, Symbols::This());
 
   // Set up names for all VM singleton classes.
   Class& cls = Class::Handle();
@@ -1700,7 +1594,7 @@ void Object::FinalizeReadOnlyObject(ObjectPtr object) {
 
 void Object::set_vm_isolate_snapshot_object_table(const Array& table) {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
-  *vm_isolate_snapshot_object_table_ = table.ptr();
+  Roots::vm_isolate_snapshot_object_table().initRO(table.ptr());
 }
 
 // Make unused space in an object whose type has been transformed safe
@@ -2923,7 +2817,7 @@ void Object::InitializeObject(uword address,
       cur += kWordSize;
     }
     // Initialize any pointer fields with Object::null().
-    initial_value = static_cast<uword>(null_);
+    initial_value = static_cast<uword>(Roots::null_obj());
 #if defined(DART_COMPRESSED_POINTERS)
     if (compressed) {
       initial_value &= 0xFFFFFFFF;
@@ -3120,7 +3014,7 @@ bool Object::IsZoneHandle() const {
 }
 
 bool Object::IsReadOnlyHandle() const {
-  return Dart::IsReadOnlyHandle(reinterpret_cast<uword>(this));
+  return Roots::IsReadOnlyHandle(reinterpret_cast<uword>(this));
 }
 
 bool Object::IsNotTemporaryScopedHandle() const {
@@ -18072,19 +17966,15 @@ bool ICData::IsUsedAt(intptr_t i) const {
 void ICData::Init() {
   for (int i = 0; i <= kCachedICDataMaxArgsTestedWithoutExactnessTracking;
        i++) {
-    cached_icdata_arrays_
-        [kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx + i] =
-            ICData::NewNonCachedEmptyICDataArray(i, false);
+    Roots::set_cached_icdata_array(
+        kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx + i,
+        ICData::NewNonCachedEmptyICDataArray(i, false));
   }
-  cached_icdata_arrays_[kCachedICDataOneArgWithExactnessTrackingIdx] =
-      ICData::NewNonCachedEmptyICDataArray(1, true);
+  Roots::set_cached_icdata_array(kCachedICDataOneArgWithExactnessTrackingIdx,
+                                 ICData::NewNonCachedEmptyICDataArray(1, true));
 }
 
-void ICData::Cleanup() {
-  for (int i = 0; i < kCachedICDataArrayCount; ++i) {
-    cached_icdata_arrays_[i] = nullptr;
-  }
-}
+void ICData::Cleanup() {}
 
 ArrayPtr ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested,
                                               bool tracking_exactness) {
@@ -18101,20 +17991,21 @@ ArrayPtr ICData::CachedEmptyICDataArray(intptr_t num_args_tested,
                                         bool tracking_exactness) {
   if (tracking_exactness) {
     ASSERT(num_args_tested == 1);
-    return cached_icdata_arrays_[kCachedICDataOneArgWithExactnessTrackingIdx];
+    return Roots::cached_icdata_array(
+        kCachedICDataOneArgWithExactnessTrackingIdx);
   } else {
     ASSERT(num_args_tested >= 0);
     ASSERT(num_args_tested <=
            kCachedICDataMaxArgsTestedWithoutExactnessTracking);
-    return cached_icdata_arrays_
-        [kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx +
-         num_args_tested];
+    return Roots::cached_icdata_array(
+        kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx +
+        num_args_tested);
   }
 }
 
 bool ICData::IsCachedEmptyEntry(const Array& array) {
   for (int i = 0; i < kCachedICDataArrayCount; ++i) {
-    if (cached_icdata_arrays_[i] == array.ptr()) return true;
+    if (Roots::cached_icdata_array(i) == array.ptr()) return true;
   }
   return false;
 }
