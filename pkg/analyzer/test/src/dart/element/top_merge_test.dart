@@ -32,6 +32,16 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(dynamicType, dynamicType, dynamicType);
   }
 
+  test_function_formalParameters_differentCount() {
+    _checkThrows(
+      functionTypeNone(returnType: voidNone, formalParameters: []),
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [requiredParameter(type: intNone)],
+      ),
+    );
+  }
+
   test_function_parameters_covariant() {
     _check(
       functionTypeNone(
@@ -199,6 +209,15 @@ class TopMergeTest extends AbstractTypeSystemTest {
     );
   }
 
+  test_function_typeParameters_differentCount() {
+    var T = typeParameter('T');
+    var S = typeParameter('S');
+    _checkThrows(
+      functionTypeNone(returnType: voidNone),
+      functionTypeNone(typeParameters: [T, S], returnType: voidNone),
+    );
+  }
+
   test_interface() {
     _check(
       listNone(dynamicType),
@@ -227,6 +246,10 @@ class TopMergeTest extends AbstractTypeSystemTest {
   test_nullability() {
     // NNBD_TOP_MERGE(T?, S?) = NNBD_TOP_MERGE(T, S)?
     _check(intQuestion, intQuestion, intQuestion);
+  }
+
+  test_nullability_mismatch() {
+    _checkThrows(intQuestion, intNone);
   }
 
   test_objectQuestion() {
@@ -259,6 +282,42 @@ class TopMergeTest extends AbstractTypeSystemTest {
       recordTypeNone(namedTypes: {'f': dynamicType}),
       recordTypeNone(namedTypes: {'f': objectQuestion}),
       recordTypeNone(namedTypes: {'f': objectQuestion}),
+    );
+
+    _check(
+      recordTypeNone(
+        positionalTypes: [dynamicType],
+        namedTypes: {'f': voidNone},
+      ),
+      recordTypeNone(
+        positionalTypes: [objectQuestion],
+        namedTypes: {'f': objectQuestion},
+      ),
+      recordTypeNone(
+        positionalTypes: [objectQuestion],
+        namedTypes: {'f': objectQuestion},
+      ),
+    );
+  }
+
+  test_record_namedFields_differentCount() {
+    _checkThrows(
+      recordTypeNone(namedTypes: {'a': intNone}),
+      recordTypeNone(namedTypes: {'a': intNone, 'b': intNone}),
+    );
+  }
+
+  test_record_namedFields_differentNames() {
+    _checkThrows(
+      recordTypeNone(namedTypes: {'a': intNone}),
+      recordTypeNone(namedTypes: {'b': intNone}),
+    );
+  }
+
+  test_record_positionalFields_differentCount() {
+    _checkThrows(
+      recordTypeNone(positionalTypes: [intNone]),
+      recordTypeNone(positionalTypes: [intNone, intNone]),
     );
   }
 
