@@ -1,3 +1,8 @@
+# 5.3.0
+
+- Add `--app-name` option to `dart development-service`. This is a short, user
+  focused name to describe the application being debugged.
+
 # 5.2.0
 
 - [DAP] `Stopped(reason: 'entry')` events will no longer be lost if an isolate has not yet reached the `PauseStart` state when connecting to the VM.
