@@ -659,7 +659,7 @@ LinterLintCode:
       #### Example
 
       The following code produces this diagnostic because the `f` method in the
-      extension type E redeclares the `f` method from `C` without the`@redeclare` annotation:
+      extension type E redeclares the `f` method from `C` without the `@redeclare` annotation:
 
       ```dart
       class C {
