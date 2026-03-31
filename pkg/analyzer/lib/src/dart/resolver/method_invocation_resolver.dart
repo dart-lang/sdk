@@ -684,6 +684,30 @@ class MethodInvocationResolver with ScopeHelpers {
   }) {
     _setExplicitTypeArgumentTypes();
 
+    void resolveUnreachableInvocation({
+      required TypeImpl resultType,
+      bool reportReceiverOfTypeNever = false,
+    }) {
+      MethodInvocationInferrer(
+        resolver: _resolver,
+        node: node,
+        argumentList: node.argumentList,
+        contextType: contextType,
+        whyNotPromotedArguments: whyNotPromotedArguments,
+        target: null,
+      ).resolveInvocation();
+
+      if (reportReceiverOfTypeNever) {
+        _resolver.diagnosticReporter.report(
+          diag.receiverOfTypeNever.at(receiver),
+        );
+      }
+
+      node.methodName.setPseudoExpressionStaticType(_dynamicType);
+      node.staticInvokeType = _dynamicType;
+      node.recordStaticType(resultType, resolver: _resolver);
+    }
+
     if (receiverType is NeverTypeImpl &&
         receiverType.nullabilitySuffix == NullabilitySuffix.question) {
       var methodName = node.methodName;
@@ -697,6 +721,11 @@ class MethodInvocationResolver with ScopeHelpers {
           whyNotPromotedArguments,
           contextType: contextType,
           target: InvocationTargetExecutableElement(objectMember),
+        );
+        return;
+      } else if (node.isNullAware) {
+        resolveUnreachableInvocation(
+          resultType: NeverTypeImpl.instanceNullable,
         );
         return;
       } else {
@@ -715,22 +744,10 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (receiverType is NeverTypeImpl &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
-      MethodInvocationInferrer(
-        resolver: _resolver,
-        node: node,
-        argumentList: node.argumentList,
-        contextType: contextType,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        target: null,
-      ).resolveInvocation();
-
-      _resolver.diagnosticReporter.report(
-        diag.receiverOfTypeNever.at(receiver),
+      resolveUnreachableInvocation(
+        resultType: NeverTypeImpl.instance,
+        reportReceiverOfTypeNever: true,
       );
-
-      node.methodName.setPseudoExpressionStaticType(_dynamicType);
-      node.staticInvokeType = _dynamicType;
-      node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
     }
   }
 
