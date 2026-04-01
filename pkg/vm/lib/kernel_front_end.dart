@@ -246,6 +246,10 @@ void declareCompilerOptions(ArgParser args) {
     'track-widget-creation',
     help: 'Run a kernel transformer to track creation locations for widgets.',
     defaultsTo: false,
+    aliases: [
+      // TODO(schultek): Make this the canonical flag.
+      'track-creation-locations',
+    ],
   );
   args.addMultiOption(
     'delete-tostring-package-uri',

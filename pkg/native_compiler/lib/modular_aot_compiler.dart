@@ -117,6 +117,10 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     'track-widget-creation',
     help: 'Run a kernel transformer to track creation locations for widgets.',
     defaultsTo: false,
+    aliases: [
+      // TODO(schultek): Make this the canonical flag.
+      'track-creation-locations',
+    ],
   )
   ..addOption(
     'invocation-modes',

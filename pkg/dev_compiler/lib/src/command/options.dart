@@ -372,6 +372,10 @@ class Options {
         help: 'Enable inspecting of Flutter widgets.',
         defaultsTo: false,
         hide: true,
+        aliases: [
+          // TODO(schultek): Make this the canonical flag.
+          'track-creation-locations',
+        ],
       )
       // TODO(jmesserly): add verbose help to show hidden options
       ..addOption(

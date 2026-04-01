@@ -92,7 +92,14 @@ final ArgParser summaryArgsParser = new ArgParser()
   ..addFlag('reuse-compiler-result', defaultsTo: false)
   ..addFlag('use-incremental-compiler', defaultsTo: false)
   ..addOption('used-inputs')
-  ..addFlag('track-widget-creation', defaultsTo: false)
+  ..addFlag(
+    'track-widget-creation', 
+    defaultsTo: false,
+    aliases: [
+      // TODO(schultek): Make this the canonical flag.
+      'track-creation-locations',
+    ],
+  )
   ..addFlag('include-unsupported-platform-library-stubs', defaultsTo: false)
   ..addMultiOption('enable-experiment',
       help: 'Enable a language experiment when invoking the CFE.')

@@ -889,7 +889,14 @@ final argParser = ArgParser()
   ..addOption('asset-server-address')
   ..addOption('asset-server-port')
   ..addOption('module-format', defaultsTo: 'amd')
-  ..addFlag('track-widget-creation', defaultsTo: false)
+  ..addFlag(
+    'track-widget-creation',
+    defaultsTo: false,
+    aliases: [
+      // TODO(schultek): Make this the canonical flag.
+      'track-creation-locations',
+    ],
+  )
   ..addFlag('sound-null-safety', negatable: true, defaultsTo: true)
   ..addFlag('canary', negatable: true, defaultsTo: false)
   // Disable asserts in compiled code by default, which is different

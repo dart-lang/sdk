@@ -173,7 +173,11 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       hide: true)
   ..addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
-      defaultsTo: false)
+      defaultsTo: false, 
+      aliases: [
+        // TODO(schultek): Make this the canonical flag.
+        'track-creation-locations',
+      ])
   ..addMultiOption(
     'delete-tostring-package-uri',
     help: 'Replaces implementations of `toString` with `super.toString()` for '
