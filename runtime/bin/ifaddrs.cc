@@ -62,18 +62,22 @@ static void SetAddresses(struct ifaddrs* ifaddr,
   ifaddr->ifa_addr = reinterpret_cast<sockaddr*>(socketaddr);
 }
 
-static void SetNetmask(struct ifaddrs* ifaddr, int family) {
+static void SetNetmask(struct ifaddrs* ifaddr, int family, int prefixlen) {
   if (family == AF_INET6) {
     sockaddr_in6* mask = new sockaddr_in6;
     mask->sin6_family = AF_INET6;
     memset(&mask->sin6_addr, 0, sizeof(mask->sin6_addr));
+    uint8_t* m = mask->sin6_addr.s6_addr;
+    for (int i = 0; i < prefixlen / 8; ++i) m[i] = 0xFF;
+    if (prefixlen % 8) m[prefixlen / 8] = 0xFF << (8 - prefixlen % 8);
     ifaddr->ifa_netmask = reinterpret_cast<sockaddr*>(mask);
     return;
   }
   ASSERT(family == AF_INET);
   sockaddr_in* mask = new sockaddr_in;
   mask->sin_family = AF_INET;
-  memset(&mask->sin_addr, 0, sizeof(mask->sin_addr));
+  uint32_t m = prefixlen ? (~0u << (32 - prefixlen)) : 0;
+  mask->sin_addr.s_addr = htonl(m);
   ifaddr->ifa_netmask = reinterpret_cast<sockaddr*>(mask);
 }
 
@@ -83,7 +87,7 @@ static bool SetIfAddrsFromAddrMsg(struct ifaddrs* ifaddr,
                                   size_t len,
                                   nlmsghdr* header) {
   SetAddresses(ifaddr, msg->ifa_family, msg->ifa_index, bytes, len);
-  SetNetmask(ifaddr, msg->ifa_family);
+  SetNetmask(ifaddr, msg->ifa_family, msg->ifa_prefixlen);
   SetFlags(ifaddr, msg->ifa_flags);
   return SetIfName(ifaddr, msg->ifa_index);
 }
@@ -94,7 +98,7 @@ static bool SetIfAddrsFromInfoMsg(struct ifaddrs* ifaddr,
                                   size_t len,
                                   nlmsghdr* header) {
   SetAddresses(ifaddr, ifi->ifi_family, ifi->ifi_index, bytes, len);
-  SetNetmask(ifaddr, ifi->ifi_family);
+  SetNetmask(ifaddr, ifi->ifi_family, 0);
   SetFlags(ifaddr, ifi->ifi_flags);
   return SetIfName(ifaddr, ifi->ifi_index);
 }
