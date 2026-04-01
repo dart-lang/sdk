@@ -6,9 +6,9 @@ library;
 //   Class4(this.field, this.nonexisting); // Error
 //                           ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/initializers.dart:20:35: Error: 'field' was already initialized by this constructor.
+// pkg/front_end/testcases/extension_types/initializers.dart:20:29: Error: 'field' was already initialized by this constructor.
 //   Class5(this.field) : this.field = 42; // Error
-//                                   ^
+//                             ^
 //
 // pkg/front_end/testcases/extension_types/initializers.dart:24:29: Error: 'nonexisting' isn't an instance field of this class.
 //   Class6(this.field) : this.nonexisting = 42; // Error
@@ -110,9 +110,9 @@ static extension-type-member synthetic method Class5|constructor#_#_#tearOff(cor
   return self::Class5|constructor#_(field);
 static extension-type-member method Class5|constructor#(core::int field) → self::Class5% /* erasure=core::int, declared=! */ {
   lowered final self::Class5% /* erasure=core::int, declared=! */ #this = field;
-  invalid-expression "pkg/front_end/testcases/extension_types/initializers.dart:20:35: Error: 'field' was already initialized by this constructor.
+  invalid-expression "pkg/front_end/testcases/extension_types/initializers.dart:20:29: Error: 'field' was already initialized by this constructor.
   Class5(this.field) : this.field = 42; // Error
-                                  ^";
+                            ^";
   return #this;
 }
 static extension-type-member synthetic method Class5|constructor#_#new#tearOff(core::int field) → self::Class5% /* erasure=core::int, declared=! */

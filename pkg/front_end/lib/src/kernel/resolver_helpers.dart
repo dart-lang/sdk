@@ -229,6 +229,7 @@ class _InitializerBuilder {
     required List<Initializer> initializers,
     required AsyncMarker asyncMarker,
     required int? asyncModifierFileOffset,
+    required bool forPrimaryConstructor,
   }) {
     if (initializers.isNotEmpty) {
       if (_bodyBuilderContext.isMixinClass) {
@@ -240,7 +241,12 @@ class _InitializerBuilder {
             className: _bodyBuilderContext.className,
           ),
           fileUri: _fileUri,
-          fileOffset: _bodyBuilderContext.memberNameOffset,
+          // It is allowed to have a primary constructor without a body, so
+          // for primary constructors we report the error on the first
+          // initializer and not the name of the constructor.
+          fileOffset: forPrimaryConstructor
+              ? initializers.first.fileOffset
+              : _bodyBuilderContext.memberNameOffset,
           length: noLength,
         );
       }

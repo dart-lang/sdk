@@ -153,6 +153,8 @@ mixin _ConstructorDeclarationMixin
 
   List<SourceNominalParameterBuilder>? get _typeParameters;
 
+  bool get _isPrimaryConstructor;
+
   late final List<FormalParameterBuilder>? _initializerScopeParameters =
       _computeInitializerScopeParameters();
 
@@ -598,6 +600,7 @@ mixin _ConstructorDeclarationMixin
         fileUri: fileUri,
         beginInitializers: _beginInitializers!,
         isConst: isConst,
+        forPrimaryConstructor: _isPrimaryConstructor,
       );
     }
   }
@@ -1037,6 +1040,9 @@ class RegularConstructorDeclaration
       typeParameterScope: _fragment.typeParameterScope,
     );
   }
+
+  @override
+  bool get _isPrimaryConstructor => false;
 }
 
 class DefaultEnumConstructorDeclaration
@@ -1190,6 +1196,9 @@ class DefaultEnumConstructorDeclaration
   @override
   // Coverage-ignore(suite): Not run.
   String? get _nativeMethodName => null;
+
+  @override
+  bool get _isPrimaryConstructor => false;
 }
 
 class PrimaryConstructorDeclaration
@@ -1434,6 +1443,9 @@ class PrimaryConstructorDeclaration
 
   @override
   Uri get fileUri => _fragment.fileUri;
+
+  @override
+  bool get _isPrimaryConstructor => true;
 }
 
 /// Interface for using a [ConstructorFragment] or [PrimaryConstructorFragment]

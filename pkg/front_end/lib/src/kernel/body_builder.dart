@@ -1125,7 +1125,6 @@ class BodyBuilderImpl extends StackListenerImpl
               initializers = createFieldInitializer(
                 formal.name,
                 formal.fileOffset,
-                formal.fileOffset,
                 new VariableGet(formal.variable)
                   ..fileOffset = formal.fileOffset,
                 formal: formal,
@@ -9895,7 +9894,6 @@ class BodyBuilderImpl extends StackListenerImpl
   List<Initializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
-    int assignmentOffset,
     Expression expression, {
     FormalParameterBuilder? formal,
   }) {
@@ -9960,12 +9958,12 @@ class BodyBuilderImpl extends StackListenerImpl
             builder,
             expression,
             name,
-            assignmentOffset,
+            fieldNameOffset,
             initializedFields![name]!,
           ),
         ];
       }
-      initializedFields![name] = assignmentOffset;
+      initializedFields![name] = fieldNameOffset;
       if (builder.hasAbstractField) {
         return <Initializer>[
           extern.createInvalidInitializer(
@@ -9996,7 +9994,7 @@ class BodyBuilderImpl extends StackListenerImpl
                 fieldName: name,
               ),
               fileUri: uri,
-              fileOffset: assignmentOffset,
+              fileOffset: fieldNameOffset,
               length: noLength,
               context: [
                 diag.fieldAlreadyInitializedAtDeclarationCause
@@ -10026,7 +10024,7 @@ class BodyBuilderImpl extends StackListenerImpl
                     parameterType: formalType,
                     fieldType: builder.fieldType,
                   ),
-                  fileOffset: assignmentOffset,
+                  fileOffset: fieldNameOffset,
                   length: noLength,
                   fileUri: uri,
                   context: [
@@ -10042,7 +10040,7 @@ class BodyBuilderImpl extends StackListenerImpl
           }
         }
         return builder.buildInitializer(
-          assignmentOffset,
+          fieldNameOffset,
           expression,
           isSynthetic: formal != null,
         );
