@@ -85,6 +85,11 @@ class DynamicTypeImpl extends TypeImpl
   }
 
   @override
+  DynamicTypeImpl withAlias(InstantiatedTypeAliasElementImpl alias) {
+    return DynamicTypeImpl(alias: alias);
+  }
+
+  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     // The dynamic type is always nullable.
     return this;
@@ -367,6 +372,17 @@ class FunctionTypeImpl extends TypeImpl
     }
 
     return returnType.referencesAny(parameters);
+  }
+
+  @override
+  FunctionTypeImpl withAlias(InstantiatedTypeAliasElementImpl alias) {
+    return FunctionTypeImpl.v2(
+      typeParameters: typeParameters,
+      formalParameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
+    );
   }
 
   @override
@@ -1052,6 +1068,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  InterfaceTypeImpl withAlias(InstantiatedTypeAliasElementImpl alias) {
+    return InterfaceTypeImpl(
+      element: element,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
+    );
+  }
+
+  @override
   InterfaceTypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
 
@@ -1129,6 +1155,11 @@ class InvalidTypeImpl extends TypeImpl
   }
 
   @override
+  InvalidTypeImpl withAlias(InstantiatedTypeAliasElementImpl alias) {
+    return this;
+  }
+
+  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     return this;
   }
@@ -1151,20 +1182,6 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 
   @override
   final NullabilitySuffix nullabilitySuffix;
-
-  factory NeverTypeImpl({
-    required NullabilitySuffix nullabilitySuffix,
-    InstantiatedTypeAliasElementImpl? alias,
-  }) {
-    if (alias == null) {
-      if (nullabilitySuffix == NullabilitySuffix.none) {
-        return instance;
-      } else if (nullabilitySuffix == NullabilitySuffix.question) {
-        return instanceNullable;
-      }
-    }
-    return NeverTypeImpl._(nullabilitySuffix: nullabilitySuffix, alias: alias);
-  }
 
   /// Prevent the creation of instances of this class.
   NeverTypeImpl._({required this.nullabilitySuffix, super.alias});
@@ -1212,6 +1229,11 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeNeverType(this);
+  }
+
+  @override
+  NeverTypeImpl withAlias(InstantiatedTypeAliasElementImpl alias) {
+    return NeverTypeImpl._(nullabilitySuffix: nullabilitySuffix, alias: alias);
   }
 
   @override
@@ -1366,6 +1388,16 @@ class RecordTypeImpl extends TypeImpl implements RecordType, SharedRecordType {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeRecordType(this);
+  }
+
+  @override
+  RecordTypeImpl withAlias(InstantiatedTypeAliasElementImpl alias) {
+    return RecordTypeImpl(
+      positionalFields: positionalFields,
+      namedFields: namedFields,
+      nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
+    );
   }
 
   @override
@@ -1542,6 +1574,9 @@ abstract class TypeImpl implements DartType, SharedType {
     return getDisplayString();
   }
 
+  /// Return the same type, but with the given [alias].
+  TypeImpl withAlias(InstantiatedTypeAliasElementImpl alias);
+
   /// Return the same type, but with the given [nullabilitySuffix].
   ///
   /// If the nullability of `this` already matches [nullabilitySuffix], `this`
@@ -1679,6 +1714,16 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
+  TypeParameterTypeImpl withAlias(InstantiatedTypeAliasElementImpl alias) {
+    return TypeParameterTypeImpl(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+      promotedBound: promotedBound,
+      alias: alias,
+    );
+  }
+
+  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return TypeParameterTypeImpl(
@@ -1742,6 +1787,11 @@ class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeVoidType();
+  }
+
+  @override
+  VoidTypeImpl withAlias(InstantiatedTypeAliasElementImpl alias) {
+    return VoidTypeImpl(alias: alias);
   }
 
   @override

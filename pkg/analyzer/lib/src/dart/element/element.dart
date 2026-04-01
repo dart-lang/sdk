@@ -10086,78 +10086,13 @@ class TypeAliasElementImpl extends ElementImpl
         ? NullabilitySuffix.question
         : nullabilitySuffix;
 
-    if (type is FunctionTypeImpl) {
-      return FunctionTypeImpl.v2(
-        typeParameters: type.typeParameters,
-        formalParameters: type.parameters,
-        returnType: type.returnType,
-        nullabilitySuffix: resultNullability,
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          typeArguments: typeArguments,
-          nullabilitySuffix: nullabilitySuffix,
-        ),
-      );
-    } else if (type is InterfaceTypeImpl) {
-      return InterfaceTypeImpl(
-        element: type.element,
-        typeArguments: type.typeArguments,
-        nullabilitySuffix: resultNullability,
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          typeArguments: typeArguments,
-          nullabilitySuffix: nullabilitySuffix,
-        ),
-      );
-    } else if (type is RecordTypeImpl) {
-      return RecordTypeImpl(
-        positionalFields: type.positionalFields,
-        namedFields: type.namedFields,
-        nullabilitySuffix: resultNullability,
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          typeArguments: typeArguments,
-          nullabilitySuffix: nullabilitySuffix,
-        ),
-      );
-    } else if (type is TypeParameterTypeImpl) {
-      return TypeParameterTypeImpl(
-        element: type.element,
-        nullabilitySuffix: resultNullability,
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          typeArguments: typeArguments,
-          nullabilitySuffix: nullabilitySuffix,
-        ),
-      );
-    } else if (type is DynamicTypeImpl) {
-      return DynamicTypeImpl(
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          typeArguments: typeArguments,
-          nullabilitySuffix: nullabilitySuffix,
-        ),
-      );
-    } else if (type is NeverTypeImpl) {
-      return NeverTypeImpl(
-        nullabilitySuffix: resultNullability,
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          typeArguments: typeArguments,
-          nullabilitySuffix: nullabilitySuffix,
-        ),
-      );
-    } else if (type is VoidTypeImpl) {
-      return VoidTypeImpl(
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          typeArguments: typeArguments,
-          nullabilitySuffix: nullabilitySuffix,
-        ),
-      );
-    } else {
-      return type.withNullability(resultNullability);
-    }
+    var alias = InstantiatedTypeAliasElementImpl(
+      element: this,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+
+    return type.withNullability(resultNullability).withAlias(alias);
   }
 
   FunctionTypeImpl _errorFunctionType(NullabilitySuffix nullabilitySuffix) {
