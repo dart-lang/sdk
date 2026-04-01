@@ -241,6 +241,25 @@ class DevCompilerTarget extends Target {
   }
 
   @override
+  void performOutlineTransformations(
+    Component component, {
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    super.performOutlineTransformations(
+      component,
+      changedStructureNotifier: changedStructureNotifier,
+    );
+    if (flags.trackWidgetCreation) {
+      _widgetTracker ??= WidgetCreatorTracker();
+      _widgetTracker!.transform(
+        component,
+        component.libraries,
+        changedStructureNotifier,
+      );
+    }
+  }
+
+  @override
   void performPreConstantEvaluationTransformations(
     Component component,
     CoreTypes coreTypes,

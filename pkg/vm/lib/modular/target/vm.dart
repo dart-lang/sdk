@@ -9,6 +9,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/deeply_immutable.dart' as deeply_immutable;
@@ -135,6 +136,22 @@ class VmTarget extends Target {
       ..parent = host;
   }
 
+  late final WidgetCreatorTracker _widgetTracker = WidgetCreatorTracker();
+
+  @override
+  void performOutlineTransformations(
+    Component component, {
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    super.performOutlineTransformations(
+      component,
+      changedStructureNotifier: changedStructureNotifier,
+    );
+    if (flags.trackWidgetCreation) {
+      _widgetTracker.transform(component, component.libraries, changedStructureNotifier);
+    }
+  }
+
   @override
   void performPreConstantEvaluationTransformations(
     Component component,
@@ -153,6 +170,10 @@ class VmTarget extends Target {
       changedStructureNotifier: changedStructureNotifier,
     );
     _patchVmConstants(coreTypes);
+
+    if (flags.trackWidgetCreation) {
+      _widgetTracker.transform(component, libraries, changedStructureNotifier);
+    }
   }
 
   @override

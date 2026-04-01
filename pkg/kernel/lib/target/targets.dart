@@ -339,7 +339,10 @@ abstract class Target {
   /// transformation is not applied when compiling full kernel programs to
   /// prevent affecting the internal invariants of the compiler and accidentally
   /// slowing down compilation.
-  void performOutlineTransformations(Component component) {}
+  void performOutlineTransformations(
+    Component component, {
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {}
 
   /// Perform target-specific transformations on the given libraries that must
   /// run before constant evaluation.
@@ -1018,8 +1021,14 @@ class TargetWrapper extends Target {
   }
 
   @override
-  void performOutlineTransformations(Component component) {
-    _target.performOutlineTransformations(component);
+  void performOutlineTransformations(
+    Component component, {
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    _target.performOutlineTransformations(
+      component,
+      changedStructureNotifier: changedStructureNotifier,
+    );
   }
 
   @override
@@ -1100,8 +1109,14 @@ mixin SummaryMixin on Target {
   bool get excludeNonSources;
 
   @override
-  void performOutlineTransformations(Component component) {
-    super.performOutlineTransformations(component);
+  void performOutlineTransformations(
+    Component component, {
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    super.performOutlineTransformations(
+      component,
+      changedStructureNotifier: changedStructureNotifier,
+    );
     if (!excludeNonSources) return;
 
     List<Library> libraries = new List.of(component.libraries);

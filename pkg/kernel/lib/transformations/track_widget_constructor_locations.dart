@@ -315,6 +315,10 @@ class _WidgetCallSiteTransformer extends Transformer {
       }
     }
 
+    if (node.location == null) {
+      return new NullLiteral();
+    }
+
     return _constructLocation(
       node.location!,
       locationClass: locationClass,

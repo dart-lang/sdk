@@ -435,6 +435,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       BuildResult buildResult = await currentKernelTarget.buildOutlines();
       Component? componentWithDill = buildResult.component;
 
+      if (componentWithDill != null) {
+        context.options.target.performOutlineTransformations(
+          componentWithDill,
+          changedStructureNotifier: currentKernelTarget.changedStructureNotifier,
+        );
+      }
+
       if (!outlineOnly) {
         // Checkpoint: Build the actual bodies.
         buildResult = await currentKernelTarget.buildComponent(

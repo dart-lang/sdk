@@ -12,8 +12,6 @@ import 'package:vm/modular/target/vm.dart' show VmTarget;
 class FlutterTarget extends VmTarget {
   FlutterTarget(TargetFlags flags) : super(flags);
 
-  late final WidgetCreatorTracker _widgetTracker = WidgetCreatorTracker();
-
   @override
   String get name => 'flutter';
 
@@ -69,8 +67,5 @@ class FlutterTarget extends VmTarget {
       logger: logger,
       changedStructureNotifier: changedStructureNotifier,
     );
-    if (flags.trackWidgetCreation) {
-      _widgetTracker.transform(component, libraries, changedStructureNotifier);
-    }
   }
 }
