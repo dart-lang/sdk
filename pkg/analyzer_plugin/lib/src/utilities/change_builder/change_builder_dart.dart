@@ -2185,19 +2185,21 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     bool Function(ClassMember existingMember)? lastMemberFilter,
   }) {
     if (compilationUnitMember
-        case ClassDeclaration(:var body) ||
-            ExtensionTypeDeclaration(:var body)) {
-      if (body is EmptyClassBody) {
-        addReplacement(body.sourceRange, (builder) {
-          builder.writeln(' {');
-          builder.write('  ');
-          buildEdit(builder);
-          builder.writeln();
-          builder.write('}');
-        });
-        return;
-      }
+        case ClassDeclaration(body: EmptyClassBody(:var sourceRange)) ||
+            ExtensionTypeDeclaration(body: EmptyClassBody(:var sourceRange)) ||
+            ExtensionDeclaration(body: EmptyClassBody(:var sourceRange)) ||
+            MixinDeclaration(body: EmptyClassBody(:var sourceRange)) ||
+            EnumDeclaration(body: EmptyEnumBody(:var sourceRange))) {
+      addReplacement(sourceRange, (builder) {
+        builder.writeln(' {');
+        builder.write('  ');
+        buildEdit(builder);
+        builder.writeln();
+        builder.write('}');
+      });
+      return;
     }
+
     var preparer = _InsertionPreparer(
       compilationUnitMember,
       resolvedUnit.lineInfo,
