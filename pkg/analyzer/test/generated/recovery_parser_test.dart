@@ -1687,7 +1687,28 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 foo();
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 5, 1)]);
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+''');
+  }
+
+  void test_incomplete_topLevelFunction_language305() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.5
+foo();
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 20, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

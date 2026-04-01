@@ -583,20 +583,14 @@ PrefixedIdentifier
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClassName_augmentationAugments() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
+    await assertNoErrorsInCode(r'''
+class A {
+  static int get foo;
+}
 
 augment class A {
   augment static int get foo => 0;
-}
-''');
-    await assertNoErrorsInCode(r'''
-part 'a.dart';
-
-class A {
-  static int get foo => 0;
 }
 
 void f() {
@@ -609,17 +603,90 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@class::A
     element: <testLibrary>::@class::A
     staticType: null
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
-  staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-  element: <testLibraryFragment>::@class::A::@getter::foo#element
+  element: <testLibrary>::@class::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_ofClassName_augmentationAugments_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static void foo();
+}
+
+augment class A {
+  augment static void foo() {}
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function()
+  element: <testLibrary>::@class::A::@method::foo
+  staticType: void Function()
+''');
+  }
+
+  test_ofClassName_augmentationAugments_setter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static set foo(int _);
+}
+
+augment class A {
+  augment static set foo(int _) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+
+    var node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::A::@setter::foo
+  writeType: int
+  element: <null>
   staticType: int
 ''');
   }

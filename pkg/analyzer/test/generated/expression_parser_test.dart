@@ -3887,7 +3887,6 @@ var v = <html>$void</html>;
       error(diag.missingFunctionParameters, 14, 5),
       error(diag.missingIdentifier, 20, 1),
       error(diag.expectedToken, 21, 4),
-      error(diag.missingFunctionBody, 26, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

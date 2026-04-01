@@ -1389,6 +1389,49 @@ ClassDeclaration
 ''');
   }
 
+  test_getter_static_body_empty() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  static int get foo;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: int
+  propertyKeyword: get
+  name: foo
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_getter_static_body_empty_language305() {
+    var parseResult = parseStringWithErrors('''
+// @dart = 3.5
+class A {
+  static int get foo;
+}
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 45, 1)]);
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: int
+  propertyKeyword: get
+  name: foo
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_method_augment() {
     var parseResult = parseStringWithErrors(r'''
 augment class A {
@@ -1483,6 +1526,53 @@ ClassDeclaration
             leftBracket: {
             rightBracket: }
     rightBracket: }
+''');
+  }
+
+  test_method_static_body_empty() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  static int foo();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: int
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_method_static_body_empty_language305() {
+    var parseResult = parseStringWithErrors('''
+// @dart = 3.5
+class A {
+  static int foo();
+}
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 43, 1)]);
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: int
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -3066,6 +3156,59 @@ MethodDeclaration
     block: Block
       leftBracket: { @22
       rightBracket: } @23
+''');
+  }
+
+  test_setter_static_body_empty() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  static set foo(int _);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: int
+      name: _
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_setter_static_body_empty_language305() {
+    var parseResult = parseStringWithErrors('''
+// @dart = 3.5
+class A {
+  static set foo(int _);
+}
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 48, 1)]);
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: int
+      name: _
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 }

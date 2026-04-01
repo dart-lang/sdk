@@ -5401,7 +5401,6 @@ var a = typedef A = B Function(C, D);
       error(diag.expectedToken, 8, 7),
       error(diag.missingConstFinalVarOrType, 16, 1),
       error(diag.expectedToken, 20, 1),
-      error(diag.missingFunctionBody, 36, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

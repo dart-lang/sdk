@@ -347,6 +347,9 @@ class Parser {
   /// expressions.
   bool get allowedToShortcutParseExpression => true;
 
+  /// `true` if the 'augmentations' feature is enabled.
+  final bool _isAugmentationsFeatureEnabled;
+
   Parser(
     this.listener, {
     this.useImplicitCreationExpression = true,
@@ -359,7 +362,9 @@ class Parser {
        isPrimaryConstructorsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.primaryConstructors),
        _isAnonymousMethodsFeatureEnabled = experimentalFeatures
-           .isExperimentEnabled(ExperimentalFlag.anonymousMethods);
+           .isExperimentEnabled(ExperimentalFlag.anonymousMethods),
+       _isAugmentationsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.augmentations);
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -4464,7 +4469,7 @@ class Parser {
     token = parseFunctionBody(
       token,
       /* ofFunctionExpression = */ false,
-      isExternal,
+      isExternal || _isAugmentationsFeatureEnabled,
     );
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(beforeStart.next!, getOrSet, token);
@@ -5881,7 +5886,10 @@ class Parser {
       token = parseFunctionBody(
         token,
         /* ofFunctionExpression = */ false,
-        (staticToken == null || externalToken != null) && inPlainSync,
+        /* allowAbstract = */ (staticToken == null ||
+                externalToken != null ||
+                _isAugmentationsFeatureEnabled) &&
+            inPlainSync,
       );
     }
     asyncState = savedAsyncModifier;

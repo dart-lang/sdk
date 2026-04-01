@@ -330,7 +330,6 @@ allValues.forEach((enum) {});
       error(diag.expectedIdentifierButGotKeyword, 39, 4),
       error(diag.missingIdentifier, 38, 1),
       error(diag.expectedToken, 45, 1),
-      error(diag.missingFunctionBody, 48, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
