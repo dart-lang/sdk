@@ -432,10 +432,28 @@ class _InternetAddress implements InternetAddress {
   external static Uint8List? _parse(String address);
 }
 
+class _InterfaceAddress implements InterfaceAddress {
+  final InternetAddress address;
+  final int prefixLength;
+
+  _InterfaceAddress(this.address, this.prefixLength);
+
+  InternetAddress? get broadcast {
+    if (address.type != InternetAddressType.IPv4) return null;
+    final raw = address.rawAddress;
+    final mask = ~(0xFFFFFFFF << (32 - prefixLength));
+    return InternetAddress.fromRawAddress(
+      Uint8List.fromList(
+        List.generate(4, (i) => (raw[i] | (mask >> (24 - i * 8))) & 0xFF),
+      ),
+    );
+  }
+}
+
 class _NetworkInterface implements NetworkInterface {
   final String name;
   final int index;
-  final List<InternetAddress> addresses = [];
+  final List<InterfaceAddress> addresses = [];
 
   _NetworkInterface(this.name, this.index);
 
@@ -632,6 +650,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
             var type = InternetAddressType._from(resultList[0] as int);
             var name = resultList[3] as String;
             var index = resultList[4] as int;
+            var prefixLength = resultList[5] as int;
             var address = _InternetAddress(
               type,
               resultList[1] as String,
@@ -641,7 +660,9 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
             if (!includeLinkLocal && address.isLinkLocal) return map;
             if (!includeLoopback && address.isLoopback) return map;
             map.putIfAbsent(name, () => _NetworkInterface(name, index));
-            (map[name] as _NetworkInterface).addresses.add(address);
+            (map[name] as _NetworkInterface).addresses.add(
+              _InterfaceAddress(address, prefixLength),
+            );
             return map;
           },
         );
@@ -1974,8 +1995,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         addr.type == InternetAddressType.IPv4) {
       if (interface != null) {
         for (int i = 0; i < interface.addresses.length; i++) {
-          if (interface.addresses[i].type == InternetAddressType.IPv4) {
-            return interface.addresses[i];
+          if (interface.addresses[i].address.type == InternetAddressType.IPv4) {
+            return interface.addresses[i].address;
           }
         }
         // No IPv4 address found on the interface.

@@ -371,7 +371,8 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
                        new InterfaceSocketAddress(
                            RawAddr::FromInet4or6(u->Address.lpSockaddr),
                            StringUtilsWin::WideToUtf8(a->FriendlyName),
-                           a->Ipv6IfIndex != 0 ? a->Ipv6IfIndex : a->IfIndex));
+                           a->Ipv6IfIndex != 0 ? a->Ipv6IfIndex : a->IfIndex),
+                       u->OnLinkPrefixLength);
       i++;
     }
   }
