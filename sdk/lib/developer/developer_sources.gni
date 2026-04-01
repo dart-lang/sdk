@@ -6,9 +6,9 @@ developer_sdk_sources = [
   "developer.dart",
 
   # The above file needs to be first if additional parts are added to the lib.
+  "creation_tracking.dart",
   "extension.dart",
   "profiler.dart",
   "service.dart",
   "timeline.dart",
-  "creation_tracking.dart",
 ]

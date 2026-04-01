@@ -389,12 +389,6 @@ class WidgetCreatorTracker {
   /// The CreationLocation class defined in the `dart:developer` library.
   Class? _developerCreationLocationClass;
 
-  /// The annotation class defined in the `dart:developer` library.
-  Class? _trackCreationLocationsClass;
-
-  /// The annotation field defined in the `dart:developer` library.
-  Field? _developerTrackCreationLocationsField;
-
   void _resolveWellKnownClasses(Iterable<Library> libraries) {
     // If the Widget or Debug location classes have been updated we need to get
     // the latest version
@@ -402,7 +396,8 @@ class WidgetCreatorTracker {
     for (Library library in libraries) {
       final Uri importUri = library.importUri;
 
-      // Legacy Case: Search for harcoded flutter classes.
+      // Legacy Case: Search for harcoded Flutter classes.
+      // TODO(schultek): Remove this once Flutter is migrated to the new API.
       if (importUri.isScheme('package')) {
         if (importUri.path == 'flutter/src/widgets/framework.dart') {
           for (Class class_ in library.classes) {
@@ -427,18 +422,11 @@ class WidgetCreatorTracker {
 
       // New Case: Search for classes in `dart:developer`
       if (importUri.isScheme('dart') && importUri.path == 'developer') {
-        for (Field field in library.fields) {
-          if (field.name.text == 'trackCreationLocations') {
-            _developerTrackCreationLocationsField = field;
-          }
-        }
         for (Class class_ in library.classes) {
           if (class_.name == '_HasCreationLocation') {
             _developerHasCreationLocationClass = class_;
           } else if (class_.name == 'CreationLocation') {
             _developerCreationLocationClass = class_;
-          } else if (class_.name == '_TrackCreationLocations') {
-            _trackCreationLocationsClass = class_;
           }
         }
       }
@@ -450,8 +438,7 @@ class WidgetCreatorTracker {
             _hasCreationLocationClass != null &&
             _locationClass != null) ||
         (_developerHasCreationLocationClass != null &&
-            _developerCreationLocationClass != null &&
-            _trackCreationLocationsClass != null);
+            _developerCreationLocationClass != null);
   }
 
   /// Modify [clazz] to add the location field that is
@@ -644,14 +631,14 @@ class WidgetCreatorTracker {
       }
     }
 
-    // New Case: Check for @trackCreationLocations annotation.
-    if (_hasTrackCreationLocationsAnnotation(clazz)) {
+    // New Case: Check for 'pragma('track-creation-locations')' annotation.
+    if (_hasTrackCreationLocationsPragmaAnnotation(clazz)) {
       if (_developerHasCreationLocationClass != null &&
           _developerCreationLocationClass != null) {
         return new _TrackingClasses(
           hasCreationLocationClass: _developerHasCreationLocationClass!,
           locationClass: _developerCreationLocationClass!,
-          locationFieldName: '_location',
+          locationFieldName: _locationFieldName,
         );
       }
     }
@@ -664,13 +651,26 @@ class WidgetCreatorTracker {
     return _isSubclassWhere(clazz, (Class c) => c == _widgetClass);
   }
 
-  bool _hasTrackCreationLocationsAnnotation(Class clazz) {
-    if (_developerTrackCreationLocationsField == null) return false;
+  bool _hasTrackCreationLocationsPragmaAnnotation(Class clazz) {
+    if (_developerHasCreationLocationClass == null) return false;
     return _isSubclassWhere(clazz, (Class c) {
       for (Expression annotation in c.annotations) {
-        if (annotation is StaticGet &&
-            annotation.target == _developerTrackCreationLocationsField) {
-          return true;
+        if (annotation is RedirectingFactoryInvocation) {
+          final expression = annotation.expression;
+          if (expression is ConstructorInvocation) {
+            final enclosingClass = expression.target.enclosingClass;
+            if (enclosingClass.name == 'pragma' &&
+                enclosingClass.enclosingLibrary.importUri.toString() ==
+                    'dart:core') {
+              if (expression.arguments.positional.first is StringLiteral) {
+                final StringLiteral stringLiteral =
+                    expression.arguments.positional.first as StringLiteral;
+                if (stringLiteral.value == 'track-creation-locations') {
+                  return true;
+                }
+              }
+            }
+          }
         }
       }
       return false;
