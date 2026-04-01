@@ -195,21 +195,19 @@ class _ContextLocator {
 
     var buildGnFile = _findBuildGnFile(parent);
 
-    var rootFolder = _lowest([optionsFolderToChooseRoot, buildGnFile?.parent]);
-
-    // If default packages file is given, create workspace for it.
+    // If a default package config file is given, create workspace for it.
     var workspace = _createWorkspace(
       folder: parent,
       packageConfigFile: packageConfigFile,
       buildGnFile: buildGnFile,
     );
 
-    if (workspace is! BasicWorkspace) {
-      rootFolder = _lowest([
-        rootFolder,
+    var rootFolder = _lowest([
+      optionsFolderToChooseRoot,
+      buildGnFile?.parent,
+      if (workspace is! BasicWorkspace)
         _resourceProvider.getFolder(workspace.root),
-      ]);
-    }
+    ]);
 
     if (workspace is PackageConfigWorkspace) {
       packageConfigFile ??= workspace.packageConfigFile;
@@ -458,30 +456,22 @@ class _ContextLocator {
       }
     }
 
-    Packages packages;
-    if (packageConfigFile != null) {
-      packages = parsePackageConfigJsonFile(
-        _resourceProvider,
-        packageConfigFile,
-      );
-    } else {
-      packages = Packages.empty;
-    }
+    Packages packages = packageConfigFile != null
+        ? parsePackageConfigJsonFile(_resourceProvider, packageConfigFile)
+        : Packages.empty;
 
     var rootPath = folder.path;
 
-    Workspace? workspace;
-    workspace = BlazeWorkspace.find(
-      _resourceProvider,
-      rootPath,
-      lookForBuildFileSubstitutes: false,
-    );
-    workspace = _mostSpecificWorkspace(
-      workspace,
+    Workspace? workspace = _mostSpecificWorkspace(
+      BlazeWorkspace.find(
+        _resourceProvider,
+        rootPath,
+        lookForBuildFileSubstitutes: false,
+      ),
       PackageConfigWorkspace.find(_resourceProvider, packages, rootPath),
     );
-    workspace ??= BasicWorkspace.find(_resourceProvider, packages, rootPath);
-    return workspace;
+    return workspace ??
+        BasicWorkspace.find(_resourceProvider, packages, rootPath);
   }
 
   File? _findBuildGnFile(Folder folder) {
