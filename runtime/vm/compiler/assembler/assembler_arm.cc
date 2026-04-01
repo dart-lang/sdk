@@ -2382,23 +2382,13 @@ void Assembler::PopQuad(FpuRegister reg, Condition cond) {
 }
 
 void Assembler::PushRegisters(const RegisterSet& regs) {
-  const intptr_t fpu_regs_count = regs.FpuRegisterCount();
-  if (fpu_regs_count > 0) {
-    AddImmediate(SP, -(fpu_regs_count * kFpuRegisterSize));
-    // Store fpu registers with the lowest register number at the lowest
-    // address.
-    intptr_t offset = 0;
-    mov(TMP, Operand(SP));
-    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
-      QRegister fpu_reg = static_cast<QRegister>(i);
-      if (regs.ContainsFpuRegister(fpu_reg)) {
-        DRegister d = EvenDRegisterOf(fpu_reg);
-        ASSERT(d + 1 == OddDRegisterOf(fpu_reg));
-        vstmd(IA_W, IP, d, 2);
-        offset += kFpuRegisterSize;
-      }
+  // Store fpu registers with the lowest register number at the lowest
+  // address.
+  for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; i--) {
+    QRegister fpu_reg = static_cast<QRegister>(i);
+    if (regs.ContainsFpuRegister(fpu_reg)) {
+      PushQuad(fpu_reg);
     }
-    ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
   }
 
   // The order in which the registers are pushed must match the order
@@ -2428,20 +2418,12 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
     PopList(reg_list);
   }
 
-  const intptr_t fpu_regs_count = regs.FpuRegisterCount();
-  if (fpu_regs_count > 0) {
-    // Fpu registers have the lowest register number at the lowest address.
-    intptr_t offset = 0;
-    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
-      QRegister fpu_reg = static_cast<QRegister>(i);
-      if (regs.ContainsFpuRegister(fpu_reg)) {
-        DRegister d = EvenDRegisterOf(fpu_reg);
-        ASSERT(d + 1 == OddDRegisterOf(fpu_reg));
-        vldmd(IA_W, SP, d, 2);
-        offset += kFpuRegisterSize;
-      }
+  // Fpu registers have the lowest register number at the lowest address.
+  for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+    QRegister fpu_reg = static_cast<QRegister>(i);
+    if (regs.ContainsFpuRegister(fpu_reg)) {
+      PopQuad(fpu_reg);
     }
-    ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
   }
 }
 

@@ -5279,6 +5279,36 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_neverQuestion_nullAware() async {
+    await assertErrorsInCode(
+      '''
+void f(Never? a) {
+  a?.foo();
+}
+''',
+      [error(diag.deadCode, 24, 5)],
+    );
+
+    var node = findNode.methodInvocation('foo');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Never?
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: Never?
+''');
+  }
+
   test_hasReceiver_prefixed_class_staticGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class C {

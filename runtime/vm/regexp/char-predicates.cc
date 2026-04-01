@@ -5,7 +5,6 @@
 #include "vm/regexp/char-predicates.h"
 
 #include "unicode/uchar.h"
-#include "unicode/urename.h"
 
 namespace dart {
 

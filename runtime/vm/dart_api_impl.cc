@@ -102,13 +102,6 @@ DEFINE_FLAG(bool,
     }                                                                          \
   }
 
-Dart_Handle Api::true_handle_ = nullptr;
-Dart_Handle Api::false_handle_ = nullptr;
-Dart_Handle Api::null_handle_ = nullptr;
-Dart_Handle Api::empty_string_handle_ = nullptr;
-Dart_Handle Api::no_callbacks_error_handle_ = nullptr;
-Dart_Handle Api::unwind_in_progress_error_handle_ = nullptr;
-
 const char* CanonicalFunction(const char* func) {
   if (strncmp(func, "dart::", 6) == 0) {
     return func + 6;
@@ -499,8 +492,8 @@ bool Api::IsValid(Dart_Handle handle) {
              reinterpret_cast<Dart_PersistentHandle>(handle)) ||
          isolate_group->api_state()->IsActiveWeakPersistentHandle(
              reinterpret_cast<Dart_WeakPersistentHandle>(handle)) ||
-         Dart::IsReadOnlyApiHandle(handle) ||
-         Dart::IsReadOnlyHandle(reinterpret_cast<uword>(handle));
+         Roots::IsReadOnlyApiHandle(reinterpret_cast<uword>(handle)) ||
+         Roots::IsReadOnlyHandle(reinterpret_cast<uword>(handle));
 }
 
 ApiLocalScope* Api::TopScope(Thread* thread) {
@@ -510,13 +503,6 @@ ApiLocalScope* Api::TopScope(Thread* thread) {
   return scope;
 }
 
-static Dart_Handle InitNewReadOnlyApiHandle(ObjectPtr raw) {
-  ASSERT(raw->untag()->InVMIsolateHeap());
-  LocalHandle* ref = Dart::AllocateReadOnlyApiHandle();
-  ref->set_ptr(raw);
-  return ref->apiHandle();
-}
-
 void Api::InitHandles() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != nullptr);
@@ -524,35 +510,17 @@ void Api::InitHandles() {
   ApiState* state = isolate->group()->api_state();
   ASSERT(state != nullptr);
 
-  ASSERT(true_handle_ == nullptr);
-  true_handle_ = InitNewReadOnlyApiHandle(Bool::True().ptr());
-
-  ASSERT(false_handle_ == nullptr);
-  false_handle_ = InitNewReadOnlyApiHandle(Bool::False().ptr());
-
-  ASSERT(null_handle_ == nullptr);
-  null_handle_ = InitNewReadOnlyApiHandle(Object::null());
-
-  ASSERT(empty_string_handle_ == nullptr);
-  empty_string_handle_ = InitNewReadOnlyApiHandle(Symbols::Empty().ptr());
-
-  ASSERT(no_callbacks_error_handle_ == nullptr);
-  no_callbacks_error_handle_ =
-      InitNewReadOnlyApiHandle(Object::no_callbacks_error().ptr());
-
-  ASSERT(unwind_in_progress_error_handle_ == nullptr);
-  unwind_in_progress_error_handle_ =
-      InitNewReadOnlyApiHandle(Object::unwind_in_progress_error().ptr());
+  Roots::true_api_handle()->set_ptr(Bool::True().ptr());
+  Roots::false_api_handle()->set_ptr(Bool::False().ptr());
+  Roots::null_api_handle()->set_ptr(Object::null());
+  Roots::empty_string_api_handle()->set_ptr(Symbols::Empty().ptr());
+  Roots::no_callbacks_error_api_handle()->set_ptr(
+      Object::no_callbacks_error().ptr());
+  Roots::unwind_in_progress_error_api_handle()->set_ptr(
+      Object::unwind_in_progress_error().ptr());
 }
 
-void Api::Cleanup() {
-  true_handle_ = nullptr;
-  false_handle_ = nullptr;
-  null_handle_ = nullptr;
-  empty_string_handle_ = nullptr;
-  no_callbacks_error_handle_ = nullptr;
-  unwind_in_progress_error_handle_ = nullptr;
-}
+void Api::Cleanup() {}
 
 bool Api::StringGetPeerHelper(NativeArguments* arguments,
                               int arg_index,

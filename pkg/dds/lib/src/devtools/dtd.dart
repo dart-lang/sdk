@@ -69,21 +69,15 @@ Future<DtdInfo?> startDtd({
   required bool printDtdUri,
 }) async {
   final snapshotDir = getDTDSnapshotDir();
-  final dtdAotSnapshot =  path.absolute(
+  final dtdAotSnapshot = path.absolute(
     snapshotDir,
     'dart_tooling_daemon_aot.dart.snapshot',
   );
   final completer = Completer<DtdInfo?>();
-  void completeForError() => completer.complete(null);
+  void completeForError([_]) => completer.complete(null);
 
-  final exitPort = ReceivePort()
-    ..listen((_) {
-      completeForError();
-    });
-  final errorPort = ReceivePort()
-    ..listen((_) {
-      completeForError();
-    });
+  final exitPort = ReceivePort()..listen(completeForError);
+  final errorPort = ReceivePort()..listen(completeForError);
   final receivePort = ReceivePort()
     ..listen((message) {
       try {
@@ -122,10 +116,10 @@ Future<DtdInfo?> startDtd({
       onExit: exitPort.sendPort,
       onError: errorPort.sendPort,
     );
-  } catch (_, __) {
+  } catch (_) {
     // Spawning an isolate using the AOT snapshot of the tooling daemon failed,
     // try again using the JIT snapshot of the tooling daemon.
-    final dtdSnapshot =  path.absolute(
+    final dtdSnapshot = path.absolute(
       snapshotDir,
       'dart_tooling_daemon.dart.snapshot',
     );
@@ -137,7 +131,7 @@ Future<DtdInfo?> startDtd({
         onExit: exitPort.sendPort,
         onError: errorPort.sendPort,
       );
-    } catch (_, __) {
+    } catch (_) {
       completeForError();
     }
   }

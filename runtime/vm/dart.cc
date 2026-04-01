@@ -64,7 +64,6 @@ DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 Isolate* Dart::vm_isolate_ = nullptr;
 int64_t Dart::start_time_micros_ = 0;
 ThreadPool* Dart::thread_pool_ = nullptr;
-ReadOnlyHandles* Dart::predefined_handles_ = nullptr;
 Snapshot::Kind Dart::vm_snapshot_kind_ = Snapshot::kInvalid;
 Dart_ThreadStartCallback Dart::thread_start_callback_ = nullptr;
 Dart_ThreadExitCallback Dart::thread_exit_callback_ = nullptr;
@@ -75,29 +74,6 @@ Dart_FileCloseCallback Dart::file_close_callback_ = nullptr;
 Dart_EntropySource Dart::entropy_source_callback_ = nullptr;
 Dart_DwarfStackTraceFootnoteCallback Dart::dwarf_stacktrace_footnote_callback_ =
     nullptr;
-
-// Structure for managing read-only global handles allocation used for
-// creating global read-only handles that are pre created and initialized
-// for use across all isolates. Having these global pre created handles
-// stored in the vm isolate ensures that we don't constantly create and
-// destroy handles for read-only objects referred in the VM code
-// (e.g: symbols, null object, empty array etc.)
-// The ReadOnlyHandles C++ Wrapper around VMHandles which is a ValueObject is
-// to ensure that the handles area is not trashed by automatic running of C++
-// static destructors when 'exit()" is called by any isolate. There might be
-// other isolates running at the same time and trashing the handles area will
-// have unintended consequences.
-class ReadOnlyHandles {
- public:
-  ReadOnlyHandles() {}
-
- private:
-  VMHandles handles_;
-  LocalHandles api_handles_;
-
-  friend class Dart;
-  DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
-};
 
 class DartInitializationState : public AllStatic {
  public:
@@ -393,9 +369,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #if defined(DART_INCLUDE_SIMULATOR)
   Simulator::Init();
 #endif
-  // Create the read-only handles area.
-  ASSERT(predefined_handles_ == nullptr);
-  predefined_handles_ = new ReadOnlyHandles();
   // Create the VM isolate and finish the VM initialization.
   ASSERT(thread_pool_ == nullptr);
   thread_pool_ = new ThreadPool();
@@ -770,8 +743,6 @@ char* Dart::Cleanup() {
 #endif  // defined(DART_INCLUDE_PROFILER)
 
   Api::Cleanup();
-  delete predefined_handles_;
-  predefined_handles_ = nullptr;
 
   // Set the VM isolate as current isolate.
   if (FLAG_trace_shutdown) {
@@ -1203,32 +1174,6 @@ void Dart::ShutdownIsolate(Thread* T) {
 
 int64_t Dart::UptimeMicros() {
   return OS::GetCurrentMonotonicMicros() - Dart::start_time_micros_;
-}
-
-uword Dart::AllocateReadOnlyHandle() {
-  ASSERT(Isolate::Current() == Dart::vm_isolate());
-  ASSERT(predefined_handles_ != nullptr);
-  uword handle = predefined_handles_->handles_.AllocateScopedHandle();
-#if defined(DEBUG)
-  *reinterpret_cast<uword*>(handle + kOffsetOfIsZoneHandle * kWordSize) = 0;
-#endif
-  return handle;
-}
-
-LocalHandle* Dart::AllocateReadOnlyApiHandle() {
-  ASSERT(Isolate::Current() == Dart::vm_isolate());
-  ASSERT(predefined_handles_ != nullptr);
-  return predefined_handles_->api_handles_.AllocateHandle();
-}
-
-bool Dart::IsReadOnlyHandle(uword address) {
-  ASSERT(predefined_handles_ != nullptr);
-  return predefined_handles_->handles_.IsValidScopedHandle(address);
-}
-
-bool Dart::IsReadOnlyApiHandle(Dart_Handle handle) {
-  ASSERT(predefined_handles_ != nullptr);
-  return predefined_handles_->api_handles_.IsValidHandle(handle);
 }
 
 }  // namespace dart
