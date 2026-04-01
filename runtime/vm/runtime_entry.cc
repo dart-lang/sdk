@@ -2590,14 +2590,14 @@ static void SaveUnlinkedCall(Zone* zone,
                              uword frame_pc,
                              const UnlinkedCall& unlinked_call) {
   SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
-  if (isolate_group->saved_unlinked_calls() == Array::null()) {
+  if (isolate_group->object_store()->saved_unlinked_calls() == Array::null()) {
     const auto& initial_map =
         Array::Handle(zone, HashTables::New<UnlinkedCallMap>(16, Heap::kOld));
-    isolate_group->set_saved_unlinked_calls(initial_map);
+    isolate_group->object_store()->set_saved_unlinked_calls(initial_map);
   }
 
-  UnlinkedCallMap unlinked_call_map(zone,
-                                    isolate_group->saved_unlinked_calls());
+  UnlinkedCallMap unlinked_call_map(
+      zone, isolate_group->object_store()->saved_unlinked_calls());
   const auto& pc = Integer::Handle(zone, Integer::NewFromUint64(frame_pc));
   // Some other isolate might have updated unlinked_call_map[pc] too, but
   // their update should be identical to ours.
@@ -2605,21 +2605,24 @@ static void SaveUnlinkedCall(Zone* zone,
       zone, UnlinkedCall::RawCast(
                 unlinked_call_map.InsertOrGetValue(pc, unlinked_call)));
   RELEASE_ASSERT(new_or_old_value.ptr() == unlinked_call.ptr());
-  isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
+  isolate_group->object_store()->set_saved_unlinked_calls(
+      unlinked_call_map.Release());
 }
 
 static UnlinkedCallPtr LoadUnlinkedCall(Zone* zone,
                                         IsolateGroup* isolate_group,
                                         uword pc) {
   SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
-  ASSERT(isolate_group->saved_unlinked_calls() != Array::null());
-  UnlinkedCallMap unlinked_call_map(zone,
-                                    isolate_group->saved_unlinked_calls());
+  ASSERT(isolate_group->object_store()->saved_unlinked_calls() !=
+         Array::null());
+  UnlinkedCallMap unlinked_call_map(
+      zone, isolate_group->object_store()->saved_unlinked_calls());
 
   const auto& pc_integer = Integer::Handle(zone, Integer::NewFromUint64(pc));
   const auto& unlinked_call = UnlinkedCall::Cast(
       Object::Handle(zone, unlinked_call_map.GetOrDie(pc_integer)));
-  isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
+  isolate_group->object_store()->set_saved_unlinked_calls(
+      unlinked_call_map.Release());
   return unlinked_call.ptr();
 }
 

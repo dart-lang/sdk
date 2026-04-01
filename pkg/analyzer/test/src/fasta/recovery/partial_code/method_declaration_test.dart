@@ -4091,7 +4091,6 @@ class C { static m( @annotation var f; }
     parseResult.assertErrors([
       error(diag.expectedToken, 39, 1),
       error(diag.extraneousModifier, 32, 3),
-      error(diag.missingFunctionBody, 37, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4164,7 +4163,6 @@ class C { static m( var f; }
     parseResult.assertErrors([
       error(diag.expectedToken, 27, 1),
       error(diag.extraneousModifier, 20, 3),
-      error(diag.missingFunctionBody, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4200,7 +4198,6 @@ class C { static m( const f = 0; }
       error(diag.expectedToken, 33, 1),
       error(diag.extraneousModifier, 20, 5),
       error(diag.namedParameterOutsideGroup, 28, 1),
-      error(diag.missingFunctionBody, 31, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4240,7 +4237,6 @@ class C { static m( final f = 0; }
       error(diag.expectedToken, 33, 1),
       error(diag.extraneousModifier, 20, 5),
       error(diag.namedParameterOutsideGroup, 28, 1),
-      error(diag.missingFunctionBody, 31, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4802,7 +4798,6 @@ class C { static m(B b, @annotation var f; }
     parseResult.assertErrors([
       error(diag.expectedToken, 43, 1),
       error(diag.extraneousModifier, 36, 3),
-      error(diag.missingFunctionBody, 41, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4883,7 +4878,6 @@ class C { static m(B b, var f; }
     parseResult.assertErrors([
       error(diag.expectedToken, 31, 1),
       error(diag.extraneousModifier, 24, 3),
-      error(diag.missingFunctionBody, 29, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4923,7 +4917,6 @@ class C { static m(B b, const f = 0; }
       error(diag.expectedToken, 37, 1),
       error(diag.extraneousModifier, 24, 5),
       error(diag.namedParameterOutsideGroup, 32, 1),
-      error(diag.missingFunctionBody, 35, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4967,7 +4960,6 @@ class C { static m(B b, final f = 0; }
       error(diag.expectedToken, 37, 1),
       error(diag.extraneousModifier, 24, 5),
       error(diag.namedParameterOutsideGroup, 32, 1),
-      error(diag.missingFunctionBody, 35, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -7360,7 +7352,6 @@ class C { static A m( @annotation var f; }
     parseResult.assertErrors([
       error(diag.expectedToken, 41, 1),
       error(diag.extraneousModifier, 34, 3),
-      error(diag.missingFunctionBody, 39, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -7437,7 +7428,6 @@ class C { static A m( var f; }
     parseResult.assertErrors([
       error(diag.expectedToken, 29, 1),
       error(diag.extraneousModifier, 22, 3),
-      error(diag.missingFunctionBody, 27, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -7475,7 +7465,6 @@ class C { static A m( const f = 0; }
       error(diag.expectedToken, 35, 1),
       error(diag.extraneousModifier, 22, 5),
       error(diag.namedParameterOutsideGroup, 30, 1),
-      error(diag.missingFunctionBody, 33, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -7517,7 +7506,6 @@ class C { static A m( final f = 0; }
       error(diag.expectedToken, 35, 1),
       error(diag.extraneousModifier, 22, 5),
       error(diag.namedParameterOutsideGroup, 30, 1),
-      error(diag.missingFunctionBody, 33, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -8107,7 +8095,6 @@ class C { static A m(B b, @annotation var f; }
     parseResult.assertErrors([
       error(diag.expectedToken, 45, 1),
       error(diag.extraneousModifier, 38, 3),
-      error(diag.missingFunctionBody, 43, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -8192,7 +8179,6 @@ class C { static A m(B b, var f; }
     parseResult.assertErrors([
       error(diag.expectedToken, 33, 1),
       error(diag.extraneousModifier, 26, 3),
-      error(diag.missingFunctionBody, 31, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -8234,7 +8220,6 @@ class C { static A m(B b, const f = 0; }
       error(diag.expectedToken, 39, 1),
       error(diag.extraneousModifier, 26, 5),
       error(diag.namedParameterOutsideGroup, 34, 1),
-      error(diag.missingFunctionBody, 37, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -8280,7 +8265,6 @@ class C { static A m(B b, final f = 0; }
       error(diag.expectedToken, 39, 1),
       error(diag.extraneousModifier, 26, 5),
       error(diag.namedParameterOutsideGroup, 34, 1),
-      error(diag.missingFunctionBody, 37, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

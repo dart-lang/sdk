@@ -404,8 +404,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     StackZone zone(T);
     HandleScope handle_scope(T);
     Object::InitNullAndBool(vm_isolate_->group());
-    // Now that null is initialized properly.
-    group->tag_table_ = GrowableObjectArray::null();
     vm_isolate_->isolate_group_->set_object_store(new ObjectStore());
     vm_isolate_->isolate_object_store()->Init();
     vm_isolate_->finalizers_ = GrowableObjectArray::null();
@@ -984,7 +982,8 @@ ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
     IG->class_table()->Print();
   }
 
-  IG->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
+  IG->object_store()->set_tag_table(
+      GrowableObjectArray::Handle(GrowableObjectArray::New()));
 
   return Error::null();
 }

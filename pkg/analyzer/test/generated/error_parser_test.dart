@@ -835,6 +835,13 @@ enum E {}
     parseResult.assertNoErrors();
   }
 
+  void test_emptyFunctionBody() {
+    var parseResult = parseStringWithErrors(r'''
+void f();
+''');
+    parseResult.assertNoErrors();
+  }
+
   void test_enumInClass() {
     var parseResult = parseStringWithErrors(r'''
 class Foo {
@@ -2018,7 +2025,6 @@ var set foo; main(){}
     parseResult.assertErrors([
       error(diag.varReturnType, 0, 3),
       error(diag.missingFunctionParameters, 8, 3),
-      error(diag.missingFunctionBody, 11, 1),
     ]);
   }
 
@@ -2029,7 +2035,6 @@ var Function(var arg);
     parseResult.assertErrors([
       error(diag.varReturnType, 0, 3),
       error(diag.extraneousModifier, 13, 3),
-      error(diag.missingFunctionBody, 21, 1),
     ]);
   }
 
@@ -2043,7 +2048,6 @@ typedef var Function(var arg);
       error(diag.missingTypedefParameters, 8, 3),
       error(diag.varReturnType, 8, 3),
       error(diag.extraneousModifier, 21, 3),
-      error(diag.missingFunctionBody, 29, 1),
     ]);
   }
 
@@ -2350,10 +2354,7 @@ void f() {
     var parseResult = parseStringWithErrors(r'''
 void f(int a, int b ;
 ''');
-    parseResult.assertErrors([
-      error(diag.missingFunctionBody, 20, 1),
-      error(diag.expectedToken, 22, 1),
-    ]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
   }
 
   void test_missingConstFinalVarOrType_static() {
@@ -2384,13 +2385,6 @@ void f() {
 }
 ''');
     parseResult.assertErrors([error(diag.missingExpressionInThrow, 18, 1)]);
-  }
-
-  void test_missingFunctionBody_emptyNotAllowed() {
-    var parseResult = parseStringWithErrors(r'''
-void f();
-''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 8, 1)]);
   }
 
   void test_missingFunctionBody_invalid() {
@@ -3157,7 +3151,7 @@ class C {
   static get m;
 }
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 24, 1)]);
+    parseResult.assertNoErrors();
   }
 
   void test_staticOperator_noReturnType() {
@@ -3192,7 +3186,7 @@ class C {
   static set m(x);
 }
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 27, 1)]);
+    parseResult.assertNoErrors();
   }
 
   void test_staticTopLevelDeclaration_class() {

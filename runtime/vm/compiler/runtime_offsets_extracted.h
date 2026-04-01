@@ -288,7 +288,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0xa0;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x294;
+    ObjectStore_ffi_callback_code_offset = 0x298;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x240;
 static constexpr dart::compiler::target::word
@@ -1046,7 +1046,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x528;
+    ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -1801,7 +1801,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0xa0;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x294;
+    ObjectStore_ffi_callback_code_offset = 0x298;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x240;
 static constexpr dart::compiler::target::word
@@ -2558,7 +2558,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x528;
+    ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -3320,7 +3320,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x528;
+    ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -4079,7 +4079,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x528;
+    ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -4835,7 +4835,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0xa0;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x294;
+    ObjectStore_ffi_callback_code_offset = 0x298;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x240;
 static constexpr dart::compiler::target::word
@@ -5594,7 +5594,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x528;
+    ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -6343,7 +6343,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0xa0;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x294;
+    ObjectStore_ffi_callback_code_offset = 0x298;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x240;
 static constexpr dart::compiler::target::word
@@ -7093,7 +7093,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x528;
+    ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -7840,7 +7840,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0xa0;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x294;
+    ObjectStore_ffi_callback_code_offset = 0x298;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x240;
 static constexpr dart::compiler::target::word
@@ -8589,7 +8589,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x528;
+    ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -9343,7 +9343,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x528;
+    ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -10094,7 +10094,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x528;
+    ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -10842,7 +10842,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0xa0;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x294;
+    ObjectStore_ffi_callback_code_offset = 0x298;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x240;
 static constexpr dart::compiler::target::word
@@ -11593,7 +11593,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x528;
+    ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -12374,7 +12374,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0xa0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x294;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x298;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x240;
 static constexpr dart::compiler::target::word
@@ -13214,7 +13214,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x528;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -14061,7 +14061,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x528;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -14904,7 +14904,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x528;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -15747,7 +15747,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x528;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -16588,7 +16588,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0xa0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x294;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x298;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x240;
 static constexpr dart::compiler::target::word
@@ -17429,7 +17429,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x528;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -18260,7 +18260,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0xa0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x294;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x298;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x240;
 static constexpr dart::compiler::target::word
@@ -19091,7 +19091,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x528;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -19929,7 +19929,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x528;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -20763,7 +20763,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x528;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -21597,7 +21597,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x528;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
@@ -22429,7 +22429,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0xa0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x294;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x298;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x240;
 static constexpr dart::compiler::target::word
@@ -23261,7 +23261,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x140;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x528;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x530;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x480;
 static constexpr dart::compiler::target::word
