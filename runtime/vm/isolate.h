@@ -263,7 +263,6 @@ enum RootSlice : intptr_t {
   kClassTable,
   kApiState,
   kObjectStore,
-  kSavedUnlinkedCalls,
   kInitialFieldTable,
   kSentinelFieldTable,
   kSharedInitialFieldTable,
@@ -286,8 +285,6 @@ inline const char* RootSliceToCString(intptr_t slice) {
       return "api state";
     case kObjectStore:
       return "group object store";
-    case kSavedUnlinkedCalls:
-      return "saved unlinked calls";
     case kInitialFieldTable:
       return "initial field table";
     case kSentinelFieldTable:
@@ -772,9 +769,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
-  ArrayPtr saved_unlinked_calls() const { return saved_unlinked_calls_; }
-  void set_saved_unlinked_calls(const Array& saved_unlinked_calls);
-
   FieldTable* initial_field_table() const { return initial_field_table_.get(); }
   std::shared_ptr<FieldTable> initial_field_table_shareable() {
     return initial_field_table_;
@@ -844,8 +838,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   }
 
   SafepointRwLock* tag_table_lock() { return &tag_table_lock_; }
-  GrowableObjectArrayPtr tag_table() const { return tag_table_; }
-  void set_tag_table(const GrowableObjectArray& value);
 
   intptr_t thread_locals_count() { return thread_locals_count_; }
   intptr_t increment_thread_locals_count() {
@@ -956,7 +948,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<DispatchTable> dispatch_table_;
   const uint8_t* dispatch_table_snapshot_ = nullptr;
   intptr_t dispatch_table_snapshot_size_ = 0;
-  ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> initial_field_table_;
   std::shared_ptr<FieldTable> sentinel_field_table_;
   std::shared_ptr<FieldTable> shared_initial_field_table_;
@@ -1011,7 +1002,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::atomic<bool> has_attempted_stepping_;
 
   SafepointRwLock tag_table_lock_;
-  GrowableObjectArrayPtr tag_table_;
 
   std::atomic<intptr_t> thread_locals_count_ = 0;
 };
