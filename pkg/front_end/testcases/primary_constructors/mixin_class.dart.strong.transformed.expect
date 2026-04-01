@@ -2,13 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/primary_constructors/mixin_class.dart:5:15: Error: Can't use 'M1' as a mixin because it has constructors.
-// mixin class M1() {
-//               ^
+// pkg/front_end/testcases/primary_constructors/mixin_class.dart:6:8: Error: Can't use 'M1' as a mixin because it has constructors.
+//   this {}
+//        ^
 //
-// pkg/front_end/testcases/primary_constructors/mixin_class.dart:9:15: Error: Can't use 'M2' as a mixin because it has constructors.
-// mixin class M2() {
-//               ^
+// pkg/front_end/testcases/primary_constructors/mixin_class.dart:11:9: Error: Can't use 'M2' as a mixin because it has constructors.
+//   this: v = 0;
+//         ^
 //
 import self as self;
 import "dart:core" as core;

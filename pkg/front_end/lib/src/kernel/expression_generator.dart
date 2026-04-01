@@ -5846,7 +5846,6 @@ class DelayedAssignment extends ContextAwareGenerator {
     return _helper.createFieldInitializer(
       generator._plainNameForRead,
       offsetForToken(generator.token),
-      fileOffset,
       value,
     );
   }

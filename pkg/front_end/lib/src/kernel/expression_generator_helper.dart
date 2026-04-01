@@ -106,7 +106,6 @@ abstract class ExpressionGeneratorHelper {
   List<Initializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
-    int assignmentOffset,
     Expression expression, {
     FormalParameterBuilder? formal,
   });
