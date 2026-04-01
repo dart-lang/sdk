@@ -650,6 +650,43 @@ LinterLintCode:
       experimental: "3.2"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an extension type member redeclares 
+      a member from an implemented interface without the `@redeclare` annotation.
+
+      #### Example
+
+      The following code produces this diagnostic because the `f` method in the
+      extension type E redeclares the `f` method from `C` without the `@redeclare` annotation:
+
+      ```dart
+      class C {
+        void f() { }
+      }
+
+      extension type E(C c) implements C {
+        void [!f!]() { }
+      }
+      ```
+
+      #### Common fixes
+
+      Add the `@redeclare` annotation to make the redeclaration explicit:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        void f() { }
+      }
+
+      extension type E(C c) implements C {
+        @redeclare
+        void f() { }
+      }
+      ```
     deprecatedDetails: |-
       **DO** annotate redeclared members.
 
