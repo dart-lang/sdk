@@ -45,6 +45,45 @@ class Bar with Foo {}
     );
   }
 
+  test_inside_class_hasGenerativeConstructor() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A() {}
+}
+class B extends Object with A {}
+''',
+      [error(diag.classUsedAsMixin, 49, 1)],
+    );
+  }
+
+  test_inside_classTypeAlias_hasGenerativeConstructor() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A() {}
+}
+class B = Object with A;
+''',
+      [error(diag.classUsedAsMixin, 43, 1)],
+    );
+  }
+
+  test_inside_enum_hasGenerativeConstructor() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A() {}
+}
+
+enum E with A {
+  v
+}
+''',
+      [error(diag.classUsedAsMixin, 34, 1)],
+    );
+  }
+
   test_inside_language219() async {
     await assertNoErrorsInCode(r'''
 // @dart = 2.19

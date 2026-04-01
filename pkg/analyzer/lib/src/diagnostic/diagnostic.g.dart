@@ -1573,6 +1573,22 @@ classUsedAsMixin = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
+/// Parameters:
+/// String className: the name of the class being used as a mixin
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String className})
+>
+classUsedAsMixinDeclaresGenerativeConstructor = DiagnosticWithArguments(
+  name: 'class_used_as_mixin_declares_generative_constructor',
+  problemMessage:
+      "The class '{0}' can't be used as a mixin because it declares a generative "
+      "constructor.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'class_used_as_mixin_declares_generative_constructor',
+  withArguments: _withArgumentsClassUsedAsMixinDeclaresGenerativeConstructor,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments colonInPlaceOfIn =
     DiagnosticWithoutArgumentsImpl(
@@ -10570,19 +10586,18 @@ mixinClassDeclarationExtendsNotObject = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String className: the name of the mixin that is invalid
+/// String className: the name of the mixin class
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String className})
 >
-mixinClassDeclaresConstructor = DiagnosticWithArguments(
-  name: 'mixin_class_declares_constructor',
+mixinClassDeclaresNonTrivialGenerativeConstructor = DiagnosticWithArguments(
+  name: 'mixin_class_declares_non_trivial_generative_constructor',
   problemMessage:
-      "The class '{0}' can't be used as a mixin because it declares a "
-      "constructor.",
-  hasPublishedDocs: true,
+      "The mixin class '{0}' can't declare a non-trivial generative constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'mixin_class_declares_constructor',
-  withArguments: _withArgumentsMixinClassDeclaresConstructor,
+  uniqueName: 'mixin_class_declares_non_trivial_generative_constructor',
+  withArguments:
+      _withArgumentsMixinClassDeclaresNonTrivialGenerativeConstructor,
   expectedTypes: [ExpectedType.string],
 );
 
@@ -18254,6 +18269,16 @@ LocatableDiagnostic _withArgumentsClassUsedAsMixin({required String name}) {
   return LocatableDiagnosticImpl(diag.classUsedAsMixin, [name]);
 }
 
+LocatableDiagnostic
+_withArgumentsClassUsedAsMixinDeclaresGenerativeConstructor({
+  required String className,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.classUsedAsMixinDeclaresGenerativeConstructor,
+    [className],
+  );
+}
+
 LocatableDiagnostic _withArgumentsCompoundImplementsFinalizable({
   required String className,
 }) {
@@ -20064,12 +20089,14 @@ LocatableDiagnostic _withArgumentsMixinClassDeclarationExtendsNotObject({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsMixinClassDeclaresConstructor({
+LocatableDiagnostic
+_withArgumentsMixinClassDeclaresNonTrivialGenerativeConstructor({
   required String className,
 }) {
-  return LocatableDiagnosticImpl(diag.mixinClassDeclaresConstructor, [
-    className,
-  ]);
+  return LocatableDiagnosticImpl(
+    diag.mixinClassDeclaresNonTrivialGenerativeConstructor,
+    [className],
+  );
 }
 
 LocatableDiagnostic _withArgumentsMixinInheritsFromNotObject({

@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,12 +9,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MixinClassDeclaresConstructorTest);
+    defineReflectiveTests(
+      MixinClassDeclaresNonTrivialGenerativeConstructorTest,
+    );
   });
 }
 
 @reflectiveTest
-class MixinClassDeclaresConstructorTest extends PubPackageResolutionTest {
+class MixinClassDeclaresNonTrivialGenerativeConstructorTest
+    extends PubPackageResolutionTest {
   test_mixinClass_constructor_factory_blockBody() async {
     await assertNoErrorsInCode(r'''
 mixin class A {
@@ -46,7 +49,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 18, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 18, 1)],
     );
   }
 
@@ -58,7 +61,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 18, 3)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 18, 3)],
     );
   }
 
@@ -70,7 +73,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 27, 3)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 27, 3)],
     );
   }
 
@@ -82,7 +85,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 18, 3)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 18, 3)],
     );
   }
 
@@ -94,7 +97,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 18, 3)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 18, 3)],
     );
   }
 
@@ -142,7 +145,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 18, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 18, 1)],
     );
   }
 
@@ -154,7 +157,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 18, 7)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 18, 7)],
     );
   }
 
@@ -166,7 +169,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 27, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 27, 1)],
     );
   }
 
@@ -178,7 +181,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 18, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 18, 1)],
     );
   }
 
@@ -190,7 +193,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 18, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 18, 1)],
     );
   }
 
@@ -220,7 +223,7 @@ mixin class A.named() {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 31, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 31, 1)],
     );
   }
 
@@ -230,7 +233,7 @@ class B with A {}
 mixin class A.named(int x) {}
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 12, 7)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 12, 7)],
     );
   }
 
@@ -242,7 +245,7 @@ mixin class A.named() {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 31, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 31, 1)],
     );
   }
 
@@ -270,7 +273,7 @@ mixin class A() {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 25, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 25, 1)],
     );
   }
 
@@ -282,7 +285,7 @@ mixin class A() {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 25, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 25, 1)],
     );
   }
 
@@ -292,7 +295,7 @@ class B with A {}
 mixin class A(int x) {}
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 12, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 12, 1)],
     );
   }
 
@@ -304,7 +307,7 @@ mixin class A() {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 25, 1)],
+      [error(diag.mixinClassDeclaresNonTrivialGenerativeConstructor, 25, 1)],
     );
   }
 
@@ -322,44 +325,5 @@ mixin class A() {
 }
 class B with A {}
 ''');
-  }
-
-  test_withClause_class() async {
-    await assertErrorsInCode(
-      r'''
-class A {
-  A() {}
-}
-class B extends Object with A {}
-''',
-      [error(diag.mixinClassDeclaresConstructor, 49, 1)],
-    );
-  }
-
-  test_withClause_classTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
-class A {
-  A() {}
-}
-class B = Object with A;
-''',
-      [error(diag.mixinClassDeclaresConstructor, 43, 1)],
-    );
-  }
-
-  test_withClause_enum() async {
-    await assertErrorsInCode(
-      r'''
-class A {
-  A() {}
-}
-
-enum E with A {
-  v
-}
-''',
-      [error(diag.mixinClassDeclaresConstructor, 34, 1)],
-    );
   }
 }
