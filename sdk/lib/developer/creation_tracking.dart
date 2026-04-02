@@ -83,8 +83,7 @@ class CreationLocation {
   }
 
   @override
-  String toString() =>
-      <String>[if (name != null) name!, file, '$line', '$column'].join(':');
+  String toString() => <String>[?name, file, '$line', '$column'].join(':');
 }
 
 /// Interface for classes that track the source code location their
