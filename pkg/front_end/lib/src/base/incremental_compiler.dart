@@ -445,7 +445,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         context.options.target.performOutlineTransformations(
           componentWithDill,
           libraries: currentKernelTarget.loader.libraries,
-          changedStructureNotifier: currentKernelTarget.changedStructureNotifier,
+          changedStructureNotifier:
+              currentKernelTarget.changedStructureNotifier,
         );
       }
 

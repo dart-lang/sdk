@@ -290,7 +290,9 @@ Future<CompilerResult> _compile(
       packageFile != null ? sourcePathToUri(packageFile) : null,
       sourcePathToUri(librarySpecPath),
       additionalDills,
-      DevCompilerTarget(TargetFlags(trackCreationLocations: trackCreationLocations)),
+      DevCompilerTarget(
+        TargetFlags(trackCreationLocations: trackCreationLocations),
+      ),
       fileSystem: fileSystem,
       explicitExperimentalFlags: explicitExperimentalFlags,
       environmentDefines: declaredVariables,
@@ -330,7 +332,9 @@ Future<CompilerResult> _compile(
       sourcePathToUri(librarySpecPath),
       additionalDills,
       inputDigests,
-      DevCompilerTarget(TargetFlags(trackCreationLocations: trackCreationLocations)),
+      DevCompilerTarget(
+        TargetFlags(trackCreationLocations: trackCreationLocations),
+      ),
       fileSystem: fileSystem,
       explicitExperimentalFlags: explicitExperimentalFlags,
       environmentDefines: declaredVariables,

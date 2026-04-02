@@ -369,7 +369,8 @@ class Options {
       )
       ..addFlag(
         'track-creation-locations',
-        help: 'Run a kernel transformer to track creation locations for widgets.',
+        help:
+            'Run a kernel transformer to track creation locations for widgets.',
         defaultsTo: false,
         hide: true,
         aliases: [
