@@ -321,6 +321,10 @@ class_used_as_mixin:
   notes: |-
     Theoretically we could add the mixin modifier to the class if the class if
     doing so would be valid.
+class_used_as_mixin_declares_generative_constructor:
+  status: needsFix
+  notes: |-
+    Remove the constructor.
 class_instantiation_access_to_instance_member:
   status: noFix
   since: 2.15
@@ -1096,7 +1100,7 @@ mixin_application_not_implemented_interface:
   status: hasFix
 mixin_class_declaration_extends_not_object:
   status: hasFix
-mixin_class_declares_constructor:
+mixin_class_declares_non_trivial_generative_constructor:
   status: needsFix
   notes: |-
     Remove the constructor.

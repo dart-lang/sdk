@@ -1709,80 +1709,12 @@ class ResolutionReader {
     var aliasElement = readElement();
     if (aliasElement != null) {
       aliasElement as TypeAliasElementImpl;
-      var aliasArguments = _readTypeList();
-      var aliasNullability = _readNullability();
-      if (type is DynamicTypeImpl) {
-        return DynamicTypeImpl(
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-            nullabilitySuffix: aliasNullability,
-          ),
-        );
-      } else if (type is FunctionTypeImpl) {
-        return FunctionTypeImpl(
-          typeParameters: type.typeParameters,
-          parameters: type.parameters,
-          returnType: type.returnType,
-          nullabilitySuffix: type.nullabilitySuffix,
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-            nullabilitySuffix: aliasNullability,
-          ),
-        );
-      } else if (type is InterfaceTypeImpl) {
-        return InterfaceTypeImpl(
-          element: type.element,
-          typeArguments: type.typeArguments,
-          nullabilitySuffix: type.nullabilitySuffix,
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-            nullabilitySuffix: aliasNullability,
-          ),
-        );
-      } else if (type is NeverTypeImpl) {
-        return NeverTypeImpl(
-          nullabilitySuffix: type.nullabilitySuffix,
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-            nullabilitySuffix: aliasNullability,
-          ),
-        );
-      } else if (type is RecordTypeImpl) {
-        return RecordTypeImpl(
-          positionalFields: type.positionalFields,
-          namedFields: type.namedFields,
-          nullabilitySuffix: type.nullabilitySuffix,
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-            nullabilitySuffix: aliasNullability,
-          ),
-        );
-      } else if (type is TypeParameterTypeImpl) {
-        return TypeParameterTypeImpl(
-          element: type.element,
-          nullabilitySuffix: type.nullabilitySuffix,
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-            nullabilitySuffix: aliasNullability,
-          ),
-        );
-      } else if (type is VoidTypeImpl) {
-        return VoidTypeImpl(
-          alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
-            typeArguments: aliasArguments,
-            nullabilitySuffix: aliasNullability,
-          ),
-        );
-      } else {
-        throw UnimplementedError('${type.runtimeType}');
-      }
+      var alias = InstantiatedTypeAliasElementImpl(
+        element: aliasElement,
+        typeArguments: _readTypeList(),
+        nullabilitySuffix: _readNullability(),
+      );
+      return type.withAlias(alias);
     }
     return type;
   }

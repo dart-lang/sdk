@@ -767,7 +767,7 @@ class A {
 class A extends B {}
 class B {}
 class C = Object with A;''',
-      [error(diag.mixinInheritsFromNotObject, 54, 1)],
+      [error(diag.classUsedAsMixin, 54, 1)],
     );
 
     var a = findElement2.class_('A');
@@ -781,7 +781,7 @@ class A {
   A() {}
 }
 class C = Object with A;''',
-      [error(diag.mixinClassDeclaresConstructor, 43, 1)],
+      [error(diag.classUsedAsMixin, 43, 1)],
     );
 
     var a = findElement2.class_('A');

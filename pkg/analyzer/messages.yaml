@@ -2560,6 +2560,65 @@ CompileTimeErrorCode:
       mixin class M {}
       class C with M {}
       ```
+  classUsedAsMixinDeclaresGenerativeConstructor:
+    type: compileTimeError
+    parameters:
+      String className: the name of the class being used as a mixin
+    problemMessage: "The class '#className' can't be used as a mixin because it declares a generative constructor."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class is used as a mixin and
+      the mixed-in class defines a generative constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `A`, which
+      defines a generative constructor, is being used as a mixin:
+
+      ```dart
+      //@dart=2.19
+      class A {
+        A();
+      }
+
+      class B with [!A!] {}
+      ```
+
+      #### Common fixes
+
+      If it's possible to convert the class to a mixin, then do so:
+
+      ```dart
+      mixin A {
+      }
+
+      class B with A {}
+      ```
+
+      If the class can't be a mixin and it's possible to remove the constructor,
+      then do so:
+
+      ```dart
+      //@dart=2.19
+      class A {
+      }
+
+      class B with A {}
+      ```
+
+      If the class can't be a mixin and you can't remove the constructor, then
+      try extending or implementing the class rather than mixing it in:
+
+      ```dart
+      class A {
+        A();
+      }
+
+      class B extends A {}
+      ```
+
   classInstantiationAccessToInstanceMember:
     type: compileTimeError
     parameters:
@@ -11529,6 +11588,7 @@ CompileTimeErrorCode:
       String className: the name of the mixin that is invalid
     problemMessage: "The class '#className' can't be used as a mixin because it declares a constructor."
     hasPublishedDocs: true
+    removedIn: "3.11"
     documentation: |-
       #### Description
 
@@ -11580,6 +11640,52 @@ CompileTimeErrorCode:
       }
 
       class B extends A {}
+      ```
+  mixinClassDeclaresNonTrivialGenerativeConstructor:
+    type: compileTimeError
+    parameters:
+      String className: the name of the mixin class
+    problemMessage: "The mixin class '#className' can't declare a non-trivial generative constructor."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a mixin class declares a non-trivial
+      generative constructor. Trivial constructors are allowed, but non-trivial ones
+      (those with parameters, bodies, or initializers) aren't.
+
+      #### Example
+
+      The following code produces this diagnostic because the `mixin class` `A`
+      defines a generative constructor with a body:
+
+      ```dart
+      mixin class A {
+        [!A!]() {}
+      }
+      ```
+
+      #### Common fixes
+
+      If you can remove the body or parameters of the constructor to make it trivial,
+      then do so:
+
+      ```dart
+      mixin class A {
+        A(); // Trivial constructor
+      }
+      ```
+
+      If the constructor can't be made trivial, then convert the `mixin class` to a
+      regular `class` and extend or implement it, or separate the mixin capability:
+
+      ```dart
+      class A {
+        A() {}
+      }
+
+      mixin class AM { // A separate mixin for mixing in behavior
+      }
       ```
   mixinInheritsFromNotObject:
     type: compileTimeError
