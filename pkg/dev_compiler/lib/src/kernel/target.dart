@@ -243,16 +243,18 @@ class DevCompilerTarget extends Target {
   @override
   void performOutlineTransformations(
     Component component, {
+    List<Library>? libraries,
     ChangedStructureNotifier? changedStructureNotifier,
   }) {
     super.performOutlineTransformations(
       component,
+      libraries: libraries,
       changedStructureNotifier: changedStructureNotifier,
     );
     if (flags.trackWidgetCreation) {
       _widgetTracker ??= WidgetCreatorTracker();
       _widgetTracker!.transform(
-        component,
+        libraries ?? component.libraries,
         component.libraries,
         changedStructureNotifier,
       );
@@ -270,7 +272,11 @@ class DevCompilerTarget extends Target {
   }) {
     if (flags.trackWidgetCreation) {
       _widgetTracker ??= WidgetCreatorTracker();
-      _widgetTracker!.transform(component, libraries, changedStructureNotifier);
+      _widgetTracker!.transform(
+        libraries,
+        component.libraries,
+        changedStructureNotifier,
+      );
     }
   }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
-
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
@@ -100,16 +98,8 @@ void main() {
   );
   testLib.addProcedure(mainProcedure);
 
-  final Component component = new Component(libraries: [developerLib, testLib]);
-  component.uriToSource[testUri] = new Source(
-    [0, 50, 100, 150],
-    Uint8List(0),
-    testUri,
-    testUri,
-  );
-
   final WidgetCreatorTracker tracker = new WidgetCreatorTracker();
-  tracker.transform(component, [testLib], null);
+  tracker.transform([testLib], [developerLib, testLib], null);
 
   // Verification
   Expect.isTrue(

@@ -556,7 +556,7 @@ class WidgetCreatorTracker {
 
   /// Transform the given [libraries].
   ///
-  /// The libraries from [module] is searched for the Widget class,
+  /// The [moduleLibraries] are searched for the Widget class,
   /// the _Location class, the _HasCreationLocation class and the
   /// _WidgetFactory class.
   /// If the component does not contain them, the ones from a previous run is
@@ -568,15 +568,15 @@ class WidgetCreatorTracker {
   /// compilation where the class hierarchy is kept between compiles and thus
   /// has to be kept up to date.
   void transform(
-    Component module,
     List<Library> libraries,
+    List<Library> moduleLibraries,
     ChangedStructureNotifier? changedStructureNotifier,
   ) {
     if (libraries.isEmpty) {
       return;
     }
 
-    _resolveWellKnownClasses(module.libraries);
+    _resolveWellKnownClasses(moduleLibraries);
 
     if (!_foundClasses) {
       // Neither package:flutter nor dart:developer tracking classes found.
@@ -655,17 +655,40 @@ class WidgetCreatorTracker {
     if (_developerHasCreationLocationClass == null) return false;
     return _isSubclassWhere(clazz, (Class c) {
       for (Expression annotation in c.annotations) {
+        // Case before constant evaluation (newly compiled modules).
         if (annotation is RedirectingFactoryInvocation) {
           final expression = annotation.expression;
+
           if (expression is ConstructorInvocation) {
-            final enclosingClass = expression.target.enclosingClass;
+            final Class enclosingClass = expression.target.enclosingClass;
+
             if (enclosingClass.name == 'pragma' &&
                 enclosingClass.enclosingLibrary.importUri.toString() ==
                     'dart:core') {
-              if (expression.arguments.positional.first is StringLiteral) {
-                final StringLiteral stringLiteral =
-                    expression.arguments.positional.first as StringLiteral;
-                if (stringLiteral.value == 'track-creation-locations') {
+              if (expression.arguments.positional.isNotEmpty) {
+                final Expression firstArg =
+                    expression.arguments.positional.first;
+                if (firstArg is StringLiteral &&
+                    firstArg.value == 'track-creation-locations') {
+                  return true;
+                }
+              }
+            }
+          }
+        }
+        // Case after constant evaluation (incremental or modular compilation).
+        if (annotation is ConstantExpression) {
+          final Constant constant = annotation.constant;
+
+          if (constant is InstanceConstant) {
+            final Class enclosingClass = constant.classNode;
+
+            if (enclosingClass.name == 'pragma' &&
+                enclosingClass.enclosingLibrary.importUri.toString() ==
+                    'dart:core') {
+              for (final Constant value in constant.fieldValues.values) {
+                if (value is StringConstant &&
+                    value.value == 'track-creation-locations') {
                   return true;
                 }
               }

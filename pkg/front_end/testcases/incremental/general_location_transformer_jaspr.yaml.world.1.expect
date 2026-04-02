@@ -1,9 +1,7 @@
 main = main::main;
 library from "org-dartlang-test:///main.dart" as main {
 
-  import "dart:developer";
-
-  @#C1
+  @#C3
   abstract class Component extends dart.core::Object implements dart.developer::_HasCreationLocation /*hasConstConstructor*/  {
     final field dart.core::String? key;
     final field dart.developer::CreationLocation? dart.developer::_location;
@@ -13,7 +11,7 @@ library from "org-dartlang-test:///main.dart" as main {
     static const factory text(dart.core::String text, {dart.core::String? key = #C2, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::Component /* redirection-target: main::Text::_ */
       return new main::Text::_(text, key: key, $creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
     static synthetic method _#text#tearOff(dart.core::String text, {dart.core::String? key = #C2}) → main::Component
-      return new main::Text::_(text, key: key, $creationLocationd_0dea112b090073317d4: #C7);
+      return new main::Text::_(text, key: key, $creationLocationd_0dea112b090073317d4: #C8);
   }
   class Text extends main::Component /*hasConstConstructor*/  {
     final field dart.core::String text;
@@ -21,7 +19,7 @@ library from "org-dartlang-test:///main.dart" as main {
       : main::Text::text = text, super main::Component::•(key: key, $creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static synthetic method _#_#tearOff(dart.core::String text, {dart.core::String? key = #C2}) → main::Text
-      return new main::Text::_(text, key: key, $creationLocationd_0dea112b090073317d4: #C10);
+      return new main::Text::_(text, key: key, $creationLocationd_0dea112b090073317d4: #C11);
   }
   class MyComponent extends main::Component /*hasConstConstructor*/  {
     final field dart.core::List<main::Component> children;
@@ -40,51 +38,52 @@ library from "org-dartlang-test:///main.dart" as main {
   }
 }
 constants  {
-  #C1 = dart.developer::_TrackCreationLocations {}
+  #C1 = "track-creation-locations"
   #C2 = null
-  #C3 = "org-dartlang-test:///main.dart"
-  #C4 = 7.0
-  #C5 = 17.0
-  #C6 = "Text"
-  #C7 = dart.developer::CreationLocation {file:#C3, line:#C4, column:#C5, name:#C6}
-  #C8 = 13.0
-  #C9 = 9.0
-  #C10 = dart.developer::CreationLocation {file:#C3, line:#C8, column:#C9, name:#C6}
-  #C11 = 19.0
+  #C3 = dart.core::pragma {name:#C1, options:#C2}
+  #C4 = "org-dartlang-test:///main.dart"
+  #C5 = 5.0
+  #C6 = 17.0
+  #C7 = "Text"
+  #C8 = dart.developer::CreationLocation {file:#C4, line:#C5, column:#C6, name:#C7}
+  #C9 = 11.0
+  #C10 = 9.0
+  #C11 = dart.developer::CreationLocation {file:#C4, line:#C9, column:#C10, name:#C7}
   #C12 = "MyComponent"
-  #C13 = dart.developer::CreationLocation {file:#C3, line:#C11, column:#C9, name:#C12}
-  #C14 = 26.0
+  #C13 = dart.developer::CreationLocation {file:#C4, line:#C6, column:#C10, name:#C12}
+  #C14 = 24.0
   #C15 = 12.0
-  #C16 = dart.developer::CreationLocation {file:#C3, line:#C14, column:#C15, name:#C12}
-  #C17 = 27.0
-  #C18 = dart.developer::CreationLocation {file:#C3, line:#C17, column:#C15, name:#C12}
+  #C16 = dart.developer::CreationLocation {file:#C4, line:#C14, column:#C15, name:#C12}
+  #C17 = 25.0
+  #C18 = dart.developer::CreationLocation {file:#C4, line:#C17, column:#C15, name:#C12}
   #C19 = "Hello"
-  #C20 = 29.0
+  #C20 = 27.0
   #C21 = 37.0
-  #C22 = dart.developer::CreationLocation {file:#C3, line:#C20, column:#C21, name:#C6}
+  #C22 = dart.developer::CreationLocation {file:#C4, line:#C20, column:#C21, name:#C7}
   #C23 = main::Text {text:#C19, key:#C2, _location:#C22}
   #C24 = <main::Component>[#C23]
   #C25 = 14.0
-  #C26 = dart.developer::CreationLocation {file:#C3, line:#C20, column:#C25, name:#C12}
+  #C26 = dart.developer::CreationLocation {file:#C4, line:#C20, column:#C25, name:#C12}
   #C27 = main::MyComponent {children:#C24, id:#C2, key:#C2, _location:#C26}
   #C28 = <main::Component>[]
   #C29 = "x"
-  #C30 = 30.0
+  #C30 = 28.0
   #C31 = 31.0
-  #C32 = dart.developer::CreationLocation {file:#C3, line:#C30, column:#C31, name:#C12}
+  #C32 = dart.developer::CreationLocation {file:#C4, line:#C30, column:#C31, name:#C12}
   #C33 = main::MyComponent {children:#C28, id:#C29, key:#C2, _location:#C32}
   #C34 = <main::Component>[#C27, #C33]
   #C35 = "4"
-  #C36 = dart.developer::CreationLocation {file:#C3, line:#C30, column:#C25, name:#C12}
+  #C36 = dart.developer::CreationLocation {file:#C4, line:#C30, column:#C25, name:#C12}
   #C37 = main::MyComponent {children:#C34, id:#C35, key:#C2, _location:#C36}
 }
 
 
 Constructor coverage from constants:
 org-dartlang-test:///main.dart:
-- CreationLocation. (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
-- Text._ (from org-dartlang-test:///main.dart:13:9)
-- Component. (from org-dartlang-test:///main.dart:5:9)
-- MyComponent. (from org-dartlang-test:///main.dart:19:9)
+- CreationLocation. (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- Text._ (from org-dartlang-test:///main.dart:11:9)
+- Component. (from org-dartlang-test:///main.dart:3:9)
+- MyComponent. (from org-dartlang-test:///main.dart:17:9)
 

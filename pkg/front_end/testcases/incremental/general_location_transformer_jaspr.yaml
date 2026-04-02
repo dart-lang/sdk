@@ -9,9 +9,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        import 'dart:developer';
-
-        @trackCreationLocations
+        @pragma('track-creation-locations')
         abstract class Component {
           const Component({this.key});
 

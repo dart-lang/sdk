@@ -1,0 +1,64 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+type: newworld
+target: dartdevc
+trackWidgetCreation: true
+worlds:
+  - entry: main.dart
+    outlineOnly: true
+    skipOutlineBodyCheck: true
+    sources:
+      widget.dart: |
+        import 'dart:developer';
+
+        @pragma('track-creation-locations')
+        abstract class Widget {
+          const Widget();
+        }
+
+        class StandardWidget extends Widget {
+          const StandardWidget();
+          const StandardWidget.named(String name);
+        }
+      main.dart: |
+        import 'widget.dart';
+
+        class MyWidget extends Widget {
+          const MyWidget({this.child});
+
+          final Widget? child;
+        }
+
+        void main() {
+          var w1 = MyWidget();
+          var w2 = StandardWidget.named('w2');
+          const w3 = MyWidget();
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    outlineOnly: true
+    skipOutlineBodyCheck: true
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'widget.dart';
+
+        class MyWidget extends Widget {
+          const MyWidget({this.child});
+
+          final Widget? child;
+        }
+
+        void main() {
+          var w1 = MyWidget(child: StandardWidget());
+          const w2 = MyWidget(child: StandardWidget.named('w2'));
+          const w3 = MyWidget(child: w2);
+        }
+    expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

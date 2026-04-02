@@ -139,20 +139,6 @@ class VmTarget extends Target {
   late final WidgetCreatorTracker _widgetTracker = WidgetCreatorTracker();
 
   @override
-  void performOutlineTransformations(
-    Component component, {
-    ChangedStructureNotifier? changedStructureNotifier,
-  }) {
-    super.performOutlineTransformations(
-      component,
-      changedStructureNotifier: changedStructureNotifier,
-    );
-    if (flags.trackWidgetCreation) {
-      _widgetTracker.transform(component, component.libraries, changedStructureNotifier);
-    }
-  }
-
-  @override
   void performPreConstantEvaluationTransformations(
     Component component,
     CoreTypes coreTypes,
@@ -172,7 +158,11 @@ class VmTarget extends Target {
     _patchVmConstants(coreTypes);
 
     if (flags.trackWidgetCreation) {
-      _widgetTracker.transform(component, libraries, changedStructureNotifier);
+      _widgetTracker.transform(
+        libraries,
+        component.libraries,
+        changedStructureNotifier,
+      );
     }
   }
 

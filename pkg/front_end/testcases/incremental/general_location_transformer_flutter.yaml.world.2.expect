@@ -1,0 +1,52 @@
+main = <No Member>;
+library from "package:flutter/src/widgets/framework.dart" as fra {
+
+  abstract class Bar extends dart.core::Object {
+    synthetic constructor •() → fra::Bar
+      : super dart.core::Object::•()
+      ;
+  }
+  @#C3
+  abstract class Widget extends fra::Bar implements dart.developer::_HasCreationLocation {
+    final field dart.developer::CreationLocation? dart.developer::_location;
+    synthetic constructor •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → fra::Widget
+      : super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:flutter/src/widgets/framework.dart";
+
+  class Foo extends fra::Widget {
+    synthetic constructor •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::Foo
+      : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static synthetic method _#new#tearOff() → main::Foo
+      return new main::Foo::•($creationLocationd_0dea112b090073317d4: #C8);
+    synthetic no-such-method-forwarder set dart.developer::_location(dart.developer::CreationLocation? value) → void
+      return throw{for-error-handling} dart.core::NoSuchMethodError::withInvocation(this, new dart.core::_Invocation::setter(#C9, value));
+  }
+}
+constants  {
+  #C1 = "track-creation-locations"
+  #C2 = null
+  #C3 = dart.core::pragma {name:#C1, options:#C2}
+  #C4 = "org-dartlang-test:///main.dart"
+  #C5 = 3.0
+  #C6 = 7.0
+  #C7 = "Foo"
+  #C8 = dart.developer::CreationLocation {file:#C4, line:#C5, column:#C6, name:#C7}
+  #C9 = #org-dartlang-test:///main.dart::_location=
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///flutter/lib/src/widgets/framework.dart:
+- pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+
+org-dartlang-test:///main.dart:
+- CreationLocation. (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+

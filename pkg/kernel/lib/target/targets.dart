@@ -341,6 +341,7 @@ abstract class Target {
   /// slowing down compilation.
   void performOutlineTransformations(
     Component component, {
+    List<Library>? libraries,
     ChangedStructureNotifier? changedStructureNotifier,
   }) {}
 
@@ -1023,10 +1024,12 @@ class TargetWrapper extends Target {
   @override
   void performOutlineTransformations(
     Component component, {
+    List<Library>? libraries,
     ChangedStructureNotifier? changedStructureNotifier,
   }) {
     _target.performOutlineTransformations(
       component,
+      libraries: libraries,
       changedStructureNotifier: changedStructureNotifier,
     );
   }
@@ -1111,18 +1114,20 @@ mixin SummaryMixin on Target {
   @override
   void performOutlineTransformations(
     Component component, {
+    List<Library>? libraries,
     ChangedStructureNotifier? changedStructureNotifier,
   }) {
     super.performOutlineTransformations(
       component,
+      libraries: libraries,
       changedStructureNotifier: changedStructureNotifier,
     );
     if (!excludeNonSources) return;
 
-    List<Library> libraries = new List.of(component.libraries);
+    List<Library> componentLibraries = new List.of(component.libraries);
     component.libraries.clear();
     Set<Uri> include = sources.toSet();
-    for (Library library in libraries) {
+    for (Library library in componentLibraries) {
       if (include.contains(library.importUri)) {
         component.libraries.add(library);
       } else {
