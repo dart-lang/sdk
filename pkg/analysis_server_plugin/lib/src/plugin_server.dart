@@ -588,6 +588,10 @@ class PluginServer {
     for (var rule in rules) {
       // TODO(srawlins): Enable timing similar to what the linter package's
       // `benchmark.dart` script does.
+      var config = configuration.diagnosticConfigs[rule.name.toLowerCase()];
+      if (config != null) {
+        rule.options = config.options;
+      }
       rule.registerNodeProcessors(ruleVisitorRegistry, context);
     }
 
