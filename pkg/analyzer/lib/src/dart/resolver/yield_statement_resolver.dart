@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -154,31 +152,13 @@ class YieldStatementResolver {
     }
   }
 
-  TypeImpl _computeContextType(
-    BodyInferenceContext bodyContext,
-    YieldStatement node,
-  ) {
-    var elementType = bodyContext.contextType;
-    if (elementType != null) {
-      var contextType = elementType;
-      if (node.star != null) {
-        contextType = bodyContext.isSynchronous
-            ? _typeProvider.iterableType(elementType)
-            : _typeProvider.streamType(elementType);
-      }
-      return contextType;
-    } else {
-      return UnknownInferredType.instance;
-    }
-  }
-
   void _resolve_generator(
     BodyInferenceContext bodyContext,
     YieldStatementImpl node,
   ) {
-    _resolver.analyzeExpression(
+    _resolver.analyzeYieldStatement(
       node.expression,
-      SharedTypeSchemaView(_computeContextType(bodyContext, node)),
+      isYieldStar: node.star != null,
     );
     _resolver.popRewrite();
 
