@@ -45,6 +45,73 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_class_emptyBody_braces_adjacent() async {
+    await resolveTestCode('''
+abstract class A {
+  m1();
+  int m2();
+}
+
+class B extends A {}
+''');
+    await assertHasFix('''
+abstract class A {
+  m1();
+  int m2();
+}
+
+class B extends A {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+''');
+  }
+
+  Future<void> test_class_emptyBody_braces_nonAdjacent() async {
+    await resolveTestCode('''
+abstract class A {
+  m1();
+  int m2();
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  m1();
+  int m2();
+}
+
+class B extends A {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+''');
+  }
+
+  Future<void> test_class_emptyBody_semicolon() async {
+    await resolveTestCode('''
+abstract class A {
+  m1();
+  int m2();
+}
+
+class B extends A;
+''');
+    await assertHasFix('''
+abstract class A {
+  m1();
+  int m2();
+}
+
+class B extends A {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+''');
+  }
+
   Future<void> test_classTypeAlias() async {
     await resolveTestCode('''
 abstract mixin class A {
