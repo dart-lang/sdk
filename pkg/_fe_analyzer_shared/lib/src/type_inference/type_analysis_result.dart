@@ -25,7 +25,7 @@ class AssignedVariablePatternResult<Error> extends PatternResult {
 
 /// Result for analyzing an await expression in
 /// [TypeAnalyzer.analyzeSwitchExpression].
-class AwaitExpressionResult extends ExpressionTypeAnalysisResult {
+final class AwaitExpressionResult extends ExpressionTypeAnalysisResult {
   /// The static type of the operand.
   final SharedTypeView operandType;
 
@@ -79,7 +79,7 @@ class DeclaredVariablePatternResult<Error> extends PatternResult {
 /// This class keeps track of the type of the expression. Derived classes expose
 /// other results of type analysis that are specific to certain expression
 /// types.
-class ExpressionTypeAnalysisResult {
+final class ExpressionTypeAnalysisResult {
   /// The static type of the expression.
   final SharedTypeView type;
 
@@ -111,7 +111,7 @@ class IfCaseStatementResult<Error> {
 }
 
 /// Container for the result of running type analysis on an integer literal.
-class IntTypeAnalysisResult extends ExpressionTypeAnalysisResult {
+final class IntTypeAnalysisResult extends ExpressionTypeAnalysisResult {
   /// Whether the integer literal was converted to a double.
   final bool convertedToDouble;
 
@@ -313,7 +313,8 @@ class ObjectPatternResult<Error> extends PatternResult {
 }
 
 /// Container for the result of running type analysis on a pattern assignment.
-class PatternAssignmentAnalysisResult extends ExpressionTypeAnalysisResult {
+final class PatternAssignmentAnalysisResult
+    extends ExpressionTypeAnalysisResult {
   /// The type schema of the pattern on the left hand size of the assignment.
   final SharedTypeSchemaView patternSchema;
 
@@ -430,7 +431,7 @@ final class StatementTypeAnalysisResult {
 
 /// Result for analyzing a switch expression in
 /// [TypeAnalyzer.analyzeSwitchExpression].
-class SwitchExpressionResult<Error> extends ExpressionTypeAnalysisResult {
+final class SwitchExpressionResult<Error> extends ExpressionTypeAnalysisResult {
   /// Errors for non-bool guards.
   ///
   /// The key is the case index of the erroneous guard.
