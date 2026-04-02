@@ -155,6 +155,9 @@ final class ConstructorSuggestion extends TypedExecutableSuggestion
   @override
   final ConstructorElement element;
 
+  /// The type alias, if this constructor is being suggested through one.
+  final TypeAliasElement? alias;
+
   /// Whether the class name is already, implicitly or explicitly, at the call
   /// site. That is, whether we are completing after a period.
   final bool hasClassName;
@@ -177,6 +180,7 @@ final class ConstructorSuggestion extends TypedExecutableSuggestion
   ConstructorSuggestion({
     required super.importData,
     required this.element,
+    required this.alias,
     required this.hasClassName,
     required this.isTearOff,
     required this.isRedirect,
@@ -205,8 +209,8 @@ final class ConstructorSuggestion extends TypedExecutableSuggestion
       }
     }
     if (!hasClassName && !addTypeName) {
-      var enclosingClass = element.enclosingElement;
-      var className = enclosingClass.displayName;
+      var className =
+          alias?.displayName ?? element.enclosingElement.displayName;
       if (completion.isEmpty) {
         completion = className;
       } else {
