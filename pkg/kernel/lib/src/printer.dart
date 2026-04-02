@@ -258,15 +258,15 @@ class AstPrinter {
       case LocalVariable(cosmeticName: null):
       case SyntheticVariable():
         return _variableNames[node] ??= '#${_variableNames.length}';
-      case VariableDeclaration():
+      case CatchVariable(catchVariableName: var name):
+        return name;
+      case LegacyVariableDeclaration():
         String? name = node.name;
         if (name != null) {
           return name;
         }
         return _variableDeclarationNames[node] ??=
             '#${_variableDeclarationNames.length}';
-      case CatchVariable(catchVariableName: var name):
-        return name;
     }
   }
 
@@ -519,7 +519,7 @@ class AstPrinter {
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
   void writeVariableInitialization(
-    VariableInitialization node, {
+    VariableInitializationBase node, {
     bool includeModifiersAndType = true,
     bool? isLate,
     DartType? type,
@@ -557,7 +557,7 @@ class AstPrinter {
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
   void writeExpressionVariable(
-    Variable node, {
+    VariableDeclaration node, {
     bool includeModifiersAndType = true,
     bool? isLate,
     DartType? type,

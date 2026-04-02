@@ -70,7 +70,7 @@ class TypeArgumentsVisitor extends VerifyingAnalysis {
           uri: astUri,
         );
         InterfaceType variableInitializationType = interface
-            .createInterfaceType('VariableInitialization', uri: astUri);
+            .createInterfaceType('VariableInitializationBase', uri: astUri);
         DartType typeArgument = receiver.arguments.types.single;
         if (interface.isSubtypeOf(typeArgument, expressionType) &&
             typeArgument != expressionType) {

@@ -438,7 +438,7 @@ abstract class Generator {
 /// If the variable is final or read-only (like a parameter in a catch clause) a
 /// [ReadOnlyAccessGenerator] is created instead.
 class VariableUseGenerator extends Generator {
-  final Variable variable;
+  final VariableDeclaration variable;
 
   VariableUseGenerator(
     ExpressionGeneratorHelper helper,
@@ -646,7 +646,7 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   ForInLateFinalVariableUseGenerator(
     ExpressionGeneratorHelper helper,
     Token token,
-    Variable variable,
+    VariableDeclaration variable,
   ) : super(helper, token, variable);
 
   @override

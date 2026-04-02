@@ -145,7 +145,7 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   }
 
   void handleDeclarationOfVariable(
-    Variable variable, {
+    VariableDeclaration variable, {
     required CaptureKind captureKind,
   });
 
@@ -181,7 +181,7 @@ class TrivialContextAllocationStrategy
     extends ContextAllocationStrategy<ScopeProviderInfo> {
   @override
   void handleDeclarationOfVariable(
-    Variable variable, {
+    VariableDeclaration variable, {
     required CaptureKind captureKind,
   }) {
     assert(_currentScopeProviderInfo != null);
@@ -256,7 +256,7 @@ class LoopDepthAllocationStrategy
 
   @override
   void handleDeclarationOfVariable(
-    Variable variable, {
+    VariableDeclaration variable, {
     required CaptureKind captureKind,
   }) {
     CollectorScopeProviderInfo currentScope = _currentScopeProviderInfo!;

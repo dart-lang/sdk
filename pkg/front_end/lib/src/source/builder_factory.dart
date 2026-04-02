@@ -100,9 +100,7 @@ void _checkAugmentation(
             ? diag.unmatchedPatchDeclaration.withArguments(
                 declarationName: declaration.displayName,
               )
-            :
-              // Coverage-ignore(suite): Not run.
-              diag.unmatchedAugmentationDeclaration.withArguments(
+            : diag.unmatchedAugmentationDeclaration.withArguments(
                 declarationName: declaration.displayName,
               );
     }

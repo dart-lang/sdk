@@ -1675,7 +1675,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   void _genPushContextForVariable(
-    Variable variable, {
+    VariableDeclaration variable, {
     int? currentContextLevel,
   }) {
     currentContextLevel ??= locals.currentContextLevel;
@@ -1690,13 +1690,13 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _genPushContextIfCaptured(Variable variable) {
+  void _genPushContextIfCaptured(VariableDeclaration variable) {
     if (locals.isCaptured(variable)) {
       _genPushContextForVariable(variable);
     }
   }
 
-  void _genLoadVar(Variable v, {int? currentContextLevel}) {
+  void _genLoadVar(VariableDeclaration v, {int? currentContextLevel}) {
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v, currentContextLevel: currentContextLevel);
       asm.emitLoadContextVar(
@@ -1716,7 +1716,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   // Stores value into variable.
   // If variable is captured, context should be pushed before value.
-  void _genStoreVar(Variable variable) {
+  void _genStoreVar(VariableDeclaration variable) {
     if (locals.isCaptured(variable)) {
       asm.emitStoreContextVar(
         locals.getVarContextId(variable),
@@ -2420,7 +2420,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _declareLocalVariable(Variable variable, int initializedPosition) {
+  void _declareLocalVariable(
+    VariableDeclaration variable,
+    int initializedPosition,
+  ) {
     bool isCaptured = locals.isCaptured(variable);
     asm.localVariableTable.declareVariable(
       asm.offset,
@@ -4139,7 +4142,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitVariableGet(VariableGet node) {
-    final v = node.expressionVariable;
+    final v = node.variable;
     if (v.isConst) {
       _genPushConstExpr(v.initializer!);
     } else if (v.isLate) {
@@ -4203,7 +4206,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitVariableSet(VariableSet node) {
-    final v = node.expressionVariable;
+    final v = node.variable;
 
     _genPushContextIfCaptured(v);
     _generateNode(node.value);
@@ -4778,14 +4781,14 @@ class BytecodeGenerator extends RecursiveVisitor {
 
       _enterScope(catchClause);
 
-      final exceptionVar = catchClause.exceptionCatchVariable;
+      final exceptionVar = catchClause.exception;
       if (exceptionVar != null) {
         _genPushContextIfCaptured(exceptionVar);
         asm.emitPush(exception);
         _genStoreVar(exceptionVar);
       }
 
-      final stackTraceVar = catchClause.stackTraceCatchVariable;
+      final stackTraceVar = catchClause.stackTrace;
       if (stackTraceVar != null) {
         tryBlock.needsStackTrace = true;
         _genPushContextIfCaptured(stackTraceVar);
@@ -4854,7 +4857,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     finallyBlocks.remove(node);
   }
 
-  bool _skipVariableInitialization(VariableInitialization v, bool isCaptured) {
+  bool _skipVariableInitialization(
+    VariableInitializationBase v,
+    bool isCaptured,
+  ) {
     // We can skip variable initialization if the variable is supposed to be
     // initialized to null and it's captured. This is because all the slots in
     // the capture context are implicitly initialized to null.
@@ -4877,11 +4883,11 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableInitialization(VariableInitialization node) {
+  void visitVariableInitialization(VariableInitializationBase node) {
     _handleVariableInitialization(node);
   }
 
-  void _handleVariableInitialization(VariableInitialization node) {
+  void _handleVariableInitialization(VariableInitializationBase node) {
     if (!node.isConst) {
       final bool isCaptured = locals.isCaptured(node.variable);
       final initializer = node.initializer;

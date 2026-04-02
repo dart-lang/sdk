@@ -81,8 +81,6 @@ abstract class ExpressionVisitor<R> {
   R visitRecordNameGet(RecordNameGet node);
   R visitSwitchExpression(SwitchExpression node);
   R visitPatternAssignment(PatternAssignment node);
-  R visitVariableRead(VariableRead node);
-  R visitVariableWrite(VariableWrite node);
 }
 
 /// Helper mixin for [ExpressionVisitor] that implements visit methods by
@@ -244,10 +242,6 @@ mixin ExpressionVisitorDefaultMixin<R> implements ExpressionVisitor<R> {
   R visitSwitchExpression(SwitchExpression node) => defaultExpression(node);
   @override
   R visitPatternAssignment(PatternAssignment node) => defaultExpression(node);
-  @override
-  R visitVariableRead(VariableRead node) => defaultExpression(node);
-  @override
-  R visitVariableWrite(VariableWrite node) => defaultExpression(node);
 }
 
 abstract class PatternVisitor<R> {
@@ -534,6 +528,10 @@ abstract class StatementVisitor<R> {
   R visitVariableStatement(VariableStatement node);
   R visitPositionalParameter(PositionalParameter node);
   R visitNamedParameter(NamedParameter node);
+  R visitLocalVariable(LocalVariable node);
+  R visitCatchVariable(CatchVariable node);
+  R visitThisVariable(ThisVariable node);
+  R visitSyntheticVariable(SyntheticVariable node);
 }
 
 /// Helper mixin for [StatementVisitor] that implements visit methods by
@@ -605,6 +603,14 @@ mixin StatementVisitorDefaultMixin<R> implements StatementVisitor<R> {
       defaultStatement(node);
   @override
   R visitNamedParameter(NamedParameter node) => defaultStatement(node);
+  @override
+  R visitLocalVariable(LocalVariable node) => defaultStatement(node);
+  @override
+  R visitCatchVariable(CatchVariable node) => defaultStatement(node);
+  @override
+  R visitThisVariable(ThisVariable node) => defaultStatement(node);
+  @override
+  R visitSyntheticVariable(SyntheticVariable node) => defaultStatement(node);
 }
 
 abstract class MemberVisitor<R> {
@@ -759,10 +765,6 @@ abstract class TreeVisitor<R>
   R visitPatternGuard(PatternGuard node);
   R visitComponent(Component node);
   R visitTypeVariable(TypeVariable node);
-  R visitLocalVariable(LocalVariable node);
-  R visitCatchVariable(CatchVariable node);
-  R visitThisVariable(ThisVariable node);
-  R visitSyntheticVariable(SyntheticVariable node);
   R visitVariableContext(VariableContext node);
   R visitScope(Scope node);
   R visitNominalParameter(NominalParameter node);
@@ -821,14 +823,6 @@ mixin TreeVisitorDefaultMixin<R> implements TreeVisitor<R> {
   R visitComponent(Component node) => defaultTreeNode(node);
   @override
   R visitTypeVariable(TypeVariable node) => defaultTreeNode(node);
-  @override
-  R visitLocalVariable(LocalVariable node) => defaultTreeNode(node);
-  @override
-  R visitCatchVariable(CatchVariable node) => defaultTreeNode(node);
-  @override
-  R visitThisVariable(ThisVariable node) => defaultTreeNode(node);
-  @override
-  R visitSyntheticVariable(SyntheticVariable node) => defaultTreeNode(node);
   @override
   R visitVariableContext(VariableContext node) => defaultTreeNode(node);
   @override
@@ -896,10 +890,6 @@ abstract class TreeVisitor1<R, A>
   R visitPatternGuard(PatternGuard node, A arg);
   R visitComponent(Component node, A arg);
   R visitTypeVariable(TypeVariable node, A arg);
-  R visitLocalVariable(LocalVariable node, A arg);
-  R visitCatchVariable(CatchVariable node, A arg);
-  R visitThisVariable(ThisVariable node, A arg);
-  R visitSyntheticVariable(SyntheticVariable node, A arg);
   R visitVariableContext(VariableContext node, A arg);
   R visitScope(Scope node, A arg);
   R visitNominalParameter(NominalParameter node, A arg);
@@ -964,15 +954,6 @@ mixin TreeVisitor1DefaultMixin<R, A> implements TreeVisitor1<R, A> {
   R visitComponent(Component node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitTypeVariable(TypeVariable node, A arg) => defaultTreeNode(node, arg);
-  @override
-  R visitLocalVariable(LocalVariable node, A arg) => defaultTreeNode(node, arg);
-  @override
-  R visitCatchVariable(CatchVariable node, A arg) => defaultTreeNode(node, arg);
-  @override
-  R visitThisVariable(ThisVariable node, A arg) => defaultTreeNode(node, arg);
-  @override
-  R visitSyntheticVariable(SyntheticVariable node, A arg) =>
-      defaultTreeNode(node, arg);
   @override
   R visitVariableContext(VariableContext node, A arg) =>
       defaultTreeNode(node, arg);
@@ -2214,19 +2195,6 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
     return transformOrRemove(node, dummyVariableDeclaration);
   }
 
-  /// Visits [node], returning the transformation result. Removal of [node] is
-  /// supported with `null` as the result.
-  ///
-  /// This is convenience method for calling [transformOrRemove] with removal
-  /// sentinel for [VariableDeclaration] nodes.
-  CatchVariable? transformOrRemoveCatchVariable(CatchVariable node) {
-    if (node is VariableDeclaration) {
-      return transformOrRemoveVariableDeclaration(node);
-    } else {
-      return transformOrRemove(node, dummyCatchVariable);
-    }
-  }
-
   /// Visits [node] using [removalSentinel] as the removal sentinel.
   ///
   /// If [removalSentinel] is the result of visiting [node], `null` is returned.
@@ -2457,13 +2425,13 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
     transformList(nodes, parent, dummyVariableDeclaration);
   }
 
-  /// Transforms or removes [VariableInitialization] nodes in [nodes] as
+  /// Transforms or removes [VariableInitializationBase] nodes in [nodes] as
   /// children of [parent].
   ///
   /// This is convenience method for calling [transformList] with removal
-  /// sentinel for [VariableInitialization] nodes.
+  /// sentinel for [VariableInitializationBase] nodes.
   void transformVariableInitializationList(
-    List<VariableInitialization> nodes,
+    List<VariableInitializationBase> nodes,
     TreeNode parent,
   ) {
     transformList(nodes, parent, dummyVariableDeclaration);
@@ -2583,8 +2551,6 @@ abstract class ExpressionVisitor1<R, A> {
   R visitRecordLiteral(RecordLiteral node, A arg);
   R visitSwitchExpression(SwitchExpression node, A arg);
   R visitPatternAssignment(PatternAssignment node, A arg);
-  R visitVariableRead(VariableRead node, A arg);
-  R visitVariableWrite(VariableWrite node, A arg);
 }
 
 /// Helper mixin for [ExpressionVisitor1] that implements visit methods by
@@ -2784,11 +2750,6 @@ mixin ExpressionVisitor1DefaultMixin<R, A> implements ExpressionVisitor1<R, A> {
   @override
   R visitPatternAssignment(PatternAssignment node, A arg) =>
       defaultExpression(node, arg);
-  @override
-  R visitVariableRead(VariableRead node, A arg) => defaultExpression(node, arg);
-  @override
-  R visitVariableWrite(VariableWrite node, A arg) =>
-      defaultExpression(node, arg);
 }
 
 abstract class PatternVisitor1<R, A> {
@@ -2889,6 +2850,10 @@ abstract class StatementVisitor1<R, A> {
   R visitVariableStatement(VariableStatement node, A arg);
   R visitPositionalParameter(PositionalParameter node, A arg);
   R visitNamedParameter(NamedParameter node, A arg);
+  R visitLocalVariable(LocalVariable node, A arg);
+  R visitCatchVariable(CatchVariable node, A arg);
+  R visitThisVariable(ThisVariable node, A arg);
+  R visitSyntheticVariable(SyntheticVariable node, A arg);
 }
 
 /// Helper mixin for [StatementVisitor1] that implements visit methods by
@@ -2971,6 +2936,17 @@ mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
       defaultStatement(node, arg);
   @override
   R visitNamedParameter(NamedParameter node, A arg) =>
+      defaultStatement(node, arg);
+  @override
+  R visitLocalVariable(LocalVariable node, A arg) =>
+      defaultStatement(node, arg);
+  @override
+  R visitCatchVariable(CatchVariable node, A arg) =>
+      defaultStatement(node, arg);
+  @override
+  R visitThisVariable(ThisVariable node, A arg) => defaultStatement(node, arg);
+  @override
+  R visitSyntheticVariable(SyntheticVariable node, A arg) =>
       defaultStatement(node, arg);
 }
 
@@ -3132,17 +3108,7 @@ mixin ExpressionVisitor1InternalNodeMixin<R, A>
 /// nodes. The methods throw an exception signaling that the experimental nodes
 /// aren't supported.
 mixin ExpressionVisitorExperimentExclusionMixin<R>
-    implements ExpressionVisitor<R> {
-  @override
-  R visitVariableRead(VariableRead node) {
-    throw StateError("${runtimeType}.visitVariableRead isn't supported.");
-  }
-
-  @override
-  R visitVariableWrite(VariableWrite node) {
-    throw StateError("${runtimeType}.visitVariableWrite isn't supported.");
-  }
-}
+    implements ExpressionVisitor<R> {}
 
 /// [ExpressionVisitor1ExperimentExclusionMixin] is intended to reduce the
 /// effects of CFE experiments on the backends.
@@ -3151,17 +3117,7 @@ mixin ExpressionVisitorExperimentExclusionMixin<R>
 /// nodes. The methods throw an exception signaling that the experimental nodes
 /// aren't supported.
 mixin ExpressionVisitor1ExperimentExclusionMixin<R, A>
-    implements ExpressionVisitor1<R, A> {
-  @override
-  R visitVariableRead(VariableRead node, A arg) {
-    throw StateError("${runtimeType}.visitVariableRead isn't supported.");
-  }
-
-  @override
-  R visitVariableWrite(VariableWrite node, A arg) {
-    throw StateError("${runtimeType}.visitVariableWrite isn't supported.");
-  }
-}
+    implements ExpressionVisitor1<R, A> {}
 
 /// [StatementVisitorInternalNodeMixin] is intended to reduce the effects of
 /// CFE internal nodes on the backends.
@@ -3262,6 +3218,26 @@ mixin StatementVisitorExperimentExclusionMixin<R>
   R visitNamedParameter(NamedParameter node) {
     throw StateError("${runtimeType}.visitNamedParameter isn't supported.");
   }
+
+  @override
+  R visitLocalVariable(LocalVariable node) {
+    throw StateError("${runtimeType}.visitLocalVariable isn't supported.");
+  }
+
+  @override
+  R visitCatchVariable(CatchVariable node) {
+    throw StateError("${runtimeType}.visitCatchVariable isn't supported.");
+  }
+
+  @override
+  R visitThisVariable(ThisVariable node) {
+    throw StateError("${runtimeType}.visitThisVariable isn't supported.");
+  }
+
+  @override
+  R visitSyntheticVariable(SyntheticVariable node) {
+    throw StateError("${runtimeType}.visitSyntheticVariable isn't supported.");
+  }
 }
 
 /// [StatementVisitor1ExperimentExclusionMixin] is intended to reduce the
@@ -3305,6 +3281,26 @@ mixin StatementVisitor1ExperimentExclusionMixin<R, A>
   @override
   R visitNamedParameter(NamedParameter node, A arg) {
     throw StateError("${runtimeType}.visitNamedParameter isn't supported.");
+  }
+
+  @override
+  R visitLocalVariable(LocalVariable node, A arg) {
+    throw StateError("${runtimeType}.visitLocalVariable isn't supported.");
+  }
+
+  @override
+  R visitCatchVariable(CatchVariable node, A arg) {
+    throw StateError("${runtimeType}.visitCatchVariable isn't supported.");
+  }
+
+  @override
+  R visitThisVariable(ThisVariable node, A arg) {
+    throw StateError("${runtimeType}.visitThisVariable isn't supported.");
+  }
+
+  @override
+  R visitSyntheticVariable(SyntheticVariable node, A arg) {
+    throw StateError("${runtimeType}.visitSyntheticVariable isn't supported.");
   }
 }
 
@@ -3373,26 +3369,6 @@ mixin TreeVisitorExperimentExclusionMixin<R> implements TreeVisitor<R> {
   }
 
   @override
-  R visitLocalVariable(LocalVariable node) {
-    throw StateError("${runtimeType}.visitLocalVariable isn't supported.");
-  }
-
-  @override
-  R visitCatchVariable(CatchVariable node) {
-    throw StateError("${runtimeType}.visitCatchVariable isn't supported.");
-  }
-
-  @override
-  R visitThisVariable(ThisVariable node) {
-    throw StateError("${runtimeType}.visitThisVariable isn't supported.");
-  }
-
-  @override
-  R visitSyntheticVariable(SyntheticVariable node) {
-    throw StateError("${runtimeType}.visitSyntheticVariable isn't supported.");
-  }
-
-  @override
   R visitVariableContext(VariableContext node) {
     throw StateError("${runtimeType}.visitVariableContext isn't supported.");
   }
@@ -3428,26 +3404,6 @@ mixin TreeVisitor1ExperimentExclusionMixin<R, A> implements TreeVisitor1<R, A> {
   @override
   R visitTypeVariable(TypeVariable node, A arg) {
     throw StateError("${runtimeType}.visitTypeVariable isn't supported.");
-  }
-
-  @override
-  R visitLocalVariable(LocalVariable node, A arg) {
-    throw StateError("${runtimeType}.visitLocalVariable isn't supported.");
-  }
-
-  @override
-  R visitCatchVariable(CatchVariable node, A arg) {
-    throw StateError("${runtimeType}.visitCatchVariable isn't supported.");
-  }
-
-  @override
-  R visitThisVariable(ThisVariable node, A arg) {
-    throw StateError("${runtimeType}.visitThisVariable isn't supported.");
-  }
-
-  @override
-  R visitSyntheticVariable(SyntheticVariable node, A arg) {
-    throw StateError("${runtimeType}.visitSyntheticVariable isn't supported.");
   }
 
   @override

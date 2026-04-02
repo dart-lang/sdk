@@ -181,11 +181,7 @@ extension type const Modifiers(int _mask) implements Object {
     Token? varFinalOrConst,
   }) {
     assert(abstractToken == null || abstractToken.type == Keyword.ABSTRACT);
-    assert(
-      augmentToken == null ||
-          // Coverage-ignore(suite): Not run.
-          augmentToken.type == Keyword.AUGMENT,
-    );
+    assert(augmentToken == null || augmentToken.type == Keyword.AUGMENT);
     assert(baseToken == null || baseToken.type == Keyword.BASE);
     assert(covariantToken == null || covariantToken.type == Keyword.COVARIANT);
     assert(constToken == null || constToken.type == Keyword.CONST);

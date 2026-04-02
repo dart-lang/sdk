@@ -143,8 +143,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
   Set<StructuralParameter> structuralParametersInScope =
       new Set<StructuralParameter>();
-  Set<Variable> variableDeclarationsInScope = new Set<Variable>();
-  final List<Variable> variableStack = <Variable>[];
+  Set<VariableDeclaration> variableDeclarationsInScope =
+      new Set<VariableDeclaration>();
+  final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
   final Set<Constant> seenConstants = <Constant>{};
 
@@ -269,7 +270,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   // TODO(cstefantsova): Remove this method when the new variable model is
   //  supported.
   bool _isNewModelVariable(TreeNode node) {
-    return node is Variable && node is! VariableDeclaration ||
+    return node is VariableDeclaration && node is! LegacyVariableDeclaration ||
         node is FunctionParameter;
   }
 
@@ -321,7 +322,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitTreeNode(node);
   }
 
-  void declareVariable(Variable variable) {
+  void declareVariable(VariableDeclaration variable) {
     if (variableDeclarationsInScope.contains(variable)) {
       problem(variable, "Variable '$variable' declared more than once.");
     }
@@ -329,7 +330,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     variableStack.add(variable);
   }
 
-  void undeclareVariable(Variable variable) {
+  void undeclareVariable(VariableDeclaration variable) {
     variableDeclarationsInScope.remove(variable);
   }
 
@@ -389,7 +390,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     structuralParametersInScope.removeAll(parameters);
   }
 
-  void checkVariableInScope(Variable variable, TreeNode where) {
+  void checkVariableInScope(VariableDeclaration variable, TreeNode where) {
     if (!variableDeclarationsInScope.contains(variable)) {
       problem(where, "Variable '$variable' used out of scope.");
     }
@@ -1141,11 +1142,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitVariableInitialization(VariableInitialization node) {
+  void visitVariableInitialization(VariableInitializationBase node) {
     return _verifyVariableInitialization(node);
   }
 
-  void _verifyVariableInitialization(VariableInitialization node) {
+  void _verifyVariableInitialization(VariableInitializationBase node) {
     enterTreeNode(node);
     TreeNode? parent = node.parent;
     if (parent is! Block &&
@@ -1187,20 +1188,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitVariableGet(VariableGet node) {
     // TODO(cstefantsova): Support new variable model.
-    if (_isNewModelVariable(node.expressionVariable)) {
+    if (_isNewModelVariable(node.variable)) {
       return;
     }
     enterTreeNode(node);
-    checkVariableInScope(node.expressionVariable, node);
+    checkVariableInScope(node.variable, node);
     visitChildren(node);
     if (constantsAreAlwaysInlined &&
         afterConst &&
-        node.expressionVariable.isConst &&
+        node.variable.isConst &&
         !inUnevaluatedConstant) {
-      problem(
-        node,
-        "VariableGet of const variable '${node.expressionVariable}'.",
-      );
+      problem(node, "VariableGet of const variable '${node.variable}'.");
     }
     exitTreeNode(node);
   }
@@ -1208,11 +1206,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitVariableSet(VariableSet node) {
     // TODO(cstefantsova): Support new variable model.
-    if (_isNewModelVariable(node.expressionVariable)) {
+    if (_isNewModelVariable(node.variable)) {
       return;
     }
     enterTreeNode(node);
-    checkVariableInScope(node.expressionVariable, node);
+    checkVariableInScope(node.variable, node);
     visitChildren(node);
     exitTreeNode(node);
   }

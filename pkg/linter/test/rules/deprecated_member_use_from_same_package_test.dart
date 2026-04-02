@@ -734,6 +734,19 @@ class B extends A {
 ''');
   }
 
+  test_deprecatedMethod_usedInPrimaryConstructorBody() async {
+    await assertDiagnosticsFromMarkdown(r'''
+@deprecated
+void deprecatedMethod() {}
+
+class B(var int x) {
+  this {
+    [!deprecatedMethod!]();
+  }
+}
+''');
+  }
+
   test_deprecatedMethod_withMessage() async {
     await assertDiagnostics(
       r'''
@@ -887,6 +900,19 @@ void g() => f(1);
 ''',
       [lint(47, 1)],
     );
+  }
+
+  test_deprecatedPrimaryConstructor_bodyPart() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A(var int x) {
+  @deprecated
+  this;
+}
+
+void f() {
+  var a = [!A!](1);
+}
+''');
   }
 
   test_deprecatedSetter() async {

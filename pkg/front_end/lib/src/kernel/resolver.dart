@@ -418,7 +418,9 @@ class Resolver {
         forPrimaryConstructor: false,
       );
       context.performBacklog(result.annotations);
-    } on DebugAbort {
+    }
+    // Coverage-ignore(suite): Not run.
+    on DebugAbort {
       rethrow;
     } catch (e, s) {
       throw new Crash(fileUri, token.charOffset, e, s);
@@ -840,7 +842,7 @@ class Resolver {
     required LookupScope scope,
     required Token token,
     required Procedure procedure,
-    required List<Variable> extraKnownVariables,
+    required List<VariableDeclaration> extraKnownVariables,
     required ExpressionEvaluationHelper expressionEvaluationHelper,
     required VariableDeclaration? extensionThis,
   }) {
@@ -937,7 +939,7 @@ class Resolver {
         );
       }
     }
-    for (Variable extraVariable in extraKnownVariables) {
+    for (VariableDeclaration extraVariable in extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
         extraVariable,
         new SharedTypeView(extraVariable.type),

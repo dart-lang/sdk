@@ -314,6 +314,5 @@ List<DartType> getAsTypeArguments(
 
 bool isThisExpression(Expression expression) {
   return expression is ThisExpression ||
-      expression is VariableGet &&
-          expression.expressionVariable is ThisVariable;
+      expression is VariableGet && expression.variable is ThisVariable;
 }
