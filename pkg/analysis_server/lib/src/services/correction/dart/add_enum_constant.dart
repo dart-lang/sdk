@@ -92,8 +92,10 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
       } else if (rightBracket != null) {
         // If has a block body.
         builder.addInsertion(rightBracket.offset, (builder) {
+          builder.write(' ');
           builder.write(_constantName);
           if (constructorName != null) builder.write('.$constructorName()');
+          builder.write(' ');
         });
       } else if (semicolon != null) {
         builder.addReplacement(range.token(semicolon), (builder) {
