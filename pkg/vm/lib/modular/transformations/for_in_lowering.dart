@@ -279,7 +279,7 @@ class ForInLowering {
     return Block([syncForIteratorVariableInitialization, forStatement]);
   }
 
-  (Variable, VariableInitialization)
+  (VariableDeclaration, VariableInitializationBase)
   _createSyncForIteratorVariableAndInitialization({
     required Expression initializer,
     required DartType type,
@@ -290,7 +290,7 @@ class ForInLowering {
         cosmeticName: ForInVariables.syncForIterator,
         type: type,
       );
-      final initialization = VariableInitialization(
+      final initialization = VariableInitializationBase(
         variable: variable,
         initializer: initializer,
       );
@@ -306,18 +306,16 @@ class ForInLowering {
     }
   }
 
-  VariableInitialization _ensureSyncForLoopVariableInitialization({
-    required Variable variable,
+  VariableInitializationBase _ensureSyncForLoopVariableInitialization({
+    required VariableDeclaration variable,
     required Expression initializer,
   }) {
     if (isClosureContextLoweringEnabled) {
-      return VariableInitialization(
+      return VariableInitializationBase(
         variable: variable,
         initializer: initializer,
       );
     } else {
-      assert(variable is VariableDeclaration);
-      variable as VariableDeclaration;
       initializer.parent = variable;
       return variable..initializer = initializer;
     }

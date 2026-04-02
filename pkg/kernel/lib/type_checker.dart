@@ -1265,7 +1265,7 @@ class TypeCheckingVisitor
   }
 
   @override
-  void visitVariableInitialization(VariableInitialization node) {
+  void visitVariableInitialization(VariableInitializationBase node) {
     if (node.initializer != null) {
       node.initializer = checkExpressionAndAssignability(
         node.initializer!,
@@ -1556,22 +1556,6 @@ class TypeCheckingVisitor
   @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     // TODO(johnniwinther): Implement this.
-  }
-
-  @override
-  DartType visitVariableRead(VariableRead node) {
-    // TODO(cstefantsova): Implement visitVariableRead.
-    throw new UnimplementedError(
-      "Unimplemented support for $node (${node.runtimeType}).",
-    );
-  }
-
-  @override
-  DartType visitVariableWrite(VariableWrite node) {
-    // TODO(cstefantsova): Implement visitVariableWrite.
-    throw new UnimplementedError(
-      "Unimplemented support for $node (${node.runtimeType}).",
-    );
   }
 
   @override

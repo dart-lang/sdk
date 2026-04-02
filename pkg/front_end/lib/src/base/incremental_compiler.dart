@@ -35,7 +35,6 @@ import 'package:kernel/kernel.dart'
         DartType,
         DynamicType,
         Expression,
-        Variable,
         ExtensionType,
         Field,
         FunctionNode,
@@ -1212,7 +1211,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           experimentalFeatures: experimentalFeatures,
         );
         if (before == null) {
-          // Coverage-ignore-block(suite): Not run.
           recorderForTesting?.recordAdvancedInvalidationResult(
             AdvancedInvalidationResult.noPreviousOutline,
           );
@@ -2559,10 +2557,10 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
     CompilerContext compilerContext,
     Uri fileUri,
   ) {
-    if (knownButUnavailable.contains(node.expressionVariable)) {
+    if (knownButUnavailable.contains(node.variable)) {
       return _returnKnownVariableUnavailable(
         node,
-        node.expressionVariable,
+        node.variable,
         problemReporting,
         compilerContext,
         fileUri,
@@ -2579,10 +2577,10 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
     CompilerContext compilerContext,
     Uri fileUri,
   ) {
-    if (knownButUnavailable.contains(node.expressionVariable)) {
+    if (knownButUnavailable.contains(node.variable)) {
       return _returnKnownVariableUnavailable(
         node,
-        node.expressionVariable,
+        node.variable,
         problemReporting,
         compilerContext,
         fileUri,
@@ -2593,7 +2591,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
 
   ExpressionInferenceResult _returnKnownVariableUnavailable(
     Expression node,
-    Variable variable,
+    VariableDeclaration variable,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,
     Uri fileUri,

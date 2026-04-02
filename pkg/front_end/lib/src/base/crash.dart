@@ -70,9 +70,11 @@ Future<T> reportCrash<T>(
   }
 
   if (hasCrashed) {
+    // Coverage-ignore-block(suite): Not run.
     return new Future<T>.error(error, trace);
   }
   if (error is Crash) {
+    // Coverage-ignore-block(suite): Not run.
     trace = error.trace ?? trace;
     uri = error.uri ?? uri;
     charOffset = error.charOffset ?? charOffset;
@@ -145,7 +147,9 @@ Future<T> withCrashReporting<T>(
   } on DebugAbort {
     rethrow;
   } catch (e, s) {
-    if (e is Crash && e._hasBeenReported) {
+    if (e is Crash &&
+        // Coverage-ignore(suite): Not run.
+        e._hasBeenReported) {
       rethrow;
     }
     UriOffset? uriOffset = currentUriOffset();

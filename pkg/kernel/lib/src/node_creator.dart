@@ -40,6 +40,7 @@ class NodeCreator {
   final Map<InitializerKind, int> _pendingInitializers;
   final Map<MemberKind, int> _pendingMembers;
   final Map<NodeKind, int> _pendingNodes;
+  final Map<VariableDeclarationKind, int> _pendingVariableDeclarations;
 
   /// The set of all kinds of nodes created by this node creator.
   final Set<Object> _createdKinds = {};
@@ -78,11 +79,10 @@ class NodeCreator {
     Iterable<PatternKind> patterns = PatternKind.values,
     Iterable<InitializerKind> initializers = InitializerKind.values,
     Iterable<MemberKind> members = MemberKind.values,
+    Iterable<VariableDeclarationKind> variableDeclarations =
+        VariableDeclarationKind.values,
     Iterable<NodeKind> nodes = NodeKind.values,
-  }) : _pendingExpressions = _createPending<ExpressionKind>(expressions, {
-         ExpressionKind.VariableRead,
-         ExpressionKind.VariableWrite,
-       }),
+  }) : _pendingExpressions = _createPending<ExpressionKind>(expressions, {}),
        _pendingStatements = _createPending<StatementKind>(statements, {
          StatementKind.VariableInitialization,
        }),
@@ -94,12 +94,16 @@ class NodeCreator {
        _pendingPatterns = _createPending<PatternKind>(patterns),
        _pendingInitializers = _createPending<InitializerKind>(initializers),
        _pendingMembers = _createPending<MemberKind>(members),
+       _pendingVariableDeclarations =
+           _createPending<VariableDeclarationKind>(variableDeclarations, {
+             VariableDeclarationKind.CatchVariable,
+             VariableDeclarationKind.LocalVariable,
+             VariableDeclarationKind.PositionalParameter,
+             VariableDeclarationKind.NamedParameter,
+             VariableDeclarationKind.SyntheticVariable,
+             VariableDeclarationKind.ThisVariable,
+           }),
        _pendingNodes = _createPending<NodeKind>(nodes, {
-         NodeKind.LocalVariable,
-         NodeKind.PositionalParameter,
-         NodeKind.NamedParameter,
-         NodeKind.SyntheticVariable,
-         NodeKind.ThisVariable,
          NodeKind.TypeVariable,
          NodeKind.VariableContext,
          NodeKind.Scope,
@@ -110,6 +114,7 @@ class NodeCreator {
     _createdKinds.addAll(_pendingDartTypes.keys);
     _createdKinds.addAll(_pendingInitializers.keys);
     _createdKinds.addAll(_pendingMembers.keys);
+    _createdKinds.addAll(_pendingVariableDeclarations.keys);
     _createdKinds.addAll(_pendingNodes.keys);
   }
 
@@ -383,12 +388,6 @@ class NodeCreator {
         case NodeKind.PatternGuard:
         case NodeKind.PatternSwitchCase:
         case NodeKind.SwitchExpressionCase:
-        case NodeKind.LocalVariable:
-        case NodeKind.CatchVariable:
-        case NodeKind.PositionalParameter:
-        case NodeKind.NamedParameter:
-        case NodeKind.SyntheticVariable:
-        case NodeKind.ThisVariable:
         case NodeKind.TypeVariable:
         case NodeKind.Scope:
         case NodeKind.VariableContext:
@@ -1276,9 +1275,6 @@ class NodeCreator {
           _createExpressionFromKind(ExpressionKind.ConstructorInvocation)
               as InvocationExpression,
         );
-      case ExpressionKind.VariableRead:
-      case ExpressionKind.VariableWrite:
-        throw new UnimplementedError("Unimplemented support for ${kind}.");
     }
   }
 
@@ -2138,12 +2134,6 @@ class NodeCreator {
           _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
           _createExpression(),
         )..fileOffset = _needFileOffset();
-      case NodeKind.LocalVariable:
-      case NodeKind.CatchVariable:
-      case NodeKind.PositionalParameter:
-      case NodeKind.NamedParameter:
-      case NodeKind.SyntheticVariable:
-      case NodeKind.ThisVariable:
       case NodeKind.TypeVariable:
       case NodeKind.Scope:
       case NodeKind.VariableContext:

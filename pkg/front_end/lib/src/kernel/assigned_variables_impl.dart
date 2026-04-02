@@ -6,10 +6,11 @@ import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:kernel/ast.dart';
 
-class AssignedVariablesImpl implements AssignedVariables<TreeNode, Variable> {
-  final AssignedVariables<TreeNode, Variable> _delegate;
-  final AssignedVariables<TreeNode, Variable>? _insideAsserts;
-  final AssignedVariables<TreeNode, Variable>? _outsideAsserts;
+class AssignedVariablesImpl
+    implements AssignedVariables<TreeNode, VariableDeclaration> {
+  final AssignedVariables<TreeNode, VariableDeclaration> _delegate;
+  final AssignedVariables<TreeNode, VariableDeclaration>? _insideAsserts;
+  final AssignedVariables<TreeNode, VariableDeclaration>? _outsideAsserts;
   int _assertDepth = 0;
   final Map<AssignedVariablesNodeInfo, AssignedVariablesNodeInfo>?
   _deferredInsideAssertsByDeferredDelegate;
@@ -20,10 +21,10 @@ class AssignedVariablesImpl implements AssignedVariables<TreeNode, Variable> {
     this._delegate, {
     required bool isClosureContextLoweringEnabled,
   }) : _insideAsserts = isClosureContextLoweringEnabled
-           ? new AssignedVariables<TreeNode, Variable>()
+           ? new AssignedVariables<TreeNode, VariableDeclaration>()
            : null,
        _outsideAsserts = isClosureContextLoweringEnabled
-           ? new AssignedVariables<TreeNode, Variable>()
+           ? new AssignedVariables<TreeNode, VariableDeclaration>()
            : null,
        _deferredInsideAssertsByDeferredDelegate =
            isClosureContextLoweringEnabled
@@ -71,7 +72,7 @@ class AssignedVariablesImpl implements AssignedVariables<TreeNode, Variable> {
   }
 
   @override
-  void declare(Variable variable, {bool ignoreDuplicates = false}) {
+  void declare(VariableDeclaration variable, {bool ignoreDuplicates = false}) {
     _delegate.declare(variable, ignoreDuplicates: ignoreDuplicates);
     _insideAsserts?.declare(variable, ignoreDuplicates: ignoreDuplicates);
     _outsideAsserts?.declare(variable, ignoreDuplicates: ignoreDuplicates);
@@ -152,7 +153,7 @@ class AssignedVariablesImpl implements AssignedVariables<TreeNode, Variable> {
   }
 
   @override
-  PromotionKeyStore<Variable> get promotionKeyStore {
+  PromotionKeyStore<VariableDeclaration> get promotionKeyStore {
     return _delegate.promotionKeyStore;
   }
 
@@ -164,7 +165,7 @@ class AssignedVariablesImpl implements AssignedVariables<TreeNode, Variable> {
   }
 
   @override
-  void read(Variable variable) {
+  void read(VariableDeclaration variable) {
     _delegate.read(variable);
     if (_isInsideAssert) {
       _insideAsserts?.read(variable);
@@ -202,7 +203,7 @@ class AssignedVariablesImpl implements AssignedVariables<TreeNode, Variable> {
   }
 
   @override
-  void write(Variable variable) {
+  void write(VariableDeclaration variable) {
     _delegate.write(variable);
     if (_isInsideAssert) {
       // Coverage-ignore-block(suite): Not run.
