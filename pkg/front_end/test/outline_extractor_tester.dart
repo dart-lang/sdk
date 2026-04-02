@@ -83,7 +83,7 @@ Future<Component> processUri(
   Component? fullComponent,
   final Uri packageUri,
 ) async {
-  TargetFlags targetFlags = new TargetFlags(trackWidgetCreation: false);
+  TargetFlags targetFlags = new TargetFlags(trackCreationLocations: false);
   Target? target = new Dart2jsTarget("dart2js", targetFlags);
   Uri sdkSummary = Uri.base.resolve("out/ReleaseX64/dart2js_outline.dill");
   Stopwatch stopwatch = new Stopwatch()..start();

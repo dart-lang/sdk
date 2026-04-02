@@ -190,14 +190,14 @@ Future<void> main(List<String> arguments) async {
 
 CompilerContext setupCompilerContext(
   String targetString,
-  bool widgetTransformation,
+  bool trackCreationLocations,
   Uri platformUri,
   Uri mainUri,
 ) {
   CompilerOptions options = getOptions();
 
   TargetFlags targetFlags = new TargetFlags(
-    trackWidgetCreation: widgetTransformation,
+    trackCreationLocations: trackCreationLocations,
   );
   Target target;
   switch (targetString) {

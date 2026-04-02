@@ -243,12 +243,12 @@ void declareCompilerOptions(ArgParser args) {
     help: 'Print this help message.',
   );
   args.addFlag(
-    'track-widget-creation',
+    'track-creation-locations',
     help: 'Run a kernel transformer to track creation locations for widgets.',
     defaultsTo: false,
     aliases: [
-      // TODO(schultek): Make this the canonical flag.
-      'track-creation-locations',
+      // TODO(schultek): Remove this once flutter is migrated to new flag.
+      'track-widget-creation',
     ],
   );
   args.addMultiOption(
@@ -439,7 +439,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   compilerOptions.target = createFrontEndTarget(
     targetName,
-    trackWidgetCreation: options['track-widget-creation'],
+    trackCreationLocations: options['track-creation-locations'],
     supportMirrors: supportMirrors ?? !(aot || minimalKernel),
     constKeepLocalsIndicator: !(aot || minimalKernel),
   );
@@ -988,7 +988,7 @@ bool parseCommandLineDefines(
 /// Create front-end target with given name.
 Target? createFrontEndTarget(
   String targetName, {
-  bool trackWidgetCreation = false,
+  bool trackCreationLocations = false,
   bool supportMirrors = true,
   bool includeUnsupportedPlatformLibraryStubs = false,
   bool? constKeepLocalsIndicator,
@@ -998,7 +998,7 @@ Target? createFrontEndTarget(
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
-    trackWidgetCreation: trackWidgetCreation,
+    trackCreationLocations: trackCreationLocations,
     supportMirrors: supportMirrors,
     includeUnsupportedPlatformLibraryStubs:
         includeUnsupportedPlatformLibraryStubs,

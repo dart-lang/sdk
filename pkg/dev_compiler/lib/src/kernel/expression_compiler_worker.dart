@@ -201,7 +201,7 @@ class ExpressionCompilerWorker {
       environmentDefines: environmentDefines,
       explicitExperimentalFlags: explicitExperimentalFlags,
       sdkRoot: _argToUri(parsedArgs.option('sdk-root')),
-      trackWidgetCreation: parsedArgs.flag('track-widget-creation'),
+      trackCreationLocations: parsedArgs.flag('track-creation-locations'),
       moduleFormat: moduleFormat,
       canaryFeatures: parsedArgs.flag('canary'),
       enableAsserts: parsedArgs.flag('enable-asserts'),
@@ -227,7 +227,7 @@ class ExpressionCompilerWorker {
     Map<String, String>? environmentDefines,
     Map<ExperimentalFlag, bool> explicitExperimentalFlags = const {},
     Uri? sdkRoot,
-    bool trackWidgetCreation = false,
+    bool trackCreationLocations = false,
     ModuleFormat moduleFormat = ModuleFormat.amd,
     bool canaryFeatures = false,
     bool enableAsserts = true,
@@ -244,7 +244,7 @@ class ExpressionCompilerWorker {
       ..packagesFileUri = packagesFile
       ..librariesSpecificationUri = librariesSpecificationUri
       ..target = DevCompilerTarget(
-        TargetFlags(trackWidgetCreation: trackWidgetCreation),
+        TargetFlags(trackCreationLocations: trackCreationLocations),
       )
       ..fileSystem = fileSystem
       ..omitPlatform = true
@@ -890,11 +890,11 @@ final argParser = ArgParser()
   ..addOption('asset-server-port')
   ..addOption('module-format', defaultsTo: 'amd')
   ..addFlag(
-    'track-widget-creation',
+    'track-creation-locations',
     defaultsTo: false,
     aliases: [
-      // TODO(schultek): Make this the canonical flag.
-      'track-creation-locations',
+      // TODO(schultek): Remove this once flutter is migrated to new flag.
+      'track-widget-creation',
     ],
   )
   ..addFlag('sound-null-safety', negatable: true, defaultsTo: true)

@@ -4,7 +4,7 @@
 
 type: newworld
 target: dartdevc
-trackWidgetCreation: true
+trackCreationLocations: true
 worlds:
   - entry: main.dart
     outlineOnly: true

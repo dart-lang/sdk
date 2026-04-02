@@ -12,7 +12,7 @@ import '../verifier.dart';
 import 'changed_structure_notifier.dart';
 
 class TargetFlags {
-  final bool trackWidgetCreation;
+  final bool trackCreationLocations;
   final bool supportMirrors;
 
   /// Whether the backend expects closure contexts to be present in the AST.
@@ -32,7 +32,7 @@ class TargetFlags {
   final bool includeUnsupportedPlatformLibraryStubs;
 
   const TargetFlags({
-    this.trackWidgetCreation = false,
+    this.trackCreationLocations = false,
     this.supportMirrors = true,
     this.isClosureContextLoweringEnabled = false,
     this.constKeepLocalsIndicator,
@@ -43,7 +43,7 @@ class TargetFlags {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is TargetFlags &&
-        trackWidgetCreation == other.trackWidgetCreation &&
+        trackCreationLocations == other.trackCreationLocations &&
         supportMirrors == other.supportMirrors &&
         includeUnsupportedPlatformLibraryStubs ==
             other.includeUnsupportedPlatformLibraryStubs &&
@@ -53,7 +53,7 @@ class TargetFlags {
   @override
   int get hashCode {
     int hash = 485786;
-    hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ trackCreationLocations.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
     hash =
         0x3fffffff &
@@ -803,7 +803,7 @@ class TestTargetFlags extends TargetFlags {
   final Set<String> unsupportedDartLibraries;
 
   const TestTargetFlags({
-    bool trackWidgetCreation = false,
+    bool trackCreationLocations = false,
     this.forceLateLoweringsForTesting,
     this.forceLateLoweringSentinelForTesting,
     this.forceStaticFieldLoweringForTesting,
@@ -813,7 +813,7 @@ class TestTargetFlags extends TargetFlags {
     this.unsupportedDartLibraries = const {},
     bool isClosureContextLoweringEnabled = false,
   }) : super(
-         trackWidgetCreation: trackWidgetCreation,
+         trackCreationLocations: trackCreationLocations,
          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
        );
 }

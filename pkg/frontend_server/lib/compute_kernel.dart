@@ -93,11 +93,11 @@ final ArgParser summaryArgsParser = new ArgParser()
   ..addFlag('use-incremental-compiler', defaultsTo: false)
   ..addOption('used-inputs')
   ..addFlag(
-    'track-widget-creation', 
+    'track-creation-locations',
     defaultsTo: false,
     aliases: [
-      // TODO(schultek): Make this the canonical flag.
-      'track-creation-locations',
+      // TODO(schultek): Remove this once flutter is migrated to new flag.
+      'track-widget-creation',
     ],
   )
   ..addFlag('include-unsupported-platform-library-stubs', defaultsTo: false)
@@ -184,7 +184,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   if (summaryOnly && !summary) {
     throw new ArgumentError('--summary-only conflicts with --no-summary');
   }
-  bool trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
+  bool trackCreationLocations = parsedArgs['track-creation-locations'] as bool;
   bool includeUnsupportedPlatformLibraryStubs =
       parsedArgs['include-unsupported-platform-library-stubs'] as bool;
 
@@ -193,7 +193,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   String targetName =
       (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
   TargetFlags targetFlags = new TargetFlags(
-      trackWidgetCreation: trackWidgetCreation,
+      trackCreationLocations: trackCreationLocations,
       includeUnsupportedPlatformLibraryStubs:
           includeUnsupportedPlatformLibraryStubs);
   Target target;
@@ -346,7 +346,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         previousState,
         {
           "target=$targetName",
-          "trackWidgetCreation=$trackWidgetCreation",
+          "trackCreationLocations=$trackCreationLocations",
           "multiRootScheme=${mrfs.markerScheme}",
           "multiRootRoots=${mrfs.roots}",
         },

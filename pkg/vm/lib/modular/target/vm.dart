@@ -157,7 +157,7 @@ class VmTarget extends Target {
     );
     _patchVmConstants(coreTypes);
 
-    if (flags.trackWidgetCreation) {
+    if (flags.trackCreationLocations) {
       _widgetTracker.transform(
         libraries,
         component.libraries,

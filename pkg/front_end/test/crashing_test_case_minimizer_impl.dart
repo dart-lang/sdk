@@ -68,7 +68,7 @@ class TestMinimizerSettings {
   bool invalidateAllAtOnce = false;
   bool experimentalInvalidation = false;
   bool serialize = false;
-  bool widgetTransformation = false;
+  bool trackCreationLocations = false;
   final List<Uri> invalidate = [];
   String targetString = "vm";
   bool noTryToDeleteEmptyFilesUpFront = false;
@@ -103,7 +103,7 @@ class TestMinimizerSettings {
       'initialOnlyOutline': initialOnlyOutline,
       'experimentalInvalidation': experimentalInvalidation,
       'serialize': serialize,
-      'widgetTransformation': widgetTransformation,
+      'trackCreationLocations': trackCreationLocations,
       'invalidate': invalidate.map((uri) => uri.toString()).toList(),
       'targetString': targetString,
       'noTryToDeleteEmptyFilesUpFront': noTryToDeleteEmptyFilesUpFront,
@@ -134,7 +134,7 @@ class TestMinimizerSettings {
     initialOnlyOutline = json["initialOnlyOutline"];
     experimentalInvalidation = json["experimentalInvalidation"];
     serialize = json["serialize"];
-    widgetTransformation = json["widgetTransformation"];
+    trackCreationLocations = json["trackCreationLocations"];
     invalidate.clear();
     invalidate.addAll(
       (json["invalidate"] as List).map((uriString) => Uri.parse(uriString)),
@@ -802,8 +802,8 @@ class TestMinimizer {
 # Reproduce a crash.
 
 type: newworld""");
-    if (_settings.widgetTransformation) {
-      print("trackWidgetCreation: true");
+    if (_settings.trackCreationLocations) {
+      print("trackCreationLocations: true");
       print("target: dartdevc # needed for widget creation to be run");
     }
     print("""
@@ -2266,7 +2266,7 @@ worlds:
     }
 
     TargetFlags targetFlags = new TargetFlags(
-      trackWidgetCreation: _settings.widgetTransformation,
+      trackCreationLocations: _settings.trackCreationLocations,
     );
     Target target;
     switch (_settings.targetString) {

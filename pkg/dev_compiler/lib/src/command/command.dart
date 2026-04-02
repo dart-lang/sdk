@@ -270,7 +270,7 @@ Future<CompilerResult> _compile(
     onWarning: print,
   );
 
-  var trackWidgetCreation = argResults.flag('track-widget-creation');
+  var trackCreationLocations = argResults.flag('track-creation-locations');
   var oldCompilerState = compilerState;
   var recordUsedInputs = argResults.option('used-inputs-file') != null;
   var additionalDills = summaryModules.keys.toList();
@@ -290,7 +290,7 @@ Future<CompilerResult> _compile(
       packageFile != null ? sourcePathToUri(packageFile) : null,
       sourcePathToUri(librarySpecPath),
       additionalDills,
-      DevCompilerTarget(TargetFlags(trackWidgetCreation: trackWidgetCreation)),
+      DevCompilerTarget(TargetFlags(trackCreationLocations: trackCreationLocations)),
       fileSystem: fileSystem,
       explicitExperimentalFlags: explicitExperimentalFlags,
       environmentDefines: declaredVariables,
@@ -318,7 +318,7 @@ Future<CompilerResult> _compile(
     compilerState = await fe.initializeIncrementalCompiler(
       oldCompilerState,
       {
-        'trackWidgetCreation=$trackWidgetCreation',
+        'trackCreationLocations=$trackCreationLocations',
         'multiRootScheme=${fileSystem.markerScheme}',
         'multiRootRoots=${fileSystem.roots}',
       },
@@ -330,7 +330,7 @@ Future<CompilerResult> _compile(
       sourcePathToUri(librarySpecPath),
       additionalDills,
       inputDigests,
-      DevCompilerTarget(TargetFlags(trackWidgetCreation: trackWidgetCreation)),
+      DevCompilerTarget(TargetFlags(trackCreationLocations: trackCreationLocations)),
       fileSystem: fileSystem,
       explicitExperimentalFlags: explicitExperimentalFlags,
       environmentDefines: declaredVariables,

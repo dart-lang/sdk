@@ -109,12 +109,12 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     help: 'Print this help message.',
   )
   ..addFlag(
-    'track-widget-creation',
+    'track-creation-locations',
     help: 'Run a kernel transformer to track creation locations for widgets.',
     defaultsTo: false,
     aliases: [
-      // TODO(schultek): Make this the canonical flag.
-      'track-creation-locations',
+      // TODO(schultek): Remove this once flutter is migrated to new flag.
+      'track-widget-creation',
     ],
   )
   ..addOption(
@@ -190,7 +190,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final String? validateDynamicInterface = options['validate'];
   final String messageVerbosity = options['verbosity'];
   final String cfeInvocationModes = options['invocation-modes'];
-  final bool trackWidgetCreation = options['track-widget-creation'];
+  final bool trackCreationLocations = options['track-creation-locations'];
   final List<String>? bytecodeGeneratorOptions = options['bytecode-options'];
   final String libraryUrisPrefix = options['prefix-library-uris']!;
 
@@ -209,7 +209,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     fileSystemRoots: fileSystemRoots,
     messageVerbosity: messageVerbosity,
     cfeInvocationModes: cfeInvocationModes,
-    trackWidgetCreation: trackWidgetCreation,
+    trackCreationLocations: trackCreationLocations,
     bytecodeGeneratorOptions: bytecodeGeneratorOptions,
     depfile: depfile,
     depfileTarget: depfileTarget,
@@ -235,7 +235,7 @@ Future<int> runCompilerWithOptions({
   String messageVerbosity = Verbosity.defaultValue,
   void Function(String) printMessage = print,
   String cfeInvocationModes = '',
-  bool trackWidgetCreation = false,
+  bool trackCreationLocations = false,
   List<String>? bytecodeGeneratorOptions,
   String? depfile,
   String? depfileTarget,
@@ -291,7 +291,7 @@ Future<int> runCompilerWithOptions({
     ..verbosity = verbosity
     ..target = createFrontEndTarget(
       targetName,
-      trackWidgetCreation: trackWidgetCreation,
+      trackCreationLocations: trackCreationLocations,
       supportMirrors: false,
       isClosureContextLoweringEnabled:
           bytecodeOptions.isClosureContextLoweringEnabled,
