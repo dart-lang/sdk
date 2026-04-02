@@ -443,6 +443,10 @@ const_constructor_with_non_const_super:
   status: noFix
 const_constructor_with_non_final_field:
   status: noFix
+const_primary_constructor_with_block_body:
+  status: needsEvaluation
+const_primary_constructor_with_expression_body:
+  status: needsEvaluation
 const_deferred_class:
   status: needsFix
   notes: |-
@@ -1381,6 +1385,10 @@ prefix_identifier_not_followed_by_dot:
   status: noFix
 prefix_shadowed_by_local_declaration:
   status: noFix
+primary_constructor_body_with_expression_body:
+  status: needsEvaluation
+primary_constructor_body_with_modifier:
+  status: needsEvaluation
 primary_constructor_body_without_declaration:
   status: needsEvaluation
 primary_constructor_cannot_redirect:
