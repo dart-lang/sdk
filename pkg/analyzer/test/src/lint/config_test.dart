@@ -157,14 +157,15 @@ linter:
 my_rule:
   max_depth: 2
   some_flag: true
-''') as YamlMap,
+''')
+              as YamlMap,
         );
         expect(ruleConfigs, hasLength(1));
-        var config = ruleConfigs['my_rule']!;
-        expect(config.name, 'my_rule');
-        expect(config.severity, ConfiguredSeverity.enable);
-        expect(config.isEnabled, isTrue);
-        expect(config.options, {'max_depth': 2, 'some_flag': true});
+        var config = ruleConfigs['my_rule'];
+        expect(config?.name, 'my_rule');
+        expect(config?.severity, ConfiguredSeverity.enable);
+        expect(config?.isEnabled, isTrue);
+        expect(config?.options, {'max_depth': 2, 'some_flag': true});
       });
 
       test('string option value', () {
@@ -173,12 +174,13 @@ my_rule:
 my_rule:
   max_depth: 3
   pattern: "^_"
-''') as YamlMap,
+''')
+              as YamlMap,
         );
         expect(ruleConfigs, hasLength(1));
-        var config = ruleConfigs['my_rule']!;
-        expect(config.severity, ConfiguredSeverity.enable);
-        expect(config.options, {'max_depth': 3, 'pattern': '^_'});
+        var config = ruleConfigs['my_rule'];
+        expect(config?.severity, ConfiguredSeverity.enable);
+        expect(config?.options, {'max_depth': 3, 'pattern': '^_'});
       });
 
       test('mixed scalar and map config styles', () {
@@ -189,16 +191,17 @@ configured_rule:
   threshold: 5
 disabled_rule: false
 severity_rule: warning
-''') as YamlMap,
+''')
+              as YamlMap,
         );
         expect(ruleConfigs, hasLength(4));
-        expect(ruleConfigs['simple_rule']!.isEnabled, isTrue);
-        expect(ruleConfigs['simple_rule']!.options, isEmpty);
-        expect(ruleConfigs['configured_rule']!.isEnabled, isTrue);
-        expect(ruleConfigs['configured_rule']!.options, {'threshold': 5});
-        expect(ruleConfigs['disabled_rule']!.isEnabled, isFalse);
+        expect(ruleConfigs['simple_rule']?.isEnabled, isTrue);
+        expect(ruleConfigs['simple_rule']?.options, isEmpty);
+        expect(ruleConfigs['configured_rule']?.isEnabled, isTrue);
+        expect(ruleConfigs['configured_rule']?.options, {'threshold': 5});
+        expect(ruleConfigs['disabled_rule']?.isEnabled, isFalse);
         expect(
-          ruleConfigs['severity_rule']!.severity,
+          ruleConfigs['severity_rule']?.severity,
           ConfiguredSeverity.warning,
         );
       });
@@ -208,10 +211,11 @@ severity_rule: warning
           loadYamlNode('''
 rule_a: true
 rule_b: error
-''') as YamlMap,
+''')
+              as YamlMap,
         );
-        expect(ruleConfigs['rule_a']!.options, isEmpty);
-        expect(ruleConfigs['rule_b']!.options, isEmpty);
+        expect(ruleConfigs['rule_a']?.options, isEmpty);
+        expect(ruleConfigs['rule_b']?.options, isEmpty);
       });
     });
   });
