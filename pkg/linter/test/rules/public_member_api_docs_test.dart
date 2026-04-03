@@ -43,10 +43,7 @@ extension type E(int i) {
   int? f;
 }
 ''',
-      [
-        // No lint.
-        error(diag.extensionTypeDeclaresInstanceField, 42, 1),
-      ],
+      [error(diag.extensionTypeDeclaresInstanceField, 42, 1)],
     );
   }
 
@@ -386,6 +383,38 @@ class A { }
 ''',
       [lint(25, 1)],
     );
+  }
+
+  test_primaryConstructor_bodyPartNoDoc() async {
+    await assertDiagnosticsFromMarkdown(r'''
+/// Doc.
+class C(int x) {
+  [!this!];
+}
+''');
+  }
+
+  test_primaryConstructor_bodyPartWithDoc() async {
+    await assertNoDiagnostics(r'''
+/// Class doc.
+class C(int x) {
+  /// Constructor doc.
+  this;
+}
+''');
+  }
+
+  test_primaryConstructor_classNoDoc() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class [!C!](var int x);
+''');
+  }
+
+  test_primaryConstructor_declaringParameterNoDoc() async {
+    await assertDiagnosticsFromMarkdown(r'''
+/// Doc.
+class [!C!](var int x);
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/4526
