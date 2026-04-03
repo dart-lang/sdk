@@ -2022,6 +2022,27 @@ void Assembler::PopRegisters(const RegisterSet& register_set) {
   }
 }
 
+void Assembler::PushRegistersAligned(const RegisterSet& register_set,
+                                     intptr_t space) {
+  PushRegisters(register_set);
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    subq(RSP, Immediate(aligned_space));
+  }
+}
+void Assembler::PopRegistersAligned(const RegisterSet& register_set,
+                                    intptr_t space) {
+  intptr_t aligned_space = Utils::RoundUp(register_set.SpillSize() + space,
+                                          OS::ActivationFrameAlignment()) -
+                           register_set.SpillSize();
+  if (aligned_space != 0) {
+    addq(RSP, Immediate(aligned_space));
+  }
+  PopRegisters(register_set);
+}
+
 void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
   for (Register reg : regs) {
     PushRegister(reg);

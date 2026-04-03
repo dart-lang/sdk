@@ -396,8 +396,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     _functionReferenceResolver = FunctionReferenceResolver(this);
   }
 
-  /// Inference context information for the current function body, if the
-  /// current node is inside a function body.
+  @override
   BodyInferenceContext? get bodyContext => _bodyContext;
 
   @override

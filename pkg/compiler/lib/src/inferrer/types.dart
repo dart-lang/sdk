@@ -5,13 +5,13 @@
 library;
 
 import 'package:kernel/ast.dart' as ir;
+
 import '../common.dart' show failedAt, retainDataForTesting;
 import '../common/metrics.dart' show Metrics;
 import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
-import '../inferrer/engine.dart' show KernelGlobalTypeInferenceElementData;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
 import '../js_model/elements.dart';
@@ -22,6 +22,7 @@ import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
 import 'abstract_value_domain.dart';
+import 'engine.dart' show KernelGlobalTypeInferenceElementData;
 
 /// Results about a single element (e.g. a method, parameter, or field)
 /// produced by the global type-inference algorithm.

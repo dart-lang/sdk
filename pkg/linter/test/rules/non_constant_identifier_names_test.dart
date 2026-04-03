@@ -710,7 +710,6 @@ C<int>;
         // No lint
         error(diag.missingFunctionParameters, 15, 1),
         error(diag.duplicateDefinition, 15, 1),
-        error(diag.missingFunctionBody, 21, 1),
       ],
     );
   }

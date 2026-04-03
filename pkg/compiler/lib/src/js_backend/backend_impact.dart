@@ -6,14 +6,14 @@ library;
 
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/names.dart';
-import '../elements/types.dart' show InterfaceType;
 import '../elements/entities.dart';
+import '../elements/types.dart' show InterfaceType;
+import '../options.dart';
 import '../universe/selector.dart';
+import '../universe/use.dart';
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
-import '../universe/use.dart';
 import '../util/enumset.dart';
-import '../options.dart';
 
 /// Backend specific features required by a backend impact.
 enum BackendFeature {

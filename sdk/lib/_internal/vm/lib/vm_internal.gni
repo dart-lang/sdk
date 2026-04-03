@@ -6,7 +6,9 @@
 
 vm_internal_sdk_sources = [
   "array.dart",
+  "array_patch.dart",
   "async_patch.dart",
+  "bigint_patch_patch.dart",
   "class_id_fasta.dart",
   "concurrent_patch.dart",
   "convert_patch.dart",
@@ -28,6 +30,7 @@ vm_internal_sdk_sources = [
   "function_patch.dart",
   "growable_array.dart",
   "hash_factories.dart",
+  "http_patch.dart",
   "identical_patch.dart",
   "immutable_map.dart",
   "integers.dart",

@@ -8,9 +8,9 @@ import '../../compiler_api.dart' as api;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import 'abstract_value_domain.dart';
+import 'debug.dart';
 import 'engine.dart';
 import 'type_graph_nodes.dart';
-import 'debug.dart';
 
 /// Dumps the type inference graph in Graphviz Dot format into the `typegraph`
 /// subfolder of the current working directory. Each function body is dumped in

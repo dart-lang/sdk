@@ -15,7 +15,7 @@ import 'object_access_target.dart';
 import 'type_schema.dart' show UnknownType;
 
 class ForInResult {
-  final Variable variable;
+  final VariableDeclaration variable;
   final Expression iterable;
   final Expression? syntheticAssignment;
   final Statement? expressionSideEffects;
@@ -49,7 +49,7 @@ class LocalForInVariable implements ForInVariable {
 
   @override
   DartType computeElementType(InferenceVisitorBase visitor) {
-    Variable variable = variableSet.expressionVariable;
+    VariableDeclaration variable = variableSet.variable;
     DartType? promotedType = visitor.flowAnalysis
         .promotedType(variable)
         // Coverage-ignore(suite): Not run.
@@ -60,7 +60,7 @@ class LocalForInVariable implements ForInVariable {
   @override
   Expression inferAssignment(InferenceVisitorBase visitor, DartType rhsType) {
     DartType variableType = visitor.computeGreatestClosure(
-      variableSet.expressionVariable.type,
+      variableSet.variable.type,
     );
     Expression rhs = visitor.ensureAssignable(
       variableType,
@@ -75,7 +75,7 @@ class LocalForInVariable implements ForInVariable {
       variableSet,
       visitor.flowAnalysis.write(
         variableSet,
-        variableSet.expressionVariable,
+        variableSet.variable,
         new SharedTypeView(rhsType),
         null,
       ),
@@ -93,7 +93,7 @@ class PatternVariableDeclarationForInVariable implements ForInVariable {
   // Coverage-ignore(suite): Not run.
   DartType computeElementType(InferenceVisitorBase visitor) {
     return (patternVariableDeclaration.initializer as VariableGet)
-        .expressionVariable
+        .variable
         .type;
   }
 

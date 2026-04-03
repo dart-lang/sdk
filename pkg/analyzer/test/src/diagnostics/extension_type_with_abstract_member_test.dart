@@ -35,13 +35,22 @@ extension type A(int it) {
   }
 
   test_getter_static() async {
+    await assertNoErrorsInCode('''
+extension type A(int it) {
+  static int get foo;
+}
+''');
+  }
+
+  test_getter_static_language305() async {
     await assertErrorsInCode(
       '''
+// @dart = 3.5
 extension type A(int it) {
   static int get foo;
 }
 ''',
-      [error(diag.missingFunctionBody, 47, 1)],
+      [error(diag.missingFunctionBody, 62, 1)],
     );
   }
 
@@ -65,13 +74,22 @@ extension type A(int it) {
   }
 
   test_method_static() async {
+    await assertNoErrorsInCode('''
+extension type A(int it) {
+  static void foo();
+}
+''');
+  }
+
+  test_method_static_language305() async {
     await assertErrorsInCode(
       '''
+// @dart = 3.5
 extension type A(int it) {
   static void foo();
 }
 ''',
-      [error(diag.missingFunctionBody, 46, 1)],
+      [error(diag.missingFunctionBody, 61, 1)],
     );
   }
 
@@ -95,13 +113,22 @@ extension type A(int it) {
   }
 
   test_setter_static() async {
+    await assertNoErrorsInCode('''
+extension type A(int it) {
+  static set foo(int _);
+}
+''');
+  }
+
+  test_setter_static_language305() async {
     await assertErrorsInCode(
       '''
+// @dart = 3.5
 extension type A(int it) {
   static set foo(int _);
 }
 ''',
-      [error(diag.missingFunctionBody, 50, 1)],
+      [error(diag.missingFunctionBody, 65, 1)],
     );
   }
 }

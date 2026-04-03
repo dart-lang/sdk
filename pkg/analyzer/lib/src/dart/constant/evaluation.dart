@@ -2007,7 +2007,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return DartObjectImpl(
         typeSystem,
         _typeProvider.typeType,
-        TypeState(_typeProvider.dynamicType),
+        TypeState(givenType ?? _typeProvider.dynamicType),
       );
     } else if (variableElement is TypeAliasElementImpl) {
       var type =
@@ -2027,7 +2027,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return DartObjectImpl(
         typeSystem,
         _typeProvider.typeType,
-        TypeState(_typeProvider.neverType),
+        TypeState(givenType ?? _typeProvider.neverType),
       );
     } else if (variableElement is TypeParameterElement) {
       // Constants may refer to type parameters only if the constructor-tearoffs

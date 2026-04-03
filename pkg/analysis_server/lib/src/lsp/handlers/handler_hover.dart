@@ -95,10 +95,13 @@ class HoverHandler
         ..write('`');
     }
     if (hover.containingLibraryName?.isNotEmpty ?? false) {
+      // Use asterisks for italics, because underscores can conflict with
+      // underscores within words.
+      // https://github.com/dart-lang/sdk/issues/62500
       declaredInDescription
-        ..write(' in _')
+        ..write(' in *')
         ..write(hover.containingLibraryName)
-        ..write('_');
+        ..write('*');
     }
 
     if (declaredInDescription.isNotEmpty) {

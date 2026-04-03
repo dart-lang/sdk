@@ -4,9 +4,9 @@
 
 library;
 
-import 'code_output_listener.dart' show CodeOutputListener;
-
 import 'package:kernel/ast.dart' show Location, Source;
+
+import 'code_output_listener.dart' show CodeOutputListener;
 
 /// Interface for providing line/column information.
 abstract class LocationProvider {

@@ -1153,7 +1153,6 @@ class TextualOutlineListener extends Listener {
     if (message.code == diag.nativeClauseShouldBeAnnotation) {
       return;
     }
-    // Coverage-ignore-block(suite): Not run.
     gotError = true;
   }
 }

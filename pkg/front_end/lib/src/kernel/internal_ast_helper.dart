@@ -281,7 +281,7 @@ MapLiteralEntry createIfCaseMapEntry(
 
 ForElement createForElement(
   int fileOffset,
-  List<VariableInitialization> variables,
+  List<VariableInitializationBase> variables,
   Expression? condition,
   List<Expression> updates,
   Expression body,
@@ -294,7 +294,7 @@ PatternForElement createPatternForElement(
   int fileOffset, {
   required PatternVariableDeclaration patternVariableDeclaration,
   required List<VariableDeclaration> intermediateVariables,
-  required List<VariableInitialization> variables,
+  required List<VariableInitializationBase> variables,
   required Expression? condition,
   required List<Expression> updates,
   required Expression body,
@@ -311,7 +311,7 @@ PatternForElement createPatternForElement(
 
 ForMapEntry createForMapEntry(
   int fileOffset,
-  List<VariableInitialization> variables,
+  List<VariableInitializationBase> variables,
   Expression? condition,
   List<Expression> updates,
   MapLiteralEntry body,
@@ -324,7 +324,7 @@ PatternForMapEntry createPatternForMapEntry(
   int fileOffset, {
   required PatternVariableDeclaration patternVariableDeclaration,
   required List<VariableDeclaration> intermediateVariables,
-  required List<VariableInitialization> variableInitializations,
+  required List<VariableInitializationBase> variableInitializations,
   required Expression? condition,
   required List<Expression> updates,
   required MapLiteralEntry body,
@@ -341,7 +341,7 @@ PatternForMapEntry createPatternForMapEntry(
 
 ForInElement createForInElement(
   int fileOffset,
-  Variable variable,
+  VariableDeclaration variable,
   Expression iterable,
   Expression? synthesizedAssignment,
   Statement? expressionEffects,
@@ -362,7 +362,7 @@ ForInElement createForInElement(
 
 ForInMapEntry createForInMapEntry(
   int fileOffset,
-  Variable variable,
+  VariableDeclaration variable,
   Expression iterable,
   Expression? synthesizedAssignment,
   Statement? expressionEffects,
@@ -444,8 +444,8 @@ Statement createBreakStatement(int fileOffset, Object? label) {
 Catch createCatch(
   int fileOffset,
   DartType exceptionType,
-  CatchVariable? exceptionParameter,
-  CatchVariable? stackTraceParameter,
+  VariableDeclaration? exceptionParameter,
+  VariableDeclaration? stackTraceParameter,
   DartType stackTraceType,
   Statement body,
 ) {
@@ -504,7 +504,7 @@ Statement createEmptyStatement(int fileOffset) {
 /// Return a representation of a for statement.
 Statement createForStatement(
   int fileOffset,
-  List<VariableInitialization>? variables,
+  List<VariableInitializationBase>? variables,
   Expression? condition,
   List<Expression> updaters,
   Statement body,
@@ -939,7 +939,7 @@ AndPattern createAndPattern(int fileOffset, Pattern left, Pattern right) {
 
 AssignedVariablePattern createAssignedVariablePattern(
   int fileOffset,
-  Variable variable,
+  VariableDeclaration variable,
 ) {
   return new AssignedVariablePattern(variable)..fileOffset = fileOffset;
 }

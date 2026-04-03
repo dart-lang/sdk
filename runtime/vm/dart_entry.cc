@@ -15,6 +15,7 @@
 #include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
+#include "vm/roots.h"
 #include "vm/runtime_entry.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
@@ -28,9 +29,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, precompiled_mode);
-
-// A cache of VM heap allocated arguments descriptors.
-ArrayPtr ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
 ObjectPtr DartEntry::InvokeFunction(const Function& function,
                                     const Array& arguments) {
@@ -487,8 +485,8 @@ bool ArgumentsDescriptor::IsCached() const {
   const intptr_t num_type_arguments = TypeArgsLen();
   const intptr_t num_arguments = Count();
   return CanUseCachedDescriptor(num_type_arguments, num_arguments) &&
-         (array_.ptr() == cached_args_descriptors_[CacheIndexFor(
-                              num_type_arguments, num_arguments)]);
+         (array_.ptr() == Roots::cached_args_descriptor(CacheIndexFor(
+                              num_type_arguments, num_arguments)));
 }
 
 ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
@@ -570,8 +568,8 @@ ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
 
   if (num_arguments == size_arguments &&
       CanUseCachedDescriptor(type_args_len, num_arguments)) {
-    return cached_args_descriptors_[CacheIndexFor(type_args_len,
-                                                  num_arguments)];
+    return Roots::cached_args_descriptor(
+        CacheIndexFor(type_args_len, num_arguments));
   }
   return NewNonCached(type_args_len, num_arguments, size_arguments, true,
                       space);
@@ -624,20 +622,16 @@ void ArgumentsDescriptor::Init() {
     for (intptr_t num_arguments = 0;
          num_arguments <= kMaxNumArgumentsForCachedDescriptor[type_args_len];
          num_arguments++) {
-      cached_args_descriptors_[cache_index++] =
+      Roots::set_cached_args_descriptor(
+          cache_index++,
           NewNonCached(type_args_len, num_arguments, num_arguments,
-                       /*canonicalize=*/false, Heap::kOld);
+                       /*canonicalize=*/false, Heap::kOld));
     }
   }
   ASSERT(cache_index == kCachedDescriptorCount);
 }
 
-void ArgumentsDescriptor::Cleanup() {
-  for (int i = 0; i < kCachedDescriptorCount; i++) {
-    // Don't free pointers to RawArray objects managed by the VM.
-    cached_args_descriptors_[i] = nullptr;
-  }
-}
+void ArgumentsDescriptor::Cleanup() {}
 
 ObjectPtr DartLibraryCalls::InstanceCreate(const Library& lib,
                                            const String& class_name,

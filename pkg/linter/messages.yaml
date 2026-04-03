@@ -650,6 +650,43 @@ LinterLintCode:
       experimental: "3.2"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an extension type member redeclares 
+      a member from an implemented interface without the `@redeclare` annotation.
+
+      #### Example
+
+      The following code produces this diagnostic because the `f` method in the
+      extension type E redeclares the `f` method from `C` without the `@redeclare` annotation:
+
+      ```dart
+      class C {
+        void f() { }
+      }
+
+      extension type E(C c) implements C {
+        void [!f!]() { }
+      }
+      ```
+
+      #### Common fixes
+
+      Add the `@redeclare` annotation to make the redeclaration explicit:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        void f() { }
+      }
+
+      extension type E(C c) implements C {
+        @redeclare
+        void f() { }
+      }
+      ```
     deprecatedDetails: |-
       **DO** annotate redeclared members.
 
@@ -694,6 +731,29 @@ LinterLintCode:
       stable: "2.0"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a parameter has an explicit
+      `dynamic` type annotation. Because `dynamic` is the default type for
+      parameters without a type annotation, the annotation is unnecessary.
+
+      #### Example
+
+      The following code produces this diagnostic because the parameter `p`
+      is explicitly annotated with `dynamic`:
+
+      ```dart
+      void f([!dynamic p!]) {}
+      ```
+
+      #### Common fixes
+
+      Remove the `dynamic` type annotation:
+
+      ```dart
+      void f(p) {}
+      ```
     deprecatedDetails: |-
       **AVOID** annotating with `dynamic` when not required.
 
@@ -11641,6 +11701,66 @@ LinterLintCode:
       **GOOD:**
       ```yaml
       repository: https://github.com/dart-lang/example
+      ```
+  simpleDirectivePaths:
+    type: lint
+    parameters: none
+    problemMessage: "Use simple directive paths."
+    correctionMessage: "Try simplifying the directive path."
+    state:
+      stable: "3.12"
+    categories: [style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a directive uses a path that is
+      not simple (for example, a path containing redundant `./` or backtracking
+      `../` segments).
+
+      #### Example
+
+      Given a file named `bar.dart` in the `lib/src` directory:
+
+      ```dart
+      %uri="lib/src/bar.dart"
+      class Bar {}
+      ```
+
+      The following code produces this diagnostic because it uses an
+      unnecessarily complex relative URI:
+
+      ```dart
+      import [!'./src/bar.dart'!];
+
+      void f(Bar b) {}
+      ```
+
+      #### Common fixes
+
+      Use a minimal relative URI:
+
+      ```dart
+      import 'src/bar.dart';
+
+      void f(Bar b) {}
+      ```
+    deprecatedDetails: |-
+      **PREFER** simple directive paths.
+
+      Using simple directive paths (avoiding redundant `./` or backtracking `../`
+      segments) makes the code cleaner, more consistent, and easier to read. It
+      also reduces the risk of confusion when resolving paths relative to the
+      source file.
+
+      **BAD:**
+      ```dart
+      import '../src/bar.dart';
+      ```
+
+      **GOOD:**
+      ```dart
+      import 'bar.dart';
       ```
   simplifyVariablePattern:
     type: lint

@@ -84,6 +84,7 @@ library_for_all_configs("libdart_vm") {
   if (is_fuchsia) {
     extra_deps += [
       "$fuchsia_sdk/fidl/fuchsia.intl",
+      "$fuchsia_sdk/fidl/fuchsia.kernel",
       "$fuchsia_sdk/pkg/async",
       "$fuchsia_sdk/pkg/async-default",
       "$fuchsia_sdk/pkg/async-loop",

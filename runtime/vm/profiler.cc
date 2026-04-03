@@ -622,9 +622,12 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
         sp = interpreter->get_sp();
         fp = interpreter->get_fp();
         pc = interpreter->get_pc();
+        StackFrame::DumpCurrentTrace(sp, fp, pc);
       }
 #endif  // defined(DART_DYNAMIC_MODULES)
-      StackFrame::DumpCurrentTrace(sp, fp, pc);
+      if (thread->vm_tag() == VMTag::kDartTagId) {
+        StackFrame::DumpCurrentTrace(sp, fp, pc);
+      }
     }
   }
 

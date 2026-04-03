@@ -15,7 +15,6 @@ class CoffeeShop {
   CoffeeShop.name(String shopName) : this.shopName = shopName;
   //                                      ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
-  //                                               ^
   // [cfe] 'shopName' is a final instance variable that was initialized at the declaration.
 }
 

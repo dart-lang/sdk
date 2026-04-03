@@ -33,7 +33,7 @@ import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 
 typedef SharedMatchContext =
-    shared.MatchContext<TreeNode, Expression, Pattern, Variable>;
+    shared.MatchContext<TreeNode, Expression, Pattern, VariableDeclaration>;
 
 mixin InternalTreeNode implements TreeNode {
   @override
@@ -99,7 +99,7 @@ abstract class InternalStatement extends AuxiliaryStatement {
 }
 
 class ForInStatementWithSynthesizedVariable extends InternalStatement {
-  Variable? variable;
+  VariableDeclaration? variable;
   Expression iterable;
   Expression? syntheticAssignment;
   Statement? expressionEffects;
@@ -927,7 +927,7 @@ class VariableDeclarationImpl extends VariableStatement
     with InternalVariableMixin
     implements InternalVariable {
   @override
-  Variable get astVariable => this;
+  VariableDeclaration get astVariable => this;
 
   @override
   final bool forSyntheticToken;
@@ -1041,6 +1041,15 @@ class InternalLocalVariable extends TreeNode
   });
 
   @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(StatementVisitor<R> v) => v.visitLocalVariable(astVariable);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitLocalVariable(astVariable, arg);
+
+  @override
   String toString() {
     return "InternalLocalVariable(${toStringInternal()})";
   }
@@ -1057,6 +1066,37 @@ class InternalLocalVariable extends TreeNode
     if (modifiers.isNotEmpty) {
       printer.write("[${modifiers.join(",")}]");
     }
+  }
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
+  List<VariableContext>? get contexts {
+    throw new UnsupportedError("${this.runtimeType}.contexts");
+  }
+
+  @override
+  void set contexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  }
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  VariableDeclaration get variable => this;
+
+  @override
+  void set variable(VariableDeclaration variable) {
+    throw new UnsupportedError("${this.runtimeType}.variable=");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void clearAnnotations() {
+    annotations.clear();
   }
 }
 
@@ -1083,21 +1123,15 @@ class InternalPositionalParameter extends TreeNode
   });
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
   List<VariableContext>? get contexts {
     throw new UnsupportedError("${this.runtimeType}.contexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
   void set contexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.contexts=");
-  }
-
-  @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  String get catchVariableName {
-    throw new UnsupportedError("${this.runtimeType}.catchVariableName");
   }
 
   @override
@@ -1161,10 +1195,10 @@ class InternalPositionalParameter extends TreeNode
 
   @override
   // Coverage-ignore(suite): Not run.
-  Variable get variable => this;
+  VariableDeclaration get variable => this;
 
   @override
-  void set variable(Variable value) {
+  void set variable(VariableDeclaration value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
@@ -1192,21 +1226,15 @@ class InternalNamedParameter extends TreeNode
   });
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
   List<VariableContext>? get contexts {
     throw new UnsupportedError("${this.runtimeType}.contexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
   void set contexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.contexts=");
-  }
-
-  @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  String get catchVariableName {
-    throw new UnsupportedError("${this.runtimeType}.catchVariableName");
   }
 
   @override
@@ -1280,10 +1308,10 @@ class InternalNamedParameter extends TreeNode
 
   @override
   // Coverage-ignore(suite): Not run.
-  Variable get variable => this;
+  VariableDeclaration get variable => this;
 
   @override
-  void set variable(Variable value) {
+  void set variable(VariableDeclaration value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 }
@@ -1559,11 +1587,11 @@ mixin DelegatingVariableMixin on InternalVariableMixin
 
   @override
   // Coverage-ignore(suite): Not run.
-  VariableInitialization? get variableInitialization =>
+  VariableInitializationBase? get variableInitialization =>
       astVariable.variableInitialization;
 
   @override
-  void set variableInitialization(VariableInitialization? value) {
+  void set variableInitialization(VariableInitializationBase? value) {
     astVariable.variableInitialization = value;
   }
 
@@ -1635,12 +1663,12 @@ mixin DelegatingVariableMixin on InternalVariableMixin
 
   @override
   // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) {
+  R accept<R>(StatementVisitor<R> v) {
     return astVariable.accept(v);
   }
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) {
     return astVariable.accept1(v, arg);
   }
 
@@ -1716,6 +1744,52 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   void visitChildren(Visitor<dynamic> v) {
     throw new UnsupportedError("${this.runtimeType}");
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get binaryOffsetNoTag => astVariable.binaryOffsetNoTag;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set binaryOffsetNoTag(int value) {
+    astVariable.binaryOffsetNoTag = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<VariableContext>? get contexts => astVariable.contexts;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set contexts(List<VariableContext>? value) {
+    astVariable.contexts = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get fileEqualsOffset => astVariable.fileEqualsOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set fileEqualsOffset(int value) {
+    astVariable.fileEqualsOffset = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  VariableDeclaration get variable => astVariable.variable;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set variable(VariableDeclaration value) {
+    astVariable.variable = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void clearAnnotations() {
+    astVariable.clearAnnotations();
+  }
 }
 
 abstract interface class InternalVariable implements IVariable, Annotatable {
@@ -1729,7 +1803,7 @@ abstract interface class InternalVariable implements IVariable, Annotatable {
   /// * using [astVariable] as a part of the generated AST,
   /// * checking semantic properties of an AST node, such as [isExtensionThis]
   ///   in `lowering_predicates.dart`.
-  Variable get astVariable;
+  VariableDeclaration get astVariable;
 
   bool get forSyntheticToken;
 
@@ -1813,7 +1887,7 @@ mixin InternalVariableMixin on TreeNode implements InternalVariable {
   String? lateName;
 
   @override
-  Variable get asExpressionVariable => this as Variable;
+  VariableDeclaration get asExpressionVariable => this as VariableDeclaration;
 }
 
 /// Front end specific implementation of [LoadLibrary].
@@ -4800,7 +4874,7 @@ bool isPureExpression(Expression node) {
   if (node is ThisExpression) {
     return true;
   } else if (node is VariableGet) {
-    return node.expressionVariable.isFinal && !node.expressionVariable.isLate;
+    return node.variable.isFinal && !node.variable.isLate;
   }
   return false;
 }
@@ -4813,11 +4887,11 @@ Expression clonePureExpression(Expression node) {
     return new ThisExpression()..fileOffset = node.fileOffset;
   } else if (node is VariableGet) {
     assert(
-      node.expressionVariable.isFinal && !node.variable.isLate,
+      node.variable.isFinal && !node.variable.isLate,
       "Trying to clone VariableGet of non-final variable"
-      " ${node.expressionVariable}.",
+      " ${node.variable}.",
     );
-    return new VariableGet(node.expressionVariable, node.promotedType)
+    return new VariableGet(node.variable, node.promotedType)
       ..fileOffset = node.fileOffset;
   }
   // Coverage-ignore-block(suite): Not run.

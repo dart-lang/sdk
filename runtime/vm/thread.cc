@@ -440,7 +440,8 @@ void Thread::EnterIsolate(Isolate* isolate) {
     // Set up current tag if it was not set up by the callback.
     StackZone zone(thread);
     HANDLESCOPE(thread);
-    if (group->tag_table() != GrowableObjectArray::null()) {
+    if (group->object_store() != nullptr &&
+        group->object_store()->tag_table() != GrowableObjectArray::null()) {
       const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(thread));
       thread->set_current_tag(default_tag);
     }
@@ -578,7 +579,8 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
 
   StackZone zone(thread);
   HANDLESCOPE(thread);
-  if (isolate_group->tag_table() != GrowableObjectArray::null()) {
+  if (isolate_group->object_store()->tag_table() !=
+      GrowableObjectArray::null()) {
     // Set up default UserTag.
     const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(thread));
     thread->set_current_tag(default_tag);

@@ -4,15 +4,15 @@
 
 library;
 
-import '../common/elements.dart';
 import '../common/codegen.dart' show CodegenImpact;
+import '../common/elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_emitter/native_emitter.dart';
 import '../js_model/js_world.dart';
-import '../native/enqueue.dart';
 import '../native/behavior.dart';
+import '../native/enqueue.dart';
 import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';

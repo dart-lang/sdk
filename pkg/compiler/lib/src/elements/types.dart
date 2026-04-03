@@ -7,8 +7,8 @@ import 'package:js_shared/variance.dart';
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart';
 import '../serialization/serialization.dart';
-import '../util/util.dart' show equalElements, equalSets;
 import '../universe/record_shape.dart';
+import '../util/util.dart' show equalElements, equalSets;
 import 'entities.dart';
 
 /// Hierarchy to describe types in Dart.

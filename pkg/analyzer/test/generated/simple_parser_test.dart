@@ -1508,12 +1508,44 @@ BlockFunctionBody
     var parseResult = parseStringWithErrors(r'''
 void f() ;
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 9, 1)]);
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    parseResult.assertNoErrors();
+    var node = parseResult.unit;
     assertParsedNodeText(node, r'''
-EmptyFunctionBody
-  semicolon: ;
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+''');
+  }
+
+  void test_parseFunctionBody_empty_language305() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.5
+void f() ;
+''');
+    parseResult.assertErrors([error(diag.missingFunctionBody, 24, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
 ''');
   }
 
@@ -1997,10 +2029,7 @@ LibraryDirective
     var parseResult = parseStringWithErrors(r'''
 library <myLibId>;
 ''');
-    parseResult.assertErrors([
-      error(diag.missingFunctionParameters, 0, 7),
-      error(diag.missingFunctionBody, 17, 1),
-    ]);
+    parseResult.assertErrors([error(diag.missingFunctionParameters, 0, 7)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

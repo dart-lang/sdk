@@ -321,6 +321,10 @@ class_used_as_mixin:
   notes: |-
     Theoretically we could add the mixin modifier to the class if the class if
     doing so would be valid.
+class_used_as_mixin_declares_generative_constructor:
+  status: needsFix
+  notes: |-
+    Remove the constructor.
 class_instantiation_access_to_instance_member:
   status: noFix
   since: 2.15
@@ -439,6 +443,10 @@ const_constructor_with_non_const_super:
   status: noFix
 const_constructor_with_non_final_field:
   status: noFix
+const_primary_constructor_with_block_body:
+  status: needsEvaluation
+const_primary_constructor_with_expression_body:
+  status: needsEvaluation
 const_deferred_class:
   status: needsFix
   notes: |-
@@ -1096,7 +1104,7 @@ mixin_application_not_implemented_interface:
   status: hasFix
 mixin_class_declaration_extends_not_object:
   status: hasFix
-mixin_class_declares_constructor:
+mixin_class_declares_non_trivial_generative_constructor:
   status: needsFix
   notes: |-
     Remove the constructor.
@@ -1377,6 +1385,10 @@ prefix_identifier_not_followed_by_dot:
   status: noFix
 prefix_shadowed_by_local_declaration:
   status: noFix
+primary_constructor_body_with_expression_body:
+  status: needsEvaluation
+primary_constructor_body_with_modifier:
+  status: needsEvaluation
 primary_constructor_body_without_declaration:
   status: needsEvaluation
 primary_constructor_cannot_redirect:
@@ -2372,6 +2384,8 @@ remove_deprecations_in_breaking_versions:
   notes: |-
     We can implement the fixes indicated in the messages.yaml.
 require_trailing_commas:
+  status: hasFix
+simple_directive_paths:
   status: hasFix
 secure_pubspec_urls:
   status: noFix

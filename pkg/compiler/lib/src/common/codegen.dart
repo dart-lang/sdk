@@ -7,7 +7,6 @@ library;
 // ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart' as js show Precedence;
 
-import '../common/elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
@@ -32,6 +31,7 @@ import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart';
 import '../util/util.dart';
+import 'elements.dart';
 
 class CodegenImpact extends WorldImpact {
   const CodegenImpact();

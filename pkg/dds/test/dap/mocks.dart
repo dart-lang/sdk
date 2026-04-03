@@ -271,6 +271,9 @@ class MockDartDevelopmentServiceLauncher
   MockDartDevelopmentServiceLauncher();
 
   @override
+  String? get appName => throw UnimplementedError();
+
+  @override
   Uri? get devToolsUri => throw UnimplementedError();
 
   @override

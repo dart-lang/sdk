@@ -722,7 +722,6 @@ extension typedef A = B Function(C, D);
       error(diag.expectedToken, 10, 7),
       error(diag.expectedExtensionBody, 18, 1),
       error(diag.expectedExecutable, 20, 1),
-      error(diag.missingFunctionBody, 38, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

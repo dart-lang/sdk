@@ -138,6 +138,9 @@ class _ContextLocator {
 
   final List<Folder> _excludedFolders;
 
+  /// A cache of options file contents for each [SourceFactory].
+  final Map<SourceFactory, Map<Uri, YamlMap>> _optionsCaches = {};
+
   /// The list of context roots ultimately returned by [_locateRoots].
   final _roots = <ContextRootImpl>[];
 
@@ -192,21 +195,19 @@ class _ContextLocator {
 
     var buildGnFile = _findBuildGnFile(parent);
 
-    var rootFolder = _lowest([optionsFolderToChooseRoot, buildGnFile?.parent]);
-
-    // If default packages file is given, create workspace for it.
+    // If a default package config file is given, create workspace for it.
     var workspace = _createWorkspace(
       folder: parent,
       packageConfigFile: packageConfigFile,
       buildGnFile: buildGnFile,
     );
 
-    if (workspace is! BasicWorkspace) {
-      rootFolder = _lowest([
-        rootFolder,
+    var rootFolder = _lowest([
+      optionsFolderToChooseRoot,
+      buildGnFile?.parent,
+      if (workspace is! BasicWorkspace)
         _resourceProvider.getFolder(workspace.root),
-      ]);
-    }
+    ]);
 
     if (workspace is PackageConfigWorkspace) {
       packageConfigFile ??= workspace.packageConfigFile;
@@ -455,30 +456,22 @@ class _ContextLocator {
       }
     }
 
-    Packages packages;
-    if (packageConfigFile != null) {
-      packages = parsePackageConfigJsonFile(
-        _resourceProvider,
-        packageConfigFile,
-      );
-    } else {
-      packages = Packages.empty;
-    }
+    Packages packages = packageConfigFile != null
+        ? parsePackageConfigJsonFile(_resourceProvider, packageConfigFile)
+        : Packages.empty;
 
     var rootPath = folder.path;
 
-    Workspace? workspace;
-    workspace = BlazeWorkspace.find(
-      _resourceProvider,
-      rootPath,
-      lookForBuildFileSubstitutes: false,
-    );
-    workspace = _mostSpecificWorkspace(
-      workspace,
+    Workspace? workspace = _mostSpecificWorkspace(
+      BlazeWorkspace.find(
+        _resourceProvider,
+        rootPath,
+        lookForBuildFileSubstitutes: false,
+      ),
       PackageConfigWorkspace.find(_resourceProvider, packages, rootPath),
     );
-    workspace ??= BasicWorkspace.find(_resourceProvider, packages, rootPath);
-    return workspace;
+    return workspace ??
+        BasicWorkspace.find(_resourceProvider, packages, rootPath);
   }
 
   File? _findBuildGnFile(Folder folder) {
@@ -525,9 +518,15 @@ class _ContextLocator {
     }
     try {
       var provider = AnalysisOptionsProvider(workspace.partialSourceFactory);
-
+      var optionsCache = _optionsCaches.putIfAbsent(
+        workspace.partialSourceFactory,
+        () => {},
+      );
       var options = AnalysisOptionsImpl.fromYaml(
-        optionsMap: provider.getOptionsFromFile(optionsFile),
+        optionsMap: provider.getOptionsFromFile(
+          optionsFile,
+          optionsCache: optionsCache,
+        ),
         file: optionsFile,
         resourceProvider: _resourceProvider,
       );
@@ -551,9 +550,10 @@ class _ContextLocator {
 
     YamlMap options;
     try {
+      var optionsCache = _optionsCaches.putIfAbsent(sourceFactory, () => {});
       options = AnalysisOptionsProvider(
         sourceFactory,
-      ).getOptionsFromFile(optionsFile);
+      ).getOptionsFromFile(optionsFile, optionsCache: optionsCache);
     } catch (exception) {
       // If we can't read and parse the analysis options file, then there
       // aren't any excluded files that need to be read.

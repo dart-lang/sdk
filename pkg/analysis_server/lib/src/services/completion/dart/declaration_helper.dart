@@ -745,11 +745,20 @@ class DeclarationHelper {
         aliasedElement.constructors,
         importData,
         allowNonFactory: !aliasedElement.isAbstract,
+        alias: alias,
       );
     } else if (aliasedElement is ExtensionTypeElement) {
-      _suggestConstructors(aliasedElement.constructors, importData);
+      _suggestConstructors(
+        aliasedElement.constructors,
+        importData,
+        alias: alias,
+      );
     } else if (aliasedElement is MixinElement) {
-      _suggestConstructors(aliasedElement.constructors, importData);
+      _suggestConstructors(
+        aliasedElement.constructors,
+        importData,
+        alias: alias,
+      );
     }
   }
 
@@ -1861,6 +1870,7 @@ class DeclarationHelper {
     required ImportData? importData,
     required bool hasClassName,
     required bool isConstructorRedirect,
+    TypeAliasElement? alias,
   }) {
     if (mustBeAssignable) {
       return;
@@ -1873,6 +1883,11 @@ class DeclarationHelper {
     if (!element.isVisibleIn(request.libraryElement)) {
       return;
     }
+
+    if (alias != null && !alias.isVisibleIn(request.libraryElement)) {
+      return;
+    }
+
     // If the constructor is on a class from a not-yet-imported library and
     // the class isn't visible, then we shouldn't suggest it.
     //
@@ -1884,7 +1899,7 @@ class DeclarationHelper {
     // Add the class to the visibility tracker so that we will know later that
     // any non-imported elements with the same name are not visible.
     visibilityTracker.isVisible(
-      element: element.enclosingElement,
+      element: alias ?? element.enclosingElement,
       importData: importData,
     );
 
@@ -1903,6 +1918,7 @@ class DeclarationHelper {
           replacementRange: request.replacementRange,
           importData: importData,
           element: element,
+          alias: alias,
           hasClassName: hasClassName,
           isTearOff: true,
           isRedirect: isConstructorRedirect,
@@ -1917,6 +1933,7 @@ class DeclarationHelper {
         replacementRange: request.replacementRange,
         importData: importData,
         element: element,
+        alias: alias,
         hasClassName: hasClassName,
         isTearOff: preferNonInvocation,
         isRedirect: isConstructorRedirect,
@@ -1933,6 +1950,7 @@ class DeclarationHelper {
     List<ConstructorElement> constructors,
     ImportData? importData, {
     bool allowNonFactory = true,
+    TypeAliasElement? alias,
   }) {
     if (mustBeAssignable) {
       return;
@@ -1940,12 +1958,14 @@ class DeclarationHelper {
 
     for (var constructor in constructors) {
       if (constructor.isVisibleIn(request.libraryElement) &&
+          (alias?.isVisibleIn(request.libraryElement) ?? true) &&
           (allowNonFactory || constructor.isFactory)) {
         _suggestConstructor(
           constructor,
           hasClassName: false,
           importData: importData,
           isConstructorRedirect: false,
+          alias: alias,
         );
       }
     }

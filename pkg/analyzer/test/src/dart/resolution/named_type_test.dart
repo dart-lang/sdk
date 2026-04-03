@@ -967,6 +967,7 @@ NamedType
   name: X
   element: <testLibrary>::@typeAlias::X
   type: Never
+    alias: <testLibrary>::@typeAlias::X
 ''');
 
     var node2 = findNode.namedType('X? b');
@@ -976,6 +977,8 @@ NamedType
   question: ?
   element: <testLibrary>::@typeAlias::X
   type: Never?
+    alias: <testLibrary>::@typeAlias::X
+      nullabilitySuffix: NullabilitySuffix.question
 ''');
   }
 
@@ -991,6 +994,7 @@ NamedType
   name: X
   element: <testLibrary>::@typeAlias::X
   type: Never?
+    alias: <testLibrary>::@typeAlias::X
 ''');
 
     var node2 = findNode.namedType('X? b');
@@ -1000,6 +1004,8 @@ NamedType
   question: ?
   element: <testLibrary>::@typeAlias::X
   type: Never?
+    alias: <testLibrary>::@typeAlias::X
+      nullabilitySuffix: NullabilitySuffix.question
 ''');
   }
 
@@ -1067,6 +1073,7 @@ NamedType
   name: Nothing
   element: <testLibrary>::@typeAlias::Nothing
   type: void
+    alias: <testLibrary>::@typeAlias::Nothing
 ''');
   }
 

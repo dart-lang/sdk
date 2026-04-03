@@ -30,8 +30,6 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/resolution_listener.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/elements.dart';
-import '../kernel/dart2js_target.dart';
-import '../kernel/no_such_method_resolver.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
@@ -41,9 +39,11 @@ import '../universe/resolution_world_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../util/enumset.dart';
+import 'dart2js_target.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'native_basic_data.dart';
+import 'no_such_method_resolver.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.

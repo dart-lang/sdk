@@ -485,8 +485,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     @Deprecated('DAP never spawns DDS now, this `enableAuthCodes` does nothing')
     bool enableAuthCodes = true,
     this.logger,
-    Function? onError,
-  }) : super(channel, onError: onError) {
+    super.onError,
+  }) : super(channel) {
     channel.closed.then((_) => shutdown());
 
     final vmPath = Platform.resolvedExecutable;

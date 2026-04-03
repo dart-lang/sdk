@@ -855,7 +855,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _returnTypeVerifier.verifyExpressionFunctionBody(node);
+    if (node.parent is! PrimaryConstructorBody) {
+      _returnTypeVerifier.verifyExpressionFunctionBody(node);
+    }
     super.visitExpressionFunctionBody(node);
   }
 
@@ -1593,6 +1595,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               externalKeyword: null,
               isRedirecting: false,
               body: body.body,
+              isPrimary: true,
             );
           }
         }
@@ -2018,7 +2021,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         implementsClause,
         null,
       );
-      _checkForClassUsedAsMixin(withClause);
       _checkForSealedSupertypeOutsideOfLibrary([
         ?superclass,
         ...?withClause?.mixinTypes,
@@ -2099,7 +2101,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that all classes of the given [withClause] are valid.
   ///
-  /// See [diag.mixinClassDeclaresConstructor],
+  /// See [diag.classUsedAsMixin],
+  /// [diag.classUsedAsMixinDeclaresGenerativeConstructor],
   /// [diag.mixinInheritsFromNotObject].
   bool _checkForAllMixinErrorCodes(WithClauseImpl? withClause) {
     if (withClause == null) {
@@ -2142,15 +2145,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             )) {
               problemReported = true;
             }
+          } else if (mixinElement is ClassElementImpl &&
+              !mixinElement.isMixinClass &&
+              mixinElement.library.featureSet.isEnabled(
+                Feature.class_modifiers,
+              ) &&
+              !_mayIgnoreClassModifiers(mixinElement.library)) {
+            diagnosticReporter.report(
+              diag.classUsedAsMixin
+                  .withArguments(name: mixinElement.name!)
+                  .at(mixinName),
+            );
           } else {
-            bool isMixinClass =
-                mixinElement is ClassElementImpl && mixinElement.isMixinClass;
-            if (!isMixinClass &&
-                _checkForMixinClassDeclaresConstructor(
-                  mixinName,
-                  mixinElement,
-                )) {
-              problemReported = true;
+            if (mixinElement is ClassElementImpl &&
+                !mixinElement.isMixinClass) {
+              if (_checkForClassUsedAsMixinDeclaresGenerativeConstructor(
+                mixinName,
+                mixinElement,
+              )) {
+                problemReported = true;
+              }
             }
             if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
               problemReported = true;
@@ -2516,31 +2530,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Verify that if a class is being mixed in and class modifiers are enabled
-  /// in that class' library, then it must be a mixin class.
+  /// Verify that the given class used as a mixin does not declare a generative
+  /// constructor. The [mixinName] is the node to report the problem on. The
+  /// [mixinElement] is the class being mixed in.
   ///
-  /// See [diag.classUsedAsMixin].
-  void _checkForClassUsedAsMixin(WithClause? withClause) {
-    if (withClause != null) {
-      for (NamedType withMixin in withClause.mixinTypes) {
-        var withType = withMixin.type;
-        if (withType is InterfaceType) {
-          var withElement = withType.element;
-          if (withElement is ClassElementImpl &&
-              !withElement.isMixinClass &&
-              withElement.library.featureSet.isEnabled(
-                Feature.class_modifiers,
-              ) &&
-              !_mayIgnoreClassModifiers(withElement.library)) {
-            diagnosticReporter.report(
-              diag.classUsedAsMixin
-                  .withArguments(name: withElement.name!)
-                  .at(withMixin),
-            );
-          }
-        }
+  /// See [diag.classUsedAsMixinDeclaresGenerativeConstructor].
+  bool _checkForClassUsedAsMixinDeclaresGenerativeConstructor(
+    NamedType mixinName,
+    InterfaceElement mixinElement,
+  ) {
+    for (var constructor in mixinElement.constructors) {
+      if (constructor.isOriginDeclaration && !constructor.isFactory) {
+        diagnosticReporter.report(
+          diag.classUsedAsMixinDeclaresGenerativeConstructor
+              .withArguments(className: mixinElement.name!)
+              .at(mixinName),
+        );
+        return true;
       }
     }
+    return false;
   }
 
   /// Verify that the [_enclosingClass] does not have a method and getter pair
@@ -4699,32 +4708,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Verify that the given mixin does not have an explicitly declared
-  /// constructor. The [mixinName] is the node to report problem on. The
-  /// [mixinElement] is the mixing to evaluate.
-  ///
-  /// See [diag.mixinClassDeclaresConstructor].
-  bool _checkForMixinClassDeclaresConstructor(
-    NamedType mixinName,
-    InterfaceElement mixinElement,
-  ) {
-    for (var constructor in mixinElement.constructors) {
-      if (constructor.isOriginDeclaration && !constructor.isFactory) {
-        diagnosticReporter.report(
-          diag.mixinClassDeclaresConstructor
-              .withArguments(className: mixinElement.name!)
-              .at(mixinName),
-        );
-        return true;
-      }
-    }
-    return false;
-  }
-
   /// Verify that mixin classes must have 'Object' as their superclass and that
-  /// they do not have a constructor.
+  /// they do not declare a non-trivial generative constructor.
   ///
-  /// See [diag.mixinClassDeclaresConstructor],
+  /// See [diag.mixinClassDeclaresNonTrivialGenerativeConstructor],
   /// [diag.mixinInheritsFromNotObject].
   void _checkForMixinClassErrorCodes(
     CompilationUnitMember node,
@@ -4745,7 +4732,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (!constructor.isSynthetic && constructor.isGenerative) {
             if (!constructor.isTrivial) {
               diagnosticReporter.report(
-                diag.mixinClassDeclaresConstructor
+                diag.mixinClassDeclaresNonTrivialGenerativeConstructor
                     .withArguments(className: className)
                     .atSourceRange(constructor.errorRange),
               );
@@ -4758,20 +4745,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             case PrimaryConstructorDeclarationImpl primaryConstructor) {
           if (primaryConstructor.formalParameters.parameters.isNotEmpty) {
             diagnosticReporter.report(
-              diag.mixinClassDeclaresConstructor
+              diag.mixinClassDeclaresNonTrivialGenerativeConstructor
                   .withArguments(className: className)
                   .atSourceRange(primaryConstructor.errorRange),
             );
           } else if (primaryConstructor.body case var body?) {
             if (body.initializers.isNotEmpty) {
               diagnosticReporter.report(
-                diag.mixinClassDeclaresConstructor
+                diag.mixinClassDeclaresNonTrivialGenerativeConstructor
                     .withArguments(className: className)
                     .at(body.colon!),
               );
             } else if (body.body case BlockFunctionBody blockBody) {
               diagnosticReporter.report(
-                diag.mixinClassDeclaresConstructor
+                diag.mixinClassDeclaresNonTrivialGenerativeConstructor
                     .withArguments(className: className)
                     .at(blockBody.block.leftBracket),
               );
@@ -6943,6 +6930,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required Token? externalKeyword,
     required bool isRedirecting,
     required FunctionBody body,
+    bool isPrimary = false,
   }) {
     if (element.isFactory) {
       if (externalKeyword != null) {
@@ -6976,14 +6964,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       if (element.isConst) {
         if (body is BlockFunctionBody) {
-          diagnosticReporter.report(
-            diag.constConstructorWithBody.at(body.block.leftBracket),
-          );
+          var error = isPrimary
+              ? diag.constPrimaryConstructorWithBlockBody
+              : diag.constConstructorWithBody;
+          diagnosticReporter.report(error.at(body.block.leftBracket));
         } else if (body is ExpressionFunctionBody) {
-          diagnosticReporter.report(
-            diag.constConstructorWithBody.at(body.functionDefinition),
-          );
+          var error = isPrimary
+              ? diag.constPrimaryConstructorWithExpressionBody
+              : diag.constConstructorWithBody;
+          diagnosticReporter.report(error.at(body.functionDefinition));
         }
+      } else if (isPrimary && body is ExpressionFunctionBody) {
+        diagnosticReporter.report(
+          diag.primaryConstructorBodyWithExpressionBody.at(
+            body.functionDefinition,
+          ),
+        );
       }
     }
   }

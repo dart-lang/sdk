@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -133,57 +134,37 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
 
   /// Prepares proposal for creating function corresponding to the given
   /// [FunctionType].
-  Future<void> _createExecutable(
-    ChangeBuilder builder,
+  void _createExecutable(
+    DartEditBuilder builder,
     FunctionType functionType,
     String name,
-    String targetFile,
-    int insertOffset,
     bool isStatic,
-    String prefix, {
-    required bool leadingEol,
-    required bool trailingEol,
-  }) async {
-    // build method source
-    await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addInsertion(insertOffset, (builder) {
-        if (leadingEol) {
-          builder.writeln();
-        }
-        builder.write(prefix);
-        // may be static
-        if (isStatic) {
-          builder.write('static ');
-        }
-        // append return type
-        if (builder.writeType(
-          functionType.returnType,
-          typeParametersInScope: functionType.typeParameters,
-          groupName: 'RETURN_TYPE',
-        )) {
-          builder.write(' ');
-        }
-        // append name
-        builder.addLinkedEdit('NAME', (builder) {
-          builder.write(name);
-        });
-        // append type parameters
-        builder.writeTypeParameters(functionType.typeParameters);
-        // append parameters
-        builder.writeFormalParameters(functionType.formalParameters);
-        if (functionType.returnType.isDartAsyncFuture) {
-          builder.write(' async');
-        }
-        // close method
-        builder.write(' {}');
-        if (trailingEol) {
-          builder.writeln();
-        }
-      });
-      if (targetFile == file) {
-        builder.addLinkedPosition(range.node(node), 'NAME');
-      }
+  ) {
+    // may be static
+    if (isStatic) {
+      builder.write('static ');
+    }
+    // append return type
+    if (builder.writeType(
+      functionType.returnType,
+      typeParametersInScope: functionType.typeParameters,
+      groupName: 'RETURN_TYPE',
+    )) {
+      builder.write(' ');
+    }
+    // append name
+    builder.addLinkedEdit('NAME', (builder) {
+      builder.write(name);
     });
+    // append type parameters
+    builder.writeTypeParameters(functionType.typeParameters);
+    // append parameters
+    builder.writeFormalParameters(functionType.formalParameters);
+    if (functionType.returnType.isDartAsyncFuture) {
+      builder.write(' async');
+    }
+    // close method
+    builder.write(' {}');
   }
 
   /// Adds proposal for creating method corresponding to the given
@@ -195,19 +176,14 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     var name = (node as SimpleIdentifier).name;
     // prepare environment
     var insertOffset = unit.end;
-    // prepare prefix
-    var prefix = '';
-    await _createExecutable(
-      builder,
-      functionType,
-      name,
-      file,
-      insertOffset,
-      false,
-      prefix,
-      leadingEol: true,
-      trailingEol: true,
-    );
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(insertOffset, (builder) {
+        builder.writeln();
+        _createExecutable(builder, functionType, name, false);
+        builder.writeln();
+      });
+      builder.addLinkedPosition(range.node(node), 'NAME');
+    });
     _functionName = name;
   }
 
@@ -227,23 +203,20 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     }
     // prepare environment
     var targetSource = targetClassElement.firstFragment.libraryFragment.source;
-    var classMembers = targetNode.classMembers;
-    var insertOffset = targetNode.end - 1;
-    // prepare prefix
-    var prefix = '  ';
-    var leadingEol = classMembers.isNotEmpty;
-    var trailingEol = true;
-    await _createExecutable(
-      builder,
-      functionType,
-      name,
-      targetSource.fullName,
-      insertOffset,
-      isStatic || inStaticContext,
-      prefix,
-      leadingEol: leadingEol,
-      trailingEol: trailingEol,
-    );
+    var targetFile = targetSource.fullName;
+    await builder.addDartFileEdit(targetFile, (builder) {
+      builder.insertMethod(targetNode, (builder) {
+        _createExecutable(
+          builder,
+          functionType,
+          name,
+          isStatic || inStaticContext,
+        );
+      });
+      if (targetFile == file) {
+        builder.addLinkedPosition(range.node(node), 'NAME');
+      }
+    });
     _functionName = name;
   }
 }

@@ -90,6 +90,8 @@ import 'cast_from_null_always_fails_test.dart' as cast_from_null_always_fails;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'class_instantiation_access_to_member_test.dart'
     as class_instantiation_access_to_member;
+import 'class_used_as_mixin_declares_generative_constructor_test.dart'
+    as class_used_as_mixin_declares_generative_constructor;
 import 'class_used_as_mixin_test.dart' as class_used_as_mixin;
 import 'concrete_class_has_enum_superinterface_test.dart'
     as concrete_class_has_enum_superinterface;
@@ -558,8 +560,8 @@ import 'mixin_application_not_implemented_interface_test.dart'
     as mixin_application_not_implemented_interface;
 import 'mixin_class_declaration_extends_not_object_test.dart'
     as mixin_class_declaration_extends_not_object;
-import 'mixin_class_declares_constructor_test.dart'
-    as mixin_class_declares_constructor;
+import 'mixin_class_declares_non_trivial_generative_constructor_test.dart'
+    as mixin_class_declares_non_trivial_generative_constructor;
 import 'mixin_declares_constructor_test.dart' as mixin_declares_constructor;
 import 'mixin_deferred_class_test.dart' as mixin_deferred_class;
 import 'mixin_inference_no_possible_substitution_test.dart'
@@ -1009,6 +1011,7 @@ main() {
     cast_from_null_always_fails.main();
     cast_to_non_type.main();
     class_instantiation_access_to_member.main();
+    class_used_as_mixin_declares_generative_constructor.main();
     class_used_as_mixin.main();
     concrete_class_has_enum_superinterface.main();
     concrete_class_with_abstract_member.main();
@@ -1306,7 +1309,7 @@ main() {
     mixin_application_no_concrete_super_invoked_member.main();
     mixin_application_not_implemented_interface.main();
     mixin_class_declaration_extends_not_object.main();
-    mixin_class_declares_constructor.main();
+    mixin_class_declares_non_trivial_generative_constructor.main();
     mixin_declares_constructor.main();
     mixin_deferred_class.main();
     mixin_inference_no_possible_substitution.main();

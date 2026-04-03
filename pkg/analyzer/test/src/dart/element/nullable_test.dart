@@ -473,6 +473,7 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
 
   test_never() {
     _check(neverNone, neverNone);
+    _check(neverQuestion, neverNone);
   }
 
   test_null() {

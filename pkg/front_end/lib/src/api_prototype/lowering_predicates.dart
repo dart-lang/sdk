@@ -701,7 +701,7 @@ String extractLocalNameFromLateLoweredSetter(String name) {
 ///     int Extension|method(int #this) => #this;
 ///
 /// where '#this' is the synthetic "extension this" parameter.
-bool isExtensionThis(Variable node) {
+bool isExtensionThis(VariableDeclaration node) {
   assert(
     node.isLowered ||
         node.cosmeticName == null ||

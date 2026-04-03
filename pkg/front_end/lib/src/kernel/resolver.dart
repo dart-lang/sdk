@@ -415,9 +415,12 @@ class Resolver {
         initializers: result.initializers,
         constantContext: constantContext,
         internalThisVariable: internalThisVariable,
+        forPrimaryConstructor: false,
       );
       context.performBacklog(result.annotations);
-    } on DebugAbort {
+    }
+    // Coverage-ignore(suite): Not run.
+    on DebugAbort {
       rethrow;
     } catch (e, s) {
       throw new Crash(fileUri, token.charOffset, e, s);
@@ -437,6 +440,7 @@ class Resolver {
     required Uri fileUri,
     required Token beginInitializers,
     required bool isConst,
+    required bool forPrimaryConstructor,
   }) {
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
@@ -492,6 +496,7 @@ class Resolver {
         fileUri: fileUri,
         constantContext: constantContext,
         initializers: initializers,
+        forPrimaryConstructor: forPrimaryConstructor,
       );
     }
     context.performBacklog(result.annotations);
@@ -683,6 +688,7 @@ class Resolver {
           initializers: result.initializers,
           constantContext: constantContext,
           internalThisVariable: internalThisVariable,
+          forPrimaryConstructor: true,
         );
 
         context.performBacklog(result.annotations);
@@ -765,6 +771,7 @@ class Resolver {
         initializers: result.initializers,
         thisVariable: functionBodyBuildingContext.thisVariable,
         internalThisVariable: internalThisVariable,
+        forPrimaryConstructor: true,
       );
       context.performBacklog(result.annotations);
     }
@@ -835,7 +842,7 @@ class Resolver {
     required LookupScope scope,
     required Token token,
     required Procedure procedure,
-    required List<Variable> extraKnownVariables,
+    required List<VariableDeclaration> extraKnownVariables,
     required ExpressionEvaluationHelper expressionEvaluationHelper,
     required VariableDeclaration? extensionThis,
   }) {
@@ -932,7 +939,7 @@ class Resolver {
         );
       }
     }
-    for (Variable extraVariable in extraKnownVariables) {
+    for (VariableDeclaration extraVariable in extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
         extraVariable,
         new SharedTypeView(extraVariable.type),
@@ -1247,6 +1254,7 @@ class Resolver {
     required Uri fileUri,
     required ConstantContext constantContext,
     required List<Initializer> initializers,
+    required bool forPrimaryConstructor,
   }) {
     _InitializerBuilder initializerBuilder = new _InitializerBuilder(
       compilerContext: compilerContext,
@@ -1263,6 +1271,7 @@ class Resolver {
       initializers: initializers,
       asyncMarker: asyncModifier,
       asyncModifierFileOffset: body?.fileOffset,
+      forPrimaryConstructor: forPrimaryConstructor,
     );
 
     if (body == null && !bodyBuilderContext.isExternalConstructor) {
@@ -1281,7 +1290,12 @@ class Resolver {
           className: bodyBuilderContext.className,
         ),
         fileUri: fileUri,
-        fileOffset: bodyBuilderContext.memberNameOffset,
+        // It is allowed to have a primary constructor without a body, so
+        // for primary constructors we report the error on the body and not
+        // the name of the constructor.
+        fileOffset: forPrimaryConstructor
+            ? body.fileOffset
+            : bodyBuilderContext.memberNameOffset,
         length: noLength,
       );
     }
@@ -1301,6 +1315,7 @@ class Resolver {
     required List<Initializer> initializers,
     required ConstantContext constantContext,
     required ThisVariable? internalThisVariable,
+    required bool forPrimaryConstructor,
   }) {
     AssignedVariables assignedVariables = context.assignedVariables;
 
@@ -1387,6 +1402,7 @@ class Resolver {
         fileUri: fileUri,
         constantContext: constantContext,
         initializers: initializers,
+        forPrimaryConstructor: forPrimaryConstructor,
       );
     }
 

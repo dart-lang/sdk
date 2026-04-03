@@ -68,6 +68,14 @@ class UnknownInferredType extends TypeImpl implements SharedUnknownType {
   }
 
   @override
+  UnknownInferredType withAlias(InstantiatedTypeAliasElementImpl alias) {
+    // This should never happen because UnknownInferredType should only happen
+    // inside type schemas, and it should be impossible for an alias declaration
+    // to use a type schema.
+    throw StateError('UnknownInferredType should not have an alias.');
+  }
+
+  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
 
   /// Given a [type] T, return true if it does not have an unknown type `_`.

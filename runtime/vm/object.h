@@ -36,6 +36,7 @@
 #include "vm/raw_object.h"
 #include "vm/regexp/regexp-flags.h"
 #include "vm/report.h"
+#include "vm/roots.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/thread.h"
 #include "vm/token_position.h"
@@ -155,9 +156,6 @@ class BaseTextBuffer;
   DART_NOINLINE static object& ZoneHandle(Zone* zone, object##Ptr ptr) {       \
     return static_cast<object&>(ZoneHandleImpl(zone, ptr, kClassId));          \
   }                                                                            \
-  static object* ReadOnlyHandle() {                                            \
-    return static_cast<object*>(ReadOnlyHandleImpl(kClassId));                 \
-  }                                                                            \
   DART_NOINLINE static object& CheckedHandle(Zone* zone, ObjectPtr ptr) {      \
     object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
     initializeHandle(obj, ptr);                                                \
@@ -249,6 +247,9 @@ class BaseTextBuffer;
   DART_NOINLINE void operator=(object##Ptr value) {                            \
     initializeHandle(this, value);                                             \
   }                                                                            \
+  DART_NOINLINE void initRO(object##Ptr value) const {                         \
+    initializeHandle(const_cast<object*>(this), value);                        \
+  }                                                                            \
   DART_NOINLINE void operator^=(ObjectPtr value) {                             \
     initializeHandle(this, value);                                             \
     ASSERT(IsNull() || Is##object());                                          \
@@ -279,6 +280,9 @@ extern "C" void DLRT_ExitSafepoint();
   void operator=(object##Ptr value) {                                          \
     ptr_ = value;                                                              \
     CHECK_HANDLE();                                                            \
+  }                                                                            \
+  DART_NOINLINE void initRO(object##Ptr value) const {                         \
+    initializeHandle(const_cast<object*>(this), value);                        \
   }                                                                            \
   void operator^=(ObjectPtr value) {                                           \
     ptr_ = value;                                                              \
@@ -349,6 +353,9 @@ class Object {
   }
   ObjectPtr ptr() const { return ptr_; }
   void operator=(ObjectPtr value) { initializeHandle(this, value); }
+  void initRO(ObjectPtr value) const {
+    initializeHandle(const_cast<Object*>(this), value);
+  }
 
   bool IsCanonical() const { return ptr()->untag()->IsCanonical(); }
   void SetCanonical() const { ptr()->untag()->SetCanonical(); }
@@ -418,7 +425,7 @@ class Object {
   CLASS_LIST_FOR_HANDLES(DEFINE_CLASS_TESTER);
 #undef DEFINE_CLASS_TESTER
 
-  bool IsNull() const { return ptr_ == null_; }
+  bool IsNull() const { return ptr_ == Roots::null_obj(); }
 
   // Matches Object.toString on instances (except String::ToCString, bug 20583).
   virtual const char* ToCString() const {
@@ -463,10 +470,10 @@ class Object {
 #endif
 
   static Object& Handle() {
-    return HandleImpl(Thread::Current()->zone(), null_, kObjectCid);
+    return HandleImpl(Thread::Current()->zone(), Roots::null_obj(), kObjectCid);
   }
   static Object& Handle(Zone* zone) {
-    return HandleImpl(zone, null_, kObjectCid);
+    return HandleImpl(zone, Roots::null_obj(), kObjectCid);
   }
   static Object& Handle(ObjectPtr ptr) {
     return HandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
@@ -475,10 +482,11 @@ class Object {
     return HandleImpl(zone, ptr, kObjectCid);
   }
   static Object& ZoneHandle() {
-    return ZoneHandleImpl(Thread::Current()->zone(), null_, kObjectCid);
+    return ZoneHandleImpl(Thread::Current()->zone(), Roots::null_obj(),
+                          kObjectCid);
   }
   static Object& ZoneHandle(Zone* zone) {
-    return ZoneHandleImpl(zone, null_, kObjectCid);
+    return ZoneHandleImpl(zone, Roots::null_obj(), kObjectCid);
   }
   static Object& ZoneHandle(ObjectPtr ptr) {
     return ZoneHandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
@@ -486,9 +494,8 @@ class Object {
   static Object& ZoneHandle(Zone* zone, ObjectPtr ptr) {
     return ZoneHandleImpl(zone, ptr, kObjectCid);
   }
-  static Object* ReadOnlyHandle() { return ReadOnlyHandleImpl(kObjectCid); }
 
-  static ObjectPtr null() { return null_; }
+  static ObjectPtr null() { return Roots::null_obj(); }
 
 #if defined(HASH_IN_OBJECT_HEADER)
   static uint32_t GetCachedHash(const ObjectPtr obj) {
@@ -574,74 +581,89 @@ class Object {
   V(Array, uninitialized_data)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
-  static const Type& name() {                                                  \
-    ASSERT(name##_ != nullptr);                                                \
-    return *name##_;                                                           \
-  }
+  static const Type& name() { return Roots::name(); }
   SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE_GETTER)
 #undef DEFINE_SHARED_READONLY_HANDLE_GETTER
 
   static void set_vm_isolate_snapshot_object_table(const Array& table);
 
-  static ClassPtr class_class() { return class_class_; }
-  static ClassPtr dynamic_class() { return dynamic_class_; }
-  static ClassPtr void_class() { return void_class_; }
-  static ClassPtr type_parameters_class() { return type_parameters_class_; }
-  static ClassPtr type_arguments_class() { return type_arguments_class_; }
-  static ClassPtr patch_class_class() { return patch_class_class_; }
-  static ClassPtr function_class() { return function_class_; }
-  static ClassPtr closure_data_class() { return closure_data_class_; }
+  static ClassPtr class_class() { return Roots::class_class(); }
+  static ClassPtr dynamic_class() { return Roots::dynamic_class(); }
+  static ClassPtr void_class() { return Roots::void_class(); }
+  static ClassPtr type_parameters_class() {
+    return Roots::type_parameters_class();
+  }
+  static ClassPtr type_arguments_class() {
+    return Roots::type_arguments_class();
+  }
+  static ClassPtr patch_class_class() { return Roots::patch_class_class(); }
+  static ClassPtr function_class() { return Roots::function_class(); }
+  static ClassPtr closure_data_class() { return Roots::closure_data_class(); }
   static ClassPtr ffi_trampoline_data_class() {
-    return ffi_trampoline_data_class_;
+    return Roots::ffi_trampoline_data_class();
   }
-  static ClassPtr field_class() { return field_class_; }
-  static ClassPtr script_class() { return script_class_; }
-  static ClassPtr library_class() { return library_class_; }
-  static ClassPtr namespace_class() { return namespace_class_; }
+  static ClassPtr field_class() { return Roots::field_class(); }
+  static ClassPtr script_class() { return Roots::script_class(); }
+  static ClassPtr library_class() { return Roots::library_class(); }
+  static ClassPtr namespace_class() { return Roots::namespace_class(); }
   static ClassPtr kernel_program_info_class() {
-    return kernel_program_info_class_;
+    return Roots::kernel_program_info_class();
   }
-  static ClassPtr code_class() { return code_class_; }
-  static ClassPtr instructions_class() { return instructions_class_; }
+  static ClassPtr code_class() { return Roots::code_class(); }
+  static ClassPtr instructions_class() { return Roots::instructions_class(); }
   static ClassPtr instructions_section_class() {
-    return instructions_section_class_;
+    return Roots::instructions_section_class();
   }
   static ClassPtr instructions_table_class() {
-    return instructions_table_class_;
+    return Roots::instructions_table_class();
   }
-  static ClassPtr object_pool_class() { return object_pool_class_; }
-  static ClassPtr pc_descriptors_class() { return pc_descriptors_class_; }
-  static ClassPtr code_source_map_class() { return code_source_map_class_; }
+  static ClassPtr object_pool_class() { return Roots::object_pool_class(); }
+  static ClassPtr pc_descriptors_class() {
+    return Roots::pc_descriptors_class();
+  }
+  static ClassPtr code_source_map_class() {
+    return Roots::code_source_map_class();
+  }
   static ClassPtr compressed_stackmaps_class() {
-    return compressed_stackmaps_class_;
+    return Roots::compressed_stackmaps_class();
   }
-  static ClassPtr var_descriptors_class() { return var_descriptors_class_; }
+  static ClassPtr var_descriptors_class() {
+    return Roots::var_descriptors_class();
+  }
   static ClassPtr exception_handlers_class() {
-    return exception_handlers_class_;
+    return Roots::exception_handlers_class();
   }
-  static ClassPtr context_class() { return context_class_; }
-  static ClassPtr context_scope_class() { return context_scope_class_; }
-  static ClassPtr bytecode_class() { return bytecode_class_; }
-  static ClassPtr sentinel_class() { return sentinel_class_; }
-  static ClassPtr api_error_class() { return api_error_class_; }
-  static ClassPtr language_error_class() { return language_error_class_; }
+  static ClassPtr context_class() { return Roots::context_class(); }
+  static ClassPtr context_scope_class() { return Roots::context_scope_class(); }
+  static ClassPtr bytecode_class() { return Roots::bytecode_class(); }
+  static ClassPtr sentinel_class() { return Roots::sentinel_class(); }
+  static ClassPtr api_error_class() { return Roots::api_error_class(); }
+  static ClassPtr language_error_class() {
+    return Roots::language_error_class();
+  }
   static ClassPtr unhandled_exception_class() {
-    return unhandled_exception_class_;
+    return Roots::unhandled_exception_class();
   }
-  static ClassPtr unwind_error_class() { return unwind_error_class_; }
-  static ClassPtr singletargetcache_class() { return singletargetcache_class_; }
-  static ClassPtr unlinkedcall_class() { return unlinkedcall_class_; }
+  static ClassPtr unwind_error_class() { return Roots::unwind_error_class(); }
+  static ClassPtr singletargetcache_class() {
+    return Roots::singletargetcache_class();
+  }
+  static ClassPtr unlinkedcall_class() { return Roots::unlinkedcall_class(); }
   static ClassPtr monomorphicsmiablecall_class() {
-    return monomorphicsmiablecall_class_;
+    return Roots::monomorphicsmiablecall_class();
   }
-  static ClassPtr icdata_class() { return icdata_class_; }
-  static ClassPtr megamorphic_cache_class() { return megamorphic_cache_class_; }
-  static ClassPtr subtypetestcache_class() { return subtypetestcache_class_; }
-  static ClassPtr loadingunit_class() { return loadingunit_class_; }
+  static ClassPtr icdata_class() { return Roots::icdata_class(); }
+  static ClassPtr megamorphic_cache_class() {
+    return Roots::megamorphic_cache_class();
+  }
+  static ClassPtr subtypetestcache_class() {
+    return Roots::subtypetestcache_class();
+  }
+  static ClassPtr loadingunit_class() { return Roots::loadingunit_class(); }
   static ClassPtr weak_serialization_reference_class() {
-    return weak_serialization_reference_class_;
+    return Roots::weak_serialization_reference_class();
   }
-  static ClassPtr weak_array_class() { return weak_array_class_; }
+  static ClassPtr weak_array_class() { return Roots::weak_array_class(); }
 
   // Initialize the VM isolate.
   static void InitNullAndBool(IsolateGroup* isolate_group);
@@ -742,7 +764,7 @@ class Object {
   friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
 
   // Used for extracting the C++ vtable during bringup.
-  Object() : ptr_(null_) {}
+  Object() : ptr_(Roots::null_obj()) {}
 
   uword raw_value() const { return static_cast<uword>(ptr()); }
 
@@ -762,11 +784,6 @@ class Object {
         reinterpret_cast<Object*>(VMHandles::AllocateZoneHandle(zone));
     obj->setPtr(ptr, default_cid);
     return *obj;
-  }
-  DART_NOINLINE static Object* ReadOnlyHandleImpl(intptr_t cid) {
-    Object* obj = reinterpret_cast<Object*>(Dart::AllocateReadOnlyHandle());
-    obj->setPtr(Object::null(), cid);
-    return obj;
   }
 
   // Memcpy to account for the strict aliasing rule.
@@ -1077,58 +1094,6 @@ class Object {
   }
 
   static cpp_vtable builtin_vtables_[kNumPredefinedCids];
-
-  // The static values below are singletons shared between the different
-  // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
-  static ObjectPtr null_;
-  static BoolPtr true_;
-  static BoolPtr false_;
-
-  static ClassPtr class_class_;
-  static ClassPtr dynamic_class_;
-  static ClassPtr void_class_;
-  static ClassPtr type_parameters_class_;
-  static ClassPtr type_arguments_class_;
-  static ClassPtr patch_class_class_;
-  static ClassPtr function_class_;
-  static ClassPtr closure_data_class_;
-  static ClassPtr ffi_trampoline_data_class_;
-  static ClassPtr field_class_;
-  static ClassPtr script_class_;
-  static ClassPtr library_class_;
-  static ClassPtr namespace_class_;
-  static ClassPtr kernel_program_info_class_;
-  static ClassPtr code_class_;
-  static ClassPtr instructions_class_;
-  static ClassPtr instructions_section_class_;
-  static ClassPtr instructions_table_class_;
-  static ClassPtr object_pool_class_;
-  static ClassPtr pc_descriptors_class_;
-  static ClassPtr code_source_map_class_;
-  static ClassPtr compressed_stackmaps_class_;
-  static ClassPtr var_descriptors_class_;
-  static ClassPtr exception_handlers_class_;
-  static ClassPtr context_class_;
-  static ClassPtr context_scope_class_;
-  static ClassPtr bytecode_class_;
-  static ClassPtr sentinel_class_;
-  static ClassPtr singletargetcache_class_;
-  static ClassPtr unlinkedcall_class_;
-  static ClassPtr monomorphicsmiablecall_class_;
-  static ClassPtr icdata_class_;
-  static ClassPtr megamorphic_cache_class_;
-  static ClassPtr subtypetestcache_class_;
-  static ClassPtr loadingunit_class_;
-  static ClassPtr api_error_class_;
-  static ClassPtr language_error_class_;
-  static ClassPtr unhandled_exception_class_;
-  static ClassPtr unwind_error_class_;
-  static ClassPtr weak_serialization_reference_class_;
-  static ClassPtr weak_array_class_;
-
-#define DECLARE_SHARED_READONLY_HANDLE(Type, name) static Type* name##_;
-  SHARED_READONLY_HANDLES_LIST(DECLARE_SHARED_READONLY_HANDLE)
-#undef DECLARE_SHARED_READONLY_HANDLE
 
   friend void ClassTable::Register(const Class& cls);
   friend void UntaggedObject::Validate(IsolateGroup* isolate_group) const;
@@ -2950,9 +2915,6 @@ class ICData : public CallSiteData {
   static void WriteSentinel(const Array& data,
                             intptr_t test_entry_length,
                             const Object& back_ref);
-
-  // A cache of VM heap allocated preinitialized empty ic data entry arrays.
-  static ArrayPtr cached_icdata_arrays_[kCachedICDataArrayCount];
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, CallSiteData);
   friend class CallSiteResetter;

@@ -15,7 +15,6 @@ import 'package:kernel/ast.dart'
         NamedParameter,
         NullLiteral,
         PositionalParameter,
-        VariableBase,
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
@@ -29,6 +28,7 @@ import '../kernel/internal_ast.dart'
         InternalCatchVariable,
         InternalNamedParameter,
         InternalPositionalParameter,
+        InternalVariable,
         VariableDeclarationImpl;
 import '../kernel/resolver.dart';
 import '../kernel/wildcard_lowering.dart';
@@ -68,7 +68,7 @@ abstract class ParameterBuilder {
 
   int get fileOffset;
 
-  VariableBase build(SourceLibraryBuilder library);
+  VariableDeclaration build(SourceLibraryBuilder library);
 }
 
 abstract class ParameterVariableBuilder
@@ -292,11 +292,11 @@ class FormalParameterBuilder extends NamedBuilderImpl
         )..fileOffset = fileOffset;
       }
     }
-    return _variable!;
+    return _variable!.asExpressionVariable;
   }
 
   @override
-  VariableDeclaration get variable => _variable!;
+  VariableDeclaration get variable => _variable!.asExpressionVariable;
 
   @override
   void onInferredType(DartType type) {
@@ -492,7 +492,7 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   }
 
   @override
-  VariableBase build(SourceLibraryBuilder library) {
+  VariableDeclaration build(SourceLibraryBuilder library) {
     throw new UnsupportedError("${this.runtimeType}.build");
   }
 }
@@ -516,7 +516,7 @@ class CatchParameterBuilder extends NamedBuilderImpl
   final Uri fileUri;
 
   /// The variable declaration created for this catch parameter.
-  CatchVariable? _variable;
+  InternalVariable? _variable;
 
   /// If this is a wildcard variable, this holds the index used to create a
   /// uniquely named kernel variable for it.
@@ -592,10 +592,10 @@ class CatchParameterBuilder extends NamedBuilderImpl
   String get fullNameForErrors => name;
 
   @override
-  CatchVariable get variable => _variable!;
+  VariableDeclaration get variable => _variable!.asExpressionVariable;
 
   @override
-  CatchVariable build(SourceLibraryBuilder library) {
+  VariableDeclaration build(SourceLibraryBuilder library) {
     if (_variable == null) {
       bool isTypeOmitted = type is OmittedTypeBuilder;
       DartType? builtType = type.build(library, TypeUse.parameterType);
@@ -630,7 +630,7 @@ class CatchParameterBuilder extends NamedBuilderImpl
         )..fileOffset = fileOffset;
       }
     }
-    return _variable!;
+    return _variable!.asExpressionVariable;
   }
 
   @override

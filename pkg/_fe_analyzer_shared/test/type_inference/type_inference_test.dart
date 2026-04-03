@@ -2016,6 +2016,137 @@ main() {
         });
       });
     });
+
+    group('Yield:', () {
+      group('YieldExpressionResult:', () {
+        group('operandType:', () {
+          test('yield', () {
+            h.run([
+              yield_(expr('int')).checkStatementTypeAnalysisResult((result) {
+                result as YieldStatementResult;
+                expect(result.operandType.toString(), 'int');
+              }),
+            ]);
+          });
+
+          test('yield*', () {
+            h.run([
+              yield_(
+                isYieldStar: true,
+                expr('List<int>'),
+              ).checkStatementTypeAnalysisResult((result) {
+                result as YieldStatementResult;
+                expect(result.operandType.toString(), 'List<int>');
+              }),
+            ]);
+          });
+        });
+      });
+
+      group('Downward inference:', () {
+        group('with unknown context:', () {
+          group('yield:', () {
+            test('sync*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: false,
+                  yieldContext: Type('_'),
+                ),
+                [yield_(expr('int').checkSchema('_'))],
+              );
+            });
+
+            test('async*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: true,
+                  yieldContext: Type('_'),
+                ),
+                [yield_(expr('int').checkSchema('_'))],
+              );
+            });
+          });
+
+          group('yield*:', () {
+            test('sync*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: false,
+                  yieldContext: Type('_'),
+                ),
+                [yield_(isYieldStar: true, expr('int').checkSchema('_'))],
+              );
+            });
+
+            test('async*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: true,
+                  yieldContext: Type('_'),
+                ),
+                [yield_(isYieldStar: true, expr('int').checkSchema('_'))],
+              );
+            });
+          });
+        });
+
+        group('with known context:', () {
+          group('yield:', () {
+            test('sync*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: false,
+                  yieldContext: Type('int'),
+                ),
+                [yield_(expr('int').checkSchema('int'))],
+              );
+            });
+
+            test('async*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: true,
+                  yieldContext: Type('int'),
+                ),
+                [yield_(expr('int').checkSchema('int'))],
+              );
+            });
+          });
+
+          group('yield*:', () {
+            test('sync*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: false,
+                  yieldContext: Type('int'),
+                ),
+                [
+                  yield_(
+                    isYieldStar: true,
+                    expr('int').checkSchema('Iterable<int>'),
+                  ),
+                ],
+              );
+            });
+
+            test('async*', () {
+              h.run(
+                bodyContext: BodyContext(
+                  isAsync: true,
+                  yieldContext: Type('int'),
+                ),
+                [
+                  yield_(
+                    isYieldStar: true,
+                    expr('int').checkSchema('Stream<int>'),
+                  ),
+                ],
+              );
+            });
+          });
+        });
+      });
+    });
   });
 
   group('Patterns:', () {

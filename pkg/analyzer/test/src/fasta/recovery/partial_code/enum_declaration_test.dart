@@ -390,7 +390,6 @@ enum E {, typedef A = B Function(C, D);
       error(diag.missingIdentifier, 8, 1),
       error(diag.missingConstFinalVarOrType, 18, 1),
       error(diag.expectedToken, 22, 1),
-      error(diag.missingFunctionBody, 38, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2377,7 +2376,6 @@ enum E { typedef A = B Function(C, D);
       error(diag.expectedToken, 39, 1),
       error(diag.missingConstFinalVarOrType, 17, 1),
       error(diag.expectedToken, 21, 1),
-      error(diag.missingFunctionBody, 37, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

@@ -555,6 +555,61 @@ void f(int p) {}
 ''');
   }
 
+  test_primaryConstructor_declaring() async {
+    // The lint isn't reported when there's an error in the code.
+    await assertDiagnostics(
+      r'''
+class C(var int x) {
+  this : x = x;
+}
+''',
+      [error(diag.fieldInitializedInParameterAndInitializer, 30, 1)],
+    );
+  }
+
+  test_primaryConstructor_fieldFormal() async {
+    await assertNoDiagnostics(r'''
+class C(this.x) {
+  int x;
+}
+''');
+  }
+
+  test_primaryConstructor_nonDeclaring_assignedInBody() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C(int x) {
+  int? x;
+
+  this {
+    [!this.x = x!];
+  }
+}
+''');
+  }
+
+  test_primaryConstructor_nonDeclaring_assignedInInitializer() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C(int x) {
+  int x;
+
+  this : [!x = x!];
+}
+''');
+  }
+
+  test_primaryConstructor_super() async {
+    await assertNoDiagnostics(r'''
+class B {
+  B({int? i});
+}
+
+class C({super.i}) extends B {
+  final int? _i;
+  this : _i = i;
+}
+''');
+  }
+
   test_renamedParameter() async {
     // https://github.com/dart-lang/linter/issues/2664
     await assertNoDiagnostics(r'''

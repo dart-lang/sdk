@@ -22,11 +22,10 @@
 library;
 
 import 'dart:developer';
-import 'package:vm_service/vm_service_io.dart' as vm_service_io;
-
 import 'dart:io' as io;
 
 import 'package:compiler/src/dart2js.dart' as p;
+import 'package:vm_service/vm_service_io.dart' as vm_service_io;
 
 int iteration = 0;
 

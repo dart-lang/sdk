@@ -61,12 +61,12 @@ import 'options.dart' show CompilerOptions, CompilerStage;
 import 'phase/load_kernel.dart' as load_kernel;
 import 'resolution/enqueuer.dart';
 import 'serialization/serialization.dart';
-import 'serialization/task.dart';
 import 'serialization/strategies.dart';
+import 'serialization/task.dart';
 import 'source_file_provider.dart';
-import 'universe/selector.dart' show Selector;
 import 'universe/codegen_world_builder.dart';
 import 'universe/resolution_world_builder.dart';
+import 'universe/selector.dart' show Selector;
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 
 enum _ResolutionStatus { resolving, doneResolving, compiling }

@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dds/dds_launcher.dart';
+import 'package:dtd/dtd.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service_io.dart';
 
@@ -67,7 +68,7 @@ void main() {
     }
 
     test(
-      'External DevTools address is reported correctly',
+      'External DevTools address and appName are reported correctly',
       () async {
         final fakeDevToolsUri =
             Uri.parse('http://localhost:12345/my_devtools/');
@@ -75,10 +76,25 @@ void main() {
           remoteVmServiceUri: remoteVmServiceUri,
           serveDevTools: true,
           devToolsServerAddress: fakeDevToolsUri,
+          appName: 'my-app',
         );
 
         expect(dds.devToolsUri,
             fakeDevToolsUri.replace(query: 'uri=${dds.wsUri.toString()}'));
+
+        expect(dds.appName, 'my-app');
+        final dtdUri = dds.dtdUri;
+        expect(dtdUri, isNotNull);
+
+        final dtdClient = await DartToolingDaemon.connect(dtdUri!);
+        try {
+          final response = await dtdClient.getVmServices();
+          final vmServiceInfo = response.vmServicesInfos
+              .firstWhere((info) => info.name == 'my-app');
+          expect(vmServiceInfo.uri, dds.wsUri.toString());
+        } finally {
+          await dtdClient.close();
+        }
       },
     );
 

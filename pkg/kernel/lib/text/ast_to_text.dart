@@ -146,7 +146,8 @@ String componentToString(Component node) {
 }
 
 class NameSystem {
-  final Namer<Variable> variables = new NormalNamer<Variable>('#t');
+  final Namer<VariableDeclaration> variables =
+      new NormalNamer<VariableDeclaration>('#t');
   final Namer<Reference> libraries = new NormalNamer<Reference>('#lib');
   final Namer<TypeParameter> typeParameters = new NormalNamer<TypeParameter>(
     '#T',
@@ -161,7 +162,7 @@ class NameSystem {
   final Disambiguator<Reference, CanonicalName> prefixes =
       new Disambiguator<Reference, CanonicalName>();
 
-  String nameVariable(Variable node) => variables.getName(node);
+  String nameVariable(VariableDeclaration node) => variables.getName(node);
   String nameLibrary(Reference node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
   String nameStructuralParameter(StructuralParameter node) =>
@@ -242,7 +243,7 @@ class NameSystem {
 }
 
 abstract class Annotator {
-  String annotateVariable(Printer printer, VariableInitialization node);
+  String annotateVariable(Printer printer, VariableInitializationBase node);
   String annotateReturn(Printer printer, FunctionNode node);
   String annotateField(Printer printer, Field node);
 }
@@ -368,11 +369,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  String getVariableName(Variable node) {
+  String getVariableName(VariableDeclaration node) {
     return node.cosmeticName ?? syntheticNames.nameVariable(node);
   }
 
-  String getVariableReference(Variable node) {
+  String getVariableReference(VariableDeclaration node) {
     return getVariableName(node);
   }
 
@@ -1111,7 +1112,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeWord(getTypedefReference(typedefNode));
   }
 
-  void writeVariableReference(Variable variable) {
+  void writeVariableReference(VariableDeclaration variable) {
     final bool highlight = shouldHighlight(variable);
     if (highlight) {
       startHighlight(variable);
@@ -1247,8 +1248,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     endLine(';');
   }
 
-  void writeExpressionVariable(Variable node) {
-    if (node is VariableDeclaration && node is! FunctionParameter) {
+  void writeExpressionVariable(VariableDeclaration node) {
+    if (node is LegacyVariableDeclaration && node is! FunctionParameter) {
       writeVariableDeclaration(node);
     } else {
       if (showOffsets) writeWord("[${node.fileOffset}]");
@@ -1265,7 +1266,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
           writeWord('this-variable');
         case SyntheticVariable():
           writeWord('synthetic-variable');
-        case VariableDeclaration():
+        case LegacyVariableDeclaration():
           writeWord('variable-declaration');
         case CatchVariable():
           writeWord('catch-variable');
@@ -2282,7 +2283,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitVariableGet(VariableGet node) {
-    writeVariableReference(node.expressionVariable);
+    writeVariableReference(node.variable);
     DartType? promotedType = node.promotedType;
     if (promotedType != null) {
       writeSymbol('{');
@@ -2294,7 +2295,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitVariableSet(VariableSet node) {
-    writeVariableReference(node.expressionVariable);
+    writeVariableReference(node.variable);
     writeSpaced('=');
     writeExpression(node.value);
   }
@@ -2596,10 +2597,10 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       ensureSpace();
     }
     writeSymbol('(');
-    if (node.expressionVariable case VariableDeclaration variable) {
+    if (node.variable case LegacyVariableDeclaration variable) {
       writeVariableDeclaration(variable, useVarKeyword: true);
     } else {
-      writeExpressionVariable(node.expressionVariable);
+      writeExpressionVariable(node.variable);
     }
     writeSpaced('in');
     writeExpression(node.iterable);
@@ -2702,13 +2703,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeSpace();
     writeWord('catch');
     writeSymbol('(');
-    CatchVariable? exception = node.exceptionCatchVariable;
+    VariableDeclaration? exception = node.exception;
     if (exception != null) {
       writeExpressionVariable(exception);
     } else {
       writeWord('no-exception-var');
     }
-    CatchVariable? stackTrace = node.stackTraceCatchVariable;
+    VariableDeclaration? stackTrace = node.stackTrace;
     if (stackTrace != null) {
       writeComma();
       writeExpressionVariable(stackTrace);
@@ -2750,7 +2751,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
-  void visitVariableInitialization(VariableInitialization node) {
+  void visitVariableInitialization(VariableInitializationBase node) {
     writeIndentation();
     writeVariableInitialization(node);
     _writeContexts(node);
@@ -2813,7 +2814,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  void writeVariableInitialization(VariableInitialization node) {
+  void writeVariableInitialization(VariableInitializationBase node) {
     if (node is VariableDeclaration) {
       writeVariableDeclaration(node);
     } else {
@@ -3641,12 +3642,6 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitPatternAssignment(PatternAssignment node) => EXPRESSION;
-
-  @override
-  int visitVariableRead(VariableRead node) => PRIMARY;
-
-  @override
-  int visitVariableWrite(VariableWrite node) => EXPRESSION;
 }
 
 String procedureKindToString(ProcedureKind kind) {

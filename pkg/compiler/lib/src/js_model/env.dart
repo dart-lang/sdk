@@ -13,10 +13,10 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/util.dart';
-import '../js_model/class_type_variable_access.dart';
 import '../ordered_typeset.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
+import 'class_type_variable_access.dart';
 import 'closure.dart'
     show
         ClosureClassData,

@@ -10,7 +10,6 @@ class Class {
       field_ = 2;
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
-  //         ^
   // [cfe] 'field_' was already initialized by this constructor.
 
   Class.field(this.field_)
@@ -19,7 +18,6 @@ class Class {
     : field_ = 2;
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
-  //         ^
   // [cfe] 'field_' was already initialized by this constructor.
 
   // Test against duplicate final field initialization in initializing formals.

@@ -868,7 +868,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get ObjectStore_type_type_offset => 0x140;
   @override
-  int get ObjectStore_ffi_callback_code_offset => 0x528;
+  int get ObjectStore_ffi_callback_code_offset => 0x530;
   @override
   int get ObjectStore_suspend_state_await_offset => 0x480;
   @override
@@ -1815,7 +1815,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get ObjectStore_type_type_offset => 0x140;
   @override
-  int get ObjectStore_ffi_callback_code_offset => 0x528;
+  int get ObjectStore_ffi_callback_code_offset => 0x530;
   @override
   int get ObjectStore_suspend_state_await_offset => 0x480;
   @override

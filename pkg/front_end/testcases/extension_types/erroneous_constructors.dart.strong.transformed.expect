@@ -19,9 +19,9 @@ library;
 //   E3.named(String it1, String it2) : this(it1), this(it2);
 //                                                 ^
 //
-// pkg/front_end/testcases/extension_types/erroneous_constructors.dart:18:26: Error: A redirecting constructor can't have other initializers.
+// pkg/front_end/testcases/extension_types/erroneous_constructors.dart:18:23: Error: A redirecting constructor can't have other initializers.
 //   E4.named(bool it) : it = false, this(it);
-//                          ^
+//                       ^
 //
 import self as self;
 import "dart:core" as core;
@@ -106,9 +106,9 @@ static extension-type-member synthetic method E4|constructor#_#new#tearOff(core:
   return self::E4|constructor#(it);
 static extension-type-member erroneous method E4|constructor#named(core::bool it) → self::E4% /* erasure=core::bool, declared=! */ {
   lowered final self::E4% /* erasure=core::bool, declared=! */ #this;
-  invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:18:26: Error: A redirecting constructor can't have other initializers.
+  invalid-expression "pkg/front_end/testcases/extension_types/erroneous_constructors.dart:18:23: Error: A redirecting constructor can't have other initializers.
   E4.named(bool it) : it = false, this(it);
-                         ^";
+                      ^";
   #this = self::E4|constructor#(it);
   return #this;
 }
