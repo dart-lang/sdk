@@ -996,6 +996,19 @@ extraneousModifierInPrimaryConstructor:
     // @dart=3.10
     extension type ET(covariant String i) { }
 
+primaryConstructorBodyWithModifier:
+  type: syntacticError
+  parameters:
+    String modifier: The modifier found.
+  problemMessage: "A primary constructor body can't have the modifier '#modifier'."
+  correctionMessage: "Try removing the modifier."
+  analyzerCode: primaryConstructorBodyWithModifier
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  exampleAllowOtherCodes: true
+  script:
+    - "class A() { this async {} }"
+
 invalidCovariantModifierInPrimaryConstructor:
   type: syntacticError
   parameters: none

@@ -412,7 +412,7 @@ enum E() {
   }
 }
 ''',
-      [error(diag.constConstructorWithBody, 23, 1)],
+      [error(diag.constPrimaryConstructorWithBlockBody, 23, 1)],
     );
   }
 
