@@ -19,6 +19,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
         ThisPropertyTarget;
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
@@ -671,6 +672,15 @@ Pattern wildcard({String? type, String? expectInferredType}) {
   );
 }
 
+Statement yield_(ProtoExpression operand, {bool isYieldStar = false}) {
+  var location = computeLocation();
+  return new YieldStatement._(
+    operand.asExpression(location: location),
+    isYieldStar: isYieldStar,
+    location: location,
+  );
+}
+
 typedef SharedMatchContext =
     shared.MatchContext<Node, Expression, Pattern, Var>;
 
@@ -781,6 +791,19 @@ class Block extends Statement {
     );
     return const StatementTypeAnalysisResult();
   }
+}
+
+class BodyContext implements SharedBodyInferenceContext {
+  @override
+  final bool isAsync;
+
+  final Type yieldContext;
+
+  BodyContext({required this.isAsync, required this.yieldContext});
+
+  @override
+  SharedTypeSchemaView get sharedYieldContext =>
+      yieldContext.wrapSharedTypeSchemaView();
 }
 
 class BooleanLiteral extends Expression {
@@ -2086,6 +2109,7 @@ class Harness {
     List<ProtoStatement> statements, {
     bool errorRecoveryOK = false,
     Set<String> expectedErrors = const {},
+    BodyContext? bodyContext,
   }) {
     try {
       _started = true;
@@ -2097,6 +2121,9 @@ class Harness {
         visitor._assignedVariables,
         typeAnalyzerOptions: computeTypeAnalyzerOptions(),
       );
+      typeAnalyzer.bodyContext =
+          bodyContext ??
+          BodyContext(isAsync: false, yieldContext: const UnknownType());
       typeAnalyzer.dispatchStatement(b);
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
@@ -6373,6 +6400,43 @@ class Write extends Expression {
   }
 }
 
+class YieldStatement extends Statement {
+  final Expression operand;
+  final bool isYieldStar;
+
+  YieldStatement._(
+    this.operand, {
+    required this.isYieldStar,
+    required super.location,
+  });
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    operand.preVisit(visitor);
+  }
+
+  @override
+  String toString() {
+    var star = isYieldStar ? '*' : '';
+    return 'yield$star $operand';
+  }
+
+  @override
+  StatementTypeAnalysisResult visit(Harness h) {
+    var result = h.typeAnalyzer.analyzeYieldStatement(
+      operand,
+      isYieldStar: isYieldStar,
+    );
+    h.irBuilder.apply(
+      'yieldStmt',
+      [Kind.expression],
+      Kind.statement,
+      location: location,
+    );
+    return result;
+  }
+}
+
 /// Enum representing the different ways an [LValue] might be used.
 enum _LValueDisposition {
   /// The [LValue] is being read from only, not written to.  This happens if it
@@ -6695,6 +6759,9 @@ class _MiniAstTypeAnalyzer
   /// (promoted to non-nullable, if it's a null-aware cascade), or `null` if no
   /// cascade expression is currently being visited.
   SharedTypeView? _currentCascadeTargetType;
+
+  @override
+  BodyContext? bodyContext;
 
   _MiniAstTypeAnalyzer(this._harness, this.typeAnalyzerOptions);
 

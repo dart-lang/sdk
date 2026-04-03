@@ -7,6 +7,7 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -275,6 +276,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   ClosureContext get closureContext => _closureContext!;
+
+  @override
+  SharedBodyInferenceContext get bodyContext => closureContext;
 
   @override
   ExpressionTypeAnalysisResult finishNullShorting(
@@ -13915,21 +13919,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   StatementInferenceResult visitYieldStatement(YieldStatement node) {
-    ExpressionInferenceResult expressionResult;
-    DartType typeContext = closureContext.yieldContext;
-    if (node.isYieldStar && typeContext is! UnknownType) {
-      typeContext = wrapType(
-        typeContext,
-        closureContext.isAsync
-            ? coreTypes.streamClass
-            : coreTypes.iterableClass,
-        Nullability.nonNullable,
-      );
-    }
-    expressionResult = inferExpression(
+    YieldStatementResult analysisResult = analyzeYieldStatement(
       node.expression,
-      typeContext,
-      isVoidAllowed: true,
+      isYieldStar: node.isYieldStar,
+    );
+    ExpressionInferenceResult expressionResult = new ExpressionInferenceResult(
+      analysisResult.operandType.unwrapTypeView(),
+      popRewrite() as Expression,
     );
     closureContext.handleYield(node, expressionResult);
     return const StatementInferenceResult();

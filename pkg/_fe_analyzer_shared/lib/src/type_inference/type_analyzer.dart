@@ -4,6 +4,7 @@
 
 import '../flow_analysis/flow_analysis.dart';
 import '../types/shared_type.dart';
+import 'body_inference_context.dart';
 import 'null_shorting.dart';
 import 'type_analysis_result.dart';
 import 'type_analyzer_operations.dart';
@@ -286,6 +287,10 @@ mixin TypeAnalyzer<
   /// save the corresponding dot shorthand [Node] to make sure we aren't caching
   /// two context types for the same node.
   final _dotShorthands = <(Node, SharedTypeSchemaView)>[];
+
+  /// Inference context information for the current function body, if the
+  /// current node is inside a function body.
+  SharedBodyInferenceContext? get bodyContext;
 
   TypeAnalyzerErrors<Node, Statement, Expression, Variable, Pattern, Error>
   get errors;
@@ -2408,6 +2413,47 @@ mixin TypeAnalyzer<
     return declaredType == null
         ? operations.unknownType
         : operations.typeToSchema(declaredType);
+  }
+
+  /// Analyzes a statement of the form `yield operand;` or `yield* operand;`.
+  ///
+  /// Returns an [YieldStatementResult] containing the static type of the
+  /// operand.
+  ///
+  /// Stack effect: pushes the operand expression.
+  YieldStatementResult analyzeYieldStatement(
+    Expression operand, {
+    required bool isYieldStar,
+  }) {
+    // Stack: ()
+
+    SharedBodyInferenceContext bodyContext = this.bodyContext!;
+    SharedTypeSchemaView operandContext;
+    if (bodyContext.sharedYieldContext
+        case SharedUnknownTypeSchemaView context) {
+      operandContext = context;
+    } else if (isYieldStar) {
+      if (bodyContext.isAsync) {
+        operandContext = operations.streamTypeSchema(
+          bodyContext.sharedYieldContext,
+        );
+      } else {
+        operandContext = operations.iterableTypeSchema(
+          bodyContext.sharedYieldContext,
+        );
+      }
+    } else {
+      operandContext = bodyContext.sharedYieldContext;
+    }
+
+    ExpressionTypeAnalysisResult operandResult = analyzeExpression(
+      operand,
+      operandContext,
+      isVoidAllowed: true,
+    );
+    // Stack: (operand)
+
+    return new YieldStatementResult(operandType: operandResult.type);
   }
 
   /// Calls the appropriate `analyze` method according to the form of

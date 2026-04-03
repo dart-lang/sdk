@@ -530,3 +530,12 @@ class WildcardPatternResult<Error> extends PatternResult {
     required super.matchedValueType,
   });
 }
+
+/// Result for analyzing a yield statement in
+/// [TypeAnalyzer.analyzeYieldStatement].
+final class YieldStatementResult extends StatementTypeAnalysisResult {
+  /// The static type of the operand.
+  final SharedTypeView operandType;
+
+  YieldStatementResult({required this.operandType});
+}

@@ -7380,6 +7380,18 @@ void f() {
 suggestions
   F0
     kind: typeAlias
+  F0.empty
+    kind: constructorInvocation
+  F0.filled
+    kind: constructorInvocation
+  F0.from
+    kind: constructorInvocation
+  F0.generate
+    kind: constructorInvocation
+  F0.of
+    kind: constructorInvocation
+  F0.unmodifiable
+    kind: constructorInvocation
 ''');
   }
 

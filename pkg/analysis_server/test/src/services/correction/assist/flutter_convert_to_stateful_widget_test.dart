@@ -171,6 +171,26 @@ class _MyWidgetState<T> extends State<MyWidget<T>> {
 ''');
   }
 
+  Future<void> test_emptyBody_braces() async {
+    await resolveTestCode(r'''
+import 'package:flutter/material.dart';
+
+class ^MyWidget extends StatelessWidget {}
+''');
+    // Assist only available with a build method.
+    await assertNoAssist();
+  }
+
+  Future<void> test_emptyBody_semicolon() async {
+    await resolveTestCode(r'''
+import 'package:flutter/material.dart';
+
+class ^MyWidget extends StatelessWidget;
+''');
+    // Assist only available with a build method.
+    await assertNoAssist();
+  }
+
   Future<void> test_fields() async {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';

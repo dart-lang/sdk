@@ -313,7 +313,7 @@ E e = E.two;
     await assertNoFix();
   }
 
-  Future<void> test_toEmpty() async {
+  Future<void> test_toEmpty_braces() async {
     await resolveTestCode('''
 enum E {}
 
@@ -323,13 +323,14 @@ void f() {
 ''');
     await assertHasFix(
       '''
-enum E {ONE}
+enum E { ONE }
 
 void f() {
   E.ONE;
 }
 ''',
       filter: (e) {
+        // Filter to ignore enum_without_constants
         return e.diagnosticCode == diag.undefinedEnumConstant;
       },
     );
@@ -345,14 +346,38 @@ E e() {
 ''');
     await assertHasFix(
       '''
-enum E {ONE}
+enum E { ONE }
 
 E e() {
   return .ONE;
 }
 ''',
       filter: (e) {
+        // Filter to ignore enum_without_constants
         return e.diagnosticCode == diag.dotShorthandUndefinedGetter;
+      },
+    );
+  }
+
+  Future<void> test_toEmpty_semicolon() async {
+    await resolveTestCode('''
+enum E;
+
+void f() {
+  E.ONE;
+}
+''');
+    await assertHasFix(
+      '''
+enum E { ONE }
+
+void f() {
+  E.ONE;
+}
+''',
+      filter: (e) {
+        // Filter to ignore enum_without_constants
+        return e.diagnosticCode == diag.undefinedEnumConstant;
       },
     );
   }

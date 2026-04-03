@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -151,6 +152,100 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
+  }
+
+  Future<void> test_emptyBody_state_braces() async {
+    await resolveTestCode(
+      r'''
+import 'package:flutter/material.dart';
+
+class ^MyWidget extends StatefulWidget {
+  const MyWidget({super.key});
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {}
+''',
+      ignore: [diag.nonAbstractClassInheritsAbstractMemberOne],
+    );
+    await assertHasAssist(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
+
+}
+''');
+  }
+
+  Future<void> test_emptyBody_state_semicolon() async {
+    await resolveTestCode(
+      r'''
+import 'package:flutter/material.dart';
+
+class ^MyWidget extends StatefulWidget {
+  const MyWidget({super.key});
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget>;
+''',
+      ignore: [diag.nonAbstractClassInheritsAbstractMemberOne],
+    );
+    await assertHasAssist(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
+
+}
+''');
+  }
+
+  Future<void> test_emptyBody_widget_braces() async {
+    await resolveTestCode(
+      r'''
+import 'package:flutter/material.dart';
+
+class ^MyWidget extends StatefulWidget {}
+
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''',
+      ignore: [diag.nonAbstractClassInheritsAbstractMemberOne],
+    );
+
+    // Assist only available with a createState method.
+    await assertNoAssist();
+  }
+
+  Future<void> test_emptyBody_widget_semicolon() async {
+    await resolveTestCode(
+      r'''
+import 'package:flutter/material.dart';
+
+class ^MyWidget extends StatefulWidget;
+
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''',
+      ignore: [diag.nonAbstractClassInheritsAbstractMemberOne],
+    );
+
+    // Assist only available with a createState method.
+    await assertNoAssist();
   }
 
   Future<void> test_fields() async {

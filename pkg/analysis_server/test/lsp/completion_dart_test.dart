@@ -594,6 +594,48 @@ void f(t.Other r) {
 '''),
     );
   }
+
+  Future<void> test_typeAlias_constructors() async {
+    newFile(join(projectFolderPath, 'lib', 'alias1.dart'), '''
+import 'main.dart';
+typedef Alias1 = MyClass;                // Included
+typedef _AliasHidden = MyClass;          // Not included, private to another lib
+''');
+    newFile(join(projectFolderPath, 'lib', 'alias2.dart'), '''
+import 'main.dart';
+typedef Alias2 = MyClass;                // Included
+''');
+
+    content = '''
+class MyClass.myConstructor();           // Included
+typedef AliasLocal = MyClass;            // Included
+typedef _AliasPrivateLocal = MyClass;    // Included
+
+var id = myConstru^
+''';
+    await initializeServer();
+
+    var completions = await getCompletion(mainFileUri, code.position.position);
+    expect(completions, hasLength(5)); // Exactly 5, no dupes.
+
+    /// Helper to expect a completion with [label] that has auto-import data
+    /// for the URI [autoImport].
+    void expectCompletion(String label, String? autoImport) {
+      var completion = completions.singleWhere(
+        (completion) => completion.label == label,
+      );
+      var info = completion.data as DartCompletionResolutionInfo?;
+      var importUri = info?.importUris.singleOrNull;
+
+      expect(importUri, autoImport ?? isNull);
+    }
+
+    expectCompletion('MyClass.myConstructor()', null);
+    expectCompletion('AliasLocal.myConstructor()', null);
+    expectCompletion('_AliasPrivateLocal.myConstructor()', null);
+    expectCompletion('Alias1.myConstructor()', 'package:test/alias1.dart');
+    expectCompletion('Alias2.myConstructor()', 'package:test/alias2.dart');
+  }
 }
 
 @reflectiveTest
@@ -5756,7 +5798,7 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
   }
 
   /// Expect that there is a snippet for [prefix] with the label [label] at
-  /// [position] in [content].
+  /// the marked position in [code].
   Future<({CompletionItem snippet, CompletionItemDefaults? defaults})>
   expectSnippet(
     TestCode code, {

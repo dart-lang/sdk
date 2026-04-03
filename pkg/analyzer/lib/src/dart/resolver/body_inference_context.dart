@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
 /// See https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#function-literal-return-type-inference
-class BodyInferenceContext {
+class BodyInferenceContext implements SharedBodyInferenceContext {
   final TypeSystemImpl _typeSystem;
   final bool isAsynchronous;
   final bool isGenerator;
@@ -79,7 +82,14 @@ class BodyInferenceContext {
     required this.contextType,
   }) : _typeSystem = typeSystem;
 
+  @override
+  bool get isAsync => isAsynchronous;
+
   bool get isSynchronous => !isAsynchronous;
+
+  @override
+  SharedTypeSchemaView get sharedYieldContext =>
+      (contextType ?? UnknownInferredType.instance).wrapSharedTypeSchemaView();
 
   TypeProviderImpl get _typeProvider => _typeSystem.typeProvider;
 
