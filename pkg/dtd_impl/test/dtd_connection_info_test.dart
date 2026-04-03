@@ -14,6 +14,7 @@ void main() {
         'pid': 1234,
         'dartVersion': '3.4.0',
         'workspaceRoot': '/users/foo/workspace',
+        'ideName': 'Test IDE',
       };
 
       final info = DTDConnectionInfo.fromJson(json);
@@ -23,6 +24,7 @@ void main() {
       expect(info.pid, 1234);
       expect(info.dartVersion, '3.4.0');
       expect(info.workspaceRoot, '/users/foo/workspace');
+      expect(info.ideName, 'Test IDE');
     });
 
     test('fromJson handles missing values with fallbacks', () {
@@ -33,6 +35,7 @@ void main() {
       expect(info.pid, 0);
       expect(info.dartVersion, '');
       expect(info.workspaceRoot, '');
+      expect(info.ideName, null);
     });
 
     test('toJson serializes correctly', () {
@@ -42,6 +45,7 @@ void main() {
         pid: 1234,
         dartVersion: '3.4.0',
         workspaceRoot: '/users/foo/workspace',
+        ideName: 'Test IDE',
       );
 
       final json = info.toJson();
@@ -51,6 +55,52 @@ void main() {
       expect(json['pid'], 1234);
       expect(json['dartVersion'], '3.4.0');
       expect(json['workspaceRoot'], '/users/foo/workspace');
+      expect(json['ideName'], 'Test IDE');
+    });
+
+    test('toJson serializes correctly with null ideName', () {
+      final info = DTDConnectionInfo(
+        wsUri: 'ws://127.0.0.1:12345/abc',
+        epoch: 1710000000000,
+        pid: 1234,
+        dartVersion: '3.4.0',
+        workspaceRoot: '/users/foo/workspace',
+      );
+
+      final json = info.toJson();
+      expect(json, isNot(contains('ideName')));
+    });
+
+    test('toString includes all fields', () {
+      final info = DTDConnectionInfo(
+        wsUri: 'ws://127.0.0.1:12345/abc',
+        epoch: 1710000000000,
+        pid: 1234,
+        dartVersion: '3.4.0',
+        workspaceRoot: '/users/foo/workspace',
+        ideName: 'Test IDE',
+      );
+
+      final string = info.toString();
+      expect(string, contains(info.wsUri));
+      expect(string, contains(info.pid.toString()));
+      expect(string, contains(info.dartVersion));
+      expect(string, contains(info.workspaceRoot));
+      expect(string, contains(info.ideName));
+      // epoch is tested separately as it uses "time ago" logic
+    });
+
+    test('toString omits ideName if null', () {
+      final info = DTDConnectionInfo(
+        wsUri: 'ws://127.0.0.1:12345/abc',
+        epoch: 1710000000000,
+        pid: 1234,
+        dartVersion: '3.4.0',
+        workspaceRoot: '/users/foo/workspace',
+      );
+
+      final string = info.toString();
+      expect(string, allOf(isNot(contains('IDE')), isNot(contains('null'))));
     });
 
     test('toString formatting includes ago extension logic', () {
