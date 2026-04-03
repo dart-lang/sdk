@@ -2512,6 +2512,28 @@ const MessageCode prefixAfterCombinator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String modifier})>
+primaryConstructorBodyWithModifier = const Template(
+  "PrimaryConstructorBodyWithModifier",
+  withArguments: _withArgumentsPrimaryConstructorBodyWithModifier,
+  sharedCode: SharedCode.primaryConstructorBodyWithModifier,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPrimaryConstructorBodyWithModifier({
+  required String modifier,
+}) {
+  var modifier_0 = conversions.validateString(modifier);
+  return new Message(
+    primaryConstructorBodyWithModifier,
+    problemMessage:
+        """A primary constructor body can't have the modifier '${modifier_0}'.""",
+    correctionMessage: """Try removing the modifier.""",
+    arguments: {'modifier': modifier},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode primaryConstructorBodyWithoutDeclaration = const MessageCode(
   "PrimaryConstructorBodyWithoutDeclaration",
   sharedCode: SharedCode.primaryConstructorBodyWithoutDeclaration,
@@ -3209,6 +3231,7 @@ enum SharedCode {
   patternAssignmentDeclaresVariable,
   patternVariableDeclarationOutsideFunctionOrMethod,
   prefixAfterCombinator,
+  primaryConstructorBodyWithModifier,
   primaryConstructorBodyWithoutDeclaration,
   recordLiteralOnePositionalNoTrailingComma,
   recordTypeOnePositionalNoTrailingComma,

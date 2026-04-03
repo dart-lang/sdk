@@ -3766,6 +3766,20 @@ class Parser {
     Token? beforeInitializers = token;
     token = parseInitializersOpt(beforeInitializers);
 
+    Token next = token.next!;
+    if (next.isA(Keyword.ASYNC) || next.isA(Keyword.SYNC)) {
+      String modifier = next.lexeme;
+      if (next.next!.isA(TokenType.STAR)) {
+        modifier += '*';
+      }
+      reportRecoverableError(
+        next,
+        diag.primaryConstructorBodyWithModifier.withArguments(
+          modifier: modifier,
+        ),
+      );
+    }
+
     token = parseAsyncModifierOpt(token);
     token = parseFunctionBody(
       token,
@@ -5377,7 +5391,10 @@ class Parser {
         Token next2 = next.next!;
         if (next2.isA(TokenType.COLON) ||
             next2.isA(TokenType.SEMICOLON) ||
-            next2.isA(TokenType.OPEN_CURLY_BRACKET)) {
+            next2.isA(TokenType.OPEN_CURLY_BRACKET) ||
+            next2.isA(TokenType.FUNCTION) || // =>
+            next2.isA(Keyword.ASYNC) ||
+            next2.isA(Keyword.SYNC)) {
           if (!isPrimaryConstructorsFeatureEnabled) {
             reportExperimentNotEnabled(
               ExperimentalFlag.primaryConstructors,

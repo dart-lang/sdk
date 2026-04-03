@@ -1416,7 +1416,7 @@ enum A(bool x, bool y) {
 }
 ''',
       [
-        error(diag.constConstructorWithBody, 61, 1),
+        error(diag.constPrimaryConstructorWithBlockBody, 61, 1),
         error(diag.multiplePrimaryConstructorBodyDeclarations, 76, 4),
       ],
     );

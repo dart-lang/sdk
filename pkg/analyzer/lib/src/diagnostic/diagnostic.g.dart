@@ -2737,6 +2737,35 @@ constNotInitialized = DiagnosticWithArguments(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments
+constPrimaryConstructorWithBlockBody = DiagnosticWithoutArgumentsImpl(
+  name: 'const_primary_constructor_with_body',
+  problemMessage:
+      "The body part of a constant primary constructor can't have a block body.",
+  correctionMessage:
+      "Try replacing the block body with a semicolon, or removing the "
+      "'const' modifier.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'const_primary_constructor_with_block_body',
+  expectedTypes: [],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments
+constPrimaryConstructorWithExpressionBody = DiagnosticWithoutArgumentsImpl(
+  name: 'const_primary_constructor_with_body',
+  problemMessage:
+      "The body part of a constant primary constructor can't have an expression "
+      "body.",
+  correctionMessage:
+      "Try replacing the expression body with a semicolon, or removing the "
+      "'const' modifier.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'const_primary_constructor_with_expression_body',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const DiagnosticWithoutArguments constructorWithReturnType =
     DiagnosticWithoutArgumentsImpl(
       name: 'constructor_with_return_type',
@@ -13503,6 +13532,32 @@ prefixShadowedByLocalDeclaration = DiagnosticWithArguments(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments primaryConstructorBodyWithExpressionBody =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'primary_constructor_body_with_expression_body',
+      problemMessage: "A primary constructor body can't use '=>'.",
+      correctionMessage: "Try using a block body.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'primary_constructor_body_with_expression_body',
+      expectedTypes: [],
+    );
+
+/// Parameters:
+/// String modifier: The modifier found.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String modifier})
+>
+primaryConstructorBodyWithModifier = DiagnosticWithArguments(
+  name: 'primary_constructor_body_with_modifier',
+  problemMessage: "A primary constructor body can't have the modifier '{0}'.",
+  correctionMessage: "Try removing the modifier.",
+  type: DiagnosticType.SYNTACTIC_ERROR,
+  uniqueName: 'primary_constructor_body_with_modifier',
+  withArguments: _withArgumentsPrimaryConstructorBodyWithModifier,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// No parameters.
 const DiagnosticWithoutArguments
 primaryConstructorBodyWithoutDeclaration = DiagnosticWithoutArgumentsImpl(
   name: 'primary_constructor_body_without_declaration',
@@ -20669,6 +20724,14 @@ LocatableDiagnostic _withArgumentsPrefixShadowedByLocalDeclaration({
 }) {
   return LocatableDiagnosticImpl(diag.prefixShadowedByLocalDeclaration, [
     prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsPrimaryConstructorBodyWithModifier({
+  required String modifier,
+}) {
+  return LocatableDiagnosticImpl(diag.primaryConstructorBodyWithModifier, [
+    modifier,
   ]);
 }
 
