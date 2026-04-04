@@ -474,6 +474,7 @@ class DartToolingDaemon {
         pid: pid,
         dartVersion: Platform.version,
         workspaceRoot: Directory.current.path,
+        ideName: Platform.environment['DASH__IDE_NAME'],
       );
       if (createPidFile(dataHome, jsonEncode(info.toJson()))) {
         _pidFilePath = p.join(dataHome, pid.toString());

@@ -17,6 +17,7 @@ class DTDConnectionInfo {
       pid: json[_kPid] as int? ?? 0,
       dartVersion: json[_kDartVersion] as String? ?? '',
       workspaceRoot: json[_kWorkspaceRoot] as String? ?? '',
+      ideName: json[_kIdeName] as String?,
     );
   }
 
@@ -26,6 +27,7 @@ class DTDConnectionInfo {
     required this.pid,
     required this.dartVersion,
     required this.workspaceRoot,
+    this.ideName,
   });
 
   /// The WebSocket URI of this DTD instance.
@@ -43,11 +45,15 @@ class DTDConnectionInfo {
   /// The workspace root of the directory the DTD instance was launched from.
   final String workspaceRoot;
 
+  /// The name of the IDE that owns this DTD instance, if any.
+  final String? ideName;
+
   static const String _kWsUri = 'wsUri';
   static const String _kEpoch = 'epoch';
   static const String _kPid = 'pid';
   static const String _kDartVersion = 'dartVersion';
   static const String _kWorkspaceRoot = 'workspaceRoot';
+  static const String _kIdeName = 'ideName';
 
   /// Serializes the observation to a json object.
   Map<String, Object?> toJson() {
@@ -57,6 +63,7 @@ class DTDConnectionInfo {
       _kPid: pid,
       _kDartVersion: dartVersion,
       _kWorkspaceRoot: workspaceRoot,
+      _kIdeName: ?ideName,
     };
   }
 
@@ -67,6 +74,9 @@ class DTDConnectionInfo {
     buffer.writeln('  Workspace Root: $workspaceRoot');
     buffer.writeln('  Dart Version:   $dartVersion');
     buffer.writeln('  PID:            $pid');
+    if (ideName != null) {
+      buffer.writeln('  IDE:            $ideName');
+    }
 
     final duration = Duration(
       milliseconds: DateTime.now().millisecondsSinceEpoch - epoch,
