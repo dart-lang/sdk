@@ -13516,6 +13516,45 @@ LinterLintCode:
       stable: "3.0"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `break` statement appears
+      at the end of a non-empty switch case or default clause. In Dart 3.0
+      and later, switch cases don't fall through to the next case, so a
+      `break` at the end of a non-empty case body is redundant.
+
+      #### Example
+
+      The following code produces this diagnostic because the `break` is at
+      the end of a non-empty `case` body:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 1:
+            print('one');
+            [!break;!]
+          case 2:
+            print('two');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the `break` statement:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 1:
+            print('one');
+          case 2:
+            print('two');
+        }
+      }
+      ```
     deprecatedDetails: |-
       Only use a `break` in a non-empty switch case statement if you need to break
       before the end of the case body.  Dart does not support fallthrough execution
