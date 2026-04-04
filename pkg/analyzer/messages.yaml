@@ -15010,6 +15010,14 @@ CompileTimeErrorCode:
         return x;
       }
       ```
+
+  primaryConstructorBodyWithExpressionBody:
+    type: compileTimeError
+    parameters: none
+    problemMessage: "A primary constructor body can't use '=>'."
+    correctionMessage: "Try using a block body."
+    hasPublishedDocs: false
+
   primaryConstructorCannotRedirect:
     type: compileTimeError
     parameters: none
@@ -22804,6 +22812,20 @@ ParserErrorCode:
     parameters: none
     problemMessage: "Const constructors can't have a body."
     correctionMessage: "Try removing either the 'const' keyword or the body."
+    hasPublishedDocs: false
+  constPrimaryConstructorWithBlockBody:
+    type: compileTimeError
+    parameters: none
+    sharedName: constPrimaryConstructorWithBody
+    problemMessage: "The body part of a constant primary constructor can't have a block body."
+    correctionMessage: "Try replacing the block body with a semicolon, or removing the 'const' modifier."
+    hasPublishedDocs: false
+  constPrimaryConstructorWithExpressionBody:
+    type: compileTimeError
+    parameters: none
+    sharedName: constPrimaryConstructorWithBody
+    problemMessage: "The body part of a constant primary constructor can't have an expression body."
+    correctionMessage: "Try replacing the expression body with a semicolon, or removing the 'const' modifier."
     hasPublishedDocs: false
   covariantConstructor:
     type: syntacticError

@@ -16,7 +16,10 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 /// See https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#function-literal-return-type-inference
 class BodyInferenceContext implements SharedBodyInferenceContext {
   final TypeSystemImpl _typeSystem;
-  final bool isAsynchronous;
+
+  @override
+  final bool isAsync;
+
   final bool isGenerator;
 
   /// The imposed return type, from the typing context.
@@ -47,7 +50,7 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
 
     var bodyContext = BodyInferenceContext._(
       typeSystem: typeSystem,
-      isAsynchronous: node.isAsynchronous,
+      isAsync: node.isAsynchronous,
       isGenerator: node.isGenerator,
       imposedType: imposedType,
       contextType: contextType,
@@ -64,7 +67,7 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
   }) {
     var bodyContext = BodyInferenceContext._(
       typeSystem: typeSystem,
-      isAsynchronous: false,
+      isAsync: false,
       isGenerator: false,
       imposedType: imposedType,
       contextType: imposedType,
@@ -76,16 +79,13 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
 
   BodyInferenceContext._({
     required TypeSystemImpl typeSystem,
-    required this.isAsynchronous,
+    required this.isAsync,
     required this.isGenerator,
     required this.imposedType,
     required this.contextType,
   }) : _typeSystem = typeSystem;
 
-  @override
-  bool get isAsync => isAsynchronous;
-
-  bool get isSynchronous => !isAsynchronous;
+  bool get isSync => !isAsync;
 
   @override
   SharedTypeSchemaView get sharedYieldContext =>
@@ -103,7 +103,7 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
       }
     } else {
       var type = expression.typeOrThrow;
-      if (isAsynchronous) {
+      if (isAsync) {
         type = _typeSystem.flatten(type);
       }
       _returnTypes.add(type);
@@ -119,7 +119,7 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
     }
 
     if (isGenerator) {
-      var requiredClass = isAsynchronous
+      var requiredClass = isAsync
           ? _typeProvider.streamElement
           : _typeProvider.iterableElement;
       var type = _argumentOf(expressionType, requiredClass);
@@ -137,13 +137,13 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
     var clampedReturnedType = _clampToContextType(actualReturnedType);
 
     if (isGenerator) {
-      if (isAsynchronous) {
+      if (isAsync) {
         return _typeProvider.streamType(clampedReturnedType);
       } else {
         return _typeProvider.iterableType(clampedReturnedType);
       }
     } else {
-      if (isAsynchronous) {
+      if (isAsync) {
         return _typeProvider.futureType(
           _typeSystem.flatten(clampedReturnedType),
         );
@@ -164,7 +164,7 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
     // If `R` is `void`, or the function literal is marked `async` and `R` is
     // `FutureOr<void>`, let `S` be `void`.
     if (R is VoidType ||
-        isAsynchronous &&
+        isAsync &&
             R is InterfaceTypeImpl &&
             R.isDartAsyncFutureOr &&
             R.typeArguments[0] is VoidType) {

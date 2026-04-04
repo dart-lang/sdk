@@ -855,7 +855,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _returnTypeVerifier.verifyExpressionFunctionBody(node);
+    if (node.parent is! PrimaryConstructorBody) {
+      _returnTypeVerifier.verifyExpressionFunctionBody(node);
+    }
     super.visitExpressionFunctionBody(node);
   }
 
@@ -1593,6 +1595,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               externalKeyword: null,
               isRedirecting: false,
               body: body.body,
+              isPrimary: true,
             );
           }
         }
@@ -6927,6 +6930,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required Token? externalKeyword,
     required bool isRedirecting,
     required FunctionBody body,
+    bool isPrimary = false,
   }) {
     if (element.isFactory) {
       if (externalKeyword != null) {
@@ -6960,14 +6964,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       if (element.isConst) {
         if (body is BlockFunctionBody) {
-          diagnosticReporter.report(
-            diag.constConstructorWithBody.at(body.block.leftBracket),
-          );
+          var error = isPrimary
+              ? diag.constPrimaryConstructorWithBlockBody
+              : diag.constConstructorWithBody;
+          diagnosticReporter.report(error.at(body.block.leftBracket));
         } else if (body is ExpressionFunctionBody) {
-          diagnosticReporter.report(
-            diag.constConstructorWithBody.at(body.functionDefinition),
-          );
+          var error = isPrimary
+              ? diag.constPrimaryConstructorWithExpressionBody
+              : diag.constConstructorWithBody;
+          diagnosticReporter.report(error.at(body.functionDefinition));
         }
+      } else if (isPrimary && body is ExpressionFunctionBody) {
+        diagnosticReporter.report(
+          diag.primaryConstructorBodyWithExpressionBody.at(
+            body.functionDefinition,
+          ),
+        );
       }
     }
   }

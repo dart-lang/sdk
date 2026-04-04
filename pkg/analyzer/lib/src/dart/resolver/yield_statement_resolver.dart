@@ -73,7 +73,7 @@ class YieldStatementResolver {
     TypeImpl impliedReturnType;
     if (isYieldEach) {
       impliedReturnType = expressionType;
-    } else if (bodyContext.isSynchronous) {
+    } else if (bodyContext.isSync) {
       impliedReturnType = _typeProvider.iterableType(expressionType);
     } else {
       impliedReturnType = _typeProvider.streamType(expressionType);
@@ -99,7 +99,7 @@ class YieldStatementResolver {
         }
       } else {
         var imposedSequenceType = imposedReturnType.asInstanceOf(
-          bodyContext.isSynchronous
+          bodyContext.isSync
               ? _typeProvider.iterableElement
               : _typeProvider.streamElement,
         );
@@ -129,7 +129,7 @@ class YieldStatementResolver {
       // also check that the implied return type is assignable to generic
       // Iterable/Stream.
       TypeImpl requiredReturnType;
-      if (bodyContext.isSynchronous) {
+      if (bodyContext.isSync) {
         requiredReturnType = _typeProvider.iterableDynamicType;
       } else {
         requiredReturnType = _typeProvider.streamDynamicType;
