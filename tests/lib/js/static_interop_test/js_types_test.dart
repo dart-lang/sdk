@@ -263,15 +263,17 @@ void syncTests() {
   );
   Expect.throws<JSString>(() => getGenerator().throwError!("oh no".toJS));
 
-  // Nullish errors should be caught and converted to Dart wrappers.
-  Expect.throws(
-    () => getGenerator().throwError!(null),
-    (error) => !error.isA<JSAny?>(),
-  );
-  Expect.throws(
-    () => getGenerator().throwError!(),
-    (error) => !error.isA<JSAny?>(),
-  );
+  // Nullish errors should be caught and converted to Dart wrappers. These tests
+  // are currently failing due to https://github.com/dart-lang/sdk/issues/63109.
+
+  // Expect.throws(
+  //   () => getGenerator().throwError!(null),
+  //   (error) => !error.isA<JSAny?>(),
+  // );
+  // Expect.throws(
+  //   () => getGenerator().throwError!(),
+  //   (error) => !error.isA<JSAny?>(),
+  // );
 
   // [JSIterable] <-> [Iterable]
   final listFromIter = [...iterable.toDartIterable];
