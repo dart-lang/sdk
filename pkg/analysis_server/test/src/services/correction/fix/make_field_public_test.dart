@@ -38,4 +38,60 @@ class C {
 }
 ''');
   }
+
+  Future<void> test_class_removeFirstTwoMembers_avoidConflictingEdit() async {
+    // The implementation of removing members picks between startStart and
+    // endEnd depending on whether we're removing the first member or not. This
+    // previously produced conflicting edits when removing the first two.
+    //
+    // This test is the same as `test_class` but with the field moved to the end
+    // so that the first two members are removed.
+    await resolveTestCode('''
+class C {
+  int get f => _f;
+
+  void set f(int p) => _f = p;
+
+  int _f = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  int f = 0;
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_declaringParameter() async {
+    await resolveTestCode('''
+class C([var _f = 0]) {
+  int get f => _f;
+
+  void set f(int p) => _f = p;
+}
+''');
+    await assertHasFix('''
+class C([var f = 0]) {
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_nonDeclaringParameter() async {
+    // The primary constructor parameter here is unrelated to the field.
+    await resolveTestCode('''
+class C([_f = 0]) {
+  int _f = 0;
+
+  int get f => _f;
+
+  void set f(int p) => _f = p;
+}
+''');
+    // The parameter is untouched.
+    await assertHasFix('''
+class C([_f = 0]) {
+  int f = 0;
+}
+''');
+  }
 }
