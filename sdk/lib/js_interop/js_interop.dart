@@ -251,7 +251,7 @@ extension type JSIterableProtocol<T extends JSAny?>._(JSAnyType _)
   JSIteratorProtocol<T> get iterator => _callMethod(JSSymbol.iterator);
 }
 
-/// A [JSIterableProtocol] whose [iterator] is a {JSIterator].
+/// A [JSIterableProtocol] whose [iterator] is a [JSIterator].
 ///
 /// On its own, the synchronous [JS iterable protocol][] provides a
 /// [JSIteratorProtocol] that can only do simple iteration. Many JS iterables
