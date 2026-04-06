@@ -1,9 +1,9 @@
 (module $module0
   (type $#Top (struct
     (field $field0 i32)))
-  (func $"dart2wasm._174 (import)" (import "dart2wasm" "_174") (param i32) (result externref))
-  (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param externref) (result externref))
-  (func $"dart2wasm._300 (import)" (import "dart2wasm" "_300") (param externref) (result externref))
+  (func $"dart2wasm._197 (import)" (import "dart2wasm" "_197") (param i32) (result externref))
+  (func $"dart2wasm._322 (import)" (import "dart2wasm" "_322") (param externref) (result externref))
+  (func $"dart2wasm._323 (import)" (import "dart2wasm" "_323") (param externref) (result externref))
   (global $"boolValueNullable initialized" (mut i32) <...>)
   (global $boolValueNullable (mut (ref null $#Top)) <...>)
   (global $false (ref $#Top) <...>)
@@ -14,21 +14,21 @@
   (func $sinkBoolNullable <noInline> (param $var0 (ref null $#Top)) <...>)
   (func $"testBoolConstant <noInline>"
     i32.const 1
-    call $"dart2wasm._174 (import)"
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._197 (import)"
+    call $"dart2wasm._322 (import)"
     call $toDartBool
     call $"sinkBool <noInline>"
   )
   (func $"testBoolConstantNullable <noInline>"
     ref.null noextern
-    call $"dart2wasm._300 (import)"
+    call $"dart2wasm._323 (import)"
     call $toDartNullableBool
     call $"sinkBoolNullable <noInline>"
   )
   (func $"testBoolValue <noInline>"
     call $"boolValue implicit getter"
-    call $"dart2wasm._174 (import)"
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._197 (import)"
+    call $"dart2wasm._322 (import)"
     call $toDartBool
     call $"sinkBool <noInline>"
   )
@@ -62,9 +62,9 @@
       global.get $false
       ref.eq
       i32.eqz
-      call $"dart2wasm._174 (import)"
+      call $"dart2wasm._197 (import)"
     end
-    call $"dart2wasm._300 (import)"
+    call $"dart2wasm._323 (import)"
     call $toDartNullableBool
     call $"sinkBoolNullable <noInline>"
   )
