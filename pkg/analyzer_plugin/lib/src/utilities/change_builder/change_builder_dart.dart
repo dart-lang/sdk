@@ -325,12 +325,15 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     List<TypeParameterElement>? typeParametersInScope,
     String? groupNamePrefix,
     bool fillParameterNames = true,
+    bool includeParentheses = true,
     bool includeDefaultValues = true,
     bool requiredTypes = false,
   }) {
     var parameterNames = parameters.map((e) => e.name).nonNulls.toSet();
 
-    write('(');
+    if (includeParentheses) {
+      write('(');
+    }
     var sawNamed = false;
     var sawPositional = false;
     for (var i = 0; i < parameters.length; i++) {
@@ -383,7 +386,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (sawPositional) {
       write(']');
     }
-    write(')');
+    if (includeParentheses) {
+      write(')');
+    }
   }
 
   @override
@@ -392,16 +397,22 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     void Function()? bodyWriter,
     bool isStatic = false,
     String? nameGroupName,
+    void Function()? typeParameterWriter,
     void Function()? parameterWriter,
     DartType? returnType,
     String? returnTypeGroupName,
+    List<TypeParameterElement>? typeParametersInScope,
   }) {
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
     }
     if (returnType != null) {
-      if (writeType(returnType, groupName: returnTypeGroupName)) {
+      if (writeType(
+        returnType,
+        groupName: returnTypeGroupName,
+        typeParametersInScope: typeParametersInScope,
+      )) {
         write(' ');
       }
     }
@@ -410,17 +421,19 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     } else {
       write(name);
     }
+    if (typeParameterWriter != null) {
+      typeParameterWriter();
+    }
     write('(');
     if (parameterWriter != null) {
       parameterWriter();
     }
     write(')');
+    if (returnType?.isDartAsyncFuture ?? false) {
+      write(' async');
+    }
     if (bodyWriter == null) {
-      if (returnType != null) {
-        write(' => null;');
-      } else {
-        write(' {}');
-      }
+      write(' {}');
     } else {
       write(' ');
       bodyWriter();

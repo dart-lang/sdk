@@ -428,22 +428,22 @@ class Sample {
   }
 
   static constexpr int kPCArraySizeInWords = 32;
-  uword* GetPCArray() { return &pc_array_[0]; }
+  RelaxedAtomic<uword>* GetPCArray() { return &pc_array_[0]; }
 
   static constexpr int kStackBufferSizeInWords = 2;
-  uword* GetStackBuffer() { return &stack_buffer_[0]; }
+  RelaxedAtomic<uword>* GetStackBuffer() { return &stack_buffer_[0]; }
 
  private:
-  int64_t timestamp_;
-  Dart_Port port_;
-  ThreadId tid_;
-  uword stack_buffer_[kStackBufferSizeInWords];
-  uword pc_array_[kPCArraySizeInWords];
-  uword vm_tag_;
-  uword user_tag_;
-  Sample* next_;
-  uint32_t state_;
-  uint32_t allocation_identity_hash_;
+  RelaxedAtomic<int64_t> timestamp_;
+  RelaxedAtomic<Dart_Port> port_;
+  RelaxedAtomic<ThreadId> tid_;
+  RelaxedAtomic<uword> stack_buffer_[kStackBufferSizeInWords];
+  RelaxedAtomic<uword> pc_array_[kPCArraySizeInWords];
+  RelaxedAtomic<uword> vm_tag_;
+  RelaxedAtomic<uword> user_tag_;
+  RelaxedAtomic<Sample*> next_;
+  RelaxedAtomic<uint32_t> state_;
+  RelaxedAtomic<uint32_t> allocation_identity_hash_;
 
   using HeadSampleBit = BitField<decltype(state_), bool, 0, 1>;
   using LeafFrameIsDart =
@@ -944,12 +944,12 @@ class ProcessedSample : public ZoneObject {
  private:
   void FixupCaller(const CodeLookupTable& clt,
                    uword pc_marker,
-                   uword* stack_buffer);
+                   RelaxedAtomic<uword>* stack_buffer);
 
   void CheckForMissingDartFrame(const CodeLookupTable& clt,
                                 const CodeDescriptor* code,
                                 uword pc_marker,
-                                uword* stack_buffer);
+                                RelaxedAtomic<uword>* stack_buffer);
 
   ZoneGrowableArray<uword> pcs_;
   int64_t timestamp_;

@@ -281,7 +281,7 @@ class Timeline : public AllStatic {
   }
 
   // Reclaim all |TimelineEventBlocks|s that are cached by threads.
-  static void ReclaimCachedBlocksFromThreads();
+  static void ReclaimCachedBlocksFromThreads(OSThreadIterator* it);
 
   static void Clear();
 

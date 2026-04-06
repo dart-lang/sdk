@@ -15,6 +15,14 @@ import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
+/// The Map type representing a cache of analysis options.
+///
+/// We can canonicalize a URI if it is a 'package:' URI (as this is per
+/// [SourceFactory]), or if it is an absolute 'file:' URI, or if it is a
+/// relative 'file:' URI and we have a "containing" URI which it is
+/// relative to (via [UriCache.resolveRelative]).
+typedef OptionsCache = Map<({Uri? containingUri, Uri uri}), YamlMap>;
+
 /// Provide the options found in the analysis options file.
 class AnalysisOptionsProvider {
   /// The source factory used to resolve include declarations in analysis
@@ -34,7 +42,7 @@ class AnalysisOptionsProvider {
   /// files from disk. A cache should only be passed which is used during an
   /// atomic task (like locating contexts) and which has [YamlMap] contents
   /// derived from this [_sourceFactory].
-  YamlMap getOptionsFromFile(File file, {Map<Uri, YamlMap>? optionsCache}) {
+  YamlMap getOptionsFromFile(File file, {OptionsCache? optionsCache}) {
     return _getOptionsFromSource(
       FileSource(file),
       file.provider.pathContext,
@@ -96,12 +104,17 @@ class AnalysisOptionsProvider {
     Source source,
     path.Context pathContext, {
     required Set<Source> handled,
-    required Map<Uri, YamlMap> optionsCache,
+    required OptionsCache optionsCache,
   }) {
+    if (optionsCache[(containingUri: null, uri: source.uri)] case var cached?) {
+      return cached;
+    }
     YamlMap options;
     try {
       options = getOptionsFromString(source.stringContents);
     } on Exception {
+      // A YAML-parsing exception is hopefully reported by the
+      // `OptionsFileValidator`.
       return YamlMap();
     }
 
@@ -120,7 +133,8 @@ class AnalysisOptionsProvider {
     var includeOptions = includes.fold(YamlMap(), (currentOptions, uriString) {
       var uri = uriCache.parse(uriString);
       YamlMap includedOptions;
-      if (optionsCache[uri] case var cached? when uri.isScheme('package')) {
+      if (optionsCache[(containingUri: source.uri, uri: uri)]
+          case var cached?) {
         includedOptions = cached;
       } else {
         var includeSource = _sourceFactory.resolveUri(source, uriString);
@@ -140,14 +154,12 @@ class AnalysisOptionsProvider {
           pathContext.dirname(includeSource.fullName),
           pathContext,
         );
-        if (uri.isScheme('package')) {
-          // Cache options only if the URI to the file is a "package:" URI.
-          optionsCache[uri] = includedOptions;
-        }
+        optionsCache[(containingUri: source.uri, uri: uri)] = includedOptions;
       }
       return merge(currentOptions, includedOptions);
     });
     options = merge(includeOptions, options);
+    optionsCache[(containingUri: null, uri: source.uri)] = options;
     return options;
   }
 
