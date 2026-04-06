@@ -15,6 +15,7 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -139,7 +140,7 @@ class _ContextLocator {
   final List<Folder> _excludedFolders;
 
   /// A cache of options file contents for each [SourceFactory].
-  final Map<SourceFactory, Map<Uri, YamlMap>> _optionsCaches = {};
+  final Map<SourceFactory, OptionsCache> _optionsCaches = {};
 
   /// The list of context roots ultimately returned by [_locateRoots].
   final _roots = <ContextRootImpl>[];
@@ -510,6 +511,39 @@ class _ContextLocator {
     return null;
   }
 
+  Map<({Uri? containingUri, Uri uri}), YamlMap> _getCache(
+    SourceFactory sourceFactory,
+  ) {
+    return _optionsCaches.putIfAbsent(
+      sourceFactory,
+      () => CanonicalizedMap(
+        (key) {
+          var (:containingUri, :uri) = key;
+          if (uri.isScheme('package')) return uri;
+          if (uri.isScheme('file') || uri.scheme.isEmpty) {
+            if (uri.isAbsolute) return uri;
+            if (containingUri != null) {
+              return uriCache.resolveRelative(containingUri, uri);
+            }
+          }
+          return uri;
+        },
+        isValidKey: (key) {
+          // We can canonicalize a URI if it is a 'package:' URI (as this is per
+          // SourceFactory), or if it is an absolute 'file:' URI, or if it is a
+          // relative 'file:' URI and we have a "containing" URI which it is
+          // relative to (via `UriCache.resolveRelative`).
+          var (:containingUri, :uri) = key;
+          if (uri.isScheme('package')) return true;
+          if (uri.isScheme('file') || uri.scheme.isEmpty) {
+            return uri.isAbsolute || containingUri != null;
+          }
+          return false;
+        },
+      ),
+    );
+  }
+
   /// Gets the set of enabled legacy plugins for [optionsFile], taking into
   /// account any includes.
   Set<String> _getEnabledLegacyPlugins(Workspace workspace, File? optionsFile) {
@@ -518,10 +552,7 @@ class _ContextLocator {
     }
     try {
       var provider = AnalysisOptionsProvider(workspace.partialSourceFactory);
-      var optionsCache = _optionsCaches.putIfAbsent(
-        workspace.partialSourceFactory,
-        () => {},
-      );
+      var optionsCache = _getCache(workspace.partialSourceFactory);
       var options = AnalysisOptionsImpl.fromYaml(
         optionsMap: provider.getOptionsFromFile(
           optionsFile,
@@ -550,7 +581,7 @@ class _ContextLocator {
 
     YamlMap options;
     try {
-      var optionsCache = _optionsCaches.putIfAbsent(sourceFactory, () => {});
+      var optionsCache = _getCache(sourceFactory);
       options = AnalysisOptionsProvider(
         sourceFactory,
       ).getOptionsFromFile(optionsFile, optionsCache: optionsCache);
