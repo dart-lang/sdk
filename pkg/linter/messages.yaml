@@ -774,10 +774,9 @@ LinterLintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a conditional expression has
-      `true` or `false` as either the then or else expression, when both
-      branches have a type of `bool`. Such expressions can always be simplified
-      using `&&` or `||`.
+      The analyzer produces this diagnostic when a conditional expression uses a
+      boolean literal, and both branches are booleans. You can simplify these
+      expressions using `&&` or `||`.
 
       #### Examples
 
