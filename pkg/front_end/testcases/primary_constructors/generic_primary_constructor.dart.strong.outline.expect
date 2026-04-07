@@ -43,7 +43,7 @@ class E2<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   final field core::Type f;
   static const field core::List<self::E2<dynamic>> values = const <self::E2<dynamic>>[self::E2::a];
   const constructor •(core::int #index, core::String #name, final self::E2::T% a, final self::E2::T% b) → self::E2<self::E2::T%>
-    : self::E2::b = b, super core::_Enum::•(#index, #name)
+    : self::E2::d = a, self::E2::e = b, self::E2::f = self::E2::T%, self::E2::b = b, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
@@ -77,6 +77,6 @@ static extension-type-member synthetic method ET2|constructor#_#new#tearOff<T ex
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///generic_primary_constructor.dart:30:3 -> InstanceConstant(const E1<int>{E1.b: 1, E1.c: 0, E1.d: 1, E1.f: int, _Enum.index: 0, _Enum._name: "a"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///generic_primary_constructor.dart:29:6 -> ListConstant(const <E1<dynamic>>[const E1<int>{E1.b: 1, E1.c: 0, E1.d: 1, E1.f: int, _Enum.index: 0, _Enum._name: "a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///generic_primary_constructor.dart:41:3 -> InstanceConstant(const E2<int>{E2.b: 1, E2.d: null, E2.e: null, E2.f: null, _Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///generic_primary_constructor.dart:40:6 -> ListConstant(const <E2<dynamic>>[const E2<int>{E2.b: 1, E2.d: null, E2.e: null, E2.f: null, _Enum.index: 0, _Enum._name: "a"}])
-Extra constant evaluation: evaluated: 25, effectively constant: 4
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///generic_primary_constructor.dart:41:3 -> InstanceConstant(const E2<int>{E2.b: 1, E2.d: 0, E2.e: 1, E2.f: int, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///generic_primary_constructor.dart:40:6 -> ListConstant(const <E2<dynamic>>[const E2<int>{E2.b: 1, E2.d: 0, E2.e: 1, E2.f: int, _Enum.index: 0, _Enum._name: "a"}])
+Extra constant evaluation: evaluated: 28, effectively constant: 4

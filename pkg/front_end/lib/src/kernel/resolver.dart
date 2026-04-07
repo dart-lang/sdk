@@ -262,6 +262,8 @@ class Resolver {
       fileUri: fileUri,
     );
     ConstantContext constantContext = bodyBuilderContext.constantContext;
+    List<FormalParameterBuilder>? primaryConstructorInitializerScopeParameters =
+        bodyBuilderContext.primaryConstructorInitializerScopeParameters;
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
@@ -276,6 +278,12 @@ class Resolver {
     BuildFieldInitializerResult result = bodyBuilder.buildFieldInitializer(
       startToken: startToken,
       isLate: isLate,
+    );
+    _declareFormals(
+      typeInferrer: context.typeInferrer,
+      bodyBuilderContext: bodyBuilderContext,
+      thisVariable: null,
+      formals: primaryConstructorInitializerScopeParameters,
     );
     ExpressionInferenceResult expressionInferenceResult = context.typeInferrer
         .inferFieldInitializer(

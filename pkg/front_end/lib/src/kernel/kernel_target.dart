@@ -1669,7 +1669,7 @@ class KernelTarget {
                 ],
               );
             }
-          } else {
+          } else if (!constructor.isConst) {
             constructor.prependInitializer(
               field.takePrimaryConstructorFieldInitializer(),
             );

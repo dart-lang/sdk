@@ -67,7 +67,7 @@ abstract class FieldDeclaration {
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool isClassInstanceMember,
+    required bool forConstantConstructor,
   });
 
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context);
@@ -334,7 +334,7 @@ class RegularFieldDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool isClassInstanceMember,
+    required bool forConstantConstructor,
   }) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
@@ -352,13 +352,9 @@ class RegularFieldDeclaration
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
     // into the outline.
-    Token? token = _fragment.takeConstInitializerToken();
+    Token? token = _fragment.takeInitializerTokenForOutline();
     if (!hasBodyBeenBuilt && token != null) {
-      if ((_fragment.modifiers.isConst ||
-          (isFinal &&
-              isClassInstanceMember &&
-              (declarationBuilder as SourceClassBuilder)
-                  .declaresConstConstructor))) {
+      if (_fragment.modifiers.isConst || forConstantConstructor) {
         if (hasInitializerBeenComputed) {
           buildBody(classHierarchy.coreTypes, cachedFieldInitializer);
         } else {
@@ -587,7 +583,7 @@ class RegularFieldDeclaration
     }
 
     type.registerInferredTypeListener(this);
-    Token? token = _fragment.takeInitializerToken();
+    Token? token = _fragment.takeInitializerTokenForTopLevelInference();
     if (type is InferableTypeBuilder) {
       if (!_fragment.modifiers.hasInitializer && isStatic) {
         // A static field without type and initializer will always be inferred

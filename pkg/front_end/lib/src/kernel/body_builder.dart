@@ -1252,7 +1252,7 @@ class BodyBuilderImpl extends StackListenerImpl
     return _initializers;
   }
 
-  Expression parseFieldInitializer(Token token) {
+  Expression _parseInitializer(Token token) {
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -1266,7 +1266,6 @@ class BodyBuilderImpl extends StackListenerImpl
         unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
       ]),
     );
-    //print(constantContext);
     Expression expression = popForValue();
     checkEmpty(endToken.charOffset);
     return expression;
@@ -2671,6 +2670,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (mustBeConst &&
             !getable.isConst &&
             !(_context.isConstructor && inFieldInitializer) &&
+            !_context.inPrimaryConstructorFieldInitializer &&
             !libraryFeatures.constFunctions.isEnabled) {
           return new IncompleteErrorGenerator(
             this,
@@ -3432,12 +3432,13 @@ class BodyBuilderImpl extends StackListenerImpl
     push(variableInitialization);
   }
 
-  @override
-  void beginFieldInitializer(Token token) {
-    inFieldInitializer = true;
-    constantContext = _context.constantContext;
-    inLateFieldInitializer = _context.isLateField;
-    if (_context.isDeclarationInstanceContext && !inLateFieldInitializer) {
+  /// Sets up the local scope for a field initializer.
+  ///
+  /// For non-late instance fields the scope includes primary constructor
+  /// parameter.
+  void _enterFieldInitializerScope() {
+    if (_context.inPrimaryConstructorFieldInitializer) {
+      inConstructorInitializer = true;
       LocalScope enclosingScope = _localScope;
       List<FormalParameterBuilder>? parameters =
           _context.primaryConstructorInitializerScopeParameters;
@@ -3457,6 +3458,22 @@ class BodyBuilderImpl extends StackListenerImpl
         _localScopes.push(enclosingScope);
       }
     }
+  }
+
+  /// Pop the locals scope set up in [_enterFieldInitializerScope].
+  void _exitFieldInitializerScope() {
+    if (_context.inPrimaryConstructorFieldInitializer) {
+      _localScopes.pop();
+      inConstructorInitializer = false;
+    }
+  }
+
+  @override
+  void beginFieldInitializer(Token token) {
+    inFieldInitializer = true;
+    constantContext = _context.constantContext;
+    inLateFieldInitializer = _context.isLateField;
+    _enterFieldInitializerScope();
     if (_context.isAbstractField) {
       addProblem(diag.abstractFieldInitializer, token.charOffset, noLength);
     } else if (_context.isExternalField) {
@@ -3467,13 +3484,11 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void endFieldInitializer(Token assignmentOperator, Token endToken) {
     debugEvent("FieldInitializer");
-    if (_context.isDeclarationInstanceContext && !inLateFieldInitializer) {
-      _localScopes.pop();
-    }
     inFieldInitializer = false;
     inLateFieldInitializer = false;
     assert(assignmentOperator.stringValue == "=");
     push(popForValue());
+    _exitFieldInitializerScope();
     constantContext = ConstantContext.none;
   }
 
@@ -11188,7 +11203,7 @@ class BodyBuilderImpl extends StackListenerImpl
   BuildParameterInitializerResult buildParameterInitializer({
     required Token initializerToken,
   }) {
-    Expression initializer = parseFieldInitializer(initializerToken);
+    Expression initializer = _parseInitializer(initializerToken);
     return new BuildParameterInitializerResult(
       initializer,
       _takePendingAnnotations(),
@@ -11448,7 +11463,9 @@ class BodyBuilderImpl extends StackListenerImpl
   }) {
     inFieldInitializer = true;
     inLateFieldInitializer = isLate;
-    Expression initializer = parseFieldInitializer(startToken);
+    _enterFieldInitializerScope();
+    Expression initializer = _parseInitializer(startToken);
+    _exitFieldInitializerScope();
     return new BuildFieldInitializerResult(
       initializer,
       _takePendingAnnotations(),
