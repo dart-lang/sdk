@@ -72,14 +72,14 @@ Set<Object> _computeExplicitlyTypedParameterSet(
   for (VariableDeclaration positionalParameter
       in functionExpression.function.positionalParameters) {
     int key = unnamedParameterIndex++;
-    if (!(positionalParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+    if (!(positionalParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
   for (VariableDeclaration namedParameter
       in functionExpression.function.namedParameters) {
     String key = namedParameter.name!;
-    if (!(namedParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+    if (!(namedParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
