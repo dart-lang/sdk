@@ -4,9 +4,9 @@
   (type $BoxedDouble (sub final $#Top (struct
     (field $field0 i32)
     (field $value f64))))
-  (func $"dart2wasm._171 (import)" (import "dart2wasm" "_171") (param f64) (result externref))
-  (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param externref) (result externref))
-  (func $"dart2wasm._300 (import)" (import "dart2wasm" "_300") (param externref) (result externref))
+  (func $"dart2wasm._194 (import)" (import "dart2wasm" "_194") (param f64) (result externref))
+  (func $"dart2wasm._322 (import)" (import "dart2wasm" "_322") (param externref) (result externref))
+  (func $"dart2wasm._323 (import)" (import "dart2wasm" "_323") (param externref) (result externref))
   (global $"numValueNullable initialized" (mut i32) <...>)
   (global $numValueNullable (mut (ref null $#Top)) <...>)
   (func $ktrue implicit getter (result i32) <...>)
@@ -15,27 +15,27 @@
   (func $sinkNumNullable <noInline> (param $var0 (ref null $BoxedDouble)) <...>)
   (func $"testNumConstant <noInline>"
     call $jsifyInt
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._322 (import)"
     call $toDartDouble
     call $"sinkNum <noInline>"
   )
   (func $"testNumConstantDouble <noInline>"
     f64.const 1.1
-    call $"dart2wasm._171 (import)"
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._194 (import)"
+    call $"dart2wasm._322 (import)"
     call $toDartDouble
     call $"sinkNum <noInline>"
   )
   (func $"testNumConstantNullable <noInline>"
     ref.null noextern
-    call $"dart2wasm._300 (import)"
+    call $"dart2wasm._323 (import)"
     call $toDartNullableDouble
     call $"sinkNumNullable <noInline>"
   )
   (func $"testNumValue <noInline>"
     call $"numValue implicit getter"
     call $jsifyNum
-    call $"dart2wasm._299 (import)"
+    call $"dart2wasm._322 (import)"
     call $toDartDouble
     call $"sinkNum <noInline>"
   )
@@ -66,7 +66,7 @@
       ref.as_non_null
       call $jsifyNum
     end
-    call $"dart2wasm._300 (import)"
+    call $"dart2wasm._323 (import)"
     call $toDartNullableDouble
     call $"sinkNumNullable <noInline>"
   )

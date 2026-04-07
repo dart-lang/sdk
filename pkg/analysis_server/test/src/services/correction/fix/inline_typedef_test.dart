@@ -12,7 +12,6 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineTypedefBulkTest);
     defineReflectiveTests(InlineTypedefTest);
-    defineReflectiveTests(InlineTypedefWithNullSafetyTest);
   });
 }
 
@@ -74,6 +73,16 @@ void g(Function([int]) f) {}
 ''');
   }
 
+  Future<void> test_generic_parameter_requiredNamed() async {
+    await resolveTestCode('''
+typedef _F = Function({required int i});
+void g(_F f) {}
+''');
+    await assertHasFix('''
+void g(Function({required int i}) f) {}
+''');
+  }
+
   Future<void> test_generic_parameter_requiredPositional_withName() async {
     await resolveTestCode('''
 typedef _F = Function(int i);
@@ -114,6 +123,16 @@ void g(Function<T>(T) f) {}
 ''');
   }
 
+  Future<void> test_nonGeneric_parameter_requiredNamed() async {
+    await resolveTestCode('''
+typedef _F({required int i});
+void g(_F f) {}
+''');
+    await assertHasFix('''
+void g(Function({required int i}) f) {}
+''');
+  }
+
   Future<void> test_nonGeneric_parameter_requiredPositional_typed() async {
     await resolveTestCode('''
 typedef _F(int i);
@@ -151,30 +170,6 @@ void g(_F f) {}
 ''');
     await assertHasFix('''
 void g(Function<T>(T) f) {}
-''');
-  }
-}
-
-@reflectiveTest
-class InlineTypedefWithNullSafetyTest extends InlineTypedefTest
-    with WithNullSafetyLintMixin {
-  Future<void> test_generic_parameter_requiredNamed() async {
-    await resolveTestCode('''
-typedef _F = Function({required int i});
-void g(_F f) {}
-''');
-    await assertHasFix('''
-void g(Function({required int i}) f) {}
-''');
-  }
-
-  Future<void> test_nonGeneric_parameter_requiredNamed() async {
-    await resolveTestCode('''
-typedef _F({required int i});
-void g(_F f) {}
-''');
-    await assertHasFix('''
-void g(Function({required int i}) f) {}
 ''');
   }
 }

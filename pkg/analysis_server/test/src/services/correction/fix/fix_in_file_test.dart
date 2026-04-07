@@ -20,8 +20,7 @@ void main() {
 
 // TODO(pq): update w/ a FixKind that we're sure we want to support as a file fix
 // @reflectiveTest
-// class MultiFixInFileTest extends FixInFileProcessorTest
-//     with WithNullSafetyMixin {
+// class MultiFixInFileTest extends FixInFileProcessorTest {
 //   Future<void> test_nullable() async {
 //     await resolveTestCode('''
 // class C {

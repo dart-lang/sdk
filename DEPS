@@ -135,27 +135,27 @@ vars = {
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
   "ai_rev": "f1cddc8e1905b9a5753a93ce451522e564311251",
-  "core_rev": "1ce6453c52f498e24fe769b1eba10565a3a61c6b",
-  "dartdoc_rev": "e3484b5adb4b0316667c7b07cd16ec4cfc877887",
-  "ecosystem_rev": "b305b11424f712d174f767369739f9a11ded6a1e",
+  "core_rev": "347df4b546f315fc1ff69c6e65f2a023b0263b1d",
+  "dartdoc_rev": "a57f497ae9df6e6073b5eb7ddf253d0b2eb470c3",
+  "ecosystem_rev": "6b2164f8f57583a7bcaa32341eaa219efd8fd2d3",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "c2a9c4b3312a6c3c255c78fbf7ea7a52f77ff389",
+  "http_rev": "6bfe07f26384637fad6d1713de9ba9d2bb5d8c88",
   "i18n_rev": "de7e11b7cc231d8daf6e49dc12690d7339241691",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "debb5bddc4ce0aef9d70bb949495e0c65cc976d4", # rolled manually while record_use is experimental
-  "protobuf_rev": "d5639f45b8468fba684b076b9403ccd5f2290056",
+  "protobuf_rev": "84079e8b8531309e06ba7276b1c28bdca9210ad6",
   "pub_rev": "74408212b5348003381bc63f3b59274aaa23cfa3", # rolled manually
-  "shelf_rev": "4d99e49fa9275bfa348a88c0ce066bfcd335f763",
+  "shelf_rev": "c4b94d3879e627c0b1fe95d9e1ce5f93ebf122d3",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "2b8c256a6320435dc8c9dbb1303fb6540e617846",
+  "test_rev": "bcc5228370ba909e5774441398b8585ba9874423",
   "tools_rev": "8f62a7792e30b4b512caa05fb84ce45a57f8d401", # rolled manually to expedite analytics work
-  "vector_math_rev": "5e717dfe507403747276b6565d71c8b3d610111c",
-  "web_rev": "48b75126e511e2d3de65130f2e7aa21cca58f473",
+  "vector_math_rev": "7bf60fb95e0fbbd7648944071de9ab5e32ce7387",
+  "web_rev": "e0ea82dd5e737b0c06fcaad6194731fb6f414791",
   "webdev_rev": "5b7299f5b85706536aeac1c9f470b869ddb39fef",
-  "webdriver_rev": "bc92e4e9612a247c4388a7b437ad4e40a5fba1fd",
-  "webkit_inspection_protocol_rev": "bb493f55cafb4118f29ebd7cdb995efeafa7f30c",
+  "webdriver_rev": "26326d37c0279f201a59c4114c1389977928c0ca",
+  "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 
   # Windows deps
   "crashpad_rev": "d256de317164c0eb362bdd9cbb4d259fe6d086f3",
