@@ -609,8 +609,8 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.implicitSuperInitializerMissingArguments: [AddSuperParameter.new],
   diag.implicitThisReferenceInInitializer: [
-    ConvertIntoGetter.implicitThis,
-    AddLate.implicitThis,
+    ConvertIntoGetter.this_,
+    AddLate.this_,
   ],
   diag.importOfNonLibrary: [RemoveUnusedImport.new],
   diag.importInternalLibrary: [RemoveUnusedImport.new],
@@ -632,6 +632,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.invalidModifierOnConstructor: [RemoveLexeme.modifier],
   diag.invalidModifierOnSetter: [RemoveLexeme.modifier],
+  diag.invalidReferenceToThis: [ConvertIntoGetter.this_, AddLate.this_],
   diag.invalidUseOfCovariant: [RemoveLexeme.keyword],
   diag.invocationOfNonFunctionExpression: [
     RemoveParenthesesInGetterInvocation.new,

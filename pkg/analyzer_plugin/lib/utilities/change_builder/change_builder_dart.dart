@@ -192,7 +192,8 @@ abstract class DartEditBuilder implements EditBuilder {
   /// [typeParameterWriter] is provided, then it will be invoked to write the
   /// declarations of the type parameters to the function. (The brackets around
   /// the parameters are not automatically written allowing the function to
-  /// determine whether to add them.)
+  /// determine whether to add them.) If [returnType] is `dynamic`, it will be
+  /// omitted unless [alwaysWriteType] is `true`.
   void writeFunctionDeclaration(
     String name, {
     void Function()? bodyWriter,

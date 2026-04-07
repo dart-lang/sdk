@@ -18,8 +18,8 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
   final _Type _type;
 
   ConvertIntoGetter({required super.context}) : _type = _Type.base;
-  ConvertIntoGetter.implicitThis({required super.context})
-    : _type = _Type.implicitThis;
+
+  ConvertIntoGetter.this_({required super.context}) : _type = _Type.this_;
 
   @override
   CorrectionApplicability get applicability =>
@@ -42,7 +42,7 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     // Find the enclosing field declaration.
     FieldDeclaration? fieldDeclaration;
-    if (_type == _Type.implicitThis) {
+    if (_type == _Type.this_) {
       fieldDeclaration = node.thisOrAncestorOfType();
     } else {
       for (var n in node.withAncestors) {
@@ -118,4 +118,4 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
   }
 }
 
-enum _Type { base, implicitThis }
+enum _Type { base, this_ }

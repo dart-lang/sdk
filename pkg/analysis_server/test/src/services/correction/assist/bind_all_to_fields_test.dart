@@ -42,6 +42,16 @@ class A {
 ''');
   }
 
+  Future<void>
+  test_typed_multiple_constructor_parameter_primaryConstructor() async {
+    await resolveTestCode('''
+class C(int ^i, String s);
+''');
+    await assertHasAssist('''
+class C(var int i, var String s);
+''');
+  }
+
   Future<void> test_typed_multiple_constructor_parameters() async {
     await resolveTestCode('''
 class A {
@@ -161,6 +171,19 @@ class Foo extends B {
 
 class B {
   const B({required int a});
+}
+''');
+  }
+
+  Future<void> test_with_existing_fields_primaryConstructor() async {
+    await resolveTestCode('''
+class Foo({this.a, bool ^b = false}) {
+  final String? a;
+}
+''');
+    await assertHasAssist('''
+class Foo({this.a, var bool b = false}) {
+  final String? a;
 }
 ''');
   }

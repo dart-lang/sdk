@@ -13426,6 +13426,34 @@ LinterLintCode:
       experimental: "3.7"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a function, method, or
+      closure is marked `async` but doesn't contain any `await` expressions
+      or `await for` statements. The `async` modifier is unnecessary in these
+      cases and can be removed without changing the behavior of the code.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f` is
+      marked `async` but doesn't use `await`:
+
+      ```dart
+      void f() [!async!] {
+        print('done');
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the `async` modifier:
+
+      ```dart
+      void f() {
+        print('done');
+      }
+      ```
     deprecatedDetails: |-
       Functions that don't do `await` don't have to be `async`.
 

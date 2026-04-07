@@ -40,7 +40,7 @@ class B extends A {
   existing() {}
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 ''');
   }
@@ -62,7 +62,7 @@ abstract class A {
 
 class B extends A {
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 ''');
   }
@@ -85,7 +85,7 @@ abstract class A {
 
 class B extends A {
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 ''');
   }
@@ -107,7 +107,67 @@ abstract class A {
 
 class B extends A {
   @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+''');
+  }
+
+  Future<void> test_class_lint_alwaysDeclareReturnTypes() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_declare_return_types]);
+
+    await resolveTestCode('''
+abstract class A {
+  void m1();
+  int m2();
+}
+
+class B extends A {
+  void existing() {}
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  void m1();
+  int m2();
+}
+
+class B extends A {
+  void existing() {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+''');
+  }
+
+  Future<void> test_class_lint_alwaysDeclareReturnTypes_avoidDynamic() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.always_declare_return_types,
+        LintNames.avoid_annotating_with_dynamic,
+      ],
+    );
+    await resolveTestCode('''
+abstract class A {
+  void m1();
+  int m2();
+}
+
+class B extends A {
+  void existing() {}
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  void m1();
+  int m2();
+}
+
+class B extends A {
+  void existing() {}
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 ''');
   }

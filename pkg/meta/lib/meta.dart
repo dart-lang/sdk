@@ -563,10 +563,12 @@ const Object sealed = _Sealed();
 /// Annotation on function or property whose value must not be ignored.
 ///
 /// Used to annotate a method, field, or getter within a class, mixin, or
-/// extension, or a or top-level getter, variable or function to indicate that
+/// extension, or a top-level getter, variable or function to indicate that
 /// the value obtained by invoking it should be used. A value is considered used
-/// if it is assigned to a variable, passed to a function, or used as the target
-/// of an invocation, or invoked (if the result is itself a function).
+/// if it is not silently discarded. This includes being assigned to a variable,
+/// passed as an argument, returned, placed in a collection or record, used in a
+/// pattern, used in a control flow condition or assert, or used as the target
+/// of an invocation (or invoked if the result is itself a function).
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
