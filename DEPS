@@ -150,7 +150,7 @@ vars = {
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "bcc5228370ba909e5774441398b8585ba9874423",
-  "tools_rev": "8f62a7792e30b4b512caa05fb84ce45a57f8d401", # rolled manually to expedite analytics work
+  "tools_rev": "7f986eaa15f493dd2da081ba0daa49be22fcc2fb",
   "vector_math_rev": "7bf60fb95e0fbbd7648944071de9ab5e32ce7387",
   "web_rev": "e0ea82dd5e737b0c06fcaad6194731fb6f414791",
   "webdev_rev": "5b7299f5b85706536aeac1c9f470b869ddb39fef",
