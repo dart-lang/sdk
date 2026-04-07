@@ -167,7 +167,11 @@ class SourceClassBuilder extends ClassBuilderImpl
          indexedClass,
          isAugmentation: modifiers.isAugment,
        ) {
-    cls.hasConstConstructor = declaresConstConstructor;
+    if (!isEnum) {
+      // TODO(johnniwinther): Should enums be marked as having constant
+      //  constructors?
+      cls.hasConstConstructor = declaresConstConstructor;
+    }
   }
 
   @override
@@ -193,6 +197,17 @@ class SourceClassBuilder extends ClassBuilderImpl
     _constructorBuilders.iterator,
     includeDuplicates: includeDuplicates,
   );
+
+  /// Returns `true` if this class has a primary constructor.
+  bool get hasPrimaryConstructor {
+    for (SourceMemberBuilder constructorBuilder in _constructorBuilders) {
+      if (constructorBuilder is SourceConstructorBuilder &&
+          constructorBuilder.isPrimaryConstructor) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /// If the class has a primary constructor, returns the parameters
   /// available in the initializer scope. Otherwise return `null`.
@@ -638,6 +653,14 @@ class SourceClassBuilder extends ClassBuilderImpl
     filteredMembersIterator<SourceMemberBuilder>(
       includeDuplicates: false,
     ).forEach(build);
+
+    for (SourceMemberBuilder memberBuilder in _constructorBuilders) {
+      if (memberBuilder is SourceConstructorBuilder &&
+          memberBuilder.isPrimaryConstructor &&
+          memberBuilder.isConst) {
+        memberBuilder.buildPrimaryConstructorFieldInitializers();
+      }
+    }
   }
 
   /// Looks up the constructor by [name] on the class built by this class

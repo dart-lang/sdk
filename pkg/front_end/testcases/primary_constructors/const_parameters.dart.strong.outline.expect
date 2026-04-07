@@ -1,0 +1,61 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(core::int c, dynamic d) → self::C0
+    : self::C0::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C0::b = c, super core::Object::•()
+    ;
+}
+class C1 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(final core::int c, final dynamic d) → self::C1
+    : self::C1::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C1::b = c, super core::Object::•()
+    ;
+}
+class C2 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(final core::int c, final dynamic d) → self::C2
+    : super core::Object::•()
+    ;
+}
+class C3 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(final core::int c, final dynamic d) → self::C3
+    : self::C3::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, super core::Object::•()
+    ;
+}
+class C4 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(final core::int c, final dynamic d) → self::C4
+    : self::C4::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C4::b = c, super core::Object::•()
+    ;
+}
+class C5 extends core::Object /*hasConstConstructor*/  {
+  field core::int a;
+  field core::int b;
+  field core::int? _;
+  const constructor •(final core::int c, final dynamic d) → self::C5
+    : self::C5::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C5::b = c, super core::Object::•()
+    ;
+}
+class C6 extends core::Object /*hasConstConstructor*/  {
+  field dynamic a;
+  field core::int b;
+  field dynamic _;
+  const constructor •(final core::int c, final dynamic d) → self::C6
+    : self::C6::a = d{dynamic}.length, self::C6::b = c, super core::Object::•()
+    ;
+}
+static method main() → dynamic
+  ;
+static method test() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

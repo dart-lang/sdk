@@ -78,7 +78,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   late final _EnumValuesFieldDeclaration _enumValuesFieldDeclaration;
 
-  SourceEnumBuilder.internal({
+  SourceEnumBuilder({
     required String name,
     required List<SourceNominalParameterBuilder>? typeParameters,
     required TypeBuilder underscoreEnumTypeBuilder,
@@ -92,11 +92,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
     required this.endOffset,
     required IndexedClass? indexedClass,
     required ClassDeclaration classDeclaration,
+    required Modifiers modifiers,
   }) : _underscoreEnumTypeBuilder = underscoreEnumTypeBuilder,
        _introductory = classDeclaration,
        _enumElements = enumElements,
        super(
-         modifiers: Modifiers.empty,
+         modifiers: modifiers,
          name: name,
          typeParameters: typeParameters,
          typeParameterScope: typeParameterScope,
@@ -107,40 +108,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
          indexedClass: indexedClass,
          introductory: classDeclaration,
        );
-
-  factory SourceEnumBuilder({
-    required String name,
-    required List<SourceNominalParameterBuilder>? typeParameters,
-    required TypeBuilder underscoreEnumTypeBuilder,
-    required List<TypeBuilder>? interfaceBuilders,
-    required List<EnumElementFragment> enumElements,
-    required SourceLibraryBuilder libraryBuilder,
-    required Uri fileUri,
-    required int startOffset,
-    required int nameOffset,
-    required int endOffset,
-    required IndexedClass? indexedClass,
-    required LookupScope typeParameterScope,
-    required DeclarationNameSpaceBuilder nameSpaceBuilder,
-    required ClassDeclaration classDeclaration,
-  }) {
-    SourceEnumBuilder enumBuilder = new SourceEnumBuilder.internal(
-      name: name,
-      typeParameters: typeParameters,
-      underscoreEnumTypeBuilder: underscoreEnumTypeBuilder,
-      typeParameterScope: typeParameterScope,
-      nameSpaceBuilder: nameSpaceBuilder,
-      enumElements: enumElements,
-      libraryBuilder: libraryBuilder,
-      fileUri: fileUri,
-      startOffset: startOffset,
-      nameOffset: nameOffset,
-      endOffset: endOffset,
-      indexedClass: indexedClass,
-      classDeclaration: classDeclaration,
-    );
-    return enumBuilder;
-  }
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
@@ -732,7 +699,7 @@ class _EnumValuesFieldDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool isClassInstanceMember,
+    required bool forConstantConstructor,
   }) {
     List<Expression> values = <Expression>[];
     for (EnumElementFragment enumElement in _sourceEnumBuilder._enumElements) {

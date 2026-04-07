@@ -327,6 +327,14 @@ abstract class BodyBuilderContext {
     );
   }
 
+  /// Returns `true` if the member being built is a non-late instance field
+  /// in a declaration with a primary constructor.
+  ///
+  /// Field initializers in this context have access to primary constructor
+  /// parameters and should be built as if they occur in a constructor
+  /// initializer.
+  bool get inPrimaryConstructorFieldInitializer => false;
+
   /// Returns the primary constructor parameters available in the initializer
   /// scope for instance field initializers.
   ///

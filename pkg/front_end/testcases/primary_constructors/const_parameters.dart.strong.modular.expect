@@ -1,0 +1,157 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:10: Error: 'a' is a final instance variable that was initialized at the declaration.
+//   this : a = d.length, b = c;
+//          ^
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:31:13: Context: 'a' was initialized here.
+//   final int a = d.length;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:24: Error: 'b' is a final instance variable that was initialized at the declaration.
+//   this : a = d.length, b = c;
+//                        ^
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:32:13: Context: 'b' was initialized here.
+//   final int b = c;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:37:15: Error: Constructor is marked 'const' so all fields must be final.
+// class const C5(int c, dynamic d) {
+//               ^
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:38:7: Context: Field isn't final, but constructor is 'const'.
+//   int a = d.length;
+//       ^
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:39:7: Context: Field isn't final, but constructor is 'const'.
+//   int b = c;
+//       ^
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:40:8: Context: Field isn't final, but constructor is 'const'.
+//   int? _;
+//        ^
+//
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:43:15: Error: Constructor is marked 'const' so all fields must be final.
+// class const C6(int c, dynamic d) {
+//               ^
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:44:7: Context: Field isn't final, but constructor is 'const'.
+//   var a = d.length;
+//       ^
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:45:7: Context: Field isn't final, but constructor is 'const'.
+//   var b = c;
+//       ^
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:46:7: Context: Field isn't final, but constructor is 'const'.
+//   var _;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(core::int c, dynamic d) → self::C0
+    : self::C0::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C0::b = c, super core::Object::•()
+    ;
+}
+class C1 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(final core::int c, final dynamic d) → self::C1
+    : self::C1::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C1::b = c, super core::Object::•()
+    ;
+}
+class C2 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(final core::int c, final dynamic d) → self::C2
+    : self::C2::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C2::b = c, super core::Object::•()
+    ;
+}
+class C3 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(final core::int c, final dynamic d) → self::C3
+    : self::C3::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C3::b = c, super core::Object::•()
+    ;
+}
+class C4 extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(final core::int c, final dynamic d) → self::C4
+    : self::C4::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C4::b = c, invalid-initializer "pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:10: Error: 'a' is a final instance variable that was initialized at the declaration.
+  this : a = d.length, b = c;
+         ^", invalid-initializer "pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:24: Error: 'b' is a final instance variable that was initialized at the declaration.
+  this : a = d.length, b = c;
+                       ^"
+    ;
+}
+class C5 extends core::Object /*hasConstConstructor*/  {
+  field core::int a;
+  field core::int b;
+  field core::int? _ = null;
+  const constructor •(final core::int c, final dynamic d) → self::C5
+    : self::C5::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C5::b = c, super core::Object::•()
+    ;
+}
+class C6 extends core::Object /*hasConstConstructor*/  {
+  field dynamic a;
+  field core::int b;
+  field dynamic _ = null;
+  const constructor •(final core::int c, final dynamic d) → self::C6
+    : self::C6::a = d{dynamic}.length, self::C6::b = c, super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  const self::C0 a = #C3;
+  self::expect(4, #C3.{self::C0::a}{core::int});
+  self::expect(0, #C3.{self::C0::b}{core::int});
+  const self::C1 b = #C6;
+  self::expect(5, #C6.{self::C1::a}{core::int});
+  self::expect(1, #C6.{self::C1::b}{core::int});
+  const self::C2 c = #C9;
+  self::expect(6, #C9.{self::C2::a}{core::int});
+  self::expect(2, #C9.{self::C2::b}{core::int});
+  const self::C3 d = #C12;
+  self::expect(7, #C12.{self::C3::a}{core::int});
+  self::expect(3, #C12.{self::C3::b}{core::int});
+}
+static method test() → dynamic {
+  const self::C4 e = invalid-expression "pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:10: Error: 'a' is a final instance variable that was initialized at the declaration.
+  this : a = d.length, b = c;
+         ^";
+  const self::C5 f = #C14;
+  const self::C6 g = #C15;
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = 4
+  #C2 = 0
+  #C3 = self::C0 {a:#C1, b:#C2}
+  #C4 = 5
+  #C5 = 1
+  #C6 = self::C1 {a:#C4, b:#C5}
+  #C7 = 6
+  #C8 = 2
+  #C9 = self::C2 {a:#C7, b:#C8}
+  #C10 = 7
+  #C11 = 3
+  #C12 = self::C3 {a:#C10, b:#C11}
+  #C13 = null
+  #C14 = self::C5 {a:#C2, b:#C2, _:#C13}
+  #C15 = self::C6 {a:#C2, b:#C2, _:#C13}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_parameters.dart:
+- C0. (from org-dartlang-testcase:///const_parameters.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- C1. (from org-dartlang-testcase:///const_parameters.dart:11:15)
+- C2. (from org-dartlang-testcase:///const_parameters.dart:16:15)
+- C3. (from org-dartlang-testcase:///const_parameters.dart:23:15)
+- C4. (from org-dartlang-testcase:///const_parameters.dart:30:15)
+- C5. (from org-dartlang-testcase:///const_parameters.dart:37:15)
+- C6. (from org-dartlang-testcase:///const_parameters.dart:43:15)

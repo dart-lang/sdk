@@ -16,7 +16,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object /*hasConstConstructor*/  {
-  field self::Foo x;
+  field self::Foo x = const self::Foo::•();
   const constructor •({core::bool x = true}) → self::Foo
     : super core::Object::•()
     ;

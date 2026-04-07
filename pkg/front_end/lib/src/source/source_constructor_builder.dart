@@ -21,6 +21,7 @@ import '../builder/function_signature.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/property_builder.dart';
 import '../fragment/constructor/declaration.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
@@ -143,6 +144,32 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       return _lastDeclaration.primaryConstructorInitializerScopeParameters;
     }
     return null;
+  }
+
+  void buildPrimaryConstructorFieldInitializers() {
+    List<SourcePropertyBuilder> nonLateClassInstanceFieldsWithInitializers = [];
+
+    Iterator<SourcePropertyBuilder> fieldIterator = declarationBuilder
+        .filteredMembersIterator(includeDuplicates: false);
+    while (fieldIterator.moveNext()) {
+      SourcePropertyBuilder fieldBuilder = fieldIterator.current;
+      if (fieldBuilder.hasConcreteField &&
+          declarationBuilder is SourceClassBuilder &&
+          fieldBuilder.isDeclarationInstanceMember &&
+          !fieldBuilder.isLate &&
+          fieldBuilder.hasInitializer) {
+        nonLateClassInstanceFieldsWithInitializers.add(fieldBuilder);
+      }
+    }
+    // We prepend the initializers in reversed order to preserve normal
+    // field initializer evaluation order.
+    for (SourcePropertyBuilder field
+        in nonLateClassInstanceFieldsWithInitializers.reversed) {
+      FieldInitialization? fieldInitialization = _initializedFields?[field];
+      if (fieldInitialization == null) {
+        prependInitializer(field.takePrimaryConstructorFieldInitializer());
+      }
+    }
   }
 
   // TODO(johnniwinther): Add annotations to tear-offs.
