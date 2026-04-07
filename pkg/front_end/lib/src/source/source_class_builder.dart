@@ -7,7 +7,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
-import 'package:kernel/names.dart' show equalsName;
 import 'package:kernel/reference_from_index.dart'
     show IndexedClass, IndexedLibrary;
 import 'package:kernel/src/bounds_checks.dart';
@@ -1744,7 +1743,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         ],
         localMember: localMember,
       );
-    } else if (declaredFunction?.typeParameters != null) {
+    } else if (declaredFunction?.typeParameters.isNotEmpty ?? false) {
       // Since the bound of `interfaceFunction!.parameter[i]` may have changed
       // during substitution, it can affect the nullabilities of the types in
       // the substitution map. The first parameter to
@@ -2087,16 +2086,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       DartType interfaceParameterType = interfaceParameter.type;
       if (interfaceSignatureType != null) {
         interfaceParameterType = interfaceSignatureType.positionalParameters[i];
-      }
-      if (i == 0 &&
-          declaredMember.name == equalsName &&
-          declaredParameterType ==
-              types.hierarchy.coreTypes.objectNonNullableRawType &&
-          interfaceParameter.type is DynamicType) {
-        // TODO(johnniwinther): Add check for opt-in overrides of operator ==.
-        // `operator ==` methods in opt-out classes have type
-        // `bool Function(dynamic)`.
-        continue;
       }
 
       _checkTypes(
