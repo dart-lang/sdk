@@ -60,6 +60,22 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     super.description,
   });
 
+  /// Whether to specify types (that are not return types) if they are `dynamic`.
+  ///
+  /// This requires that the `always_specify_types` lint is enabled, but the
+  /// `avoid_annotating_with_dynamic` lint is not.
+  bool get shouldWriteDynamicNonReturnTypes =>
+      _codeStyleOptions.specifyTypes &&
+      !_codeStyleOptions.avoidAnnotatingWithDynamic;
+
+  /// Whether to specify return types if they are `dynamic`.
+  ///
+  /// This requires that the `always_declare_return_types` lint is enabled, but
+  /// the `avoid_annotating_with_dynamic` lint is not.
+  bool get shouldWriteDynamicReturnTypes =>
+      _codeStyleOptions.specifyReturnTypes &&
+      !_codeStyleOptions.avoidAnnotatingWithDynamic;
+
   CodeStyleOptions get _codeStyleOptions =>
       _dartFileEditBuilder._codeStyleOptions;
 
@@ -216,7 +232,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     bool alwaysWriteType = false,
     List<TypeParameterElement>? typeParametersInScope,
   }) {
-    alwaysWriteType = alwaysWriteType || _codeStyleOptions.specifyTypes;
+    alwaysWriteType = alwaysWriteType || shouldWriteDynamicNonReturnTypes;
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -412,6 +428,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         returnType,
         groupName: returnTypeGroupName,
         typeParametersInScope: typeParametersInScope,
+        shouldWriteDynamic: shouldWriteDynamicReturnTypes,
       )) {
         write(' ');
       }
@@ -451,7 +468,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     bool alwaysWriteType = false,
     List<TypeParameterElement>? typeParametersInScope,
   }) {
-    alwaysWriteType = alwaysWriteType || _codeStyleOptions.specifyReturnTypes;
+    alwaysWriteType = alwaysWriteType || shouldWriteDynamicReturnTypes;
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -906,7 +923,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     bool alwaysWriteType = false,
     List<TypeParameterElement>? typeParametersInScope,
   }) {
-    alwaysWriteType = alwaysWriteType || _codeStyleOptions.specifyTypes;
+    alwaysWriteType = alwaysWriteType || shouldWriteDynamicNonReturnTypes;
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');

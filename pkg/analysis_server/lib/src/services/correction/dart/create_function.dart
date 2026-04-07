@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateFunction extends ResolvedCorrectionProducer {
   String _functionName = '';
@@ -42,40 +41,30 @@ class CreateFunction extends ResolvedCorrectionProducer {
     }
 
     // prepare environment
-    int insertOffset;
     var enclosingMember = node.thisOrAncestorOfType<CompilationUnitMember>();
     if (enclosingMember == null) {
       return;
     }
-    insertOffset = enclosingMember.end;
-    var type = inferUndefinedExpressionType(invocation);
-    if (type is InvalidType) {
+    var returnType = inferUndefinedExpressionType(invocation);
+    if (returnType is InvalidType) {
       return;
     }
     // Build method source.
     await builder.addDartFileEdit(file, (builder) {
       var eol = builder.eol;
       var sourcePrefix = '$eol$eol';
-      builder.addInsertion(insertOffset, (builder) {
+      builder.addInsertion(enclosingMember.end, (builder) {
         builder.write(sourcePrefix);
-        // append return type
-        if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
-          builder.write(' ');
-        }
-
-        // append name
-        builder.addLinkedEdit('NAME', (builder) {
-          builder.write(_functionName);
-        });
-        builder.write('(');
-        builder.writeParametersMatchingArguments(invocation.argumentList);
-        builder.write(')');
-        if (type?.isDartAsyncFuture == true) {
-          builder.write(' async');
-        }
-        builder.write(' {$eol}');
+        builder.writeFunctionDeclaration(
+          _functionName,
+          nameGroupName: 'NAME',
+          returnType: returnType,
+          returnTypeGroupName: 'RETURN_TYPE',
+          parameterWriter: () =>
+              builder.writeParametersMatchingArguments(invocation.argumentList),
+          bodyWriter: () => builder.write('{$eol}'),
+        );
       });
-      builder.addLinkedPosition(range.node(node), 'NAME');
     });
   }
 }
