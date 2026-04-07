@@ -38,10 +38,12 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isJSBoxedDartObject;
   final Procedure _isJSExportedDartFunction;
   final Procedure _isJSObject;
+  final Procedure _isJSUnsafeObject;
   final Procedure _isNullableJSAny;
   final Procedure _isNullableJSBoxedDartObject;
   final Procedure _isNullableJSExportedDartFunction;
   final Procedure _isNullableJSObject;
+  final Procedure _isNullableJSUnsafeObject;
   final ExtensionTypeDeclaration _jsAny;
   final ExtensionTypeDeclaration _jsFunction;
   final ExtensionTypeDeclaration _jsObject;
@@ -111,6 +113,10 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         '_isJSObject',
       ),
+      _isJSUnsafeObject = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        '_isJSUnsafeObject',
+      ),
       _isNullableJSAny = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         '_isNullableJSAny',
@@ -127,6 +133,8 @@ class SharedInteropTransformer extends Transformer {
           ),
       _isNullableJSObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSObject'),
+      _isNullableJSUnsafeObject = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isNullableJSUnsafeObject'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
         'dart:js_interop',
         'JSAny',
@@ -647,6 +655,16 @@ class SharedInteropTransformer extends Transformer {
         nullChecksNeeded = false;
         check = StaticInvocation(
           interopTypeNullable ? _isNullableJSObject : _isJSObject,
+          Arguments([VariableGet(receiverVar)]),
+        );
+        break;
+      case 'JSUnsafeObject' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
+        check = StaticInvocation(
+          interopTypeNullable ? _isNullableJSUnsafeObject : _isJSUnsafeObject,
           Arguments([VariableGet(receiverVar)]),
         );
         break;

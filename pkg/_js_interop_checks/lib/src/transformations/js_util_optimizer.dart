@@ -1450,9 +1450,11 @@ class ExtensionIndex {
     return false;
   }
 
-  bool isJSType(ExtensionTypeDeclaration decl) =>
-      decl.enclosingLibrary.importUri.toString() == 'dart:js_interop' &&
-      decl.name.startsWith('JS');
+  bool isJSType(ExtensionTypeDeclaration decl) {
+    var url = decl.enclosingLibrary.importUri.toString();
+    return (url == 'dart:js_interop' || url == 'dart:js_interop_unsafe') &&
+        decl.name.startsWith('JS');
+  }
 
   bool isExternalDartReference(ExtensionTypeDeclaration decl) =>
       decl.enclosingLibrary.importUri.toString() == 'dart:js_interop' &&
