@@ -3104,7 +3104,7 @@ class _HttpClient implements HttpClient {
       for (var header in previous.headers._headers.keys) {
         if (request.headers[header] == null &&
             (!isRedirect ||
-                shouldCopyHeaderOnRedirect(header, resolved, previous.uri))) {
+                shouldCopyHeaderOnRedirect(header, previous.uri, resolved))) {
           request.headers.set(header, previous.headers[header]!);
         }
       }
