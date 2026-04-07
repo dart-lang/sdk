@@ -3315,15 +3315,6 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
       });
 }
 
-// Return the current stack pointer address, used to stack alignment
-// checks.
-// TOS + 0: return address
-// Result in RAX.
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
-  __ leaq(RAX, Address(RSP, target::kWordSize));
-  __ ret();
-}
-
 // Jump to a frame on the call stack.
 // TOS + 0: return address
 // Arg1: program counter

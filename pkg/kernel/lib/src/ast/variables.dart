@@ -859,6 +859,7 @@ sealed class FunctionParameter extends VariableDeclaration {
   static const int FlagLowered = 1 << 7;
   static const int FlagHasDeclaredDefaultType = 1 << 8;
   static const int FlagSynthesized = 1 << 9;
+  static const int FlagErroneouslyInitialized = 1 << 10;
 
   @override
   bool get isFinal => flags & FlagFinal != 0;
@@ -958,6 +959,16 @@ sealed class FunctionParameter extends VariableDeclaration {
   }
 
   @override
+  bool get isErroneouslyInitialized => flags & FlagErroneouslyInitialized != 0;
+
+  @override
+  void set isErroneouslyInitialized(bool value) {
+    flags = value
+        ? (flags | FlagErroneouslyInitialized)
+        : (flags & ~FlagErroneouslyInitialized);
+  }
+
+  @override
   bool get isLate {
     // Function parameters can't be 'late'.
     return false;
@@ -976,16 +987,6 @@ sealed class FunctionParameter extends VariableDeclaration {
 
   @override
   void set isConst(bool value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  bool get isErroneouslyInitialized {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void set isErroneouslyInitialized(bool value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -1121,7 +1122,7 @@ class PositionalParameter extends FunctionParameter {
   bool get hasIsSuperInitializingFormal => true;
 
   @override
-  bool get hasIsErroneouslyInitialized => false;
+  bool get hasIsErroneouslyInitialized => true;
 
   @override
   int binaryOffsetNoTag = -1;
@@ -1257,7 +1258,7 @@ class NamedParameter extends FunctionParameter {
   bool get hasIsSuperInitializingFormal => true;
 
   @override
-  bool get hasIsErroneouslyInitialized => false;
+  bool get hasIsErroneouslyInitialized => true;
 
   @override
   int binaryOffsetNoTag = -1;

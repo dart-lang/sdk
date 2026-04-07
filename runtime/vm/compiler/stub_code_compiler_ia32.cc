@@ -2891,14 +2891,6 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
   __ ret();
 }
 
-// Return the current stack pointer address, used to do stack alignment checks.
-// TOS + 0: return address
-// Result in EAX.
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
-  __ leal(EAX, Address(ESP, target::kWordSize));
-  __ ret();
-}
-
 // Jump to a frame on the call stack.
 // TOS + 0: return address
 // TOS + 1: program_counter

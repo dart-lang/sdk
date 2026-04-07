@@ -1175,7 +1175,7 @@ class Resolver {
                 formal.name,
                 _createVariableGet(
                   assignedVariables: assignedVariables,
-                  variable: formal.variable as VariableDeclarationImpl,
+                  variable: formal.variable as InternalVariable,
                   fileOffset: formal.fileOffset,
                 ),
               )..fileOffset = formal.fileOffset,
@@ -1188,7 +1188,7 @@ class Resolver {
             new SuperPositionalArgument(
               _createVariableGet(
                 assignedVariables: assignedVariables,
-                variable: formal.variable as VariableDeclarationImpl,
+                variable: formal.variable as InternalVariable,
                 fileOffset: formal.fileOffset,
               ),
             ),
