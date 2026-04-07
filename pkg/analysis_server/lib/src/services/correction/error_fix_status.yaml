@@ -999,7 +999,7 @@ invalid_reference_to_generative_enum_constructor_tearoff:
   status: noFix
   since: 2.17
 invalid_reference_to_this:
-  status: noFix
+  status: hasFix
 invalid_super_formal_parameter_location:
   status: needsFix
   since: 2.17

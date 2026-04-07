@@ -71,6 +71,29 @@ class A {
 ''');
   }
 
+  Future<void> test_invalidReferenceToThis() async {
+    await resolveTestCode('''
+class A {
+  B b = B(this);
+}
+
+class B {
+  A a;
+  B(this.a);
+}
+''');
+    await assertHasFix('''
+class A {
+  late B b = B(this);
+}
+
+class B {
+  A a;
+  B(this.a);
+}
+''');
+  }
+
   Future<void> test_type_implicitThis() async {
     await resolveTestCode('''
 class A {
