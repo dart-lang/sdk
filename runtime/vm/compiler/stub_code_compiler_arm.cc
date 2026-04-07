@@ -2973,12 +2973,6 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
       });
 }
 
-// Return the current stack pointer address, used to do stack alignment checks.
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
-  __ mov(R0, Operand(SP));
-  __ Ret();
-}
-
 // Jump to a frame on the call stack.
 // LR: return address.
 // R0: program_counter.

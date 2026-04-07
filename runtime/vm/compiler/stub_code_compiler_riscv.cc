@@ -2868,11 +2868,6 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
       });
 }
 
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
-  __ mv(A0, SP);
-  __ ret();
-}
-
 // Jump to a frame on the call stack.
 // RA: return address.
 // A0: program_counter.
