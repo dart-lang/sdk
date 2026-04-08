@@ -900,6 +900,10 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
     if (method != null) {
       return method.body;
     }
+    var constructorBody = node.thisOrAncestorOfType<PrimaryConstructorBody>();
+    if (constructorBody != null) {
+      return constructorBody.body;
+    }
     return null;
   }
 
