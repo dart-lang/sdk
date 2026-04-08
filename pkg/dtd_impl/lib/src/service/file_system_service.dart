@@ -66,13 +66,16 @@ class FileSystemService extends InternalService {
     _ideWorkspaceRoots.clear();
   }
 
-  void _ensureIDEWorkspaceRootsContainUri(Uri uri) {
+  Future<void> _ensureIDEWorkspaceRootsContainUri(Uri uri) async {
     // If in unrestricted mode, no need to do these checks.
     if (unrestrictedMode) return;
 
-    final requestedPath = uri.toFilePath();
-    if (_ideWorkspaceRoots.any((root) {
-      final rootPath = root.toFilePath();
+    final requestedPath = await _resolveNearestExistingPath(uri.toFilePath());
+    final resolvedWorkspaceRoots = await Future.wait(
+      _ideWorkspaceRoots.map(_resolveWorkspaceRootPath),
+    );
+
+    if (resolvedWorkspaceRoots.any((rootPath) {
       return path.isWithin(rootPath, requestedPath) ||
           path.equals(rootPath, requestedPath);
     })) {
@@ -80,6 +83,46 @@ class FileSystemService extends InternalService {
     }
 
     throw RpcErrorCodes.buildRpcException(RpcErrorCodes.kPermissionDenied);
+  }
+
+  Future<String> _resolveWorkspaceRootPath(Uri root) async {
+    final rootPath = root.toFilePath();
+    final type = await FileSystemEntity.type(rootPath, followLinks: true);
+    if (type == FileSystemEntityType.file) {
+      return File(rootPath).resolveSymbolicLinks();
+    }
+    if (type == FileSystemEntityType.directory) {
+      return Directory(rootPath).resolveSymbolicLinks();
+    }
+    if (type == FileSystemEntityType.link) {
+      return Link(rootPath).resolveSymbolicLinks();
+    }
+    return path.normalize(rootPath);
+  }
+
+  Future<String> _resolveNearestExistingPath(String requestedPath) async {
+    var currentPath = requestedPath;
+    while (true) {
+      final type = await FileSystemEntity.type(currentPath, followLinks: true);
+      if (type != FileSystemEntityType.notFound) {
+        if (type == FileSystemEntityType.file) {
+          return File(currentPath).resolveSymbolicLinks();
+        }
+        if (type == FileSystemEntityType.directory) {
+          return Directory(currentPath).resolveSymbolicLinks();
+        }
+        if (type == FileSystemEntityType.link) {
+          return Link(currentPath).resolveSymbolicLinks();
+        }
+        throw StateError('Unexpected file system entity type: $type');
+      }
+
+      final parentPath = path.dirname(currentPath);
+      if (path.equals(parentPath, currentPath)) {
+        return path.normalize(currentPath);
+      }
+      currentPath = parentPath;
+    }
   }
 
   Map<String, Object?> _setIDEWorkspaceRoots(Parameters parameters) {
@@ -157,7 +200,7 @@ class FileSystemService extends InternalService {
 
   Future<Map<String, Object?>> _readFileAsString(Parameters parameters) async {
     final uri = _extractUri(parameters);
-    _ensureIDEWorkspaceRootsContainUri(uri);
+    await _ensureIDEWorkspaceRootsContainUri(uri);
     final file = File.fromUri(uri);
 
     if (!(await file.exists())) {
@@ -187,7 +230,7 @@ class FileSystemService extends InternalService {
       parameters[DtdParameters.encoding].asString,
     )!;
 
-    _ensureIDEWorkspaceRootsContainUri(uri);
+    await _ensureIDEWorkspaceRootsContainUri(uri);
     final file = File.fromUri(uri);
     if (!(await file.exists())) {
       await file.create(recursive: true);
@@ -202,7 +245,7 @@ class FileSystemService extends InternalService {
     Parameters parameters,
   ) async {
     final uri = _extractUri(parameters);
-    _ensureIDEWorkspaceRootsContainUri(uri);
+    await _ensureIDEWorkspaceRootsContainUri(uri);
     final dir = Directory.fromUri(uri);
     if (!(await dir.exists())) {
       throw RpcErrorCodes.buildRpcException(
