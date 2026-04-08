@@ -1,6 +1,6 @@
-## 0.14.8-dev
+## 0.14.8
 
-- Require version `12.1.0-dev` of the `analyzer` package.
+- Require version `12.1.0` of the `analyzer` package.
 
 ## 0.14.7
 
